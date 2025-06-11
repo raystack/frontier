@@ -1,14 +1,20 @@
 import {
-  Dialog,
+  Button,
+  Checkbox,
+  Separator,
+  Skeleton,
+  Image,
+  Text,
+  Flex,
+  toast,
   InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton, Image, Text, Flex, toast } from '@raystack/apsara/v1';
+  Dialog
+} from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -32,7 +38,8 @@ export const DeleteDomain = () => {
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(domainSchema)
   });
@@ -49,8 +56,11 @@ export const DeleteDomain = () => {
 
     try {
       setIsLoading(true);
-      const res = await client?.frontierServiceGetOrganizationDomain(organization?.id, domainId);
-      const domain = res?.data.domain
+      const res = await client?.frontierServiceGetOrganizationDomain(
+        organization?.id,
+        domainId
+      );
+      const domain = res?.data.domain;
       setDomain(domain);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -91,91 +101,72 @@ export const DeleteDomain = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
-      >
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large" weight="medium">
-            Verify domain deletion
-          </Text>
-          <Image
-            alt="cross"
-            src={cross as unknown as string}
+      <Dialog.Content width={600} overlayClassname={styles.overlay}>
+        <Dialog.Header>
+          <Dialog.Title>Verify domain deletion</Dialog.Title>
+          <Dialog.CloseButton
             onClick={() =>
               navigate({
                 to: `/domains`
               })
             }
-            style={{ cursor: 'pointer' }}
             data-test-id="frontier-sdk-delete-domain-close-btn"
           />
-        </Flex>
-        <Separator />
+        </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex
-            direction="column"
-            gap={5}
-            style={{ padding: '24px 32px' }}
-          >
-            {isLoading ? (
-              <>
-                <Skeleton height={'16px'} />
-                <Skeleton width={'50%'} height={'16px'} />
-                <Skeleton height={'32px'} />
-                <Skeleton height={'16px'} />
-                <Skeleton height={'32px'} />
-              </>
-            ) : (
-              <>
-                <Text size="small">
-                  This action can not be undone. This will permanently delete{' '}
-                  <b>{domain?.name}</b>.
-                </Text>
+          <Dialog.Body>
+            <Flex direction="column" gap={5}>
+              {isLoading ? (
+                <>
+                  <Skeleton height={'16px'} />
+                  <Skeleton width={'50%'} height={'16px'} />
+                  <Skeleton height={'32px'} />
+                  <Skeleton height={'16px'} />
+                  <Skeleton height={'32px'} />
+                </>
+              ) : (
+                <>
+                  <Text size="small">
+                    This action can not be undone. This will permanently delete{' '}
+                    <b>{domain?.name}</b>.
+                  </Text>
 
-                <InputField label="Please type the domain name">
-                  <Controller
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        // @ts-ignore
-                        size="medium"
-                        placeholder="Provide domain name"
-                      />
-                    )}
-                    control={control}
-                    name="domain"
+                  <InputField
+                    label="Please type the domain name"
+                    size="large"
+                    error={errors.domain && String(errors.domain?.message)}
+                    {...register('domain')}
+                    placeholder="Provide domain name"
                   />
 
-                  <Text size="mini" variant="danger">
-                    {errors.domain && String(errors.domain?.message)}
-                  </Text>
-                </InputField>
-                <Flex gap={3}>
-                  <Checkbox
-                    checked={isAcknowledged}
-                    onCheckedChange={v => setIsAcknowledged(v === true)}
-                    data-test-id="frontier-sdk-delete-domain-checkbox" />
-                  <Text size="small">
-                    I acknowledge I understand that all of the team data will be
-                    deleted and want to proceed.
-                  </Text>
-                </Flex>
-                <Button
-                  variant="solid"
-                  color="danger"
-                  disabled={!domainName || !isAcknowledged}
-                  type="submit"
-                  style={{ width: '100%' }}
-                  loading={isSubmitting}
-                  loaderText="Deleting..."
-                  data-test-id="frontier-sdk-delete-domain-btn"
-                >
-                  Delete this domain
-                </Button>
-              </>
-            )}
-          </Flex>
+                  <Flex gap="small">
+                    <Checkbox
+                      checked={isAcknowledged}
+                      onCheckedChange={v => setIsAcknowledged(v === true)}
+                      data-test-id="frontier-sdk-delete-domain-checkbox"
+                    />
+                    <Text size="small">
+                      I acknowledge I understand that all of the team data will
+                      be deleted and want to proceed.
+                    </Text>
+                  </Flex>
+
+                  <Button
+                    variant="solid"
+                    color="danger"
+                    disabled={!domainName || !isAcknowledged}
+                    type="submit"
+                    style={{ width: '100%' }}
+                    loading={isSubmitting}
+                    loaderText="Deleting..."
+                    data-test-id="frontier-sdk-delete-domain-btn"
+                  >
+                    Delete this domain
+                  </Button>
+                </>
+              )}
+            </Flex>
+          </Dialog.Body>
         </form>
       </Dialog.Content>
     </Dialog>

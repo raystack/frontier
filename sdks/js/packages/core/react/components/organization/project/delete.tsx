@@ -1,4 +1,3 @@
-import { InputField, TextField } from '@raystack/apsara';
 import {
   Button,
   Checkbox,
@@ -8,13 +7,14 @@ import {
   Image,
   Text,
   Flex,
-  Dialog
+  Dialog,
+  InputField
 } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project } from '~/src';
@@ -30,10 +30,10 @@ const projectSchema = yup
 export const DeleteProject = () => {
   const {
     watch,
-    control,
     setError,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(projectSchema)
   });
@@ -93,7 +93,7 @@ export const DeleteProject = () => {
       >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size="large" weight="medium">
+            <Text size={6} style={{ fontWeight: '500' }}>
               Verify project deletion
             </Text>
             <Image
@@ -108,10 +108,13 @@ export const DeleteProject = () => {
           </Flex>
           <Separator />
         </Dialog.Header>
-
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
+            <Flex
+              direction="column"
+              gap="medium"
+              style={{ padding: '24px 32px' }}
+            >
               {isProjectLoading ? (
                 <>
                   <Skeleton height={'16px'} />
@@ -122,36 +125,26 @@ export const DeleteProject = () => {
                 </>
               ) : (
                 <>
-                  <Text size="small">
+                  <Text size={2}>
                     This action can not be undone. This will permanently delete
                     project <b>{project?.title}</b>.
                   </Text>
 
-                  <InputField label="Please type name of the project to confirm.">
-                    <Controller
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          // @ts-ignore
-                          size="medium"
-                          placeholder="Provide project name"
-                        />
-                      )}
-                      control={control}
-                      name="name"
-                    />
+                  <InputField
+                    label="Please type name of the project to confirm."
+                    size="large"
+                    error={errors.name && String(errors.name?.message)}
+                    {...register('name')}
+                    placeholder="Provide project name"
+                  />
 
-                    <Text size="mini" variant="danger">
-                      {errors.name && String(errors.name?.message)}
-                    </Text>
-                  </InputField>
-                  <Flex gap={3}>
+                  <Flex gap="small">
                     <Checkbox
                       checked={isAcknowledged}
                       onCheckedChange={v => setIsAcknowledged(v === true)}
                       data-test-id="frontier-sdk-delete-project-checkbox"
                     />
-                    <Text size="small">
+                    <Text size={2}>
                       I acknowledge I understand that all of the project data
                       will be deleted and want to proceed.
                     </Text>
@@ -171,6 +164,7 @@ export const DeleteProject = () => {
                 </>
               )}
             </Flex>
+            <Separator />
           </form>
         </Dialog.Body>
       </Dialog.Content>

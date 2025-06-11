@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { InputField } from '@raystack/apsara';
 import {
   Button,
   Separator,
@@ -9,7 +8,8 @@ import {
   Text,
   Flex,
   Dialog,
-  Select
+  Select,
+  Label
 } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -197,11 +197,15 @@ export const InviteTeamMembers = () => {
           </Flex>
           <Separator />
         </Dialog.Header>
-
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
-              <InputField label="Members">
+            <Flex
+              direction="column"
+              gap="medium"
+              style={{ padding: '24px 32px' }}
+            >
+              <Flex direction="column" gap={2}>
+                <Label>Members</Label>
                 {isUserLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
@@ -241,8 +245,9 @@ export const InviteTeamMembers = () => {
                 <Text size="mini" variant="danger">
                   {errors.userId && String(errors.userId?.message)}
                 </Text>
-              </InputField>
-              <InputField label="Invite as">
+              </Flex>
+              <Flex direction="column" gap={2}>
+                <Label>Invite as</Label>
                 {isRolesLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
@@ -262,7 +267,7 @@ export const InviteTeamMembers = () => {
                               </Text>
                             )}
                             {roles.map(role => (
-                              <Select.Item value={role.id || ''} key={role.id}>
+                              <Select.Item value={role.id} key={role.id}>
                                 {role.title || role.name}
                               </Select.Item>
                             ))}
@@ -277,7 +282,7 @@ export const InviteTeamMembers = () => {
                 <Text size="mini" variant="danger">
                   {errors.role && String(errors.role?.message)}
                 </Text>
-              </InputField>
+              </Flex>
               <Separator />
               <Flex justify="end">
                 <Button

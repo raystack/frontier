@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TextField } from '@raystack/apsara';
-import { Button, Text, Separator, Flex } from '@raystack/apsara/v1';
+import { Button, Text, Separator, Flex, InputField } from '@raystack/apsara/v1';
 import React, { useCallback, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -49,9 +48,9 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
 
   const {
     watch,
-    control,
     handleSubmit,
     setError,
+    register,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(emailSchema)
@@ -121,19 +120,11 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
           marginBottom: 'var(--rs-space-5)'
         }}
       >
-        <Controller
-          render={({ field }) => (
-            <TextField
-              {...field}
-              // @ts-ignore
-              size="medium"
-              placeholder="name@example.com"
-            />
-          )}
-          control={control}
-          name="email"
+        <InputField
+          {...register('email')}
+          size="large"
+          placeholder="name@example.com"
         />
-
         <Text
           size="mini"
           variant="danger"

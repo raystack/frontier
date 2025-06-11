@@ -1,4 +1,3 @@
-import { InputField, TextField } from '@raystack/apsara';
 import {
   Button,
   Separator,
@@ -6,12 +5,13 @@ import {
   Text,
   Flex,
   toast,
-  Dialog
+  Dialog,
+  InputField
 } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import cross from '~/react/assets/cross.svg';
@@ -30,7 +30,7 @@ type FormData = yup.InferType<typeof domainSchema>;
 
 export const AddDomain = () => {
   const {
-    control,
+    register,
     handleSubmit,
     formState: { errors, isSubmitting }
   } = useForm({
@@ -90,23 +90,14 @@ export const AddDomain = () => {
 
           <Dialog.Body>
             <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
-              <InputField label="Domain name">
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      size="medium"
-                      placeholder="Provide domain name"
-                    />
-                  )}
-                  control={control}
-                  name="domain"
-                />
-
-                <Text size="mini" variant="danger">
-                  {errors.domain && String(errors.domain?.message)}
-                </Text>
-              </InputField>
+              <InputField
+                label="Domain name"
+                size="large"
+                error={errors.domain && String(errors.domain?.message)}
+                {...register('domain')}
+                name="domain"
+                placeholder="Provide domain name"
+              />
             </Flex>
             <Separator />
           </Dialog.Body>

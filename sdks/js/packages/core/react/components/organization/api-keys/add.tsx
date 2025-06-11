@@ -1,4 +1,3 @@
-import { InputField, TextField } from '@raystack/apsara';
 import {
   Button,
   Flex,
@@ -8,7 +7,9 @@ import {
   Image,
   Skeleton,
   Dialog,
-  Select
+  InputField,
+  Select,
+  Label
 } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
@@ -41,6 +42,7 @@ export const AddServiceAccount = () => {
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
 
   const {
+    register,
     control,
     handleSubmit,
     formState: { errors, isSubmitting }
@@ -136,10 +138,9 @@ export const AddServiceAccount = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
             <Flex justify="between" className={styles.addDialogForm}>
-              <Text size="large" weight="medium">
+              <Text size={6} weight={500}>
                 New Service Account
               </Text>
-
               <Image
                 alt="cross"
                 style={{ cursor: 'pointer' }}
@@ -161,28 +162,19 @@ export const AddServiceAccount = () => {
                 Create a dedicated service account to facilitate secure API
                 interactions on behalf of the organization.
               </Text>
-
-              <InputField label="Name">
-                {isLoading ? (
-                  <Skeleton height={'25px'} />
-                ) : (
-                  <Controller
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        size="medium"
-                        placeholder="Provide service account name"
-                      />
-                    )}
-                    name="title"
-                    control={control}
-                  />
-                )}
-                <Text size="mini" variant="danger">
-                  {errors.title && String(errors.title?.message)}
-                </Text>
-              </InputField>
-              <InputField label="Project">
+              {isLoading ? (
+                <Skeleton height={'25px'} />
+              ) : (
+                <InputField
+                  label="Name"
+                  {...register('title')}
+                  size="medium"
+                  placeholder="Provide service account name"
+                  error={errors.title && String(errors.title?.message)}
+                />
+              )}
+              <Flex direction="column" gap={2}>
+                <Label>Project</Label>
                 {isLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
@@ -218,7 +210,7 @@ export const AddServiceAccount = () => {
                 <Text size="mini" variant="danger">
                   {errors.project_id && String(errors.project_id?.message)}
                 </Text>
-              </InputField>
+              </Flex>
             </Flex>
           </Dialog.Body>
 

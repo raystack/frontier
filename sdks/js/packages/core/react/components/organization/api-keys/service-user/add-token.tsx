@@ -1,10 +1,9 @@
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback } from 'react';
-import { Flex, toast, Text, Button } from '@raystack/apsara/v1';
-import { TextField } from '@raystack/apsara';
+import { Flex, toast, Button, InputField } from '@raystack/apsara/v1';
 import { V1Beta1ServiceUserToken } from '~/api-client';
 import styles from './styles.module.css';
 
@@ -25,7 +24,7 @@ export default function AddServiceUserToken({
 }) {
   const { client, activeOrganization } = useFrontier();
   const {
-    control,
+    register,
     handleSubmit,
     formState: { errors, isSubmitting }
   } = useForm({
@@ -63,20 +62,12 @@ export default function AddServiceUserToken({
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex gap={3}>
         <Flex className={styles.addKeyInputWrapper} direction="column">
-          <Controller
-            render={({ field }) => (
-              <TextField
-                {...field}
-                size={'medium'}
-                placeholder="Provide service key name"
-              />
-            )}
-            name="title"
-            control={control}
+          <InputField
+            {...register('title')}
+            size="large"
+            placeholder="Provide service key name"
+            error={errors.title && String(errors.title?.message)}
           />
-          <Text size="mini" variant="danger" className={styles.addKeyInputError}>
-            {errors.title && String(errors.title?.message)}
-          </Text>
         </Flex>
         <Button
           data-test-id="frontier-sdk-api-keys-new-token-btn"

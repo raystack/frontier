@@ -1,5 +1,4 @@
 import type React from 'react';
-import { TextField } from '@raystack/apsara';
 import {
   Button,
   EmptyState,
@@ -11,15 +10,16 @@ import {
   Text,
   Flex,
   DataTable,
-  Popover
+  Popover,
+  InputField
 } from '@raystack/apsara/v1';
 import { Link, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   MagnifyingGlassIcon,
-  PaperPlaneIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  PaperPlaneIcon
 } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -267,8 +267,8 @@ const AddMemberDropdown = ({
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" className={styles.popoverContent}>
-        <TextField
-          // @ts-ignore
+        <InputField
+          data-test-id="frontier-sdk-add-project-member-textfield"
           leading={
             <MagnifyingGlassIcon
               style={{ color: 'var(--rs-color-foreground-base-primary)' }}
@@ -278,7 +278,6 @@ const AddMemberDropdown = ({
           placeholder="Add team member"
           className={styles.inviteDropdownSearch}
           onChange={onTextChange}
-          data-test-id="frontier-sdk-add-member-search"
         />
         <Separator />
 

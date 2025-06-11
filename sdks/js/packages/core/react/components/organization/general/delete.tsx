@@ -1,4 +1,3 @@
-import { InputField, TextField } from '@raystack/apsara';
 import {
   Button,
   Checkbox,
@@ -7,12 +6,13 @@ import {
   Image,
   Text,
   Flex,
-  Dialog
+  Dialog,
+  InputField
 } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -30,10 +30,10 @@ const orgSchema = yup
 export const DeleteOrganization = () => {
   const {
     watch,
-    control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(orgSchema)
   });
@@ -63,57 +63,32 @@ export const DeleteOrganization = () => {
   const name = watch('name', '');
   return (
     <Dialog open={true}>
-      <Dialog.Content
-        overlayClassName={styles.overlay}
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-      >
+      <Dialog.Content overlayClassName={styles.overlay} width={600}>
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size="large" weight="medium">
-              Verify organization deletion
-            </Text>
-
-            <Image
-              className={styles.deleteIcon}
-              alt="cross"
-              style={{ cursor: 'pointer' }}
-              src={cross as unknown as string}
-              onClick={() => navigate({ to: '/' })}
-              data-test-id="frontier-sdk-delete-organization-close-btn"
-            />
-          </Flex>
-          <Separator />
+          <Dialog.Title>Verify organization deletion</Dialog.Title>
+          <Dialog.CloseButton
+            onClick={() => navigate({ to: '/' })}
+            data-test-id="frontier-sdk-delete-organization-close-btn"
+          />
         </Dialog.Header>
-
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
-            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
+            <Flex direction="column" gap={5}>
               <Text size="small">
                 This action <b>can not</b> be undone. This will permanently
                 delete all the projects and resources in{' '}
                 <b>{organization?.title}</b>.
               </Text>
-
-              <InputField label="Please type name of the organization to confirm.">
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      size="medium"
-                      placeholder="Provide organization name"
-                    />
-                  )}
-                  control={control}
-                  name="name"
-                />
-
-                <Text size="mini" variant="danger">
-                  {errors.name && String(errors.name?.message)}
-                </Text>
-              </InputField>
+              <InputField
+                label="Please type name of the organization to confirm."
+                size="large"
+                error={errors.name && String(errors.name?.message)}
+                {...register('name')}
+                placeholder="Provide organization name"
+              />
             </Flex>
           </Dialog.Body>
-          <Dialog.Footer>
+          <Dialog.Footer className={styles.deleteFooter}>
             <Flex gap={3}>
               <Checkbox
                 checked={isAcknowledged}
