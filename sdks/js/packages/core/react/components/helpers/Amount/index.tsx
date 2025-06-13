@@ -22,6 +22,9 @@ const currencyDecimalMap: Record<string, number> = {
 
 const DEFAULT_DECIMAL = 0;
 
+/*
+ * @deprecated Use Amount component from @raystack/apsara/v1 instead.
+ */
 export default function Amount({
   currency = 'usd',
   value = 0,
