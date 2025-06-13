@@ -329,10 +329,6 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1beta1RQLRequest'
-        - name: id
-          in: query
-          required: false
-          type: string
       tags:
         - invoice
   /v1beta1/admin/organizations:

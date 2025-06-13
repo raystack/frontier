@@ -14193,17 +14193,6 @@ func (m *SearchInvoicesRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 3 {
-		err := SearchInvoicesRequestValidationError{
-			field:  "Id",
-			reason: "value length must be at least 3 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if all {
 		switch v := interface{}(m.GetQuery()).(type) {
 		case interface{ ValidateAll() error }:
