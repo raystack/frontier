@@ -290,6 +290,51 @@ paths:
           type: string
       tags:
         - Group
+  /v1beta1/admin/invoices/search:
+    post:
+      summary: Search invoices across all organizations
+      operationId: AdminService_SearchInvoices
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchInvoicesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+        - name: id
+          in: query
+          required: false
+          type: string
+      tags:
+        - invoice
   /v1beta1/admin/organizations:
     get:
       summary: List all organizations
@@ -11736,6 +11781,46 @@ definitions:
 
       Use of this type only changes how the request and response bodies are
       handled, all other features will continue to work unchanged.
+  frontierv1beta1Invoice:
+    type: object
+    properties:
+      id:
+        type: string
+      customer_id:
+        type: string
+      provider_id:
+        type: string
+      state:
+        type: string
+      currency:
+        type: string
+      amount:
+        type: string
+        format: int64
+      hosted_url:
+        type: string
+      due_date:
+        type: string
+        format: date-time
+        title: The date on which payment for this invoice is due
+      effective_at:
+        type: string
+        format: date-time
+        description: The date when this invoice is in effect.
+      period_start_at:
+        type: string
+        format: date-time
+      period_end_at:
+        type: string
+        format: date-time
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+      customer:
+        $ref: '#/definitions/v1beta1BillingAccount'
+        readOnly: true
   frontierv1beta1OrganizationRequestBody:
     type: object
     properties:
@@ -12991,7 +13076,7 @@ definitions:
     type: object
     properties:
       invoice:
-        $ref: '#/definitions/v1beta1Invoice'
+        $ref: '#/definitions/frontierv1beta1Invoice'
         title: Upcoming invoice
   v1beta1GetUserResponse:
     type: object
@@ -13095,46 +13180,6 @@ definitions:
         items:
           type: string
         description: The list of role ids to which the user is invited in an organization.
-  v1beta1Invoice:
-    type: object
-    properties:
-      id:
-        type: string
-      customer_id:
-        type: string
-      provider_id:
-        type: string
-      state:
-        type: string
-      currency:
-        type: string
-      amount:
-        type: string
-        format: int64
-      hosted_url:
-        type: string
-      due_date:
-        type: string
-        format: date-time
-        title: The date on which payment for this invoice is due
-      effective_at:
-        type: string
-        format: date-time
-        description: The date when this invoice is in effect.
-      period_start_at:
-        type: string
-        format: date-time
-      period_end_at:
-        type: string
-        format: date-time
-      metadata:
-        type: object
-      created_at:
-        type: string
-        format: date-time
-      customer:
-        $ref: '#/definitions/v1beta1BillingAccount'
-        readOnly: true
   v1beta1JSONWebKey:
     type: object
     properties:
@@ -13196,7 +13241,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Invoice'
+          $ref: '#/definitions/frontierv1beta1Invoice'
       count:
         type: integer
         format: int32
@@ -13356,7 +13401,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Invoice'
+          $ref: '#/definitions/frontierv1beta1Invoice'
         title: List of invoices
   v1beta1ListMetaSchemasResponse:
     type: object
@@ -14646,6 +14691,41 @@ definitions:
         type: array
         items:
           type: string
+  v1beta1SearchInvoicesResponse:
+    type: object
+    properties:
+      invoices:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1SearchInvoicesResponseInvoice'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
+  v1beta1SearchInvoicesResponseInvoice:
+    type: object
+    properties:
+      id:
+        type: string
+      amount:
+        type: string
+        format: int64
+      currency:
+        type: string
+      state:
+        type: string
+      invoice_link:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      org_id:
+        type: string
+      org_name:
+        type: string
+      org_title:
+        type: string
   v1beta1SearchOrganizationInvoicesResponse:
     type: object
     properties:
