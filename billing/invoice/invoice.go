@@ -12,6 +12,7 @@ import (
 var (
 	ErrNotFound      = fmt.Errorf("invoice not found")
 	ErrInvalidDetail = fmt.Errorf("invalid invoice detail")
+	ErrBadInput      = fmt.Errorf("invalid input")
 )
 
 const (
@@ -61,6 +62,18 @@ type Invoice struct {
 
 	Items    []Item
 	Metadata metadata.Metadata
+}
+
+type InvoiceWithOrganization struct {
+	ID          string
+	Amount      int64
+	Currency    string
+	State       State
+	InvoiceLink string
+	CreatedAt   time.Time
+	OrgID       string
+	OrgName     string
+	OrgTitle    string
 }
 
 type ItemType string

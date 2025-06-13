@@ -22,6 +22,7 @@ import (
 	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/rql"
 	"go.uber.org/zap"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -42,6 +43,7 @@ type Repository interface {
 	List(ctx context.Context, filter Filter) ([]Invoice, error)
 	UpdateByID(ctx context.Context, invoice Invoice) (Invoice, error)
 	Delete(ctx context.Context, id string) error
+	Search(ctx context.Context, rqlQuery *rql.Query) ([]InvoiceWithOrganization, error)
 }
 
 type CustomerService interface {
@@ -774,4 +776,8 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 		return ErrNotFound
 	}
 	return s.SyncWithProvider(ctx, customrs[0])
+}
+
+func (s *Service) SearchInvoices(ctx context.Context, rqlQuery *rql.Query) ([]InvoiceWithOrganization, error) {
+	return s.repository.Search(ctx, rqlQuery)
 }

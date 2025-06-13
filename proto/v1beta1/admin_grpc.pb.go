@@ -73,6 +73,7 @@ const (
 	AdminService_GetProspect_FullMethodName                              = "/raystack.frontier.v1beta1.AdminService/GetProspect"
 	AdminService_UpdateProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/UpdateProspect"
 	AdminService_DeleteProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/DeleteProspect"
+	AdminService_SearchInvoices_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/SearchInvoices"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -160,6 +161,7 @@ type AdminServiceClient interface {
 	GetProspect(ctx context.Context, in *GetProspectRequest, opts ...grpc.CallOption) (*GetProspectResponse, error)
 	UpdateProspect(ctx context.Context, in *UpdateProspectRequest, opts ...grpc.CallOption) (*UpdateProspectResponse, error)
 	DeleteProspect(ctx context.Context, in *DeleteProspectRequest, opts ...grpc.CallOption) (*DeleteProspectResponse, error)
+	SearchInvoices(ctx context.Context, in *SearchInvoicesRequest, opts ...grpc.CallOption) (*SearchInvoicesResponse, error)
 }
 
 type adminServiceClient struct {
@@ -763,6 +765,15 @@ func (c *adminServiceClient) DeleteProspect(ctx context.Context, in *DeleteProsp
 	return out, nil
 }
 
+func (c *adminServiceClient) SearchInvoices(ctx context.Context, in *SearchInvoicesRequest, opts ...grpc.CallOption) (*SearchInvoicesResponse, error) {
+	out := new(SearchInvoicesResponse)
+	err := c.cc.Invoke(ctx, AdminService_SearchInvoices_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -848,6 +859,7 @@ type AdminServiceServer interface {
 	GetProspect(context.Context, *GetProspectRequest) (*GetProspectResponse, error)
 	UpdateProspect(context.Context, *UpdateProspectRequest) (*UpdateProspectResponse, error)
 	DeleteProspect(context.Context, *DeleteProspectRequest) (*DeleteProspectResponse, error)
+	SearchInvoices(context.Context, *SearchInvoicesRequest) (*SearchInvoicesResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -1013,6 +1025,9 @@ func (UnimplementedAdminServiceServer) UpdateProspect(context.Context, *UpdatePr
 }
 func (UnimplementedAdminServiceServer) DeleteProspect(context.Context, *DeleteProspectRequest) (*DeleteProspectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProspect not implemented")
+}
+func (UnimplementedAdminServiceServer) SearchInvoices(context.Context, *SearchInvoicesRequest) (*SearchInvoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchInvoices not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -1996,6 +2011,24 @@ func _AdminService_DeleteProspect_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_SearchInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SearchInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SearchInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SearchInvoices(ctx, req.(*SearchInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2194,6 +2227,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProspect",
 			Handler:    _AdminService_DeleteProspect_Handler,
+		},
+		{
+			MethodName: "SearchInvoices",
+			Handler:    _AdminService_SearchInvoices_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

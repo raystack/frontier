@@ -965,6 +965,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.AdminService/SearchUserProjects": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
+	"/raystack.frontier.v1beta1.AdminService/SearchInvoices": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
 	"/raystack.frontier.v1beta1.AdminService/ExportOrganizations": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
