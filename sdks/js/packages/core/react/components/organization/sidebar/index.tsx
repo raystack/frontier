@@ -91,7 +91,7 @@ export const Sidebar = () => {
   );
 
   return (
-    <SidebarComponent open={true} className={styles.sidebarWrapper}>
+    <SidebarComponent open={true} className={styles.sidebarWrapper} disableResize>
       <div className={styles.scrollArea}>
         <Flex direction="column" gap={7} style={{ marginTop: '40px' }}>
           <InputField
