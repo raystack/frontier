@@ -92,18 +92,6 @@ export const Sidebar = () => {
     <SidebarComponent open={true} className={styles.sidebarWrapper} disableResize>
       <div className={styles.scrollArea}>
         <Flex direction="column" gap={4} style={{ marginTop: '64px' }}>
-          {/* <InputField
-            size="large"
-            leadingIcon={
-              <MagnifyingGlassIcon
-                style={{ color: 'var(--rs-color-foreground-base-primary)' }}
-              />
-            }
-            placeholder="Search"
-            onChange={event => setSearch(event.target.value)}
-            data-test-id="frontier-sdk-sidebar-search-field"
-          /> */}
-
           <Search
             size="large"
             value={search}
