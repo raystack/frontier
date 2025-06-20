@@ -180,8 +180,6 @@ const TeamsTable = ({
               disabled={canCreateGroup}
             >
               <Button
-                variant="solid"
-                color="accent"
                 style={{ width: 'fit-content', height: '100%' }}
                 disabled={!canCreateGroup}
                 onClick={() => navigate({ to: '/teams/modal' })}

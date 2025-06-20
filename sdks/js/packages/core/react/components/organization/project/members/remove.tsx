@@ -60,7 +60,7 @@ export const RemoveProjectMember = () => {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '400px', width: '100%' }}
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>

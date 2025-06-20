@@ -176,7 +176,7 @@ export const InviteTeamMembers = () => {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
