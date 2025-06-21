@@ -1,4 +1,4 @@
-import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast, Link } from '@raystack/apsara/v1';
 import { styles } from '../styles';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -35,14 +35,15 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
             <>
               {' '}
               For more details, contact{' '}
-              <a
+              <Link
+                size="regular"
                 href={`mailto:${billingSupportEmail}`}
-                target="_blank"
-                style={{ fontWeight: 'var(--rs-font-weight-regular)', color: 'var(--rs-color-foreground-accent-primary)' }}
                 data-test-id="frontier-sdk-billing-email-link"
+                external
+                style={{ textDecoration: 'none' }}
               >
                 {billingSupportEmail}
-              </a>
+              </Link>
             </>
           ) : null}
         </Text>
