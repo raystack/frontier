@@ -109,7 +109,7 @@ export const UpdateProfile = () => {
                 label="Email Address"
                 size="large"
                 error={errors.email && String(errors.email?.message)}
-                value={user?.name || ''}
+                value={user?.email || ''}
                 type="email"
                 placeholder="Provide email address"
                 {...register('email')}
