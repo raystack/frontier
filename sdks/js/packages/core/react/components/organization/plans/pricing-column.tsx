@@ -397,11 +397,11 @@ export const PlanPricingColumn = ({
               className={plansStyles.planActionBtn}
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}
+              loading={isLoading && !isTrialCheckoutLoading}
+              loaderText={`${action.btnLoadingLabel}...`}
               data-test-id={`frontier-sdk-plan-action-button-${plan?.slug}`}
             >
-              {isLoading && !isTrialCheckoutLoading
-                ? `${action.btnLoadingLabel}....`
-                : action.btnLabel}
+              {action.btnLabel}
             </Button>
           ) : null}
           <PlanIntervals
