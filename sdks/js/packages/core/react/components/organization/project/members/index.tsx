@@ -295,7 +295,7 @@ const AddMemberDropdown = ({
     <Popover>
       <Popover.Trigger asChild>
         <Button
-          size="small"
+          size="normal"
           style={{ width: 'fit-content', display: 'flex' }}
           data-test-id="frontier-sdk-add-project-member-btn"
           disabled={!canUpdateProject}

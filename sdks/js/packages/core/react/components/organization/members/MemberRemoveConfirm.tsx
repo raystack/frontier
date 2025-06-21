@@ -51,7 +51,7 @@ const MemberRemoveConfirm = () => {
   return (
     <Dialog open={true} onOpenChange={() => navigate({ to: '/members' })}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>

@@ -288,7 +288,9 @@ export const PlanPricingColumn = ({
         disabled: true,
         btnLabel: 'Current Plan',
         btnLoadingLabel: 'Current Plan',
-        btnVariant: 'secondary',
+        btnVariant: 'outline',
+        btnColor: 'neutral',
+        btnSize: 'small',
         btnDoneLabel: ''
       };
     }
@@ -390,14 +392,16 @@ export const PlanPricingColumn = ({
           {allowAction ? (
             <Button
               variant={action.btnVariant}
+              color={action.btnColor}
+              size={action.btnSize}
               className={plansStyles.planActionBtn}
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}
+              loading={isLoading && !isTrialCheckoutLoading}
+              loaderText={`${action.btnLoadingLabel}...`}
               data-test-id={`frontier-sdk-plan-action-button-${plan?.slug}`}
             >
-              {isLoading && !isTrialCheckoutLoading
-                ? `${action.btnLoadingLabel}....`
-                : action.btnLabel}
+              {action.btnLabel}
             </Button>
           ) : null}
           <PlanIntervals

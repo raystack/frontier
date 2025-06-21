@@ -133,7 +133,7 @@ export function ConfirmCycleSwitch() {
     <Dialog open={true}>
       <Dialog.Content
         overlayClassName={styles.overlay}
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>

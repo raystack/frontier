@@ -68,7 +68,7 @@ export const AddDomain = () => {
     <Dialog open={true}>
       <Dialog.Content
         overlayClassName={styles.overlay}
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>

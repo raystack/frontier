@@ -77,7 +77,7 @@ export const AddProject = () => {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
@@ -102,11 +102,12 @@ export const AddProject = () => {
               gap="medium"
               style={{ padding: '24px 32px' }}
             >
-              <InputField
-                name="orgId"
-                defaultValue={organization?.id}
-                hidden={true}
-              />
+              <div style={{ display: 'none' }}>
+                <InputField
+                  name="orgId"
+                  defaultValue={organization?.id}
+                />
+              </div>
               <InputField
                 label="Project title"
                 size="large"

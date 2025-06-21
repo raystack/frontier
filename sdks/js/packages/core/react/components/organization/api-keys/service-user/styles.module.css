@@ -70,11 +70,9 @@
   padding: 0;
   max-width: 400px;
   width: 100%;
-  z-index: 60;
 }
 
 .overlay {
-  z-index: 55;
   background-color: rgba(104, 112, 118, 0.5);
 }
 
