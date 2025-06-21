@@ -286,7 +286,9 @@ export const UpcomingBillingCycle = ({
         </Text>
       </Flex>
       <Button
-        variant={'secondary'}
+        variant='outline'
+        color='neutral'
+        size='small'
         onClick={onActionBtnClick}
         data-test-id="frontier-sdk-upcoming-billing-cycle-action-button"
       >
