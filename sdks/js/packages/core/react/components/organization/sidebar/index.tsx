@@ -89,7 +89,7 @@ export const Sidebar = () => {
   );
 
   return (
-    <SidebarComponent open={true} className={styles.sidebarWrapper} disableResize>
+    <SidebarComponent open={true} className={styles.sidebarWrapper} collapsible={false}>
       <div className={styles.scrollArea}>
         <Flex direction="column" gap={4} style={{ marginTop: '64px' }}>
           <Search
