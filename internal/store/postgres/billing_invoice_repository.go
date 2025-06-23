@@ -427,8 +427,8 @@ func (r BillingInvoiceRepository) addFilter(query *goqu.SelectDataset, filter rq
 func (r BillingInvoiceRepository) addSearch(query *goqu.SelectDataset, search string) *goqu.SelectDataset {
 	searchableColumns := []string{
 		TABLE_BILLING_INVOICES + ".state",
-		TABLE_BILLING_INVOICES + ".hosted_url",
 		TABLE_BILLING_INVOICES + ".currency",
+		TABLE_BILLING_INVOICES + ".amount",
 		TABLE_ORGANIZATIONS + ".name",
 		TABLE_ORGANIZATIONS + ".title",
 	}

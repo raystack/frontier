@@ -65,15 +65,15 @@ type Invoice struct {
 }
 
 type InvoiceWithOrganization struct {
-	ID          string
-	Amount      int64
-	Currency    string
-	State       State
-	InvoiceLink string
-	CreatedAt   time.Time
-	OrgID       string
-	OrgName     string
-	OrgTitle    string
+	ID          string    `rql:"name=id,type=string"`
+	Amount      int64     `rql:"name=amount,type=number"`
+	Currency    string    `rql:"name=currency,type=string"`
+	State       State     `rql:"name=state,type=string"`
+	InvoiceLink string    `rql:"name=invoice_link,type=string"`
+	CreatedAt   time.Time `rql:"name=created_at,type=datetime"`
+	OrgID       string    `rql:"name=org_id,type=string"`
+	OrgName     string    `rql:"name=org_name,type=string"`
+	OrgTitle    string    `rql:"name=org_title,type=string"`
 }
 
 type ItemType string
