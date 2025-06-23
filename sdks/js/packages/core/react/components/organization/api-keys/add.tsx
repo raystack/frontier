@@ -3,7 +3,6 @@ import {
   Flex,
   Text,
   toast,
-  Separator,
   Image,
   Skeleton,
   Dialog,
@@ -137,7 +136,7 @@ export const AddServiceAccount = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
-            <Flex justify="between" className={styles.addDialogForm}>
+            <Flex justify="between">
               <Text size={6} weight={500}>
                 New Service Account
               </Text>
@@ -149,7 +148,6 @@ export const AddServiceAccount = () => {
                 data-test-id="frontier-sdk-new-service-account-close-btn"
               />
             </Flex>
-            <Separator />
           </Dialog.Header>
 
           <Dialog.Body>
@@ -215,7 +213,7 @@ export const AddServiceAccount = () => {
           </Dialog.Body>
 
           <Dialog.Footer>
-            <Flex justify="end" className={styles.addDialogFormBtnWrapper}>
+            <Flex justify="end">
               <Button
                 variant="solid"
                 color="accent"

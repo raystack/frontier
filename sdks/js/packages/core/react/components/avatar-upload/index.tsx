@@ -88,10 +88,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
     <Dialog open={true}>
       <Dialog.Content overlayClassName={styles.overlay} className={styles.cropModal}>
           <Dialog.Header>
-            <Flex justify="between" style={{
-              padding: 'var(--rs-space-5) var(--rs-space-7)',
-              borderBottom: '1px solid var(--rs-color-border-base-primary)'
-            }}>
+            <Flex justify="between" align="center" style={{ width: '100%' }}>
               <Text size="large" weight="medium">
                 Crop your photo
               </Text>
@@ -135,10 +132,6 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           <Dialog.Footer>
             <Flex
               justify="end"
-              style={{
-                padding: 'var(--rs-space-5)',
-                borderTop: '1px solid var(--rs-color-border-base-primary)'
-              }}
               gap="medium"
             >
               <Button
