@@ -19,3 +19,6 @@ plugins:
       - allow_merge=true
       - output_format=yaml
       - json_names_for_fields=false
+  - plugin: buf.build/bufbuild/connect-go:v1.10.0
+    out: proto
+    opt: paths=source_relative

@@ -78,6 +78,7 @@ require (
 	github.com/aws/smithy-go v1.20.2 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.7.0 // indirect
+	github.com/bufbuild/connect-go v1.10.0 // indirect
 	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/ecordell/optgen v0.0.10-0.20230609182709-018141bf9698 // indirect
