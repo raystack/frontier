@@ -1,0 +1,29 @@
+.tableRoot {
+    width: 100%;
+}
+.tableWrapper {
+    width: 100%;
+}
+
+.table {
+    table-layout: fixed;
+}
+
+.actionColumn {
+    width: 80px;
+}
+
+.stateColumn {
+    width: 100px;
+}
+
+.dateColumn {
+    width: 150px;
+}
+
+.header {
+    background-color: var(--rs-color-background-base-primary);
+    border-bottom: 1px solid var(--rs-color-border-base-primary);
+    display: flex;
+    align-items: center;
+}
