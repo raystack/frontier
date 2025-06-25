@@ -9,9 +9,6 @@ import UnauthorizedState from "./components/states/Unauthorized";
 import App from "./App";
 import PlanList from "./containers/billingplans.list";
 import PlanDetails from "./containers/billingplans.list/details";
-import NewGroup from "./containers/groups.create";
-import Groups from "./containers/groups.list";
-import GroupDetails from "./containers/groups.list/details";
 import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
 
@@ -74,7 +71,8 @@ export default memo(function AppRoutes() {
         <Route path="organizations" element={<OrganizationList />} />
         <Route
           path="organizations/:organizationId"
-          element={<OrganizationDetails />}>
+          element={<OrganizationDetails />}
+        >
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
@@ -96,10 +94,6 @@ export default memo(function AppRoutes() {
           <Route path=":planId" element={<PlanDetails />} />
         </Route>
 
-        <Route path="groups" element={<Groups />}>
-          <Route path="create" element={<NewGroup />} />
-          <Route path=":groupId" element={<GroupDetails />} />
-        </Route>
         <Route path="roles" element={<Roles />}>
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
