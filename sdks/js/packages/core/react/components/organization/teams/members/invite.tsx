@@ -281,6 +281,7 @@ export const InviteTeamMembers = () => {
                 <Button
                   type="submit"
                   data-test-id="frontier-sdk-add-team-members-btn"
+                  disabled={isUserLoading || isRolesLoading}
                   loading={isSubmitting}
                   loaderText="Adding..."
                 >
