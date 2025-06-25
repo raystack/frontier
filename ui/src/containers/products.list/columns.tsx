@@ -20,10 +20,10 @@ export const getColumns: () => DataTableColumnDef<
               alt="product-icon"
               width={20}
               style={{
-                backgroundColor: "var(--background-inset)",
-                padding: "var(--pd-6)",
-                borderRadius: "var(--pd-6)",
-                border: "1px solid var(--border-base)",
+                backgroundColor: "var(--rs-color-background-neutral-secondary)",
+                padding: "var(--rs-space-3)",
+                borderRadius: "--rs-radius-3)",
+                border: "1px solid var(--rs-color-border-base-primary)",
               }}
             />
           </Link>

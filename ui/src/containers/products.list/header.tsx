@@ -2,6 +2,7 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import { Button, Flex, DataTable } from "@raystack/apsara/v1";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
+import styles from "./products.module.css";
 
 const defaultPageHeader = {
   title: "Products",
@@ -15,7 +16,11 @@ export const ProductsHeader = ({ header = defaultPageHeader }) => {
   const navigate = useNavigate();
 
   return (
-    <PageHeader title={header.title} breadcrumb={header.breadcrumb}>
+    <PageHeader
+      title={header.title}
+      breadcrumb={header.breadcrumb}
+      className={styles.header}
+    >
       <DataTable.Search placeholder="Search products..." size="small" />
       <Button
         size={"small"}
@@ -28,7 +33,7 @@ export const ProductsHeader = ({ header = defaultPageHeader }) => {
         <Flex
           direction="column"
           align="center"
-          style={{ paddingRight: "var(--pd-4)" }}
+          style={{ paddingRight: "var(--rs-space-2)" }}
         >
           <PlusIcon />
         </Flex>

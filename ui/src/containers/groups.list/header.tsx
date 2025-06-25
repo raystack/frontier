@@ -30,7 +30,7 @@ export const GroupsHeader = () => {
         <Flex
           direction="column"
           align="center"
-          style={{ paddingRight: "var(--pd-4)" }}
+          style={{ paddingRight: "var(--rs-space-2)" }}
         >
           <PlusIcon />
         </Flex>

@@ -144,7 +144,10 @@ export default function PreferenceDetails() {
       <PageHeader
         title={pageHeader.title}
         breadcrumb={pageHeader.breadcrumb}
-        style={{ borderBottom: "1px solid var(--border-base)", gap: "16px" }}
+        style={{
+          borderBottom: "1px solid var(--rs-color-border-base-primary)",
+          gap: "16px",
+        }}
       />
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) =>

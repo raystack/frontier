@@ -12,8 +12,8 @@ export default function GroupDetails() {
       style={{
         width: "320px",
         height: "calc(100vh - 60px)",
-        borderLeft: "1px solid var(--border-base)",
-        padding: "var(--pd-16)",
+        borderLeft: "1px solid var(--rs-color-border-base-primary)",
+        padding: "var(--rs-space-5)",
       }}
     >
       <Text size={4}>{group?.name}</Text>
