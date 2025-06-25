@@ -261,6 +261,7 @@ const AddMemberDropdown = ({
           size="normal"
           style={{ width: 'fit-content', display: 'flex' }}
           data-test-id="frontier-sdk-add-member-btn"
+          disabled={!canUpdateGroup}
         >
           Add a member
         </Button>
