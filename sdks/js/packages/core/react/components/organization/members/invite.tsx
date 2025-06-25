@@ -1,6 +1,5 @@
 import {
   Button,
-  Separator,
   toast,
   Skeleton,
   Image,
@@ -134,7 +133,7 @@ export const InviteMember = () => {
       {/* @ts-ignore */}
       <Dialog.Content width={600} overlayClassname={styles.overlay}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Invite people
             </Text>
@@ -147,11 +146,9 @@ export const InviteMember = () => {
               data-test-id="frontier-sdk-invite-member-close-btn"
             />
           </Flex>
-          <Separator />
           <Flex
             direction="column"
-            gap="medium"
-            style={{ padding: '24px 32px' }}
+            gap={5}
           >
             {isLoading ? (
                 <Skeleton height='52px' />
@@ -239,7 +236,6 @@ export const InviteMember = () => {
                 {errors.team && String(errors.team?.message)}
               </Text>
             </Flex>
-            <Separator />
             <Flex justify="end">
               <Button
                 type="submit"

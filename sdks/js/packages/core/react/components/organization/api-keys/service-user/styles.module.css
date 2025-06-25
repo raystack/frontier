@@ -76,24 +76,7 @@
   background-color: rgba(104, 112, 118, 0.5);
 }
 
-.addDialogForm {
-  padding: var(--rs-space-5) var(--rs-space-7);
-}
-
-.addDialogFormContent {
-  padding: var(--rs-space-9) var(--rs-space-7);
-}
-
-.addDialogFormBtnWrapper {
-  padding: var(--rs-space-5);
-}
-
-.manageProjectDialog {
-  padding: var(--rs-space-5) var(--rs-space-7);
-}
-
 .manageProjectDialogWrapper {
-  padding: var(--rs-space-5) var(--rs-space-7);
   height: calc(100% - var(--rs-space-9) - var(--rs-space-9));
   overflow: hidden;
 }

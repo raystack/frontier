@@ -97,7 +97,7 @@ export const AddProject = () => {
           <Dialog.Body>
             <Flex
               direction="column"
-              gap="medium"
+              gap={5}
             >
               <div style={{ display: 'none' }}>
                 <InputField

@@ -3,7 +3,6 @@ import {
   Flex,
   Text,
   toast,
-  Separator,
   Image,
   Dialog
 } from '@raystack/apsara/v1';
@@ -64,7 +63,7 @@ export const RemoveProjectMember = () => {
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Remove project member
             </Text>
@@ -81,11 +80,10 @@ export const RemoveProjectMember = () => {
               style={{ cursor: 'pointer' }}
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex direction="column" gap={5} style={{ padding: '24px' }}>
+          <Flex direction="column" gap={5}>
             <Text size="regular">
               Are you sure you want to remove this member from the project?
             </Text>
@@ -93,7 +91,7 @@ export const RemoveProjectMember = () => {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap={5}>
+          <Flex justify="end" gap={5}>
             <Button
               size="normal"
               color="neutral"

@@ -136,7 +136,7 @@ export const AddServiceAccount = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
-            <Flex justify="between">
+            <Flex justify="between" align="center" style={{ width: '100%' }}>
               <Text size={6} weight={500}>
                 New Service Account
               </Text>
@@ -154,7 +154,6 @@ export const AddServiceAccount = () => {
             <Flex
               direction="column"
               gap={5}
-              className={styles.addDialogFormContent}
             >
               <Text>
                 Create a dedicated service account to facilitate secure API
@@ -185,7 +184,7 @@ export const AddServiceAccount = () => {
                             <Select.Value placeholder="Select a project" />
                           </Select.Trigger>
                           <Select.Content
-                            style={{ width: '100% !important', zIndex: 65 }}
+                            style={{ width: '100% !important' }}
                           >
                             <Select.Viewport style={{ maxHeight: '300px' }}>
                               {projects.map(project => (

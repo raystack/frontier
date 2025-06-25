@@ -11,13 +11,12 @@ import {
   Flex,
   DataTable,
   Popover,
-  InputField
+  Search
 } from '@raystack/apsara/v1';
 import { Link, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
-  MagnifyingGlassIcon,
   ExclamationTriangleIcon,
   PaperPlaneIcon
 } from '@radix-ui/react-icons';
@@ -267,17 +266,15 @@ const AddMemberDropdown = ({
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" className={styles.popoverContent}>
-        <InputField
+        <Search
           data-test-id="frontier-sdk-add-project-member-textfield"
-          leading={
-            <MagnifyingGlassIcon
-              style={{ color: 'var(--rs-color-foreground-base-primary)' }}
-            />
-          }
           value={query}
+          variant='borderless'
           placeholder="Add team member"
-          className={styles.inviteDropdownSearch}
           onChange={onTextChange}
+          showClearButton
+          disabled={isUserLoading}
+          onClear={() => setQuery('')}
         />
         <Separator />
 

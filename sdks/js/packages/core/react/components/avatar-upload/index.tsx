@@ -105,7 +105,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           <Dialog.Body>
             <Flex
               direction="column"
-              style={{ padding: 'var(--rs-space-5) var(--rs-space-9)', maxHeight: '280px', height: '100%' }}
+              style={{ maxHeight: '280px', height: '100%' }}
               justify={'center'}
               align={'center'}
             >
@@ -132,7 +132,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           <Dialog.Footer>
             <Flex
               justify="end"
-              gap="medium"
+              gap={5}
             >
               <Button
                 variant="outline"

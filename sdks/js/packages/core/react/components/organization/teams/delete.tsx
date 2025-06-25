@@ -94,8 +94,8 @@ export const DeleteTeam = () => {
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between">
-            <Text size="large" style={{ fontWeight: '500' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
+            <Text size="large" weight="medium">
               Verify team deletion
             </Text>
             <Image
@@ -118,8 +118,7 @@ export const DeleteTeam = () => {
           <Dialog.Body>
             <Flex
               direction="column"
-              gap="medium"
-              style={{ padding: '24px 32px' }}
+              gap={5}
             >
               {isTeamLoading ? (
                 <>

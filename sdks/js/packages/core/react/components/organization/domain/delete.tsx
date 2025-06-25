@@ -1,9 +1,7 @@
 import {
   Button,
   Checkbox,
-  Separator,
   Skeleton,
-  Image,
   Text,
   Flex,
   toast,

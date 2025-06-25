@@ -1,7 +1,6 @@
 import {
   Button,
   Checkbox,
-  Separator,
   toast,
   Skeleton,
   Image,
@@ -92,8 +91,8 @@ export const DeleteProject = () => {
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size={6} style={{ fontWeight: '500' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
+            <Text size='large' weight="medium">
               Verify project deletion
             </Text>
             <Image
@@ -106,14 +105,12 @@ export const DeleteProject = () => {
               data-test-id="frontier-sdk-delete-project-close-btn"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Flex
               direction="column"
-              gap="medium"
-              style={{ padding: '24px 32px' }}
+              gap={5}
             >
               {isProjectLoading ? (
                 <>
@@ -125,7 +122,7 @@ export const DeleteProject = () => {
                 </>
               ) : (
                 <>
-                  <Text size={2}>
+                  <Text size='small'>
                     This action can not be undone. This will permanently delete
                     project <b>{project?.title}</b>.
                   </Text>
@@ -144,8 +141,8 @@ export const DeleteProject = () => {
                       onCheckedChange={v => setIsAcknowledged(v === true)}
                       data-test-id="frontier-sdk-delete-project-checkbox"
                     />
-                    <Text size={2}>
-                      I acknowledge I understand that all of the project data
+                    <Text size='small'>
+                      I understand that all of the project data
                       will be deleted and want to proceed.
                     </Text>
                   </Flex>
@@ -164,7 +161,6 @@ export const DeleteProject = () => {
                 </>
               )}
             </Flex>
-            <Separator />
           </form>
         </Dialog.Body>
       </Dialog.Content>

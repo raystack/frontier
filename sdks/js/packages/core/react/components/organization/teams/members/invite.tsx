@@ -1,7 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Button,
-  Separator,
   toast,
   Skeleton,
   Image,
@@ -180,8 +179,8 @@ export const InviteTeamMembers = () => {
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size="large" style={{ fontWeight: '500' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
+            <Text size="large" weight="medium">
               Add Member
             </Text>
 
@@ -195,15 +194,10 @@ export const InviteTeamMembers = () => {
               data-test-id="frontier-sdk-invite-team-members-close-btn"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap="medium"
-              style={{ padding: '24px 32px' }}
-            >
+            <Flex direction="column" gap={5}>
               <Flex direction="column" gap={2}>
                 <Label>Members</Label>
                 {isUserLoading ? (
@@ -216,7 +210,7 @@ export const InviteTeamMembers = () => {
                           <Select.Value placeholder="Select members" />
                         </Select.Trigger>
                         <Select.Content
-                          style={{ width: '100% !important', zIndex: 65 }}
+                          style={{ width: '100% !important' }}
                         >
                           <Select.Viewport style={{ maxHeight: '300px' }}>
                             <Select.Group>
@@ -258,7 +252,7 @@ export const InviteTeamMembers = () => {
                           <Select.Value placeholder="Select a role" />
                         </Select.Trigger>
                         <Select.Content
-                          style={{ width: '100% !important', zIndex: 65 }}
+                          style={{ width: '100% !important' }}
                         >
                           <Select.Group>
                             {!roles.length && (
@@ -283,7 +277,6 @@ export const InviteTeamMembers = () => {
                   {errors.role && String(errors.role?.message)}
                 </Text>
               </Flex>
-              <Separator />
               <Flex justify="end">
                 <Button
                   type="submit"

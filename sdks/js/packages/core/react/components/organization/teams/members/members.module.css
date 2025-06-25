@@ -1,12 +1,3 @@
-.inviteDropdownSearch {
-  padding: var(--rs-space-3) var(--rs-space-4) var(--rs-space-3)
-    var(--rs-space-9);
-}
-
-.inviteDropdownSearch:focus {
-  border: none;
-}
-
 .inviteDropdownItem {
   padding: var(--rs-space-3);
   user-select: none;

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Button,
-  Separator,
   Skeleton,
   Image,
   Text,
@@ -136,7 +135,7 @@ export function ConfirmCycleSwitch() {
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Switch billing cycle
             </Text>
@@ -149,12 +148,10 @@ export function ConfirmCycleSwitch() {
               onClick={closeModal}
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
 
         <Dialog.Body>
           <Flex
-            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)' }}
             direction={'column'}
             gap={7}
           >
@@ -187,14 +184,12 @@ export function ConfirmCycleSwitch() {
               </Flex>
             )}
           </Flex>
-          <Separator />
         </Dialog.Body>
 
         <Dialog.Footer>
           <Flex
             justify="end"
-            gap="medium"
-            style={{ padding: 'var(--rs-space-5)' }}
+            gap={5}
           >
             <Button
               variant="outline"
