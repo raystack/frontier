@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import {
   Button,
-  Separator,
   toast,
   Image,
   Text,
@@ -81,7 +80,7 @@ export const AddProject = () => {
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" style={{ fontWeight: '500' }}>
               Add Project
             </Text>
@@ -93,14 +92,12 @@ export const AddProject = () => {
               style={{ cursor: 'pointer' }}
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex
               direction="column"
               gap="medium"
-              style={{ padding: '24px 32px' }}
             >
               <div style={{ display: 'none' }}>
                 <InputField
@@ -123,10 +120,9 @@ export const AddProject = () => {
                 placeholder="Provide project name"
               />
             </Flex>
-            <Separator />
           </Dialog.Body>
           <Dialog.Footer>
-            <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
+            <Flex align="end">
               <Button
                 type="submit"
                 data-test-id="frontier-sdk-add-project-btn"
