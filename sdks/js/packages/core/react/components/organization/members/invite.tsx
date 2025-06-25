@@ -153,29 +153,19 @@ export const InviteMember = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <TextArea
-              label="Email"
-              {...register('emails')}
-              style={{
-                appearance: 'none',
-                boxSizing: 'border-box',
-                margin: 0,
-                outline: 'none',
-                padding: 'var(--rs-space-3)',
-                height: 'auto',
-                width: '100%',
-                backgroundColor: 'var(--background-base)',
-                border: '0.5px solid var(--border-base)',
-                boxShadow: 'var(--shadow-xs)',
-                borderRadius: 'var(--br-4)',
-                color: 'var(--foreground-base)'
-              }}
-              placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
-              error={Boolean(errors.emails?.message)}
-              helperText={
-                errors.emails?.message ? String(errors.emails?.message) : ''
-              }
-            />
+            {isLoading ? (
+                <Skeleton height='52px' />
+              ) : (
+                <TextArea
+                  label="Email"
+                  {...register('emails')}
+                  placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
+                  error={Boolean(errors.emails?.message)}
+                  helperText={
+                    errors.emails?.message ? String(errors.emails?.message) : ''
+                  }
+                />
+            )}
             <Flex direction="column" gap={2}>
               <Label>Invite as</Label>
               {isLoading ? (
@@ -189,7 +179,7 @@ export const InviteMember = () => {
                         <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a role" />
                         </Select.Trigger>
-                        <Select.Content style={{ zIndex: 65 }}>
+                        <Select.Content>
                           <Select.Group>
                             {!roles.length && (
                               <Text className={styles.noSelectItem}>
@@ -224,7 +214,7 @@ export const InviteMember = () => {
                         <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a team" />
                         </Select.Trigger>
-                        <Select.Content style={{ zIndex: 65 }}>
+                        <Select.Content>
                           <Select.Group>
                             {!teams.length && (
                               <Text className={styles.noSelectItem}>
