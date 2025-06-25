@@ -36,7 +36,7 @@ type UIConfig struct {
 
 type ConnectConfig struct {
 	// port to listen buf connect requests on
-	Port int `yaml:"port" mapstructure:"port" default:"8081"`
+	Port int `yaml:"port" mapstructure:"port" default:"8002"`
 }
 
 type Config struct {
