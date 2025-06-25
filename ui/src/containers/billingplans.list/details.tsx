@@ -5,16 +5,7 @@ export default function PlanDetails() {
   const { plan } = usePlan();
 
   return (
-    <Flex
-      direction="column"
-      gap="large"
-      style={{
-        width: "320px",
-        height: "calc(100vh - 60px)",
-        borderLeft: "1px solid var(--border-base)",
-        padding: "var(--pd-16)",
-      }}
-    >
+    <Flex direction="column" gap="large">
       <Text size={4}>{plan?.name}</Text>
       <Flex direction="column" gap="large">
         <Grid columns={2} gap="small">
