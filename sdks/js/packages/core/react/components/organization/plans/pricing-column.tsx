@@ -61,7 +61,7 @@ const PricingColumnHeader = ({
         </Text>
         {showDiscount ? (
           <Flex className={plansStyles.discountText}>
-            <Text weight="medium">{discountText}</Text>
+            <Text weight="medium" variant="tertiary">{discountText}</Text>
           </Flex>
         ) : null}
       </Flex>
@@ -72,11 +72,11 @@ const PricingColumnHeader = ({
           className={plansStyles.planPrice}
           hideDecimals={config?.billing?.hideDecimals}
         />
-        <Text size="small">
+        <Text size="small" variant="tertiary">
           {perIntervalLabel}
         </Text>
       </Flex>
-      <Text size="small">
+      <Text size="small" variant="tertiary">
         {plan?.description}
       </Text>
     </Flex>
