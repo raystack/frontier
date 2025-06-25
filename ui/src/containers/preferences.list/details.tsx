@@ -1,6 +1,13 @@
 import PageHeader from "~/components/page-header";
-import { Grid, TextField } from "@raystack/apsara";
-import { Button, Flex, Separator, Switch, Text } from "@raystack/apsara/v1";
+import {
+  Grid,
+  Button,
+  Flex,
+  Separator,
+  Switch,
+  Text,
+  InputField,
+} from "@raystack/apsara/v1";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useOutletContext, useParams } from "react-router-dom";
@@ -39,7 +46,7 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
     );
   } else if (R.has("text")(trait) || R.has("textarea")(trait)) {
     return (
-      <TextField
+      <InputField
         value={value}
         onChange={(e) => onChange(e.target.value)}
         data-test-id="admin-ui-preference-value-input"
