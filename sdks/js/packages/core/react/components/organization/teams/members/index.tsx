@@ -192,7 +192,7 @@ const AddMemberDropdown = ({
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
           teamId,
-          { withRoles: true }
+          { with_roles: true }
         );
 
         setMembers(users);
@@ -238,7 +238,7 @@ const AddMemberDropdown = ({
       if (!userId || !organization?.id) return;
       try {
         await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-          userIds: [userId]
+          user_ids: [userId]
         });
         toast.success('member added');
         if (refetchMembers) {
