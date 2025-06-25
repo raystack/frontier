@@ -1,6 +1,5 @@
 import {
   Button,
-  Separator,
   Image,
   Text,
   Flex,
@@ -72,9 +71,9 @@ export const AddDomain = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
-            <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Flex justify="between" align="center" style={{ width: '100%' }}>
               <Text size="large" weight="medium">
-                Add domain
+                Add Domain
               </Text>
 
               <Image
@@ -85,11 +84,10 @@ export const AddDomain = () => {
                 data-test-id="frontier-sdk-add-domain-btn"
               />
             </Flex>
-            <Separator />
           </Dialog.Header>
 
           <Dialog.Body>
-            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
+            <Flex direction="column" gap={5}>
               <InputField
                 label="Domain name"
                 size="large"
@@ -99,18 +97,17 @@ export const AddDomain = () => {
                 placeholder="Provide domain name"
               />
             </Flex>
-            <Separator />
           </Dialog.Body>
 
           <Dialog.Footer>
-            <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }}>
+            <Flex justify="end">
               <Button
                 type="submit"
                 loading={isSubmitting}
                 loaderText="Adding..."
                 data-test-id="frontier-sdk-add-domain-btn"
               >
-                Add domain
+                Add Domain
               </Button>
             </Flex>
           </Dialog.Footer>
