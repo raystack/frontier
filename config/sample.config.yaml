@@ -18,7 +18,7 @@ app:
   grpc:
     port: 8001
   connect:
-    port: 8081
+    port: 8002
     # optional tls config
     # tls_cert_file: "temp/server-cert.pem"
     # tls_key_file: "temp/server-key.pem"
