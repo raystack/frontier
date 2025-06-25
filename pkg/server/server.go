@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -42,7 +45,9 @@ import (
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1"
+	"github.com/raystack/frontier/internal/api/v1beta1connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/mux"
 	"go.uber.org/zap"
@@ -113,6 +118,35 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), nil); err != nil {
 		logger.Error("ui server failed", "err", err)
 	}
+}
+
+func ServeConnect(ctx context.Context, logger log.Logger, cfg ConnectConfig, deps api.Deps) error {
+	// Create the server handler with both services
+	frontierService := v1beta1connect.NewConnectHandler(deps)
+
+	// Initialize connect handlers
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService)
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService)
+
+	// Create mux and register handlers
+	mux := http.NewServeMux()
+	mux.Handle(frontierPath, frontierHandler)
+	mux.Handle(adminPath, adminHandler)
+
+	// Configure and create the server
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
+		Handler: h2c.NewHandler(mux, &http2.Server{}),
+	}
+
+	logger.Info("connect server starting", "port", cfg.Port)
+
+	// Start server
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("connect server failed: %w", err)
+	}
+
+	return nil
 }
 
 func Serve(
@@ -266,7 +300,7 @@ func Serve(
 		}))
 	}
 
-	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
+	logger.Info("api server starting", "http-port", cfg.Port, "connect-port", cfg.Connect.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 	if err := mux.Serve(
 		ctx,
 		metricsOps...,

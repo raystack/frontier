@@ -34,7 +34,14 @@ type UIConfig struct {
 	OrganizationTypes []string `yaml:"organization_types" mapstructure:"organization_types"`
 }
 
+type ConnectConfig struct {
+	// port to listen buf connect requests on
+	Port int `yaml:"port" mapstructure:"port" default:"8081"`
+}
+
 type Config struct {
+	// Connect server config
+	Connect ConnectConfig `yaml:"connect" mapstructure:"connect"`
 	// port to listen HTTP requests on
 	Port int `yaml:"port" mapstructure:"port" default:"8080"`
 
