@@ -89,6 +89,9 @@ function BalancePanel({
       </Flex>
       <Flex>
         <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
+          {isLoading ? (
+            <Skeleton height='28px' width='72px' />
+          ) : (
           <Button
             variant="outline"
             color="neutral"
@@ -104,6 +107,7 @@ function BalancePanel({
               <PlusIcon /> Add tokens
             </Flex>
           </Button>
+          )}
         </Tooltip>
       </Flex>
     </Flex>
