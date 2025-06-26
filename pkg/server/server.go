@@ -33,6 +33,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
+	connecthealth "connectrpc.com/grpchealth"
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -132,6 +133,16 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg ConnectConfig, dep
 	mux := http.NewServeMux()
 	mux.Handle(frontierPath, frontierHandler)
 	mux.Handle(adminPath, adminHandler)
+
+	// configure healthcheck
+	// curl --header "Content-Type: application/json" \
+	// --data '{"service":"raystack.frontier.v1beta1.AdminService"}' \
+	// http://localhost:8002/grpc.health.v1.Health/Check
+	checker := connecthealth.NewStaticChecker(
+		"raystack.frontier.v1beta1.FrontierService",
+		"raystack.frontier.v1beta1.AdminService",
+	)
+	mux.Handle(connecthealth.NewHandler(checker))
 
 	// Configure and create the server
 	server := &http.Server{
