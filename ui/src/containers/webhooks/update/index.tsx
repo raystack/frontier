@@ -97,7 +97,7 @@ export default function UpdateWebhooks() {
         style={{
           width: "30vw",
           padding: 0,
-          boxShadow: "var--rs-shadow-soft)",
+          boxShadow: "var(--rs-shadow-soft)",
         }}
         close={false}
       >
