@@ -118,7 +118,7 @@ export const GeneralOrganization = ({
             <Skeleton
               width="80px"
               height="80px"
-              borderRadius="var(--rs-radius-6)"
+              borderRadius="50%"
             />
             <Skeleton height="16px" width="100%" />
           </Flex>
