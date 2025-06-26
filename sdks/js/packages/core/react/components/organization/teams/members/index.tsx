@@ -284,7 +284,7 @@ const AddMemberDropdown = ({
         ) : topUsers.length ? (
           <div style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}>
             {topUsers.map(user => {
-              const initals = getInitials(user?.title || user.email);
+              const initials = getInitials(user?.title || user.email);
               return (
                 <Flex
                   gap="small"
@@ -295,7 +295,7 @@ const AddMemberDropdown = ({
                 >
                   <Avatar
                     src={user?.avatar}
-                    fallback={initals}
+                    fallback={initials}
                     size={1}
                     radius="small"
                     imageProps={{ fontSize: '10px' }}
