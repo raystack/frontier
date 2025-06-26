@@ -5,9 +5,9 @@
 package frontierv1beta1connect
 
 import (
+	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	connect_go "github.com/bufbuild/connect-go"
 	v1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	http "net/http"
 	strings "strings"
@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect_go.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// FrontierServiceName is the fully-qualified name of the FrontierService service.
@@ -533,198 +533,198 @@ const (
 // FrontierServiceClient is a client for the raystack.frontier.v1beta1.FrontierService service.
 type FrontierServiceClient interface {
 	// Users
-	ListUsers(context.Context, *connect_go.Request[v1beta1.ListUsersRequest]) (*connect_go.Response[v1beta1.ListUsersResponse], error)
-	CreateUser(context.Context, *connect_go.Request[v1beta1.CreateUserRequest]) (*connect_go.Response[v1beta1.CreateUserResponse], error)
-	GetUser(context.Context, *connect_go.Request[v1beta1.GetUserRequest]) (*connect_go.Response[v1beta1.GetUserResponse], error)
-	ListUserGroups(context.Context, *connect_go.Request[v1beta1.ListUserGroupsRequest]) (*connect_go.Response[v1beta1.ListUserGroupsResponse], error)
-	ListCurrentUserGroups(context.Context, *connect_go.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserGroupsResponse], error)
-	GetCurrentUser(context.Context, *connect_go.Request[v1beta1.GetCurrentUserRequest]) (*connect_go.Response[v1beta1.GetCurrentUserResponse], error)
-	UpdateUser(context.Context, *connect_go.Request[v1beta1.UpdateUserRequest]) (*connect_go.Response[v1beta1.UpdateUserResponse], error)
-	UpdateCurrentUser(context.Context, *connect_go.Request[v1beta1.UpdateCurrentUserRequest]) (*connect_go.Response[v1beta1.UpdateCurrentUserResponse], error)
-	EnableUser(context.Context, *connect_go.Request[v1beta1.EnableUserRequest]) (*connect_go.Response[v1beta1.EnableUserResponse], error)
-	DisableUser(context.Context, *connect_go.Request[v1beta1.DisableUserRequest]) (*connect_go.Response[v1beta1.DisableUserResponse], error)
-	DeleteUser(context.Context, *connect_go.Request[v1beta1.DeleteUserRequest]) (*connect_go.Response[v1beta1.DeleteUserResponse], error)
-	ListOrganizationsByUser(context.Context, *connect_go.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByUserResponse], error)
-	ListOrganizationsByCurrentUser(context.Context, *connect_go.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error)
-	ListProjectsByUser(context.Context, *connect_go.Request[v1beta1.ListProjectsByUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByUserResponse], error)
-	ListProjectsByCurrentUser(context.Context, *connect_go.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByCurrentUserResponse], error)
-	ListUserInvitations(context.Context, *connect_go.Request[v1beta1.ListUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListUserInvitationsResponse], error)
-	ListCurrentUserInvitations(context.Context, *connect_go.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserInvitationsResponse], error)
+	ListUsers(context.Context, *connect.Request[v1beta1.ListUsersRequest]) (*connect.Response[v1beta1.ListUsersResponse], error)
+	CreateUser(context.Context, *connect.Request[v1beta1.CreateUserRequest]) (*connect.Response[v1beta1.CreateUserResponse], error)
+	GetUser(context.Context, *connect.Request[v1beta1.GetUserRequest]) (*connect.Response[v1beta1.GetUserResponse], error)
+	ListUserGroups(context.Context, *connect.Request[v1beta1.ListUserGroupsRequest]) (*connect.Response[v1beta1.ListUserGroupsResponse], error)
+	ListCurrentUserGroups(context.Context, *connect.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect.Response[v1beta1.ListCurrentUserGroupsResponse], error)
+	GetCurrentUser(context.Context, *connect.Request[v1beta1.GetCurrentUserRequest]) (*connect.Response[v1beta1.GetCurrentUserResponse], error)
+	UpdateUser(context.Context, *connect.Request[v1beta1.UpdateUserRequest]) (*connect.Response[v1beta1.UpdateUserResponse], error)
+	UpdateCurrentUser(context.Context, *connect.Request[v1beta1.UpdateCurrentUserRequest]) (*connect.Response[v1beta1.UpdateCurrentUserResponse], error)
+	EnableUser(context.Context, *connect.Request[v1beta1.EnableUserRequest]) (*connect.Response[v1beta1.EnableUserResponse], error)
+	DisableUser(context.Context, *connect.Request[v1beta1.DisableUserRequest]) (*connect.Response[v1beta1.DisableUserResponse], error)
+	DeleteUser(context.Context, *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error)
+	ListOrganizationsByUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByUserResponse], error)
+	ListOrganizationsByCurrentUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error)
+	ListProjectsByUser(context.Context, *connect.Request[v1beta1.ListProjectsByUserRequest]) (*connect.Response[v1beta1.ListProjectsByUserResponse], error)
+	ListProjectsByCurrentUser(context.Context, *connect.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect.Response[v1beta1.ListProjectsByCurrentUserResponse], error)
+	ListUserInvitations(context.Context, *connect.Request[v1beta1.ListUserInvitationsRequest]) (*connect.Response[v1beta1.ListUserInvitationsResponse], error)
+	ListCurrentUserInvitations(context.Context, *connect.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect.Response[v1beta1.ListCurrentUserInvitationsResponse], error)
 	// ServiceUser
-	ListServiceUsers(context.Context, *connect_go.Request[v1beta1.ListServiceUsersRequest]) (*connect_go.Response[v1beta1.ListServiceUsersResponse], error)
-	CreateServiceUser(context.Context, *connect_go.Request[v1beta1.CreateServiceUserRequest]) (*connect_go.Response[v1beta1.CreateServiceUserResponse], error)
-	GetServiceUser(context.Context, *connect_go.Request[v1beta1.GetServiceUserRequest]) (*connect_go.Response[v1beta1.GetServiceUserResponse], error)
-	DeleteServiceUser(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserResponse], error)
-	CreateServiceUserJWK(context.Context, *connect_go.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect_go.Response[v1beta1.CreateServiceUserJWKResponse], error)
-	ListServiceUserJWKs(context.Context, *connect_go.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect_go.Response[v1beta1.ListServiceUserJWKsResponse], error)
-	GetServiceUserJWK(context.Context, *connect_go.Request[v1beta1.GetServiceUserJWKRequest]) (*connect_go.Response[v1beta1.GetServiceUserJWKResponse], error)
-	DeleteServiceUserJWK(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserJWKResponse], error)
-	CreateServiceUserCredential(context.Context, *connect_go.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.CreateServiceUserCredentialResponse], error)
-	ListServiceUserCredentials(context.Context, *connect_go.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.ListServiceUserCredentialsResponse], error)
-	DeleteServiceUserCredential(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserCredentialResponse], error)
-	CreateServiceUserToken(context.Context, *connect_go.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect_go.Response[v1beta1.CreateServiceUserTokenResponse], error)
-	ListServiceUserTokens(context.Context, *connect_go.Request[v1beta1.ListServiceUserTokensRequest]) (*connect_go.Response[v1beta1.ListServiceUserTokensResponse], error)
-	DeleteServiceUserToken(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserTokenResponse], error)
-	ListServiceUserProjects(context.Context, *connect_go.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect_go.Response[v1beta1.ListServiceUserProjectsResponse], error)
+	ListServiceUsers(context.Context, *connect.Request[v1beta1.ListServiceUsersRequest]) (*connect.Response[v1beta1.ListServiceUsersResponse], error)
+	CreateServiceUser(context.Context, *connect.Request[v1beta1.CreateServiceUserRequest]) (*connect.Response[v1beta1.CreateServiceUserResponse], error)
+	GetServiceUser(context.Context, *connect.Request[v1beta1.GetServiceUserRequest]) (*connect.Response[v1beta1.GetServiceUserResponse], error)
+	DeleteServiceUser(context.Context, *connect.Request[v1beta1.DeleteServiceUserRequest]) (*connect.Response[v1beta1.DeleteServiceUserResponse], error)
+	CreateServiceUserJWK(context.Context, *connect.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect.Response[v1beta1.CreateServiceUserJWKResponse], error)
+	ListServiceUserJWKs(context.Context, *connect.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect.Response[v1beta1.ListServiceUserJWKsResponse], error)
+	GetServiceUserJWK(context.Context, *connect.Request[v1beta1.GetServiceUserJWKRequest]) (*connect.Response[v1beta1.GetServiceUserJWKResponse], error)
+	DeleteServiceUserJWK(context.Context, *connect.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect.Response[v1beta1.DeleteServiceUserJWKResponse], error)
+	CreateServiceUserCredential(context.Context, *connect.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect.Response[v1beta1.CreateServiceUserCredentialResponse], error)
+	ListServiceUserCredentials(context.Context, *connect.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect.Response[v1beta1.ListServiceUserCredentialsResponse], error)
+	DeleteServiceUserCredential(context.Context, *connect.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect.Response[v1beta1.DeleteServiceUserCredentialResponse], error)
+	CreateServiceUserToken(context.Context, *connect.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect.Response[v1beta1.CreateServiceUserTokenResponse], error)
+	ListServiceUserTokens(context.Context, *connect.Request[v1beta1.ListServiceUserTokensRequest]) (*connect.Response[v1beta1.ListServiceUserTokensResponse], error)
+	DeleteServiceUserToken(context.Context, *connect.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect.Response[v1beta1.DeleteServiceUserTokenResponse], error)
+	ListServiceUserProjects(context.Context, *connect.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect.Response[v1beta1.ListServiceUserProjectsResponse], error)
 	// Group
-	ListOrganizationGroups(context.Context, *connect_go.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect_go.Response[v1beta1.ListOrganizationGroupsResponse], error)
-	CreateGroup(context.Context, *connect_go.Request[v1beta1.CreateGroupRequest]) (*connect_go.Response[v1beta1.CreateGroupResponse], error)
-	GetGroup(context.Context, *connect_go.Request[v1beta1.GetGroupRequest]) (*connect_go.Response[v1beta1.GetGroupResponse], error)
-	UpdateGroup(context.Context, *connect_go.Request[v1beta1.UpdateGroupRequest]) (*connect_go.Response[v1beta1.UpdateGroupResponse], error)
-	ListGroupUsers(context.Context, *connect_go.Request[v1beta1.ListGroupUsersRequest]) (*connect_go.Response[v1beta1.ListGroupUsersResponse], error)
-	AddGroupUsers(context.Context, *connect_go.Request[v1beta1.AddGroupUsersRequest]) (*connect_go.Response[v1beta1.AddGroupUsersResponse], error)
-	RemoveGroupUser(context.Context, *connect_go.Request[v1beta1.RemoveGroupUserRequest]) (*connect_go.Response[v1beta1.RemoveGroupUserResponse], error)
-	EnableGroup(context.Context, *connect_go.Request[v1beta1.EnableGroupRequest]) (*connect_go.Response[v1beta1.EnableGroupResponse], error)
-	DisableGroup(context.Context, *connect_go.Request[v1beta1.DisableGroupRequest]) (*connect_go.Response[v1beta1.DisableGroupResponse], error)
-	DeleteGroup(context.Context, *connect_go.Request[v1beta1.DeleteGroupRequest]) (*connect_go.Response[v1beta1.DeleteGroupResponse], error)
+	ListOrganizationGroups(context.Context, *connect.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect.Response[v1beta1.ListOrganizationGroupsResponse], error)
+	CreateGroup(context.Context, *connect.Request[v1beta1.CreateGroupRequest]) (*connect.Response[v1beta1.CreateGroupResponse], error)
+	GetGroup(context.Context, *connect.Request[v1beta1.GetGroupRequest]) (*connect.Response[v1beta1.GetGroupResponse], error)
+	UpdateGroup(context.Context, *connect.Request[v1beta1.UpdateGroupRequest]) (*connect.Response[v1beta1.UpdateGroupResponse], error)
+	ListGroupUsers(context.Context, *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error)
+	AddGroupUsers(context.Context, *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error)
+	RemoveGroupUser(context.Context, *connect.Request[v1beta1.RemoveGroupUserRequest]) (*connect.Response[v1beta1.RemoveGroupUserResponse], error)
+	EnableGroup(context.Context, *connect.Request[v1beta1.EnableGroupRequest]) (*connect.Response[v1beta1.EnableGroupResponse], error)
+	DisableGroup(context.Context, *connect.Request[v1beta1.DisableGroupRequest]) (*connect.Response[v1beta1.DisableGroupResponse], error)
+	DeleteGroup(context.Context, *connect.Request[v1beta1.DeleteGroupRequest]) (*connect.Response[v1beta1.DeleteGroupResponse], error)
 	// Roles
-	ListRoles(context.Context, *connect_go.Request[v1beta1.ListRolesRequest]) (*connect_go.Response[v1beta1.ListRolesResponse], error)
-	ListOrganizationRoles(context.Context, *connect_go.Request[v1beta1.ListOrganizationRolesRequest]) (*connect_go.Response[v1beta1.ListOrganizationRolesResponse], error)
-	CreateOrganizationRole(context.Context, *connect_go.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.CreateOrganizationRoleResponse], error)
-	GetOrganizationRole(context.Context, *connect_go.Request[v1beta1.GetOrganizationRoleRequest]) (*connect_go.Response[v1beta1.GetOrganizationRoleResponse], error)
-	UpdateOrganizationRole(context.Context, *connect_go.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationRoleResponse], error)
-	DeleteOrganizationRole(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationRoleResponse], error)
+	ListRoles(context.Context, *connect.Request[v1beta1.ListRolesRequest]) (*connect.Response[v1beta1.ListRolesResponse], error)
+	ListOrganizationRoles(context.Context, *connect.Request[v1beta1.ListOrganizationRolesRequest]) (*connect.Response[v1beta1.ListOrganizationRolesResponse], error)
+	CreateOrganizationRole(context.Context, *connect.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect.Response[v1beta1.CreateOrganizationRoleResponse], error)
+	GetOrganizationRole(context.Context, *connect.Request[v1beta1.GetOrganizationRoleRequest]) (*connect.Response[v1beta1.GetOrganizationRoleResponse], error)
+	UpdateOrganizationRole(context.Context, *connect.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect.Response[v1beta1.UpdateOrganizationRoleResponse], error)
+	DeleteOrganizationRole(context.Context, *connect.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect.Response[v1beta1.DeleteOrganizationRoleResponse], error)
 	// Organizations
-	ListOrganizations(context.Context, *connect_go.Request[v1beta1.ListOrganizationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationsResponse], error)
-	CreateOrganization(context.Context, *connect_go.Request[v1beta1.CreateOrganizationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationResponse], error)
-	GetOrganization(context.Context, *connect_go.Request[v1beta1.GetOrganizationRequest]) (*connect_go.Response[v1beta1.GetOrganizationResponse], error)
-	UpdateOrganization(context.Context, *connect_go.Request[v1beta1.UpdateOrganizationRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationResponse], error)
-	ListOrganizationProjects(context.Context, *connect_go.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.ListOrganizationProjectsResponse], error)
-	ListOrganizationAdmins(context.Context, *connect_go.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAdminsResponse], error)
-	ListOrganizationUsers(context.Context, *connect_go.Request[v1beta1.ListOrganizationUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationUsersResponse], error)
-	AddOrganizationUsers(context.Context, *connect_go.Request[v1beta1.AddOrganizationUsersRequest]) (*connect_go.Response[v1beta1.AddOrganizationUsersResponse], error)
-	RemoveOrganizationUser(context.Context, *connect_go.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect_go.Response[v1beta1.RemoveOrganizationUserResponse], error)
-	GetOrganizationKyc(context.Context, *connect_go.Request[v1beta1.GetOrganizationKycRequest]) (*connect_go.Response[v1beta1.GetOrganizationKycResponse], error)
+	ListOrganizations(context.Context, *connect.Request[v1beta1.ListOrganizationsRequest]) (*connect.Response[v1beta1.ListOrganizationsResponse], error)
+	CreateOrganization(context.Context, *connect.Request[v1beta1.CreateOrganizationRequest]) (*connect.Response[v1beta1.CreateOrganizationResponse], error)
+	GetOrganization(context.Context, *connect.Request[v1beta1.GetOrganizationRequest]) (*connect.Response[v1beta1.GetOrganizationResponse], error)
+	UpdateOrganization(context.Context, *connect.Request[v1beta1.UpdateOrganizationRequest]) (*connect.Response[v1beta1.UpdateOrganizationResponse], error)
+	ListOrganizationProjects(context.Context, *connect.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect.Response[v1beta1.ListOrganizationProjectsResponse], error)
+	ListOrganizationAdmins(context.Context, *connect.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect.Response[v1beta1.ListOrganizationAdminsResponse], error)
+	ListOrganizationUsers(context.Context, *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error)
+	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
+	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
+	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
-	ListOrganizationServiceUsers(context.Context, *connect_go.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
-	ListOrganizationInvitations(context.Context, *connect_go.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationInvitationsResponse], error)
-	CreateOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationInvitationResponse], error)
-	GetOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.GetOrganizationInvitationResponse], error)
-	AcceptOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.AcceptOrganizationInvitationResponse], error)
-	DeleteOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationInvitationResponse], error)
-	ListOrganizationDomains(context.Context, *connect_go.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect_go.Response[v1beta1.ListOrganizationDomainsResponse], error)
-	CreateOrganizationDomain(context.Context, *connect_go.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect_go.Response[v1beta1.CreateOrganizationDomainResponse], error)
-	DeleteOrganizationDomain(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationDomainResponse], error)
-	GetOrganizationDomain(context.Context, *connect_go.Request[v1beta1.GetOrganizationDomainRequest]) (*connect_go.Response[v1beta1.GetOrganizationDomainResponse], error)
-	VerifyOrganizationDomain(context.Context, *connect_go.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect_go.Response[v1beta1.VerifyOrganizationDomainResponse], error)
-	JoinOrganization(context.Context, *connect_go.Request[v1beta1.JoinOrganizationRequest]) (*connect_go.Response[v1beta1.JoinOrganizationResponse], error)
-	EnableOrganization(context.Context, *connect_go.Request[v1beta1.EnableOrganizationRequest]) (*connect_go.Response[v1beta1.EnableOrganizationResponse], error)
-	DisableOrganization(context.Context, *connect_go.Request[v1beta1.DisableOrganizationRequest]) (*connect_go.Response[v1beta1.DisableOrganizationResponse], error)
-	DeleteOrganization(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationResponse], error)
+	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
+	ListOrganizationInvitations(context.Context, *connect.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect.Response[v1beta1.ListOrganizationInvitationsResponse], error)
+	CreateOrganizationInvitation(context.Context, *connect.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect.Response[v1beta1.CreateOrganizationInvitationResponse], error)
+	GetOrganizationInvitation(context.Context, *connect.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect.Response[v1beta1.GetOrganizationInvitationResponse], error)
+	AcceptOrganizationInvitation(context.Context, *connect.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect.Response[v1beta1.AcceptOrganizationInvitationResponse], error)
+	DeleteOrganizationInvitation(context.Context, *connect.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect.Response[v1beta1.DeleteOrganizationInvitationResponse], error)
+	ListOrganizationDomains(context.Context, *connect.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect.Response[v1beta1.ListOrganizationDomainsResponse], error)
+	CreateOrganizationDomain(context.Context, *connect.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect.Response[v1beta1.CreateOrganizationDomainResponse], error)
+	DeleteOrganizationDomain(context.Context, *connect.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect.Response[v1beta1.DeleteOrganizationDomainResponse], error)
+	GetOrganizationDomain(context.Context, *connect.Request[v1beta1.GetOrganizationDomainRequest]) (*connect.Response[v1beta1.GetOrganizationDomainResponse], error)
+	VerifyOrganizationDomain(context.Context, *connect.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect.Response[v1beta1.VerifyOrganizationDomainResponse], error)
+	JoinOrganization(context.Context, *connect.Request[v1beta1.JoinOrganizationRequest]) (*connect.Response[v1beta1.JoinOrganizationResponse], error)
+	EnableOrganization(context.Context, *connect.Request[v1beta1.EnableOrganizationRequest]) (*connect.Response[v1beta1.EnableOrganizationResponse], error)
+	DisableOrganization(context.Context, *connect.Request[v1beta1.DisableOrganizationRequest]) (*connect.Response[v1beta1.DisableOrganizationResponse], error)
+	DeleteOrganization(context.Context, *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error)
 	// Projects
-	CreateProject(context.Context, *connect_go.Request[v1beta1.CreateProjectRequest]) (*connect_go.Response[v1beta1.CreateProjectResponse], error)
-	GetProject(context.Context, *connect_go.Request[v1beta1.GetProjectRequest]) (*connect_go.Response[v1beta1.GetProjectResponse], error)
-	UpdateProject(context.Context, *connect_go.Request[v1beta1.UpdateProjectRequest]) (*connect_go.Response[v1beta1.UpdateProjectResponse], error)
-	ListProjectAdmins(context.Context, *connect_go.Request[v1beta1.ListProjectAdminsRequest]) (*connect_go.Response[v1beta1.ListProjectAdminsResponse], error)
-	ListProjectUsers(context.Context, *connect_go.Request[v1beta1.ListProjectUsersRequest]) (*connect_go.Response[v1beta1.ListProjectUsersResponse], error)
-	ListProjectServiceUsers(context.Context, *connect_go.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect_go.Response[v1beta1.ListProjectServiceUsersResponse], error)
-	ListProjectGroups(context.Context, *connect_go.Request[v1beta1.ListProjectGroupsRequest]) (*connect_go.Response[v1beta1.ListProjectGroupsResponse], error)
-	EnableProject(context.Context, *connect_go.Request[v1beta1.EnableProjectRequest]) (*connect_go.Response[v1beta1.EnableProjectResponse], error)
-	DisableProject(context.Context, *connect_go.Request[v1beta1.DisableProjectRequest]) (*connect_go.Response[v1beta1.DisableProjectResponse], error)
-	DeleteProject(context.Context, *connect_go.Request[v1beta1.DeleteProjectRequest]) (*connect_go.Response[v1beta1.DeleteProjectResponse], error)
+	CreateProject(context.Context, *connect.Request[v1beta1.CreateProjectRequest]) (*connect.Response[v1beta1.CreateProjectResponse], error)
+	GetProject(context.Context, *connect.Request[v1beta1.GetProjectRequest]) (*connect.Response[v1beta1.GetProjectResponse], error)
+	UpdateProject(context.Context, *connect.Request[v1beta1.UpdateProjectRequest]) (*connect.Response[v1beta1.UpdateProjectResponse], error)
+	ListProjectAdmins(context.Context, *connect.Request[v1beta1.ListProjectAdminsRequest]) (*connect.Response[v1beta1.ListProjectAdminsResponse], error)
+	ListProjectUsers(context.Context, *connect.Request[v1beta1.ListProjectUsersRequest]) (*connect.Response[v1beta1.ListProjectUsersResponse], error)
+	ListProjectServiceUsers(context.Context, *connect.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect.Response[v1beta1.ListProjectServiceUsersResponse], error)
+	ListProjectGroups(context.Context, *connect.Request[v1beta1.ListProjectGroupsRequest]) (*connect.Response[v1beta1.ListProjectGroupsResponse], error)
+	EnableProject(context.Context, *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error)
+	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
+	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
 	// Policies
-	CreatePolicy(context.Context, *connect_go.Request[v1beta1.CreatePolicyRequest]) (*connect_go.Response[v1beta1.CreatePolicyResponse], error)
-	GetPolicy(context.Context, *connect_go.Request[v1beta1.GetPolicyRequest]) (*connect_go.Response[v1beta1.GetPolicyResponse], error)
-	ListPolicies(context.Context, *connect_go.Request[v1beta1.ListPoliciesRequest]) (*connect_go.Response[v1beta1.ListPoliciesResponse], error)
-	UpdatePolicy(context.Context, *connect_go.Request[v1beta1.UpdatePolicyRequest]) (*connect_go.Response[v1beta1.UpdatePolicyResponse], error)
-	DeletePolicy(context.Context, *connect_go.Request[v1beta1.DeletePolicyRequest]) (*connect_go.Response[v1beta1.DeletePolicyResponse], error)
-	CreatePolicyForProject(context.Context, *connect_go.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect_go.Response[v1beta1.CreatePolicyForProjectResponse], error)
+	CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error)
+	GetPolicy(context.Context, *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error)
+	ListPolicies(context.Context, *connect.Request[v1beta1.ListPoliciesRequest]) (*connect.Response[v1beta1.ListPoliciesResponse], error)
+	UpdatePolicy(context.Context, *connect.Request[v1beta1.UpdatePolicyRequest]) (*connect.Response[v1beta1.UpdatePolicyResponse], error)
+	DeletePolicy(context.Context, *connect.Request[v1beta1.DeletePolicyRequest]) (*connect.Response[v1beta1.DeletePolicyResponse], error)
+	CreatePolicyForProject(context.Context, *connect.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect.Response[v1beta1.CreatePolicyForProjectResponse], error)
 	// Relations
-	CreateRelation(context.Context, *connect_go.Request[v1beta1.CreateRelationRequest]) (*connect_go.Response[v1beta1.CreateRelationResponse], error)
-	GetRelation(context.Context, *connect_go.Request[v1beta1.GetRelationRequest]) (*connect_go.Response[v1beta1.GetRelationResponse], error)
-	DeleteRelation(context.Context, *connect_go.Request[v1beta1.DeleteRelationRequest]) (*connect_go.Response[v1beta1.DeleteRelationResponse], error)
+	CreateRelation(context.Context, *connect.Request[v1beta1.CreateRelationRequest]) (*connect.Response[v1beta1.CreateRelationResponse], error)
+	GetRelation(context.Context, *connect.Request[v1beta1.GetRelationRequest]) (*connect.Response[v1beta1.GetRelationResponse], error)
+	DeleteRelation(context.Context, *connect.Request[v1beta1.DeleteRelationRequest]) (*connect.Response[v1beta1.DeleteRelationResponse], error)
 	// Permissions
-	ListPermissions(context.Context, *connect_go.Request[v1beta1.ListPermissionsRequest]) (*connect_go.Response[v1beta1.ListPermissionsResponse], error)
-	GetPermission(context.Context, *connect_go.Request[v1beta1.GetPermissionRequest]) (*connect_go.Response[v1beta1.GetPermissionResponse], error)
+	ListPermissions(context.Context, *connect.Request[v1beta1.ListPermissionsRequest]) (*connect.Response[v1beta1.ListPermissionsResponse], error)
+	GetPermission(context.Context, *connect.Request[v1beta1.GetPermissionRequest]) (*connect.Response[v1beta1.GetPermissionResponse], error)
 	// Namespaces
-	ListNamespaces(context.Context, *connect_go.Request[v1beta1.ListNamespacesRequest]) (*connect_go.Response[v1beta1.ListNamespacesResponse], error)
-	GetNamespace(context.Context, *connect_go.Request[v1beta1.GetNamespaceRequest]) (*connect_go.Response[v1beta1.GetNamespaceResponse], error)
+	ListNamespaces(context.Context, *connect.Request[v1beta1.ListNamespacesRequest]) (*connect.Response[v1beta1.ListNamespacesResponse], error)
+	GetNamespace(context.Context, *connect.Request[v1beta1.GetNamespaceRequest]) (*connect.Response[v1beta1.GetNamespaceResponse], error)
 	// Resources
-	ListProjectResources(context.Context, *connect_go.Request[v1beta1.ListProjectResourcesRequest]) (*connect_go.Response[v1beta1.ListProjectResourcesResponse], error)
-	CreateProjectResource(context.Context, *connect_go.Request[v1beta1.CreateProjectResourceRequest]) (*connect_go.Response[v1beta1.CreateProjectResourceResponse], error)
-	GetProjectResource(context.Context, *connect_go.Request[v1beta1.GetProjectResourceRequest]) (*connect_go.Response[v1beta1.GetProjectResourceResponse], error)
-	UpdateProjectResource(context.Context, *connect_go.Request[v1beta1.UpdateProjectResourceRequest]) (*connect_go.Response[v1beta1.UpdateProjectResourceResponse], error)
-	DeleteProjectResource(context.Context, *connect_go.Request[v1beta1.DeleteProjectResourceRequest]) (*connect_go.Response[v1beta1.DeleteProjectResourceResponse], error)
+	ListProjectResources(context.Context, *connect.Request[v1beta1.ListProjectResourcesRequest]) (*connect.Response[v1beta1.ListProjectResourcesResponse], error)
+	CreateProjectResource(context.Context, *connect.Request[v1beta1.CreateProjectResourceRequest]) (*connect.Response[v1beta1.CreateProjectResourceResponse], error)
+	GetProjectResource(context.Context, *connect.Request[v1beta1.GetProjectResourceRequest]) (*connect.Response[v1beta1.GetProjectResourceResponse], error)
+	UpdateProjectResource(context.Context, *connect.Request[v1beta1.UpdateProjectResourceRequest]) (*connect.Response[v1beta1.UpdateProjectResourceResponse], error)
+	DeleteProjectResource(context.Context, *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error)
 	// Authz
-	CheckResourcePermission(context.Context, *connect_go.Request[v1beta1.CheckResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckResourcePermissionResponse], error)
-	BatchCheckPermission(context.Context, *connect_go.Request[v1beta1.BatchCheckPermissionRequest]) (*connect_go.Response[v1beta1.BatchCheckPermissionResponse], error)
+	CheckResourcePermission(context.Context, *connect.Request[v1beta1.CheckResourcePermissionRequest]) (*connect.Response[v1beta1.CheckResourcePermissionResponse], error)
+	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
 	// Authn
-	GetJWKs(context.Context, *connect_go.Request[v1beta1.GetJWKsRequest]) (*connect_go.Response[v1beta1.GetJWKsResponse], error)
-	ListAuthStrategies(context.Context, *connect_go.Request[v1beta1.ListAuthStrategiesRequest]) (*connect_go.Response[v1beta1.ListAuthStrategiesResponse], error)
-	Authenticate(context.Context, *connect_go.Request[v1beta1.AuthenticateRequest]) (*connect_go.Response[v1beta1.AuthenticateResponse], error)
-	AuthCallback(context.Context, *connect_go.Request[v1beta1.AuthCallbackRequest]) (*connect_go.Response[v1beta1.AuthCallbackResponse], error)
-	AuthToken(context.Context, *connect_go.Request[v1beta1.AuthTokenRequest]) (*connect_go.Response[v1beta1.AuthTokenResponse], error)
-	AuthLogout(context.Context, *connect_go.Request[v1beta1.AuthLogoutRequest]) (*connect_go.Response[v1beta1.AuthLogoutResponse], error)
+	GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error)
+	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
+	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
+	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
+	AuthToken(context.Context, *connect.Request[v1beta1.AuthTokenRequest]) (*connect.Response[v1beta1.AuthTokenResponse], error)
+	AuthLogout(context.Context, *connect.Request[v1beta1.AuthLogoutRequest]) (*connect.Response[v1beta1.AuthLogoutResponse], error)
 	// MetaSchemas
-	ListMetaSchemas(context.Context, *connect_go.Request[v1beta1.ListMetaSchemasRequest]) (*connect_go.Response[v1beta1.ListMetaSchemasResponse], error)
-	CreateMetaSchema(context.Context, *connect_go.Request[v1beta1.CreateMetaSchemaRequest]) (*connect_go.Response[v1beta1.CreateMetaSchemaResponse], error)
-	GetMetaSchema(context.Context, *connect_go.Request[v1beta1.GetMetaSchemaRequest]) (*connect_go.Response[v1beta1.GetMetaSchemaResponse], error)
-	UpdateMetaSchema(context.Context, *connect_go.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect_go.Response[v1beta1.UpdateMetaSchemaResponse], error)
-	DeleteMetaSchema(context.Context, *connect_go.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect_go.Response[v1beta1.DeleteMetaSchemaResponse], error)
+	ListMetaSchemas(context.Context, *connect.Request[v1beta1.ListMetaSchemasRequest]) (*connect.Response[v1beta1.ListMetaSchemasResponse], error)
+	CreateMetaSchema(context.Context, *connect.Request[v1beta1.CreateMetaSchemaRequest]) (*connect.Response[v1beta1.CreateMetaSchemaResponse], error)
+	GetMetaSchema(context.Context, *connect.Request[v1beta1.GetMetaSchemaRequest]) (*connect.Response[v1beta1.GetMetaSchemaResponse], error)
+	UpdateMetaSchema(context.Context, *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error)
+	DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error)
 	// Audit logs
-	ListOrganizationAuditLogs(context.Context, *connect_go.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
-	CreateOrganizationAuditLogs(context.Context, *connect_go.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
-	GetOrganizationAuditLog(context.Context, *connect_go.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect_go.Response[v1beta1.GetOrganizationAuditLogResponse], error)
+	ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
+	CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
+	GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error)
 	// DescribePreferences list down all the supported preferences of entities
-	DescribePreferences(context.Context, *connect_go.Request[v1beta1.DescribePreferencesRequest]) (*connect_go.Response[v1beta1.DescribePreferencesResponse], error)
-	CreateOrganizationPreferences(context.Context, *connect_go.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.CreateOrganizationPreferencesResponse], error)
-	ListOrganizationPreferences(context.Context, *connect_go.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.ListOrganizationPreferencesResponse], error)
-	CreateProjectPreferences(context.Context, *connect_go.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect_go.Response[v1beta1.CreateProjectPreferencesResponse], error)
-	ListProjectPreferences(context.Context, *connect_go.Request[v1beta1.ListProjectPreferencesRequest]) (*connect_go.Response[v1beta1.ListProjectPreferencesResponse], error)
-	CreateGroupPreferences(context.Context, *connect_go.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect_go.Response[v1beta1.CreateGroupPreferencesResponse], error)
-	ListGroupPreferences(context.Context, *connect_go.Request[v1beta1.ListGroupPreferencesRequest]) (*connect_go.Response[v1beta1.ListGroupPreferencesResponse], error)
-	CreateUserPreferences(context.Context, *connect_go.Request[v1beta1.CreateUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateUserPreferencesResponse], error)
-	ListUserPreferences(context.Context, *connect_go.Request[v1beta1.ListUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListUserPreferencesResponse], error)
-	CreateCurrentUserPreferences(context.Context, *connect_go.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateCurrentUserPreferencesResponse], error)
-	ListCurrentUserPreferences(context.Context, *connect_go.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListCurrentUserPreferencesResponse], error)
+	DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error)
+	CreateOrganizationPreferences(context.Context, *connect.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect.Response[v1beta1.CreateOrganizationPreferencesResponse], error)
+	ListOrganizationPreferences(context.Context, *connect.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect.Response[v1beta1.ListOrganizationPreferencesResponse], error)
+	CreateProjectPreferences(context.Context, *connect.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect.Response[v1beta1.CreateProjectPreferencesResponse], error)
+	ListProjectPreferences(context.Context, *connect.Request[v1beta1.ListProjectPreferencesRequest]) (*connect.Response[v1beta1.ListProjectPreferencesResponse], error)
+	CreateGroupPreferences(context.Context, *connect.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect.Response[v1beta1.CreateGroupPreferencesResponse], error)
+	ListGroupPreferences(context.Context, *connect.Request[v1beta1.ListGroupPreferencesRequest]) (*connect.Response[v1beta1.ListGroupPreferencesResponse], error)
+	CreateUserPreferences(context.Context, *connect.Request[v1beta1.CreateUserPreferencesRequest]) (*connect.Response[v1beta1.CreateUserPreferencesResponse], error)
+	ListUserPreferences(context.Context, *connect.Request[v1beta1.ListUserPreferencesRequest]) (*connect.Response[v1beta1.ListUserPreferencesResponse], error)
+	CreateCurrentUserPreferences(context.Context, *connect.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.CreateCurrentUserPreferencesResponse], error)
+	ListCurrentUserPreferences(context.Context, *connect.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.ListCurrentUserPreferencesResponse], error)
 	// Billing account
-	CreateBillingAccount(context.Context, *connect_go.Request[v1beta1.CreateBillingAccountRequest]) (*connect_go.Response[v1beta1.CreateBillingAccountResponse], error)
-	GetBillingAccount(context.Context, *connect_go.Request[v1beta1.GetBillingAccountRequest]) (*connect_go.Response[v1beta1.GetBillingAccountResponse], error)
-	UpdateBillingAccount(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountResponse], error)
-	RegisterBillingAccount(context.Context, *connect_go.Request[v1beta1.RegisterBillingAccountRequest]) (*connect_go.Response[v1beta1.RegisterBillingAccountResponse], error)
-	ListBillingAccounts(context.Context, *connect_go.Request[v1beta1.ListBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListBillingAccountsResponse], error)
-	DeleteBillingAccount(context.Context, *connect_go.Request[v1beta1.DeleteBillingAccountRequest]) (*connect_go.Response[v1beta1.DeleteBillingAccountResponse], error)
-	EnableBillingAccount(context.Context, *connect_go.Request[v1beta1.EnableBillingAccountRequest]) (*connect_go.Response[v1beta1.EnableBillingAccountResponse], error)
-	DisableBillingAccount(context.Context, *connect_go.Request[v1beta1.DisableBillingAccountRequest]) (*connect_go.Response[v1beta1.DisableBillingAccountResponse], error)
-	GetBillingBalance(context.Context, *connect_go.Request[v1beta1.GetBillingBalanceRequest]) (*connect_go.Response[v1beta1.GetBillingBalanceResponse], error)
-	HasTrialed(context.Context, *connect_go.Request[v1beta1.HasTrialedRequest]) (*connect_go.Response[v1beta1.HasTrialedResponse], error)
+	CreateBillingAccount(context.Context, *connect.Request[v1beta1.CreateBillingAccountRequest]) (*connect.Response[v1beta1.CreateBillingAccountResponse], error)
+	GetBillingAccount(context.Context, *connect.Request[v1beta1.GetBillingAccountRequest]) (*connect.Response[v1beta1.GetBillingAccountResponse], error)
+	UpdateBillingAccount(context.Context, *connect.Request[v1beta1.UpdateBillingAccountRequest]) (*connect.Response[v1beta1.UpdateBillingAccountResponse], error)
+	RegisterBillingAccount(context.Context, *connect.Request[v1beta1.RegisterBillingAccountRequest]) (*connect.Response[v1beta1.RegisterBillingAccountResponse], error)
+	ListBillingAccounts(context.Context, *connect.Request[v1beta1.ListBillingAccountsRequest]) (*connect.Response[v1beta1.ListBillingAccountsResponse], error)
+	DeleteBillingAccount(context.Context, *connect.Request[v1beta1.DeleteBillingAccountRequest]) (*connect.Response[v1beta1.DeleteBillingAccountResponse], error)
+	EnableBillingAccount(context.Context, *connect.Request[v1beta1.EnableBillingAccountRequest]) (*connect.Response[v1beta1.EnableBillingAccountResponse], error)
+	DisableBillingAccount(context.Context, *connect.Request[v1beta1.DisableBillingAccountRequest]) (*connect.Response[v1beta1.DisableBillingAccountResponse], error)
+	GetBillingBalance(context.Context, *connect.Request[v1beta1.GetBillingBalanceRequest]) (*connect.Response[v1beta1.GetBillingBalanceResponse], error)
+	HasTrialed(context.Context, *connect.Request[v1beta1.HasTrialedRequest]) (*connect.Response[v1beta1.HasTrialedResponse], error)
 	// Subscriptions
-	GetSubscription(context.Context, *connect_go.Request[v1beta1.GetSubscriptionRequest]) (*connect_go.Response[v1beta1.GetSubscriptionResponse], error)
-	CancelSubscription(context.Context, *connect_go.Request[v1beta1.CancelSubscriptionRequest]) (*connect_go.Response[v1beta1.CancelSubscriptionResponse], error)
-	ListSubscriptions(context.Context, *connect_go.Request[v1beta1.ListSubscriptionsRequest]) (*connect_go.Response[v1beta1.ListSubscriptionsResponse], error)
-	ChangeSubscription(context.Context, *connect_go.Request[v1beta1.ChangeSubscriptionRequest]) (*connect_go.Response[v1beta1.ChangeSubscriptionResponse], error)
-	UpdateSubscription(context.Context, *connect_go.Request[v1beta1.UpdateSubscriptionRequest]) (*connect_go.Response[v1beta1.UpdateSubscriptionResponse], error)
+	GetSubscription(context.Context, *connect.Request[v1beta1.GetSubscriptionRequest]) (*connect.Response[v1beta1.GetSubscriptionResponse], error)
+	CancelSubscription(context.Context, *connect.Request[v1beta1.CancelSubscriptionRequest]) (*connect.Response[v1beta1.CancelSubscriptionResponse], error)
+	ListSubscriptions(context.Context, *connect.Request[v1beta1.ListSubscriptionsRequest]) (*connect.Response[v1beta1.ListSubscriptionsResponse], error)
+	ChangeSubscription(context.Context, *connect.Request[v1beta1.ChangeSubscriptionRequest]) (*connect.Response[v1beta1.ChangeSubscriptionResponse], error)
+	UpdateSubscription(context.Context, *connect.Request[v1beta1.UpdateSubscriptionRequest]) (*connect.Response[v1beta1.UpdateSubscriptionResponse], error)
 	// Billing Product
-	CreateProduct(context.Context, *connect_go.Request[v1beta1.CreateProductRequest]) (*connect_go.Response[v1beta1.CreateProductResponse], error)
-	GetProduct(context.Context, *connect_go.Request[v1beta1.GetProductRequest]) (*connect_go.Response[v1beta1.GetProductResponse], error)
-	ListProducts(context.Context, *connect_go.Request[v1beta1.ListProductsRequest]) (*connect_go.Response[v1beta1.ListProductsResponse], error)
-	UpdateProduct(context.Context, *connect_go.Request[v1beta1.UpdateProductRequest]) (*connect_go.Response[v1beta1.UpdateProductResponse], error)
-	CreateFeature(context.Context, *connect_go.Request[v1beta1.CreateFeatureRequest]) (*connect_go.Response[v1beta1.CreateFeatureResponse], error)
-	GetFeature(context.Context, *connect_go.Request[v1beta1.GetFeatureRequest]) (*connect_go.Response[v1beta1.GetFeatureResponse], error)
-	UpdateFeature(context.Context, *connect_go.Request[v1beta1.UpdateFeatureRequest]) (*connect_go.Response[v1beta1.UpdateFeatureResponse], error)
-	ListFeatures(context.Context, *connect_go.Request[v1beta1.ListFeaturesRequest]) (*connect_go.Response[v1beta1.ListFeaturesResponse], error)
+	CreateProduct(context.Context, *connect.Request[v1beta1.CreateProductRequest]) (*connect.Response[v1beta1.CreateProductResponse], error)
+	GetProduct(context.Context, *connect.Request[v1beta1.GetProductRequest]) (*connect.Response[v1beta1.GetProductResponse], error)
+	ListProducts(context.Context, *connect.Request[v1beta1.ListProductsRequest]) (*connect.Response[v1beta1.ListProductsResponse], error)
+	UpdateProduct(context.Context, *connect.Request[v1beta1.UpdateProductRequest]) (*connect.Response[v1beta1.UpdateProductResponse], error)
+	CreateFeature(context.Context, *connect.Request[v1beta1.CreateFeatureRequest]) (*connect.Response[v1beta1.CreateFeatureResponse], error)
+	GetFeature(context.Context, *connect.Request[v1beta1.GetFeatureRequest]) (*connect.Response[v1beta1.GetFeatureResponse], error)
+	UpdateFeature(context.Context, *connect.Request[v1beta1.UpdateFeatureRequest]) (*connect.Response[v1beta1.UpdateFeatureResponse], error)
+	ListFeatures(context.Context, *connect.Request[v1beta1.ListFeaturesRequest]) (*connect.Response[v1beta1.ListFeaturesResponse], error)
 	// Plans
-	CreatePlan(context.Context, *connect_go.Request[v1beta1.CreatePlanRequest]) (*connect_go.Response[v1beta1.CreatePlanResponse], error)
-	ListPlans(context.Context, *connect_go.Request[v1beta1.ListPlansRequest]) (*connect_go.Response[v1beta1.ListPlansResponse], error)
-	GetPlan(context.Context, *connect_go.Request[v1beta1.GetPlanRequest]) (*connect_go.Response[v1beta1.GetPlanResponse], error)
-	UpdatePlan(context.Context, *connect_go.Request[v1beta1.UpdatePlanRequest]) (*connect_go.Response[v1beta1.UpdatePlanResponse], error)
+	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
+	ListPlans(context.Context, *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error)
+	GetPlan(context.Context, *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error)
+	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
 	// Checkout
-	CreateCheckout(context.Context, *connect_go.Request[v1beta1.CreateCheckoutRequest]) (*connect_go.Response[v1beta1.CreateCheckoutResponse], error)
-	ListCheckouts(context.Context, *connect_go.Request[v1beta1.ListCheckoutsRequest]) (*connect_go.Response[v1beta1.ListCheckoutsResponse], error)
-	GetCheckout(context.Context, *connect_go.Request[v1beta1.GetCheckoutRequest]) (*connect_go.Response[v1beta1.GetCheckoutResponse], error)
+	CreateCheckout(context.Context, *connect.Request[v1beta1.CreateCheckoutRequest]) (*connect.Response[v1beta1.CreateCheckoutResponse], error)
+	ListCheckouts(context.Context, *connect.Request[v1beta1.ListCheckoutsRequest]) (*connect.Response[v1beta1.ListCheckoutsResponse], error)
+	GetCheckout(context.Context, *connect.Request[v1beta1.GetCheckoutRequest]) (*connect.Response[v1beta1.GetCheckoutResponse], error)
 	// Billing Entitlements
-	CheckFeatureEntitlement(context.Context, *connect_go.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect_go.Response[v1beta1.CheckFeatureEntitlementResponse], error)
+	CheckFeatureEntitlement(context.Context, *connect.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[v1beta1.CheckFeatureEntitlementResponse], error)
 	// Transactions
-	CreateBillingUsage(context.Context, *connect_go.Request[v1beta1.CreateBillingUsageRequest]) (*connect_go.Response[v1beta1.CreateBillingUsageResponse], error)
-	ListBillingTransactions(context.Context, *connect_go.Request[v1beta1.ListBillingTransactionsRequest]) (*connect_go.Response[v1beta1.ListBillingTransactionsResponse], error)
-	TotalDebitedTransactions(context.Context, *connect_go.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect_go.Response[v1beta1.TotalDebitedTransactionsResponse], error)
+	CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error)
+	ListBillingTransactions(context.Context, *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error)
+	TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error)
 	// Invoice
-	ListInvoices(context.Context, *connect_go.Request[v1beta1.ListInvoicesRequest]) (*connect_go.Response[v1beta1.ListInvoicesResponse], error)
-	GetUpcomingInvoice(context.Context, *connect_go.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect_go.Response[v1beta1.GetUpcomingInvoiceResponse], error)
+	ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error)
+	GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error)
 	// Incoming Webhooks
-	BillingWebhookCallback(context.Context, *connect_go.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect_go.Response[v1beta1.BillingWebhookCallbackResponse], error)
+	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
 	// Prospects
-	CreateProspectPublic(context.Context, *connect_go.Request[v1beta1.CreateProspectPublicRequest]) (*connect_go.Response[v1beta1.CreateProspectPublicResponse], error)
+	CreateProspectPublic(context.Context, *connect.Request[v1beta1.CreateProspectPublicRequest]) (*connect.Response[v1beta1.CreateProspectPublicResponse], error)
 }
 
 // NewFrontierServiceClient constructs a client for the raystack.frontier.v1beta1.FrontierService
@@ -734,1863 +734,2030 @@ type FrontierServiceClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewFrontierServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) FrontierServiceClient {
+func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) FrontierServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	frontierServiceMethods := v1beta1.File_raystack_frontier_v1beta1_frontier_proto.Services().ByName("FrontierService").Methods()
 	return &frontierServiceClient{
-		listUsers: connect_go.NewClient[v1beta1.ListUsersRequest, v1beta1.ListUsersResponse](
+		listUsers: connect.NewClient[v1beta1.ListUsersRequest, v1beta1.ListUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceListUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		createUser: connect_go.NewClient[v1beta1.CreateUserRequest, v1beta1.CreateUserResponse](
+		createUser: connect.NewClient[v1beta1.CreateUserRequest, v1beta1.CreateUserResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateUser")),
+			connect.WithClientOptions(opts...),
 		),
-		getUser: connect_go.NewClient[v1beta1.GetUserRequest, v1beta1.GetUserResponse](
+		getUser: connect.NewClient[v1beta1.GetUserRequest, v1beta1.GetUserResponse](
 			httpClient,
 			baseURL+FrontierServiceGetUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetUser")),
+			connect.WithClientOptions(opts...),
 		),
-		listUserGroups: connect_go.NewClient[v1beta1.ListUserGroupsRequest, v1beta1.ListUserGroupsResponse](
+		listUserGroups: connect.NewClient[v1beta1.ListUserGroupsRequest, v1beta1.ListUserGroupsResponse](
 			httpClient,
 			baseURL+FrontierServiceListUserGroupsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListUserGroups")),
+			connect.WithClientOptions(opts...),
 		),
-		listCurrentUserGroups: connect_go.NewClient[v1beta1.ListCurrentUserGroupsRequest, v1beta1.ListCurrentUserGroupsResponse](
+		listCurrentUserGroups: connect.NewClient[v1beta1.ListCurrentUserGroupsRequest, v1beta1.ListCurrentUserGroupsResponse](
 			httpClient,
 			baseURL+FrontierServiceListCurrentUserGroupsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserGroups")),
+			connect.WithClientOptions(opts...),
 		),
-		getCurrentUser: connect_go.NewClient[v1beta1.GetCurrentUserRequest, v1beta1.GetCurrentUserResponse](
+		getCurrentUser: connect.NewClient[v1beta1.GetCurrentUserRequest, v1beta1.GetCurrentUserResponse](
 			httpClient,
 			baseURL+FrontierServiceGetCurrentUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetCurrentUser")),
+			connect.WithClientOptions(opts...),
 		),
-		updateUser: connect_go.NewClient[v1beta1.UpdateUserRequest, v1beta1.UpdateUserResponse](
+		updateUser: connect.NewClient[v1beta1.UpdateUserRequest, v1beta1.UpdateUserResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateUser")),
+			connect.WithClientOptions(opts...),
 		),
-		updateCurrentUser: connect_go.NewClient[v1beta1.UpdateCurrentUserRequest, v1beta1.UpdateCurrentUserResponse](
+		updateCurrentUser: connect.NewClient[v1beta1.UpdateCurrentUserRequest, v1beta1.UpdateCurrentUserResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateCurrentUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateCurrentUser")),
+			connect.WithClientOptions(opts...),
 		),
-		enableUser: connect_go.NewClient[v1beta1.EnableUserRequest, v1beta1.EnableUserResponse](
+		enableUser: connect.NewClient[v1beta1.EnableUserRequest, v1beta1.EnableUserResponse](
 			httpClient,
 			baseURL+FrontierServiceEnableUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("EnableUser")),
+			connect.WithClientOptions(opts...),
 		),
-		disableUser: connect_go.NewClient[v1beta1.DisableUserRequest, v1beta1.DisableUserResponse](
+		disableUser: connect.NewClient[v1beta1.DisableUserRequest, v1beta1.DisableUserResponse](
 			httpClient,
 			baseURL+FrontierServiceDisableUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DisableUser")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteUser: connect_go.NewClient[v1beta1.DeleteUserRequest, v1beta1.DeleteUserResponse](
+		deleteUser: connect.NewClient[v1beta1.DeleteUserRequest, v1beta1.DeleteUserResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteUser")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationsByUser: connect_go.NewClient[v1beta1.ListOrganizationsByUserRequest, v1beta1.ListOrganizationsByUserResponse](
+		listOrganizationsByUser: connect.NewClient[v1beta1.ListOrganizationsByUserRequest, v1beta1.ListOrganizationsByUserResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationsByUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationsByUser")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationsByCurrentUser: connect_go.NewClient[v1beta1.ListOrganizationsByCurrentUserRequest, v1beta1.ListOrganizationsByCurrentUserResponse](
+		listOrganizationsByCurrentUser: connect.NewClient[v1beta1.ListOrganizationsByCurrentUserRequest, v1beta1.ListOrganizationsByCurrentUserResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationsByCurrentUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationsByCurrentUser")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectsByUser: connect_go.NewClient[v1beta1.ListProjectsByUserRequest, v1beta1.ListProjectsByUserResponse](
+		listProjectsByUser: connect.NewClient[v1beta1.ListProjectsByUserRequest, v1beta1.ListProjectsByUserResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectsByUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectsByUser")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectsByCurrentUser: connect_go.NewClient[v1beta1.ListProjectsByCurrentUserRequest, v1beta1.ListProjectsByCurrentUserResponse](
+		listProjectsByCurrentUser: connect.NewClient[v1beta1.ListProjectsByCurrentUserRequest, v1beta1.ListProjectsByCurrentUserResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectsByCurrentUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectsByCurrentUser")),
+			connect.WithClientOptions(opts...),
 		),
-		listUserInvitations: connect_go.NewClient[v1beta1.ListUserInvitationsRequest, v1beta1.ListUserInvitationsResponse](
+		listUserInvitations: connect.NewClient[v1beta1.ListUserInvitationsRequest, v1beta1.ListUserInvitationsResponse](
 			httpClient,
 			baseURL+FrontierServiceListUserInvitationsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListUserInvitations")),
+			connect.WithClientOptions(opts...),
 		),
-		listCurrentUserInvitations: connect_go.NewClient[v1beta1.ListCurrentUserInvitationsRequest, v1beta1.ListCurrentUserInvitationsResponse](
+		listCurrentUserInvitations: connect.NewClient[v1beta1.ListCurrentUserInvitationsRequest, v1beta1.ListCurrentUserInvitationsResponse](
 			httpClient,
 			baseURL+FrontierServiceListCurrentUserInvitationsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserInvitations")),
+			connect.WithClientOptions(opts...),
 		),
-		listServiceUsers: connect_go.NewClient[v1beta1.ListServiceUsersRequest, v1beta1.ListServiceUsersResponse](
+		listServiceUsers: connect.NewClient[v1beta1.ListServiceUsersRequest, v1beta1.ListServiceUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceListServiceUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListServiceUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		createServiceUser: connect_go.NewClient[v1beta1.CreateServiceUserRequest, v1beta1.CreateServiceUserResponse](
+		createServiceUser: connect.NewClient[v1beta1.CreateServiceUserRequest, v1beta1.CreateServiceUserResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateServiceUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUser")),
+			connect.WithClientOptions(opts...),
 		),
-		getServiceUser: connect_go.NewClient[v1beta1.GetServiceUserRequest, v1beta1.GetServiceUserResponse](
+		getServiceUser: connect.NewClient[v1beta1.GetServiceUserRequest, v1beta1.GetServiceUserResponse](
 			httpClient,
 			baseURL+FrontierServiceGetServiceUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetServiceUser")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteServiceUser: connect_go.NewClient[v1beta1.DeleteServiceUserRequest, v1beta1.DeleteServiceUserResponse](
+		deleteServiceUser: connect.NewClient[v1beta1.DeleteServiceUserRequest, v1beta1.DeleteServiceUserResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteServiceUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUser")),
+			connect.WithClientOptions(opts...),
 		),
-		createServiceUserJWK: connect_go.NewClient[v1beta1.CreateServiceUserJWKRequest, v1beta1.CreateServiceUserJWKResponse](
+		createServiceUserJWK: connect.NewClient[v1beta1.CreateServiceUserJWKRequest, v1beta1.CreateServiceUserJWKResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateServiceUserJWKProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUserJWK")),
+			connect.WithClientOptions(opts...),
 		),
-		listServiceUserJWKs: connect_go.NewClient[v1beta1.ListServiceUserJWKsRequest, v1beta1.ListServiceUserJWKsResponse](
+		listServiceUserJWKs: connect.NewClient[v1beta1.ListServiceUserJWKsRequest, v1beta1.ListServiceUserJWKsResponse](
 			httpClient,
 			baseURL+FrontierServiceListServiceUserJWKsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserJWKs")),
+			connect.WithClientOptions(opts...),
 		),
-		getServiceUserJWK: connect_go.NewClient[v1beta1.GetServiceUserJWKRequest, v1beta1.GetServiceUserJWKResponse](
+		getServiceUserJWK: connect.NewClient[v1beta1.GetServiceUserJWKRequest, v1beta1.GetServiceUserJWKResponse](
 			httpClient,
 			baseURL+FrontierServiceGetServiceUserJWKProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetServiceUserJWK")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteServiceUserJWK: connect_go.NewClient[v1beta1.DeleteServiceUserJWKRequest, v1beta1.DeleteServiceUserJWKResponse](
+		deleteServiceUserJWK: connect.NewClient[v1beta1.DeleteServiceUserJWKRequest, v1beta1.DeleteServiceUserJWKResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteServiceUserJWKProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUserJWK")),
+			connect.WithClientOptions(opts...),
 		),
-		createServiceUserCredential: connect_go.NewClient[v1beta1.CreateServiceUserCredentialRequest, v1beta1.CreateServiceUserCredentialResponse](
+		createServiceUserCredential: connect.NewClient[v1beta1.CreateServiceUserCredentialRequest, v1beta1.CreateServiceUserCredentialResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateServiceUserCredentialProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUserCredential")),
+			connect.WithClientOptions(opts...),
 		),
-		listServiceUserCredentials: connect_go.NewClient[v1beta1.ListServiceUserCredentialsRequest, v1beta1.ListServiceUserCredentialsResponse](
+		listServiceUserCredentials: connect.NewClient[v1beta1.ListServiceUserCredentialsRequest, v1beta1.ListServiceUserCredentialsResponse](
 			httpClient,
 			baseURL+FrontierServiceListServiceUserCredentialsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserCredentials")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteServiceUserCredential: connect_go.NewClient[v1beta1.DeleteServiceUserCredentialRequest, v1beta1.DeleteServiceUserCredentialResponse](
+		deleteServiceUserCredential: connect.NewClient[v1beta1.DeleteServiceUserCredentialRequest, v1beta1.DeleteServiceUserCredentialResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteServiceUserCredentialProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUserCredential")),
+			connect.WithClientOptions(opts...),
 		),
-		createServiceUserToken: connect_go.NewClient[v1beta1.CreateServiceUserTokenRequest, v1beta1.CreateServiceUserTokenResponse](
+		createServiceUserToken: connect.NewClient[v1beta1.CreateServiceUserTokenRequest, v1beta1.CreateServiceUserTokenResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateServiceUserTokenProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUserToken")),
+			connect.WithClientOptions(opts...),
 		),
-		listServiceUserTokens: connect_go.NewClient[v1beta1.ListServiceUserTokensRequest, v1beta1.ListServiceUserTokensResponse](
+		listServiceUserTokens: connect.NewClient[v1beta1.ListServiceUserTokensRequest, v1beta1.ListServiceUserTokensResponse](
 			httpClient,
 			baseURL+FrontierServiceListServiceUserTokensProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserTokens")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteServiceUserToken: connect_go.NewClient[v1beta1.DeleteServiceUserTokenRequest, v1beta1.DeleteServiceUserTokenResponse](
+		deleteServiceUserToken: connect.NewClient[v1beta1.DeleteServiceUserTokenRequest, v1beta1.DeleteServiceUserTokenResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteServiceUserTokenProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUserToken")),
+			connect.WithClientOptions(opts...),
 		),
-		listServiceUserProjects: connect_go.NewClient[v1beta1.ListServiceUserProjectsRequest, v1beta1.ListServiceUserProjectsResponse](
+		listServiceUserProjects: connect.NewClient[v1beta1.ListServiceUserProjectsRequest, v1beta1.ListServiceUserProjectsResponse](
 			httpClient,
 			baseURL+FrontierServiceListServiceUserProjectsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserProjects")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationGroups: connect_go.NewClient[v1beta1.ListOrganizationGroupsRequest, v1beta1.ListOrganizationGroupsResponse](
+		listOrganizationGroups: connect.NewClient[v1beta1.ListOrganizationGroupsRequest, v1beta1.ListOrganizationGroupsResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationGroupsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationGroups")),
+			connect.WithClientOptions(opts...),
 		),
-		createGroup: connect_go.NewClient[v1beta1.CreateGroupRequest, v1beta1.CreateGroupResponse](
+		createGroup: connect.NewClient[v1beta1.CreateGroupRequest, v1beta1.CreateGroupResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateGroupProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateGroup")),
+			connect.WithClientOptions(opts...),
 		),
-		getGroup: connect_go.NewClient[v1beta1.GetGroupRequest, v1beta1.GetGroupResponse](
+		getGroup: connect.NewClient[v1beta1.GetGroupRequest, v1beta1.GetGroupResponse](
 			httpClient,
 			baseURL+FrontierServiceGetGroupProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetGroup")),
+			connect.WithClientOptions(opts...),
 		),
-		updateGroup: connect_go.NewClient[v1beta1.UpdateGroupRequest, v1beta1.UpdateGroupResponse](
+		updateGroup: connect.NewClient[v1beta1.UpdateGroupRequest, v1beta1.UpdateGroupResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateGroupProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateGroup")),
+			connect.WithClientOptions(opts...),
 		),
-		listGroupUsers: connect_go.NewClient[v1beta1.ListGroupUsersRequest, v1beta1.ListGroupUsersResponse](
+		listGroupUsers: connect.NewClient[v1beta1.ListGroupUsersRequest, v1beta1.ListGroupUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceListGroupUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListGroupUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		addGroupUsers: connect_go.NewClient[v1beta1.AddGroupUsersRequest, v1beta1.AddGroupUsersResponse](
+		addGroupUsers: connect.NewClient[v1beta1.AddGroupUsersRequest, v1beta1.AddGroupUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceAddGroupUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("AddGroupUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		removeGroupUser: connect_go.NewClient[v1beta1.RemoveGroupUserRequest, v1beta1.RemoveGroupUserResponse](
+		removeGroupUser: connect.NewClient[v1beta1.RemoveGroupUserRequest, v1beta1.RemoveGroupUserResponse](
 			httpClient,
 			baseURL+FrontierServiceRemoveGroupUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("RemoveGroupUser")),
+			connect.WithClientOptions(opts...),
 		),
-		enableGroup: connect_go.NewClient[v1beta1.EnableGroupRequest, v1beta1.EnableGroupResponse](
+		enableGroup: connect.NewClient[v1beta1.EnableGroupRequest, v1beta1.EnableGroupResponse](
 			httpClient,
 			baseURL+FrontierServiceEnableGroupProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("EnableGroup")),
+			connect.WithClientOptions(opts...),
 		),
-		disableGroup: connect_go.NewClient[v1beta1.DisableGroupRequest, v1beta1.DisableGroupResponse](
+		disableGroup: connect.NewClient[v1beta1.DisableGroupRequest, v1beta1.DisableGroupResponse](
 			httpClient,
 			baseURL+FrontierServiceDisableGroupProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DisableGroup")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteGroup: connect_go.NewClient[v1beta1.DeleteGroupRequest, v1beta1.DeleteGroupResponse](
+		deleteGroup: connect.NewClient[v1beta1.DeleteGroupRequest, v1beta1.DeleteGroupResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteGroupProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteGroup")),
+			connect.WithClientOptions(opts...),
 		),
-		listRoles: connect_go.NewClient[v1beta1.ListRolesRequest, v1beta1.ListRolesResponse](
+		listRoles: connect.NewClient[v1beta1.ListRolesRequest, v1beta1.ListRolesResponse](
 			httpClient,
 			baseURL+FrontierServiceListRolesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListRoles")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationRoles: connect_go.NewClient[v1beta1.ListOrganizationRolesRequest, v1beta1.ListOrganizationRolesResponse](
+		listOrganizationRoles: connect.NewClient[v1beta1.ListOrganizationRolesRequest, v1beta1.ListOrganizationRolesResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationRolesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationRoles")),
+			connect.WithClientOptions(opts...),
 		),
-		createOrganizationRole: connect_go.NewClient[v1beta1.CreateOrganizationRoleRequest, v1beta1.CreateOrganizationRoleResponse](
+		createOrganizationRole: connect.NewClient[v1beta1.CreateOrganizationRoleRequest, v1beta1.CreateOrganizationRoleResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateOrganizationRoleProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationRole")),
+			connect.WithClientOptions(opts...),
 		),
-		getOrganizationRole: connect_go.NewClient[v1beta1.GetOrganizationRoleRequest, v1beta1.GetOrganizationRoleResponse](
+		getOrganizationRole: connect.NewClient[v1beta1.GetOrganizationRoleRequest, v1beta1.GetOrganizationRoleResponse](
 			httpClient,
 			baseURL+FrontierServiceGetOrganizationRoleProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationRole")),
+			connect.WithClientOptions(opts...),
 		),
-		updateOrganizationRole: connect_go.NewClient[v1beta1.UpdateOrganizationRoleRequest, v1beta1.UpdateOrganizationRoleResponse](
+		updateOrganizationRole: connect.NewClient[v1beta1.UpdateOrganizationRoleRequest, v1beta1.UpdateOrganizationRoleResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateOrganizationRoleProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateOrganizationRole")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteOrganizationRole: connect_go.NewClient[v1beta1.DeleteOrganizationRoleRequest, v1beta1.DeleteOrganizationRoleResponse](
+		deleteOrganizationRole: connect.NewClient[v1beta1.DeleteOrganizationRoleRequest, v1beta1.DeleteOrganizationRoleResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteOrganizationRoleProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationRole")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizations: connect_go.NewClient[v1beta1.ListOrganizationsRequest, v1beta1.ListOrganizationsResponse](
+		listOrganizations: connect.NewClient[v1beta1.ListOrganizationsRequest, v1beta1.ListOrganizationsResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizations")),
+			connect.WithClientOptions(opts...),
 		),
-		createOrganization: connect_go.NewClient[v1beta1.CreateOrganizationRequest, v1beta1.CreateOrganizationResponse](
+		createOrganization: connect.NewClient[v1beta1.CreateOrganizationRequest, v1beta1.CreateOrganizationResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateOrganizationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		getOrganization: connect_go.NewClient[v1beta1.GetOrganizationRequest, v1beta1.GetOrganizationResponse](
+		getOrganization: connect.NewClient[v1beta1.GetOrganizationRequest, v1beta1.GetOrganizationResponse](
 			httpClient,
 			baseURL+FrontierServiceGetOrganizationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		updateOrganization: connect_go.NewClient[v1beta1.UpdateOrganizationRequest, v1beta1.UpdateOrganizationResponse](
+		updateOrganization: connect.NewClient[v1beta1.UpdateOrganizationRequest, v1beta1.UpdateOrganizationResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateOrganizationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationProjects: connect_go.NewClient[v1beta1.ListOrganizationProjectsRequest, v1beta1.ListOrganizationProjectsResponse](
+		listOrganizationProjects: connect.NewClient[v1beta1.ListOrganizationProjectsRequest, v1beta1.ListOrganizationProjectsResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationProjectsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationProjects")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationAdmins: connect_go.NewClient[v1beta1.ListOrganizationAdminsRequest, v1beta1.ListOrganizationAdminsResponse](
+		listOrganizationAdmins: connect.NewClient[v1beta1.ListOrganizationAdminsRequest, v1beta1.ListOrganizationAdminsResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationAdminsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationAdmins")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationUsers: connect_go.NewClient[v1beta1.ListOrganizationUsersRequest, v1beta1.ListOrganizationUsersResponse](
+		listOrganizationUsers: connect.NewClient[v1beta1.ListOrganizationUsersRequest, v1beta1.ListOrganizationUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		addOrganizationUsers: connect_go.NewClient[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse](
+		addOrganizationUsers: connect.NewClient[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceAddOrganizationUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("AddOrganizationUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		removeOrganizationUser: connect_go.NewClient[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse](
+		removeOrganizationUser: connect.NewClient[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse](
 			httpClient,
 			baseURL+FrontierServiceRemoveOrganizationUserProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationUser")),
+			connect.WithClientOptions(opts...),
 		),
-		getOrganizationKyc: connect_go.NewClient[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse](
+		getOrganizationKyc: connect.NewClient[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse](
 			httpClient,
 			baseURL+FrontierServiceGetOrganizationKycProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationKyc")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationServiceUsers: connect_go.NewClient[v1beta1.ListOrganizationServiceUsersRequest, v1beta1.ListOrganizationServiceUsersResponse](
+		listOrganizationServiceUsers: connect.NewClient[v1beta1.ListOrganizationServiceUsersRequest, v1beta1.ListOrganizationServiceUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationServiceUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationServiceUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationInvitations: connect_go.NewClient[v1beta1.ListOrganizationInvitationsRequest, v1beta1.ListOrganizationInvitationsResponse](
+		listOrganizationInvitations: connect.NewClient[v1beta1.ListOrganizationInvitationsRequest, v1beta1.ListOrganizationInvitationsResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationInvitationsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationInvitations")),
+			connect.WithClientOptions(opts...),
 		),
-		createOrganizationInvitation: connect_go.NewClient[v1beta1.CreateOrganizationInvitationRequest, v1beta1.CreateOrganizationInvitationResponse](
+		createOrganizationInvitation: connect.NewClient[v1beta1.CreateOrganizationInvitationRequest, v1beta1.CreateOrganizationInvitationResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateOrganizationInvitationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationInvitation")),
+			connect.WithClientOptions(opts...),
 		),
-		getOrganizationInvitation: connect_go.NewClient[v1beta1.GetOrganizationInvitationRequest, v1beta1.GetOrganizationInvitationResponse](
+		getOrganizationInvitation: connect.NewClient[v1beta1.GetOrganizationInvitationRequest, v1beta1.GetOrganizationInvitationResponse](
 			httpClient,
 			baseURL+FrontierServiceGetOrganizationInvitationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationInvitation")),
+			connect.WithClientOptions(opts...),
 		),
-		acceptOrganizationInvitation: connect_go.NewClient[v1beta1.AcceptOrganizationInvitationRequest, v1beta1.AcceptOrganizationInvitationResponse](
+		acceptOrganizationInvitation: connect.NewClient[v1beta1.AcceptOrganizationInvitationRequest, v1beta1.AcceptOrganizationInvitationResponse](
 			httpClient,
 			baseURL+FrontierServiceAcceptOrganizationInvitationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("AcceptOrganizationInvitation")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteOrganizationInvitation: connect_go.NewClient[v1beta1.DeleteOrganizationInvitationRequest, v1beta1.DeleteOrganizationInvitationResponse](
+		deleteOrganizationInvitation: connect.NewClient[v1beta1.DeleteOrganizationInvitationRequest, v1beta1.DeleteOrganizationInvitationResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteOrganizationInvitationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationInvitation")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationDomains: connect_go.NewClient[v1beta1.ListOrganizationDomainsRequest, v1beta1.ListOrganizationDomainsResponse](
+		listOrganizationDomains: connect.NewClient[v1beta1.ListOrganizationDomainsRequest, v1beta1.ListOrganizationDomainsResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationDomainsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationDomains")),
+			connect.WithClientOptions(opts...),
 		),
-		createOrganizationDomain: connect_go.NewClient[v1beta1.CreateOrganizationDomainRequest, v1beta1.CreateOrganizationDomainResponse](
+		createOrganizationDomain: connect.NewClient[v1beta1.CreateOrganizationDomainRequest, v1beta1.CreateOrganizationDomainResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateOrganizationDomainProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationDomain")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteOrganizationDomain: connect_go.NewClient[v1beta1.DeleteOrganizationDomainRequest, v1beta1.DeleteOrganizationDomainResponse](
+		deleteOrganizationDomain: connect.NewClient[v1beta1.DeleteOrganizationDomainRequest, v1beta1.DeleteOrganizationDomainResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteOrganizationDomainProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationDomain")),
+			connect.WithClientOptions(opts...),
 		),
-		getOrganizationDomain: connect_go.NewClient[v1beta1.GetOrganizationDomainRequest, v1beta1.GetOrganizationDomainResponse](
+		getOrganizationDomain: connect.NewClient[v1beta1.GetOrganizationDomainRequest, v1beta1.GetOrganizationDomainResponse](
 			httpClient,
 			baseURL+FrontierServiceGetOrganizationDomainProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationDomain")),
+			connect.WithClientOptions(opts...),
 		),
-		verifyOrganizationDomain: connect_go.NewClient[v1beta1.VerifyOrganizationDomainRequest, v1beta1.VerifyOrganizationDomainResponse](
+		verifyOrganizationDomain: connect.NewClient[v1beta1.VerifyOrganizationDomainRequest, v1beta1.VerifyOrganizationDomainResponse](
 			httpClient,
 			baseURL+FrontierServiceVerifyOrganizationDomainProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("VerifyOrganizationDomain")),
+			connect.WithClientOptions(opts...),
 		),
-		joinOrganization: connect_go.NewClient[v1beta1.JoinOrganizationRequest, v1beta1.JoinOrganizationResponse](
+		joinOrganization: connect.NewClient[v1beta1.JoinOrganizationRequest, v1beta1.JoinOrganizationResponse](
 			httpClient,
 			baseURL+FrontierServiceJoinOrganizationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("JoinOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		enableOrganization: connect_go.NewClient[v1beta1.EnableOrganizationRequest, v1beta1.EnableOrganizationResponse](
+		enableOrganization: connect.NewClient[v1beta1.EnableOrganizationRequest, v1beta1.EnableOrganizationResponse](
 			httpClient,
 			baseURL+FrontierServiceEnableOrganizationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("EnableOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		disableOrganization: connect_go.NewClient[v1beta1.DisableOrganizationRequest, v1beta1.DisableOrganizationResponse](
+		disableOrganization: connect.NewClient[v1beta1.DisableOrganizationRequest, v1beta1.DisableOrganizationResponse](
 			httpClient,
 			baseURL+FrontierServiceDisableOrganizationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DisableOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteOrganization: connect_go.NewClient[v1beta1.DeleteOrganizationRequest, v1beta1.DeleteOrganizationResponse](
+		deleteOrganization: connect.NewClient[v1beta1.DeleteOrganizationRequest, v1beta1.DeleteOrganizationResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteOrganizationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		createProject: connect_go.NewClient[v1beta1.CreateProjectRequest, v1beta1.CreateProjectResponse](
+		createProject: connect.NewClient[v1beta1.CreateProjectRequest, v1beta1.CreateProjectResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateProjectProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateProject")),
+			connect.WithClientOptions(opts...),
 		),
-		getProject: connect_go.NewClient[v1beta1.GetProjectRequest, v1beta1.GetProjectResponse](
+		getProject: connect.NewClient[v1beta1.GetProjectRequest, v1beta1.GetProjectResponse](
 			httpClient,
 			baseURL+FrontierServiceGetProjectProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetProject")),
+			connect.WithClientOptions(opts...),
 		),
-		updateProject: connect_go.NewClient[v1beta1.UpdateProjectRequest, v1beta1.UpdateProjectResponse](
+		updateProject: connect.NewClient[v1beta1.UpdateProjectRequest, v1beta1.UpdateProjectResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateProjectProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateProject")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectAdmins: connect_go.NewClient[v1beta1.ListProjectAdminsRequest, v1beta1.ListProjectAdminsResponse](
+		listProjectAdmins: connect.NewClient[v1beta1.ListProjectAdminsRequest, v1beta1.ListProjectAdminsResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectAdminsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectAdmins")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectUsers: connect_go.NewClient[v1beta1.ListProjectUsersRequest, v1beta1.ListProjectUsersResponse](
+		listProjectUsers: connect.NewClient[v1beta1.ListProjectUsersRequest, v1beta1.ListProjectUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectServiceUsers: connect_go.NewClient[v1beta1.ListProjectServiceUsersRequest, v1beta1.ListProjectServiceUsersResponse](
+		listProjectServiceUsers: connect.NewClient[v1beta1.ListProjectServiceUsersRequest, v1beta1.ListProjectServiceUsersResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectServiceUsersProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectServiceUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectGroups: connect_go.NewClient[v1beta1.ListProjectGroupsRequest, v1beta1.ListProjectGroupsResponse](
+		listProjectGroups: connect.NewClient[v1beta1.ListProjectGroupsRequest, v1beta1.ListProjectGroupsResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectGroupsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectGroups")),
+			connect.WithClientOptions(opts...),
 		),
-		enableProject: connect_go.NewClient[v1beta1.EnableProjectRequest, v1beta1.EnableProjectResponse](
+		enableProject: connect.NewClient[v1beta1.EnableProjectRequest, v1beta1.EnableProjectResponse](
 			httpClient,
 			baseURL+FrontierServiceEnableProjectProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("EnableProject")),
+			connect.WithClientOptions(opts...),
 		),
-		disableProject: connect_go.NewClient[v1beta1.DisableProjectRequest, v1beta1.DisableProjectResponse](
+		disableProject: connect.NewClient[v1beta1.DisableProjectRequest, v1beta1.DisableProjectResponse](
 			httpClient,
 			baseURL+FrontierServiceDisableProjectProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DisableProject")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteProject: connect_go.NewClient[v1beta1.DeleteProjectRequest, v1beta1.DeleteProjectResponse](
+		deleteProject: connect.NewClient[v1beta1.DeleteProjectRequest, v1beta1.DeleteProjectResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteProjectProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteProject")),
+			connect.WithClientOptions(opts...),
 		),
-		createPolicy: connect_go.NewClient[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse](
+		createPolicy: connect.NewClient[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse](
 			httpClient,
 			baseURL+FrontierServiceCreatePolicyProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreatePolicy")),
+			connect.WithClientOptions(opts...),
 		),
-		getPolicy: connect_go.NewClient[v1beta1.GetPolicyRequest, v1beta1.GetPolicyResponse](
+		getPolicy: connect.NewClient[v1beta1.GetPolicyRequest, v1beta1.GetPolicyResponse](
 			httpClient,
 			baseURL+FrontierServiceGetPolicyProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetPolicy")),
+			connect.WithClientOptions(opts...),
 		),
-		listPolicies: connect_go.NewClient[v1beta1.ListPoliciesRequest, v1beta1.ListPoliciesResponse](
+		listPolicies: connect.NewClient[v1beta1.ListPoliciesRequest, v1beta1.ListPoliciesResponse](
 			httpClient,
 			baseURL+FrontierServiceListPoliciesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListPolicies")),
+			connect.WithClientOptions(opts...),
 		),
-		updatePolicy: connect_go.NewClient[v1beta1.UpdatePolicyRequest, v1beta1.UpdatePolicyResponse](
+		updatePolicy: connect.NewClient[v1beta1.UpdatePolicyRequest, v1beta1.UpdatePolicyResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdatePolicyProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdatePolicy")),
+			connect.WithClientOptions(opts...),
 		),
-		deletePolicy: connect_go.NewClient[v1beta1.DeletePolicyRequest, v1beta1.DeletePolicyResponse](
+		deletePolicy: connect.NewClient[v1beta1.DeletePolicyRequest, v1beta1.DeletePolicyResponse](
 			httpClient,
 			baseURL+FrontierServiceDeletePolicyProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeletePolicy")),
+			connect.WithClientOptions(opts...),
 		),
-		createPolicyForProject: connect_go.NewClient[v1beta1.CreatePolicyForProjectRequest, v1beta1.CreatePolicyForProjectResponse](
+		createPolicyForProject: connect.NewClient[v1beta1.CreatePolicyForProjectRequest, v1beta1.CreatePolicyForProjectResponse](
 			httpClient,
 			baseURL+FrontierServiceCreatePolicyForProjectProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreatePolicyForProject")),
+			connect.WithClientOptions(opts...),
 		),
-		createRelation: connect_go.NewClient[v1beta1.CreateRelationRequest, v1beta1.CreateRelationResponse](
+		createRelation: connect.NewClient[v1beta1.CreateRelationRequest, v1beta1.CreateRelationResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateRelationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateRelation")),
+			connect.WithClientOptions(opts...),
 		),
-		getRelation: connect_go.NewClient[v1beta1.GetRelationRequest, v1beta1.GetRelationResponse](
+		getRelation: connect.NewClient[v1beta1.GetRelationRequest, v1beta1.GetRelationResponse](
 			httpClient,
 			baseURL+FrontierServiceGetRelationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetRelation")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteRelation: connect_go.NewClient[v1beta1.DeleteRelationRequest, v1beta1.DeleteRelationResponse](
+		deleteRelation: connect.NewClient[v1beta1.DeleteRelationRequest, v1beta1.DeleteRelationResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteRelationProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteRelation")),
+			connect.WithClientOptions(opts...),
 		),
-		listPermissions: connect_go.NewClient[v1beta1.ListPermissionsRequest, v1beta1.ListPermissionsResponse](
+		listPermissions: connect.NewClient[v1beta1.ListPermissionsRequest, v1beta1.ListPermissionsResponse](
 			httpClient,
 			baseURL+FrontierServiceListPermissionsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListPermissions")),
+			connect.WithClientOptions(opts...),
 		),
-		getPermission: connect_go.NewClient[v1beta1.GetPermissionRequest, v1beta1.GetPermissionResponse](
+		getPermission: connect.NewClient[v1beta1.GetPermissionRequest, v1beta1.GetPermissionResponse](
 			httpClient,
 			baseURL+FrontierServiceGetPermissionProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetPermission")),
+			connect.WithClientOptions(opts...),
 		),
-		listNamespaces: connect_go.NewClient[v1beta1.ListNamespacesRequest, v1beta1.ListNamespacesResponse](
+		listNamespaces: connect.NewClient[v1beta1.ListNamespacesRequest, v1beta1.ListNamespacesResponse](
 			httpClient,
 			baseURL+FrontierServiceListNamespacesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListNamespaces")),
+			connect.WithClientOptions(opts...),
 		),
-		getNamespace: connect_go.NewClient[v1beta1.GetNamespaceRequest, v1beta1.GetNamespaceResponse](
+		getNamespace: connect.NewClient[v1beta1.GetNamespaceRequest, v1beta1.GetNamespaceResponse](
 			httpClient,
 			baseURL+FrontierServiceGetNamespaceProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetNamespace")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectResources: connect_go.NewClient[v1beta1.ListProjectResourcesRequest, v1beta1.ListProjectResourcesResponse](
+		listProjectResources: connect.NewClient[v1beta1.ListProjectResourcesRequest, v1beta1.ListProjectResourcesResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectResourcesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectResources")),
+			connect.WithClientOptions(opts...),
 		),
-		createProjectResource: connect_go.NewClient[v1beta1.CreateProjectResourceRequest, v1beta1.CreateProjectResourceResponse](
+		createProjectResource: connect.NewClient[v1beta1.CreateProjectResourceRequest, v1beta1.CreateProjectResourceResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateProjectResourceProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateProjectResource")),
+			connect.WithClientOptions(opts...),
 		),
-		getProjectResource: connect_go.NewClient[v1beta1.GetProjectResourceRequest, v1beta1.GetProjectResourceResponse](
+		getProjectResource: connect.NewClient[v1beta1.GetProjectResourceRequest, v1beta1.GetProjectResourceResponse](
 			httpClient,
 			baseURL+FrontierServiceGetProjectResourceProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetProjectResource")),
+			connect.WithClientOptions(opts...),
 		),
-		updateProjectResource: connect_go.NewClient[v1beta1.UpdateProjectResourceRequest, v1beta1.UpdateProjectResourceResponse](
+		updateProjectResource: connect.NewClient[v1beta1.UpdateProjectResourceRequest, v1beta1.UpdateProjectResourceResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateProjectResourceProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateProjectResource")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteProjectResource: connect_go.NewClient[v1beta1.DeleteProjectResourceRequest, v1beta1.DeleteProjectResourceResponse](
+		deleteProjectResource: connect.NewClient[v1beta1.DeleteProjectResourceRequest, v1beta1.DeleteProjectResourceResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteProjectResourceProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteProjectResource")),
+			connect.WithClientOptions(opts...),
 		),
-		checkResourcePermission: connect_go.NewClient[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse](
+		checkResourcePermission: connect.NewClient[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse](
 			httpClient,
 			baseURL+FrontierServiceCheckResourcePermissionProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CheckResourcePermission")),
+			connect.WithClientOptions(opts...),
 		),
-		batchCheckPermission: connect_go.NewClient[v1beta1.BatchCheckPermissionRequest, v1beta1.BatchCheckPermissionResponse](
+		batchCheckPermission: connect.NewClient[v1beta1.BatchCheckPermissionRequest, v1beta1.BatchCheckPermissionResponse](
 			httpClient,
 			baseURL+FrontierServiceBatchCheckPermissionProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("BatchCheckPermission")),
+			connect.WithClientOptions(opts...),
 		),
-		getJWKs: connect_go.NewClient[v1beta1.GetJWKsRequest, v1beta1.GetJWKsResponse](
+		getJWKs: connect.NewClient[v1beta1.GetJWKsRequest, v1beta1.GetJWKsResponse](
 			httpClient,
 			baseURL+FrontierServiceGetJWKsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetJWKs")),
+			connect.WithClientOptions(opts...),
 		),
-		listAuthStrategies: connect_go.NewClient[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse](
+		listAuthStrategies: connect.NewClient[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse](
 			httpClient,
 			baseURL+FrontierServiceListAuthStrategiesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListAuthStrategies")),
+			connect.WithClientOptions(opts...),
 		),
-		authenticate: connect_go.NewClient[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse](
+		authenticate: connect.NewClient[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse](
 			httpClient,
 			baseURL+FrontierServiceAuthenticateProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("Authenticate")),
+			connect.WithClientOptions(opts...),
 		),
-		authCallback: connect_go.NewClient[v1beta1.AuthCallbackRequest, v1beta1.AuthCallbackResponse](
+		authCallback: connect.NewClient[v1beta1.AuthCallbackRequest, v1beta1.AuthCallbackResponse](
 			httpClient,
 			baseURL+FrontierServiceAuthCallbackProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("AuthCallback")),
+			connect.WithClientOptions(opts...),
 		),
-		authToken: connect_go.NewClient[v1beta1.AuthTokenRequest, v1beta1.AuthTokenResponse](
+		authToken: connect.NewClient[v1beta1.AuthTokenRequest, v1beta1.AuthTokenResponse](
 			httpClient,
 			baseURL+FrontierServiceAuthTokenProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("AuthToken")),
+			connect.WithClientOptions(opts...),
 		),
-		authLogout: connect_go.NewClient[v1beta1.AuthLogoutRequest, v1beta1.AuthLogoutResponse](
+		authLogout: connect.NewClient[v1beta1.AuthLogoutRequest, v1beta1.AuthLogoutResponse](
 			httpClient,
 			baseURL+FrontierServiceAuthLogoutProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("AuthLogout")),
+			connect.WithClientOptions(opts...),
 		),
-		listMetaSchemas: connect_go.NewClient[v1beta1.ListMetaSchemasRequest, v1beta1.ListMetaSchemasResponse](
+		listMetaSchemas: connect.NewClient[v1beta1.ListMetaSchemasRequest, v1beta1.ListMetaSchemasResponse](
 			httpClient,
 			baseURL+FrontierServiceListMetaSchemasProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListMetaSchemas")),
+			connect.WithClientOptions(opts...),
 		),
-		createMetaSchema: connect_go.NewClient[v1beta1.CreateMetaSchemaRequest, v1beta1.CreateMetaSchemaResponse](
+		createMetaSchema: connect.NewClient[v1beta1.CreateMetaSchemaRequest, v1beta1.CreateMetaSchemaResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateMetaSchemaProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateMetaSchema")),
+			connect.WithClientOptions(opts...),
 		),
-		getMetaSchema: connect_go.NewClient[v1beta1.GetMetaSchemaRequest, v1beta1.GetMetaSchemaResponse](
+		getMetaSchema: connect.NewClient[v1beta1.GetMetaSchemaRequest, v1beta1.GetMetaSchemaResponse](
 			httpClient,
 			baseURL+FrontierServiceGetMetaSchemaProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetMetaSchema")),
+			connect.WithClientOptions(opts...),
 		),
-		updateMetaSchema: connect_go.NewClient[v1beta1.UpdateMetaSchemaRequest, v1beta1.UpdateMetaSchemaResponse](
+		updateMetaSchema: connect.NewClient[v1beta1.UpdateMetaSchemaRequest, v1beta1.UpdateMetaSchemaResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateMetaSchemaProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateMetaSchema")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteMetaSchema: connect_go.NewClient[v1beta1.DeleteMetaSchemaRequest, v1beta1.DeleteMetaSchemaResponse](
+		deleteMetaSchema: connect.NewClient[v1beta1.DeleteMetaSchemaRequest, v1beta1.DeleteMetaSchemaResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteMetaSchemaProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteMetaSchema")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationAuditLogs: connect_go.NewClient[v1beta1.ListOrganizationAuditLogsRequest, v1beta1.ListOrganizationAuditLogsResponse](
+		listOrganizationAuditLogs: connect.NewClient[v1beta1.ListOrganizationAuditLogsRequest, v1beta1.ListOrganizationAuditLogsResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationAuditLogsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationAuditLogs")),
+			connect.WithClientOptions(opts...),
 		),
-		createOrganizationAuditLogs: connect_go.NewClient[v1beta1.CreateOrganizationAuditLogsRequest, v1beta1.CreateOrganizationAuditLogsResponse](
+		createOrganizationAuditLogs: connect.NewClient[v1beta1.CreateOrganizationAuditLogsRequest, v1beta1.CreateOrganizationAuditLogsResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateOrganizationAuditLogsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationAuditLogs")),
+			connect.WithClientOptions(opts...),
 		),
-		getOrganizationAuditLog: connect_go.NewClient[v1beta1.GetOrganizationAuditLogRequest, v1beta1.GetOrganizationAuditLogResponse](
+		getOrganizationAuditLog: connect.NewClient[v1beta1.GetOrganizationAuditLogRequest, v1beta1.GetOrganizationAuditLogResponse](
 			httpClient,
 			baseURL+FrontierServiceGetOrganizationAuditLogProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationAuditLog")),
+			connect.WithClientOptions(opts...),
 		),
-		describePreferences: connect_go.NewClient[v1beta1.DescribePreferencesRequest, v1beta1.DescribePreferencesResponse](
+		describePreferences: connect.NewClient[v1beta1.DescribePreferencesRequest, v1beta1.DescribePreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceDescribePreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DescribePreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		createOrganizationPreferences: connect_go.NewClient[v1beta1.CreateOrganizationPreferencesRequest, v1beta1.CreateOrganizationPreferencesResponse](
+		createOrganizationPreferences: connect.NewClient[v1beta1.CreateOrganizationPreferencesRequest, v1beta1.CreateOrganizationPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateOrganizationPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationPreferences: connect_go.NewClient[v1beta1.ListOrganizationPreferencesRequest, v1beta1.ListOrganizationPreferencesResponse](
+		listOrganizationPreferences: connect.NewClient[v1beta1.ListOrganizationPreferencesRequest, v1beta1.ListOrganizationPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceListOrganizationPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		createProjectPreferences: connect_go.NewClient[v1beta1.CreateProjectPreferencesRequest, v1beta1.CreateProjectPreferencesResponse](
+		createProjectPreferences: connect.NewClient[v1beta1.CreateProjectPreferencesRequest, v1beta1.CreateProjectPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateProjectPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateProjectPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjectPreferences: connect_go.NewClient[v1beta1.ListProjectPreferencesRequest, v1beta1.ListProjectPreferencesResponse](
+		listProjectPreferences: connect.NewClient[v1beta1.ListProjectPreferencesRequest, v1beta1.ListProjectPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceListProjectPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProjectPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		createGroupPreferences: connect_go.NewClient[v1beta1.CreateGroupPreferencesRequest, v1beta1.CreateGroupPreferencesResponse](
+		createGroupPreferences: connect.NewClient[v1beta1.CreateGroupPreferencesRequest, v1beta1.CreateGroupPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateGroupPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateGroupPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		listGroupPreferences: connect_go.NewClient[v1beta1.ListGroupPreferencesRequest, v1beta1.ListGroupPreferencesResponse](
+		listGroupPreferences: connect.NewClient[v1beta1.ListGroupPreferencesRequest, v1beta1.ListGroupPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceListGroupPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListGroupPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		createUserPreferences: connect_go.NewClient[v1beta1.CreateUserPreferencesRequest, v1beta1.CreateUserPreferencesResponse](
+		createUserPreferences: connect.NewClient[v1beta1.CreateUserPreferencesRequest, v1beta1.CreateUserPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateUserPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateUserPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		listUserPreferences: connect_go.NewClient[v1beta1.ListUserPreferencesRequest, v1beta1.ListUserPreferencesResponse](
+		listUserPreferences: connect.NewClient[v1beta1.ListUserPreferencesRequest, v1beta1.ListUserPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceListUserPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListUserPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		createCurrentUserPreferences: connect_go.NewClient[v1beta1.CreateCurrentUserPreferencesRequest, v1beta1.CreateCurrentUserPreferencesResponse](
+		createCurrentUserPreferences: connect.NewClient[v1beta1.CreateCurrentUserPreferencesRequest, v1beta1.CreateCurrentUserPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateCurrentUserPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateCurrentUserPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		listCurrentUserPreferences: connect_go.NewClient[v1beta1.ListCurrentUserPreferencesRequest, v1beta1.ListCurrentUserPreferencesResponse](
+		listCurrentUserPreferences: connect.NewClient[v1beta1.ListCurrentUserPreferencesRequest, v1beta1.ListCurrentUserPreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceListCurrentUserPreferencesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		createBillingAccount: connect_go.NewClient[v1beta1.CreateBillingAccountRequest, v1beta1.CreateBillingAccountResponse](
+		createBillingAccount: connect.NewClient[v1beta1.CreateBillingAccountRequest, v1beta1.CreateBillingAccountResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateBillingAccountProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateBillingAccount")),
+			connect.WithClientOptions(opts...),
 		),
-		getBillingAccount: connect_go.NewClient[v1beta1.GetBillingAccountRequest, v1beta1.GetBillingAccountResponse](
+		getBillingAccount: connect.NewClient[v1beta1.GetBillingAccountRequest, v1beta1.GetBillingAccountResponse](
 			httpClient,
 			baseURL+FrontierServiceGetBillingAccountProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetBillingAccount")),
+			connect.WithClientOptions(opts...),
 		),
-		updateBillingAccount: connect_go.NewClient[v1beta1.UpdateBillingAccountRequest, v1beta1.UpdateBillingAccountResponse](
+		updateBillingAccount: connect.NewClient[v1beta1.UpdateBillingAccountRequest, v1beta1.UpdateBillingAccountResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateBillingAccountProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateBillingAccount")),
+			connect.WithClientOptions(opts...),
 		),
-		registerBillingAccount: connect_go.NewClient[v1beta1.RegisterBillingAccountRequest, v1beta1.RegisterBillingAccountResponse](
+		registerBillingAccount: connect.NewClient[v1beta1.RegisterBillingAccountRequest, v1beta1.RegisterBillingAccountResponse](
 			httpClient,
 			baseURL+FrontierServiceRegisterBillingAccountProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("RegisterBillingAccount")),
+			connect.WithClientOptions(opts...),
 		),
-		listBillingAccounts: connect_go.NewClient[v1beta1.ListBillingAccountsRequest, v1beta1.ListBillingAccountsResponse](
+		listBillingAccounts: connect.NewClient[v1beta1.ListBillingAccountsRequest, v1beta1.ListBillingAccountsResponse](
 			httpClient,
 			baseURL+FrontierServiceListBillingAccountsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListBillingAccounts")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteBillingAccount: connect_go.NewClient[v1beta1.DeleteBillingAccountRequest, v1beta1.DeleteBillingAccountResponse](
+		deleteBillingAccount: connect.NewClient[v1beta1.DeleteBillingAccountRequest, v1beta1.DeleteBillingAccountResponse](
 			httpClient,
 			baseURL+FrontierServiceDeleteBillingAccountProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteBillingAccount")),
+			connect.WithClientOptions(opts...),
 		),
-		enableBillingAccount: connect_go.NewClient[v1beta1.EnableBillingAccountRequest, v1beta1.EnableBillingAccountResponse](
+		enableBillingAccount: connect.NewClient[v1beta1.EnableBillingAccountRequest, v1beta1.EnableBillingAccountResponse](
 			httpClient,
 			baseURL+FrontierServiceEnableBillingAccountProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("EnableBillingAccount")),
+			connect.WithClientOptions(opts...),
 		),
-		disableBillingAccount: connect_go.NewClient[v1beta1.DisableBillingAccountRequest, v1beta1.DisableBillingAccountResponse](
+		disableBillingAccount: connect.NewClient[v1beta1.DisableBillingAccountRequest, v1beta1.DisableBillingAccountResponse](
 			httpClient,
 			baseURL+FrontierServiceDisableBillingAccountProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("DisableBillingAccount")),
+			connect.WithClientOptions(opts...),
 		),
-		getBillingBalance: connect_go.NewClient[v1beta1.GetBillingBalanceRequest, v1beta1.GetBillingBalanceResponse](
+		getBillingBalance: connect.NewClient[v1beta1.GetBillingBalanceRequest, v1beta1.GetBillingBalanceResponse](
 			httpClient,
 			baseURL+FrontierServiceGetBillingBalanceProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetBillingBalance")),
+			connect.WithClientOptions(opts...),
 		),
-		hasTrialed: connect_go.NewClient[v1beta1.HasTrialedRequest, v1beta1.HasTrialedResponse](
+		hasTrialed: connect.NewClient[v1beta1.HasTrialedRequest, v1beta1.HasTrialedResponse](
 			httpClient,
 			baseURL+FrontierServiceHasTrialedProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("HasTrialed")),
+			connect.WithClientOptions(opts...),
 		),
-		getSubscription: connect_go.NewClient[v1beta1.GetSubscriptionRequest, v1beta1.GetSubscriptionResponse](
+		getSubscription: connect.NewClient[v1beta1.GetSubscriptionRequest, v1beta1.GetSubscriptionResponse](
 			httpClient,
 			baseURL+FrontierServiceGetSubscriptionProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetSubscription")),
+			connect.WithClientOptions(opts...),
 		),
-		cancelSubscription: connect_go.NewClient[v1beta1.CancelSubscriptionRequest, v1beta1.CancelSubscriptionResponse](
+		cancelSubscription: connect.NewClient[v1beta1.CancelSubscriptionRequest, v1beta1.CancelSubscriptionResponse](
 			httpClient,
 			baseURL+FrontierServiceCancelSubscriptionProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CancelSubscription")),
+			connect.WithClientOptions(opts...),
 		),
-		listSubscriptions: connect_go.NewClient[v1beta1.ListSubscriptionsRequest, v1beta1.ListSubscriptionsResponse](
+		listSubscriptions: connect.NewClient[v1beta1.ListSubscriptionsRequest, v1beta1.ListSubscriptionsResponse](
 			httpClient,
 			baseURL+FrontierServiceListSubscriptionsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListSubscriptions")),
+			connect.WithClientOptions(opts...),
 		),
-		changeSubscription: connect_go.NewClient[v1beta1.ChangeSubscriptionRequest, v1beta1.ChangeSubscriptionResponse](
+		changeSubscription: connect.NewClient[v1beta1.ChangeSubscriptionRequest, v1beta1.ChangeSubscriptionResponse](
 			httpClient,
 			baseURL+FrontierServiceChangeSubscriptionProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ChangeSubscription")),
+			connect.WithClientOptions(opts...),
 		),
-		updateSubscription: connect_go.NewClient[v1beta1.UpdateSubscriptionRequest, v1beta1.UpdateSubscriptionResponse](
+		updateSubscription: connect.NewClient[v1beta1.UpdateSubscriptionRequest, v1beta1.UpdateSubscriptionResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateSubscriptionProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateSubscription")),
+			connect.WithClientOptions(opts...),
 		),
-		createProduct: connect_go.NewClient[v1beta1.CreateProductRequest, v1beta1.CreateProductResponse](
+		createProduct: connect.NewClient[v1beta1.CreateProductRequest, v1beta1.CreateProductResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateProductProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateProduct")),
+			connect.WithClientOptions(opts...),
 		),
-		getProduct: connect_go.NewClient[v1beta1.GetProductRequest, v1beta1.GetProductResponse](
+		getProduct: connect.NewClient[v1beta1.GetProductRequest, v1beta1.GetProductResponse](
 			httpClient,
 			baseURL+FrontierServiceGetProductProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetProduct")),
+			connect.WithClientOptions(opts...),
 		),
-		listProducts: connect_go.NewClient[v1beta1.ListProductsRequest, v1beta1.ListProductsResponse](
+		listProducts: connect.NewClient[v1beta1.ListProductsRequest, v1beta1.ListProductsResponse](
 			httpClient,
 			baseURL+FrontierServiceListProductsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListProducts")),
+			connect.WithClientOptions(opts...),
 		),
-		updateProduct: connect_go.NewClient[v1beta1.UpdateProductRequest, v1beta1.UpdateProductResponse](
+		updateProduct: connect.NewClient[v1beta1.UpdateProductRequest, v1beta1.UpdateProductResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateProductProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateProduct")),
+			connect.WithClientOptions(opts...),
 		),
-		createFeature: connect_go.NewClient[v1beta1.CreateFeatureRequest, v1beta1.CreateFeatureResponse](
+		createFeature: connect.NewClient[v1beta1.CreateFeatureRequest, v1beta1.CreateFeatureResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateFeatureProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateFeature")),
+			connect.WithClientOptions(opts...),
 		),
-		getFeature: connect_go.NewClient[v1beta1.GetFeatureRequest, v1beta1.GetFeatureResponse](
+		getFeature: connect.NewClient[v1beta1.GetFeatureRequest, v1beta1.GetFeatureResponse](
 			httpClient,
 			baseURL+FrontierServiceGetFeatureProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetFeature")),
+			connect.WithClientOptions(opts...),
 		),
-		updateFeature: connect_go.NewClient[v1beta1.UpdateFeatureRequest, v1beta1.UpdateFeatureResponse](
+		updateFeature: connect.NewClient[v1beta1.UpdateFeatureRequest, v1beta1.UpdateFeatureResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdateFeatureProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateFeature")),
+			connect.WithClientOptions(opts...),
 		),
-		listFeatures: connect_go.NewClient[v1beta1.ListFeaturesRequest, v1beta1.ListFeaturesResponse](
+		listFeatures: connect.NewClient[v1beta1.ListFeaturesRequest, v1beta1.ListFeaturesResponse](
 			httpClient,
 			baseURL+FrontierServiceListFeaturesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListFeatures")),
+			connect.WithClientOptions(opts...),
 		),
-		createPlan: connect_go.NewClient[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse](
+		createPlan: connect.NewClient[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse](
 			httpClient,
 			baseURL+FrontierServiceCreatePlanProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreatePlan")),
+			connect.WithClientOptions(opts...),
 		),
-		listPlans: connect_go.NewClient[v1beta1.ListPlansRequest, v1beta1.ListPlansResponse](
+		listPlans: connect.NewClient[v1beta1.ListPlansRequest, v1beta1.ListPlansResponse](
 			httpClient,
 			baseURL+FrontierServiceListPlansProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListPlans")),
+			connect.WithClientOptions(opts...),
 		),
-		getPlan: connect_go.NewClient[v1beta1.GetPlanRequest, v1beta1.GetPlanResponse](
+		getPlan: connect.NewClient[v1beta1.GetPlanRequest, v1beta1.GetPlanResponse](
 			httpClient,
 			baseURL+FrontierServiceGetPlanProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetPlan")),
+			connect.WithClientOptions(opts...),
 		),
-		updatePlan: connect_go.NewClient[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse](
+		updatePlan: connect.NewClient[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse](
 			httpClient,
 			baseURL+FrontierServiceUpdatePlanProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdatePlan")),
+			connect.WithClientOptions(opts...),
 		),
-		createCheckout: connect_go.NewClient[v1beta1.CreateCheckoutRequest, v1beta1.CreateCheckoutResponse](
+		createCheckout: connect.NewClient[v1beta1.CreateCheckoutRequest, v1beta1.CreateCheckoutResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateCheckoutProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateCheckout")),
+			connect.WithClientOptions(opts...),
 		),
-		listCheckouts: connect_go.NewClient[v1beta1.ListCheckoutsRequest, v1beta1.ListCheckoutsResponse](
+		listCheckouts: connect.NewClient[v1beta1.ListCheckoutsRequest, v1beta1.ListCheckoutsResponse](
 			httpClient,
 			baseURL+FrontierServiceListCheckoutsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListCheckouts")),
+			connect.WithClientOptions(opts...),
 		),
-		getCheckout: connect_go.NewClient[v1beta1.GetCheckoutRequest, v1beta1.GetCheckoutResponse](
+		getCheckout: connect.NewClient[v1beta1.GetCheckoutRequest, v1beta1.GetCheckoutResponse](
 			httpClient,
 			baseURL+FrontierServiceGetCheckoutProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetCheckout")),
+			connect.WithClientOptions(opts...),
 		),
-		checkFeatureEntitlement: connect_go.NewClient[v1beta1.CheckFeatureEntitlementRequest, v1beta1.CheckFeatureEntitlementResponse](
+		checkFeatureEntitlement: connect.NewClient[v1beta1.CheckFeatureEntitlementRequest, v1beta1.CheckFeatureEntitlementResponse](
 			httpClient,
 			baseURL+FrontierServiceCheckFeatureEntitlementProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CheckFeatureEntitlement")),
+			connect.WithClientOptions(opts...),
 		),
-		createBillingUsage: connect_go.NewClient[v1beta1.CreateBillingUsageRequest, v1beta1.CreateBillingUsageResponse](
+		createBillingUsage: connect.NewClient[v1beta1.CreateBillingUsageRequest, v1beta1.CreateBillingUsageResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateBillingUsageProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateBillingUsage")),
+			connect.WithClientOptions(opts...),
 		),
-		listBillingTransactions: connect_go.NewClient[v1beta1.ListBillingTransactionsRequest, v1beta1.ListBillingTransactionsResponse](
+		listBillingTransactions: connect.NewClient[v1beta1.ListBillingTransactionsRequest, v1beta1.ListBillingTransactionsResponse](
 			httpClient,
 			baseURL+FrontierServiceListBillingTransactionsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListBillingTransactions")),
+			connect.WithClientOptions(opts...),
 		),
-		totalDebitedTransactions: connect_go.NewClient[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse](
+		totalDebitedTransactions: connect.NewClient[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse](
 			httpClient,
 			baseURL+FrontierServiceTotalDebitedTransactionsProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("TotalDebitedTransactions")),
+			connect.WithClientOptions(opts...),
 		),
-		listInvoices: connect_go.NewClient[v1beta1.ListInvoicesRequest, v1beta1.ListInvoicesResponse](
+		listInvoices: connect.NewClient[v1beta1.ListInvoicesRequest, v1beta1.ListInvoicesResponse](
 			httpClient,
 			baseURL+FrontierServiceListInvoicesProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("ListInvoices")),
+			connect.WithClientOptions(opts...),
 		),
-		getUpcomingInvoice: connect_go.NewClient[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse](
+		getUpcomingInvoice: connect.NewClient[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse](
 			httpClient,
 			baseURL+FrontierServiceGetUpcomingInvoiceProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("GetUpcomingInvoice")),
+			connect.WithClientOptions(opts...),
 		),
-		billingWebhookCallback: connect_go.NewClient[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse](
+		billingWebhookCallback: connect.NewClient[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse](
 			httpClient,
 			baseURL+FrontierServiceBillingWebhookCallbackProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("BillingWebhookCallback")),
+			connect.WithClientOptions(opts...),
 		),
-		createProspectPublic: connect_go.NewClient[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse](
+		createProspectPublic: connect.NewClient[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateProspectPublicProcedure,
-			opts...,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateProspectPublic")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
 
 // frontierServiceClient implements FrontierServiceClient.
 type frontierServiceClient struct {
-	listUsers                      *connect_go.Client[v1beta1.ListUsersRequest, v1beta1.ListUsersResponse]
-	createUser                     *connect_go.Client[v1beta1.CreateUserRequest, v1beta1.CreateUserResponse]
-	getUser                        *connect_go.Client[v1beta1.GetUserRequest, v1beta1.GetUserResponse]
-	listUserGroups                 *connect_go.Client[v1beta1.ListUserGroupsRequest, v1beta1.ListUserGroupsResponse]
-	listCurrentUserGroups          *connect_go.Client[v1beta1.ListCurrentUserGroupsRequest, v1beta1.ListCurrentUserGroupsResponse]
-	getCurrentUser                 *connect_go.Client[v1beta1.GetCurrentUserRequest, v1beta1.GetCurrentUserResponse]
-	updateUser                     *connect_go.Client[v1beta1.UpdateUserRequest, v1beta1.UpdateUserResponse]
-	updateCurrentUser              *connect_go.Client[v1beta1.UpdateCurrentUserRequest, v1beta1.UpdateCurrentUserResponse]
-	enableUser                     *connect_go.Client[v1beta1.EnableUserRequest, v1beta1.EnableUserResponse]
-	disableUser                    *connect_go.Client[v1beta1.DisableUserRequest, v1beta1.DisableUserResponse]
-	deleteUser                     *connect_go.Client[v1beta1.DeleteUserRequest, v1beta1.DeleteUserResponse]
-	listOrganizationsByUser        *connect_go.Client[v1beta1.ListOrganizationsByUserRequest, v1beta1.ListOrganizationsByUserResponse]
-	listOrganizationsByCurrentUser *connect_go.Client[v1beta1.ListOrganizationsByCurrentUserRequest, v1beta1.ListOrganizationsByCurrentUserResponse]
-	listProjectsByUser             *connect_go.Client[v1beta1.ListProjectsByUserRequest, v1beta1.ListProjectsByUserResponse]
-	listProjectsByCurrentUser      *connect_go.Client[v1beta1.ListProjectsByCurrentUserRequest, v1beta1.ListProjectsByCurrentUserResponse]
-	listUserInvitations            *connect_go.Client[v1beta1.ListUserInvitationsRequest, v1beta1.ListUserInvitationsResponse]
-	listCurrentUserInvitations     *connect_go.Client[v1beta1.ListCurrentUserInvitationsRequest, v1beta1.ListCurrentUserInvitationsResponse]
-	listServiceUsers               *connect_go.Client[v1beta1.ListServiceUsersRequest, v1beta1.ListServiceUsersResponse]
-	createServiceUser              *connect_go.Client[v1beta1.CreateServiceUserRequest, v1beta1.CreateServiceUserResponse]
-	getServiceUser                 *connect_go.Client[v1beta1.GetServiceUserRequest, v1beta1.GetServiceUserResponse]
-	deleteServiceUser              *connect_go.Client[v1beta1.DeleteServiceUserRequest, v1beta1.DeleteServiceUserResponse]
-	createServiceUserJWK           *connect_go.Client[v1beta1.CreateServiceUserJWKRequest, v1beta1.CreateServiceUserJWKResponse]
-	listServiceUserJWKs            *connect_go.Client[v1beta1.ListServiceUserJWKsRequest, v1beta1.ListServiceUserJWKsResponse]
-	getServiceUserJWK              *connect_go.Client[v1beta1.GetServiceUserJWKRequest, v1beta1.GetServiceUserJWKResponse]
-	deleteServiceUserJWK           *connect_go.Client[v1beta1.DeleteServiceUserJWKRequest, v1beta1.DeleteServiceUserJWKResponse]
-	createServiceUserCredential    *connect_go.Client[v1beta1.CreateServiceUserCredentialRequest, v1beta1.CreateServiceUserCredentialResponse]
-	listServiceUserCredentials     *connect_go.Client[v1beta1.ListServiceUserCredentialsRequest, v1beta1.ListServiceUserCredentialsResponse]
-	deleteServiceUserCredential    *connect_go.Client[v1beta1.DeleteServiceUserCredentialRequest, v1beta1.DeleteServiceUserCredentialResponse]
-	createServiceUserToken         *connect_go.Client[v1beta1.CreateServiceUserTokenRequest, v1beta1.CreateServiceUserTokenResponse]
-	listServiceUserTokens          *connect_go.Client[v1beta1.ListServiceUserTokensRequest, v1beta1.ListServiceUserTokensResponse]
-	deleteServiceUserToken         *connect_go.Client[v1beta1.DeleteServiceUserTokenRequest, v1beta1.DeleteServiceUserTokenResponse]
-	listServiceUserProjects        *connect_go.Client[v1beta1.ListServiceUserProjectsRequest, v1beta1.ListServiceUserProjectsResponse]
-	listOrganizationGroups         *connect_go.Client[v1beta1.ListOrganizationGroupsRequest, v1beta1.ListOrganizationGroupsResponse]
-	createGroup                    *connect_go.Client[v1beta1.CreateGroupRequest, v1beta1.CreateGroupResponse]
-	getGroup                       *connect_go.Client[v1beta1.GetGroupRequest, v1beta1.GetGroupResponse]
-	updateGroup                    *connect_go.Client[v1beta1.UpdateGroupRequest, v1beta1.UpdateGroupResponse]
-	listGroupUsers                 *connect_go.Client[v1beta1.ListGroupUsersRequest, v1beta1.ListGroupUsersResponse]
-	addGroupUsers                  *connect_go.Client[v1beta1.AddGroupUsersRequest, v1beta1.AddGroupUsersResponse]
-	removeGroupUser                *connect_go.Client[v1beta1.RemoveGroupUserRequest, v1beta1.RemoveGroupUserResponse]
-	enableGroup                    *connect_go.Client[v1beta1.EnableGroupRequest, v1beta1.EnableGroupResponse]
-	disableGroup                   *connect_go.Client[v1beta1.DisableGroupRequest, v1beta1.DisableGroupResponse]
-	deleteGroup                    *connect_go.Client[v1beta1.DeleteGroupRequest, v1beta1.DeleteGroupResponse]
-	listRoles                      *connect_go.Client[v1beta1.ListRolesRequest, v1beta1.ListRolesResponse]
-	listOrganizationRoles          *connect_go.Client[v1beta1.ListOrganizationRolesRequest, v1beta1.ListOrganizationRolesResponse]
-	createOrganizationRole         *connect_go.Client[v1beta1.CreateOrganizationRoleRequest, v1beta1.CreateOrganizationRoleResponse]
-	getOrganizationRole            *connect_go.Client[v1beta1.GetOrganizationRoleRequest, v1beta1.GetOrganizationRoleResponse]
-	updateOrganizationRole         *connect_go.Client[v1beta1.UpdateOrganizationRoleRequest, v1beta1.UpdateOrganizationRoleResponse]
-	deleteOrganizationRole         *connect_go.Client[v1beta1.DeleteOrganizationRoleRequest, v1beta1.DeleteOrganizationRoleResponse]
-	listOrganizations              *connect_go.Client[v1beta1.ListOrganizationsRequest, v1beta1.ListOrganizationsResponse]
-	createOrganization             *connect_go.Client[v1beta1.CreateOrganizationRequest, v1beta1.CreateOrganizationResponse]
-	getOrganization                *connect_go.Client[v1beta1.GetOrganizationRequest, v1beta1.GetOrganizationResponse]
-	updateOrganization             *connect_go.Client[v1beta1.UpdateOrganizationRequest, v1beta1.UpdateOrganizationResponse]
-	listOrganizationProjects       *connect_go.Client[v1beta1.ListOrganizationProjectsRequest, v1beta1.ListOrganizationProjectsResponse]
-	listOrganizationAdmins         *connect_go.Client[v1beta1.ListOrganizationAdminsRequest, v1beta1.ListOrganizationAdminsResponse]
-	listOrganizationUsers          *connect_go.Client[v1beta1.ListOrganizationUsersRequest, v1beta1.ListOrganizationUsersResponse]
-	addOrganizationUsers           *connect_go.Client[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse]
-	removeOrganizationUser         *connect_go.Client[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse]
-	getOrganizationKyc             *connect_go.Client[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse]
-	listOrganizationServiceUsers   *connect_go.Client[v1beta1.ListOrganizationServiceUsersRequest, v1beta1.ListOrganizationServiceUsersResponse]
-	listOrganizationInvitations    *connect_go.Client[v1beta1.ListOrganizationInvitationsRequest, v1beta1.ListOrganizationInvitationsResponse]
-	createOrganizationInvitation   *connect_go.Client[v1beta1.CreateOrganizationInvitationRequest, v1beta1.CreateOrganizationInvitationResponse]
-	getOrganizationInvitation      *connect_go.Client[v1beta1.GetOrganizationInvitationRequest, v1beta1.GetOrganizationInvitationResponse]
-	acceptOrganizationInvitation   *connect_go.Client[v1beta1.AcceptOrganizationInvitationRequest, v1beta1.AcceptOrganizationInvitationResponse]
-	deleteOrganizationInvitation   *connect_go.Client[v1beta1.DeleteOrganizationInvitationRequest, v1beta1.DeleteOrganizationInvitationResponse]
-	listOrganizationDomains        *connect_go.Client[v1beta1.ListOrganizationDomainsRequest, v1beta1.ListOrganizationDomainsResponse]
-	createOrganizationDomain       *connect_go.Client[v1beta1.CreateOrganizationDomainRequest, v1beta1.CreateOrganizationDomainResponse]
-	deleteOrganizationDomain       *connect_go.Client[v1beta1.DeleteOrganizationDomainRequest, v1beta1.DeleteOrganizationDomainResponse]
-	getOrganizationDomain          *connect_go.Client[v1beta1.GetOrganizationDomainRequest, v1beta1.GetOrganizationDomainResponse]
-	verifyOrganizationDomain       *connect_go.Client[v1beta1.VerifyOrganizationDomainRequest, v1beta1.VerifyOrganizationDomainResponse]
-	joinOrganization               *connect_go.Client[v1beta1.JoinOrganizationRequest, v1beta1.JoinOrganizationResponse]
-	enableOrganization             *connect_go.Client[v1beta1.EnableOrganizationRequest, v1beta1.EnableOrganizationResponse]
-	disableOrganization            *connect_go.Client[v1beta1.DisableOrganizationRequest, v1beta1.DisableOrganizationResponse]
-	deleteOrganization             *connect_go.Client[v1beta1.DeleteOrganizationRequest, v1beta1.DeleteOrganizationResponse]
-	createProject                  *connect_go.Client[v1beta1.CreateProjectRequest, v1beta1.CreateProjectResponse]
-	getProject                     *connect_go.Client[v1beta1.GetProjectRequest, v1beta1.GetProjectResponse]
-	updateProject                  *connect_go.Client[v1beta1.UpdateProjectRequest, v1beta1.UpdateProjectResponse]
-	listProjectAdmins              *connect_go.Client[v1beta1.ListProjectAdminsRequest, v1beta1.ListProjectAdminsResponse]
-	listProjectUsers               *connect_go.Client[v1beta1.ListProjectUsersRequest, v1beta1.ListProjectUsersResponse]
-	listProjectServiceUsers        *connect_go.Client[v1beta1.ListProjectServiceUsersRequest, v1beta1.ListProjectServiceUsersResponse]
-	listProjectGroups              *connect_go.Client[v1beta1.ListProjectGroupsRequest, v1beta1.ListProjectGroupsResponse]
-	enableProject                  *connect_go.Client[v1beta1.EnableProjectRequest, v1beta1.EnableProjectResponse]
-	disableProject                 *connect_go.Client[v1beta1.DisableProjectRequest, v1beta1.DisableProjectResponse]
-	deleteProject                  *connect_go.Client[v1beta1.DeleteProjectRequest, v1beta1.DeleteProjectResponse]
-	createPolicy                   *connect_go.Client[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse]
-	getPolicy                      *connect_go.Client[v1beta1.GetPolicyRequest, v1beta1.GetPolicyResponse]
-	listPolicies                   *connect_go.Client[v1beta1.ListPoliciesRequest, v1beta1.ListPoliciesResponse]
-	updatePolicy                   *connect_go.Client[v1beta1.UpdatePolicyRequest, v1beta1.UpdatePolicyResponse]
-	deletePolicy                   *connect_go.Client[v1beta1.DeletePolicyRequest, v1beta1.DeletePolicyResponse]
-	createPolicyForProject         *connect_go.Client[v1beta1.CreatePolicyForProjectRequest, v1beta1.CreatePolicyForProjectResponse]
-	createRelation                 *connect_go.Client[v1beta1.CreateRelationRequest, v1beta1.CreateRelationResponse]
-	getRelation                    *connect_go.Client[v1beta1.GetRelationRequest, v1beta1.GetRelationResponse]
-	deleteRelation                 *connect_go.Client[v1beta1.DeleteRelationRequest, v1beta1.DeleteRelationResponse]
-	listPermissions                *connect_go.Client[v1beta1.ListPermissionsRequest, v1beta1.ListPermissionsResponse]
-	getPermission                  *connect_go.Client[v1beta1.GetPermissionRequest, v1beta1.GetPermissionResponse]
-	listNamespaces                 *connect_go.Client[v1beta1.ListNamespacesRequest, v1beta1.ListNamespacesResponse]
-	getNamespace                   *connect_go.Client[v1beta1.GetNamespaceRequest, v1beta1.GetNamespaceResponse]
-	listProjectResources           *connect_go.Client[v1beta1.ListProjectResourcesRequest, v1beta1.ListProjectResourcesResponse]
-	createProjectResource          *connect_go.Client[v1beta1.CreateProjectResourceRequest, v1beta1.CreateProjectResourceResponse]
-	getProjectResource             *connect_go.Client[v1beta1.GetProjectResourceRequest, v1beta1.GetProjectResourceResponse]
-	updateProjectResource          *connect_go.Client[v1beta1.UpdateProjectResourceRequest, v1beta1.UpdateProjectResourceResponse]
-	deleteProjectResource          *connect_go.Client[v1beta1.DeleteProjectResourceRequest, v1beta1.DeleteProjectResourceResponse]
-	checkResourcePermission        *connect_go.Client[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse]
-	batchCheckPermission           *connect_go.Client[v1beta1.BatchCheckPermissionRequest, v1beta1.BatchCheckPermissionResponse]
-	getJWKs                        *connect_go.Client[v1beta1.GetJWKsRequest, v1beta1.GetJWKsResponse]
-	listAuthStrategies             *connect_go.Client[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse]
-	authenticate                   *connect_go.Client[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse]
-	authCallback                   *connect_go.Client[v1beta1.AuthCallbackRequest, v1beta1.AuthCallbackResponse]
-	authToken                      *connect_go.Client[v1beta1.AuthTokenRequest, v1beta1.AuthTokenResponse]
-	authLogout                     *connect_go.Client[v1beta1.AuthLogoutRequest, v1beta1.AuthLogoutResponse]
-	listMetaSchemas                *connect_go.Client[v1beta1.ListMetaSchemasRequest, v1beta1.ListMetaSchemasResponse]
-	createMetaSchema               *connect_go.Client[v1beta1.CreateMetaSchemaRequest, v1beta1.CreateMetaSchemaResponse]
-	getMetaSchema                  *connect_go.Client[v1beta1.GetMetaSchemaRequest, v1beta1.GetMetaSchemaResponse]
-	updateMetaSchema               *connect_go.Client[v1beta1.UpdateMetaSchemaRequest, v1beta1.UpdateMetaSchemaResponse]
-	deleteMetaSchema               *connect_go.Client[v1beta1.DeleteMetaSchemaRequest, v1beta1.DeleteMetaSchemaResponse]
-	listOrganizationAuditLogs      *connect_go.Client[v1beta1.ListOrganizationAuditLogsRequest, v1beta1.ListOrganizationAuditLogsResponse]
-	createOrganizationAuditLogs    *connect_go.Client[v1beta1.CreateOrganizationAuditLogsRequest, v1beta1.CreateOrganizationAuditLogsResponse]
-	getOrganizationAuditLog        *connect_go.Client[v1beta1.GetOrganizationAuditLogRequest, v1beta1.GetOrganizationAuditLogResponse]
-	describePreferences            *connect_go.Client[v1beta1.DescribePreferencesRequest, v1beta1.DescribePreferencesResponse]
-	createOrganizationPreferences  *connect_go.Client[v1beta1.CreateOrganizationPreferencesRequest, v1beta1.CreateOrganizationPreferencesResponse]
-	listOrganizationPreferences    *connect_go.Client[v1beta1.ListOrganizationPreferencesRequest, v1beta1.ListOrganizationPreferencesResponse]
-	createProjectPreferences       *connect_go.Client[v1beta1.CreateProjectPreferencesRequest, v1beta1.CreateProjectPreferencesResponse]
-	listProjectPreferences         *connect_go.Client[v1beta1.ListProjectPreferencesRequest, v1beta1.ListProjectPreferencesResponse]
-	createGroupPreferences         *connect_go.Client[v1beta1.CreateGroupPreferencesRequest, v1beta1.CreateGroupPreferencesResponse]
-	listGroupPreferences           *connect_go.Client[v1beta1.ListGroupPreferencesRequest, v1beta1.ListGroupPreferencesResponse]
-	createUserPreferences          *connect_go.Client[v1beta1.CreateUserPreferencesRequest, v1beta1.CreateUserPreferencesResponse]
-	listUserPreferences            *connect_go.Client[v1beta1.ListUserPreferencesRequest, v1beta1.ListUserPreferencesResponse]
-	createCurrentUserPreferences   *connect_go.Client[v1beta1.CreateCurrentUserPreferencesRequest, v1beta1.CreateCurrentUserPreferencesResponse]
-	listCurrentUserPreferences     *connect_go.Client[v1beta1.ListCurrentUserPreferencesRequest, v1beta1.ListCurrentUserPreferencesResponse]
-	createBillingAccount           *connect_go.Client[v1beta1.CreateBillingAccountRequest, v1beta1.CreateBillingAccountResponse]
-	getBillingAccount              *connect_go.Client[v1beta1.GetBillingAccountRequest, v1beta1.GetBillingAccountResponse]
-	updateBillingAccount           *connect_go.Client[v1beta1.UpdateBillingAccountRequest, v1beta1.UpdateBillingAccountResponse]
-	registerBillingAccount         *connect_go.Client[v1beta1.RegisterBillingAccountRequest, v1beta1.RegisterBillingAccountResponse]
-	listBillingAccounts            *connect_go.Client[v1beta1.ListBillingAccountsRequest, v1beta1.ListBillingAccountsResponse]
-	deleteBillingAccount           *connect_go.Client[v1beta1.DeleteBillingAccountRequest, v1beta1.DeleteBillingAccountResponse]
-	enableBillingAccount           *connect_go.Client[v1beta1.EnableBillingAccountRequest, v1beta1.EnableBillingAccountResponse]
-	disableBillingAccount          *connect_go.Client[v1beta1.DisableBillingAccountRequest, v1beta1.DisableBillingAccountResponse]
-	getBillingBalance              *connect_go.Client[v1beta1.GetBillingBalanceRequest, v1beta1.GetBillingBalanceResponse]
-	hasTrialed                     *connect_go.Client[v1beta1.HasTrialedRequest, v1beta1.HasTrialedResponse]
-	getSubscription                *connect_go.Client[v1beta1.GetSubscriptionRequest, v1beta1.GetSubscriptionResponse]
-	cancelSubscription             *connect_go.Client[v1beta1.CancelSubscriptionRequest, v1beta1.CancelSubscriptionResponse]
-	listSubscriptions              *connect_go.Client[v1beta1.ListSubscriptionsRequest, v1beta1.ListSubscriptionsResponse]
-	changeSubscription             *connect_go.Client[v1beta1.ChangeSubscriptionRequest, v1beta1.ChangeSubscriptionResponse]
-	updateSubscription             *connect_go.Client[v1beta1.UpdateSubscriptionRequest, v1beta1.UpdateSubscriptionResponse]
-	createProduct                  *connect_go.Client[v1beta1.CreateProductRequest, v1beta1.CreateProductResponse]
-	getProduct                     *connect_go.Client[v1beta1.GetProductRequest, v1beta1.GetProductResponse]
-	listProducts                   *connect_go.Client[v1beta1.ListProductsRequest, v1beta1.ListProductsResponse]
-	updateProduct                  *connect_go.Client[v1beta1.UpdateProductRequest, v1beta1.UpdateProductResponse]
-	createFeature                  *connect_go.Client[v1beta1.CreateFeatureRequest, v1beta1.CreateFeatureResponse]
-	getFeature                     *connect_go.Client[v1beta1.GetFeatureRequest, v1beta1.GetFeatureResponse]
-	updateFeature                  *connect_go.Client[v1beta1.UpdateFeatureRequest, v1beta1.UpdateFeatureResponse]
-	listFeatures                   *connect_go.Client[v1beta1.ListFeaturesRequest, v1beta1.ListFeaturesResponse]
-	createPlan                     *connect_go.Client[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse]
-	listPlans                      *connect_go.Client[v1beta1.ListPlansRequest, v1beta1.ListPlansResponse]
-	getPlan                        *connect_go.Client[v1beta1.GetPlanRequest, v1beta1.GetPlanResponse]
-	updatePlan                     *connect_go.Client[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse]
-	createCheckout                 *connect_go.Client[v1beta1.CreateCheckoutRequest, v1beta1.CreateCheckoutResponse]
-	listCheckouts                  *connect_go.Client[v1beta1.ListCheckoutsRequest, v1beta1.ListCheckoutsResponse]
-	getCheckout                    *connect_go.Client[v1beta1.GetCheckoutRequest, v1beta1.GetCheckoutResponse]
-	checkFeatureEntitlement        *connect_go.Client[v1beta1.CheckFeatureEntitlementRequest, v1beta1.CheckFeatureEntitlementResponse]
-	createBillingUsage             *connect_go.Client[v1beta1.CreateBillingUsageRequest, v1beta1.CreateBillingUsageResponse]
-	listBillingTransactions        *connect_go.Client[v1beta1.ListBillingTransactionsRequest, v1beta1.ListBillingTransactionsResponse]
-	totalDebitedTransactions       *connect_go.Client[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse]
-	listInvoices                   *connect_go.Client[v1beta1.ListInvoicesRequest, v1beta1.ListInvoicesResponse]
-	getUpcomingInvoice             *connect_go.Client[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse]
-	billingWebhookCallback         *connect_go.Client[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse]
-	createProspectPublic           *connect_go.Client[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse]
+	listUsers                      *connect.Client[v1beta1.ListUsersRequest, v1beta1.ListUsersResponse]
+	createUser                     *connect.Client[v1beta1.CreateUserRequest, v1beta1.CreateUserResponse]
+	getUser                        *connect.Client[v1beta1.GetUserRequest, v1beta1.GetUserResponse]
+	listUserGroups                 *connect.Client[v1beta1.ListUserGroupsRequest, v1beta1.ListUserGroupsResponse]
+	listCurrentUserGroups          *connect.Client[v1beta1.ListCurrentUserGroupsRequest, v1beta1.ListCurrentUserGroupsResponse]
+	getCurrentUser                 *connect.Client[v1beta1.GetCurrentUserRequest, v1beta1.GetCurrentUserResponse]
+	updateUser                     *connect.Client[v1beta1.UpdateUserRequest, v1beta1.UpdateUserResponse]
+	updateCurrentUser              *connect.Client[v1beta1.UpdateCurrentUserRequest, v1beta1.UpdateCurrentUserResponse]
+	enableUser                     *connect.Client[v1beta1.EnableUserRequest, v1beta1.EnableUserResponse]
+	disableUser                    *connect.Client[v1beta1.DisableUserRequest, v1beta1.DisableUserResponse]
+	deleteUser                     *connect.Client[v1beta1.DeleteUserRequest, v1beta1.DeleteUserResponse]
+	listOrganizationsByUser        *connect.Client[v1beta1.ListOrganizationsByUserRequest, v1beta1.ListOrganizationsByUserResponse]
+	listOrganizationsByCurrentUser *connect.Client[v1beta1.ListOrganizationsByCurrentUserRequest, v1beta1.ListOrganizationsByCurrentUserResponse]
+	listProjectsByUser             *connect.Client[v1beta1.ListProjectsByUserRequest, v1beta1.ListProjectsByUserResponse]
+	listProjectsByCurrentUser      *connect.Client[v1beta1.ListProjectsByCurrentUserRequest, v1beta1.ListProjectsByCurrentUserResponse]
+	listUserInvitations            *connect.Client[v1beta1.ListUserInvitationsRequest, v1beta1.ListUserInvitationsResponse]
+	listCurrentUserInvitations     *connect.Client[v1beta1.ListCurrentUserInvitationsRequest, v1beta1.ListCurrentUserInvitationsResponse]
+	listServiceUsers               *connect.Client[v1beta1.ListServiceUsersRequest, v1beta1.ListServiceUsersResponse]
+	createServiceUser              *connect.Client[v1beta1.CreateServiceUserRequest, v1beta1.CreateServiceUserResponse]
+	getServiceUser                 *connect.Client[v1beta1.GetServiceUserRequest, v1beta1.GetServiceUserResponse]
+	deleteServiceUser              *connect.Client[v1beta1.DeleteServiceUserRequest, v1beta1.DeleteServiceUserResponse]
+	createServiceUserJWK           *connect.Client[v1beta1.CreateServiceUserJWKRequest, v1beta1.CreateServiceUserJWKResponse]
+	listServiceUserJWKs            *connect.Client[v1beta1.ListServiceUserJWKsRequest, v1beta1.ListServiceUserJWKsResponse]
+	getServiceUserJWK              *connect.Client[v1beta1.GetServiceUserJWKRequest, v1beta1.GetServiceUserJWKResponse]
+	deleteServiceUserJWK           *connect.Client[v1beta1.DeleteServiceUserJWKRequest, v1beta1.DeleteServiceUserJWKResponse]
+	createServiceUserCredential    *connect.Client[v1beta1.CreateServiceUserCredentialRequest, v1beta1.CreateServiceUserCredentialResponse]
+	listServiceUserCredentials     *connect.Client[v1beta1.ListServiceUserCredentialsRequest, v1beta1.ListServiceUserCredentialsResponse]
+	deleteServiceUserCredential    *connect.Client[v1beta1.DeleteServiceUserCredentialRequest, v1beta1.DeleteServiceUserCredentialResponse]
+	createServiceUserToken         *connect.Client[v1beta1.CreateServiceUserTokenRequest, v1beta1.CreateServiceUserTokenResponse]
+	listServiceUserTokens          *connect.Client[v1beta1.ListServiceUserTokensRequest, v1beta1.ListServiceUserTokensResponse]
+	deleteServiceUserToken         *connect.Client[v1beta1.DeleteServiceUserTokenRequest, v1beta1.DeleteServiceUserTokenResponse]
+	listServiceUserProjects        *connect.Client[v1beta1.ListServiceUserProjectsRequest, v1beta1.ListServiceUserProjectsResponse]
+	listOrganizationGroups         *connect.Client[v1beta1.ListOrganizationGroupsRequest, v1beta1.ListOrganizationGroupsResponse]
+	createGroup                    *connect.Client[v1beta1.CreateGroupRequest, v1beta1.CreateGroupResponse]
+	getGroup                       *connect.Client[v1beta1.GetGroupRequest, v1beta1.GetGroupResponse]
+	updateGroup                    *connect.Client[v1beta1.UpdateGroupRequest, v1beta1.UpdateGroupResponse]
+	listGroupUsers                 *connect.Client[v1beta1.ListGroupUsersRequest, v1beta1.ListGroupUsersResponse]
+	addGroupUsers                  *connect.Client[v1beta1.AddGroupUsersRequest, v1beta1.AddGroupUsersResponse]
+	removeGroupUser                *connect.Client[v1beta1.RemoveGroupUserRequest, v1beta1.RemoveGroupUserResponse]
+	enableGroup                    *connect.Client[v1beta1.EnableGroupRequest, v1beta1.EnableGroupResponse]
+	disableGroup                   *connect.Client[v1beta1.DisableGroupRequest, v1beta1.DisableGroupResponse]
+	deleteGroup                    *connect.Client[v1beta1.DeleteGroupRequest, v1beta1.DeleteGroupResponse]
+	listRoles                      *connect.Client[v1beta1.ListRolesRequest, v1beta1.ListRolesResponse]
+	listOrganizationRoles          *connect.Client[v1beta1.ListOrganizationRolesRequest, v1beta1.ListOrganizationRolesResponse]
+	createOrganizationRole         *connect.Client[v1beta1.CreateOrganizationRoleRequest, v1beta1.CreateOrganizationRoleResponse]
+	getOrganizationRole            *connect.Client[v1beta1.GetOrganizationRoleRequest, v1beta1.GetOrganizationRoleResponse]
+	updateOrganizationRole         *connect.Client[v1beta1.UpdateOrganizationRoleRequest, v1beta1.UpdateOrganizationRoleResponse]
+	deleteOrganizationRole         *connect.Client[v1beta1.DeleteOrganizationRoleRequest, v1beta1.DeleteOrganizationRoleResponse]
+	listOrganizations              *connect.Client[v1beta1.ListOrganizationsRequest, v1beta1.ListOrganizationsResponse]
+	createOrganization             *connect.Client[v1beta1.CreateOrganizationRequest, v1beta1.CreateOrganizationResponse]
+	getOrganization                *connect.Client[v1beta1.GetOrganizationRequest, v1beta1.GetOrganizationResponse]
+	updateOrganization             *connect.Client[v1beta1.UpdateOrganizationRequest, v1beta1.UpdateOrganizationResponse]
+	listOrganizationProjects       *connect.Client[v1beta1.ListOrganizationProjectsRequest, v1beta1.ListOrganizationProjectsResponse]
+	listOrganizationAdmins         *connect.Client[v1beta1.ListOrganizationAdminsRequest, v1beta1.ListOrganizationAdminsResponse]
+	listOrganizationUsers          *connect.Client[v1beta1.ListOrganizationUsersRequest, v1beta1.ListOrganizationUsersResponse]
+	addOrganizationUsers           *connect.Client[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse]
+	removeOrganizationUser         *connect.Client[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse]
+	getOrganizationKyc             *connect.Client[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse]
+	listOrganizationServiceUsers   *connect.Client[v1beta1.ListOrganizationServiceUsersRequest, v1beta1.ListOrganizationServiceUsersResponse]
+	listOrganizationInvitations    *connect.Client[v1beta1.ListOrganizationInvitationsRequest, v1beta1.ListOrganizationInvitationsResponse]
+	createOrganizationInvitation   *connect.Client[v1beta1.CreateOrganizationInvitationRequest, v1beta1.CreateOrganizationInvitationResponse]
+	getOrganizationInvitation      *connect.Client[v1beta1.GetOrganizationInvitationRequest, v1beta1.GetOrganizationInvitationResponse]
+	acceptOrganizationInvitation   *connect.Client[v1beta1.AcceptOrganizationInvitationRequest, v1beta1.AcceptOrganizationInvitationResponse]
+	deleteOrganizationInvitation   *connect.Client[v1beta1.DeleteOrganizationInvitationRequest, v1beta1.DeleteOrganizationInvitationResponse]
+	listOrganizationDomains        *connect.Client[v1beta1.ListOrganizationDomainsRequest, v1beta1.ListOrganizationDomainsResponse]
+	createOrganizationDomain       *connect.Client[v1beta1.CreateOrganizationDomainRequest, v1beta1.CreateOrganizationDomainResponse]
+	deleteOrganizationDomain       *connect.Client[v1beta1.DeleteOrganizationDomainRequest, v1beta1.DeleteOrganizationDomainResponse]
+	getOrganizationDomain          *connect.Client[v1beta1.GetOrganizationDomainRequest, v1beta1.GetOrganizationDomainResponse]
+	verifyOrganizationDomain       *connect.Client[v1beta1.VerifyOrganizationDomainRequest, v1beta1.VerifyOrganizationDomainResponse]
+	joinOrganization               *connect.Client[v1beta1.JoinOrganizationRequest, v1beta1.JoinOrganizationResponse]
+	enableOrganization             *connect.Client[v1beta1.EnableOrganizationRequest, v1beta1.EnableOrganizationResponse]
+	disableOrganization            *connect.Client[v1beta1.DisableOrganizationRequest, v1beta1.DisableOrganizationResponse]
+	deleteOrganization             *connect.Client[v1beta1.DeleteOrganizationRequest, v1beta1.DeleteOrganizationResponse]
+	createProject                  *connect.Client[v1beta1.CreateProjectRequest, v1beta1.CreateProjectResponse]
+	getProject                     *connect.Client[v1beta1.GetProjectRequest, v1beta1.GetProjectResponse]
+	updateProject                  *connect.Client[v1beta1.UpdateProjectRequest, v1beta1.UpdateProjectResponse]
+	listProjectAdmins              *connect.Client[v1beta1.ListProjectAdminsRequest, v1beta1.ListProjectAdminsResponse]
+	listProjectUsers               *connect.Client[v1beta1.ListProjectUsersRequest, v1beta1.ListProjectUsersResponse]
+	listProjectServiceUsers        *connect.Client[v1beta1.ListProjectServiceUsersRequest, v1beta1.ListProjectServiceUsersResponse]
+	listProjectGroups              *connect.Client[v1beta1.ListProjectGroupsRequest, v1beta1.ListProjectGroupsResponse]
+	enableProject                  *connect.Client[v1beta1.EnableProjectRequest, v1beta1.EnableProjectResponse]
+	disableProject                 *connect.Client[v1beta1.DisableProjectRequest, v1beta1.DisableProjectResponse]
+	deleteProject                  *connect.Client[v1beta1.DeleteProjectRequest, v1beta1.DeleteProjectResponse]
+	createPolicy                   *connect.Client[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse]
+	getPolicy                      *connect.Client[v1beta1.GetPolicyRequest, v1beta1.GetPolicyResponse]
+	listPolicies                   *connect.Client[v1beta1.ListPoliciesRequest, v1beta1.ListPoliciesResponse]
+	updatePolicy                   *connect.Client[v1beta1.UpdatePolicyRequest, v1beta1.UpdatePolicyResponse]
+	deletePolicy                   *connect.Client[v1beta1.DeletePolicyRequest, v1beta1.DeletePolicyResponse]
+	createPolicyForProject         *connect.Client[v1beta1.CreatePolicyForProjectRequest, v1beta1.CreatePolicyForProjectResponse]
+	createRelation                 *connect.Client[v1beta1.CreateRelationRequest, v1beta1.CreateRelationResponse]
+	getRelation                    *connect.Client[v1beta1.GetRelationRequest, v1beta1.GetRelationResponse]
+	deleteRelation                 *connect.Client[v1beta1.DeleteRelationRequest, v1beta1.DeleteRelationResponse]
+	listPermissions                *connect.Client[v1beta1.ListPermissionsRequest, v1beta1.ListPermissionsResponse]
+	getPermission                  *connect.Client[v1beta1.GetPermissionRequest, v1beta1.GetPermissionResponse]
+	listNamespaces                 *connect.Client[v1beta1.ListNamespacesRequest, v1beta1.ListNamespacesResponse]
+	getNamespace                   *connect.Client[v1beta1.GetNamespaceRequest, v1beta1.GetNamespaceResponse]
+	listProjectResources           *connect.Client[v1beta1.ListProjectResourcesRequest, v1beta1.ListProjectResourcesResponse]
+	createProjectResource          *connect.Client[v1beta1.CreateProjectResourceRequest, v1beta1.CreateProjectResourceResponse]
+	getProjectResource             *connect.Client[v1beta1.GetProjectResourceRequest, v1beta1.GetProjectResourceResponse]
+	updateProjectResource          *connect.Client[v1beta1.UpdateProjectResourceRequest, v1beta1.UpdateProjectResourceResponse]
+	deleteProjectResource          *connect.Client[v1beta1.DeleteProjectResourceRequest, v1beta1.DeleteProjectResourceResponse]
+	checkResourcePermission        *connect.Client[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse]
+	batchCheckPermission           *connect.Client[v1beta1.BatchCheckPermissionRequest, v1beta1.BatchCheckPermissionResponse]
+	getJWKs                        *connect.Client[v1beta1.GetJWKsRequest, v1beta1.GetJWKsResponse]
+	listAuthStrategies             *connect.Client[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse]
+	authenticate                   *connect.Client[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse]
+	authCallback                   *connect.Client[v1beta1.AuthCallbackRequest, v1beta1.AuthCallbackResponse]
+	authToken                      *connect.Client[v1beta1.AuthTokenRequest, v1beta1.AuthTokenResponse]
+	authLogout                     *connect.Client[v1beta1.AuthLogoutRequest, v1beta1.AuthLogoutResponse]
+	listMetaSchemas                *connect.Client[v1beta1.ListMetaSchemasRequest, v1beta1.ListMetaSchemasResponse]
+	createMetaSchema               *connect.Client[v1beta1.CreateMetaSchemaRequest, v1beta1.CreateMetaSchemaResponse]
+	getMetaSchema                  *connect.Client[v1beta1.GetMetaSchemaRequest, v1beta1.GetMetaSchemaResponse]
+	updateMetaSchema               *connect.Client[v1beta1.UpdateMetaSchemaRequest, v1beta1.UpdateMetaSchemaResponse]
+	deleteMetaSchema               *connect.Client[v1beta1.DeleteMetaSchemaRequest, v1beta1.DeleteMetaSchemaResponse]
+	listOrganizationAuditLogs      *connect.Client[v1beta1.ListOrganizationAuditLogsRequest, v1beta1.ListOrganizationAuditLogsResponse]
+	createOrganizationAuditLogs    *connect.Client[v1beta1.CreateOrganizationAuditLogsRequest, v1beta1.CreateOrganizationAuditLogsResponse]
+	getOrganizationAuditLog        *connect.Client[v1beta1.GetOrganizationAuditLogRequest, v1beta1.GetOrganizationAuditLogResponse]
+	describePreferences            *connect.Client[v1beta1.DescribePreferencesRequest, v1beta1.DescribePreferencesResponse]
+	createOrganizationPreferences  *connect.Client[v1beta1.CreateOrganizationPreferencesRequest, v1beta1.CreateOrganizationPreferencesResponse]
+	listOrganizationPreferences    *connect.Client[v1beta1.ListOrganizationPreferencesRequest, v1beta1.ListOrganizationPreferencesResponse]
+	createProjectPreferences       *connect.Client[v1beta1.CreateProjectPreferencesRequest, v1beta1.CreateProjectPreferencesResponse]
+	listProjectPreferences         *connect.Client[v1beta1.ListProjectPreferencesRequest, v1beta1.ListProjectPreferencesResponse]
+	createGroupPreferences         *connect.Client[v1beta1.CreateGroupPreferencesRequest, v1beta1.CreateGroupPreferencesResponse]
+	listGroupPreferences           *connect.Client[v1beta1.ListGroupPreferencesRequest, v1beta1.ListGroupPreferencesResponse]
+	createUserPreferences          *connect.Client[v1beta1.CreateUserPreferencesRequest, v1beta1.CreateUserPreferencesResponse]
+	listUserPreferences            *connect.Client[v1beta1.ListUserPreferencesRequest, v1beta1.ListUserPreferencesResponse]
+	createCurrentUserPreferences   *connect.Client[v1beta1.CreateCurrentUserPreferencesRequest, v1beta1.CreateCurrentUserPreferencesResponse]
+	listCurrentUserPreferences     *connect.Client[v1beta1.ListCurrentUserPreferencesRequest, v1beta1.ListCurrentUserPreferencesResponse]
+	createBillingAccount           *connect.Client[v1beta1.CreateBillingAccountRequest, v1beta1.CreateBillingAccountResponse]
+	getBillingAccount              *connect.Client[v1beta1.GetBillingAccountRequest, v1beta1.GetBillingAccountResponse]
+	updateBillingAccount           *connect.Client[v1beta1.UpdateBillingAccountRequest, v1beta1.UpdateBillingAccountResponse]
+	registerBillingAccount         *connect.Client[v1beta1.RegisterBillingAccountRequest, v1beta1.RegisterBillingAccountResponse]
+	listBillingAccounts            *connect.Client[v1beta1.ListBillingAccountsRequest, v1beta1.ListBillingAccountsResponse]
+	deleteBillingAccount           *connect.Client[v1beta1.DeleteBillingAccountRequest, v1beta1.DeleteBillingAccountResponse]
+	enableBillingAccount           *connect.Client[v1beta1.EnableBillingAccountRequest, v1beta1.EnableBillingAccountResponse]
+	disableBillingAccount          *connect.Client[v1beta1.DisableBillingAccountRequest, v1beta1.DisableBillingAccountResponse]
+	getBillingBalance              *connect.Client[v1beta1.GetBillingBalanceRequest, v1beta1.GetBillingBalanceResponse]
+	hasTrialed                     *connect.Client[v1beta1.HasTrialedRequest, v1beta1.HasTrialedResponse]
+	getSubscription                *connect.Client[v1beta1.GetSubscriptionRequest, v1beta1.GetSubscriptionResponse]
+	cancelSubscription             *connect.Client[v1beta1.CancelSubscriptionRequest, v1beta1.CancelSubscriptionResponse]
+	listSubscriptions              *connect.Client[v1beta1.ListSubscriptionsRequest, v1beta1.ListSubscriptionsResponse]
+	changeSubscription             *connect.Client[v1beta1.ChangeSubscriptionRequest, v1beta1.ChangeSubscriptionResponse]
+	updateSubscription             *connect.Client[v1beta1.UpdateSubscriptionRequest, v1beta1.UpdateSubscriptionResponse]
+	createProduct                  *connect.Client[v1beta1.CreateProductRequest, v1beta1.CreateProductResponse]
+	getProduct                     *connect.Client[v1beta1.GetProductRequest, v1beta1.GetProductResponse]
+	listProducts                   *connect.Client[v1beta1.ListProductsRequest, v1beta1.ListProductsResponse]
+	updateProduct                  *connect.Client[v1beta1.UpdateProductRequest, v1beta1.UpdateProductResponse]
+	createFeature                  *connect.Client[v1beta1.CreateFeatureRequest, v1beta1.CreateFeatureResponse]
+	getFeature                     *connect.Client[v1beta1.GetFeatureRequest, v1beta1.GetFeatureResponse]
+	updateFeature                  *connect.Client[v1beta1.UpdateFeatureRequest, v1beta1.UpdateFeatureResponse]
+	listFeatures                   *connect.Client[v1beta1.ListFeaturesRequest, v1beta1.ListFeaturesResponse]
+	createPlan                     *connect.Client[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse]
+	listPlans                      *connect.Client[v1beta1.ListPlansRequest, v1beta1.ListPlansResponse]
+	getPlan                        *connect.Client[v1beta1.GetPlanRequest, v1beta1.GetPlanResponse]
+	updatePlan                     *connect.Client[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse]
+	createCheckout                 *connect.Client[v1beta1.CreateCheckoutRequest, v1beta1.CreateCheckoutResponse]
+	listCheckouts                  *connect.Client[v1beta1.ListCheckoutsRequest, v1beta1.ListCheckoutsResponse]
+	getCheckout                    *connect.Client[v1beta1.GetCheckoutRequest, v1beta1.GetCheckoutResponse]
+	checkFeatureEntitlement        *connect.Client[v1beta1.CheckFeatureEntitlementRequest, v1beta1.CheckFeatureEntitlementResponse]
+	createBillingUsage             *connect.Client[v1beta1.CreateBillingUsageRequest, v1beta1.CreateBillingUsageResponse]
+	listBillingTransactions        *connect.Client[v1beta1.ListBillingTransactionsRequest, v1beta1.ListBillingTransactionsResponse]
+	totalDebitedTransactions       *connect.Client[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse]
+	listInvoices                   *connect.Client[v1beta1.ListInvoicesRequest, v1beta1.ListInvoicesResponse]
+	getUpcomingInvoice             *connect.Client[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse]
+	billingWebhookCallback         *connect.Client[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse]
+	createProspectPublic           *connect.Client[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse]
 }
 
 // ListUsers calls raystack.frontier.v1beta1.FrontierService.ListUsers.
-func (c *frontierServiceClient) ListUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListUsersRequest]) (*connect_go.Response[v1beta1.ListUsersResponse], error) {
+func (c *frontierServiceClient) ListUsers(ctx context.Context, req *connect.Request[v1beta1.ListUsersRequest]) (*connect.Response[v1beta1.ListUsersResponse], error) {
 	return c.listUsers.CallUnary(ctx, req)
 }
 
 // CreateUser calls raystack.frontier.v1beta1.FrontierService.CreateUser.
-func (c *frontierServiceClient) CreateUser(ctx context.Context, req *connect_go.Request[v1beta1.CreateUserRequest]) (*connect_go.Response[v1beta1.CreateUserResponse], error) {
+func (c *frontierServiceClient) CreateUser(ctx context.Context, req *connect.Request[v1beta1.CreateUserRequest]) (*connect.Response[v1beta1.CreateUserResponse], error) {
 	return c.createUser.CallUnary(ctx, req)
 }
 
 // GetUser calls raystack.frontier.v1beta1.FrontierService.GetUser.
-func (c *frontierServiceClient) GetUser(ctx context.Context, req *connect_go.Request[v1beta1.GetUserRequest]) (*connect_go.Response[v1beta1.GetUserResponse], error) {
+func (c *frontierServiceClient) GetUser(ctx context.Context, req *connect.Request[v1beta1.GetUserRequest]) (*connect.Response[v1beta1.GetUserResponse], error) {
 	return c.getUser.CallUnary(ctx, req)
 }
 
 // ListUserGroups calls raystack.frontier.v1beta1.FrontierService.ListUserGroups.
-func (c *frontierServiceClient) ListUserGroups(ctx context.Context, req *connect_go.Request[v1beta1.ListUserGroupsRequest]) (*connect_go.Response[v1beta1.ListUserGroupsResponse], error) {
+func (c *frontierServiceClient) ListUserGroups(ctx context.Context, req *connect.Request[v1beta1.ListUserGroupsRequest]) (*connect.Response[v1beta1.ListUserGroupsResponse], error) {
 	return c.listUserGroups.CallUnary(ctx, req)
 }
 
 // ListCurrentUserGroups calls raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups.
-func (c *frontierServiceClient) ListCurrentUserGroups(ctx context.Context, req *connect_go.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserGroupsResponse], error) {
+func (c *frontierServiceClient) ListCurrentUserGroups(ctx context.Context, req *connect.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect.Response[v1beta1.ListCurrentUserGroupsResponse], error) {
 	return c.listCurrentUserGroups.CallUnary(ctx, req)
 }
 
 // GetCurrentUser calls raystack.frontier.v1beta1.FrontierService.GetCurrentUser.
-func (c *frontierServiceClient) GetCurrentUser(ctx context.Context, req *connect_go.Request[v1beta1.GetCurrentUserRequest]) (*connect_go.Response[v1beta1.GetCurrentUserResponse], error) {
+func (c *frontierServiceClient) GetCurrentUser(ctx context.Context, req *connect.Request[v1beta1.GetCurrentUserRequest]) (*connect.Response[v1beta1.GetCurrentUserResponse], error) {
 	return c.getCurrentUser.CallUnary(ctx, req)
 }
 
 // UpdateUser calls raystack.frontier.v1beta1.FrontierService.UpdateUser.
-func (c *frontierServiceClient) UpdateUser(ctx context.Context, req *connect_go.Request[v1beta1.UpdateUserRequest]) (*connect_go.Response[v1beta1.UpdateUserResponse], error) {
+func (c *frontierServiceClient) UpdateUser(ctx context.Context, req *connect.Request[v1beta1.UpdateUserRequest]) (*connect.Response[v1beta1.UpdateUserResponse], error) {
 	return c.updateUser.CallUnary(ctx, req)
 }
 
 // UpdateCurrentUser calls raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser.
-func (c *frontierServiceClient) UpdateCurrentUser(ctx context.Context, req *connect_go.Request[v1beta1.UpdateCurrentUserRequest]) (*connect_go.Response[v1beta1.UpdateCurrentUserResponse], error) {
+func (c *frontierServiceClient) UpdateCurrentUser(ctx context.Context, req *connect.Request[v1beta1.UpdateCurrentUserRequest]) (*connect.Response[v1beta1.UpdateCurrentUserResponse], error) {
 	return c.updateCurrentUser.CallUnary(ctx, req)
 }
 
 // EnableUser calls raystack.frontier.v1beta1.FrontierService.EnableUser.
-func (c *frontierServiceClient) EnableUser(ctx context.Context, req *connect_go.Request[v1beta1.EnableUserRequest]) (*connect_go.Response[v1beta1.EnableUserResponse], error) {
+func (c *frontierServiceClient) EnableUser(ctx context.Context, req *connect.Request[v1beta1.EnableUserRequest]) (*connect.Response[v1beta1.EnableUserResponse], error) {
 	return c.enableUser.CallUnary(ctx, req)
 }
 
 // DisableUser calls raystack.frontier.v1beta1.FrontierService.DisableUser.
-func (c *frontierServiceClient) DisableUser(ctx context.Context, req *connect_go.Request[v1beta1.DisableUserRequest]) (*connect_go.Response[v1beta1.DisableUserResponse], error) {
+func (c *frontierServiceClient) DisableUser(ctx context.Context, req *connect.Request[v1beta1.DisableUserRequest]) (*connect.Response[v1beta1.DisableUserResponse], error) {
 	return c.disableUser.CallUnary(ctx, req)
 }
 
 // DeleteUser calls raystack.frontier.v1beta1.FrontierService.DeleteUser.
-func (c *frontierServiceClient) DeleteUser(ctx context.Context, req *connect_go.Request[v1beta1.DeleteUserRequest]) (*connect_go.Response[v1beta1.DeleteUserResponse], error) {
+func (c *frontierServiceClient) DeleteUser(ctx context.Context, req *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error) {
 	return c.deleteUser.CallUnary(ctx, req)
 }
 
 // ListOrganizationsByUser calls raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser.
-func (c *frontierServiceClient) ListOrganizationsByUser(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByUserResponse], error) {
+func (c *frontierServiceClient) ListOrganizationsByUser(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByUserResponse], error) {
 	return c.listOrganizationsByUser.CallUnary(ctx, req)
 }
 
 // ListOrganizationsByCurrentUser calls
 // raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser.
-func (c *frontierServiceClient) ListOrganizationsByCurrentUser(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error) {
+func (c *frontierServiceClient) ListOrganizationsByCurrentUser(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error) {
 	return c.listOrganizationsByCurrentUser.CallUnary(ctx, req)
 }
 
 // ListProjectsByUser calls raystack.frontier.v1beta1.FrontierService.ListProjectsByUser.
-func (c *frontierServiceClient) ListProjectsByUser(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectsByUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByUserResponse], error) {
+func (c *frontierServiceClient) ListProjectsByUser(ctx context.Context, req *connect.Request[v1beta1.ListProjectsByUserRequest]) (*connect.Response[v1beta1.ListProjectsByUserResponse], error) {
 	return c.listProjectsByUser.CallUnary(ctx, req)
 }
 
 // ListProjectsByCurrentUser calls
 // raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser.
-func (c *frontierServiceClient) ListProjectsByCurrentUser(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByCurrentUserResponse], error) {
+func (c *frontierServiceClient) ListProjectsByCurrentUser(ctx context.Context, req *connect.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect.Response[v1beta1.ListProjectsByCurrentUserResponse], error) {
 	return c.listProjectsByCurrentUser.CallUnary(ctx, req)
 }
 
 // ListUserInvitations calls raystack.frontier.v1beta1.FrontierService.ListUserInvitations.
-func (c *frontierServiceClient) ListUserInvitations(ctx context.Context, req *connect_go.Request[v1beta1.ListUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListUserInvitationsResponse], error) {
+func (c *frontierServiceClient) ListUserInvitations(ctx context.Context, req *connect.Request[v1beta1.ListUserInvitationsRequest]) (*connect.Response[v1beta1.ListUserInvitationsResponse], error) {
 	return c.listUserInvitations.CallUnary(ctx, req)
 }
 
 // ListCurrentUserInvitations calls
 // raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations.
-func (c *frontierServiceClient) ListCurrentUserInvitations(ctx context.Context, req *connect_go.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserInvitationsResponse], error) {
+func (c *frontierServiceClient) ListCurrentUserInvitations(ctx context.Context, req *connect.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect.Response[v1beta1.ListCurrentUserInvitationsResponse], error) {
 	return c.listCurrentUserInvitations.CallUnary(ctx, req)
 }
 
 // ListServiceUsers calls raystack.frontier.v1beta1.FrontierService.ListServiceUsers.
-func (c *frontierServiceClient) ListServiceUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListServiceUsersRequest]) (*connect_go.Response[v1beta1.ListServiceUsersResponse], error) {
+func (c *frontierServiceClient) ListServiceUsers(ctx context.Context, req *connect.Request[v1beta1.ListServiceUsersRequest]) (*connect.Response[v1beta1.ListServiceUsersResponse], error) {
 	return c.listServiceUsers.CallUnary(ctx, req)
 }
 
 // CreateServiceUser calls raystack.frontier.v1beta1.FrontierService.CreateServiceUser.
-func (c *frontierServiceClient) CreateServiceUser(ctx context.Context, req *connect_go.Request[v1beta1.CreateServiceUserRequest]) (*connect_go.Response[v1beta1.CreateServiceUserResponse], error) {
+func (c *frontierServiceClient) CreateServiceUser(ctx context.Context, req *connect.Request[v1beta1.CreateServiceUserRequest]) (*connect.Response[v1beta1.CreateServiceUserResponse], error) {
 	return c.createServiceUser.CallUnary(ctx, req)
 }
 
 // GetServiceUser calls raystack.frontier.v1beta1.FrontierService.GetServiceUser.
-func (c *frontierServiceClient) GetServiceUser(ctx context.Context, req *connect_go.Request[v1beta1.GetServiceUserRequest]) (*connect_go.Response[v1beta1.GetServiceUserResponse], error) {
+func (c *frontierServiceClient) GetServiceUser(ctx context.Context, req *connect.Request[v1beta1.GetServiceUserRequest]) (*connect.Response[v1beta1.GetServiceUserResponse], error) {
 	return c.getServiceUser.CallUnary(ctx, req)
 }
 
 // DeleteServiceUser calls raystack.frontier.v1beta1.FrontierService.DeleteServiceUser.
-func (c *frontierServiceClient) DeleteServiceUser(ctx context.Context, req *connect_go.Request[v1beta1.DeleteServiceUserRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserResponse], error) {
+func (c *frontierServiceClient) DeleteServiceUser(ctx context.Context, req *connect.Request[v1beta1.DeleteServiceUserRequest]) (*connect.Response[v1beta1.DeleteServiceUserResponse], error) {
 	return c.deleteServiceUser.CallUnary(ctx, req)
 }
 
 // CreateServiceUserJWK calls raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK.
-func (c *frontierServiceClient) CreateServiceUserJWK(ctx context.Context, req *connect_go.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect_go.Response[v1beta1.CreateServiceUserJWKResponse], error) {
+func (c *frontierServiceClient) CreateServiceUserJWK(ctx context.Context, req *connect.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect.Response[v1beta1.CreateServiceUserJWKResponse], error) {
 	return c.createServiceUserJWK.CallUnary(ctx, req)
 }
 
 // ListServiceUserJWKs calls raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs.
-func (c *frontierServiceClient) ListServiceUserJWKs(ctx context.Context, req *connect_go.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect_go.Response[v1beta1.ListServiceUserJWKsResponse], error) {
+func (c *frontierServiceClient) ListServiceUserJWKs(ctx context.Context, req *connect.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect.Response[v1beta1.ListServiceUserJWKsResponse], error) {
 	return c.listServiceUserJWKs.CallUnary(ctx, req)
 }
 
 // GetServiceUserJWK calls raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK.
-func (c *frontierServiceClient) GetServiceUserJWK(ctx context.Context, req *connect_go.Request[v1beta1.GetServiceUserJWKRequest]) (*connect_go.Response[v1beta1.GetServiceUserJWKResponse], error) {
+func (c *frontierServiceClient) GetServiceUserJWK(ctx context.Context, req *connect.Request[v1beta1.GetServiceUserJWKRequest]) (*connect.Response[v1beta1.GetServiceUserJWKResponse], error) {
 	return c.getServiceUserJWK.CallUnary(ctx, req)
 }
 
 // DeleteServiceUserJWK calls raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK.
-func (c *frontierServiceClient) DeleteServiceUserJWK(ctx context.Context, req *connect_go.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserJWKResponse], error) {
+func (c *frontierServiceClient) DeleteServiceUserJWK(ctx context.Context, req *connect.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect.Response[v1beta1.DeleteServiceUserJWKResponse], error) {
 	return c.deleteServiceUserJWK.CallUnary(ctx, req)
 }
 
 // CreateServiceUserCredential calls
 // raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential.
-func (c *frontierServiceClient) CreateServiceUserCredential(ctx context.Context, req *connect_go.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.CreateServiceUserCredentialResponse], error) {
+func (c *frontierServiceClient) CreateServiceUserCredential(ctx context.Context, req *connect.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect.Response[v1beta1.CreateServiceUserCredentialResponse], error) {
 	return c.createServiceUserCredential.CallUnary(ctx, req)
 }
 
 // ListServiceUserCredentials calls
 // raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials.
-func (c *frontierServiceClient) ListServiceUserCredentials(ctx context.Context, req *connect_go.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.ListServiceUserCredentialsResponse], error) {
+func (c *frontierServiceClient) ListServiceUserCredentials(ctx context.Context, req *connect.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect.Response[v1beta1.ListServiceUserCredentialsResponse], error) {
 	return c.listServiceUserCredentials.CallUnary(ctx, req)
 }
 
 // DeleteServiceUserCredential calls
 // raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential.
-func (c *frontierServiceClient) DeleteServiceUserCredential(ctx context.Context, req *connect_go.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserCredentialResponse], error) {
+func (c *frontierServiceClient) DeleteServiceUserCredential(ctx context.Context, req *connect.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect.Response[v1beta1.DeleteServiceUserCredentialResponse], error) {
 	return c.deleteServiceUserCredential.CallUnary(ctx, req)
 }
 
 // CreateServiceUserToken calls raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken.
-func (c *frontierServiceClient) CreateServiceUserToken(ctx context.Context, req *connect_go.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect_go.Response[v1beta1.CreateServiceUserTokenResponse], error) {
+func (c *frontierServiceClient) CreateServiceUserToken(ctx context.Context, req *connect.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect.Response[v1beta1.CreateServiceUserTokenResponse], error) {
 	return c.createServiceUserToken.CallUnary(ctx, req)
 }
 
 // ListServiceUserTokens calls raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens.
-func (c *frontierServiceClient) ListServiceUserTokens(ctx context.Context, req *connect_go.Request[v1beta1.ListServiceUserTokensRequest]) (*connect_go.Response[v1beta1.ListServiceUserTokensResponse], error) {
+func (c *frontierServiceClient) ListServiceUserTokens(ctx context.Context, req *connect.Request[v1beta1.ListServiceUserTokensRequest]) (*connect.Response[v1beta1.ListServiceUserTokensResponse], error) {
 	return c.listServiceUserTokens.CallUnary(ctx, req)
 }
 
 // DeleteServiceUserToken calls raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken.
-func (c *frontierServiceClient) DeleteServiceUserToken(ctx context.Context, req *connect_go.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserTokenResponse], error) {
+func (c *frontierServiceClient) DeleteServiceUserToken(ctx context.Context, req *connect.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect.Response[v1beta1.DeleteServiceUserTokenResponse], error) {
 	return c.deleteServiceUserToken.CallUnary(ctx, req)
 }
 
 // ListServiceUserProjects calls raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects.
-func (c *frontierServiceClient) ListServiceUserProjects(ctx context.Context, req *connect_go.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect_go.Response[v1beta1.ListServiceUserProjectsResponse], error) {
+func (c *frontierServiceClient) ListServiceUserProjects(ctx context.Context, req *connect.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect.Response[v1beta1.ListServiceUserProjectsResponse], error) {
 	return c.listServiceUserProjects.CallUnary(ctx, req)
 }
 
 // ListOrganizationGroups calls raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups.
-func (c *frontierServiceClient) ListOrganizationGroups(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect_go.Response[v1beta1.ListOrganizationGroupsResponse], error) {
+func (c *frontierServiceClient) ListOrganizationGroups(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect.Response[v1beta1.ListOrganizationGroupsResponse], error) {
 	return c.listOrganizationGroups.CallUnary(ctx, req)
 }
 
 // CreateGroup calls raystack.frontier.v1beta1.FrontierService.CreateGroup.
-func (c *frontierServiceClient) CreateGroup(ctx context.Context, req *connect_go.Request[v1beta1.CreateGroupRequest]) (*connect_go.Response[v1beta1.CreateGroupResponse], error) {
+func (c *frontierServiceClient) CreateGroup(ctx context.Context, req *connect.Request[v1beta1.CreateGroupRequest]) (*connect.Response[v1beta1.CreateGroupResponse], error) {
 	return c.createGroup.CallUnary(ctx, req)
 }
 
 // GetGroup calls raystack.frontier.v1beta1.FrontierService.GetGroup.
-func (c *frontierServiceClient) GetGroup(ctx context.Context, req *connect_go.Request[v1beta1.GetGroupRequest]) (*connect_go.Response[v1beta1.GetGroupResponse], error) {
+func (c *frontierServiceClient) GetGroup(ctx context.Context, req *connect.Request[v1beta1.GetGroupRequest]) (*connect.Response[v1beta1.GetGroupResponse], error) {
 	return c.getGroup.CallUnary(ctx, req)
 }
 
 // UpdateGroup calls raystack.frontier.v1beta1.FrontierService.UpdateGroup.
-func (c *frontierServiceClient) UpdateGroup(ctx context.Context, req *connect_go.Request[v1beta1.UpdateGroupRequest]) (*connect_go.Response[v1beta1.UpdateGroupResponse], error) {
+func (c *frontierServiceClient) UpdateGroup(ctx context.Context, req *connect.Request[v1beta1.UpdateGroupRequest]) (*connect.Response[v1beta1.UpdateGroupResponse], error) {
 	return c.updateGroup.CallUnary(ctx, req)
 }
 
 // ListGroupUsers calls raystack.frontier.v1beta1.FrontierService.ListGroupUsers.
-func (c *frontierServiceClient) ListGroupUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListGroupUsersRequest]) (*connect_go.Response[v1beta1.ListGroupUsersResponse], error) {
+func (c *frontierServiceClient) ListGroupUsers(ctx context.Context, req *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error) {
 	return c.listGroupUsers.CallUnary(ctx, req)
 }
 
 // AddGroupUsers calls raystack.frontier.v1beta1.FrontierService.AddGroupUsers.
-func (c *frontierServiceClient) AddGroupUsers(ctx context.Context, req *connect_go.Request[v1beta1.AddGroupUsersRequest]) (*connect_go.Response[v1beta1.AddGroupUsersResponse], error) {
+func (c *frontierServiceClient) AddGroupUsers(ctx context.Context, req *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error) {
 	return c.addGroupUsers.CallUnary(ctx, req)
 }
 
 // RemoveGroupUser calls raystack.frontier.v1beta1.FrontierService.RemoveGroupUser.
-func (c *frontierServiceClient) RemoveGroupUser(ctx context.Context, req *connect_go.Request[v1beta1.RemoveGroupUserRequest]) (*connect_go.Response[v1beta1.RemoveGroupUserResponse], error) {
+func (c *frontierServiceClient) RemoveGroupUser(ctx context.Context, req *connect.Request[v1beta1.RemoveGroupUserRequest]) (*connect.Response[v1beta1.RemoveGroupUserResponse], error) {
 	return c.removeGroupUser.CallUnary(ctx, req)
 }
 
 // EnableGroup calls raystack.frontier.v1beta1.FrontierService.EnableGroup.
-func (c *frontierServiceClient) EnableGroup(ctx context.Context, req *connect_go.Request[v1beta1.EnableGroupRequest]) (*connect_go.Response[v1beta1.EnableGroupResponse], error) {
+func (c *frontierServiceClient) EnableGroup(ctx context.Context, req *connect.Request[v1beta1.EnableGroupRequest]) (*connect.Response[v1beta1.EnableGroupResponse], error) {
 	return c.enableGroup.CallUnary(ctx, req)
 }
 
 // DisableGroup calls raystack.frontier.v1beta1.FrontierService.DisableGroup.
-func (c *frontierServiceClient) DisableGroup(ctx context.Context, req *connect_go.Request[v1beta1.DisableGroupRequest]) (*connect_go.Response[v1beta1.DisableGroupResponse], error) {
+func (c *frontierServiceClient) DisableGroup(ctx context.Context, req *connect.Request[v1beta1.DisableGroupRequest]) (*connect.Response[v1beta1.DisableGroupResponse], error) {
 	return c.disableGroup.CallUnary(ctx, req)
 }
 
 // DeleteGroup calls raystack.frontier.v1beta1.FrontierService.DeleteGroup.
-func (c *frontierServiceClient) DeleteGroup(ctx context.Context, req *connect_go.Request[v1beta1.DeleteGroupRequest]) (*connect_go.Response[v1beta1.DeleteGroupResponse], error) {
+func (c *frontierServiceClient) DeleteGroup(ctx context.Context, req *connect.Request[v1beta1.DeleteGroupRequest]) (*connect.Response[v1beta1.DeleteGroupResponse], error) {
 	return c.deleteGroup.CallUnary(ctx, req)
 }
 
 // ListRoles calls raystack.frontier.v1beta1.FrontierService.ListRoles.
-func (c *frontierServiceClient) ListRoles(ctx context.Context, req *connect_go.Request[v1beta1.ListRolesRequest]) (*connect_go.Response[v1beta1.ListRolesResponse], error) {
+func (c *frontierServiceClient) ListRoles(ctx context.Context, req *connect.Request[v1beta1.ListRolesRequest]) (*connect.Response[v1beta1.ListRolesResponse], error) {
 	return c.listRoles.CallUnary(ctx, req)
 }
 
 // ListOrganizationRoles calls raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles.
-func (c *frontierServiceClient) ListOrganizationRoles(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationRolesRequest]) (*connect_go.Response[v1beta1.ListOrganizationRolesResponse], error) {
+func (c *frontierServiceClient) ListOrganizationRoles(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationRolesRequest]) (*connect.Response[v1beta1.ListOrganizationRolesResponse], error) {
 	return c.listOrganizationRoles.CallUnary(ctx, req)
 }
 
 // CreateOrganizationRole calls raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole.
-func (c *frontierServiceClient) CreateOrganizationRole(ctx context.Context, req *connect_go.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.CreateOrganizationRoleResponse], error) {
+func (c *frontierServiceClient) CreateOrganizationRole(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect.Response[v1beta1.CreateOrganizationRoleResponse], error) {
 	return c.createOrganizationRole.CallUnary(ctx, req)
 }
 
 // GetOrganizationRole calls raystack.frontier.v1beta1.FrontierService.GetOrganizationRole.
-func (c *frontierServiceClient) GetOrganizationRole(ctx context.Context, req *connect_go.Request[v1beta1.GetOrganizationRoleRequest]) (*connect_go.Response[v1beta1.GetOrganizationRoleResponse], error) {
+func (c *frontierServiceClient) GetOrganizationRole(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationRoleRequest]) (*connect.Response[v1beta1.GetOrganizationRoleResponse], error) {
 	return c.getOrganizationRole.CallUnary(ctx, req)
 }
 
 // UpdateOrganizationRole calls raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole.
-func (c *frontierServiceClient) UpdateOrganizationRole(ctx context.Context, req *connect_go.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationRoleResponse], error) {
+func (c *frontierServiceClient) UpdateOrganizationRole(ctx context.Context, req *connect.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect.Response[v1beta1.UpdateOrganizationRoleResponse], error) {
 	return c.updateOrganizationRole.CallUnary(ctx, req)
 }
 
 // DeleteOrganizationRole calls raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole.
-func (c *frontierServiceClient) DeleteOrganizationRole(ctx context.Context, req *connect_go.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationRoleResponse], error) {
+func (c *frontierServiceClient) DeleteOrganizationRole(ctx context.Context, req *connect.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect.Response[v1beta1.DeleteOrganizationRoleResponse], error) {
 	return c.deleteOrganizationRole.CallUnary(ctx, req)
 }
 
 // ListOrganizations calls raystack.frontier.v1beta1.FrontierService.ListOrganizations.
-func (c *frontierServiceClient) ListOrganizations(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationsResponse], error) {
+func (c *frontierServiceClient) ListOrganizations(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationsRequest]) (*connect.Response[v1beta1.ListOrganizationsResponse], error) {
 	return c.listOrganizations.CallUnary(ctx, req)
 }
 
 // CreateOrganization calls raystack.frontier.v1beta1.FrontierService.CreateOrganization.
-func (c *frontierServiceClient) CreateOrganization(ctx context.Context, req *connect_go.Request[v1beta1.CreateOrganizationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationResponse], error) {
+func (c *frontierServiceClient) CreateOrganization(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationRequest]) (*connect.Response[v1beta1.CreateOrganizationResponse], error) {
 	return c.createOrganization.CallUnary(ctx, req)
 }
 
 // GetOrganization calls raystack.frontier.v1beta1.FrontierService.GetOrganization.
-func (c *frontierServiceClient) GetOrganization(ctx context.Context, req *connect_go.Request[v1beta1.GetOrganizationRequest]) (*connect_go.Response[v1beta1.GetOrganizationResponse], error) {
+func (c *frontierServiceClient) GetOrganization(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationRequest]) (*connect.Response[v1beta1.GetOrganizationResponse], error) {
 	return c.getOrganization.CallUnary(ctx, req)
 }
 
 // UpdateOrganization calls raystack.frontier.v1beta1.FrontierService.UpdateOrganization.
-func (c *frontierServiceClient) UpdateOrganization(ctx context.Context, req *connect_go.Request[v1beta1.UpdateOrganizationRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationResponse], error) {
+func (c *frontierServiceClient) UpdateOrganization(ctx context.Context, req *connect.Request[v1beta1.UpdateOrganizationRequest]) (*connect.Response[v1beta1.UpdateOrganizationResponse], error) {
 	return c.updateOrganization.CallUnary(ctx, req)
 }
 
 // ListOrganizationProjects calls
 // raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects.
-func (c *frontierServiceClient) ListOrganizationProjects(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.ListOrganizationProjectsResponse], error) {
+func (c *frontierServiceClient) ListOrganizationProjects(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect.Response[v1beta1.ListOrganizationProjectsResponse], error) {
 	return c.listOrganizationProjects.CallUnary(ctx, req)
 }
 
 // ListOrganizationAdmins calls raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins.
-func (c *frontierServiceClient) ListOrganizationAdmins(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAdminsResponse], error) {
+func (c *frontierServiceClient) ListOrganizationAdmins(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect.Response[v1beta1.ListOrganizationAdminsResponse], error) {
 	return c.listOrganizationAdmins.CallUnary(ctx, req)
 }
 
 // ListOrganizationUsers calls raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers.
-func (c *frontierServiceClient) ListOrganizationUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationUsersResponse], error) {
+func (c *frontierServiceClient) ListOrganizationUsers(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error) {
 	return c.listOrganizationUsers.CallUnary(ctx, req)
 }
 
 // AddOrganizationUsers calls raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers.
-func (c *frontierServiceClient) AddOrganizationUsers(ctx context.Context, req *connect_go.Request[v1beta1.AddOrganizationUsersRequest]) (*connect_go.Response[v1beta1.AddOrganizationUsersResponse], error) {
+func (c *frontierServiceClient) AddOrganizationUsers(ctx context.Context, req *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error) {
 	return c.addOrganizationUsers.CallUnary(ctx, req)
 }
 
 // RemoveOrganizationUser calls raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser.
-func (c *frontierServiceClient) RemoveOrganizationUser(ctx context.Context, req *connect_go.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect_go.Response[v1beta1.RemoveOrganizationUserResponse], error) {
+func (c *frontierServiceClient) RemoveOrganizationUser(ctx context.Context, req *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error) {
 	return c.removeOrganizationUser.CallUnary(ctx, req)
 }
 
 // GetOrganizationKyc calls raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc.
-func (c *frontierServiceClient) GetOrganizationKyc(ctx context.Context, req *connect_go.Request[v1beta1.GetOrganizationKycRequest]) (*connect_go.Response[v1beta1.GetOrganizationKycResponse], error) {
+func (c *frontierServiceClient) GetOrganizationKyc(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error) {
 	return c.getOrganizationKyc.CallUnary(ctx, req)
 }
 
 // ListOrganizationServiceUsers calls
 // raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers.
-func (c *frontierServiceClient) ListOrganizationServiceUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationServiceUsersResponse], error) {
+func (c *frontierServiceClient) ListOrganizationServiceUsers(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error) {
 	return c.listOrganizationServiceUsers.CallUnary(ctx, req)
 }
 
 // ListOrganizationInvitations calls
 // raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations.
-func (c *frontierServiceClient) ListOrganizationInvitations(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationInvitationsResponse], error) {
+func (c *frontierServiceClient) ListOrganizationInvitations(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect.Response[v1beta1.ListOrganizationInvitationsResponse], error) {
 	return c.listOrganizationInvitations.CallUnary(ctx, req)
 }
 
 // CreateOrganizationInvitation calls
 // raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation.
-func (c *frontierServiceClient) CreateOrganizationInvitation(ctx context.Context, req *connect_go.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationInvitationResponse], error) {
+func (c *frontierServiceClient) CreateOrganizationInvitation(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect.Response[v1beta1.CreateOrganizationInvitationResponse], error) {
 	return c.createOrganizationInvitation.CallUnary(ctx, req)
 }
 
 // GetOrganizationInvitation calls
 // raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation.
-func (c *frontierServiceClient) GetOrganizationInvitation(ctx context.Context, req *connect_go.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.GetOrganizationInvitationResponse], error) {
+func (c *frontierServiceClient) GetOrganizationInvitation(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect.Response[v1beta1.GetOrganizationInvitationResponse], error) {
 	return c.getOrganizationInvitation.CallUnary(ctx, req)
 }
 
 // AcceptOrganizationInvitation calls
 // raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation.
-func (c *frontierServiceClient) AcceptOrganizationInvitation(ctx context.Context, req *connect_go.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.AcceptOrganizationInvitationResponse], error) {
+func (c *frontierServiceClient) AcceptOrganizationInvitation(ctx context.Context, req *connect.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect.Response[v1beta1.AcceptOrganizationInvitationResponse], error) {
 	return c.acceptOrganizationInvitation.CallUnary(ctx, req)
 }
 
 // DeleteOrganizationInvitation calls
 // raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation.
-func (c *frontierServiceClient) DeleteOrganizationInvitation(ctx context.Context, req *connect_go.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationInvitationResponse], error) {
+func (c *frontierServiceClient) DeleteOrganizationInvitation(ctx context.Context, req *connect.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect.Response[v1beta1.DeleteOrganizationInvitationResponse], error) {
 	return c.deleteOrganizationInvitation.CallUnary(ctx, req)
 }
 
 // ListOrganizationDomains calls raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains.
-func (c *frontierServiceClient) ListOrganizationDomains(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect_go.Response[v1beta1.ListOrganizationDomainsResponse], error) {
+func (c *frontierServiceClient) ListOrganizationDomains(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect.Response[v1beta1.ListOrganizationDomainsResponse], error) {
 	return c.listOrganizationDomains.CallUnary(ctx, req)
 }
 
 // CreateOrganizationDomain calls
 // raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain.
-func (c *frontierServiceClient) CreateOrganizationDomain(ctx context.Context, req *connect_go.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect_go.Response[v1beta1.CreateOrganizationDomainResponse], error) {
+func (c *frontierServiceClient) CreateOrganizationDomain(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect.Response[v1beta1.CreateOrganizationDomainResponse], error) {
 	return c.createOrganizationDomain.CallUnary(ctx, req)
 }
 
 // DeleteOrganizationDomain calls
 // raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain.
-func (c *frontierServiceClient) DeleteOrganizationDomain(ctx context.Context, req *connect_go.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationDomainResponse], error) {
+func (c *frontierServiceClient) DeleteOrganizationDomain(ctx context.Context, req *connect.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect.Response[v1beta1.DeleteOrganizationDomainResponse], error) {
 	return c.deleteOrganizationDomain.CallUnary(ctx, req)
 }
 
 // GetOrganizationDomain calls raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain.
-func (c *frontierServiceClient) GetOrganizationDomain(ctx context.Context, req *connect_go.Request[v1beta1.GetOrganizationDomainRequest]) (*connect_go.Response[v1beta1.GetOrganizationDomainResponse], error) {
+func (c *frontierServiceClient) GetOrganizationDomain(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationDomainRequest]) (*connect.Response[v1beta1.GetOrganizationDomainResponse], error) {
 	return c.getOrganizationDomain.CallUnary(ctx, req)
 }
 
 // VerifyOrganizationDomain calls
 // raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain.
-func (c *frontierServiceClient) VerifyOrganizationDomain(ctx context.Context, req *connect_go.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect_go.Response[v1beta1.VerifyOrganizationDomainResponse], error) {
+func (c *frontierServiceClient) VerifyOrganizationDomain(ctx context.Context, req *connect.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect.Response[v1beta1.VerifyOrganizationDomainResponse], error) {
 	return c.verifyOrganizationDomain.CallUnary(ctx, req)
 }
 
 // JoinOrganization calls raystack.frontier.v1beta1.FrontierService.JoinOrganization.
-func (c *frontierServiceClient) JoinOrganization(ctx context.Context, req *connect_go.Request[v1beta1.JoinOrganizationRequest]) (*connect_go.Response[v1beta1.JoinOrganizationResponse], error) {
+func (c *frontierServiceClient) JoinOrganization(ctx context.Context, req *connect.Request[v1beta1.JoinOrganizationRequest]) (*connect.Response[v1beta1.JoinOrganizationResponse], error) {
 	return c.joinOrganization.CallUnary(ctx, req)
 }
 
 // EnableOrganization calls raystack.frontier.v1beta1.FrontierService.EnableOrganization.
-func (c *frontierServiceClient) EnableOrganization(ctx context.Context, req *connect_go.Request[v1beta1.EnableOrganizationRequest]) (*connect_go.Response[v1beta1.EnableOrganizationResponse], error) {
+func (c *frontierServiceClient) EnableOrganization(ctx context.Context, req *connect.Request[v1beta1.EnableOrganizationRequest]) (*connect.Response[v1beta1.EnableOrganizationResponse], error) {
 	return c.enableOrganization.CallUnary(ctx, req)
 }
 
 // DisableOrganization calls raystack.frontier.v1beta1.FrontierService.DisableOrganization.
-func (c *frontierServiceClient) DisableOrganization(ctx context.Context, req *connect_go.Request[v1beta1.DisableOrganizationRequest]) (*connect_go.Response[v1beta1.DisableOrganizationResponse], error) {
+func (c *frontierServiceClient) DisableOrganization(ctx context.Context, req *connect.Request[v1beta1.DisableOrganizationRequest]) (*connect.Response[v1beta1.DisableOrganizationResponse], error) {
 	return c.disableOrganization.CallUnary(ctx, req)
 }
 
 // DeleteOrganization calls raystack.frontier.v1beta1.FrontierService.DeleteOrganization.
-func (c *frontierServiceClient) DeleteOrganization(ctx context.Context, req *connect_go.Request[v1beta1.DeleteOrganizationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationResponse], error) {
+func (c *frontierServiceClient) DeleteOrganization(ctx context.Context, req *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error) {
 	return c.deleteOrganization.CallUnary(ctx, req)
 }
 
 // CreateProject calls raystack.frontier.v1beta1.FrontierService.CreateProject.
-func (c *frontierServiceClient) CreateProject(ctx context.Context, req *connect_go.Request[v1beta1.CreateProjectRequest]) (*connect_go.Response[v1beta1.CreateProjectResponse], error) {
+func (c *frontierServiceClient) CreateProject(ctx context.Context, req *connect.Request[v1beta1.CreateProjectRequest]) (*connect.Response[v1beta1.CreateProjectResponse], error) {
 	return c.createProject.CallUnary(ctx, req)
 }
 
 // GetProject calls raystack.frontier.v1beta1.FrontierService.GetProject.
-func (c *frontierServiceClient) GetProject(ctx context.Context, req *connect_go.Request[v1beta1.GetProjectRequest]) (*connect_go.Response[v1beta1.GetProjectResponse], error) {
+func (c *frontierServiceClient) GetProject(ctx context.Context, req *connect.Request[v1beta1.GetProjectRequest]) (*connect.Response[v1beta1.GetProjectResponse], error) {
 	return c.getProject.CallUnary(ctx, req)
 }
 
 // UpdateProject calls raystack.frontier.v1beta1.FrontierService.UpdateProject.
-func (c *frontierServiceClient) UpdateProject(ctx context.Context, req *connect_go.Request[v1beta1.UpdateProjectRequest]) (*connect_go.Response[v1beta1.UpdateProjectResponse], error) {
+func (c *frontierServiceClient) UpdateProject(ctx context.Context, req *connect.Request[v1beta1.UpdateProjectRequest]) (*connect.Response[v1beta1.UpdateProjectResponse], error) {
 	return c.updateProject.CallUnary(ctx, req)
 }
 
 // ListProjectAdmins calls raystack.frontier.v1beta1.FrontierService.ListProjectAdmins.
-func (c *frontierServiceClient) ListProjectAdmins(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectAdminsRequest]) (*connect_go.Response[v1beta1.ListProjectAdminsResponse], error) {
+func (c *frontierServiceClient) ListProjectAdmins(ctx context.Context, req *connect.Request[v1beta1.ListProjectAdminsRequest]) (*connect.Response[v1beta1.ListProjectAdminsResponse], error) {
 	return c.listProjectAdmins.CallUnary(ctx, req)
 }
 
 // ListProjectUsers calls raystack.frontier.v1beta1.FrontierService.ListProjectUsers.
-func (c *frontierServiceClient) ListProjectUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectUsersRequest]) (*connect_go.Response[v1beta1.ListProjectUsersResponse], error) {
+func (c *frontierServiceClient) ListProjectUsers(ctx context.Context, req *connect.Request[v1beta1.ListProjectUsersRequest]) (*connect.Response[v1beta1.ListProjectUsersResponse], error) {
 	return c.listProjectUsers.CallUnary(ctx, req)
 }
 
 // ListProjectServiceUsers calls raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers.
-func (c *frontierServiceClient) ListProjectServiceUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect_go.Response[v1beta1.ListProjectServiceUsersResponse], error) {
+func (c *frontierServiceClient) ListProjectServiceUsers(ctx context.Context, req *connect.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect.Response[v1beta1.ListProjectServiceUsersResponse], error) {
 	return c.listProjectServiceUsers.CallUnary(ctx, req)
 }
 
 // ListProjectGroups calls raystack.frontier.v1beta1.FrontierService.ListProjectGroups.
-func (c *frontierServiceClient) ListProjectGroups(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectGroupsRequest]) (*connect_go.Response[v1beta1.ListProjectGroupsResponse], error) {
+func (c *frontierServiceClient) ListProjectGroups(ctx context.Context, req *connect.Request[v1beta1.ListProjectGroupsRequest]) (*connect.Response[v1beta1.ListProjectGroupsResponse], error) {
 	return c.listProjectGroups.CallUnary(ctx, req)
 }
 
 // EnableProject calls raystack.frontier.v1beta1.FrontierService.EnableProject.
-func (c *frontierServiceClient) EnableProject(ctx context.Context, req *connect_go.Request[v1beta1.EnableProjectRequest]) (*connect_go.Response[v1beta1.EnableProjectResponse], error) {
+func (c *frontierServiceClient) EnableProject(ctx context.Context, req *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error) {
 	return c.enableProject.CallUnary(ctx, req)
 }
 
 // DisableProject calls raystack.frontier.v1beta1.FrontierService.DisableProject.
-func (c *frontierServiceClient) DisableProject(ctx context.Context, req *connect_go.Request[v1beta1.DisableProjectRequest]) (*connect_go.Response[v1beta1.DisableProjectResponse], error) {
+func (c *frontierServiceClient) DisableProject(ctx context.Context, req *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error) {
 	return c.disableProject.CallUnary(ctx, req)
 }
 
 // DeleteProject calls raystack.frontier.v1beta1.FrontierService.DeleteProject.
-func (c *frontierServiceClient) DeleteProject(ctx context.Context, req *connect_go.Request[v1beta1.DeleteProjectRequest]) (*connect_go.Response[v1beta1.DeleteProjectResponse], error) {
+func (c *frontierServiceClient) DeleteProject(ctx context.Context, req *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error) {
 	return c.deleteProject.CallUnary(ctx, req)
 }
 
 // CreatePolicy calls raystack.frontier.v1beta1.FrontierService.CreatePolicy.
-func (c *frontierServiceClient) CreatePolicy(ctx context.Context, req *connect_go.Request[v1beta1.CreatePolicyRequest]) (*connect_go.Response[v1beta1.CreatePolicyResponse], error) {
+func (c *frontierServiceClient) CreatePolicy(ctx context.Context, req *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error) {
 	return c.createPolicy.CallUnary(ctx, req)
 }
 
 // GetPolicy calls raystack.frontier.v1beta1.FrontierService.GetPolicy.
-func (c *frontierServiceClient) GetPolicy(ctx context.Context, req *connect_go.Request[v1beta1.GetPolicyRequest]) (*connect_go.Response[v1beta1.GetPolicyResponse], error) {
+func (c *frontierServiceClient) GetPolicy(ctx context.Context, req *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error) {
 	return c.getPolicy.CallUnary(ctx, req)
 }
 
 // ListPolicies calls raystack.frontier.v1beta1.FrontierService.ListPolicies.
-func (c *frontierServiceClient) ListPolicies(ctx context.Context, req *connect_go.Request[v1beta1.ListPoliciesRequest]) (*connect_go.Response[v1beta1.ListPoliciesResponse], error) {
+func (c *frontierServiceClient) ListPolicies(ctx context.Context, req *connect.Request[v1beta1.ListPoliciesRequest]) (*connect.Response[v1beta1.ListPoliciesResponse], error) {
 	return c.listPolicies.CallUnary(ctx, req)
 }
 
 // UpdatePolicy calls raystack.frontier.v1beta1.FrontierService.UpdatePolicy.
-func (c *frontierServiceClient) UpdatePolicy(ctx context.Context, req *connect_go.Request[v1beta1.UpdatePolicyRequest]) (*connect_go.Response[v1beta1.UpdatePolicyResponse], error) {
+func (c *frontierServiceClient) UpdatePolicy(ctx context.Context, req *connect.Request[v1beta1.UpdatePolicyRequest]) (*connect.Response[v1beta1.UpdatePolicyResponse], error) {
 	return c.updatePolicy.CallUnary(ctx, req)
 }
 
 // DeletePolicy calls raystack.frontier.v1beta1.FrontierService.DeletePolicy.
-func (c *frontierServiceClient) DeletePolicy(ctx context.Context, req *connect_go.Request[v1beta1.DeletePolicyRequest]) (*connect_go.Response[v1beta1.DeletePolicyResponse], error) {
+func (c *frontierServiceClient) DeletePolicy(ctx context.Context, req *connect.Request[v1beta1.DeletePolicyRequest]) (*connect.Response[v1beta1.DeletePolicyResponse], error) {
 	return c.deletePolicy.CallUnary(ctx, req)
 }
 
 // CreatePolicyForProject calls raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject.
-func (c *frontierServiceClient) CreatePolicyForProject(ctx context.Context, req *connect_go.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect_go.Response[v1beta1.CreatePolicyForProjectResponse], error) {
+func (c *frontierServiceClient) CreatePolicyForProject(ctx context.Context, req *connect.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect.Response[v1beta1.CreatePolicyForProjectResponse], error) {
 	return c.createPolicyForProject.CallUnary(ctx, req)
 }
 
 // CreateRelation calls raystack.frontier.v1beta1.FrontierService.CreateRelation.
-func (c *frontierServiceClient) CreateRelation(ctx context.Context, req *connect_go.Request[v1beta1.CreateRelationRequest]) (*connect_go.Response[v1beta1.CreateRelationResponse], error) {
+func (c *frontierServiceClient) CreateRelation(ctx context.Context, req *connect.Request[v1beta1.CreateRelationRequest]) (*connect.Response[v1beta1.CreateRelationResponse], error) {
 	return c.createRelation.CallUnary(ctx, req)
 }
 
 // GetRelation calls raystack.frontier.v1beta1.FrontierService.GetRelation.
-func (c *frontierServiceClient) GetRelation(ctx context.Context, req *connect_go.Request[v1beta1.GetRelationRequest]) (*connect_go.Response[v1beta1.GetRelationResponse], error) {
+func (c *frontierServiceClient) GetRelation(ctx context.Context, req *connect.Request[v1beta1.GetRelationRequest]) (*connect.Response[v1beta1.GetRelationResponse], error) {
 	return c.getRelation.CallUnary(ctx, req)
 }
 
 // DeleteRelation calls raystack.frontier.v1beta1.FrontierService.DeleteRelation.
-func (c *frontierServiceClient) DeleteRelation(ctx context.Context, req *connect_go.Request[v1beta1.DeleteRelationRequest]) (*connect_go.Response[v1beta1.DeleteRelationResponse], error) {
+func (c *frontierServiceClient) DeleteRelation(ctx context.Context, req *connect.Request[v1beta1.DeleteRelationRequest]) (*connect.Response[v1beta1.DeleteRelationResponse], error) {
 	return c.deleteRelation.CallUnary(ctx, req)
 }
 
 // ListPermissions calls raystack.frontier.v1beta1.FrontierService.ListPermissions.
-func (c *frontierServiceClient) ListPermissions(ctx context.Context, req *connect_go.Request[v1beta1.ListPermissionsRequest]) (*connect_go.Response[v1beta1.ListPermissionsResponse], error) {
+func (c *frontierServiceClient) ListPermissions(ctx context.Context, req *connect.Request[v1beta1.ListPermissionsRequest]) (*connect.Response[v1beta1.ListPermissionsResponse], error) {
 	return c.listPermissions.CallUnary(ctx, req)
 }
 
 // GetPermission calls raystack.frontier.v1beta1.FrontierService.GetPermission.
-func (c *frontierServiceClient) GetPermission(ctx context.Context, req *connect_go.Request[v1beta1.GetPermissionRequest]) (*connect_go.Response[v1beta1.GetPermissionResponse], error) {
+func (c *frontierServiceClient) GetPermission(ctx context.Context, req *connect.Request[v1beta1.GetPermissionRequest]) (*connect.Response[v1beta1.GetPermissionResponse], error) {
 	return c.getPermission.CallUnary(ctx, req)
 }
 
 // ListNamespaces calls raystack.frontier.v1beta1.FrontierService.ListNamespaces.
-func (c *frontierServiceClient) ListNamespaces(ctx context.Context, req *connect_go.Request[v1beta1.ListNamespacesRequest]) (*connect_go.Response[v1beta1.ListNamespacesResponse], error) {
+func (c *frontierServiceClient) ListNamespaces(ctx context.Context, req *connect.Request[v1beta1.ListNamespacesRequest]) (*connect.Response[v1beta1.ListNamespacesResponse], error) {
 	return c.listNamespaces.CallUnary(ctx, req)
 }
 
 // GetNamespace calls raystack.frontier.v1beta1.FrontierService.GetNamespace.
-func (c *frontierServiceClient) GetNamespace(ctx context.Context, req *connect_go.Request[v1beta1.GetNamespaceRequest]) (*connect_go.Response[v1beta1.GetNamespaceResponse], error) {
+func (c *frontierServiceClient) GetNamespace(ctx context.Context, req *connect.Request[v1beta1.GetNamespaceRequest]) (*connect.Response[v1beta1.GetNamespaceResponse], error) {
 	return c.getNamespace.CallUnary(ctx, req)
 }
 
 // ListProjectResources calls raystack.frontier.v1beta1.FrontierService.ListProjectResources.
-func (c *frontierServiceClient) ListProjectResources(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectResourcesRequest]) (*connect_go.Response[v1beta1.ListProjectResourcesResponse], error) {
+func (c *frontierServiceClient) ListProjectResources(ctx context.Context, req *connect.Request[v1beta1.ListProjectResourcesRequest]) (*connect.Response[v1beta1.ListProjectResourcesResponse], error) {
 	return c.listProjectResources.CallUnary(ctx, req)
 }
 
 // CreateProjectResource calls raystack.frontier.v1beta1.FrontierService.CreateProjectResource.
-func (c *frontierServiceClient) CreateProjectResource(ctx context.Context, req *connect_go.Request[v1beta1.CreateProjectResourceRequest]) (*connect_go.Response[v1beta1.CreateProjectResourceResponse], error) {
+func (c *frontierServiceClient) CreateProjectResource(ctx context.Context, req *connect.Request[v1beta1.CreateProjectResourceRequest]) (*connect.Response[v1beta1.CreateProjectResourceResponse], error) {
 	return c.createProjectResource.CallUnary(ctx, req)
 }
 
 // GetProjectResource calls raystack.frontier.v1beta1.FrontierService.GetProjectResource.
-func (c *frontierServiceClient) GetProjectResource(ctx context.Context, req *connect_go.Request[v1beta1.GetProjectResourceRequest]) (*connect_go.Response[v1beta1.GetProjectResourceResponse], error) {
+func (c *frontierServiceClient) GetProjectResource(ctx context.Context, req *connect.Request[v1beta1.GetProjectResourceRequest]) (*connect.Response[v1beta1.GetProjectResourceResponse], error) {
 	return c.getProjectResource.CallUnary(ctx, req)
 }
 
 // UpdateProjectResource calls raystack.frontier.v1beta1.FrontierService.UpdateProjectResource.
-func (c *frontierServiceClient) UpdateProjectResource(ctx context.Context, req *connect_go.Request[v1beta1.UpdateProjectResourceRequest]) (*connect_go.Response[v1beta1.UpdateProjectResourceResponse], error) {
+func (c *frontierServiceClient) UpdateProjectResource(ctx context.Context, req *connect.Request[v1beta1.UpdateProjectResourceRequest]) (*connect.Response[v1beta1.UpdateProjectResourceResponse], error) {
 	return c.updateProjectResource.CallUnary(ctx, req)
 }
 
 // DeleteProjectResource calls raystack.frontier.v1beta1.FrontierService.DeleteProjectResource.
-func (c *frontierServiceClient) DeleteProjectResource(ctx context.Context, req *connect_go.Request[v1beta1.DeleteProjectResourceRequest]) (*connect_go.Response[v1beta1.DeleteProjectResourceResponse], error) {
+func (c *frontierServiceClient) DeleteProjectResource(ctx context.Context, req *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error) {
 	return c.deleteProjectResource.CallUnary(ctx, req)
 }
 
 // CheckResourcePermission calls raystack.frontier.v1beta1.FrontierService.CheckResourcePermission.
-func (c *frontierServiceClient) CheckResourcePermission(ctx context.Context, req *connect_go.Request[v1beta1.CheckResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckResourcePermissionResponse], error) {
+func (c *frontierServiceClient) CheckResourcePermission(ctx context.Context, req *connect.Request[v1beta1.CheckResourcePermissionRequest]) (*connect.Response[v1beta1.CheckResourcePermissionResponse], error) {
 	return c.checkResourcePermission.CallUnary(ctx, req)
 }
 
 // BatchCheckPermission calls raystack.frontier.v1beta1.FrontierService.BatchCheckPermission.
-func (c *frontierServiceClient) BatchCheckPermission(ctx context.Context, req *connect_go.Request[v1beta1.BatchCheckPermissionRequest]) (*connect_go.Response[v1beta1.BatchCheckPermissionResponse], error) {
+func (c *frontierServiceClient) BatchCheckPermission(ctx context.Context, req *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error) {
 	return c.batchCheckPermission.CallUnary(ctx, req)
 }
 
 // GetJWKs calls raystack.frontier.v1beta1.FrontierService.GetJWKs.
-func (c *frontierServiceClient) GetJWKs(ctx context.Context, req *connect_go.Request[v1beta1.GetJWKsRequest]) (*connect_go.Response[v1beta1.GetJWKsResponse], error) {
+func (c *frontierServiceClient) GetJWKs(ctx context.Context, req *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error) {
 	return c.getJWKs.CallUnary(ctx, req)
 }
 
 // ListAuthStrategies calls raystack.frontier.v1beta1.FrontierService.ListAuthStrategies.
-func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, req *connect_go.Request[v1beta1.ListAuthStrategiesRequest]) (*connect_go.Response[v1beta1.ListAuthStrategiesResponse], error) {
+func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, req *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error) {
 	return c.listAuthStrategies.CallUnary(ctx, req)
 }
 
 // Authenticate calls raystack.frontier.v1beta1.FrontierService.Authenticate.
-func (c *frontierServiceClient) Authenticate(ctx context.Context, req *connect_go.Request[v1beta1.AuthenticateRequest]) (*connect_go.Response[v1beta1.AuthenticateResponse], error) {
+func (c *frontierServiceClient) Authenticate(ctx context.Context, req *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error) {
 	return c.authenticate.CallUnary(ctx, req)
 }
 
 // AuthCallback calls raystack.frontier.v1beta1.FrontierService.AuthCallback.
-func (c *frontierServiceClient) AuthCallback(ctx context.Context, req *connect_go.Request[v1beta1.AuthCallbackRequest]) (*connect_go.Response[v1beta1.AuthCallbackResponse], error) {
+func (c *frontierServiceClient) AuthCallback(ctx context.Context, req *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error) {
 	return c.authCallback.CallUnary(ctx, req)
 }
 
 // AuthToken calls raystack.frontier.v1beta1.FrontierService.AuthToken.
-func (c *frontierServiceClient) AuthToken(ctx context.Context, req *connect_go.Request[v1beta1.AuthTokenRequest]) (*connect_go.Response[v1beta1.AuthTokenResponse], error) {
+func (c *frontierServiceClient) AuthToken(ctx context.Context, req *connect.Request[v1beta1.AuthTokenRequest]) (*connect.Response[v1beta1.AuthTokenResponse], error) {
 	return c.authToken.CallUnary(ctx, req)
 }
 
 // AuthLogout calls raystack.frontier.v1beta1.FrontierService.AuthLogout.
-func (c *frontierServiceClient) AuthLogout(ctx context.Context, req *connect_go.Request[v1beta1.AuthLogoutRequest]) (*connect_go.Response[v1beta1.AuthLogoutResponse], error) {
+func (c *frontierServiceClient) AuthLogout(ctx context.Context, req *connect.Request[v1beta1.AuthLogoutRequest]) (*connect.Response[v1beta1.AuthLogoutResponse], error) {
 	return c.authLogout.CallUnary(ctx, req)
 }
 
 // ListMetaSchemas calls raystack.frontier.v1beta1.FrontierService.ListMetaSchemas.
-func (c *frontierServiceClient) ListMetaSchemas(ctx context.Context, req *connect_go.Request[v1beta1.ListMetaSchemasRequest]) (*connect_go.Response[v1beta1.ListMetaSchemasResponse], error) {
+func (c *frontierServiceClient) ListMetaSchemas(ctx context.Context, req *connect.Request[v1beta1.ListMetaSchemasRequest]) (*connect.Response[v1beta1.ListMetaSchemasResponse], error) {
 	return c.listMetaSchemas.CallUnary(ctx, req)
 }
 
 // CreateMetaSchema calls raystack.frontier.v1beta1.FrontierService.CreateMetaSchema.
-func (c *frontierServiceClient) CreateMetaSchema(ctx context.Context, req *connect_go.Request[v1beta1.CreateMetaSchemaRequest]) (*connect_go.Response[v1beta1.CreateMetaSchemaResponse], error) {
+func (c *frontierServiceClient) CreateMetaSchema(ctx context.Context, req *connect.Request[v1beta1.CreateMetaSchemaRequest]) (*connect.Response[v1beta1.CreateMetaSchemaResponse], error) {
 	return c.createMetaSchema.CallUnary(ctx, req)
 }
 
 // GetMetaSchema calls raystack.frontier.v1beta1.FrontierService.GetMetaSchema.
-func (c *frontierServiceClient) GetMetaSchema(ctx context.Context, req *connect_go.Request[v1beta1.GetMetaSchemaRequest]) (*connect_go.Response[v1beta1.GetMetaSchemaResponse], error) {
+func (c *frontierServiceClient) GetMetaSchema(ctx context.Context, req *connect.Request[v1beta1.GetMetaSchemaRequest]) (*connect.Response[v1beta1.GetMetaSchemaResponse], error) {
 	return c.getMetaSchema.CallUnary(ctx, req)
 }
 
 // UpdateMetaSchema calls raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema.
-func (c *frontierServiceClient) UpdateMetaSchema(ctx context.Context, req *connect_go.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect_go.Response[v1beta1.UpdateMetaSchemaResponse], error) {
+func (c *frontierServiceClient) UpdateMetaSchema(ctx context.Context, req *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error) {
 	return c.updateMetaSchema.CallUnary(ctx, req)
 }
 
 // DeleteMetaSchema calls raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema.
-func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, req *connect_go.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect_go.Response[v1beta1.DeleteMetaSchemaResponse], error) {
+func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, req *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error) {
 	return c.deleteMetaSchema.CallUnary(ctx, req)
 }
 
 // ListOrganizationAuditLogs calls
 // raystack.frontier.v1beta1.FrontierService.ListOrganizationAuditLogs.
-func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAuditLogsResponse], error) {
+func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error) {
 	return c.listOrganizationAuditLogs.CallUnary(ctx, req)
 }
 
 // CreateOrganizationAuditLogs calls
 // raystack.frontier.v1beta1.FrontierService.CreateOrganizationAuditLogs.
-func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, req *connect_go.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.CreateOrganizationAuditLogsResponse], error) {
+func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error) {
 	return c.createOrganizationAuditLogs.CallUnary(ctx, req)
 }
 
 // GetOrganizationAuditLog calls raystack.frontier.v1beta1.FrontierService.GetOrganizationAuditLog.
-func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, req *connect_go.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect_go.Response[v1beta1.GetOrganizationAuditLogResponse], error) {
+func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error) {
 	return c.getOrganizationAuditLog.CallUnary(ctx, req)
 }
 
 // DescribePreferences calls raystack.frontier.v1beta1.FrontierService.DescribePreferences.
-func (c *frontierServiceClient) DescribePreferences(ctx context.Context, req *connect_go.Request[v1beta1.DescribePreferencesRequest]) (*connect_go.Response[v1beta1.DescribePreferencesResponse], error) {
+func (c *frontierServiceClient) DescribePreferences(ctx context.Context, req *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error) {
 	return c.describePreferences.CallUnary(ctx, req)
 }
 
 // CreateOrganizationPreferences calls
 // raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences.
-func (c *frontierServiceClient) CreateOrganizationPreferences(ctx context.Context, req *connect_go.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.CreateOrganizationPreferencesResponse], error) {
+func (c *frontierServiceClient) CreateOrganizationPreferences(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect.Response[v1beta1.CreateOrganizationPreferencesResponse], error) {
 	return c.createOrganizationPreferences.CallUnary(ctx, req)
 }
 
 // ListOrganizationPreferences calls
 // raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences.
-func (c *frontierServiceClient) ListOrganizationPreferences(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.ListOrganizationPreferencesResponse], error) {
+func (c *frontierServiceClient) ListOrganizationPreferences(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect.Response[v1beta1.ListOrganizationPreferencesResponse], error) {
 	return c.listOrganizationPreferences.CallUnary(ctx, req)
 }
 
 // CreateProjectPreferences calls
 // raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences.
-func (c *frontierServiceClient) CreateProjectPreferences(ctx context.Context, req *connect_go.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect_go.Response[v1beta1.CreateProjectPreferencesResponse], error) {
+func (c *frontierServiceClient) CreateProjectPreferences(ctx context.Context, req *connect.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect.Response[v1beta1.CreateProjectPreferencesResponse], error) {
 	return c.createProjectPreferences.CallUnary(ctx, req)
 }
 
 // ListProjectPreferences calls raystack.frontier.v1beta1.FrontierService.ListProjectPreferences.
-func (c *frontierServiceClient) ListProjectPreferences(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectPreferencesRequest]) (*connect_go.Response[v1beta1.ListProjectPreferencesResponse], error) {
+func (c *frontierServiceClient) ListProjectPreferences(ctx context.Context, req *connect.Request[v1beta1.ListProjectPreferencesRequest]) (*connect.Response[v1beta1.ListProjectPreferencesResponse], error) {
 	return c.listProjectPreferences.CallUnary(ctx, req)
 }
 
 // CreateGroupPreferences calls raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences.
-func (c *frontierServiceClient) CreateGroupPreferences(ctx context.Context, req *connect_go.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect_go.Response[v1beta1.CreateGroupPreferencesResponse], error) {
+func (c *frontierServiceClient) CreateGroupPreferences(ctx context.Context, req *connect.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect.Response[v1beta1.CreateGroupPreferencesResponse], error) {
 	return c.createGroupPreferences.CallUnary(ctx, req)
 }
 
 // ListGroupPreferences calls raystack.frontier.v1beta1.FrontierService.ListGroupPreferences.
-func (c *frontierServiceClient) ListGroupPreferences(ctx context.Context, req *connect_go.Request[v1beta1.ListGroupPreferencesRequest]) (*connect_go.Response[v1beta1.ListGroupPreferencesResponse], error) {
+func (c *frontierServiceClient) ListGroupPreferences(ctx context.Context, req *connect.Request[v1beta1.ListGroupPreferencesRequest]) (*connect.Response[v1beta1.ListGroupPreferencesResponse], error) {
 	return c.listGroupPreferences.CallUnary(ctx, req)
 }
 
 // CreateUserPreferences calls raystack.frontier.v1beta1.FrontierService.CreateUserPreferences.
-func (c *frontierServiceClient) CreateUserPreferences(ctx context.Context, req *connect_go.Request[v1beta1.CreateUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateUserPreferencesResponse], error) {
+func (c *frontierServiceClient) CreateUserPreferences(ctx context.Context, req *connect.Request[v1beta1.CreateUserPreferencesRequest]) (*connect.Response[v1beta1.CreateUserPreferencesResponse], error) {
 	return c.createUserPreferences.CallUnary(ctx, req)
 }
 
 // ListUserPreferences calls raystack.frontier.v1beta1.FrontierService.ListUserPreferences.
-func (c *frontierServiceClient) ListUserPreferences(ctx context.Context, req *connect_go.Request[v1beta1.ListUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListUserPreferencesResponse], error) {
+func (c *frontierServiceClient) ListUserPreferences(ctx context.Context, req *connect.Request[v1beta1.ListUserPreferencesRequest]) (*connect.Response[v1beta1.ListUserPreferencesResponse], error) {
 	return c.listUserPreferences.CallUnary(ctx, req)
 }
 
 // CreateCurrentUserPreferences calls
 // raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences.
-func (c *frontierServiceClient) CreateCurrentUserPreferences(ctx context.Context, req *connect_go.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateCurrentUserPreferencesResponse], error) {
+func (c *frontierServiceClient) CreateCurrentUserPreferences(ctx context.Context, req *connect.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.CreateCurrentUserPreferencesResponse], error) {
 	return c.createCurrentUserPreferences.CallUnary(ctx, req)
 }
 
 // ListCurrentUserPreferences calls
 // raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences.
-func (c *frontierServiceClient) ListCurrentUserPreferences(ctx context.Context, req *connect_go.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListCurrentUserPreferencesResponse], error) {
+func (c *frontierServiceClient) ListCurrentUserPreferences(ctx context.Context, req *connect.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.ListCurrentUserPreferencesResponse], error) {
 	return c.listCurrentUserPreferences.CallUnary(ctx, req)
 }
 
 // CreateBillingAccount calls raystack.frontier.v1beta1.FrontierService.CreateBillingAccount.
-func (c *frontierServiceClient) CreateBillingAccount(ctx context.Context, req *connect_go.Request[v1beta1.CreateBillingAccountRequest]) (*connect_go.Response[v1beta1.CreateBillingAccountResponse], error) {
+func (c *frontierServiceClient) CreateBillingAccount(ctx context.Context, req *connect.Request[v1beta1.CreateBillingAccountRequest]) (*connect.Response[v1beta1.CreateBillingAccountResponse], error) {
 	return c.createBillingAccount.CallUnary(ctx, req)
 }
 
 // GetBillingAccount calls raystack.frontier.v1beta1.FrontierService.GetBillingAccount.
-func (c *frontierServiceClient) GetBillingAccount(ctx context.Context, req *connect_go.Request[v1beta1.GetBillingAccountRequest]) (*connect_go.Response[v1beta1.GetBillingAccountResponse], error) {
+func (c *frontierServiceClient) GetBillingAccount(ctx context.Context, req *connect.Request[v1beta1.GetBillingAccountRequest]) (*connect.Response[v1beta1.GetBillingAccountResponse], error) {
 	return c.getBillingAccount.CallUnary(ctx, req)
 }
 
 // UpdateBillingAccount calls raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount.
-func (c *frontierServiceClient) UpdateBillingAccount(ctx context.Context, req *connect_go.Request[v1beta1.UpdateBillingAccountRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountResponse], error) {
+func (c *frontierServiceClient) UpdateBillingAccount(ctx context.Context, req *connect.Request[v1beta1.UpdateBillingAccountRequest]) (*connect.Response[v1beta1.UpdateBillingAccountResponse], error) {
 	return c.updateBillingAccount.CallUnary(ctx, req)
 }
 
 // RegisterBillingAccount calls raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount.
-func (c *frontierServiceClient) RegisterBillingAccount(ctx context.Context, req *connect_go.Request[v1beta1.RegisterBillingAccountRequest]) (*connect_go.Response[v1beta1.RegisterBillingAccountResponse], error) {
+func (c *frontierServiceClient) RegisterBillingAccount(ctx context.Context, req *connect.Request[v1beta1.RegisterBillingAccountRequest]) (*connect.Response[v1beta1.RegisterBillingAccountResponse], error) {
 	return c.registerBillingAccount.CallUnary(ctx, req)
 }
 
 // ListBillingAccounts calls raystack.frontier.v1beta1.FrontierService.ListBillingAccounts.
-func (c *frontierServiceClient) ListBillingAccounts(ctx context.Context, req *connect_go.Request[v1beta1.ListBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListBillingAccountsResponse], error) {
+func (c *frontierServiceClient) ListBillingAccounts(ctx context.Context, req *connect.Request[v1beta1.ListBillingAccountsRequest]) (*connect.Response[v1beta1.ListBillingAccountsResponse], error) {
 	return c.listBillingAccounts.CallUnary(ctx, req)
 }
 
 // DeleteBillingAccount calls raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount.
-func (c *frontierServiceClient) DeleteBillingAccount(ctx context.Context, req *connect_go.Request[v1beta1.DeleteBillingAccountRequest]) (*connect_go.Response[v1beta1.DeleteBillingAccountResponse], error) {
+func (c *frontierServiceClient) DeleteBillingAccount(ctx context.Context, req *connect.Request[v1beta1.DeleteBillingAccountRequest]) (*connect.Response[v1beta1.DeleteBillingAccountResponse], error) {
 	return c.deleteBillingAccount.CallUnary(ctx, req)
 }
 
 // EnableBillingAccount calls raystack.frontier.v1beta1.FrontierService.EnableBillingAccount.
-func (c *frontierServiceClient) EnableBillingAccount(ctx context.Context, req *connect_go.Request[v1beta1.EnableBillingAccountRequest]) (*connect_go.Response[v1beta1.EnableBillingAccountResponse], error) {
+func (c *frontierServiceClient) EnableBillingAccount(ctx context.Context, req *connect.Request[v1beta1.EnableBillingAccountRequest]) (*connect.Response[v1beta1.EnableBillingAccountResponse], error) {
 	return c.enableBillingAccount.CallUnary(ctx, req)
 }
 
 // DisableBillingAccount calls raystack.frontier.v1beta1.FrontierService.DisableBillingAccount.
-func (c *frontierServiceClient) DisableBillingAccount(ctx context.Context, req *connect_go.Request[v1beta1.DisableBillingAccountRequest]) (*connect_go.Response[v1beta1.DisableBillingAccountResponse], error) {
+func (c *frontierServiceClient) DisableBillingAccount(ctx context.Context, req *connect.Request[v1beta1.DisableBillingAccountRequest]) (*connect.Response[v1beta1.DisableBillingAccountResponse], error) {
 	return c.disableBillingAccount.CallUnary(ctx, req)
 }
 
 // GetBillingBalance calls raystack.frontier.v1beta1.FrontierService.GetBillingBalance.
-func (c *frontierServiceClient) GetBillingBalance(ctx context.Context, req *connect_go.Request[v1beta1.GetBillingBalanceRequest]) (*connect_go.Response[v1beta1.GetBillingBalanceResponse], error) {
+func (c *frontierServiceClient) GetBillingBalance(ctx context.Context, req *connect.Request[v1beta1.GetBillingBalanceRequest]) (*connect.Response[v1beta1.GetBillingBalanceResponse], error) {
 	return c.getBillingBalance.CallUnary(ctx, req)
 }
 
 // HasTrialed calls raystack.frontier.v1beta1.FrontierService.HasTrialed.
-func (c *frontierServiceClient) HasTrialed(ctx context.Context, req *connect_go.Request[v1beta1.HasTrialedRequest]) (*connect_go.Response[v1beta1.HasTrialedResponse], error) {
+func (c *frontierServiceClient) HasTrialed(ctx context.Context, req *connect.Request[v1beta1.HasTrialedRequest]) (*connect.Response[v1beta1.HasTrialedResponse], error) {
 	return c.hasTrialed.CallUnary(ctx, req)
 }
 
 // GetSubscription calls raystack.frontier.v1beta1.FrontierService.GetSubscription.
-func (c *frontierServiceClient) GetSubscription(ctx context.Context, req *connect_go.Request[v1beta1.GetSubscriptionRequest]) (*connect_go.Response[v1beta1.GetSubscriptionResponse], error) {
+func (c *frontierServiceClient) GetSubscription(ctx context.Context, req *connect.Request[v1beta1.GetSubscriptionRequest]) (*connect.Response[v1beta1.GetSubscriptionResponse], error) {
 	return c.getSubscription.CallUnary(ctx, req)
 }
 
 // CancelSubscription calls raystack.frontier.v1beta1.FrontierService.CancelSubscription.
-func (c *frontierServiceClient) CancelSubscription(ctx context.Context, req *connect_go.Request[v1beta1.CancelSubscriptionRequest]) (*connect_go.Response[v1beta1.CancelSubscriptionResponse], error) {
+func (c *frontierServiceClient) CancelSubscription(ctx context.Context, req *connect.Request[v1beta1.CancelSubscriptionRequest]) (*connect.Response[v1beta1.CancelSubscriptionResponse], error) {
 	return c.cancelSubscription.CallUnary(ctx, req)
 }
 
 // ListSubscriptions calls raystack.frontier.v1beta1.FrontierService.ListSubscriptions.
-func (c *frontierServiceClient) ListSubscriptions(ctx context.Context, req *connect_go.Request[v1beta1.ListSubscriptionsRequest]) (*connect_go.Response[v1beta1.ListSubscriptionsResponse], error) {
+func (c *frontierServiceClient) ListSubscriptions(ctx context.Context, req *connect.Request[v1beta1.ListSubscriptionsRequest]) (*connect.Response[v1beta1.ListSubscriptionsResponse], error) {
 	return c.listSubscriptions.CallUnary(ctx, req)
 }
 
 // ChangeSubscription calls raystack.frontier.v1beta1.FrontierService.ChangeSubscription.
-func (c *frontierServiceClient) ChangeSubscription(ctx context.Context, req *connect_go.Request[v1beta1.ChangeSubscriptionRequest]) (*connect_go.Response[v1beta1.ChangeSubscriptionResponse], error) {
+func (c *frontierServiceClient) ChangeSubscription(ctx context.Context, req *connect.Request[v1beta1.ChangeSubscriptionRequest]) (*connect.Response[v1beta1.ChangeSubscriptionResponse], error) {
 	return c.changeSubscription.CallUnary(ctx, req)
 }
 
 // UpdateSubscription calls raystack.frontier.v1beta1.FrontierService.UpdateSubscription.
-func (c *frontierServiceClient) UpdateSubscription(ctx context.Context, req *connect_go.Request[v1beta1.UpdateSubscriptionRequest]) (*connect_go.Response[v1beta1.UpdateSubscriptionResponse], error) {
+func (c *frontierServiceClient) UpdateSubscription(ctx context.Context, req *connect.Request[v1beta1.UpdateSubscriptionRequest]) (*connect.Response[v1beta1.UpdateSubscriptionResponse], error) {
 	return c.updateSubscription.CallUnary(ctx, req)
 }
 
 // CreateProduct calls raystack.frontier.v1beta1.FrontierService.CreateProduct.
-func (c *frontierServiceClient) CreateProduct(ctx context.Context, req *connect_go.Request[v1beta1.CreateProductRequest]) (*connect_go.Response[v1beta1.CreateProductResponse], error) {
+func (c *frontierServiceClient) CreateProduct(ctx context.Context, req *connect.Request[v1beta1.CreateProductRequest]) (*connect.Response[v1beta1.CreateProductResponse], error) {
 	return c.createProduct.CallUnary(ctx, req)
 }
 
 // GetProduct calls raystack.frontier.v1beta1.FrontierService.GetProduct.
-func (c *frontierServiceClient) GetProduct(ctx context.Context, req *connect_go.Request[v1beta1.GetProductRequest]) (*connect_go.Response[v1beta1.GetProductResponse], error) {
+func (c *frontierServiceClient) GetProduct(ctx context.Context, req *connect.Request[v1beta1.GetProductRequest]) (*connect.Response[v1beta1.GetProductResponse], error) {
 	return c.getProduct.CallUnary(ctx, req)
 }
 
 // ListProducts calls raystack.frontier.v1beta1.FrontierService.ListProducts.
-func (c *frontierServiceClient) ListProducts(ctx context.Context, req *connect_go.Request[v1beta1.ListProductsRequest]) (*connect_go.Response[v1beta1.ListProductsResponse], error) {
+func (c *frontierServiceClient) ListProducts(ctx context.Context, req *connect.Request[v1beta1.ListProductsRequest]) (*connect.Response[v1beta1.ListProductsResponse], error) {
 	return c.listProducts.CallUnary(ctx, req)
 }
 
 // UpdateProduct calls raystack.frontier.v1beta1.FrontierService.UpdateProduct.
-func (c *frontierServiceClient) UpdateProduct(ctx context.Context, req *connect_go.Request[v1beta1.UpdateProductRequest]) (*connect_go.Response[v1beta1.UpdateProductResponse], error) {
+func (c *frontierServiceClient) UpdateProduct(ctx context.Context, req *connect.Request[v1beta1.UpdateProductRequest]) (*connect.Response[v1beta1.UpdateProductResponse], error) {
 	return c.updateProduct.CallUnary(ctx, req)
 }
 
 // CreateFeature calls raystack.frontier.v1beta1.FrontierService.CreateFeature.
-func (c *frontierServiceClient) CreateFeature(ctx context.Context, req *connect_go.Request[v1beta1.CreateFeatureRequest]) (*connect_go.Response[v1beta1.CreateFeatureResponse], error) {
+func (c *frontierServiceClient) CreateFeature(ctx context.Context, req *connect.Request[v1beta1.CreateFeatureRequest]) (*connect.Response[v1beta1.CreateFeatureResponse], error) {
 	return c.createFeature.CallUnary(ctx, req)
 }
 
 // GetFeature calls raystack.frontier.v1beta1.FrontierService.GetFeature.
-func (c *frontierServiceClient) GetFeature(ctx context.Context, req *connect_go.Request[v1beta1.GetFeatureRequest]) (*connect_go.Response[v1beta1.GetFeatureResponse], error) {
+func (c *frontierServiceClient) GetFeature(ctx context.Context, req *connect.Request[v1beta1.GetFeatureRequest]) (*connect.Response[v1beta1.GetFeatureResponse], error) {
 	return c.getFeature.CallUnary(ctx, req)
 }
 
 // UpdateFeature calls raystack.frontier.v1beta1.FrontierService.UpdateFeature.
-func (c *frontierServiceClient) UpdateFeature(ctx context.Context, req *connect_go.Request[v1beta1.UpdateFeatureRequest]) (*connect_go.Response[v1beta1.UpdateFeatureResponse], error) {
+func (c *frontierServiceClient) UpdateFeature(ctx context.Context, req *connect.Request[v1beta1.UpdateFeatureRequest]) (*connect.Response[v1beta1.UpdateFeatureResponse], error) {
 	return c.updateFeature.CallUnary(ctx, req)
 }
 
 // ListFeatures calls raystack.frontier.v1beta1.FrontierService.ListFeatures.
-func (c *frontierServiceClient) ListFeatures(ctx context.Context, req *connect_go.Request[v1beta1.ListFeaturesRequest]) (*connect_go.Response[v1beta1.ListFeaturesResponse], error) {
+func (c *frontierServiceClient) ListFeatures(ctx context.Context, req *connect.Request[v1beta1.ListFeaturesRequest]) (*connect.Response[v1beta1.ListFeaturesResponse], error) {
 	return c.listFeatures.CallUnary(ctx, req)
 }
 
 // CreatePlan calls raystack.frontier.v1beta1.FrontierService.CreatePlan.
-func (c *frontierServiceClient) CreatePlan(ctx context.Context, req *connect_go.Request[v1beta1.CreatePlanRequest]) (*connect_go.Response[v1beta1.CreatePlanResponse], error) {
+func (c *frontierServiceClient) CreatePlan(ctx context.Context, req *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error) {
 	return c.createPlan.CallUnary(ctx, req)
 }
 
 // ListPlans calls raystack.frontier.v1beta1.FrontierService.ListPlans.
-func (c *frontierServiceClient) ListPlans(ctx context.Context, req *connect_go.Request[v1beta1.ListPlansRequest]) (*connect_go.Response[v1beta1.ListPlansResponse], error) {
+func (c *frontierServiceClient) ListPlans(ctx context.Context, req *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error) {
 	return c.listPlans.CallUnary(ctx, req)
 }
 
 // GetPlan calls raystack.frontier.v1beta1.FrontierService.GetPlan.
-func (c *frontierServiceClient) GetPlan(ctx context.Context, req *connect_go.Request[v1beta1.GetPlanRequest]) (*connect_go.Response[v1beta1.GetPlanResponse], error) {
+func (c *frontierServiceClient) GetPlan(ctx context.Context, req *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error) {
 	return c.getPlan.CallUnary(ctx, req)
 }
 
 // UpdatePlan calls raystack.frontier.v1beta1.FrontierService.UpdatePlan.
-func (c *frontierServiceClient) UpdatePlan(ctx context.Context, req *connect_go.Request[v1beta1.UpdatePlanRequest]) (*connect_go.Response[v1beta1.UpdatePlanResponse], error) {
+func (c *frontierServiceClient) UpdatePlan(ctx context.Context, req *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error) {
 	return c.updatePlan.CallUnary(ctx, req)
 }
 
 // CreateCheckout calls raystack.frontier.v1beta1.FrontierService.CreateCheckout.
-func (c *frontierServiceClient) CreateCheckout(ctx context.Context, req *connect_go.Request[v1beta1.CreateCheckoutRequest]) (*connect_go.Response[v1beta1.CreateCheckoutResponse], error) {
+func (c *frontierServiceClient) CreateCheckout(ctx context.Context, req *connect.Request[v1beta1.CreateCheckoutRequest]) (*connect.Response[v1beta1.CreateCheckoutResponse], error) {
 	return c.createCheckout.CallUnary(ctx, req)
 }
 
 // ListCheckouts calls raystack.frontier.v1beta1.FrontierService.ListCheckouts.
-func (c *frontierServiceClient) ListCheckouts(ctx context.Context, req *connect_go.Request[v1beta1.ListCheckoutsRequest]) (*connect_go.Response[v1beta1.ListCheckoutsResponse], error) {
+func (c *frontierServiceClient) ListCheckouts(ctx context.Context, req *connect.Request[v1beta1.ListCheckoutsRequest]) (*connect.Response[v1beta1.ListCheckoutsResponse], error) {
 	return c.listCheckouts.CallUnary(ctx, req)
 }
 
 // GetCheckout calls raystack.frontier.v1beta1.FrontierService.GetCheckout.
-func (c *frontierServiceClient) GetCheckout(ctx context.Context, req *connect_go.Request[v1beta1.GetCheckoutRequest]) (*connect_go.Response[v1beta1.GetCheckoutResponse], error) {
+func (c *frontierServiceClient) GetCheckout(ctx context.Context, req *connect.Request[v1beta1.GetCheckoutRequest]) (*connect.Response[v1beta1.GetCheckoutResponse], error) {
 	return c.getCheckout.CallUnary(ctx, req)
 }
 
 // CheckFeatureEntitlement calls raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement.
-func (c *frontierServiceClient) CheckFeatureEntitlement(ctx context.Context, req *connect_go.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect_go.Response[v1beta1.CheckFeatureEntitlementResponse], error) {
+func (c *frontierServiceClient) CheckFeatureEntitlement(ctx context.Context, req *connect.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[v1beta1.CheckFeatureEntitlementResponse], error) {
 	return c.checkFeatureEntitlement.CallUnary(ctx, req)
 }
 
 // CreateBillingUsage calls raystack.frontier.v1beta1.FrontierService.CreateBillingUsage.
-func (c *frontierServiceClient) CreateBillingUsage(ctx context.Context, req *connect_go.Request[v1beta1.CreateBillingUsageRequest]) (*connect_go.Response[v1beta1.CreateBillingUsageResponse], error) {
+func (c *frontierServiceClient) CreateBillingUsage(ctx context.Context, req *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error) {
 	return c.createBillingUsage.CallUnary(ctx, req)
 }
 
 // ListBillingTransactions calls raystack.frontier.v1beta1.FrontierService.ListBillingTransactions.
-func (c *frontierServiceClient) ListBillingTransactions(ctx context.Context, req *connect_go.Request[v1beta1.ListBillingTransactionsRequest]) (*connect_go.Response[v1beta1.ListBillingTransactionsResponse], error) {
+func (c *frontierServiceClient) ListBillingTransactions(ctx context.Context, req *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error) {
 	return c.listBillingTransactions.CallUnary(ctx, req)
 }
 
 // TotalDebitedTransactions calls
 // raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions.
-func (c *frontierServiceClient) TotalDebitedTransactions(ctx context.Context, req *connect_go.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect_go.Response[v1beta1.TotalDebitedTransactionsResponse], error) {
+func (c *frontierServiceClient) TotalDebitedTransactions(ctx context.Context, req *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error) {
 	return c.totalDebitedTransactions.CallUnary(ctx, req)
 }
 
 // ListInvoices calls raystack.frontier.v1beta1.FrontierService.ListInvoices.
-func (c *frontierServiceClient) ListInvoices(ctx context.Context, req *connect_go.Request[v1beta1.ListInvoicesRequest]) (*connect_go.Response[v1beta1.ListInvoicesResponse], error) {
+func (c *frontierServiceClient) ListInvoices(ctx context.Context, req *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error) {
 	return c.listInvoices.CallUnary(ctx, req)
 }
 
 // GetUpcomingInvoice calls raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice.
-func (c *frontierServiceClient) GetUpcomingInvoice(ctx context.Context, req *connect_go.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect_go.Response[v1beta1.GetUpcomingInvoiceResponse], error) {
+func (c *frontierServiceClient) GetUpcomingInvoice(ctx context.Context, req *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error) {
 	return c.getUpcomingInvoice.CallUnary(ctx, req)
 }
 
 // BillingWebhookCallback calls raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback.
-func (c *frontierServiceClient) BillingWebhookCallback(ctx context.Context, req *connect_go.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect_go.Response[v1beta1.BillingWebhookCallbackResponse], error) {
+func (c *frontierServiceClient) BillingWebhookCallback(ctx context.Context, req *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error) {
 	return c.billingWebhookCallback.CallUnary(ctx, req)
 }
 
 // CreateProspectPublic calls raystack.frontier.v1beta1.FrontierService.CreateProspectPublic.
-func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, req *connect_go.Request[v1beta1.CreateProspectPublicRequest]) (*connect_go.Response[v1beta1.CreateProspectPublicResponse], error) {
+func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, req *connect.Request[v1beta1.CreateProspectPublicRequest]) (*connect.Response[v1beta1.CreateProspectPublicResponse], error) {
 	return c.createProspectPublic.CallUnary(ctx, req)
 }
 
@@ -2598,198 +2765,198 @@ func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, req *c
 // service.
 type FrontierServiceHandler interface {
 	// Users
-	ListUsers(context.Context, *connect_go.Request[v1beta1.ListUsersRequest]) (*connect_go.Response[v1beta1.ListUsersResponse], error)
-	CreateUser(context.Context, *connect_go.Request[v1beta1.CreateUserRequest]) (*connect_go.Response[v1beta1.CreateUserResponse], error)
-	GetUser(context.Context, *connect_go.Request[v1beta1.GetUserRequest]) (*connect_go.Response[v1beta1.GetUserResponse], error)
-	ListUserGroups(context.Context, *connect_go.Request[v1beta1.ListUserGroupsRequest]) (*connect_go.Response[v1beta1.ListUserGroupsResponse], error)
-	ListCurrentUserGroups(context.Context, *connect_go.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserGroupsResponse], error)
-	GetCurrentUser(context.Context, *connect_go.Request[v1beta1.GetCurrentUserRequest]) (*connect_go.Response[v1beta1.GetCurrentUserResponse], error)
-	UpdateUser(context.Context, *connect_go.Request[v1beta1.UpdateUserRequest]) (*connect_go.Response[v1beta1.UpdateUserResponse], error)
-	UpdateCurrentUser(context.Context, *connect_go.Request[v1beta1.UpdateCurrentUserRequest]) (*connect_go.Response[v1beta1.UpdateCurrentUserResponse], error)
-	EnableUser(context.Context, *connect_go.Request[v1beta1.EnableUserRequest]) (*connect_go.Response[v1beta1.EnableUserResponse], error)
-	DisableUser(context.Context, *connect_go.Request[v1beta1.DisableUserRequest]) (*connect_go.Response[v1beta1.DisableUserResponse], error)
-	DeleteUser(context.Context, *connect_go.Request[v1beta1.DeleteUserRequest]) (*connect_go.Response[v1beta1.DeleteUserResponse], error)
-	ListOrganizationsByUser(context.Context, *connect_go.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByUserResponse], error)
-	ListOrganizationsByCurrentUser(context.Context, *connect_go.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error)
-	ListProjectsByUser(context.Context, *connect_go.Request[v1beta1.ListProjectsByUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByUserResponse], error)
-	ListProjectsByCurrentUser(context.Context, *connect_go.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByCurrentUserResponse], error)
-	ListUserInvitations(context.Context, *connect_go.Request[v1beta1.ListUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListUserInvitationsResponse], error)
-	ListCurrentUserInvitations(context.Context, *connect_go.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserInvitationsResponse], error)
+	ListUsers(context.Context, *connect.Request[v1beta1.ListUsersRequest]) (*connect.Response[v1beta1.ListUsersResponse], error)
+	CreateUser(context.Context, *connect.Request[v1beta1.CreateUserRequest]) (*connect.Response[v1beta1.CreateUserResponse], error)
+	GetUser(context.Context, *connect.Request[v1beta1.GetUserRequest]) (*connect.Response[v1beta1.GetUserResponse], error)
+	ListUserGroups(context.Context, *connect.Request[v1beta1.ListUserGroupsRequest]) (*connect.Response[v1beta1.ListUserGroupsResponse], error)
+	ListCurrentUserGroups(context.Context, *connect.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect.Response[v1beta1.ListCurrentUserGroupsResponse], error)
+	GetCurrentUser(context.Context, *connect.Request[v1beta1.GetCurrentUserRequest]) (*connect.Response[v1beta1.GetCurrentUserResponse], error)
+	UpdateUser(context.Context, *connect.Request[v1beta1.UpdateUserRequest]) (*connect.Response[v1beta1.UpdateUserResponse], error)
+	UpdateCurrentUser(context.Context, *connect.Request[v1beta1.UpdateCurrentUserRequest]) (*connect.Response[v1beta1.UpdateCurrentUserResponse], error)
+	EnableUser(context.Context, *connect.Request[v1beta1.EnableUserRequest]) (*connect.Response[v1beta1.EnableUserResponse], error)
+	DisableUser(context.Context, *connect.Request[v1beta1.DisableUserRequest]) (*connect.Response[v1beta1.DisableUserResponse], error)
+	DeleteUser(context.Context, *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error)
+	ListOrganizationsByUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByUserResponse], error)
+	ListOrganizationsByCurrentUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error)
+	ListProjectsByUser(context.Context, *connect.Request[v1beta1.ListProjectsByUserRequest]) (*connect.Response[v1beta1.ListProjectsByUserResponse], error)
+	ListProjectsByCurrentUser(context.Context, *connect.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect.Response[v1beta1.ListProjectsByCurrentUserResponse], error)
+	ListUserInvitations(context.Context, *connect.Request[v1beta1.ListUserInvitationsRequest]) (*connect.Response[v1beta1.ListUserInvitationsResponse], error)
+	ListCurrentUserInvitations(context.Context, *connect.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect.Response[v1beta1.ListCurrentUserInvitationsResponse], error)
 	// ServiceUser
-	ListServiceUsers(context.Context, *connect_go.Request[v1beta1.ListServiceUsersRequest]) (*connect_go.Response[v1beta1.ListServiceUsersResponse], error)
-	CreateServiceUser(context.Context, *connect_go.Request[v1beta1.CreateServiceUserRequest]) (*connect_go.Response[v1beta1.CreateServiceUserResponse], error)
-	GetServiceUser(context.Context, *connect_go.Request[v1beta1.GetServiceUserRequest]) (*connect_go.Response[v1beta1.GetServiceUserResponse], error)
-	DeleteServiceUser(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserResponse], error)
-	CreateServiceUserJWK(context.Context, *connect_go.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect_go.Response[v1beta1.CreateServiceUserJWKResponse], error)
-	ListServiceUserJWKs(context.Context, *connect_go.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect_go.Response[v1beta1.ListServiceUserJWKsResponse], error)
-	GetServiceUserJWK(context.Context, *connect_go.Request[v1beta1.GetServiceUserJWKRequest]) (*connect_go.Response[v1beta1.GetServiceUserJWKResponse], error)
-	DeleteServiceUserJWK(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserJWKResponse], error)
-	CreateServiceUserCredential(context.Context, *connect_go.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.CreateServiceUserCredentialResponse], error)
-	ListServiceUserCredentials(context.Context, *connect_go.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.ListServiceUserCredentialsResponse], error)
-	DeleteServiceUserCredential(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserCredentialResponse], error)
-	CreateServiceUserToken(context.Context, *connect_go.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect_go.Response[v1beta1.CreateServiceUserTokenResponse], error)
-	ListServiceUserTokens(context.Context, *connect_go.Request[v1beta1.ListServiceUserTokensRequest]) (*connect_go.Response[v1beta1.ListServiceUserTokensResponse], error)
-	DeleteServiceUserToken(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserTokenResponse], error)
-	ListServiceUserProjects(context.Context, *connect_go.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect_go.Response[v1beta1.ListServiceUserProjectsResponse], error)
+	ListServiceUsers(context.Context, *connect.Request[v1beta1.ListServiceUsersRequest]) (*connect.Response[v1beta1.ListServiceUsersResponse], error)
+	CreateServiceUser(context.Context, *connect.Request[v1beta1.CreateServiceUserRequest]) (*connect.Response[v1beta1.CreateServiceUserResponse], error)
+	GetServiceUser(context.Context, *connect.Request[v1beta1.GetServiceUserRequest]) (*connect.Response[v1beta1.GetServiceUserResponse], error)
+	DeleteServiceUser(context.Context, *connect.Request[v1beta1.DeleteServiceUserRequest]) (*connect.Response[v1beta1.DeleteServiceUserResponse], error)
+	CreateServiceUserJWK(context.Context, *connect.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect.Response[v1beta1.CreateServiceUserJWKResponse], error)
+	ListServiceUserJWKs(context.Context, *connect.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect.Response[v1beta1.ListServiceUserJWKsResponse], error)
+	GetServiceUserJWK(context.Context, *connect.Request[v1beta1.GetServiceUserJWKRequest]) (*connect.Response[v1beta1.GetServiceUserJWKResponse], error)
+	DeleteServiceUserJWK(context.Context, *connect.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect.Response[v1beta1.DeleteServiceUserJWKResponse], error)
+	CreateServiceUserCredential(context.Context, *connect.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect.Response[v1beta1.CreateServiceUserCredentialResponse], error)
+	ListServiceUserCredentials(context.Context, *connect.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect.Response[v1beta1.ListServiceUserCredentialsResponse], error)
+	DeleteServiceUserCredential(context.Context, *connect.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect.Response[v1beta1.DeleteServiceUserCredentialResponse], error)
+	CreateServiceUserToken(context.Context, *connect.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect.Response[v1beta1.CreateServiceUserTokenResponse], error)
+	ListServiceUserTokens(context.Context, *connect.Request[v1beta1.ListServiceUserTokensRequest]) (*connect.Response[v1beta1.ListServiceUserTokensResponse], error)
+	DeleteServiceUserToken(context.Context, *connect.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect.Response[v1beta1.DeleteServiceUserTokenResponse], error)
+	ListServiceUserProjects(context.Context, *connect.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect.Response[v1beta1.ListServiceUserProjectsResponse], error)
 	// Group
-	ListOrganizationGroups(context.Context, *connect_go.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect_go.Response[v1beta1.ListOrganizationGroupsResponse], error)
-	CreateGroup(context.Context, *connect_go.Request[v1beta1.CreateGroupRequest]) (*connect_go.Response[v1beta1.CreateGroupResponse], error)
-	GetGroup(context.Context, *connect_go.Request[v1beta1.GetGroupRequest]) (*connect_go.Response[v1beta1.GetGroupResponse], error)
-	UpdateGroup(context.Context, *connect_go.Request[v1beta1.UpdateGroupRequest]) (*connect_go.Response[v1beta1.UpdateGroupResponse], error)
-	ListGroupUsers(context.Context, *connect_go.Request[v1beta1.ListGroupUsersRequest]) (*connect_go.Response[v1beta1.ListGroupUsersResponse], error)
-	AddGroupUsers(context.Context, *connect_go.Request[v1beta1.AddGroupUsersRequest]) (*connect_go.Response[v1beta1.AddGroupUsersResponse], error)
-	RemoveGroupUser(context.Context, *connect_go.Request[v1beta1.RemoveGroupUserRequest]) (*connect_go.Response[v1beta1.RemoveGroupUserResponse], error)
-	EnableGroup(context.Context, *connect_go.Request[v1beta1.EnableGroupRequest]) (*connect_go.Response[v1beta1.EnableGroupResponse], error)
-	DisableGroup(context.Context, *connect_go.Request[v1beta1.DisableGroupRequest]) (*connect_go.Response[v1beta1.DisableGroupResponse], error)
-	DeleteGroup(context.Context, *connect_go.Request[v1beta1.DeleteGroupRequest]) (*connect_go.Response[v1beta1.DeleteGroupResponse], error)
+	ListOrganizationGroups(context.Context, *connect.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect.Response[v1beta1.ListOrganizationGroupsResponse], error)
+	CreateGroup(context.Context, *connect.Request[v1beta1.CreateGroupRequest]) (*connect.Response[v1beta1.CreateGroupResponse], error)
+	GetGroup(context.Context, *connect.Request[v1beta1.GetGroupRequest]) (*connect.Response[v1beta1.GetGroupResponse], error)
+	UpdateGroup(context.Context, *connect.Request[v1beta1.UpdateGroupRequest]) (*connect.Response[v1beta1.UpdateGroupResponse], error)
+	ListGroupUsers(context.Context, *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error)
+	AddGroupUsers(context.Context, *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error)
+	RemoveGroupUser(context.Context, *connect.Request[v1beta1.RemoveGroupUserRequest]) (*connect.Response[v1beta1.RemoveGroupUserResponse], error)
+	EnableGroup(context.Context, *connect.Request[v1beta1.EnableGroupRequest]) (*connect.Response[v1beta1.EnableGroupResponse], error)
+	DisableGroup(context.Context, *connect.Request[v1beta1.DisableGroupRequest]) (*connect.Response[v1beta1.DisableGroupResponse], error)
+	DeleteGroup(context.Context, *connect.Request[v1beta1.DeleteGroupRequest]) (*connect.Response[v1beta1.DeleteGroupResponse], error)
 	// Roles
-	ListRoles(context.Context, *connect_go.Request[v1beta1.ListRolesRequest]) (*connect_go.Response[v1beta1.ListRolesResponse], error)
-	ListOrganizationRoles(context.Context, *connect_go.Request[v1beta1.ListOrganizationRolesRequest]) (*connect_go.Response[v1beta1.ListOrganizationRolesResponse], error)
-	CreateOrganizationRole(context.Context, *connect_go.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.CreateOrganizationRoleResponse], error)
-	GetOrganizationRole(context.Context, *connect_go.Request[v1beta1.GetOrganizationRoleRequest]) (*connect_go.Response[v1beta1.GetOrganizationRoleResponse], error)
-	UpdateOrganizationRole(context.Context, *connect_go.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationRoleResponse], error)
-	DeleteOrganizationRole(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationRoleResponse], error)
+	ListRoles(context.Context, *connect.Request[v1beta1.ListRolesRequest]) (*connect.Response[v1beta1.ListRolesResponse], error)
+	ListOrganizationRoles(context.Context, *connect.Request[v1beta1.ListOrganizationRolesRequest]) (*connect.Response[v1beta1.ListOrganizationRolesResponse], error)
+	CreateOrganizationRole(context.Context, *connect.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect.Response[v1beta1.CreateOrganizationRoleResponse], error)
+	GetOrganizationRole(context.Context, *connect.Request[v1beta1.GetOrganizationRoleRequest]) (*connect.Response[v1beta1.GetOrganizationRoleResponse], error)
+	UpdateOrganizationRole(context.Context, *connect.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect.Response[v1beta1.UpdateOrganizationRoleResponse], error)
+	DeleteOrganizationRole(context.Context, *connect.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect.Response[v1beta1.DeleteOrganizationRoleResponse], error)
 	// Organizations
-	ListOrganizations(context.Context, *connect_go.Request[v1beta1.ListOrganizationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationsResponse], error)
-	CreateOrganization(context.Context, *connect_go.Request[v1beta1.CreateOrganizationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationResponse], error)
-	GetOrganization(context.Context, *connect_go.Request[v1beta1.GetOrganizationRequest]) (*connect_go.Response[v1beta1.GetOrganizationResponse], error)
-	UpdateOrganization(context.Context, *connect_go.Request[v1beta1.UpdateOrganizationRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationResponse], error)
-	ListOrganizationProjects(context.Context, *connect_go.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.ListOrganizationProjectsResponse], error)
-	ListOrganizationAdmins(context.Context, *connect_go.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAdminsResponse], error)
-	ListOrganizationUsers(context.Context, *connect_go.Request[v1beta1.ListOrganizationUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationUsersResponse], error)
-	AddOrganizationUsers(context.Context, *connect_go.Request[v1beta1.AddOrganizationUsersRequest]) (*connect_go.Response[v1beta1.AddOrganizationUsersResponse], error)
-	RemoveOrganizationUser(context.Context, *connect_go.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect_go.Response[v1beta1.RemoveOrganizationUserResponse], error)
-	GetOrganizationKyc(context.Context, *connect_go.Request[v1beta1.GetOrganizationKycRequest]) (*connect_go.Response[v1beta1.GetOrganizationKycResponse], error)
+	ListOrganizations(context.Context, *connect.Request[v1beta1.ListOrganizationsRequest]) (*connect.Response[v1beta1.ListOrganizationsResponse], error)
+	CreateOrganization(context.Context, *connect.Request[v1beta1.CreateOrganizationRequest]) (*connect.Response[v1beta1.CreateOrganizationResponse], error)
+	GetOrganization(context.Context, *connect.Request[v1beta1.GetOrganizationRequest]) (*connect.Response[v1beta1.GetOrganizationResponse], error)
+	UpdateOrganization(context.Context, *connect.Request[v1beta1.UpdateOrganizationRequest]) (*connect.Response[v1beta1.UpdateOrganizationResponse], error)
+	ListOrganizationProjects(context.Context, *connect.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect.Response[v1beta1.ListOrganizationProjectsResponse], error)
+	ListOrganizationAdmins(context.Context, *connect.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect.Response[v1beta1.ListOrganizationAdminsResponse], error)
+	ListOrganizationUsers(context.Context, *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error)
+	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
+	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
+	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
-	ListOrganizationServiceUsers(context.Context, *connect_go.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
-	ListOrganizationInvitations(context.Context, *connect_go.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationInvitationsResponse], error)
-	CreateOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationInvitationResponse], error)
-	GetOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.GetOrganizationInvitationResponse], error)
-	AcceptOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.AcceptOrganizationInvitationResponse], error)
-	DeleteOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationInvitationResponse], error)
-	ListOrganizationDomains(context.Context, *connect_go.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect_go.Response[v1beta1.ListOrganizationDomainsResponse], error)
-	CreateOrganizationDomain(context.Context, *connect_go.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect_go.Response[v1beta1.CreateOrganizationDomainResponse], error)
-	DeleteOrganizationDomain(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationDomainResponse], error)
-	GetOrganizationDomain(context.Context, *connect_go.Request[v1beta1.GetOrganizationDomainRequest]) (*connect_go.Response[v1beta1.GetOrganizationDomainResponse], error)
-	VerifyOrganizationDomain(context.Context, *connect_go.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect_go.Response[v1beta1.VerifyOrganizationDomainResponse], error)
-	JoinOrganization(context.Context, *connect_go.Request[v1beta1.JoinOrganizationRequest]) (*connect_go.Response[v1beta1.JoinOrganizationResponse], error)
-	EnableOrganization(context.Context, *connect_go.Request[v1beta1.EnableOrganizationRequest]) (*connect_go.Response[v1beta1.EnableOrganizationResponse], error)
-	DisableOrganization(context.Context, *connect_go.Request[v1beta1.DisableOrganizationRequest]) (*connect_go.Response[v1beta1.DisableOrganizationResponse], error)
-	DeleteOrganization(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationResponse], error)
+	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
+	ListOrganizationInvitations(context.Context, *connect.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect.Response[v1beta1.ListOrganizationInvitationsResponse], error)
+	CreateOrganizationInvitation(context.Context, *connect.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect.Response[v1beta1.CreateOrganizationInvitationResponse], error)
+	GetOrganizationInvitation(context.Context, *connect.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect.Response[v1beta1.GetOrganizationInvitationResponse], error)
+	AcceptOrganizationInvitation(context.Context, *connect.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect.Response[v1beta1.AcceptOrganizationInvitationResponse], error)
+	DeleteOrganizationInvitation(context.Context, *connect.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect.Response[v1beta1.DeleteOrganizationInvitationResponse], error)
+	ListOrganizationDomains(context.Context, *connect.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect.Response[v1beta1.ListOrganizationDomainsResponse], error)
+	CreateOrganizationDomain(context.Context, *connect.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect.Response[v1beta1.CreateOrganizationDomainResponse], error)
+	DeleteOrganizationDomain(context.Context, *connect.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect.Response[v1beta1.DeleteOrganizationDomainResponse], error)
+	GetOrganizationDomain(context.Context, *connect.Request[v1beta1.GetOrganizationDomainRequest]) (*connect.Response[v1beta1.GetOrganizationDomainResponse], error)
+	VerifyOrganizationDomain(context.Context, *connect.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect.Response[v1beta1.VerifyOrganizationDomainResponse], error)
+	JoinOrganization(context.Context, *connect.Request[v1beta1.JoinOrganizationRequest]) (*connect.Response[v1beta1.JoinOrganizationResponse], error)
+	EnableOrganization(context.Context, *connect.Request[v1beta1.EnableOrganizationRequest]) (*connect.Response[v1beta1.EnableOrganizationResponse], error)
+	DisableOrganization(context.Context, *connect.Request[v1beta1.DisableOrganizationRequest]) (*connect.Response[v1beta1.DisableOrganizationResponse], error)
+	DeleteOrganization(context.Context, *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error)
 	// Projects
-	CreateProject(context.Context, *connect_go.Request[v1beta1.CreateProjectRequest]) (*connect_go.Response[v1beta1.CreateProjectResponse], error)
-	GetProject(context.Context, *connect_go.Request[v1beta1.GetProjectRequest]) (*connect_go.Response[v1beta1.GetProjectResponse], error)
-	UpdateProject(context.Context, *connect_go.Request[v1beta1.UpdateProjectRequest]) (*connect_go.Response[v1beta1.UpdateProjectResponse], error)
-	ListProjectAdmins(context.Context, *connect_go.Request[v1beta1.ListProjectAdminsRequest]) (*connect_go.Response[v1beta1.ListProjectAdminsResponse], error)
-	ListProjectUsers(context.Context, *connect_go.Request[v1beta1.ListProjectUsersRequest]) (*connect_go.Response[v1beta1.ListProjectUsersResponse], error)
-	ListProjectServiceUsers(context.Context, *connect_go.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect_go.Response[v1beta1.ListProjectServiceUsersResponse], error)
-	ListProjectGroups(context.Context, *connect_go.Request[v1beta1.ListProjectGroupsRequest]) (*connect_go.Response[v1beta1.ListProjectGroupsResponse], error)
-	EnableProject(context.Context, *connect_go.Request[v1beta1.EnableProjectRequest]) (*connect_go.Response[v1beta1.EnableProjectResponse], error)
-	DisableProject(context.Context, *connect_go.Request[v1beta1.DisableProjectRequest]) (*connect_go.Response[v1beta1.DisableProjectResponse], error)
-	DeleteProject(context.Context, *connect_go.Request[v1beta1.DeleteProjectRequest]) (*connect_go.Response[v1beta1.DeleteProjectResponse], error)
+	CreateProject(context.Context, *connect.Request[v1beta1.CreateProjectRequest]) (*connect.Response[v1beta1.CreateProjectResponse], error)
+	GetProject(context.Context, *connect.Request[v1beta1.GetProjectRequest]) (*connect.Response[v1beta1.GetProjectResponse], error)
+	UpdateProject(context.Context, *connect.Request[v1beta1.UpdateProjectRequest]) (*connect.Response[v1beta1.UpdateProjectResponse], error)
+	ListProjectAdmins(context.Context, *connect.Request[v1beta1.ListProjectAdminsRequest]) (*connect.Response[v1beta1.ListProjectAdminsResponse], error)
+	ListProjectUsers(context.Context, *connect.Request[v1beta1.ListProjectUsersRequest]) (*connect.Response[v1beta1.ListProjectUsersResponse], error)
+	ListProjectServiceUsers(context.Context, *connect.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect.Response[v1beta1.ListProjectServiceUsersResponse], error)
+	ListProjectGroups(context.Context, *connect.Request[v1beta1.ListProjectGroupsRequest]) (*connect.Response[v1beta1.ListProjectGroupsResponse], error)
+	EnableProject(context.Context, *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error)
+	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
+	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
 	// Policies
-	CreatePolicy(context.Context, *connect_go.Request[v1beta1.CreatePolicyRequest]) (*connect_go.Response[v1beta1.CreatePolicyResponse], error)
-	GetPolicy(context.Context, *connect_go.Request[v1beta1.GetPolicyRequest]) (*connect_go.Response[v1beta1.GetPolicyResponse], error)
-	ListPolicies(context.Context, *connect_go.Request[v1beta1.ListPoliciesRequest]) (*connect_go.Response[v1beta1.ListPoliciesResponse], error)
-	UpdatePolicy(context.Context, *connect_go.Request[v1beta1.UpdatePolicyRequest]) (*connect_go.Response[v1beta1.UpdatePolicyResponse], error)
-	DeletePolicy(context.Context, *connect_go.Request[v1beta1.DeletePolicyRequest]) (*connect_go.Response[v1beta1.DeletePolicyResponse], error)
-	CreatePolicyForProject(context.Context, *connect_go.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect_go.Response[v1beta1.CreatePolicyForProjectResponse], error)
+	CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error)
+	GetPolicy(context.Context, *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error)
+	ListPolicies(context.Context, *connect.Request[v1beta1.ListPoliciesRequest]) (*connect.Response[v1beta1.ListPoliciesResponse], error)
+	UpdatePolicy(context.Context, *connect.Request[v1beta1.UpdatePolicyRequest]) (*connect.Response[v1beta1.UpdatePolicyResponse], error)
+	DeletePolicy(context.Context, *connect.Request[v1beta1.DeletePolicyRequest]) (*connect.Response[v1beta1.DeletePolicyResponse], error)
+	CreatePolicyForProject(context.Context, *connect.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect.Response[v1beta1.CreatePolicyForProjectResponse], error)
 	// Relations
-	CreateRelation(context.Context, *connect_go.Request[v1beta1.CreateRelationRequest]) (*connect_go.Response[v1beta1.CreateRelationResponse], error)
-	GetRelation(context.Context, *connect_go.Request[v1beta1.GetRelationRequest]) (*connect_go.Response[v1beta1.GetRelationResponse], error)
-	DeleteRelation(context.Context, *connect_go.Request[v1beta1.DeleteRelationRequest]) (*connect_go.Response[v1beta1.DeleteRelationResponse], error)
+	CreateRelation(context.Context, *connect.Request[v1beta1.CreateRelationRequest]) (*connect.Response[v1beta1.CreateRelationResponse], error)
+	GetRelation(context.Context, *connect.Request[v1beta1.GetRelationRequest]) (*connect.Response[v1beta1.GetRelationResponse], error)
+	DeleteRelation(context.Context, *connect.Request[v1beta1.DeleteRelationRequest]) (*connect.Response[v1beta1.DeleteRelationResponse], error)
 	// Permissions
-	ListPermissions(context.Context, *connect_go.Request[v1beta1.ListPermissionsRequest]) (*connect_go.Response[v1beta1.ListPermissionsResponse], error)
-	GetPermission(context.Context, *connect_go.Request[v1beta1.GetPermissionRequest]) (*connect_go.Response[v1beta1.GetPermissionResponse], error)
+	ListPermissions(context.Context, *connect.Request[v1beta1.ListPermissionsRequest]) (*connect.Response[v1beta1.ListPermissionsResponse], error)
+	GetPermission(context.Context, *connect.Request[v1beta1.GetPermissionRequest]) (*connect.Response[v1beta1.GetPermissionResponse], error)
 	// Namespaces
-	ListNamespaces(context.Context, *connect_go.Request[v1beta1.ListNamespacesRequest]) (*connect_go.Response[v1beta1.ListNamespacesResponse], error)
-	GetNamespace(context.Context, *connect_go.Request[v1beta1.GetNamespaceRequest]) (*connect_go.Response[v1beta1.GetNamespaceResponse], error)
+	ListNamespaces(context.Context, *connect.Request[v1beta1.ListNamespacesRequest]) (*connect.Response[v1beta1.ListNamespacesResponse], error)
+	GetNamespace(context.Context, *connect.Request[v1beta1.GetNamespaceRequest]) (*connect.Response[v1beta1.GetNamespaceResponse], error)
 	// Resources
-	ListProjectResources(context.Context, *connect_go.Request[v1beta1.ListProjectResourcesRequest]) (*connect_go.Response[v1beta1.ListProjectResourcesResponse], error)
-	CreateProjectResource(context.Context, *connect_go.Request[v1beta1.CreateProjectResourceRequest]) (*connect_go.Response[v1beta1.CreateProjectResourceResponse], error)
-	GetProjectResource(context.Context, *connect_go.Request[v1beta1.GetProjectResourceRequest]) (*connect_go.Response[v1beta1.GetProjectResourceResponse], error)
-	UpdateProjectResource(context.Context, *connect_go.Request[v1beta1.UpdateProjectResourceRequest]) (*connect_go.Response[v1beta1.UpdateProjectResourceResponse], error)
-	DeleteProjectResource(context.Context, *connect_go.Request[v1beta1.DeleteProjectResourceRequest]) (*connect_go.Response[v1beta1.DeleteProjectResourceResponse], error)
+	ListProjectResources(context.Context, *connect.Request[v1beta1.ListProjectResourcesRequest]) (*connect.Response[v1beta1.ListProjectResourcesResponse], error)
+	CreateProjectResource(context.Context, *connect.Request[v1beta1.CreateProjectResourceRequest]) (*connect.Response[v1beta1.CreateProjectResourceResponse], error)
+	GetProjectResource(context.Context, *connect.Request[v1beta1.GetProjectResourceRequest]) (*connect.Response[v1beta1.GetProjectResourceResponse], error)
+	UpdateProjectResource(context.Context, *connect.Request[v1beta1.UpdateProjectResourceRequest]) (*connect.Response[v1beta1.UpdateProjectResourceResponse], error)
+	DeleteProjectResource(context.Context, *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error)
 	// Authz
-	CheckResourcePermission(context.Context, *connect_go.Request[v1beta1.CheckResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckResourcePermissionResponse], error)
-	BatchCheckPermission(context.Context, *connect_go.Request[v1beta1.BatchCheckPermissionRequest]) (*connect_go.Response[v1beta1.BatchCheckPermissionResponse], error)
+	CheckResourcePermission(context.Context, *connect.Request[v1beta1.CheckResourcePermissionRequest]) (*connect.Response[v1beta1.CheckResourcePermissionResponse], error)
+	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
 	// Authn
-	GetJWKs(context.Context, *connect_go.Request[v1beta1.GetJWKsRequest]) (*connect_go.Response[v1beta1.GetJWKsResponse], error)
-	ListAuthStrategies(context.Context, *connect_go.Request[v1beta1.ListAuthStrategiesRequest]) (*connect_go.Response[v1beta1.ListAuthStrategiesResponse], error)
-	Authenticate(context.Context, *connect_go.Request[v1beta1.AuthenticateRequest]) (*connect_go.Response[v1beta1.AuthenticateResponse], error)
-	AuthCallback(context.Context, *connect_go.Request[v1beta1.AuthCallbackRequest]) (*connect_go.Response[v1beta1.AuthCallbackResponse], error)
-	AuthToken(context.Context, *connect_go.Request[v1beta1.AuthTokenRequest]) (*connect_go.Response[v1beta1.AuthTokenResponse], error)
-	AuthLogout(context.Context, *connect_go.Request[v1beta1.AuthLogoutRequest]) (*connect_go.Response[v1beta1.AuthLogoutResponse], error)
+	GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error)
+	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
+	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
+	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
+	AuthToken(context.Context, *connect.Request[v1beta1.AuthTokenRequest]) (*connect.Response[v1beta1.AuthTokenResponse], error)
+	AuthLogout(context.Context, *connect.Request[v1beta1.AuthLogoutRequest]) (*connect.Response[v1beta1.AuthLogoutResponse], error)
 	// MetaSchemas
-	ListMetaSchemas(context.Context, *connect_go.Request[v1beta1.ListMetaSchemasRequest]) (*connect_go.Response[v1beta1.ListMetaSchemasResponse], error)
-	CreateMetaSchema(context.Context, *connect_go.Request[v1beta1.CreateMetaSchemaRequest]) (*connect_go.Response[v1beta1.CreateMetaSchemaResponse], error)
-	GetMetaSchema(context.Context, *connect_go.Request[v1beta1.GetMetaSchemaRequest]) (*connect_go.Response[v1beta1.GetMetaSchemaResponse], error)
-	UpdateMetaSchema(context.Context, *connect_go.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect_go.Response[v1beta1.UpdateMetaSchemaResponse], error)
-	DeleteMetaSchema(context.Context, *connect_go.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect_go.Response[v1beta1.DeleteMetaSchemaResponse], error)
+	ListMetaSchemas(context.Context, *connect.Request[v1beta1.ListMetaSchemasRequest]) (*connect.Response[v1beta1.ListMetaSchemasResponse], error)
+	CreateMetaSchema(context.Context, *connect.Request[v1beta1.CreateMetaSchemaRequest]) (*connect.Response[v1beta1.CreateMetaSchemaResponse], error)
+	GetMetaSchema(context.Context, *connect.Request[v1beta1.GetMetaSchemaRequest]) (*connect.Response[v1beta1.GetMetaSchemaResponse], error)
+	UpdateMetaSchema(context.Context, *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error)
+	DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error)
 	// Audit logs
-	ListOrganizationAuditLogs(context.Context, *connect_go.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
-	CreateOrganizationAuditLogs(context.Context, *connect_go.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
-	GetOrganizationAuditLog(context.Context, *connect_go.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect_go.Response[v1beta1.GetOrganizationAuditLogResponse], error)
+	ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
+	CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
+	GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error)
 	// DescribePreferences list down all the supported preferences of entities
-	DescribePreferences(context.Context, *connect_go.Request[v1beta1.DescribePreferencesRequest]) (*connect_go.Response[v1beta1.DescribePreferencesResponse], error)
-	CreateOrganizationPreferences(context.Context, *connect_go.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.CreateOrganizationPreferencesResponse], error)
-	ListOrganizationPreferences(context.Context, *connect_go.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.ListOrganizationPreferencesResponse], error)
-	CreateProjectPreferences(context.Context, *connect_go.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect_go.Response[v1beta1.CreateProjectPreferencesResponse], error)
-	ListProjectPreferences(context.Context, *connect_go.Request[v1beta1.ListProjectPreferencesRequest]) (*connect_go.Response[v1beta1.ListProjectPreferencesResponse], error)
-	CreateGroupPreferences(context.Context, *connect_go.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect_go.Response[v1beta1.CreateGroupPreferencesResponse], error)
-	ListGroupPreferences(context.Context, *connect_go.Request[v1beta1.ListGroupPreferencesRequest]) (*connect_go.Response[v1beta1.ListGroupPreferencesResponse], error)
-	CreateUserPreferences(context.Context, *connect_go.Request[v1beta1.CreateUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateUserPreferencesResponse], error)
-	ListUserPreferences(context.Context, *connect_go.Request[v1beta1.ListUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListUserPreferencesResponse], error)
-	CreateCurrentUserPreferences(context.Context, *connect_go.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateCurrentUserPreferencesResponse], error)
-	ListCurrentUserPreferences(context.Context, *connect_go.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListCurrentUserPreferencesResponse], error)
+	DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error)
+	CreateOrganizationPreferences(context.Context, *connect.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect.Response[v1beta1.CreateOrganizationPreferencesResponse], error)
+	ListOrganizationPreferences(context.Context, *connect.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect.Response[v1beta1.ListOrganizationPreferencesResponse], error)
+	CreateProjectPreferences(context.Context, *connect.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect.Response[v1beta1.CreateProjectPreferencesResponse], error)
+	ListProjectPreferences(context.Context, *connect.Request[v1beta1.ListProjectPreferencesRequest]) (*connect.Response[v1beta1.ListProjectPreferencesResponse], error)
+	CreateGroupPreferences(context.Context, *connect.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect.Response[v1beta1.CreateGroupPreferencesResponse], error)
+	ListGroupPreferences(context.Context, *connect.Request[v1beta1.ListGroupPreferencesRequest]) (*connect.Response[v1beta1.ListGroupPreferencesResponse], error)
+	CreateUserPreferences(context.Context, *connect.Request[v1beta1.CreateUserPreferencesRequest]) (*connect.Response[v1beta1.CreateUserPreferencesResponse], error)
+	ListUserPreferences(context.Context, *connect.Request[v1beta1.ListUserPreferencesRequest]) (*connect.Response[v1beta1.ListUserPreferencesResponse], error)
+	CreateCurrentUserPreferences(context.Context, *connect.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.CreateCurrentUserPreferencesResponse], error)
+	ListCurrentUserPreferences(context.Context, *connect.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.ListCurrentUserPreferencesResponse], error)
 	// Billing account
-	CreateBillingAccount(context.Context, *connect_go.Request[v1beta1.CreateBillingAccountRequest]) (*connect_go.Response[v1beta1.CreateBillingAccountResponse], error)
-	GetBillingAccount(context.Context, *connect_go.Request[v1beta1.GetBillingAccountRequest]) (*connect_go.Response[v1beta1.GetBillingAccountResponse], error)
-	UpdateBillingAccount(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountResponse], error)
-	RegisterBillingAccount(context.Context, *connect_go.Request[v1beta1.RegisterBillingAccountRequest]) (*connect_go.Response[v1beta1.RegisterBillingAccountResponse], error)
-	ListBillingAccounts(context.Context, *connect_go.Request[v1beta1.ListBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListBillingAccountsResponse], error)
-	DeleteBillingAccount(context.Context, *connect_go.Request[v1beta1.DeleteBillingAccountRequest]) (*connect_go.Response[v1beta1.DeleteBillingAccountResponse], error)
-	EnableBillingAccount(context.Context, *connect_go.Request[v1beta1.EnableBillingAccountRequest]) (*connect_go.Response[v1beta1.EnableBillingAccountResponse], error)
-	DisableBillingAccount(context.Context, *connect_go.Request[v1beta1.DisableBillingAccountRequest]) (*connect_go.Response[v1beta1.DisableBillingAccountResponse], error)
-	GetBillingBalance(context.Context, *connect_go.Request[v1beta1.GetBillingBalanceRequest]) (*connect_go.Response[v1beta1.GetBillingBalanceResponse], error)
-	HasTrialed(context.Context, *connect_go.Request[v1beta1.HasTrialedRequest]) (*connect_go.Response[v1beta1.HasTrialedResponse], error)
+	CreateBillingAccount(context.Context, *connect.Request[v1beta1.CreateBillingAccountRequest]) (*connect.Response[v1beta1.CreateBillingAccountResponse], error)
+	GetBillingAccount(context.Context, *connect.Request[v1beta1.GetBillingAccountRequest]) (*connect.Response[v1beta1.GetBillingAccountResponse], error)
+	UpdateBillingAccount(context.Context, *connect.Request[v1beta1.UpdateBillingAccountRequest]) (*connect.Response[v1beta1.UpdateBillingAccountResponse], error)
+	RegisterBillingAccount(context.Context, *connect.Request[v1beta1.RegisterBillingAccountRequest]) (*connect.Response[v1beta1.RegisterBillingAccountResponse], error)
+	ListBillingAccounts(context.Context, *connect.Request[v1beta1.ListBillingAccountsRequest]) (*connect.Response[v1beta1.ListBillingAccountsResponse], error)
+	DeleteBillingAccount(context.Context, *connect.Request[v1beta1.DeleteBillingAccountRequest]) (*connect.Response[v1beta1.DeleteBillingAccountResponse], error)
+	EnableBillingAccount(context.Context, *connect.Request[v1beta1.EnableBillingAccountRequest]) (*connect.Response[v1beta1.EnableBillingAccountResponse], error)
+	DisableBillingAccount(context.Context, *connect.Request[v1beta1.DisableBillingAccountRequest]) (*connect.Response[v1beta1.DisableBillingAccountResponse], error)
+	GetBillingBalance(context.Context, *connect.Request[v1beta1.GetBillingBalanceRequest]) (*connect.Response[v1beta1.GetBillingBalanceResponse], error)
+	HasTrialed(context.Context, *connect.Request[v1beta1.HasTrialedRequest]) (*connect.Response[v1beta1.HasTrialedResponse], error)
 	// Subscriptions
-	GetSubscription(context.Context, *connect_go.Request[v1beta1.GetSubscriptionRequest]) (*connect_go.Response[v1beta1.GetSubscriptionResponse], error)
-	CancelSubscription(context.Context, *connect_go.Request[v1beta1.CancelSubscriptionRequest]) (*connect_go.Response[v1beta1.CancelSubscriptionResponse], error)
-	ListSubscriptions(context.Context, *connect_go.Request[v1beta1.ListSubscriptionsRequest]) (*connect_go.Response[v1beta1.ListSubscriptionsResponse], error)
-	ChangeSubscription(context.Context, *connect_go.Request[v1beta1.ChangeSubscriptionRequest]) (*connect_go.Response[v1beta1.ChangeSubscriptionResponse], error)
-	UpdateSubscription(context.Context, *connect_go.Request[v1beta1.UpdateSubscriptionRequest]) (*connect_go.Response[v1beta1.UpdateSubscriptionResponse], error)
+	GetSubscription(context.Context, *connect.Request[v1beta1.GetSubscriptionRequest]) (*connect.Response[v1beta1.GetSubscriptionResponse], error)
+	CancelSubscription(context.Context, *connect.Request[v1beta1.CancelSubscriptionRequest]) (*connect.Response[v1beta1.CancelSubscriptionResponse], error)
+	ListSubscriptions(context.Context, *connect.Request[v1beta1.ListSubscriptionsRequest]) (*connect.Response[v1beta1.ListSubscriptionsResponse], error)
+	ChangeSubscription(context.Context, *connect.Request[v1beta1.ChangeSubscriptionRequest]) (*connect.Response[v1beta1.ChangeSubscriptionResponse], error)
+	UpdateSubscription(context.Context, *connect.Request[v1beta1.UpdateSubscriptionRequest]) (*connect.Response[v1beta1.UpdateSubscriptionResponse], error)
 	// Billing Product
-	CreateProduct(context.Context, *connect_go.Request[v1beta1.CreateProductRequest]) (*connect_go.Response[v1beta1.CreateProductResponse], error)
-	GetProduct(context.Context, *connect_go.Request[v1beta1.GetProductRequest]) (*connect_go.Response[v1beta1.GetProductResponse], error)
-	ListProducts(context.Context, *connect_go.Request[v1beta1.ListProductsRequest]) (*connect_go.Response[v1beta1.ListProductsResponse], error)
-	UpdateProduct(context.Context, *connect_go.Request[v1beta1.UpdateProductRequest]) (*connect_go.Response[v1beta1.UpdateProductResponse], error)
-	CreateFeature(context.Context, *connect_go.Request[v1beta1.CreateFeatureRequest]) (*connect_go.Response[v1beta1.CreateFeatureResponse], error)
-	GetFeature(context.Context, *connect_go.Request[v1beta1.GetFeatureRequest]) (*connect_go.Response[v1beta1.GetFeatureResponse], error)
-	UpdateFeature(context.Context, *connect_go.Request[v1beta1.UpdateFeatureRequest]) (*connect_go.Response[v1beta1.UpdateFeatureResponse], error)
-	ListFeatures(context.Context, *connect_go.Request[v1beta1.ListFeaturesRequest]) (*connect_go.Response[v1beta1.ListFeaturesResponse], error)
+	CreateProduct(context.Context, *connect.Request[v1beta1.CreateProductRequest]) (*connect.Response[v1beta1.CreateProductResponse], error)
+	GetProduct(context.Context, *connect.Request[v1beta1.GetProductRequest]) (*connect.Response[v1beta1.GetProductResponse], error)
+	ListProducts(context.Context, *connect.Request[v1beta1.ListProductsRequest]) (*connect.Response[v1beta1.ListProductsResponse], error)
+	UpdateProduct(context.Context, *connect.Request[v1beta1.UpdateProductRequest]) (*connect.Response[v1beta1.UpdateProductResponse], error)
+	CreateFeature(context.Context, *connect.Request[v1beta1.CreateFeatureRequest]) (*connect.Response[v1beta1.CreateFeatureResponse], error)
+	GetFeature(context.Context, *connect.Request[v1beta1.GetFeatureRequest]) (*connect.Response[v1beta1.GetFeatureResponse], error)
+	UpdateFeature(context.Context, *connect.Request[v1beta1.UpdateFeatureRequest]) (*connect.Response[v1beta1.UpdateFeatureResponse], error)
+	ListFeatures(context.Context, *connect.Request[v1beta1.ListFeaturesRequest]) (*connect.Response[v1beta1.ListFeaturesResponse], error)
 	// Plans
-	CreatePlan(context.Context, *connect_go.Request[v1beta1.CreatePlanRequest]) (*connect_go.Response[v1beta1.CreatePlanResponse], error)
-	ListPlans(context.Context, *connect_go.Request[v1beta1.ListPlansRequest]) (*connect_go.Response[v1beta1.ListPlansResponse], error)
-	GetPlan(context.Context, *connect_go.Request[v1beta1.GetPlanRequest]) (*connect_go.Response[v1beta1.GetPlanResponse], error)
-	UpdatePlan(context.Context, *connect_go.Request[v1beta1.UpdatePlanRequest]) (*connect_go.Response[v1beta1.UpdatePlanResponse], error)
+	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
+	ListPlans(context.Context, *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error)
+	GetPlan(context.Context, *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error)
+	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
 	// Checkout
-	CreateCheckout(context.Context, *connect_go.Request[v1beta1.CreateCheckoutRequest]) (*connect_go.Response[v1beta1.CreateCheckoutResponse], error)
-	ListCheckouts(context.Context, *connect_go.Request[v1beta1.ListCheckoutsRequest]) (*connect_go.Response[v1beta1.ListCheckoutsResponse], error)
-	GetCheckout(context.Context, *connect_go.Request[v1beta1.GetCheckoutRequest]) (*connect_go.Response[v1beta1.GetCheckoutResponse], error)
+	CreateCheckout(context.Context, *connect.Request[v1beta1.CreateCheckoutRequest]) (*connect.Response[v1beta1.CreateCheckoutResponse], error)
+	ListCheckouts(context.Context, *connect.Request[v1beta1.ListCheckoutsRequest]) (*connect.Response[v1beta1.ListCheckoutsResponse], error)
+	GetCheckout(context.Context, *connect.Request[v1beta1.GetCheckoutRequest]) (*connect.Response[v1beta1.GetCheckoutResponse], error)
 	// Billing Entitlements
-	CheckFeatureEntitlement(context.Context, *connect_go.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect_go.Response[v1beta1.CheckFeatureEntitlementResponse], error)
+	CheckFeatureEntitlement(context.Context, *connect.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[v1beta1.CheckFeatureEntitlementResponse], error)
 	// Transactions
-	CreateBillingUsage(context.Context, *connect_go.Request[v1beta1.CreateBillingUsageRequest]) (*connect_go.Response[v1beta1.CreateBillingUsageResponse], error)
-	ListBillingTransactions(context.Context, *connect_go.Request[v1beta1.ListBillingTransactionsRequest]) (*connect_go.Response[v1beta1.ListBillingTransactionsResponse], error)
-	TotalDebitedTransactions(context.Context, *connect_go.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect_go.Response[v1beta1.TotalDebitedTransactionsResponse], error)
+	CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error)
+	ListBillingTransactions(context.Context, *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error)
+	TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error)
 	// Invoice
-	ListInvoices(context.Context, *connect_go.Request[v1beta1.ListInvoicesRequest]) (*connect_go.Response[v1beta1.ListInvoicesResponse], error)
-	GetUpcomingInvoice(context.Context, *connect_go.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect_go.Response[v1beta1.GetUpcomingInvoiceResponse], error)
+	ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error)
+	GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error)
 	// Incoming Webhooks
-	BillingWebhookCallback(context.Context, *connect_go.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect_go.Response[v1beta1.BillingWebhookCallbackResponse], error)
+	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
 	// Prospects
-	CreateProspectPublic(context.Context, *connect_go.Request[v1beta1.CreateProspectPublicRequest]) (*connect_go.Response[v1beta1.CreateProspectPublicResponse], error)
+	CreateProspectPublic(context.Context, *connect.Request[v1beta1.CreateProspectPublicRequest]) (*connect.Response[v1beta1.CreateProspectPublicResponse], error)
 }
 
 // NewFrontierServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -2797,836 +2964,1003 @@ type FrontierServiceHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	frontierServiceListUsersHandler := connect_go.NewUnaryHandler(
+func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	frontierServiceMethods := v1beta1.File_raystack_frontier_v1beta1_frontier_proto.Services().ByName("FrontierService").Methods()
+	frontierServiceListUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceListUsersProcedure,
 		svc.ListUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateUserHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateUserProcedure,
 		svc.CreateUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetUserHandler := connect.NewUnaryHandler(
 		FrontierServiceGetUserProcedure,
 		svc.GetUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListUserGroupsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListUserGroupsHandler := connect.NewUnaryHandler(
 		FrontierServiceListUserGroupsProcedure,
 		svc.ListUserGroups,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListUserGroups")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListCurrentUserGroupsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListCurrentUserGroupsHandler := connect.NewUnaryHandler(
 		FrontierServiceListCurrentUserGroupsProcedure,
 		svc.ListCurrentUserGroups,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserGroups")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetCurrentUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetCurrentUserHandler := connect.NewUnaryHandler(
 		FrontierServiceGetCurrentUserProcedure,
 		svc.GetCurrentUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetCurrentUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateUserHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateUserProcedure,
 		svc.UpdateUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateCurrentUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateCurrentUserHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateCurrentUserProcedure,
 		svc.UpdateCurrentUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateCurrentUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceEnableUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceEnableUserHandler := connect.NewUnaryHandler(
 		FrontierServiceEnableUserProcedure,
 		svc.EnableUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("EnableUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDisableUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceDisableUserHandler := connect.NewUnaryHandler(
 		FrontierServiceDisableUserProcedure,
 		svc.DisableUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DisableUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteUserHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteUserProcedure,
 		svc.DeleteUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationsByUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationsByUserHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationsByUserProcedure,
 		svc.ListOrganizationsByUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationsByUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationsByCurrentUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationsByCurrentUserHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationsByCurrentUserProcedure,
 		svc.ListOrganizationsByCurrentUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationsByCurrentUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectsByUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectsByUserHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectsByUserProcedure,
 		svc.ListProjectsByUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectsByUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectsByCurrentUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectsByCurrentUserHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectsByCurrentUserProcedure,
 		svc.ListProjectsByCurrentUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectsByCurrentUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListUserInvitationsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListUserInvitationsHandler := connect.NewUnaryHandler(
 		FrontierServiceListUserInvitationsProcedure,
 		svc.ListUserInvitations,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListUserInvitations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListCurrentUserInvitationsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListCurrentUserInvitationsHandler := connect.NewUnaryHandler(
 		FrontierServiceListCurrentUserInvitationsProcedure,
 		svc.ListCurrentUserInvitations,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserInvitations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListServiceUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceListServiceUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceListServiceUsersProcedure,
 		svc.ListServiceUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListServiceUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateServiceUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateServiceUserHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateServiceUserProcedure,
 		svc.CreateServiceUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetServiceUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetServiceUserHandler := connect.NewUnaryHandler(
 		FrontierServiceGetServiceUserProcedure,
 		svc.GetServiceUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetServiceUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteServiceUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteServiceUserHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteServiceUserProcedure,
 		svc.DeleteServiceUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateServiceUserJWKHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateServiceUserJWKHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateServiceUserJWKProcedure,
 		svc.CreateServiceUserJWK,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUserJWK")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListServiceUserJWKsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListServiceUserJWKsHandler := connect.NewUnaryHandler(
 		FrontierServiceListServiceUserJWKsProcedure,
 		svc.ListServiceUserJWKs,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserJWKs")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetServiceUserJWKHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetServiceUserJWKHandler := connect.NewUnaryHandler(
 		FrontierServiceGetServiceUserJWKProcedure,
 		svc.GetServiceUserJWK,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetServiceUserJWK")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteServiceUserJWKHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteServiceUserJWKHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteServiceUserJWKProcedure,
 		svc.DeleteServiceUserJWK,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUserJWK")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateServiceUserCredentialHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateServiceUserCredentialHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateServiceUserCredentialProcedure,
 		svc.CreateServiceUserCredential,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUserCredential")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListServiceUserCredentialsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListServiceUserCredentialsHandler := connect.NewUnaryHandler(
 		FrontierServiceListServiceUserCredentialsProcedure,
 		svc.ListServiceUserCredentials,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserCredentials")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteServiceUserCredentialHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteServiceUserCredentialHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteServiceUserCredentialProcedure,
 		svc.DeleteServiceUserCredential,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUserCredential")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateServiceUserTokenHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateServiceUserTokenHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateServiceUserTokenProcedure,
 		svc.CreateServiceUserToken,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateServiceUserToken")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListServiceUserTokensHandler := connect_go.NewUnaryHandler(
+	frontierServiceListServiceUserTokensHandler := connect.NewUnaryHandler(
 		FrontierServiceListServiceUserTokensProcedure,
 		svc.ListServiceUserTokens,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserTokens")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteServiceUserTokenHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteServiceUserTokenHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteServiceUserTokenProcedure,
 		svc.DeleteServiceUserToken,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteServiceUserToken")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListServiceUserProjectsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListServiceUserProjectsHandler := connect.NewUnaryHandler(
 		FrontierServiceListServiceUserProjectsProcedure,
 		svc.ListServiceUserProjects,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListServiceUserProjects")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationGroupsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationGroupsHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationGroupsProcedure,
 		svc.ListOrganizationGroups,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationGroups")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateGroupHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateGroupHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateGroupProcedure,
 		svc.CreateGroup,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateGroup")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetGroupHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetGroupHandler := connect.NewUnaryHandler(
 		FrontierServiceGetGroupProcedure,
 		svc.GetGroup,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetGroup")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateGroupHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateGroupHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateGroupProcedure,
 		svc.UpdateGroup,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateGroup")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListGroupUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceListGroupUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceListGroupUsersProcedure,
 		svc.ListGroupUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListGroupUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAddGroupUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceAddGroupUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceAddGroupUsersProcedure,
 		svc.AddGroupUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("AddGroupUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceRemoveGroupUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceRemoveGroupUserHandler := connect.NewUnaryHandler(
 		FrontierServiceRemoveGroupUserProcedure,
 		svc.RemoveGroupUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("RemoveGroupUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceEnableGroupHandler := connect_go.NewUnaryHandler(
+	frontierServiceEnableGroupHandler := connect.NewUnaryHandler(
 		FrontierServiceEnableGroupProcedure,
 		svc.EnableGroup,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("EnableGroup")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDisableGroupHandler := connect_go.NewUnaryHandler(
+	frontierServiceDisableGroupHandler := connect.NewUnaryHandler(
 		FrontierServiceDisableGroupProcedure,
 		svc.DisableGroup,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DisableGroup")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteGroupHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteGroupHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteGroupProcedure,
 		svc.DeleteGroup,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteGroup")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListRolesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListRolesHandler := connect.NewUnaryHandler(
 		FrontierServiceListRolesProcedure,
 		svc.ListRoles,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListRoles")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationRolesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationRolesHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationRolesProcedure,
 		svc.ListOrganizationRoles,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationRoles")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateOrganizationRoleHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateOrganizationRoleHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateOrganizationRoleProcedure,
 		svc.CreateOrganizationRole,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationRole")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetOrganizationRoleHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetOrganizationRoleHandler := connect.NewUnaryHandler(
 		FrontierServiceGetOrganizationRoleProcedure,
 		svc.GetOrganizationRole,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationRole")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateOrganizationRoleHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateOrganizationRoleHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateOrganizationRoleProcedure,
 		svc.UpdateOrganizationRole,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateOrganizationRole")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteOrganizationRoleHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteOrganizationRoleHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteOrganizationRoleProcedure,
 		svc.DeleteOrganizationRole,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationRole")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationsHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationsProcedure,
 		svc.ListOrganizations,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateOrganizationHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateOrganizationHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateOrganizationProcedure,
 		svc.CreateOrganization,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetOrganizationHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetOrganizationHandler := connect.NewUnaryHandler(
 		FrontierServiceGetOrganizationProcedure,
 		svc.GetOrganization,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateOrganizationHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateOrganizationHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateOrganizationProcedure,
 		svc.UpdateOrganization,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationProjectsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationProjectsHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationProjectsProcedure,
 		svc.ListOrganizationProjects,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationProjects")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationAdminsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationAdminsHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationAdminsProcedure,
 		svc.ListOrganizationAdmins,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationAdmins")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationUsersProcedure,
 		svc.ListOrganizationUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAddOrganizationUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceAddOrganizationUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceAddOrganizationUsersProcedure,
 		svc.AddOrganizationUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("AddOrganizationUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceRemoveOrganizationUserHandler := connect_go.NewUnaryHandler(
+	frontierServiceRemoveOrganizationUserHandler := connect.NewUnaryHandler(
 		FrontierServiceRemoveOrganizationUserProcedure,
 		svc.RemoveOrganizationUser,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetOrganizationKycHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetOrganizationKycHandler := connect.NewUnaryHandler(
 		FrontierServiceGetOrganizationKycProcedure,
 		svc.GetOrganizationKyc,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationKyc")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationServiceUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationServiceUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationServiceUsersProcedure,
 		svc.ListOrganizationServiceUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationServiceUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationInvitationsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationInvitationsHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationInvitationsProcedure,
 		svc.ListOrganizationInvitations,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationInvitations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateOrganizationInvitationHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateOrganizationInvitationHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateOrganizationInvitationProcedure,
 		svc.CreateOrganizationInvitation,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationInvitation")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetOrganizationInvitationHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetOrganizationInvitationHandler := connect.NewUnaryHandler(
 		FrontierServiceGetOrganizationInvitationProcedure,
 		svc.GetOrganizationInvitation,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationInvitation")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAcceptOrganizationInvitationHandler := connect_go.NewUnaryHandler(
+	frontierServiceAcceptOrganizationInvitationHandler := connect.NewUnaryHandler(
 		FrontierServiceAcceptOrganizationInvitationProcedure,
 		svc.AcceptOrganizationInvitation,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("AcceptOrganizationInvitation")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteOrganizationInvitationHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteOrganizationInvitationHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteOrganizationInvitationProcedure,
 		svc.DeleteOrganizationInvitation,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationInvitation")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationDomainsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationDomainsHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationDomainsProcedure,
 		svc.ListOrganizationDomains,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationDomains")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateOrganizationDomainHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateOrganizationDomainHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateOrganizationDomainProcedure,
 		svc.CreateOrganizationDomain,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationDomain")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteOrganizationDomainHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteOrganizationDomainHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteOrganizationDomainProcedure,
 		svc.DeleteOrganizationDomain,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationDomain")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetOrganizationDomainHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetOrganizationDomainHandler := connect.NewUnaryHandler(
 		FrontierServiceGetOrganizationDomainProcedure,
 		svc.GetOrganizationDomain,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationDomain")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceVerifyOrganizationDomainHandler := connect_go.NewUnaryHandler(
+	frontierServiceVerifyOrganizationDomainHandler := connect.NewUnaryHandler(
 		FrontierServiceVerifyOrganizationDomainProcedure,
 		svc.VerifyOrganizationDomain,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("VerifyOrganizationDomain")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceJoinOrganizationHandler := connect_go.NewUnaryHandler(
+	frontierServiceJoinOrganizationHandler := connect.NewUnaryHandler(
 		FrontierServiceJoinOrganizationProcedure,
 		svc.JoinOrganization,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("JoinOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceEnableOrganizationHandler := connect_go.NewUnaryHandler(
+	frontierServiceEnableOrganizationHandler := connect.NewUnaryHandler(
 		FrontierServiceEnableOrganizationProcedure,
 		svc.EnableOrganization,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("EnableOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDisableOrganizationHandler := connect_go.NewUnaryHandler(
+	frontierServiceDisableOrganizationHandler := connect.NewUnaryHandler(
 		FrontierServiceDisableOrganizationProcedure,
 		svc.DisableOrganization,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DisableOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteOrganizationHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteOrganizationHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteOrganizationProcedure,
 		svc.DeleteOrganization,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateProjectHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateProjectHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateProjectProcedure,
 		svc.CreateProject,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateProject")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetProjectHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetProjectHandler := connect.NewUnaryHandler(
 		FrontierServiceGetProjectProcedure,
 		svc.GetProject,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetProject")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateProjectHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateProjectHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateProjectProcedure,
 		svc.UpdateProject,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateProject")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectAdminsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectAdminsHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectAdminsProcedure,
 		svc.ListProjectAdmins,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectAdmins")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectUsersProcedure,
 		svc.ListProjectUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectServiceUsersHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectServiceUsersHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectServiceUsersProcedure,
 		svc.ListProjectServiceUsers,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectServiceUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectGroupsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectGroupsHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectGroupsProcedure,
 		svc.ListProjectGroups,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectGroups")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceEnableProjectHandler := connect_go.NewUnaryHandler(
+	frontierServiceEnableProjectHandler := connect.NewUnaryHandler(
 		FrontierServiceEnableProjectProcedure,
 		svc.EnableProject,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("EnableProject")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDisableProjectHandler := connect_go.NewUnaryHandler(
+	frontierServiceDisableProjectHandler := connect.NewUnaryHandler(
 		FrontierServiceDisableProjectProcedure,
 		svc.DisableProject,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DisableProject")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteProjectHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteProjectHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteProjectProcedure,
 		svc.DeleteProject,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteProject")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreatePolicyHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreatePolicyHandler := connect.NewUnaryHandler(
 		FrontierServiceCreatePolicyProcedure,
 		svc.CreatePolicy,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreatePolicy")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetPolicyHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetPolicyHandler := connect.NewUnaryHandler(
 		FrontierServiceGetPolicyProcedure,
 		svc.GetPolicy,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetPolicy")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListPoliciesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListPoliciesHandler := connect.NewUnaryHandler(
 		FrontierServiceListPoliciesProcedure,
 		svc.ListPolicies,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListPolicies")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdatePolicyHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdatePolicyHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdatePolicyProcedure,
 		svc.UpdatePolicy,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdatePolicy")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeletePolicyHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeletePolicyHandler := connect.NewUnaryHandler(
 		FrontierServiceDeletePolicyProcedure,
 		svc.DeletePolicy,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeletePolicy")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreatePolicyForProjectHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreatePolicyForProjectHandler := connect.NewUnaryHandler(
 		FrontierServiceCreatePolicyForProjectProcedure,
 		svc.CreatePolicyForProject,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreatePolicyForProject")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateRelationHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateRelationHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateRelationProcedure,
 		svc.CreateRelation,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateRelation")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetRelationHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetRelationHandler := connect.NewUnaryHandler(
 		FrontierServiceGetRelationProcedure,
 		svc.GetRelation,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetRelation")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteRelationHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteRelationHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteRelationProcedure,
 		svc.DeleteRelation,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteRelation")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListPermissionsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListPermissionsHandler := connect.NewUnaryHandler(
 		FrontierServiceListPermissionsProcedure,
 		svc.ListPermissions,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListPermissions")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetPermissionHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetPermissionHandler := connect.NewUnaryHandler(
 		FrontierServiceGetPermissionProcedure,
 		svc.GetPermission,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetPermission")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListNamespacesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListNamespacesHandler := connect.NewUnaryHandler(
 		FrontierServiceListNamespacesProcedure,
 		svc.ListNamespaces,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListNamespaces")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetNamespaceHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetNamespaceHandler := connect.NewUnaryHandler(
 		FrontierServiceGetNamespaceProcedure,
 		svc.GetNamespace,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetNamespace")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectResourcesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectResourcesHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectResourcesProcedure,
 		svc.ListProjectResources,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectResources")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateProjectResourceHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateProjectResourceHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateProjectResourceProcedure,
 		svc.CreateProjectResource,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateProjectResource")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetProjectResourceHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetProjectResourceHandler := connect.NewUnaryHandler(
 		FrontierServiceGetProjectResourceProcedure,
 		svc.GetProjectResource,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetProjectResource")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateProjectResourceHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateProjectResourceHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateProjectResourceProcedure,
 		svc.UpdateProjectResource,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateProjectResource")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteProjectResourceHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteProjectResourceHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteProjectResourceProcedure,
 		svc.DeleteProjectResource,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteProjectResource")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCheckResourcePermissionHandler := connect_go.NewUnaryHandler(
+	frontierServiceCheckResourcePermissionHandler := connect.NewUnaryHandler(
 		FrontierServiceCheckResourcePermissionProcedure,
 		svc.CheckResourcePermission,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CheckResourcePermission")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceBatchCheckPermissionHandler := connect_go.NewUnaryHandler(
+	frontierServiceBatchCheckPermissionHandler := connect.NewUnaryHandler(
 		FrontierServiceBatchCheckPermissionProcedure,
 		svc.BatchCheckPermission,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("BatchCheckPermission")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetJWKsHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetJWKsHandler := connect.NewUnaryHandler(
 		FrontierServiceGetJWKsProcedure,
 		svc.GetJWKs,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetJWKs")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListAuthStrategiesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListAuthStrategiesHandler := connect.NewUnaryHandler(
 		FrontierServiceListAuthStrategiesProcedure,
 		svc.ListAuthStrategies,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListAuthStrategies")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAuthenticateHandler := connect_go.NewUnaryHandler(
+	frontierServiceAuthenticateHandler := connect.NewUnaryHandler(
 		FrontierServiceAuthenticateProcedure,
 		svc.Authenticate,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("Authenticate")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAuthCallbackHandler := connect_go.NewUnaryHandler(
+	frontierServiceAuthCallbackHandler := connect.NewUnaryHandler(
 		FrontierServiceAuthCallbackProcedure,
 		svc.AuthCallback,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("AuthCallback")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAuthTokenHandler := connect_go.NewUnaryHandler(
+	frontierServiceAuthTokenHandler := connect.NewUnaryHandler(
 		FrontierServiceAuthTokenProcedure,
 		svc.AuthToken,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("AuthToken")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAuthLogoutHandler := connect_go.NewUnaryHandler(
+	frontierServiceAuthLogoutHandler := connect.NewUnaryHandler(
 		FrontierServiceAuthLogoutProcedure,
 		svc.AuthLogout,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("AuthLogout")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListMetaSchemasHandler := connect_go.NewUnaryHandler(
+	frontierServiceListMetaSchemasHandler := connect.NewUnaryHandler(
 		FrontierServiceListMetaSchemasProcedure,
 		svc.ListMetaSchemas,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListMetaSchemas")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateMetaSchemaHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateMetaSchemaHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateMetaSchemaProcedure,
 		svc.CreateMetaSchema,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateMetaSchema")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetMetaSchemaHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetMetaSchemaHandler := connect.NewUnaryHandler(
 		FrontierServiceGetMetaSchemaProcedure,
 		svc.GetMetaSchema,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetMetaSchema")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateMetaSchemaHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateMetaSchemaHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateMetaSchemaProcedure,
 		svc.UpdateMetaSchema,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateMetaSchema")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteMetaSchemaHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteMetaSchemaHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteMetaSchemaProcedure,
 		svc.DeleteMetaSchema,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteMetaSchema")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationAuditLogsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationAuditLogsHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationAuditLogsProcedure,
 		svc.ListOrganizationAuditLogs,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationAuditLogs")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateOrganizationAuditLogsHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateOrganizationAuditLogsHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateOrganizationAuditLogsProcedure,
 		svc.CreateOrganizationAuditLogs,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationAuditLogs")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetOrganizationAuditLogHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetOrganizationAuditLogHandler := connect.NewUnaryHandler(
 		FrontierServiceGetOrganizationAuditLogProcedure,
 		svc.GetOrganizationAuditLog,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationAuditLog")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDescribePreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceDescribePreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceDescribePreferencesProcedure,
 		svc.DescribePreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DescribePreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateOrganizationPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateOrganizationPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateOrganizationPreferencesProcedure,
 		svc.CreateOrganizationPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListOrganizationPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceListOrganizationPreferencesProcedure,
 		svc.ListOrganizationPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateProjectPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateProjectPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateProjectPreferencesProcedure,
 		svc.CreateProjectPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateProjectPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProjectPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProjectPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceListProjectPreferencesProcedure,
 		svc.ListProjectPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProjectPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateGroupPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateGroupPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateGroupPreferencesProcedure,
 		svc.CreateGroupPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateGroupPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListGroupPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListGroupPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceListGroupPreferencesProcedure,
 		svc.ListGroupPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListGroupPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateUserPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateUserPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateUserPreferencesProcedure,
 		svc.CreateUserPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateUserPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListUserPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListUserPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceListUserPreferencesProcedure,
 		svc.ListUserPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListUserPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateCurrentUserPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateCurrentUserPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateCurrentUserPreferencesProcedure,
 		svc.CreateCurrentUserPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateCurrentUserPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListCurrentUserPreferencesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListCurrentUserPreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceListCurrentUserPreferencesProcedure,
 		svc.ListCurrentUserPreferences,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateBillingAccountHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateBillingAccountHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateBillingAccountProcedure,
 		svc.CreateBillingAccount,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateBillingAccount")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetBillingAccountHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetBillingAccountHandler := connect.NewUnaryHandler(
 		FrontierServiceGetBillingAccountProcedure,
 		svc.GetBillingAccount,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetBillingAccount")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateBillingAccountHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateBillingAccountHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateBillingAccountProcedure,
 		svc.UpdateBillingAccount,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateBillingAccount")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceRegisterBillingAccountHandler := connect_go.NewUnaryHandler(
+	frontierServiceRegisterBillingAccountHandler := connect.NewUnaryHandler(
 		FrontierServiceRegisterBillingAccountProcedure,
 		svc.RegisterBillingAccount,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("RegisterBillingAccount")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListBillingAccountsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListBillingAccountsHandler := connect.NewUnaryHandler(
 		FrontierServiceListBillingAccountsProcedure,
 		svc.ListBillingAccounts,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListBillingAccounts")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDeleteBillingAccountHandler := connect_go.NewUnaryHandler(
+	frontierServiceDeleteBillingAccountHandler := connect.NewUnaryHandler(
 		FrontierServiceDeleteBillingAccountProcedure,
 		svc.DeleteBillingAccount,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteBillingAccount")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceEnableBillingAccountHandler := connect_go.NewUnaryHandler(
+	frontierServiceEnableBillingAccountHandler := connect.NewUnaryHandler(
 		FrontierServiceEnableBillingAccountProcedure,
 		svc.EnableBillingAccount,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("EnableBillingAccount")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceDisableBillingAccountHandler := connect_go.NewUnaryHandler(
+	frontierServiceDisableBillingAccountHandler := connect.NewUnaryHandler(
 		FrontierServiceDisableBillingAccountProcedure,
 		svc.DisableBillingAccount,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("DisableBillingAccount")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetBillingBalanceHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetBillingBalanceHandler := connect.NewUnaryHandler(
 		FrontierServiceGetBillingBalanceProcedure,
 		svc.GetBillingBalance,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetBillingBalance")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceHasTrialedHandler := connect_go.NewUnaryHandler(
+	frontierServiceHasTrialedHandler := connect.NewUnaryHandler(
 		FrontierServiceHasTrialedProcedure,
 		svc.HasTrialed,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("HasTrialed")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetSubscriptionHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetSubscriptionHandler := connect.NewUnaryHandler(
 		FrontierServiceGetSubscriptionProcedure,
 		svc.GetSubscription,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetSubscription")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCancelSubscriptionHandler := connect_go.NewUnaryHandler(
+	frontierServiceCancelSubscriptionHandler := connect.NewUnaryHandler(
 		FrontierServiceCancelSubscriptionProcedure,
 		svc.CancelSubscription,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CancelSubscription")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListSubscriptionsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListSubscriptionsHandler := connect.NewUnaryHandler(
 		FrontierServiceListSubscriptionsProcedure,
 		svc.ListSubscriptions,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListSubscriptions")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceChangeSubscriptionHandler := connect_go.NewUnaryHandler(
+	frontierServiceChangeSubscriptionHandler := connect.NewUnaryHandler(
 		FrontierServiceChangeSubscriptionProcedure,
 		svc.ChangeSubscription,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ChangeSubscription")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateSubscriptionHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateSubscriptionHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateSubscriptionProcedure,
 		svc.UpdateSubscription,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateSubscription")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateProductHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateProductHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateProductProcedure,
 		svc.CreateProduct,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateProduct")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetProductHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetProductHandler := connect.NewUnaryHandler(
 		FrontierServiceGetProductProcedure,
 		svc.GetProduct,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetProduct")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListProductsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListProductsHandler := connect.NewUnaryHandler(
 		FrontierServiceListProductsProcedure,
 		svc.ListProducts,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListProducts")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateProductHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateProductHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateProductProcedure,
 		svc.UpdateProduct,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateProduct")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateFeatureHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateFeatureHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateFeatureProcedure,
 		svc.CreateFeature,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateFeature")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetFeatureHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetFeatureHandler := connect.NewUnaryHandler(
 		FrontierServiceGetFeatureProcedure,
 		svc.GetFeature,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetFeature")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdateFeatureHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdateFeatureHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdateFeatureProcedure,
 		svc.UpdateFeature,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateFeature")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListFeaturesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListFeaturesHandler := connect.NewUnaryHandler(
 		FrontierServiceListFeaturesProcedure,
 		svc.ListFeatures,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListFeatures")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreatePlanHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreatePlanHandler := connect.NewUnaryHandler(
 		FrontierServiceCreatePlanProcedure,
 		svc.CreatePlan,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreatePlan")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListPlansHandler := connect_go.NewUnaryHandler(
+	frontierServiceListPlansHandler := connect.NewUnaryHandler(
 		FrontierServiceListPlansProcedure,
 		svc.ListPlans,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListPlans")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetPlanHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetPlanHandler := connect.NewUnaryHandler(
 		FrontierServiceGetPlanProcedure,
 		svc.GetPlan,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetPlan")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceUpdatePlanHandler := connect_go.NewUnaryHandler(
+	frontierServiceUpdatePlanHandler := connect.NewUnaryHandler(
 		FrontierServiceUpdatePlanProcedure,
 		svc.UpdatePlan,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdatePlan")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateCheckoutHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateCheckoutHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateCheckoutProcedure,
 		svc.CreateCheckout,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateCheckout")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListCheckoutsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListCheckoutsHandler := connect.NewUnaryHandler(
 		FrontierServiceListCheckoutsProcedure,
 		svc.ListCheckouts,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListCheckouts")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetCheckoutHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetCheckoutHandler := connect.NewUnaryHandler(
 		FrontierServiceGetCheckoutProcedure,
 		svc.GetCheckout,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetCheckout")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCheckFeatureEntitlementHandler := connect_go.NewUnaryHandler(
+	frontierServiceCheckFeatureEntitlementHandler := connect.NewUnaryHandler(
 		FrontierServiceCheckFeatureEntitlementProcedure,
 		svc.CheckFeatureEntitlement,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CheckFeatureEntitlement")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateBillingUsageHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateBillingUsageHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateBillingUsageProcedure,
 		svc.CreateBillingUsage,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateBillingUsage")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListBillingTransactionsHandler := connect_go.NewUnaryHandler(
+	frontierServiceListBillingTransactionsHandler := connect.NewUnaryHandler(
 		FrontierServiceListBillingTransactionsProcedure,
 		svc.ListBillingTransactions,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListBillingTransactions")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceTotalDebitedTransactionsHandler := connect_go.NewUnaryHandler(
+	frontierServiceTotalDebitedTransactionsHandler := connect.NewUnaryHandler(
 		FrontierServiceTotalDebitedTransactionsProcedure,
 		svc.TotalDebitedTransactions,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("TotalDebitedTransactions")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListInvoicesHandler := connect_go.NewUnaryHandler(
+	frontierServiceListInvoicesHandler := connect.NewUnaryHandler(
 		FrontierServiceListInvoicesProcedure,
 		svc.ListInvoices,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("ListInvoices")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceGetUpcomingInvoiceHandler := connect_go.NewUnaryHandler(
+	frontierServiceGetUpcomingInvoiceHandler := connect.NewUnaryHandler(
 		FrontierServiceGetUpcomingInvoiceProcedure,
 		svc.GetUpcomingInvoice,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("GetUpcomingInvoice")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceBillingWebhookCallbackHandler := connect_go.NewUnaryHandler(
+	frontierServiceBillingWebhookCallbackHandler := connect.NewUnaryHandler(
 		FrontierServiceBillingWebhookCallbackProcedure,
 		svc.BillingWebhookCallback,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("BillingWebhookCallback")),
+		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateProspectPublicHandler := connect_go.NewUnaryHandler(
+	frontierServiceCreateProspectPublicHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateProspectPublicProcedure,
 		svc.CreateProspectPublic,
-		opts...,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateProspectPublic")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/raystack.frontier.v1beta1.FrontierService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -3971,666 +4305,666 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect_go.Ha
 // UnimplementedFrontierServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedFrontierServiceHandler struct{}
 
-func (UnimplementedFrontierServiceHandler) ListUsers(context.Context, *connect_go.Request[v1beta1.ListUsersRequest]) (*connect_go.Response[v1beta1.ListUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListUsers(context.Context, *connect.Request[v1beta1.ListUsersRequest]) (*connect.Response[v1beta1.ListUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateUser(context.Context, *connect_go.Request[v1beta1.CreateUserRequest]) (*connect_go.Response[v1beta1.CreateUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateUser(context.Context, *connect.Request[v1beta1.CreateUserRequest]) (*connect.Response[v1beta1.CreateUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetUser(context.Context, *connect_go.Request[v1beta1.GetUserRequest]) (*connect_go.Response[v1beta1.GetUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetUser(context.Context, *connect.Request[v1beta1.GetUserRequest]) (*connect.Response[v1beta1.GetUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListUserGroups(context.Context, *connect_go.Request[v1beta1.ListUserGroupsRequest]) (*connect_go.Response[v1beta1.ListUserGroupsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUserGroups is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListUserGroups(context.Context, *connect.Request[v1beta1.ListUserGroupsRequest]) (*connect.Response[v1beta1.ListUserGroupsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUserGroups is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListCurrentUserGroups(context.Context, *connect_go.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserGroupsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListCurrentUserGroups(context.Context, *connect.Request[v1beta1.ListCurrentUserGroupsRequest]) (*connect.Response[v1beta1.ListCurrentUserGroupsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetCurrentUser(context.Context, *connect_go.Request[v1beta1.GetCurrentUserRequest]) (*connect_go.Response[v1beta1.GetCurrentUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetCurrentUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetCurrentUser(context.Context, *connect.Request[v1beta1.GetCurrentUserRequest]) (*connect.Response[v1beta1.GetCurrentUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetCurrentUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateUser(context.Context, *connect_go.Request[v1beta1.UpdateUserRequest]) (*connect_go.Response[v1beta1.UpdateUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateUser(context.Context, *connect.Request[v1beta1.UpdateUserRequest]) (*connect.Response[v1beta1.UpdateUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateCurrentUser(context.Context, *connect_go.Request[v1beta1.UpdateCurrentUserRequest]) (*connect_go.Response[v1beta1.UpdateCurrentUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateCurrentUser(context.Context, *connect.Request[v1beta1.UpdateCurrentUserRequest]) (*connect.Response[v1beta1.UpdateCurrentUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) EnableUser(context.Context, *connect_go.Request[v1beta1.EnableUserRequest]) (*connect_go.Response[v1beta1.EnableUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) EnableUser(context.Context, *connect.Request[v1beta1.EnableUserRequest]) (*connect.Response[v1beta1.EnableUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DisableUser(context.Context, *connect_go.Request[v1beta1.DisableUserRequest]) (*connect_go.Response[v1beta1.DisableUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) DisableUser(context.Context, *connect.Request[v1beta1.DisableUserRequest]) (*connect.Response[v1beta1.DisableUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteUser(context.Context, *connect_go.Request[v1beta1.DeleteUserRequest]) (*connect_go.Response[v1beta1.DeleteUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteUser(context.Context, *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationsByUser(context.Context, *connect_go.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationsByUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationsByCurrentUser(context.Context, *connect_go.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationsByCurrentUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectsByUser(context.Context, *connect_go.Request[v1beta1.ListProjectsByUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectsByUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectsByUser(context.Context, *connect.Request[v1beta1.ListProjectsByUserRequest]) (*connect.Response[v1beta1.ListProjectsByUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectsByUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectsByCurrentUser(context.Context, *connect_go.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect_go.Response[v1beta1.ListProjectsByCurrentUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectsByCurrentUser(context.Context, *connect.Request[v1beta1.ListProjectsByCurrentUserRequest]) (*connect.Response[v1beta1.ListProjectsByCurrentUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListUserInvitations(context.Context, *connect_go.Request[v1beta1.ListUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListUserInvitationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUserInvitations is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListUserInvitations(context.Context, *connect.Request[v1beta1.ListUserInvitationsRequest]) (*connect.Response[v1beta1.ListUserInvitationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUserInvitations is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListCurrentUserInvitations(context.Context, *connect_go.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect_go.Response[v1beta1.ListCurrentUserInvitationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListCurrentUserInvitations(context.Context, *connect.Request[v1beta1.ListCurrentUserInvitationsRequest]) (*connect.Response[v1beta1.ListCurrentUserInvitationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListServiceUsers(context.Context, *connect_go.Request[v1beta1.ListServiceUsersRequest]) (*connect_go.Response[v1beta1.ListServiceUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListServiceUsers(context.Context, *connect.Request[v1beta1.ListServiceUsersRequest]) (*connect.Response[v1beta1.ListServiceUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateServiceUser(context.Context, *connect_go.Request[v1beta1.CreateServiceUserRequest]) (*connect_go.Response[v1beta1.CreateServiceUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateServiceUser(context.Context, *connect.Request[v1beta1.CreateServiceUserRequest]) (*connect.Response[v1beta1.CreateServiceUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetServiceUser(context.Context, *connect_go.Request[v1beta1.GetServiceUserRequest]) (*connect_go.Response[v1beta1.GetServiceUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetServiceUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetServiceUser(context.Context, *connect.Request[v1beta1.GetServiceUserRequest]) (*connect.Response[v1beta1.GetServiceUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetServiceUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteServiceUser(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteServiceUser(context.Context, *connect.Request[v1beta1.DeleteServiceUserRequest]) (*connect.Response[v1beta1.DeleteServiceUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateServiceUserJWK(context.Context, *connect_go.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect_go.Response[v1beta1.CreateServiceUserJWKResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateServiceUserJWK(context.Context, *connect.Request[v1beta1.CreateServiceUserJWKRequest]) (*connect.Response[v1beta1.CreateServiceUserJWKResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListServiceUserJWKs(context.Context, *connect_go.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect_go.Response[v1beta1.ListServiceUserJWKsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListServiceUserJWKs(context.Context, *connect.Request[v1beta1.ListServiceUserJWKsRequest]) (*connect.Response[v1beta1.ListServiceUserJWKsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetServiceUserJWK(context.Context, *connect_go.Request[v1beta1.GetServiceUserJWKRequest]) (*connect_go.Response[v1beta1.GetServiceUserJWKResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetServiceUserJWK(context.Context, *connect.Request[v1beta1.GetServiceUserJWKRequest]) (*connect.Response[v1beta1.GetServiceUserJWKResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteServiceUserJWK(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserJWKResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteServiceUserJWK(context.Context, *connect.Request[v1beta1.DeleteServiceUserJWKRequest]) (*connect.Response[v1beta1.DeleteServiceUserJWKResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateServiceUserCredential(context.Context, *connect_go.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.CreateServiceUserCredentialResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateServiceUserCredential(context.Context, *connect.Request[v1beta1.CreateServiceUserCredentialRequest]) (*connect.Response[v1beta1.CreateServiceUserCredentialResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListServiceUserCredentials(context.Context, *connect_go.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.ListServiceUserCredentialsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListServiceUserCredentials(context.Context, *connect.Request[v1beta1.ListServiceUserCredentialsRequest]) (*connect.Response[v1beta1.ListServiceUserCredentialsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteServiceUserCredential(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserCredentialResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteServiceUserCredential(context.Context, *connect.Request[v1beta1.DeleteServiceUserCredentialRequest]) (*connect.Response[v1beta1.DeleteServiceUserCredentialResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateServiceUserToken(context.Context, *connect_go.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect_go.Response[v1beta1.CreateServiceUserTokenResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateServiceUserToken(context.Context, *connect.Request[v1beta1.CreateServiceUserTokenRequest]) (*connect.Response[v1beta1.CreateServiceUserTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListServiceUserTokens(context.Context, *connect_go.Request[v1beta1.ListServiceUserTokensRequest]) (*connect_go.Response[v1beta1.ListServiceUserTokensResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListServiceUserTokens(context.Context, *connect.Request[v1beta1.ListServiceUserTokensRequest]) (*connect.Response[v1beta1.ListServiceUserTokensResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteServiceUserToken(context.Context, *connect_go.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect_go.Response[v1beta1.DeleteServiceUserTokenResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteServiceUserToken(context.Context, *connect.Request[v1beta1.DeleteServiceUserTokenRequest]) (*connect.Response[v1beta1.DeleteServiceUserTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListServiceUserProjects(context.Context, *connect_go.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect_go.Response[v1beta1.ListServiceUserProjectsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListServiceUserProjects(context.Context, *connect.Request[v1beta1.ListServiceUserProjectsRequest]) (*connect.Response[v1beta1.ListServiceUserProjectsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationGroups(context.Context, *connect_go.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect_go.Response[v1beta1.ListOrganizationGroupsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationGroups(context.Context, *connect.Request[v1beta1.ListOrganizationGroupsRequest]) (*connect.Response[v1beta1.ListOrganizationGroupsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateGroup(context.Context, *connect_go.Request[v1beta1.CreateGroupRequest]) (*connect_go.Response[v1beta1.CreateGroupResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateGroup is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateGroup(context.Context, *connect.Request[v1beta1.CreateGroupRequest]) (*connect.Response[v1beta1.CreateGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateGroup is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetGroup(context.Context, *connect_go.Request[v1beta1.GetGroupRequest]) (*connect_go.Response[v1beta1.GetGroupResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetGroup is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetGroup(context.Context, *connect.Request[v1beta1.GetGroupRequest]) (*connect.Response[v1beta1.GetGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetGroup is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateGroup(context.Context, *connect_go.Request[v1beta1.UpdateGroupRequest]) (*connect_go.Response[v1beta1.UpdateGroupResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateGroup is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateGroup(context.Context, *connect.Request[v1beta1.UpdateGroupRequest]) (*connect.Response[v1beta1.UpdateGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateGroup is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListGroupUsers(context.Context, *connect_go.Request[v1beta1.ListGroupUsersRequest]) (*connect_go.Response[v1beta1.ListGroupUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListGroupUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListGroupUsers(context.Context, *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListGroupUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) AddGroupUsers(context.Context, *connect_go.Request[v1beta1.AddGroupUsersRequest]) (*connect_go.Response[v1beta1.AddGroupUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AddGroupUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) AddGroupUsers(context.Context, *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AddGroupUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) RemoveGroupUser(context.Context, *connect_go.Request[v1beta1.RemoveGroupUserRequest]) (*connect_go.Response[v1beta1.RemoveGroupUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveGroupUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) RemoveGroupUser(context.Context, *connect.Request[v1beta1.RemoveGroupUserRequest]) (*connect.Response[v1beta1.RemoveGroupUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveGroupUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) EnableGroup(context.Context, *connect_go.Request[v1beta1.EnableGroupRequest]) (*connect_go.Response[v1beta1.EnableGroupResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableGroup is not implemented"))
+func (UnimplementedFrontierServiceHandler) EnableGroup(context.Context, *connect.Request[v1beta1.EnableGroupRequest]) (*connect.Response[v1beta1.EnableGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableGroup is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DisableGroup(context.Context, *connect_go.Request[v1beta1.DisableGroupRequest]) (*connect_go.Response[v1beta1.DisableGroupResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableGroup is not implemented"))
+func (UnimplementedFrontierServiceHandler) DisableGroup(context.Context, *connect.Request[v1beta1.DisableGroupRequest]) (*connect.Response[v1beta1.DisableGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableGroup is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteGroup(context.Context, *connect_go.Request[v1beta1.DeleteGroupRequest]) (*connect_go.Response[v1beta1.DeleteGroupResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteGroup is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteGroup(context.Context, *connect.Request[v1beta1.DeleteGroupRequest]) (*connect.Response[v1beta1.DeleteGroupResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteGroup is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListRoles(context.Context, *connect_go.Request[v1beta1.ListRolesRequest]) (*connect_go.Response[v1beta1.ListRolesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListRoles is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListRoles(context.Context, *connect.Request[v1beta1.ListRolesRequest]) (*connect.Response[v1beta1.ListRolesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListRoles is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationRoles(context.Context, *connect_go.Request[v1beta1.ListOrganizationRolesRequest]) (*connect_go.Response[v1beta1.ListOrganizationRolesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationRoles(context.Context, *connect.Request[v1beta1.ListOrganizationRolesRequest]) (*connect.Response[v1beta1.ListOrganizationRolesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateOrganizationRole(context.Context, *connect_go.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.CreateOrganizationRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateOrganizationRole(context.Context, *connect.Request[v1beta1.CreateOrganizationRoleRequest]) (*connect.Response[v1beta1.CreateOrganizationRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetOrganizationRole(context.Context, *connect_go.Request[v1beta1.GetOrganizationRoleRequest]) (*connect_go.Response[v1beta1.GetOrganizationRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationRole is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetOrganizationRole(context.Context, *connect.Request[v1beta1.GetOrganizationRoleRequest]) (*connect.Response[v1beta1.GetOrganizationRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationRole is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateOrganizationRole(context.Context, *connect_go.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateOrganizationRole(context.Context, *connect.Request[v1beta1.UpdateOrganizationRoleRequest]) (*connect.Response[v1beta1.UpdateOrganizationRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteOrganizationRole(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteOrganizationRole(context.Context, *connect.Request[v1beta1.DeleteOrganizationRoleRequest]) (*connect.Response[v1beta1.DeleteOrganizationRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizations(context.Context, *connect_go.Request[v1beta1.ListOrganizationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizations is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizations(context.Context, *connect.Request[v1beta1.ListOrganizationsRequest]) (*connect.Response[v1beta1.ListOrganizationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizations is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateOrganization(context.Context, *connect_go.Request[v1beta1.CreateOrganizationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganization is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateOrganization(context.Context, *connect.Request[v1beta1.CreateOrganizationRequest]) (*connect.Response[v1beta1.CreateOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganization is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetOrganization(context.Context, *connect_go.Request[v1beta1.GetOrganizationRequest]) (*connect_go.Response[v1beta1.GetOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganization is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetOrganization(context.Context, *connect.Request[v1beta1.GetOrganizationRequest]) (*connect.Response[v1beta1.GetOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganization is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateOrganization(context.Context, *connect_go.Request[v1beta1.UpdateOrganizationRequest]) (*connect_go.Response[v1beta1.UpdateOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateOrganization is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateOrganization(context.Context, *connect.Request[v1beta1.UpdateOrganizationRequest]) (*connect.Response[v1beta1.UpdateOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateOrganization is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationProjects(context.Context, *connect_go.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.ListOrganizationProjectsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationProjects(context.Context, *connect.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect.Response[v1beta1.ListOrganizationProjectsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationAdmins(context.Context, *connect_go.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAdminsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationAdmins(context.Context, *connect.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect.Response[v1beta1.ListOrganizationAdminsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationUsers(context.Context, *connect_go.Request[v1beta1.ListOrganizationUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationUsers(context.Context, *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) AddOrganizationUsers(context.Context, *connect_go.Request[v1beta1.AddOrganizationUsersRequest]) (*connect_go.Response[v1beta1.AddOrganizationUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) RemoveOrganizationUser(context.Context, *connect_go.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect_go.Response[v1beta1.RemoveOrganizationUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser is not implemented"))
+func (UnimplementedFrontierServiceHandler) RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetOrganizationKyc(context.Context, *connect_go.Request[v1beta1.GetOrganizationKycRequest]) (*connect_go.Response[v1beta1.GetOrganizationKycResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationServiceUsers(context.Context, *connect_go.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect_go.Response[v1beta1.ListOrganizationServiceUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationInvitations(context.Context, *connect_go.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect_go.Response[v1beta1.ListOrganizationInvitationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationInvitations(context.Context, *connect.Request[v1beta1.ListOrganizationInvitationsRequest]) (*connect.Response[v1beta1.ListOrganizationInvitationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.CreateOrganizationInvitationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateOrganizationInvitation(context.Context, *connect.Request[v1beta1.CreateOrganizationInvitationRequest]) (*connect.Response[v1beta1.CreateOrganizationInvitationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.GetOrganizationInvitationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetOrganizationInvitation(context.Context, *connect.Request[v1beta1.GetOrganizationInvitationRequest]) (*connect.Response[v1beta1.GetOrganizationInvitationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) AcceptOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.AcceptOrganizationInvitationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation is not implemented"))
+func (UnimplementedFrontierServiceHandler) AcceptOrganizationInvitation(context.Context, *connect.Request[v1beta1.AcceptOrganizationInvitationRequest]) (*connect.Response[v1beta1.AcceptOrganizationInvitationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteOrganizationInvitation(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationInvitationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteOrganizationInvitation(context.Context, *connect.Request[v1beta1.DeleteOrganizationInvitationRequest]) (*connect.Response[v1beta1.DeleteOrganizationInvitationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationDomains(context.Context, *connect_go.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect_go.Response[v1beta1.ListOrganizationDomainsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationDomains(context.Context, *connect.Request[v1beta1.ListOrganizationDomainsRequest]) (*connect.Response[v1beta1.ListOrganizationDomainsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateOrganizationDomain(context.Context, *connect_go.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect_go.Response[v1beta1.CreateOrganizationDomainResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateOrganizationDomain(context.Context, *connect.Request[v1beta1.CreateOrganizationDomainRequest]) (*connect.Response[v1beta1.CreateOrganizationDomainResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteOrganizationDomain(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationDomainResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteOrganizationDomain(context.Context, *connect.Request[v1beta1.DeleteOrganizationDomainRequest]) (*connect.Response[v1beta1.DeleteOrganizationDomainResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetOrganizationDomain(context.Context, *connect_go.Request[v1beta1.GetOrganizationDomainRequest]) (*connect_go.Response[v1beta1.GetOrganizationDomainResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetOrganizationDomain(context.Context, *connect.Request[v1beta1.GetOrganizationDomainRequest]) (*connect.Response[v1beta1.GetOrganizationDomainResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) VerifyOrganizationDomain(context.Context, *connect_go.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect_go.Response[v1beta1.VerifyOrganizationDomainResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain is not implemented"))
+func (UnimplementedFrontierServiceHandler) VerifyOrganizationDomain(context.Context, *connect.Request[v1beta1.VerifyOrganizationDomainRequest]) (*connect.Response[v1beta1.VerifyOrganizationDomainResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) JoinOrganization(context.Context, *connect_go.Request[v1beta1.JoinOrganizationRequest]) (*connect_go.Response[v1beta1.JoinOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.JoinOrganization is not implemented"))
+func (UnimplementedFrontierServiceHandler) JoinOrganization(context.Context, *connect.Request[v1beta1.JoinOrganizationRequest]) (*connect.Response[v1beta1.JoinOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.JoinOrganization is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) EnableOrganization(context.Context, *connect_go.Request[v1beta1.EnableOrganizationRequest]) (*connect_go.Response[v1beta1.EnableOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableOrganization is not implemented"))
+func (UnimplementedFrontierServiceHandler) EnableOrganization(context.Context, *connect.Request[v1beta1.EnableOrganizationRequest]) (*connect.Response[v1beta1.EnableOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableOrganization is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DisableOrganization(context.Context, *connect_go.Request[v1beta1.DisableOrganizationRequest]) (*connect_go.Response[v1beta1.DisableOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableOrganization is not implemented"))
+func (UnimplementedFrontierServiceHandler) DisableOrganization(context.Context, *connect.Request[v1beta1.DisableOrganizationRequest]) (*connect.Response[v1beta1.DisableOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableOrganization is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteOrganization(context.Context, *connect_go.Request[v1beta1.DeleteOrganizationRequest]) (*connect_go.Response[v1beta1.DeleteOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganization is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteOrganization(context.Context, *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganization is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateProject(context.Context, *connect_go.Request[v1beta1.CreateProjectRequest]) (*connect_go.Response[v1beta1.CreateProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProject is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateProject(context.Context, *connect.Request[v1beta1.CreateProjectRequest]) (*connect.Response[v1beta1.CreateProjectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProject is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetProject(context.Context, *connect_go.Request[v1beta1.GetProjectRequest]) (*connect_go.Response[v1beta1.GetProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetProject is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetProject(context.Context, *connect.Request[v1beta1.GetProjectRequest]) (*connect.Response[v1beta1.GetProjectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetProject is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateProject(context.Context, *connect_go.Request[v1beta1.UpdateProjectRequest]) (*connect_go.Response[v1beta1.UpdateProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateProject is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateProject(context.Context, *connect.Request[v1beta1.UpdateProjectRequest]) (*connect.Response[v1beta1.UpdateProjectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateProject is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectAdmins(context.Context, *connect_go.Request[v1beta1.ListProjectAdminsRequest]) (*connect_go.Response[v1beta1.ListProjectAdminsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectAdmins is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectAdmins(context.Context, *connect.Request[v1beta1.ListProjectAdminsRequest]) (*connect.Response[v1beta1.ListProjectAdminsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectAdmins is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectUsers(context.Context, *connect_go.Request[v1beta1.ListProjectUsersRequest]) (*connect_go.Response[v1beta1.ListProjectUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectUsers(context.Context, *connect.Request[v1beta1.ListProjectUsersRequest]) (*connect.Response[v1beta1.ListProjectUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectServiceUsers(context.Context, *connect_go.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect_go.Response[v1beta1.ListProjectServiceUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectServiceUsers(context.Context, *connect.Request[v1beta1.ListProjectServiceUsersRequest]) (*connect.Response[v1beta1.ListProjectServiceUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectGroups(context.Context, *connect_go.Request[v1beta1.ListProjectGroupsRequest]) (*connect_go.Response[v1beta1.ListProjectGroupsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectGroups is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectGroups(context.Context, *connect.Request[v1beta1.ListProjectGroupsRequest]) (*connect.Response[v1beta1.ListProjectGroupsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectGroups is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) EnableProject(context.Context, *connect_go.Request[v1beta1.EnableProjectRequest]) (*connect_go.Response[v1beta1.EnableProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableProject is not implemented"))
+func (UnimplementedFrontierServiceHandler) EnableProject(context.Context, *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableProject is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DisableProject(context.Context, *connect_go.Request[v1beta1.DisableProjectRequest]) (*connect_go.Response[v1beta1.DisableProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableProject is not implemented"))
+func (UnimplementedFrontierServiceHandler) DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableProject is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteProject(context.Context, *connect_go.Request[v1beta1.DeleteProjectRequest]) (*connect_go.Response[v1beta1.DeleteProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteProject is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteProject is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreatePolicy(context.Context, *connect_go.Request[v1beta1.CreatePolicyRequest]) (*connect_go.Response[v1beta1.CreatePolicyResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreatePolicy is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreatePolicy is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetPolicy(context.Context, *connect_go.Request[v1beta1.GetPolicyRequest]) (*connect_go.Response[v1beta1.GetPolicyResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetPolicy is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetPolicy(context.Context, *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetPolicy is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListPolicies(context.Context, *connect_go.Request[v1beta1.ListPoliciesRequest]) (*connect_go.Response[v1beta1.ListPoliciesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListPolicies is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListPolicies(context.Context, *connect.Request[v1beta1.ListPoliciesRequest]) (*connect.Response[v1beta1.ListPoliciesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListPolicies is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdatePolicy(context.Context, *connect_go.Request[v1beta1.UpdatePolicyRequest]) (*connect_go.Response[v1beta1.UpdatePolicyResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdatePolicy is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdatePolicy(context.Context, *connect.Request[v1beta1.UpdatePolicyRequest]) (*connect.Response[v1beta1.UpdatePolicyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdatePolicy is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeletePolicy(context.Context, *connect_go.Request[v1beta1.DeletePolicyRequest]) (*connect_go.Response[v1beta1.DeletePolicyResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeletePolicy is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeletePolicy(context.Context, *connect.Request[v1beta1.DeletePolicyRequest]) (*connect.Response[v1beta1.DeletePolicyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeletePolicy is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreatePolicyForProject(context.Context, *connect_go.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect_go.Response[v1beta1.CreatePolicyForProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreatePolicyForProject(context.Context, *connect.Request[v1beta1.CreatePolicyForProjectRequest]) (*connect.Response[v1beta1.CreatePolicyForProjectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateRelation(context.Context, *connect_go.Request[v1beta1.CreateRelationRequest]) (*connect_go.Response[v1beta1.CreateRelationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateRelation is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateRelation(context.Context, *connect.Request[v1beta1.CreateRelationRequest]) (*connect.Response[v1beta1.CreateRelationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateRelation is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetRelation(context.Context, *connect_go.Request[v1beta1.GetRelationRequest]) (*connect_go.Response[v1beta1.GetRelationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetRelation is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetRelation(context.Context, *connect.Request[v1beta1.GetRelationRequest]) (*connect.Response[v1beta1.GetRelationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetRelation is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteRelation(context.Context, *connect_go.Request[v1beta1.DeleteRelationRequest]) (*connect_go.Response[v1beta1.DeleteRelationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteRelation is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteRelation(context.Context, *connect.Request[v1beta1.DeleteRelationRequest]) (*connect.Response[v1beta1.DeleteRelationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteRelation is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListPermissions(context.Context, *connect_go.Request[v1beta1.ListPermissionsRequest]) (*connect_go.Response[v1beta1.ListPermissionsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListPermissions is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListPermissions(context.Context, *connect.Request[v1beta1.ListPermissionsRequest]) (*connect.Response[v1beta1.ListPermissionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListPermissions is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetPermission(context.Context, *connect_go.Request[v1beta1.GetPermissionRequest]) (*connect_go.Response[v1beta1.GetPermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetPermission is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetPermission(context.Context, *connect.Request[v1beta1.GetPermissionRequest]) (*connect.Response[v1beta1.GetPermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetPermission is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListNamespaces(context.Context, *connect_go.Request[v1beta1.ListNamespacesRequest]) (*connect_go.Response[v1beta1.ListNamespacesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListNamespaces is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListNamespaces(context.Context, *connect.Request[v1beta1.ListNamespacesRequest]) (*connect.Response[v1beta1.ListNamespacesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListNamespaces is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetNamespace(context.Context, *connect_go.Request[v1beta1.GetNamespaceRequest]) (*connect_go.Response[v1beta1.GetNamespaceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetNamespace is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetNamespace(context.Context, *connect.Request[v1beta1.GetNamespaceRequest]) (*connect.Response[v1beta1.GetNamespaceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetNamespace is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectResources(context.Context, *connect_go.Request[v1beta1.ListProjectResourcesRequest]) (*connect_go.Response[v1beta1.ListProjectResourcesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectResources is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectResources(context.Context, *connect.Request[v1beta1.ListProjectResourcesRequest]) (*connect.Response[v1beta1.ListProjectResourcesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectResources is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateProjectResource(context.Context, *connect_go.Request[v1beta1.CreateProjectResourceRequest]) (*connect_go.Response[v1beta1.CreateProjectResourceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProjectResource is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateProjectResource(context.Context, *connect.Request[v1beta1.CreateProjectResourceRequest]) (*connect.Response[v1beta1.CreateProjectResourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProjectResource is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetProjectResource(context.Context, *connect_go.Request[v1beta1.GetProjectResourceRequest]) (*connect_go.Response[v1beta1.GetProjectResourceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetProjectResource is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetProjectResource(context.Context, *connect.Request[v1beta1.GetProjectResourceRequest]) (*connect.Response[v1beta1.GetProjectResourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetProjectResource is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateProjectResource(context.Context, *connect_go.Request[v1beta1.UpdateProjectResourceRequest]) (*connect_go.Response[v1beta1.UpdateProjectResourceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateProjectResource is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateProjectResource(context.Context, *connect.Request[v1beta1.UpdateProjectResourceRequest]) (*connect.Response[v1beta1.UpdateProjectResourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateProjectResource is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteProjectResource(context.Context, *connect_go.Request[v1beta1.DeleteProjectResourceRequest]) (*connect_go.Response[v1beta1.DeleteProjectResourceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteProjectResource is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteProjectResource(context.Context, *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteProjectResource is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CheckResourcePermission(context.Context, *connect_go.Request[v1beta1.CheckResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckResourcePermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckResourcePermission is not implemented"))
+func (UnimplementedFrontierServiceHandler) CheckResourcePermission(context.Context, *connect.Request[v1beta1.CheckResourcePermissionRequest]) (*connect.Response[v1beta1.CheckResourcePermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckResourcePermission is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) BatchCheckPermission(context.Context, *connect_go.Request[v1beta1.BatchCheckPermissionRequest]) (*connect_go.Response[v1beta1.BatchCheckPermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.BatchCheckPermission is not implemented"))
+func (UnimplementedFrontierServiceHandler) BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.BatchCheckPermission is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetJWKs(context.Context, *connect_go.Request[v1beta1.GetJWKsRequest]) (*connect_go.Response[v1beta1.GetJWKsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetJWKs is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetJWKs is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListAuthStrategies(context.Context, *connect_go.Request[v1beta1.ListAuthStrategiesRequest]) (*connect_go.Response[v1beta1.ListAuthStrategiesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListAuthStrategies is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListAuthStrategies is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) Authenticate(context.Context, *connect_go.Request[v1beta1.AuthenticateRequest]) (*connect_go.Response[v1beta1.AuthenticateResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.Authenticate is not implemented"))
+func (UnimplementedFrontierServiceHandler) Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.Authenticate is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) AuthCallback(context.Context, *connect_go.Request[v1beta1.AuthCallbackRequest]) (*connect_go.Response[v1beta1.AuthCallbackResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AuthCallback is not implemented"))
+func (UnimplementedFrontierServiceHandler) AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AuthCallback is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) AuthToken(context.Context, *connect_go.Request[v1beta1.AuthTokenRequest]) (*connect_go.Response[v1beta1.AuthTokenResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AuthToken is not implemented"))
+func (UnimplementedFrontierServiceHandler) AuthToken(context.Context, *connect.Request[v1beta1.AuthTokenRequest]) (*connect.Response[v1beta1.AuthTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AuthToken is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) AuthLogout(context.Context, *connect_go.Request[v1beta1.AuthLogoutRequest]) (*connect_go.Response[v1beta1.AuthLogoutResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AuthLogout is not implemented"))
+func (UnimplementedFrontierServiceHandler) AuthLogout(context.Context, *connect.Request[v1beta1.AuthLogoutRequest]) (*connect.Response[v1beta1.AuthLogoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AuthLogout is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListMetaSchemas(context.Context, *connect_go.Request[v1beta1.ListMetaSchemasRequest]) (*connect_go.Response[v1beta1.ListMetaSchemasResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListMetaSchemas is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListMetaSchemas(context.Context, *connect.Request[v1beta1.ListMetaSchemasRequest]) (*connect.Response[v1beta1.ListMetaSchemasResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListMetaSchemas is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateMetaSchema(context.Context, *connect_go.Request[v1beta1.CreateMetaSchemaRequest]) (*connect_go.Response[v1beta1.CreateMetaSchemaResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateMetaSchema is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateMetaSchema(context.Context, *connect.Request[v1beta1.CreateMetaSchemaRequest]) (*connect.Response[v1beta1.CreateMetaSchemaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateMetaSchema is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetMetaSchema(context.Context, *connect_go.Request[v1beta1.GetMetaSchemaRequest]) (*connect_go.Response[v1beta1.GetMetaSchemaResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetMetaSchema is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetMetaSchema(context.Context, *connect.Request[v1beta1.GetMetaSchemaRequest]) (*connect.Response[v1beta1.GetMetaSchemaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetMetaSchema is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateMetaSchema(context.Context, *connect_go.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect_go.Response[v1beta1.UpdateMetaSchemaResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateMetaSchema(context.Context, *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteMetaSchema(context.Context, *connect_go.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect_go.Response[v1beta1.DeleteMetaSchemaResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationAuditLogs(context.Context, *connect_go.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.ListOrganizationAuditLogsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationAuditLogs is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationAuditLogs is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateOrganizationAuditLogs(context.Context, *connect_go.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect_go.Response[v1beta1.CreateOrganizationAuditLogsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationAuditLogs is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationAuditLogs is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetOrganizationAuditLog(context.Context, *connect_go.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect_go.Response[v1beta1.GetOrganizationAuditLogResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationAuditLog is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationAuditLog is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DescribePreferences(context.Context, *connect_go.Request[v1beta1.DescribePreferencesRequest]) (*connect_go.Response[v1beta1.DescribePreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DescribePreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DescribePreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateOrganizationPreferences(context.Context, *connect_go.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.CreateOrganizationPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateOrganizationPreferences(context.Context, *connect.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect.Response[v1beta1.CreateOrganizationPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListOrganizationPreferences(context.Context, *connect_go.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect_go.Response[v1beta1.ListOrganizationPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListOrganizationPreferences(context.Context, *connect.Request[v1beta1.ListOrganizationPreferencesRequest]) (*connect.Response[v1beta1.ListOrganizationPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateProjectPreferences(context.Context, *connect_go.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect_go.Response[v1beta1.CreateProjectPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateProjectPreferences(context.Context, *connect.Request[v1beta1.CreateProjectPreferencesRequest]) (*connect.Response[v1beta1.CreateProjectPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProjectPreferences(context.Context, *connect_go.Request[v1beta1.ListProjectPreferencesRequest]) (*connect_go.Response[v1beta1.ListProjectPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProjectPreferences(context.Context, *connect.Request[v1beta1.ListProjectPreferencesRequest]) (*connect.Response[v1beta1.ListProjectPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProjectPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateGroupPreferences(context.Context, *connect_go.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect_go.Response[v1beta1.CreateGroupPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateGroupPreferences(context.Context, *connect.Request[v1beta1.CreateGroupPreferencesRequest]) (*connect.Response[v1beta1.CreateGroupPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListGroupPreferences(context.Context, *connect_go.Request[v1beta1.ListGroupPreferencesRequest]) (*connect_go.Response[v1beta1.ListGroupPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListGroupPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListGroupPreferences(context.Context, *connect.Request[v1beta1.ListGroupPreferencesRequest]) (*connect.Response[v1beta1.ListGroupPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListGroupPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateUserPreferences(context.Context, *connect_go.Request[v1beta1.CreateUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateUserPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateUserPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateUserPreferences(context.Context, *connect.Request[v1beta1.CreateUserPreferencesRequest]) (*connect.Response[v1beta1.CreateUserPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateUserPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListUserPreferences(context.Context, *connect_go.Request[v1beta1.ListUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListUserPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUserPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListUserPreferences(context.Context, *connect.Request[v1beta1.ListUserPreferencesRequest]) (*connect.Response[v1beta1.ListUserPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListUserPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateCurrentUserPreferences(context.Context, *connect_go.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.CreateCurrentUserPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateCurrentUserPreferences(context.Context, *connect.Request[v1beta1.CreateCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.CreateCurrentUserPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListCurrentUserPreferences(context.Context, *connect_go.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect_go.Response[v1beta1.ListCurrentUserPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListCurrentUserPreferences(context.Context, *connect.Request[v1beta1.ListCurrentUserPreferencesRequest]) (*connect.Response[v1beta1.ListCurrentUserPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateBillingAccount(context.Context, *connect_go.Request[v1beta1.CreateBillingAccountRequest]) (*connect_go.Response[v1beta1.CreateBillingAccountResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateBillingAccount is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateBillingAccount(context.Context, *connect.Request[v1beta1.CreateBillingAccountRequest]) (*connect.Response[v1beta1.CreateBillingAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateBillingAccount is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetBillingAccount(context.Context, *connect_go.Request[v1beta1.GetBillingAccountRequest]) (*connect_go.Response[v1beta1.GetBillingAccountResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetBillingAccount is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetBillingAccount(context.Context, *connect.Request[v1beta1.GetBillingAccountRequest]) (*connect.Response[v1beta1.GetBillingAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetBillingAccount is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateBillingAccount(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateBillingAccount(context.Context, *connect.Request[v1beta1.UpdateBillingAccountRequest]) (*connect.Response[v1beta1.UpdateBillingAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) RegisterBillingAccount(context.Context, *connect_go.Request[v1beta1.RegisterBillingAccountRequest]) (*connect_go.Response[v1beta1.RegisterBillingAccountResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount is not implemented"))
+func (UnimplementedFrontierServiceHandler) RegisterBillingAccount(context.Context, *connect.Request[v1beta1.RegisterBillingAccountRequest]) (*connect.Response[v1beta1.RegisterBillingAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListBillingAccounts(context.Context, *connect_go.Request[v1beta1.ListBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListBillingAccountsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListBillingAccounts is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListBillingAccounts(context.Context, *connect.Request[v1beta1.ListBillingAccountsRequest]) (*connect.Response[v1beta1.ListBillingAccountsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListBillingAccounts is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DeleteBillingAccount(context.Context, *connect_go.Request[v1beta1.DeleteBillingAccountRequest]) (*connect_go.Response[v1beta1.DeleteBillingAccountResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount is not implemented"))
+func (UnimplementedFrontierServiceHandler) DeleteBillingAccount(context.Context, *connect.Request[v1beta1.DeleteBillingAccountRequest]) (*connect.Response[v1beta1.DeleteBillingAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) EnableBillingAccount(context.Context, *connect_go.Request[v1beta1.EnableBillingAccountRequest]) (*connect_go.Response[v1beta1.EnableBillingAccountResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableBillingAccount is not implemented"))
+func (UnimplementedFrontierServiceHandler) EnableBillingAccount(context.Context, *connect.Request[v1beta1.EnableBillingAccountRequest]) (*connect.Response[v1beta1.EnableBillingAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.EnableBillingAccount is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) DisableBillingAccount(context.Context, *connect_go.Request[v1beta1.DisableBillingAccountRequest]) (*connect_go.Response[v1beta1.DisableBillingAccountResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableBillingAccount is not implemented"))
+func (UnimplementedFrontierServiceHandler) DisableBillingAccount(context.Context, *connect.Request[v1beta1.DisableBillingAccountRequest]) (*connect.Response[v1beta1.DisableBillingAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DisableBillingAccount is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetBillingBalance(context.Context, *connect_go.Request[v1beta1.GetBillingBalanceRequest]) (*connect_go.Response[v1beta1.GetBillingBalanceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetBillingBalance is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetBillingBalance(context.Context, *connect.Request[v1beta1.GetBillingBalanceRequest]) (*connect.Response[v1beta1.GetBillingBalanceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetBillingBalance is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) HasTrialed(context.Context, *connect_go.Request[v1beta1.HasTrialedRequest]) (*connect_go.Response[v1beta1.HasTrialedResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.HasTrialed is not implemented"))
+func (UnimplementedFrontierServiceHandler) HasTrialed(context.Context, *connect.Request[v1beta1.HasTrialedRequest]) (*connect.Response[v1beta1.HasTrialedResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.HasTrialed is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetSubscription(context.Context, *connect_go.Request[v1beta1.GetSubscriptionRequest]) (*connect_go.Response[v1beta1.GetSubscriptionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetSubscription is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetSubscription(context.Context, *connect.Request[v1beta1.GetSubscriptionRequest]) (*connect.Response[v1beta1.GetSubscriptionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetSubscription is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CancelSubscription(context.Context, *connect_go.Request[v1beta1.CancelSubscriptionRequest]) (*connect_go.Response[v1beta1.CancelSubscriptionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CancelSubscription is not implemented"))
+func (UnimplementedFrontierServiceHandler) CancelSubscription(context.Context, *connect.Request[v1beta1.CancelSubscriptionRequest]) (*connect.Response[v1beta1.CancelSubscriptionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CancelSubscription is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListSubscriptions(context.Context, *connect_go.Request[v1beta1.ListSubscriptionsRequest]) (*connect_go.Response[v1beta1.ListSubscriptionsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListSubscriptions is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListSubscriptions(context.Context, *connect.Request[v1beta1.ListSubscriptionsRequest]) (*connect.Response[v1beta1.ListSubscriptionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListSubscriptions is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ChangeSubscription(context.Context, *connect_go.Request[v1beta1.ChangeSubscriptionRequest]) (*connect_go.Response[v1beta1.ChangeSubscriptionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ChangeSubscription is not implemented"))
+func (UnimplementedFrontierServiceHandler) ChangeSubscription(context.Context, *connect.Request[v1beta1.ChangeSubscriptionRequest]) (*connect.Response[v1beta1.ChangeSubscriptionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ChangeSubscription is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateSubscription(context.Context, *connect_go.Request[v1beta1.UpdateSubscriptionRequest]) (*connect_go.Response[v1beta1.UpdateSubscriptionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateSubscription is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateSubscription(context.Context, *connect.Request[v1beta1.UpdateSubscriptionRequest]) (*connect.Response[v1beta1.UpdateSubscriptionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateSubscription is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateProduct(context.Context, *connect_go.Request[v1beta1.CreateProductRequest]) (*connect_go.Response[v1beta1.CreateProductResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProduct is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateProduct(context.Context, *connect.Request[v1beta1.CreateProductRequest]) (*connect.Response[v1beta1.CreateProductResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProduct is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetProduct(context.Context, *connect_go.Request[v1beta1.GetProductRequest]) (*connect_go.Response[v1beta1.GetProductResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetProduct is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetProduct(context.Context, *connect.Request[v1beta1.GetProductRequest]) (*connect.Response[v1beta1.GetProductResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetProduct is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListProducts(context.Context, *connect_go.Request[v1beta1.ListProductsRequest]) (*connect_go.Response[v1beta1.ListProductsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProducts is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListProducts(context.Context, *connect.Request[v1beta1.ListProductsRequest]) (*connect.Response[v1beta1.ListProductsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListProducts is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateProduct(context.Context, *connect_go.Request[v1beta1.UpdateProductRequest]) (*connect_go.Response[v1beta1.UpdateProductResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateProduct is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateProduct(context.Context, *connect.Request[v1beta1.UpdateProductRequest]) (*connect.Response[v1beta1.UpdateProductResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateProduct is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateFeature(context.Context, *connect_go.Request[v1beta1.CreateFeatureRequest]) (*connect_go.Response[v1beta1.CreateFeatureResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateFeature is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateFeature(context.Context, *connect.Request[v1beta1.CreateFeatureRequest]) (*connect.Response[v1beta1.CreateFeatureResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateFeature is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetFeature(context.Context, *connect_go.Request[v1beta1.GetFeatureRequest]) (*connect_go.Response[v1beta1.GetFeatureResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetFeature is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetFeature(context.Context, *connect.Request[v1beta1.GetFeatureRequest]) (*connect.Response[v1beta1.GetFeatureResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetFeature is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdateFeature(context.Context, *connect_go.Request[v1beta1.UpdateFeatureRequest]) (*connect_go.Response[v1beta1.UpdateFeatureResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateFeature is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdateFeature(context.Context, *connect.Request[v1beta1.UpdateFeatureRequest]) (*connect.Response[v1beta1.UpdateFeatureResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateFeature is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListFeatures(context.Context, *connect_go.Request[v1beta1.ListFeaturesRequest]) (*connect_go.Response[v1beta1.ListFeaturesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListFeatures is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListFeatures(context.Context, *connect.Request[v1beta1.ListFeaturesRequest]) (*connect.Response[v1beta1.ListFeaturesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListFeatures is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreatePlan(context.Context, *connect_go.Request[v1beta1.CreatePlanRequest]) (*connect_go.Response[v1beta1.CreatePlanResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreatePlan is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreatePlan is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListPlans(context.Context, *connect_go.Request[v1beta1.ListPlansRequest]) (*connect_go.Response[v1beta1.ListPlansResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListPlans is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListPlans(context.Context, *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListPlans is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetPlan(context.Context, *connect_go.Request[v1beta1.GetPlanRequest]) (*connect_go.Response[v1beta1.GetPlanResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetPlan is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetPlan(context.Context, *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetPlan is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) UpdatePlan(context.Context, *connect_go.Request[v1beta1.UpdatePlanRequest]) (*connect_go.Response[v1beta1.UpdatePlanResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdatePlan is not implemented"))
+func (UnimplementedFrontierServiceHandler) UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdatePlan is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateCheckout(context.Context, *connect_go.Request[v1beta1.CreateCheckoutRequest]) (*connect_go.Response[v1beta1.CreateCheckoutResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateCheckout is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateCheckout(context.Context, *connect.Request[v1beta1.CreateCheckoutRequest]) (*connect.Response[v1beta1.CreateCheckoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateCheckout is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListCheckouts(context.Context, *connect_go.Request[v1beta1.ListCheckoutsRequest]) (*connect_go.Response[v1beta1.ListCheckoutsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCheckouts is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListCheckouts(context.Context, *connect.Request[v1beta1.ListCheckoutsRequest]) (*connect.Response[v1beta1.ListCheckoutsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCheckouts is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetCheckout(context.Context, *connect_go.Request[v1beta1.GetCheckoutRequest]) (*connect_go.Response[v1beta1.GetCheckoutResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetCheckout is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetCheckout(context.Context, *connect.Request[v1beta1.GetCheckoutRequest]) (*connect.Response[v1beta1.GetCheckoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetCheckout is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CheckFeatureEntitlement(context.Context, *connect_go.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect_go.Response[v1beta1.CheckFeatureEntitlementResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement is not implemented"))
+func (UnimplementedFrontierServiceHandler) CheckFeatureEntitlement(context.Context, *connect.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[v1beta1.CheckFeatureEntitlementResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateBillingUsage(context.Context, *connect_go.Request[v1beta1.CreateBillingUsageRequest]) (*connect_go.Response[v1beta1.CreateBillingUsageResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateBillingUsage is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateBillingUsage is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListBillingTransactions(context.Context, *connect_go.Request[v1beta1.ListBillingTransactionsRequest]) (*connect_go.Response[v1beta1.ListBillingTransactionsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListBillingTransactions is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListBillingTransactions(context.Context, *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListBillingTransactions is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) TotalDebitedTransactions(context.Context, *connect_go.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect_go.Response[v1beta1.TotalDebitedTransactionsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions is not implemented"))
+func (UnimplementedFrontierServiceHandler) TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListInvoices(context.Context, *connect_go.Request[v1beta1.ListInvoicesRequest]) (*connect_go.Response[v1beta1.ListInvoicesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListInvoices is not implemented"))
+func (UnimplementedFrontierServiceHandler) ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListInvoices is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) GetUpcomingInvoice(context.Context, *connect_go.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect_go.Response[v1beta1.GetUpcomingInvoiceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice is not implemented"))
+func (UnimplementedFrontierServiceHandler) GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) BillingWebhookCallback(context.Context, *connect_go.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect_go.Response[v1beta1.BillingWebhookCallbackResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback is not implemented"))
+func (UnimplementedFrontierServiceHandler) BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateProspectPublic(context.Context, *connect_go.Request[v1beta1.CreateProspectPublicRequest]) (*connect_go.Response[v1beta1.CreateProspectPublicResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProspectPublic is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateProspectPublic(context.Context, *connect.Request[v1beta1.CreateProspectPublicRequest]) (*connect.Response[v1beta1.CreateProspectPublicResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProspectPublic is not implemented"))
 }

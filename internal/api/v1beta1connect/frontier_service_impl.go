@@ -3,7 +3,7 @@ package v1beta1connect
 import (
 	"context"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 

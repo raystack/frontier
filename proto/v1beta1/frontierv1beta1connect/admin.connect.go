@@ -5,9 +5,9 @@
 package frontierv1beta1connect
 
 import (
+	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	connect_go "github.com/bufbuild/connect-go"
 	v1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	http "net/http"
@@ -19,7 +19,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect_go.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// AdminServiceName is the fully-qualified name of the AdminService service.
@@ -197,88 +197,88 @@ const (
 // AdminServiceClient is a client for the raystack.frontier.v1beta1.AdminService service.
 type AdminServiceClient interface {
 	// Users
-	ListAllUsers(context.Context, *connect_go.Request[v1beta1.ListAllUsersRequest]) (*connect_go.Response[v1beta1.ListAllUsersResponse], error)
+	ListAllUsers(context.Context, *connect.Request[v1beta1.ListAllUsersRequest]) (*connect.Response[v1beta1.ListAllUsersResponse], error)
 	// Group
-	ListGroups(context.Context, *connect_go.Request[v1beta1.ListGroupsRequest]) (*connect_go.Response[v1beta1.ListGroupsResponse], error)
+	ListGroups(context.Context, *connect.Request[v1beta1.ListGroupsRequest]) (*connect.Response[v1beta1.ListGroupsResponse], error)
 	// Organizations
-	ListAllOrganizations(context.Context, *connect_go.Request[v1beta1.ListAllOrganizationsRequest]) (*connect_go.Response[v1beta1.ListAllOrganizationsResponse], error)
-	AdminCreateOrganization(context.Context, *connect_go.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect_go.Response[v1beta1.AdminCreateOrganizationResponse], error)
-	SearchOrganizations(context.Context, *connect_go.Request[v1beta1.SearchOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationsResponse], error)
-	SearchOrganizationUsers(context.Context, *connect_go.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect_go.Response[v1beta1.SearchOrganizationUsersResponse], error)
-	SearchProjectUsers(context.Context, *connect_go.Request[v1beta1.SearchProjectUsersRequest]) (*connect_go.Response[v1beta1.SearchProjectUsersResponse], error)
-	SearchOrganizationProjects(context.Context, *connect_go.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationInvoices(context.Context, *connect_go.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect_go.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
-	SearchOrganizationTokens(context.Context, *connect_go.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect_go.Response[v1beta1.SearchOrganizationTokensResponse], error)
-	SearchOrganizationServiceUserCredentials(context.Context, *connect_go.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
+	ListAllOrganizations(context.Context, *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error)
+	AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error)
+	SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error)
+	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
+	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
+	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
+	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
+	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
+	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizations(context.Context, *connect_go.Request[v1beta1.ExportOrganizationsRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error)
+	ExportOrganizations(context.Context, *connect.Request[v1beta1.ExportOrganizationsRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizationUsers(context.Context, *connect_go.Request[v1beta1.ExportOrganizationUsersRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error)
+	ExportOrganizationUsers(context.Context, *connect.Request[v1beta1.ExportOrganizationUsersRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizationProjects(context.Context, *connect_go.Request[v1beta1.ExportOrganizationProjectsRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error)
+	ExportOrganizationProjects(context.Context, *connect.Request[v1beta1.ExportOrganizationProjectsRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizationTokens(context.Context, *connect_go.Request[v1beta1.ExportOrganizationTokensRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error)
+	ExportOrganizationTokens(context.Context, *connect.Request[v1beta1.ExportOrganizationTokensRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportUsers(context.Context, *connect_go.Request[v1beta1.ExportUsersRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error)
-	SearchUsers(context.Context, *connect_go.Request[v1beta1.SearchUsersRequest]) (*connect_go.Response[v1beta1.SearchUsersResponse], error)
-	SearchUserOrganizations(context.Context, *connect_go.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchUserOrganizationsResponse], error)
-	SearchUserProjects(context.Context, *connect_go.Request[v1beta1.SearchUserProjectsRequest]) (*connect_go.Response[v1beta1.SearchUserProjectsResponse], error)
-	SetOrganizationKyc(context.Context, *connect_go.Request[v1beta1.SetOrganizationKycRequest]) (*connect_go.Response[v1beta1.SetOrganizationKycResponse], error)
-	ListOrganizationsKyc(context.Context, *connect_go.Request[v1beta1.ListOrganizationsKycRequest]) (*connect_go.Response[v1beta1.ListOrganizationsKycResponse], error)
+	ExportUsers(context.Context, *connect.Request[v1beta1.ExportUsersRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
+	SearchUsers(context.Context, *connect.Request[v1beta1.SearchUsersRequest]) (*connect.Response[v1beta1.SearchUsersResponse], error)
+	SearchUserOrganizations(context.Context, *connect.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect.Response[v1beta1.SearchUserOrganizationsResponse], error)
+	SearchUserProjects(context.Context, *connect.Request[v1beta1.SearchUserProjectsRequest]) (*connect.Response[v1beta1.SearchUserProjectsResponse], error)
+	SetOrganizationKyc(context.Context, *connect.Request[v1beta1.SetOrganizationKycRequest]) (*connect.Response[v1beta1.SetOrganizationKycResponse], error)
+	ListOrganizationsKyc(context.Context, *connect.Request[v1beta1.ListOrganizationsKycRequest]) (*connect.Response[v1beta1.ListOrganizationsKycResponse], error)
 	// Projects
-	ListProjects(context.Context, *connect_go.Request[v1beta1.ListProjectsRequest]) (*connect_go.Response[v1beta1.ListProjectsResponse], error)
+	ListProjects(context.Context, *connect.Request[v1beta1.ListProjectsRequest]) (*connect.Response[v1beta1.ListProjectsResponse], error)
 	// Relations
-	ListRelations(context.Context, *connect_go.Request[v1beta1.ListRelationsRequest]) (*connect_go.Response[v1beta1.ListRelationsResponse], error)
+	ListRelations(context.Context, *connect.Request[v1beta1.ListRelationsRequest]) (*connect.Response[v1beta1.ListRelationsResponse], error)
 	// Resources
-	ListResources(context.Context, *connect_go.Request[v1beta1.ListResourcesRequest]) (*connect_go.Response[v1beta1.ListResourcesResponse], error)
+	ListResources(context.Context, *connect.Request[v1beta1.ListResourcesRequest]) (*connect.Response[v1beta1.ListResourcesResponse], error)
 	// Roles
-	CreateRole(context.Context, *connect_go.Request[v1beta1.CreateRoleRequest]) (*connect_go.Response[v1beta1.CreateRoleResponse], error)
-	UpdateRole(context.Context, *connect_go.Request[v1beta1.UpdateRoleRequest]) (*connect_go.Response[v1beta1.UpdateRoleResponse], error)
-	DeleteRole(context.Context, *connect_go.Request[v1beta1.DeleteRoleRequest]) (*connect_go.Response[v1beta1.DeleteRoleResponse], error)
+	CreateRole(context.Context, *connect.Request[v1beta1.CreateRoleRequest]) (*connect.Response[v1beta1.CreateRoleResponse], error)
+	UpdateRole(context.Context, *connect.Request[v1beta1.UpdateRoleRequest]) (*connect.Response[v1beta1.UpdateRoleResponse], error)
+	DeleteRole(context.Context, *connect.Request[v1beta1.DeleteRoleRequest]) (*connect.Response[v1beta1.DeleteRoleResponse], error)
 	// Permissions
-	CreatePermission(context.Context, *connect_go.Request[v1beta1.CreatePermissionRequest]) (*connect_go.Response[v1beta1.CreatePermissionResponse], error)
-	UpdatePermission(context.Context, *connect_go.Request[v1beta1.UpdatePermissionRequest]) (*connect_go.Response[v1beta1.UpdatePermissionResponse], error)
-	DeletePermission(context.Context, *connect_go.Request[v1beta1.DeletePermissionRequest]) (*connect_go.Response[v1beta1.DeletePermissionResponse], error)
+	CreatePermission(context.Context, *connect.Request[v1beta1.CreatePermissionRequest]) (*connect.Response[v1beta1.CreatePermissionResponse], error)
+	UpdatePermission(context.Context, *connect.Request[v1beta1.UpdatePermissionRequest]) (*connect.Response[v1beta1.UpdatePermissionResponse], error)
+	DeletePermission(context.Context, *connect.Request[v1beta1.DeletePermissionRequest]) (*connect.Response[v1beta1.DeletePermissionResponse], error)
 	// Preferences
-	ListPreferences(context.Context, *connect_go.Request[v1beta1.ListPreferencesRequest]) (*connect_go.Response[v1beta1.ListPreferencesResponse], error)
-	CreatePreferences(context.Context, *connect_go.Request[v1beta1.CreatePreferencesRequest]) (*connect_go.Response[v1beta1.CreatePreferencesResponse], error)
+	ListPreferences(context.Context, *connect.Request[v1beta1.ListPreferencesRequest]) (*connect.Response[v1beta1.ListPreferencesResponse], error)
+	CreatePreferences(context.Context, *connect.Request[v1beta1.CreatePreferencesRequest]) (*connect.Response[v1beta1.CreatePreferencesResponse], error)
 	// Check
-	CheckFederatedResourcePermission(context.Context, *connect_go.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckFederatedResourcePermissionResponse], error)
+	CheckFederatedResourcePermission(context.Context, *connect.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect.Response[v1beta1.CheckFederatedResourcePermissionResponse], error)
 	// Platform
-	AddPlatformUser(context.Context, *connect_go.Request[v1beta1.AddPlatformUserRequest]) (*connect_go.Response[v1beta1.AddPlatformUserResponse], error)
-	ListPlatformUsers(context.Context, *connect_go.Request[v1beta1.ListPlatformUsersRequest]) (*connect_go.Response[v1beta1.ListPlatformUsersResponse], error)
-	RemovePlatformUser(context.Context, *connect_go.Request[v1beta1.RemovePlatformUserRequest]) (*connect_go.Response[v1beta1.RemovePlatformUserResponse], error)
+	AddPlatformUser(context.Context, *connect.Request[v1beta1.AddPlatformUserRequest]) (*connect.Response[v1beta1.AddPlatformUserResponse], error)
+	ListPlatformUsers(context.Context, *connect.Request[v1beta1.ListPlatformUsersRequest]) (*connect.Response[v1beta1.ListPlatformUsersResponse], error)
+	RemovePlatformUser(context.Context, *connect.Request[v1beta1.RemovePlatformUserRequest]) (*connect.Response[v1beta1.RemovePlatformUserResponse], error)
 	// Checkout
-	DelegatedCheckout(context.Context, *connect_go.Request[v1beta1.DelegatedCheckoutRequest]) (*connect_go.Response[v1beta1.DelegatedCheckoutResponse], error)
-	ListAllInvoices(context.Context, *connect_go.Request[v1beta1.ListAllInvoicesRequest]) (*connect_go.Response[v1beta1.ListAllInvoicesResponse], error)
-	GenerateInvoices(context.Context, *connect_go.Request[v1beta1.GenerateInvoicesRequest]) (*connect_go.Response[v1beta1.GenerateInvoicesResponse], error)
-	ListAllBillingAccounts(context.Context, *connect_go.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListAllBillingAccountsResponse], error)
+	DelegatedCheckout(context.Context, *connect.Request[v1beta1.DelegatedCheckoutRequest]) (*connect.Response[v1beta1.DelegatedCheckoutResponse], error)
+	ListAllInvoices(context.Context, *connect.Request[v1beta1.ListAllInvoicesRequest]) (*connect.Response[v1beta1.ListAllInvoicesResponse], error)
+	GenerateInvoices(context.Context, *connect.Request[v1beta1.GenerateInvoicesRequest]) (*connect.Response[v1beta1.GenerateInvoicesResponse], error)
+	ListAllBillingAccounts(context.Context, *connect.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect.Response[v1beta1.ListAllBillingAccountsResponse], error)
 	// Usage
-	RevertBillingUsage(context.Context, *connect_go.Request[v1beta1.RevertBillingUsageRequest]) (*connect_go.Response[v1beta1.RevertBillingUsageResponse], error)
+	RevertBillingUsage(context.Context, *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error)
 	// Webhooks
-	CreateWebhook(context.Context, *connect_go.Request[v1beta1.CreateWebhookRequest]) (*connect_go.Response[v1beta1.CreateWebhookResponse], error)
-	UpdateWebhook(context.Context, *connect_go.Request[v1beta1.UpdateWebhookRequest]) (*connect_go.Response[v1beta1.UpdateWebhookResponse], error)
-	DeleteWebhook(context.Context, *connect_go.Request[v1beta1.DeleteWebhookRequest]) (*connect_go.Response[v1beta1.DeleteWebhookResponse], error)
-	ListWebhooks(context.Context, *connect_go.Request[v1beta1.ListWebhooksRequest]) (*connect_go.Response[v1beta1.ListWebhooksResponse], error)
+	CreateWebhook(context.Context, *connect.Request[v1beta1.CreateWebhookRequest]) (*connect.Response[v1beta1.CreateWebhookResponse], error)
+	UpdateWebhook(context.Context, *connect.Request[v1beta1.UpdateWebhookRequest]) (*connect.Response[v1beta1.UpdateWebhookResponse], error)
+	DeleteWebhook(context.Context, *connect.Request[v1beta1.DeleteWebhookRequest]) (*connect.Response[v1beta1.DeleteWebhookResponse], error)
+	ListWebhooks(context.Context, *connect.Request[v1beta1.ListWebhooksRequest]) (*connect.Response[v1beta1.ListWebhooksResponse], error)
 	// Billing Account
 	//
 	// Deprecated: do not use.
-	UpdateBillingAccountLimits(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountLimitsResponse], error)
+	UpdateBillingAccountLimits(context.Context, *connect.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountLimitsResponse], error)
 	// GetBillingAccountDetails returns the billing account details that can be updated via UpdateBillingAccountDetails
-	GetBillingAccountDetails(context.Context, *connect_go.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.GetBillingAccountDetailsResponse], error)
-	UpdateBillingAccountDetails(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountDetailsResponse], error)
+	GetBillingAccountDetails(context.Context, *connect.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect.Response[v1beta1.GetBillingAccountDetailsResponse], error)
+	UpdateBillingAccountDetails(context.Context, *connect.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountDetailsResponse], error)
 	// Prospects
-	CreateProspect(context.Context, *connect_go.Request[v1beta1.CreateProspectRequest]) (*connect_go.Response[v1beta1.CreateProspectResponse], error)
-	ListProspects(context.Context, *connect_go.Request[v1beta1.ListProspectsRequest]) (*connect_go.Response[v1beta1.ListProspectsResponse], error)
-	GetProspect(context.Context, *connect_go.Request[v1beta1.GetProspectRequest]) (*connect_go.Response[v1beta1.GetProspectResponse], error)
-	UpdateProspect(context.Context, *connect_go.Request[v1beta1.UpdateProspectRequest]) (*connect_go.Response[v1beta1.UpdateProspectResponse], error)
-	DeleteProspect(context.Context, *connect_go.Request[v1beta1.DeleteProspectRequest]) (*connect_go.Response[v1beta1.DeleteProspectResponse], error)
-	SearchInvoices(context.Context, *connect_go.Request[v1beta1.SearchInvoicesRequest]) (*connect_go.Response[v1beta1.SearchInvoicesResponse], error)
+	CreateProspect(context.Context, *connect.Request[v1beta1.CreateProspectRequest]) (*connect.Response[v1beta1.CreateProspectResponse], error)
+	ListProspects(context.Context, *connect.Request[v1beta1.ListProspectsRequest]) (*connect.Response[v1beta1.ListProspectsResponse], error)
+	GetProspect(context.Context, *connect.Request[v1beta1.GetProspectRequest]) (*connect.Response[v1beta1.GetProspectResponse], error)
+	UpdateProspect(context.Context, *connect.Request[v1beta1.UpdateProspectRequest]) (*connect.Response[v1beta1.UpdateProspectResponse], error)
+	DeleteProspect(context.Context, *connect.Request[v1beta1.DeleteProspectRequest]) (*connect.Response[v1beta1.DeleteProspectResponse], error)
+	SearchInvoices(context.Context, *connect.Request[v1beta1.SearchInvoicesRequest]) (*connect.Response[v1beta1.SearchInvoicesResponse], error)
 }
 
 // NewAdminServiceClient constructs a client for the raystack.frontier.v1beta1.AdminService service.
@@ -288,567 +288,622 @@ type AdminServiceClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewAdminServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) AdminServiceClient {
+func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AdminServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	adminServiceMethods := v1beta1.File_raystack_frontier_v1beta1_admin_proto.Services().ByName("AdminService").Methods()
 	return &adminServiceClient{
-		listAllUsers: connect_go.NewClient[v1beta1.ListAllUsersRequest, v1beta1.ListAllUsersResponse](
+		listAllUsers: connect.NewClient[v1beta1.ListAllUsersRequest, v1beta1.ListAllUsersResponse](
 			httpClient,
 			baseURL+AdminServiceListAllUsersProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListAllUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		listGroups: connect_go.NewClient[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse](
+		listGroups: connect.NewClient[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse](
 			httpClient,
 			baseURL+AdminServiceListGroupsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListGroups")),
+			connect.WithClientOptions(opts...),
 		),
-		listAllOrganizations: connect_go.NewClient[v1beta1.ListAllOrganizationsRequest, v1beta1.ListAllOrganizationsResponse](
+		listAllOrganizations: connect.NewClient[v1beta1.ListAllOrganizationsRequest, v1beta1.ListAllOrganizationsResponse](
 			httpClient,
 			baseURL+AdminServiceListAllOrganizationsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListAllOrganizations")),
+			connect.WithClientOptions(opts...),
 		),
-		adminCreateOrganization: connect_go.NewClient[v1beta1.AdminCreateOrganizationRequest, v1beta1.AdminCreateOrganizationResponse](
+		adminCreateOrganization: connect.NewClient[v1beta1.AdminCreateOrganizationRequest, v1beta1.AdminCreateOrganizationResponse](
 			httpClient,
 			baseURL+AdminServiceAdminCreateOrganizationProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("AdminCreateOrganization")),
+			connect.WithClientOptions(opts...),
 		),
-		searchOrganizations: connect_go.NewClient[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse](
+		searchOrganizations: connect.NewClient[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse](
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizations")),
+			connect.WithClientOptions(opts...),
 		),
-		searchOrganizationUsers: connect_go.NewClient[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse](
+		searchOrganizationUsers: connect.NewClient[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse](
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationUsersProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		searchProjectUsers: connect_go.NewClient[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse](
+		searchProjectUsers: connect.NewClient[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse](
 			httpClient,
 			baseURL+AdminServiceSearchProjectUsersProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchProjectUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		searchOrganizationProjects: connect_go.NewClient[v1beta1.SearchOrganizationProjectsRequest, v1beta1.SearchOrganizationProjectsResponse](
+		searchOrganizationProjects: connect.NewClient[v1beta1.SearchOrganizationProjectsRequest, v1beta1.SearchOrganizationProjectsResponse](
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationProjectsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
+			connect.WithClientOptions(opts...),
 		),
-		searchOrganizationInvoices: connect_go.NewClient[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse](
+		searchOrganizationInvoices: connect.NewClient[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse](
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationInvoicesProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationInvoices")),
+			connect.WithClientOptions(opts...),
 		),
-		searchOrganizationTokens: connect_go.NewClient[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse](
+		searchOrganizationTokens: connect.NewClient[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse](
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationTokensProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationTokens")),
+			connect.WithClientOptions(opts...),
 		),
-		searchOrganizationServiceUserCredentials: connect_go.NewClient[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse](
+		searchOrganizationServiceUserCredentials: connect.NewClient[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse](
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationServiceUserCredentialsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationServiceUserCredentials")),
+			connect.WithClientOptions(opts...),
 		),
-		exportOrganizations: connect_go.NewClient[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody](
+		exportOrganizations: connect.NewClient[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody](
 			httpClient,
 			baseURL+AdminServiceExportOrganizationsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ExportOrganizations")),
+			connect.WithClientOptions(opts...),
 		),
-		exportOrganizationUsers: connect_go.NewClient[v1beta1.ExportOrganizationUsersRequest, httpbody.HttpBody](
+		exportOrganizationUsers: connect.NewClient[v1beta1.ExportOrganizationUsersRequest, httpbody.HttpBody](
 			httpClient,
 			baseURL+AdminServiceExportOrganizationUsersProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ExportOrganizationUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		exportOrganizationProjects: connect_go.NewClient[v1beta1.ExportOrganizationProjectsRequest, httpbody.HttpBody](
+		exportOrganizationProjects: connect.NewClient[v1beta1.ExportOrganizationProjectsRequest, httpbody.HttpBody](
 			httpClient,
 			baseURL+AdminServiceExportOrganizationProjectsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ExportOrganizationProjects")),
+			connect.WithClientOptions(opts...),
 		),
-		exportOrganizationTokens: connect_go.NewClient[v1beta1.ExportOrganizationTokensRequest, httpbody.HttpBody](
+		exportOrganizationTokens: connect.NewClient[v1beta1.ExportOrganizationTokensRequest, httpbody.HttpBody](
 			httpClient,
 			baseURL+AdminServiceExportOrganizationTokensProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ExportOrganizationTokens")),
+			connect.WithClientOptions(opts...),
 		),
-		exportUsers: connect_go.NewClient[v1beta1.ExportUsersRequest, httpbody.HttpBody](
+		exportUsers: connect.NewClient[v1beta1.ExportUsersRequest, httpbody.HttpBody](
 			httpClient,
 			baseURL+AdminServiceExportUsersProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ExportUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		searchUsers: connect_go.NewClient[v1beta1.SearchUsersRequest, v1beta1.SearchUsersResponse](
+		searchUsers: connect.NewClient[v1beta1.SearchUsersRequest, v1beta1.SearchUsersResponse](
 			httpClient,
 			baseURL+AdminServiceSearchUsersProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		searchUserOrganizations: connect_go.NewClient[v1beta1.SearchUserOrganizationsRequest, v1beta1.SearchUserOrganizationsResponse](
+		searchUserOrganizations: connect.NewClient[v1beta1.SearchUserOrganizationsRequest, v1beta1.SearchUserOrganizationsResponse](
 			httpClient,
 			baseURL+AdminServiceSearchUserOrganizationsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchUserOrganizations")),
+			connect.WithClientOptions(opts...),
 		),
-		searchUserProjects: connect_go.NewClient[v1beta1.SearchUserProjectsRequest, v1beta1.SearchUserProjectsResponse](
+		searchUserProjects: connect.NewClient[v1beta1.SearchUserProjectsRequest, v1beta1.SearchUserProjectsResponse](
 			httpClient,
 			baseURL+AdminServiceSearchUserProjectsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchUserProjects")),
+			connect.WithClientOptions(opts...),
 		),
-		setOrganizationKyc: connect_go.NewClient[v1beta1.SetOrganizationKycRequest, v1beta1.SetOrganizationKycResponse](
+		setOrganizationKyc: connect.NewClient[v1beta1.SetOrganizationKycRequest, v1beta1.SetOrganizationKycResponse](
 			httpClient,
 			baseURL+AdminServiceSetOrganizationKycProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SetOrganizationKyc")),
+			connect.WithClientOptions(opts...),
 		),
-		listOrganizationsKyc: connect_go.NewClient[v1beta1.ListOrganizationsKycRequest, v1beta1.ListOrganizationsKycResponse](
+		listOrganizationsKyc: connect.NewClient[v1beta1.ListOrganizationsKycRequest, v1beta1.ListOrganizationsKycResponse](
 			httpClient,
 			baseURL+AdminServiceListOrganizationsKycProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListOrganizationsKyc")),
+			connect.WithClientOptions(opts...),
 		),
-		listProjects: connect_go.NewClient[v1beta1.ListProjectsRequest, v1beta1.ListProjectsResponse](
+		listProjects: connect.NewClient[v1beta1.ListProjectsRequest, v1beta1.ListProjectsResponse](
 			httpClient,
 			baseURL+AdminServiceListProjectsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListProjects")),
+			connect.WithClientOptions(opts...),
 		),
-		listRelations: connect_go.NewClient[v1beta1.ListRelationsRequest, v1beta1.ListRelationsResponse](
+		listRelations: connect.NewClient[v1beta1.ListRelationsRequest, v1beta1.ListRelationsResponse](
 			httpClient,
 			baseURL+AdminServiceListRelationsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListRelations")),
+			connect.WithClientOptions(opts...),
 		),
-		listResources: connect_go.NewClient[v1beta1.ListResourcesRequest, v1beta1.ListResourcesResponse](
+		listResources: connect.NewClient[v1beta1.ListResourcesRequest, v1beta1.ListResourcesResponse](
 			httpClient,
 			baseURL+AdminServiceListResourcesProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListResources")),
+			connect.WithClientOptions(opts...),
 		),
-		createRole: connect_go.NewClient[v1beta1.CreateRoleRequest, v1beta1.CreateRoleResponse](
+		createRole: connect.NewClient[v1beta1.CreateRoleRequest, v1beta1.CreateRoleResponse](
 			httpClient,
 			baseURL+AdminServiceCreateRoleProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("CreateRole")),
+			connect.WithClientOptions(opts...),
 		),
-		updateRole: connect_go.NewClient[v1beta1.UpdateRoleRequest, v1beta1.UpdateRoleResponse](
+		updateRole: connect.NewClient[v1beta1.UpdateRoleRequest, v1beta1.UpdateRoleResponse](
 			httpClient,
 			baseURL+AdminServiceUpdateRoleProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("UpdateRole")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteRole: connect_go.NewClient[v1beta1.DeleteRoleRequest, v1beta1.DeleteRoleResponse](
+		deleteRole: connect.NewClient[v1beta1.DeleteRoleRequest, v1beta1.DeleteRoleResponse](
 			httpClient,
 			baseURL+AdminServiceDeleteRoleProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("DeleteRole")),
+			connect.WithClientOptions(opts...),
 		),
-		createPermission: connect_go.NewClient[v1beta1.CreatePermissionRequest, v1beta1.CreatePermissionResponse](
+		createPermission: connect.NewClient[v1beta1.CreatePermissionRequest, v1beta1.CreatePermissionResponse](
 			httpClient,
 			baseURL+AdminServiceCreatePermissionProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("CreatePermission")),
+			connect.WithClientOptions(opts...),
 		),
-		updatePermission: connect_go.NewClient[v1beta1.UpdatePermissionRequest, v1beta1.UpdatePermissionResponse](
+		updatePermission: connect.NewClient[v1beta1.UpdatePermissionRequest, v1beta1.UpdatePermissionResponse](
 			httpClient,
 			baseURL+AdminServiceUpdatePermissionProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("UpdatePermission")),
+			connect.WithClientOptions(opts...),
 		),
-		deletePermission: connect_go.NewClient[v1beta1.DeletePermissionRequest, v1beta1.DeletePermissionResponse](
+		deletePermission: connect.NewClient[v1beta1.DeletePermissionRequest, v1beta1.DeletePermissionResponse](
 			httpClient,
 			baseURL+AdminServiceDeletePermissionProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("DeletePermission")),
+			connect.WithClientOptions(opts...),
 		),
-		listPreferences: connect_go.NewClient[v1beta1.ListPreferencesRequest, v1beta1.ListPreferencesResponse](
+		listPreferences: connect.NewClient[v1beta1.ListPreferencesRequest, v1beta1.ListPreferencesResponse](
 			httpClient,
 			baseURL+AdminServiceListPreferencesProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListPreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		createPreferences: connect_go.NewClient[v1beta1.CreatePreferencesRequest, v1beta1.CreatePreferencesResponse](
+		createPreferences: connect.NewClient[v1beta1.CreatePreferencesRequest, v1beta1.CreatePreferencesResponse](
 			httpClient,
 			baseURL+AdminServiceCreatePreferencesProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("CreatePreferences")),
+			connect.WithClientOptions(opts...),
 		),
-		checkFederatedResourcePermission: connect_go.NewClient[v1beta1.CheckFederatedResourcePermissionRequest, v1beta1.CheckFederatedResourcePermissionResponse](
+		checkFederatedResourcePermission: connect.NewClient[v1beta1.CheckFederatedResourcePermissionRequest, v1beta1.CheckFederatedResourcePermissionResponse](
 			httpClient,
 			baseURL+AdminServiceCheckFederatedResourcePermissionProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("CheckFederatedResourcePermission")),
+			connect.WithClientOptions(opts...),
 		),
-		addPlatformUser: connect_go.NewClient[v1beta1.AddPlatformUserRequest, v1beta1.AddPlatformUserResponse](
+		addPlatformUser: connect.NewClient[v1beta1.AddPlatformUserRequest, v1beta1.AddPlatformUserResponse](
 			httpClient,
 			baseURL+AdminServiceAddPlatformUserProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("AddPlatformUser")),
+			connect.WithClientOptions(opts...),
 		),
-		listPlatformUsers: connect_go.NewClient[v1beta1.ListPlatformUsersRequest, v1beta1.ListPlatformUsersResponse](
+		listPlatformUsers: connect.NewClient[v1beta1.ListPlatformUsersRequest, v1beta1.ListPlatformUsersResponse](
 			httpClient,
 			baseURL+AdminServiceListPlatformUsersProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListPlatformUsers")),
+			connect.WithClientOptions(opts...),
 		),
-		removePlatformUser: connect_go.NewClient[v1beta1.RemovePlatformUserRequest, v1beta1.RemovePlatformUserResponse](
+		removePlatformUser: connect.NewClient[v1beta1.RemovePlatformUserRequest, v1beta1.RemovePlatformUserResponse](
 			httpClient,
 			baseURL+AdminServiceRemovePlatformUserProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("RemovePlatformUser")),
+			connect.WithClientOptions(opts...),
 		),
-		delegatedCheckout: connect_go.NewClient[v1beta1.DelegatedCheckoutRequest, v1beta1.DelegatedCheckoutResponse](
+		delegatedCheckout: connect.NewClient[v1beta1.DelegatedCheckoutRequest, v1beta1.DelegatedCheckoutResponse](
 			httpClient,
 			baseURL+AdminServiceDelegatedCheckoutProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("DelegatedCheckout")),
+			connect.WithClientOptions(opts...),
 		),
-		listAllInvoices: connect_go.NewClient[v1beta1.ListAllInvoicesRequest, v1beta1.ListAllInvoicesResponse](
+		listAllInvoices: connect.NewClient[v1beta1.ListAllInvoicesRequest, v1beta1.ListAllInvoicesResponse](
 			httpClient,
 			baseURL+AdminServiceListAllInvoicesProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListAllInvoices")),
+			connect.WithClientOptions(opts...),
 		),
-		generateInvoices: connect_go.NewClient[v1beta1.GenerateInvoicesRequest, v1beta1.GenerateInvoicesResponse](
+		generateInvoices: connect.NewClient[v1beta1.GenerateInvoicesRequest, v1beta1.GenerateInvoicesResponse](
 			httpClient,
 			baseURL+AdminServiceGenerateInvoicesProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("GenerateInvoices")),
+			connect.WithClientOptions(opts...),
 		),
-		listAllBillingAccounts: connect_go.NewClient[v1beta1.ListAllBillingAccountsRequest, v1beta1.ListAllBillingAccountsResponse](
+		listAllBillingAccounts: connect.NewClient[v1beta1.ListAllBillingAccountsRequest, v1beta1.ListAllBillingAccountsResponse](
 			httpClient,
 			baseURL+AdminServiceListAllBillingAccountsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListAllBillingAccounts")),
+			connect.WithClientOptions(opts...),
 		),
-		revertBillingUsage: connect_go.NewClient[v1beta1.RevertBillingUsageRequest, v1beta1.RevertBillingUsageResponse](
+		revertBillingUsage: connect.NewClient[v1beta1.RevertBillingUsageRequest, v1beta1.RevertBillingUsageResponse](
 			httpClient,
 			baseURL+AdminServiceRevertBillingUsageProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("RevertBillingUsage")),
+			connect.WithClientOptions(opts...),
 		),
-		createWebhook: connect_go.NewClient[v1beta1.CreateWebhookRequest, v1beta1.CreateWebhookResponse](
+		createWebhook: connect.NewClient[v1beta1.CreateWebhookRequest, v1beta1.CreateWebhookResponse](
 			httpClient,
 			baseURL+AdminServiceCreateWebhookProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("CreateWebhook")),
+			connect.WithClientOptions(opts...),
 		),
-		updateWebhook: connect_go.NewClient[v1beta1.UpdateWebhookRequest, v1beta1.UpdateWebhookResponse](
+		updateWebhook: connect.NewClient[v1beta1.UpdateWebhookRequest, v1beta1.UpdateWebhookResponse](
 			httpClient,
 			baseURL+AdminServiceUpdateWebhookProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("UpdateWebhook")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteWebhook: connect_go.NewClient[v1beta1.DeleteWebhookRequest, v1beta1.DeleteWebhookResponse](
+		deleteWebhook: connect.NewClient[v1beta1.DeleteWebhookRequest, v1beta1.DeleteWebhookResponse](
 			httpClient,
 			baseURL+AdminServiceDeleteWebhookProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("DeleteWebhook")),
+			connect.WithClientOptions(opts...),
 		),
-		listWebhooks: connect_go.NewClient[v1beta1.ListWebhooksRequest, v1beta1.ListWebhooksResponse](
+		listWebhooks: connect.NewClient[v1beta1.ListWebhooksRequest, v1beta1.ListWebhooksResponse](
 			httpClient,
 			baseURL+AdminServiceListWebhooksProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListWebhooks")),
+			connect.WithClientOptions(opts...),
 		),
-		updateBillingAccountLimits: connect_go.NewClient[v1beta1.UpdateBillingAccountLimitsRequest, v1beta1.UpdateBillingAccountLimitsResponse](
+		updateBillingAccountLimits: connect.NewClient[v1beta1.UpdateBillingAccountLimitsRequest, v1beta1.UpdateBillingAccountLimitsResponse](
 			httpClient,
 			baseURL+AdminServiceUpdateBillingAccountLimitsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("UpdateBillingAccountLimits")),
+			connect.WithClientOptions(opts...),
 		),
-		getBillingAccountDetails: connect_go.NewClient[v1beta1.GetBillingAccountDetailsRequest, v1beta1.GetBillingAccountDetailsResponse](
+		getBillingAccountDetails: connect.NewClient[v1beta1.GetBillingAccountDetailsRequest, v1beta1.GetBillingAccountDetailsResponse](
 			httpClient,
 			baseURL+AdminServiceGetBillingAccountDetailsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("GetBillingAccountDetails")),
+			connect.WithClientOptions(opts...),
 		),
-		updateBillingAccountDetails: connect_go.NewClient[v1beta1.UpdateBillingAccountDetailsRequest, v1beta1.UpdateBillingAccountDetailsResponse](
+		updateBillingAccountDetails: connect.NewClient[v1beta1.UpdateBillingAccountDetailsRequest, v1beta1.UpdateBillingAccountDetailsResponse](
 			httpClient,
 			baseURL+AdminServiceUpdateBillingAccountDetailsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("UpdateBillingAccountDetails")),
+			connect.WithClientOptions(opts...),
 		),
-		createProspect: connect_go.NewClient[v1beta1.CreateProspectRequest, v1beta1.CreateProspectResponse](
+		createProspect: connect.NewClient[v1beta1.CreateProspectRequest, v1beta1.CreateProspectResponse](
 			httpClient,
 			baseURL+AdminServiceCreateProspectProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("CreateProspect")),
+			connect.WithClientOptions(opts...),
 		),
-		listProspects: connect_go.NewClient[v1beta1.ListProspectsRequest, v1beta1.ListProspectsResponse](
+		listProspects: connect.NewClient[v1beta1.ListProspectsRequest, v1beta1.ListProspectsResponse](
 			httpClient,
 			baseURL+AdminServiceListProspectsProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("ListProspects")),
+			connect.WithClientOptions(opts...),
 		),
-		getProspect: connect_go.NewClient[v1beta1.GetProspectRequest, v1beta1.GetProspectResponse](
+		getProspect: connect.NewClient[v1beta1.GetProspectRequest, v1beta1.GetProspectResponse](
 			httpClient,
 			baseURL+AdminServiceGetProspectProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("GetProspect")),
+			connect.WithClientOptions(opts...),
 		),
-		updateProspect: connect_go.NewClient[v1beta1.UpdateProspectRequest, v1beta1.UpdateProspectResponse](
+		updateProspect: connect.NewClient[v1beta1.UpdateProspectRequest, v1beta1.UpdateProspectResponse](
 			httpClient,
 			baseURL+AdminServiceUpdateProspectProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("UpdateProspect")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteProspect: connect_go.NewClient[v1beta1.DeleteProspectRequest, v1beta1.DeleteProspectResponse](
+		deleteProspect: connect.NewClient[v1beta1.DeleteProspectRequest, v1beta1.DeleteProspectResponse](
 			httpClient,
 			baseURL+AdminServiceDeleteProspectProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("DeleteProspect")),
+			connect.WithClientOptions(opts...),
 		),
-		searchInvoices: connect_go.NewClient[v1beta1.SearchInvoicesRequest, v1beta1.SearchInvoicesResponse](
+		searchInvoices: connect.NewClient[v1beta1.SearchInvoicesRequest, v1beta1.SearchInvoicesResponse](
 			httpClient,
 			baseURL+AdminServiceSearchInvoicesProcedure,
-			opts...,
+			connect.WithSchema(adminServiceMethods.ByName("SearchInvoices")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
 
 // adminServiceClient implements AdminServiceClient.
 type adminServiceClient struct {
-	listAllUsers                             *connect_go.Client[v1beta1.ListAllUsersRequest, v1beta1.ListAllUsersResponse]
-	listGroups                               *connect_go.Client[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse]
-	listAllOrganizations                     *connect_go.Client[v1beta1.ListAllOrganizationsRequest, v1beta1.ListAllOrganizationsResponse]
-	adminCreateOrganization                  *connect_go.Client[v1beta1.AdminCreateOrganizationRequest, v1beta1.AdminCreateOrganizationResponse]
-	searchOrganizations                      *connect_go.Client[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse]
-	searchOrganizationUsers                  *connect_go.Client[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse]
-	searchProjectUsers                       *connect_go.Client[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse]
-	searchOrganizationProjects               *connect_go.Client[v1beta1.SearchOrganizationProjectsRequest, v1beta1.SearchOrganizationProjectsResponse]
-	searchOrganizationInvoices               *connect_go.Client[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse]
-	searchOrganizationTokens                 *connect_go.Client[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse]
-	searchOrganizationServiceUserCredentials *connect_go.Client[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse]
-	exportOrganizations                      *connect_go.Client[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody]
-	exportOrganizationUsers                  *connect_go.Client[v1beta1.ExportOrganizationUsersRequest, httpbody.HttpBody]
-	exportOrganizationProjects               *connect_go.Client[v1beta1.ExportOrganizationProjectsRequest, httpbody.HttpBody]
-	exportOrganizationTokens                 *connect_go.Client[v1beta1.ExportOrganizationTokensRequest, httpbody.HttpBody]
-	exportUsers                              *connect_go.Client[v1beta1.ExportUsersRequest, httpbody.HttpBody]
-	searchUsers                              *connect_go.Client[v1beta1.SearchUsersRequest, v1beta1.SearchUsersResponse]
-	searchUserOrganizations                  *connect_go.Client[v1beta1.SearchUserOrganizationsRequest, v1beta1.SearchUserOrganizationsResponse]
-	searchUserProjects                       *connect_go.Client[v1beta1.SearchUserProjectsRequest, v1beta1.SearchUserProjectsResponse]
-	setOrganizationKyc                       *connect_go.Client[v1beta1.SetOrganizationKycRequest, v1beta1.SetOrganizationKycResponse]
-	listOrganizationsKyc                     *connect_go.Client[v1beta1.ListOrganizationsKycRequest, v1beta1.ListOrganizationsKycResponse]
-	listProjects                             *connect_go.Client[v1beta1.ListProjectsRequest, v1beta1.ListProjectsResponse]
-	listRelations                            *connect_go.Client[v1beta1.ListRelationsRequest, v1beta1.ListRelationsResponse]
-	listResources                            *connect_go.Client[v1beta1.ListResourcesRequest, v1beta1.ListResourcesResponse]
-	createRole                               *connect_go.Client[v1beta1.CreateRoleRequest, v1beta1.CreateRoleResponse]
-	updateRole                               *connect_go.Client[v1beta1.UpdateRoleRequest, v1beta1.UpdateRoleResponse]
-	deleteRole                               *connect_go.Client[v1beta1.DeleteRoleRequest, v1beta1.DeleteRoleResponse]
-	createPermission                         *connect_go.Client[v1beta1.CreatePermissionRequest, v1beta1.CreatePermissionResponse]
-	updatePermission                         *connect_go.Client[v1beta1.UpdatePermissionRequest, v1beta1.UpdatePermissionResponse]
-	deletePermission                         *connect_go.Client[v1beta1.DeletePermissionRequest, v1beta1.DeletePermissionResponse]
-	listPreferences                          *connect_go.Client[v1beta1.ListPreferencesRequest, v1beta1.ListPreferencesResponse]
-	createPreferences                        *connect_go.Client[v1beta1.CreatePreferencesRequest, v1beta1.CreatePreferencesResponse]
-	checkFederatedResourcePermission         *connect_go.Client[v1beta1.CheckFederatedResourcePermissionRequest, v1beta1.CheckFederatedResourcePermissionResponse]
-	addPlatformUser                          *connect_go.Client[v1beta1.AddPlatformUserRequest, v1beta1.AddPlatformUserResponse]
-	listPlatformUsers                        *connect_go.Client[v1beta1.ListPlatformUsersRequest, v1beta1.ListPlatformUsersResponse]
-	removePlatformUser                       *connect_go.Client[v1beta1.RemovePlatformUserRequest, v1beta1.RemovePlatformUserResponse]
-	delegatedCheckout                        *connect_go.Client[v1beta1.DelegatedCheckoutRequest, v1beta1.DelegatedCheckoutResponse]
-	listAllInvoices                          *connect_go.Client[v1beta1.ListAllInvoicesRequest, v1beta1.ListAllInvoicesResponse]
-	generateInvoices                         *connect_go.Client[v1beta1.GenerateInvoicesRequest, v1beta1.GenerateInvoicesResponse]
-	listAllBillingAccounts                   *connect_go.Client[v1beta1.ListAllBillingAccountsRequest, v1beta1.ListAllBillingAccountsResponse]
-	revertBillingUsage                       *connect_go.Client[v1beta1.RevertBillingUsageRequest, v1beta1.RevertBillingUsageResponse]
-	createWebhook                            *connect_go.Client[v1beta1.CreateWebhookRequest, v1beta1.CreateWebhookResponse]
-	updateWebhook                            *connect_go.Client[v1beta1.UpdateWebhookRequest, v1beta1.UpdateWebhookResponse]
-	deleteWebhook                            *connect_go.Client[v1beta1.DeleteWebhookRequest, v1beta1.DeleteWebhookResponse]
-	listWebhooks                             *connect_go.Client[v1beta1.ListWebhooksRequest, v1beta1.ListWebhooksResponse]
-	updateBillingAccountLimits               *connect_go.Client[v1beta1.UpdateBillingAccountLimitsRequest, v1beta1.UpdateBillingAccountLimitsResponse]
-	getBillingAccountDetails                 *connect_go.Client[v1beta1.GetBillingAccountDetailsRequest, v1beta1.GetBillingAccountDetailsResponse]
-	updateBillingAccountDetails              *connect_go.Client[v1beta1.UpdateBillingAccountDetailsRequest, v1beta1.UpdateBillingAccountDetailsResponse]
-	createProspect                           *connect_go.Client[v1beta1.CreateProspectRequest, v1beta1.CreateProspectResponse]
-	listProspects                            *connect_go.Client[v1beta1.ListProspectsRequest, v1beta1.ListProspectsResponse]
-	getProspect                              *connect_go.Client[v1beta1.GetProspectRequest, v1beta1.GetProspectResponse]
-	updateProspect                           *connect_go.Client[v1beta1.UpdateProspectRequest, v1beta1.UpdateProspectResponse]
-	deleteProspect                           *connect_go.Client[v1beta1.DeleteProspectRequest, v1beta1.DeleteProspectResponse]
-	searchInvoices                           *connect_go.Client[v1beta1.SearchInvoicesRequest, v1beta1.SearchInvoicesResponse]
+	listAllUsers                             *connect.Client[v1beta1.ListAllUsersRequest, v1beta1.ListAllUsersResponse]
+	listGroups                               *connect.Client[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse]
+	listAllOrganizations                     *connect.Client[v1beta1.ListAllOrganizationsRequest, v1beta1.ListAllOrganizationsResponse]
+	adminCreateOrganization                  *connect.Client[v1beta1.AdminCreateOrganizationRequest, v1beta1.AdminCreateOrganizationResponse]
+	searchOrganizations                      *connect.Client[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse]
+	searchOrganizationUsers                  *connect.Client[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse]
+	searchProjectUsers                       *connect.Client[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse]
+	searchOrganizationProjects               *connect.Client[v1beta1.SearchOrganizationProjectsRequest, v1beta1.SearchOrganizationProjectsResponse]
+	searchOrganizationInvoices               *connect.Client[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse]
+	searchOrganizationTokens                 *connect.Client[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse]
+	searchOrganizationServiceUserCredentials *connect.Client[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse]
+	exportOrganizations                      *connect.Client[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody]
+	exportOrganizationUsers                  *connect.Client[v1beta1.ExportOrganizationUsersRequest, httpbody.HttpBody]
+	exportOrganizationProjects               *connect.Client[v1beta1.ExportOrganizationProjectsRequest, httpbody.HttpBody]
+	exportOrganizationTokens                 *connect.Client[v1beta1.ExportOrganizationTokensRequest, httpbody.HttpBody]
+	exportUsers                              *connect.Client[v1beta1.ExportUsersRequest, httpbody.HttpBody]
+	searchUsers                              *connect.Client[v1beta1.SearchUsersRequest, v1beta1.SearchUsersResponse]
+	searchUserOrganizations                  *connect.Client[v1beta1.SearchUserOrganizationsRequest, v1beta1.SearchUserOrganizationsResponse]
+	searchUserProjects                       *connect.Client[v1beta1.SearchUserProjectsRequest, v1beta1.SearchUserProjectsResponse]
+	setOrganizationKyc                       *connect.Client[v1beta1.SetOrganizationKycRequest, v1beta1.SetOrganizationKycResponse]
+	listOrganizationsKyc                     *connect.Client[v1beta1.ListOrganizationsKycRequest, v1beta1.ListOrganizationsKycResponse]
+	listProjects                             *connect.Client[v1beta1.ListProjectsRequest, v1beta1.ListProjectsResponse]
+	listRelations                            *connect.Client[v1beta1.ListRelationsRequest, v1beta1.ListRelationsResponse]
+	listResources                            *connect.Client[v1beta1.ListResourcesRequest, v1beta1.ListResourcesResponse]
+	createRole                               *connect.Client[v1beta1.CreateRoleRequest, v1beta1.CreateRoleResponse]
+	updateRole                               *connect.Client[v1beta1.UpdateRoleRequest, v1beta1.UpdateRoleResponse]
+	deleteRole                               *connect.Client[v1beta1.DeleteRoleRequest, v1beta1.DeleteRoleResponse]
+	createPermission                         *connect.Client[v1beta1.CreatePermissionRequest, v1beta1.CreatePermissionResponse]
+	updatePermission                         *connect.Client[v1beta1.UpdatePermissionRequest, v1beta1.UpdatePermissionResponse]
+	deletePermission                         *connect.Client[v1beta1.DeletePermissionRequest, v1beta1.DeletePermissionResponse]
+	listPreferences                          *connect.Client[v1beta1.ListPreferencesRequest, v1beta1.ListPreferencesResponse]
+	createPreferences                        *connect.Client[v1beta1.CreatePreferencesRequest, v1beta1.CreatePreferencesResponse]
+	checkFederatedResourcePermission         *connect.Client[v1beta1.CheckFederatedResourcePermissionRequest, v1beta1.CheckFederatedResourcePermissionResponse]
+	addPlatformUser                          *connect.Client[v1beta1.AddPlatformUserRequest, v1beta1.AddPlatformUserResponse]
+	listPlatformUsers                        *connect.Client[v1beta1.ListPlatformUsersRequest, v1beta1.ListPlatformUsersResponse]
+	removePlatformUser                       *connect.Client[v1beta1.RemovePlatformUserRequest, v1beta1.RemovePlatformUserResponse]
+	delegatedCheckout                        *connect.Client[v1beta1.DelegatedCheckoutRequest, v1beta1.DelegatedCheckoutResponse]
+	listAllInvoices                          *connect.Client[v1beta1.ListAllInvoicesRequest, v1beta1.ListAllInvoicesResponse]
+	generateInvoices                         *connect.Client[v1beta1.GenerateInvoicesRequest, v1beta1.GenerateInvoicesResponse]
+	listAllBillingAccounts                   *connect.Client[v1beta1.ListAllBillingAccountsRequest, v1beta1.ListAllBillingAccountsResponse]
+	revertBillingUsage                       *connect.Client[v1beta1.RevertBillingUsageRequest, v1beta1.RevertBillingUsageResponse]
+	createWebhook                            *connect.Client[v1beta1.CreateWebhookRequest, v1beta1.CreateWebhookResponse]
+	updateWebhook                            *connect.Client[v1beta1.UpdateWebhookRequest, v1beta1.UpdateWebhookResponse]
+	deleteWebhook                            *connect.Client[v1beta1.DeleteWebhookRequest, v1beta1.DeleteWebhookResponse]
+	listWebhooks                             *connect.Client[v1beta1.ListWebhooksRequest, v1beta1.ListWebhooksResponse]
+	updateBillingAccountLimits               *connect.Client[v1beta1.UpdateBillingAccountLimitsRequest, v1beta1.UpdateBillingAccountLimitsResponse]
+	getBillingAccountDetails                 *connect.Client[v1beta1.GetBillingAccountDetailsRequest, v1beta1.GetBillingAccountDetailsResponse]
+	updateBillingAccountDetails              *connect.Client[v1beta1.UpdateBillingAccountDetailsRequest, v1beta1.UpdateBillingAccountDetailsResponse]
+	createProspect                           *connect.Client[v1beta1.CreateProspectRequest, v1beta1.CreateProspectResponse]
+	listProspects                            *connect.Client[v1beta1.ListProspectsRequest, v1beta1.ListProspectsResponse]
+	getProspect                              *connect.Client[v1beta1.GetProspectRequest, v1beta1.GetProspectResponse]
+	updateProspect                           *connect.Client[v1beta1.UpdateProspectRequest, v1beta1.UpdateProspectResponse]
+	deleteProspect                           *connect.Client[v1beta1.DeleteProspectRequest, v1beta1.DeleteProspectResponse]
+	searchInvoices                           *connect.Client[v1beta1.SearchInvoicesRequest, v1beta1.SearchInvoicesResponse]
 }
 
 // ListAllUsers calls raystack.frontier.v1beta1.AdminService.ListAllUsers.
-func (c *adminServiceClient) ListAllUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListAllUsersRequest]) (*connect_go.Response[v1beta1.ListAllUsersResponse], error) {
+func (c *adminServiceClient) ListAllUsers(ctx context.Context, req *connect.Request[v1beta1.ListAllUsersRequest]) (*connect.Response[v1beta1.ListAllUsersResponse], error) {
 	return c.listAllUsers.CallUnary(ctx, req)
 }
 
 // ListGroups calls raystack.frontier.v1beta1.AdminService.ListGroups.
-func (c *adminServiceClient) ListGroups(ctx context.Context, req *connect_go.Request[v1beta1.ListGroupsRequest]) (*connect_go.Response[v1beta1.ListGroupsResponse], error) {
+func (c *adminServiceClient) ListGroups(ctx context.Context, req *connect.Request[v1beta1.ListGroupsRequest]) (*connect.Response[v1beta1.ListGroupsResponse], error) {
 	return c.listGroups.CallUnary(ctx, req)
 }
 
 // ListAllOrganizations calls raystack.frontier.v1beta1.AdminService.ListAllOrganizations.
-func (c *adminServiceClient) ListAllOrganizations(ctx context.Context, req *connect_go.Request[v1beta1.ListAllOrganizationsRequest]) (*connect_go.Response[v1beta1.ListAllOrganizationsResponse], error) {
+func (c *adminServiceClient) ListAllOrganizations(ctx context.Context, req *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error) {
 	return c.listAllOrganizations.CallUnary(ctx, req)
 }
 
 // AdminCreateOrganization calls raystack.frontier.v1beta1.AdminService.AdminCreateOrganization.
-func (c *adminServiceClient) AdminCreateOrganization(ctx context.Context, req *connect_go.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect_go.Response[v1beta1.AdminCreateOrganizationResponse], error) {
+func (c *adminServiceClient) AdminCreateOrganization(ctx context.Context, req *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error) {
 	return c.adminCreateOrganization.CallUnary(ctx, req)
 }
 
 // SearchOrganizations calls raystack.frontier.v1beta1.AdminService.SearchOrganizations.
-func (c *adminServiceClient) SearchOrganizations(ctx context.Context, req *connect_go.Request[v1beta1.SearchOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationsResponse], error) {
+func (c *adminServiceClient) SearchOrganizations(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error) {
 	return c.searchOrganizations.CallUnary(ctx, req)
 }
 
 // SearchOrganizationUsers calls raystack.frontier.v1beta1.AdminService.SearchOrganizationUsers.
-func (c *adminServiceClient) SearchOrganizationUsers(ctx context.Context, req *connect_go.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect_go.Response[v1beta1.SearchOrganizationUsersResponse], error) {
+func (c *adminServiceClient) SearchOrganizationUsers(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error) {
 	return c.searchOrganizationUsers.CallUnary(ctx, req)
 }
 
 // SearchProjectUsers calls raystack.frontier.v1beta1.AdminService.SearchProjectUsers.
-func (c *adminServiceClient) SearchProjectUsers(ctx context.Context, req *connect_go.Request[v1beta1.SearchProjectUsersRequest]) (*connect_go.Response[v1beta1.SearchProjectUsersResponse], error) {
+func (c *adminServiceClient) SearchProjectUsers(ctx context.Context, req *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error) {
 	return c.searchProjectUsers.CallUnary(ctx, req)
 }
 
 // SearchOrganizationProjects calls
 // raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects.
-func (c *adminServiceClient) SearchOrganizationProjects(ctx context.Context, req *connect_go.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
+func (c *adminServiceClient) SearchOrganizationProjects(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
 	return c.searchOrganizationProjects.CallUnary(ctx, req)
 }
 
 // SearchOrganizationInvoices calls
 // raystack.frontier.v1beta1.AdminService.SearchOrganizationInvoices.
-func (c *adminServiceClient) SearchOrganizationInvoices(ctx context.Context, req *connect_go.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect_go.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
+func (c *adminServiceClient) SearchOrganizationInvoices(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
 	return c.searchOrganizationInvoices.CallUnary(ctx, req)
 }
 
 // SearchOrganizationTokens calls raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens.
-func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, req *connect_go.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect_go.Response[v1beta1.SearchOrganizationTokensResponse], error) {
+func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
 	return c.searchOrganizationTokens.CallUnary(ctx, req)
 }
 
 // SearchOrganizationServiceUserCredentials calls
 // raystack.frontier.v1beta1.AdminService.SearchOrganizationServiceUserCredentials.
-func (c *adminServiceClient) SearchOrganizationServiceUserCredentials(ctx context.Context, req *connect_go.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
+func (c *adminServiceClient) SearchOrganizationServiceUserCredentials(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
 	return c.searchOrganizationServiceUserCredentials.CallUnary(ctx, req)
 }
 
 // ExportOrganizations calls raystack.frontier.v1beta1.AdminService.ExportOrganizations.
-func (c *adminServiceClient) ExportOrganizations(ctx context.Context, req *connect_go.Request[v1beta1.ExportOrganizationsRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error) {
+func (c *adminServiceClient) ExportOrganizations(ctx context.Context, req *connect.Request[v1beta1.ExportOrganizationsRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error) {
 	return c.exportOrganizations.CallServerStream(ctx, req)
 }
 
 // ExportOrganizationUsers calls raystack.frontier.v1beta1.AdminService.ExportOrganizationUsers.
-func (c *adminServiceClient) ExportOrganizationUsers(ctx context.Context, req *connect_go.Request[v1beta1.ExportOrganizationUsersRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error) {
+func (c *adminServiceClient) ExportOrganizationUsers(ctx context.Context, req *connect.Request[v1beta1.ExportOrganizationUsersRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error) {
 	return c.exportOrganizationUsers.CallServerStream(ctx, req)
 }
 
 // ExportOrganizationProjects calls
 // raystack.frontier.v1beta1.AdminService.ExportOrganizationProjects.
-func (c *adminServiceClient) ExportOrganizationProjects(ctx context.Context, req *connect_go.Request[v1beta1.ExportOrganizationProjectsRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error) {
+func (c *adminServiceClient) ExportOrganizationProjects(ctx context.Context, req *connect.Request[v1beta1.ExportOrganizationProjectsRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error) {
 	return c.exportOrganizationProjects.CallServerStream(ctx, req)
 }
 
 // ExportOrganizationTokens calls raystack.frontier.v1beta1.AdminService.ExportOrganizationTokens.
-func (c *adminServiceClient) ExportOrganizationTokens(ctx context.Context, req *connect_go.Request[v1beta1.ExportOrganizationTokensRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error) {
+func (c *adminServiceClient) ExportOrganizationTokens(ctx context.Context, req *connect.Request[v1beta1.ExportOrganizationTokensRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error) {
 	return c.exportOrganizationTokens.CallServerStream(ctx, req)
 }
 
 // ExportUsers calls raystack.frontier.v1beta1.AdminService.ExportUsers.
-func (c *adminServiceClient) ExportUsers(ctx context.Context, req *connect_go.Request[v1beta1.ExportUsersRequest]) (*connect_go.ServerStreamForClient[httpbody.HttpBody], error) {
+func (c *adminServiceClient) ExportUsers(ctx context.Context, req *connect.Request[v1beta1.ExportUsersRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error) {
 	return c.exportUsers.CallServerStream(ctx, req)
 }
 
 // SearchUsers calls raystack.frontier.v1beta1.AdminService.SearchUsers.
-func (c *adminServiceClient) SearchUsers(ctx context.Context, req *connect_go.Request[v1beta1.SearchUsersRequest]) (*connect_go.Response[v1beta1.SearchUsersResponse], error) {
+func (c *adminServiceClient) SearchUsers(ctx context.Context, req *connect.Request[v1beta1.SearchUsersRequest]) (*connect.Response[v1beta1.SearchUsersResponse], error) {
 	return c.searchUsers.CallUnary(ctx, req)
 }
 
 // SearchUserOrganizations calls raystack.frontier.v1beta1.AdminService.SearchUserOrganizations.
-func (c *adminServiceClient) SearchUserOrganizations(ctx context.Context, req *connect_go.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchUserOrganizationsResponse], error) {
+func (c *adminServiceClient) SearchUserOrganizations(ctx context.Context, req *connect.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect.Response[v1beta1.SearchUserOrganizationsResponse], error) {
 	return c.searchUserOrganizations.CallUnary(ctx, req)
 }
 
 // SearchUserProjects calls raystack.frontier.v1beta1.AdminService.SearchUserProjects.
-func (c *adminServiceClient) SearchUserProjects(ctx context.Context, req *connect_go.Request[v1beta1.SearchUserProjectsRequest]) (*connect_go.Response[v1beta1.SearchUserProjectsResponse], error) {
+func (c *adminServiceClient) SearchUserProjects(ctx context.Context, req *connect.Request[v1beta1.SearchUserProjectsRequest]) (*connect.Response[v1beta1.SearchUserProjectsResponse], error) {
 	return c.searchUserProjects.CallUnary(ctx, req)
 }
 
 // SetOrganizationKyc calls raystack.frontier.v1beta1.AdminService.SetOrganizationKyc.
-func (c *adminServiceClient) SetOrganizationKyc(ctx context.Context, req *connect_go.Request[v1beta1.SetOrganizationKycRequest]) (*connect_go.Response[v1beta1.SetOrganizationKycResponse], error) {
+func (c *adminServiceClient) SetOrganizationKyc(ctx context.Context, req *connect.Request[v1beta1.SetOrganizationKycRequest]) (*connect.Response[v1beta1.SetOrganizationKycResponse], error) {
 	return c.setOrganizationKyc.CallUnary(ctx, req)
 }
 
 // ListOrganizationsKyc calls raystack.frontier.v1beta1.AdminService.ListOrganizationsKyc.
-func (c *adminServiceClient) ListOrganizationsKyc(ctx context.Context, req *connect_go.Request[v1beta1.ListOrganizationsKycRequest]) (*connect_go.Response[v1beta1.ListOrganizationsKycResponse], error) {
+func (c *adminServiceClient) ListOrganizationsKyc(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationsKycRequest]) (*connect.Response[v1beta1.ListOrganizationsKycResponse], error) {
 	return c.listOrganizationsKyc.CallUnary(ctx, req)
 }
 
 // ListProjects calls raystack.frontier.v1beta1.AdminService.ListProjects.
-func (c *adminServiceClient) ListProjects(ctx context.Context, req *connect_go.Request[v1beta1.ListProjectsRequest]) (*connect_go.Response[v1beta1.ListProjectsResponse], error) {
+func (c *adminServiceClient) ListProjects(ctx context.Context, req *connect.Request[v1beta1.ListProjectsRequest]) (*connect.Response[v1beta1.ListProjectsResponse], error) {
 	return c.listProjects.CallUnary(ctx, req)
 }
 
 // ListRelations calls raystack.frontier.v1beta1.AdminService.ListRelations.
-func (c *adminServiceClient) ListRelations(ctx context.Context, req *connect_go.Request[v1beta1.ListRelationsRequest]) (*connect_go.Response[v1beta1.ListRelationsResponse], error) {
+func (c *adminServiceClient) ListRelations(ctx context.Context, req *connect.Request[v1beta1.ListRelationsRequest]) (*connect.Response[v1beta1.ListRelationsResponse], error) {
 	return c.listRelations.CallUnary(ctx, req)
 }
 
 // ListResources calls raystack.frontier.v1beta1.AdminService.ListResources.
-func (c *adminServiceClient) ListResources(ctx context.Context, req *connect_go.Request[v1beta1.ListResourcesRequest]) (*connect_go.Response[v1beta1.ListResourcesResponse], error) {
+func (c *adminServiceClient) ListResources(ctx context.Context, req *connect.Request[v1beta1.ListResourcesRequest]) (*connect.Response[v1beta1.ListResourcesResponse], error) {
 	return c.listResources.CallUnary(ctx, req)
 }
 
 // CreateRole calls raystack.frontier.v1beta1.AdminService.CreateRole.
-func (c *adminServiceClient) CreateRole(ctx context.Context, req *connect_go.Request[v1beta1.CreateRoleRequest]) (*connect_go.Response[v1beta1.CreateRoleResponse], error) {
+func (c *adminServiceClient) CreateRole(ctx context.Context, req *connect.Request[v1beta1.CreateRoleRequest]) (*connect.Response[v1beta1.CreateRoleResponse], error) {
 	return c.createRole.CallUnary(ctx, req)
 }
 
 // UpdateRole calls raystack.frontier.v1beta1.AdminService.UpdateRole.
-func (c *adminServiceClient) UpdateRole(ctx context.Context, req *connect_go.Request[v1beta1.UpdateRoleRequest]) (*connect_go.Response[v1beta1.UpdateRoleResponse], error) {
+func (c *adminServiceClient) UpdateRole(ctx context.Context, req *connect.Request[v1beta1.UpdateRoleRequest]) (*connect.Response[v1beta1.UpdateRoleResponse], error) {
 	return c.updateRole.CallUnary(ctx, req)
 }
 
 // DeleteRole calls raystack.frontier.v1beta1.AdminService.DeleteRole.
-func (c *adminServiceClient) DeleteRole(ctx context.Context, req *connect_go.Request[v1beta1.DeleteRoleRequest]) (*connect_go.Response[v1beta1.DeleteRoleResponse], error) {
+func (c *adminServiceClient) DeleteRole(ctx context.Context, req *connect.Request[v1beta1.DeleteRoleRequest]) (*connect.Response[v1beta1.DeleteRoleResponse], error) {
 	return c.deleteRole.CallUnary(ctx, req)
 }
 
 // CreatePermission calls raystack.frontier.v1beta1.AdminService.CreatePermission.
-func (c *adminServiceClient) CreatePermission(ctx context.Context, req *connect_go.Request[v1beta1.CreatePermissionRequest]) (*connect_go.Response[v1beta1.CreatePermissionResponse], error) {
+func (c *adminServiceClient) CreatePermission(ctx context.Context, req *connect.Request[v1beta1.CreatePermissionRequest]) (*connect.Response[v1beta1.CreatePermissionResponse], error) {
 	return c.createPermission.CallUnary(ctx, req)
 }
 
 // UpdatePermission calls raystack.frontier.v1beta1.AdminService.UpdatePermission.
-func (c *adminServiceClient) UpdatePermission(ctx context.Context, req *connect_go.Request[v1beta1.UpdatePermissionRequest]) (*connect_go.Response[v1beta1.UpdatePermissionResponse], error) {
+func (c *adminServiceClient) UpdatePermission(ctx context.Context, req *connect.Request[v1beta1.UpdatePermissionRequest]) (*connect.Response[v1beta1.UpdatePermissionResponse], error) {
 	return c.updatePermission.CallUnary(ctx, req)
 }
 
 // DeletePermission calls raystack.frontier.v1beta1.AdminService.DeletePermission.
-func (c *adminServiceClient) DeletePermission(ctx context.Context, req *connect_go.Request[v1beta1.DeletePermissionRequest]) (*connect_go.Response[v1beta1.DeletePermissionResponse], error) {
+func (c *adminServiceClient) DeletePermission(ctx context.Context, req *connect.Request[v1beta1.DeletePermissionRequest]) (*connect.Response[v1beta1.DeletePermissionResponse], error) {
 	return c.deletePermission.CallUnary(ctx, req)
 }
 
 // ListPreferences calls raystack.frontier.v1beta1.AdminService.ListPreferences.
-func (c *adminServiceClient) ListPreferences(ctx context.Context, req *connect_go.Request[v1beta1.ListPreferencesRequest]) (*connect_go.Response[v1beta1.ListPreferencesResponse], error) {
+func (c *adminServiceClient) ListPreferences(ctx context.Context, req *connect.Request[v1beta1.ListPreferencesRequest]) (*connect.Response[v1beta1.ListPreferencesResponse], error) {
 	return c.listPreferences.CallUnary(ctx, req)
 }
 
 // CreatePreferences calls raystack.frontier.v1beta1.AdminService.CreatePreferences.
-func (c *adminServiceClient) CreatePreferences(ctx context.Context, req *connect_go.Request[v1beta1.CreatePreferencesRequest]) (*connect_go.Response[v1beta1.CreatePreferencesResponse], error) {
+func (c *adminServiceClient) CreatePreferences(ctx context.Context, req *connect.Request[v1beta1.CreatePreferencesRequest]) (*connect.Response[v1beta1.CreatePreferencesResponse], error) {
 	return c.createPreferences.CallUnary(ctx, req)
 }
 
 // CheckFederatedResourcePermission calls
 // raystack.frontier.v1beta1.AdminService.CheckFederatedResourcePermission.
-func (c *adminServiceClient) CheckFederatedResourcePermission(ctx context.Context, req *connect_go.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckFederatedResourcePermissionResponse], error) {
+func (c *adminServiceClient) CheckFederatedResourcePermission(ctx context.Context, req *connect.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect.Response[v1beta1.CheckFederatedResourcePermissionResponse], error) {
 	return c.checkFederatedResourcePermission.CallUnary(ctx, req)
 }
 
 // AddPlatformUser calls raystack.frontier.v1beta1.AdminService.AddPlatformUser.
-func (c *adminServiceClient) AddPlatformUser(ctx context.Context, req *connect_go.Request[v1beta1.AddPlatformUserRequest]) (*connect_go.Response[v1beta1.AddPlatformUserResponse], error) {
+func (c *adminServiceClient) AddPlatformUser(ctx context.Context, req *connect.Request[v1beta1.AddPlatformUserRequest]) (*connect.Response[v1beta1.AddPlatformUserResponse], error) {
 	return c.addPlatformUser.CallUnary(ctx, req)
 }
 
 // ListPlatformUsers calls raystack.frontier.v1beta1.AdminService.ListPlatformUsers.
-func (c *adminServiceClient) ListPlatformUsers(ctx context.Context, req *connect_go.Request[v1beta1.ListPlatformUsersRequest]) (*connect_go.Response[v1beta1.ListPlatformUsersResponse], error) {
+func (c *adminServiceClient) ListPlatformUsers(ctx context.Context, req *connect.Request[v1beta1.ListPlatformUsersRequest]) (*connect.Response[v1beta1.ListPlatformUsersResponse], error) {
 	return c.listPlatformUsers.CallUnary(ctx, req)
 }
 
 // RemovePlatformUser calls raystack.frontier.v1beta1.AdminService.RemovePlatformUser.
-func (c *adminServiceClient) RemovePlatformUser(ctx context.Context, req *connect_go.Request[v1beta1.RemovePlatformUserRequest]) (*connect_go.Response[v1beta1.RemovePlatformUserResponse], error) {
+func (c *adminServiceClient) RemovePlatformUser(ctx context.Context, req *connect.Request[v1beta1.RemovePlatformUserRequest]) (*connect.Response[v1beta1.RemovePlatformUserResponse], error) {
 	return c.removePlatformUser.CallUnary(ctx, req)
 }
 
 // DelegatedCheckout calls raystack.frontier.v1beta1.AdminService.DelegatedCheckout.
-func (c *adminServiceClient) DelegatedCheckout(ctx context.Context, req *connect_go.Request[v1beta1.DelegatedCheckoutRequest]) (*connect_go.Response[v1beta1.DelegatedCheckoutResponse], error) {
+func (c *adminServiceClient) DelegatedCheckout(ctx context.Context, req *connect.Request[v1beta1.DelegatedCheckoutRequest]) (*connect.Response[v1beta1.DelegatedCheckoutResponse], error) {
 	return c.delegatedCheckout.CallUnary(ctx, req)
 }
 
 // ListAllInvoices calls raystack.frontier.v1beta1.AdminService.ListAllInvoices.
-func (c *adminServiceClient) ListAllInvoices(ctx context.Context, req *connect_go.Request[v1beta1.ListAllInvoicesRequest]) (*connect_go.Response[v1beta1.ListAllInvoicesResponse], error) {
+func (c *adminServiceClient) ListAllInvoices(ctx context.Context, req *connect.Request[v1beta1.ListAllInvoicesRequest]) (*connect.Response[v1beta1.ListAllInvoicesResponse], error) {
 	return c.listAllInvoices.CallUnary(ctx, req)
 }
 
 // GenerateInvoices calls raystack.frontier.v1beta1.AdminService.GenerateInvoices.
-func (c *adminServiceClient) GenerateInvoices(ctx context.Context, req *connect_go.Request[v1beta1.GenerateInvoicesRequest]) (*connect_go.Response[v1beta1.GenerateInvoicesResponse], error) {
+func (c *adminServiceClient) GenerateInvoices(ctx context.Context, req *connect.Request[v1beta1.GenerateInvoicesRequest]) (*connect.Response[v1beta1.GenerateInvoicesResponse], error) {
 	return c.generateInvoices.CallUnary(ctx, req)
 }
 
 // ListAllBillingAccounts calls raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts.
-func (c *adminServiceClient) ListAllBillingAccounts(ctx context.Context, req *connect_go.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListAllBillingAccountsResponse], error) {
+func (c *adminServiceClient) ListAllBillingAccounts(ctx context.Context, req *connect.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect.Response[v1beta1.ListAllBillingAccountsResponse], error) {
 	return c.listAllBillingAccounts.CallUnary(ctx, req)
 }
 
 // RevertBillingUsage calls raystack.frontier.v1beta1.AdminService.RevertBillingUsage.
-func (c *adminServiceClient) RevertBillingUsage(ctx context.Context, req *connect_go.Request[v1beta1.RevertBillingUsageRequest]) (*connect_go.Response[v1beta1.RevertBillingUsageResponse], error) {
+func (c *adminServiceClient) RevertBillingUsage(ctx context.Context, req *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error) {
 	return c.revertBillingUsage.CallUnary(ctx, req)
 }
 
 // CreateWebhook calls raystack.frontier.v1beta1.AdminService.CreateWebhook.
-func (c *adminServiceClient) CreateWebhook(ctx context.Context, req *connect_go.Request[v1beta1.CreateWebhookRequest]) (*connect_go.Response[v1beta1.CreateWebhookResponse], error) {
+func (c *adminServiceClient) CreateWebhook(ctx context.Context, req *connect.Request[v1beta1.CreateWebhookRequest]) (*connect.Response[v1beta1.CreateWebhookResponse], error) {
 	return c.createWebhook.CallUnary(ctx, req)
 }
 
 // UpdateWebhook calls raystack.frontier.v1beta1.AdminService.UpdateWebhook.
-func (c *adminServiceClient) UpdateWebhook(ctx context.Context, req *connect_go.Request[v1beta1.UpdateWebhookRequest]) (*connect_go.Response[v1beta1.UpdateWebhookResponse], error) {
+func (c *adminServiceClient) UpdateWebhook(ctx context.Context, req *connect.Request[v1beta1.UpdateWebhookRequest]) (*connect.Response[v1beta1.UpdateWebhookResponse], error) {
 	return c.updateWebhook.CallUnary(ctx, req)
 }
 
 // DeleteWebhook calls raystack.frontier.v1beta1.AdminService.DeleteWebhook.
-func (c *adminServiceClient) DeleteWebhook(ctx context.Context, req *connect_go.Request[v1beta1.DeleteWebhookRequest]) (*connect_go.Response[v1beta1.DeleteWebhookResponse], error) {
+func (c *adminServiceClient) DeleteWebhook(ctx context.Context, req *connect.Request[v1beta1.DeleteWebhookRequest]) (*connect.Response[v1beta1.DeleteWebhookResponse], error) {
 	return c.deleteWebhook.CallUnary(ctx, req)
 }
 
 // ListWebhooks calls raystack.frontier.v1beta1.AdminService.ListWebhooks.
-func (c *adminServiceClient) ListWebhooks(ctx context.Context, req *connect_go.Request[v1beta1.ListWebhooksRequest]) (*connect_go.Response[v1beta1.ListWebhooksResponse], error) {
+func (c *adminServiceClient) ListWebhooks(ctx context.Context, req *connect.Request[v1beta1.ListWebhooksRequest]) (*connect.Response[v1beta1.ListWebhooksResponse], error) {
 	return c.listWebhooks.CallUnary(ctx, req)
 }
 
@@ -856,136 +911,136 @@ func (c *adminServiceClient) ListWebhooks(ctx context.Context, req *connect_go.R
 // raystack.frontier.v1beta1.AdminService.UpdateBillingAccountLimits.
 //
 // Deprecated: do not use.
-func (c *adminServiceClient) UpdateBillingAccountLimits(ctx context.Context, req *connect_go.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountLimitsResponse], error) {
+func (c *adminServiceClient) UpdateBillingAccountLimits(ctx context.Context, req *connect.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountLimitsResponse], error) {
 	return c.updateBillingAccountLimits.CallUnary(ctx, req)
 }
 
 // GetBillingAccountDetails calls raystack.frontier.v1beta1.AdminService.GetBillingAccountDetails.
-func (c *adminServiceClient) GetBillingAccountDetails(ctx context.Context, req *connect_go.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.GetBillingAccountDetailsResponse], error) {
+func (c *adminServiceClient) GetBillingAccountDetails(ctx context.Context, req *connect.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect.Response[v1beta1.GetBillingAccountDetailsResponse], error) {
 	return c.getBillingAccountDetails.CallUnary(ctx, req)
 }
 
 // UpdateBillingAccountDetails calls
 // raystack.frontier.v1beta1.AdminService.UpdateBillingAccountDetails.
-func (c *adminServiceClient) UpdateBillingAccountDetails(ctx context.Context, req *connect_go.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountDetailsResponse], error) {
+func (c *adminServiceClient) UpdateBillingAccountDetails(ctx context.Context, req *connect.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountDetailsResponse], error) {
 	return c.updateBillingAccountDetails.CallUnary(ctx, req)
 }
 
 // CreateProspect calls raystack.frontier.v1beta1.AdminService.CreateProspect.
-func (c *adminServiceClient) CreateProspect(ctx context.Context, req *connect_go.Request[v1beta1.CreateProspectRequest]) (*connect_go.Response[v1beta1.CreateProspectResponse], error) {
+func (c *adminServiceClient) CreateProspect(ctx context.Context, req *connect.Request[v1beta1.CreateProspectRequest]) (*connect.Response[v1beta1.CreateProspectResponse], error) {
 	return c.createProspect.CallUnary(ctx, req)
 }
 
 // ListProspects calls raystack.frontier.v1beta1.AdminService.ListProspects.
-func (c *adminServiceClient) ListProspects(ctx context.Context, req *connect_go.Request[v1beta1.ListProspectsRequest]) (*connect_go.Response[v1beta1.ListProspectsResponse], error) {
+func (c *adminServiceClient) ListProspects(ctx context.Context, req *connect.Request[v1beta1.ListProspectsRequest]) (*connect.Response[v1beta1.ListProspectsResponse], error) {
 	return c.listProspects.CallUnary(ctx, req)
 }
 
 // GetProspect calls raystack.frontier.v1beta1.AdminService.GetProspect.
-func (c *adminServiceClient) GetProspect(ctx context.Context, req *connect_go.Request[v1beta1.GetProspectRequest]) (*connect_go.Response[v1beta1.GetProspectResponse], error) {
+func (c *adminServiceClient) GetProspect(ctx context.Context, req *connect.Request[v1beta1.GetProspectRequest]) (*connect.Response[v1beta1.GetProspectResponse], error) {
 	return c.getProspect.CallUnary(ctx, req)
 }
 
 // UpdateProspect calls raystack.frontier.v1beta1.AdminService.UpdateProspect.
-func (c *adminServiceClient) UpdateProspect(ctx context.Context, req *connect_go.Request[v1beta1.UpdateProspectRequest]) (*connect_go.Response[v1beta1.UpdateProspectResponse], error) {
+func (c *adminServiceClient) UpdateProspect(ctx context.Context, req *connect.Request[v1beta1.UpdateProspectRequest]) (*connect.Response[v1beta1.UpdateProspectResponse], error) {
 	return c.updateProspect.CallUnary(ctx, req)
 }
 
 // DeleteProspect calls raystack.frontier.v1beta1.AdminService.DeleteProspect.
-func (c *adminServiceClient) DeleteProspect(ctx context.Context, req *connect_go.Request[v1beta1.DeleteProspectRequest]) (*connect_go.Response[v1beta1.DeleteProspectResponse], error) {
+func (c *adminServiceClient) DeleteProspect(ctx context.Context, req *connect.Request[v1beta1.DeleteProspectRequest]) (*connect.Response[v1beta1.DeleteProspectResponse], error) {
 	return c.deleteProspect.CallUnary(ctx, req)
 }
 
 // SearchInvoices calls raystack.frontier.v1beta1.AdminService.SearchInvoices.
-func (c *adminServiceClient) SearchInvoices(ctx context.Context, req *connect_go.Request[v1beta1.SearchInvoicesRequest]) (*connect_go.Response[v1beta1.SearchInvoicesResponse], error) {
+func (c *adminServiceClient) SearchInvoices(ctx context.Context, req *connect.Request[v1beta1.SearchInvoicesRequest]) (*connect.Response[v1beta1.SearchInvoicesResponse], error) {
 	return c.searchInvoices.CallUnary(ctx, req)
 }
 
 // AdminServiceHandler is an implementation of the raystack.frontier.v1beta1.AdminService service.
 type AdminServiceHandler interface {
 	// Users
-	ListAllUsers(context.Context, *connect_go.Request[v1beta1.ListAllUsersRequest]) (*connect_go.Response[v1beta1.ListAllUsersResponse], error)
+	ListAllUsers(context.Context, *connect.Request[v1beta1.ListAllUsersRequest]) (*connect.Response[v1beta1.ListAllUsersResponse], error)
 	// Group
-	ListGroups(context.Context, *connect_go.Request[v1beta1.ListGroupsRequest]) (*connect_go.Response[v1beta1.ListGroupsResponse], error)
+	ListGroups(context.Context, *connect.Request[v1beta1.ListGroupsRequest]) (*connect.Response[v1beta1.ListGroupsResponse], error)
 	// Organizations
-	ListAllOrganizations(context.Context, *connect_go.Request[v1beta1.ListAllOrganizationsRequest]) (*connect_go.Response[v1beta1.ListAllOrganizationsResponse], error)
-	AdminCreateOrganization(context.Context, *connect_go.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect_go.Response[v1beta1.AdminCreateOrganizationResponse], error)
-	SearchOrganizations(context.Context, *connect_go.Request[v1beta1.SearchOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationsResponse], error)
-	SearchOrganizationUsers(context.Context, *connect_go.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect_go.Response[v1beta1.SearchOrganizationUsersResponse], error)
-	SearchProjectUsers(context.Context, *connect_go.Request[v1beta1.SearchProjectUsersRequest]) (*connect_go.Response[v1beta1.SearchProjectUsersResponse], error)
-	SearchOrganizationProjects(context.Context, *connect_go.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationInvoices(context.Context, *connect_go.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect_go.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
-	SearchOrganizationTokens(context.Context, *connect_go.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect_go.Response[v1beta1.SearchOrganizationTokensResponse], error)
-	SearchOrganizationServiceUserCredentials(context.Context, *connect_go.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
+	ListAllOrganizations(context.Context, *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error)
+	AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error)
+	SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error)
+	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
+	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
+	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
+	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
+	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
+	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizations(context.Context, *connect_go.Request[v1beta1.ExportOrganizationsRequest], *connect_go.ServerStream[httpbody.HttpBody]) error
+	ExportOrganizations(context.Context, *connect.Request[v1beta1.ExportOrganizationsRequest], *connect.ServerStream[httpbody.HttpBody]) error
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizationUsers(context.Context, *connect_go.Request[v1beta1.ExportOrganizationUsersRequest], *connect_go.ServerStream[httpbody.HttpBody]) error
+	ExportOrganizationUsers(context.Context, *connect.Request[v1beta1.ExportOrganizationUsersRequest], *connect.ServerStream[httpbody.HttpBody]) error
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizationProjects(context.Context, *connect_go.Request[v1beta1.ExportOrganizationProjectsRequest], *connect_go.ServerStream[httpbody.HttpBody]) error
+	ExportOrganizationProjects(context.Context, *connect.Request[v1beta1.ExportOrganizationProjectsRequest], *connect.ServerStream[httpbody.HttpBody]) error
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportOrganizationTokens(context.Context, *connect_go.Request[v1beta1.ExportOrganizationTokensRequest], *connect_go.ServerStream[httpbody.HttpBody]) error
+	ExportOrganizationTokens(context.Context, *connect.Request[v1beta1.ExportOrganizationTokensRequest], *connect.ServerStream[httpbody.HttpBody]) error
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
-	ExportUsers(context.Context, *connect_go.Request[v1beta1.ExportUsersRequest], *connect_go.ServerStream[httpbody.HttpBody]) error
-	SearchUsers(context.Context, *connect_go.Request[v1beta1.SearchUsersRequest]) (*connect_go.Response[v1beta1.SearchUsersResponse], error)
-	SearchUserOrganizations(context.Context, *connect_go.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchUserOrganizationsResponse], error)
-	SearchUserProjects(context.Context, *connect_go.Request[v1beta1.SearchUserProjectsRequest]) (*connect_go.Response[v1beta1.SearchUserProjectsResponse], error)
-	SetOrganizationKyc(context.Context, *connect_go.Request[v1beta1.SetOrganizationKycRequest]) (*connect_go.Response[v1beta1.SetOrganizationKycResponse], error)
-	ListOrganizationsKyc(context.Context, *connect_go.Request[v1beta1.ListOrganizationsKycRequest]) (*connect_go.Response[v1beta1.ListOrganizationsKycResponse], error)
+	ExportUsers(context.Context, *connect.Request[v1beta1.ExportUsersRequest], *connect.ServerStream[httpbody.HttpBody]) error
+	SearchUsers(context.Context, *connect.Request[v1beta1.SearchUsersRequest]) (*connect.Response[v1beta1.SearchUsersResponse], error)
+	SearchUserOrganizations(context.Context, *connect.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect.Response[v1beta1.SearchUserOrganizationsResponse], error)
+	SearchUserProjects(context.Context, *connect.Request[v1beta1.SearchUserProjectsRequest]) (*connect.Response[v1beta1.SearchUserProjectsResponse], error)
+	SetOrganizationKyc(context.Context, *connect.Request[v1beta1.SetOrganizationKycRequest]) (*connect.Response[v1beta1.SetOrganizationKycResponse], error)
+	ListOrganizationsKyc(context.Context, *connect.Request[v1beta1.ListOrganizationsKycRequest]) (*connect.Response[v1beta1.ListOrganizationsKycResponse], error)
 	// Projects
-	ListProjects(context.Context, *connect_go.Request[v1beta1.ListProjectsRequest]) (*connect_go.Response[v1beta1.ListProjectsResponse], error)
+	ListProjects(context.Context, *connect.Request[v1beta1.ListProjectsRequest]) (*connect.Response[v1beta1.ListProjectsResponse], error)
 	// Relations
-	ListRelations(context.Context, *connect_go.Request[v1beta1.ListRelationsRequest]) (*connect_go.Response[v1beta1.ListRelationsResponse], error)
+	ListRelations(context.Context, *connect.Request[v1beta1.ListRelationsRequest]) (*connect.Response[v1beta1.ListRelationsResponse], error)
 	// Resources
-	ListResources(context.Context, *connect_go.Request[v1beta1.ListResourcesRequest]) (*connect_go.Response[v1beta1.ListResourcesResponse], error)
+	ListResources(context.Context, *connect.Request[v1beta1.ListResourcesRequest]) (*connect.Response[v1beta1.ListResourcesResponse], error)
 	// Roles
-	CreateRole(context.Context, *connect_go.Request[v1beta1.CreateRoleRequest]) (*connect_go.Response[v1beta1.CreateRoleResponse], error)
-	UpdateRole(context.Context, *connect_go.Request[v1beta1.UpdateRoleRequest]) (*connect_go.Response[v1beta1.UpdateRoleResponse], error)
-	DeleteRole(context.Context, *connect_go.Request[v1beta1.DeleteRoleRequest]) (*connect_go.Response[v1beta1.DeleteRoleResponse], error)
+	CreateRole(context.Context, *connect.Request[v1beta1.CreateRoleRequest]) (*connect.Response[v1beta1.CreateRoleResponse], error)
+	UpdateRole(context.Context, *connect.Request[v1beta1.UpdateRoleRequest]) (*connect.Response[v1beta1.UpdateRoleResponse], error)
+	DeleteRole(context.Context, *connect.Request[v1beta1.DeleteRoleRequest]) (*connect.Response[v1beta1.DeleteRoleResponse], error)
 	// Permissions
-	CreatePermission(context.Context, *connect_go.Request[v1beta1.CreatePermissionRequest]) (*connect_go.Response[v1beta1.CreatePermissionResponse], error)
-	UpdatePermission(context.Context, *connect_go.Request[v1beta1.UpdatePermissionRequest]) (*connect_go.Response[v1beta1.UpdatePermissionResponse], error)
-	DeletePermission(context.Context, *connect_go.Request[v1beta1.DeletePermissionRequest]) (*connect_go.Response[v1beta1.DeletePermissionResponse], error)
+	CreatePermission(context.Context, *connect.Request[v1beta1.CreatePermissionRequest]) (*connect.Response[v1beta1.CreatePermissionResponse], error)
+	UpdatePermission(context.Context, *connect.Request[v1beta1.UpdatePermissionRequest]) (*connect.Response[v1beta1.UpdatePermissionResponse], error)
+	DeletePermission(context.Context, *connect.Request[v1beta1.DeletePermissionRequest]) (*connect.Response[v1beta1.DeletePermissionResponse], error)
 	// Preferences
-	ListPreferences(context.Context, *connect_go.Request[v1beta1.ListPreferencesRequest]) (*connect_go.Response[v1beta1.ListPreferencesResponse], error)
-	CreatePreferences(context.Context, *connect_go.Request[v1beta1.CreatePreferencesRequest]) (*connect_go.Response[v1beta1.CreatePreferencesResponse], error)
+	ListPreferences(context.Context, *connect.Request[v1beta1.ListPreferencesRequest]) (*connect.Response[v1beta1.ListPreferencesResponse], error)
+	CreatePreferences(context.Context, *connect.Request[v1beta1.CreatePreferencesRequest]) (*connect.Response[v1beta1.CreatePreferencesResponse], error)
 	// Check
-	CheckFederatedResourcePermission(context.Context, *connect_go.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckFederatedResourcePermissionResponse], error)
+	CheckFederatedResourcePermission(context.Context, *connect.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect.Response[v1beta1.CheckFederatedResourcePermissionResponse], error)
 	// Platform
-	AddPlatformUser(context.Context, *connect_go.Request[v1beta1.AddPlatformUserRequest]) (*connect_go.Response[v1beta1.AddPlatformUserResponse], error)
-	ListPlatformUsers(context.Context, *connect_go.Request[v1beta1.ListPlatformUsersRequest]) (*connect_go.Response[v1beta1.ListPlatformUsersResponse], error)
-	RemovePlatformUser(context.Context, *connect_go.Request[v1beta1.RemovePlatformUserRequest]) (*connect_go.Response[v1beta1.RemovePlatformUserResponse], error)
+	AddPlatformUser(context.Context, *connect.Request[v1beta1.AddPlatformUserRequest]) (*connect.Response[v1beta1.AddPlatformUserResponse], error)
+	ListPlatformUsers(context.Context, *connect.Request[v1beta1.ListPlatformUsersRequest]) (*connect.Response[v1beta1.ListPlatformUsersResponse], error)
+	RemovePlatformUser(context.Context, *connect.Request[v1beta1.RemovePlatformUserRequest]) (*connect.Response[v1beta1.RemovePlatformUserResponse], error)
 	// Checkout
-	DelegatedCheckout(context.Context, *connect_go.Request[v1beta1.DelegatedCheckoutRequest]) (*connect_go.Response[v1beta1.DelegatedCheckoutResponse], error)
-	ListAllInvoices(context.Context, *connect_go.Request[v1beta1.ListAllInvoicesRequest]) (*connect_go.Response[v1beta1.ListAllInvoicesResponse], error)
-	GenerateInvoices(context.Context, *connect_go.Request[v1beta1.GenerateInvoicesRequest]) (*connect_go.Response[v1beta1.GenerateInvoicesResponse], error)
-	ListAllBillingAccounts(context.Context, *connect_go.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListAllBillingAccountsResponse], error)
+	DelegatedCheckout(context.Context, *connect.Request[v1beta1.DelegatedCheckoutRequest]) (*connect.Response[v1beta1.DelegatedCheckoutResponse], error)
+	ListAllInvoices(context.Context, *connect.Request[v1beta1.ListAllInvoicesRequest]) (*connect.Response[v1beta1.ListAllInvoicesResponse], error)
+	GenerateInvoices(context.Context, *connect.Request[v1beta1.GenerateInvoicesRequest]) (*connect.Response[v1beta1.GenerateInvoicesResponse], error)
+	ListAllBillingAccounts(context.Context, *connect.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect.Response[v1beta1.ListAllBillingAccountsResponse], error)
 	// Usage
-	RevertBillingUsage(context.Context, *connect_go.Request[v1beta1.RevertBillingUsageRequest]) (*connect_go.Response[v1beta1.RevertBillingUsageResponse], error)
+	RevertBillingUsage(context.Context, *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error)
 	// Webhooks
-	CreateWebhook(context.Context, *connect_go.Request[v1beta1.CreateWebhookRequest]) (*connect_go.Response[v1beta1.CreateWebhookResponse], error)
-	UpdateWebhook(context.Context, *connect_go.Request[v1beta1.UpdateWebhookRequest]) (*connect_go.Response[v1beta1.UpdateWebhookResponse], error)
-	DeleteWebhook(context.Context, *connect_go.Request[v1beta1.DeleteWebhookRequest]) (*connect_go.Response[v1beta1.DeleteWebhookResponse], error)
-	ListWebhooks(context.Context, *connect_go.Request[v1beta1.ListWebhooksRequest]) (*connect_go.Response[v1beta1.ListWebhooksResponse], error)
+	CreateWebhook(context.Context, *connect.Request[v1beta1.CreateWebhookRequest]) (*connect.Response[v1beta1.CreateWebhookResponse], error)
+	UpdateWebhook(context.Context, *connect.Request[v1beta1.UpdateWebhookRequest]) (*connect.Response[v1beta1.UpdateWebhookResponse], error)
+	DeleteWebhook(context.Context, *connect.Request[v1beta1.DeleteWebhookRequest]) (*connect.Response[v1beta1.DeleteWebhookResponse], error)
+	ListWebhooks(context.Context, *connect.Request[v1beta1.ListWebhooksRequest]) (*connect.Response[v1beta1.ListWebhooksResponse], error)
 	// Billing Account
 	//
 	// Deprecated: do not use.
-	UpdateBillingAccountLimits(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountLimitsResponse], error)
+	UpdateBillingAccountLimits(context.Context, *connect.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountLimitsResponse], error)
 	// GetBillingAccountDetails returns the billing account details that can be updated via UpdateBillingAccountDetails
-	GetBillingAccountDetails(context.Context, *connect_go.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.GetBillingAccountDetailsResponse], error)
-	UpdateBillingAccountDetails(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountDetailsResponse], error)
+	GetBillingAccountDetails(context.Context, *connect.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect.Response[v1beta1.GetBillingAccountDetailsResponse], error)
+	UpdateBillingAccountDetails(context.Context, *connect.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountDetailsResponse], error)
 	// Prospects
-	CreateProspect(context.Context, *connect_go.Request[v1beta1.CreateProspectRequest]) (*connect_go.Response[v1beta1.CreateProspectResponse], error)
-	ListProspects(context.Context, *connect_go.Request[v1beta1.ListProspectsRequest]) (*connect_go.Response[v1beta1.ListProspectsResponse], error)
-	GetProspect(context.Context, *connect_go.Request[v1beta1.GetProspectRequest]) (*connect_go.Response[v1beta1.GetProspectResponse], error)
-	UpdateProspect(context.Context, *connect_go.Request[v1beta1.UpdateProspectRequest]) (*connect_go.Response[v1beta1.UpdateProspectResponse], error)
-	DeleteProspect(context.Context, *connect_go.Request[v1beta1.DeleteProspectRequest]) (*connect_go.Response[v1beta1.DeleteProspectResponse], error)
-	SearchInvoices(context.Context, *connect_go.Request[v1beta1.SearchInvoicesRequest]) (*connect_go.Response[v1beta1.SearchInvoicesResponse], error)
+	CreateProspect(context.Context, *connect.Request[v1beta1.CreateProspectRequest]) (*connect.Response[v1beta1.CreateProspectResponse], error)
+	ListProspects(context.Context, *connect.Request[v1beta1.ListProspectsRequest]) (*connect.Response[v1beta1.ListProspectsResponse], error)
+	GetProspect(context.Context, *connect.Request[v1beta1.GetProspectRequest]) (*connect.Response[v1beta1.GetProspectResponse], error)
+	UpdateProspect(context.Context, *connect.Request[v1beta1.UpdateProspectRequest]) (*connect.Response[v1beta1.UpdateProspectResponse], error)
+	DeleteProspect(context.Context, *connect.Request[v1beta1.DeleteProspectRequest]) (*connect.Response[v1beta1.DeleteProspectResponse], error)
+	SearchInvoices(context.Context, *connect.Request[v1beta1.SearchInvoicesRequest]) (*connect.Response[v1beta1.SearchInvoicesResponse], error)
 }
 
 // NewAdminServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -993,276 +1048,331 @@ type AdminServiceHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	adminServiceListAllUsersHandler := connect_go.NewUnaryHandler(
+func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	adminServiceMethods := v1beta1.File_raystack_frontier_v1beta1_admin_proto.Services().ByName("AdminService").Methods()
+	adminServiceListAllUsersHandler := connect.NewUnaryHandler(
 		AdminServiceListAllUsersProcedure,
 		svc.ListAllUsers,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListAllUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListGroupsHandler := connect_go.NewUnaryHandler(
+	adminServiceListGroupsHandler := connect.NewUnaryHandler(
 		AdminServiceListGroupsProcedure,
 		svc.ListGroups,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListGroups")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListAllOrganizationsHandler := connect_go.NewUnaryHandler(
+	adminServiceListAllOrganizationsHandler := connect.NewUnaryHandler(
 		AdminServiceListAllOrganizationsProcedure,
 		svc.ListAllOrganizations,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListAllOrganizations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceAdminCreateOrganizationHandler := connect_go.NewUnaryHandler(
+	adminServiceAdminCreateOrganizationHandler := connect.NewUnaryHandler(
 		AdminServiceAdminCreateOrganizationProcedure,
 		svc.AdminCreateOrganization,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("AdminCreateOrganization")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchOrganizationsHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchOrganizationsHandler := connect.NewUnaryHandler(
 		AdminServiceSearchOrganizationsProcedure,
 		svc.SearchOrganizations,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchOrganizationUsersHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchOrganizationUsersHandler := connect.NewUnaryHandler(
 		AdminServiceSearchOrganizationUsersProcedure,
 		svc.SearchOrganizationUsers,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchProjectUsersHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchProjectUsersHandler := connect.NewUnaryHandler(
 		AdminServiceSearchProjectUsersProcedure,
 		svc.SearchProjectUsers,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchProjectUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchOrganizationProjectsHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchOrganizationProjectsHandler := connect.NewUnaryHandler(
 		AdminServiceSearchOrganizationProjectsProcedure,
 		svc.SearchOrganizationProjects,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchOrganizationInvoicesHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchOrganizationInvoicesHandler := connect.NewUnaryHandler(
 		AdminServiceSearchOrganizationInvoicesProcedure,
 		svc.SearchOrganizationInvoices,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationInvoices")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchOrganizationTokensHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchOrganizationTokensHandler := connect.NewUnaryHandler(
 		AdminServiceSearchOrganizationTokensProcedure,
 		svc.SearchOrganizationTokens,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationTokens")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchOrganizationServiceUserCredentialsHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchOrganizationServiceUserCredentialsHandler := connect.NewUnaryHandler(
 		AdminServiceSearchOrganizationServiceUserCredentialsProcedure,
 		svc.SearchOrganizationServiceUserCredentials,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationServiceUserCredentials")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceExportOrganizationsHandler := connect_go.NewServerStreamHandler(
+	adminServiceExportOrganizationsHandler := connect.NewServerStreamHandler(
 		AdminServiceExportOrganizationsProcedure,
 		svc.ExportOrganizations,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ExportOrganizations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceExportOrganizationUsersHandler := connect_go.NewServerStreamHandler(
+	adminServiceExportOrganizationUsersHandler := connect.NewServerStreamHandler(
 		AdminServiceExportOrganizationUsersProcedure,
 		svc.ExportOrganizationUsers,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ExportOrganizationUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceExportOrganizationProjectsHandler := connect_go.NewServerStreamHandler(
+	adminServiceExportOrganizationProjectsHandler := connect.NewServerStreamHandler(
 		AdminServiceExportOrganizationProjectsProcedure,
 		svc.ExportOrganizationProjects,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ExportOrganizationProjects")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceExportOrganizationTokensHandler := connect_go.NewServerStreamHandler(
+	adminServiceExportOrganizationTokensHandler := connect.NewServerStreamHandler(
 		AdminServiceExportOrganizationTokensProcedure,
 		svc.ExportOrganizationTokens,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ExportOrganizationTokens")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceExportUsersHandler := connect_go.NewServerStreamHandler(
+	adminServiceExportUsersHandler := connect.NewServerStreamHandler(
 		AdminServiceExportUsersProcedure,
 		svc.ExportUsers,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ExportUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchUsersHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchUsersHandler := connect.NewUnaryHandler(
 		AdminServiceSearchUsersProcedure,
 		svc.SearchUsers,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchUserOrganizationsHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchUserOrganizationsHandler := connect.NewUnaryHandler(
 		AdminServiceSearchUserOrganizationsProcedure,
 		svc.SearchUserOrganizations,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchUserOrganizations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchUserProjectsHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchUserProjectsHandler := connect.NewUnaryHandler(
 		AdminServiceSearchUserProjectsProcedure,
 		svc.SearchUserProjects,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchUserProjects")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSetOrganizationKycHandler := connect_go.NewUnaryHandler(
+	adminServiceSetOrganizationKycHandler := connect.NewUnaryHandler(
 		AdminServiceSetOrganizationKycProcedure,
 		svc.SetOrganizationKyc,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SetOrganizationKyc")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListOrganizationsKycHandler := connect_go.NewUnaryHandler(
+	adminServiceListOrganizationsKycHandler := connect.NewUnaryHandler(
 		AdminServiceListOrganizationsKycProcedure,
 		svc.ListOrganizationsKyc,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListOrganizationsKyc")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListProjectsHandler := connect_go.NewUnaryHandler(
+	adminServiceListProjectsHandler := connect.NewUnaryHandler(
 		AdminServiceListProjectsProcedure,
 		svc.ListProjects,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListProjects")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListRelationsHandler := connect_go.NewUnaryHandler(
+	adminServiceListRelationsHandler := connect.NewUnaryHandler(
 		AdminServiceListRelationsProcedure,
 		svc.ListRelations,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListRelations")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListResourcesHandler := connect_go.NewUnaryHandler(
+	adminServiceListResourcesHandler := connect.NewUnaryHandler(
 		AdminServiceListResourcesProcedure,
 		svc.ListResources,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListResources")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceCreateRoleHandler := connect_go.NewUnaryHandler(
+	adminServiceCreateRoleHandler := connect.NewUnaryHandler(
 		AdminServiceCreateRoleProcedure,
 		svc.CreateRole,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("CreateRole")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceUpdateRoleHandler := connect_go.NewUnaryHandler(
+	adminServiceUpdateRoleHandler := connect.NewUnaryHandler(
 		AdminServiceUpdateRoleProcedure,
 		svc.UpdateRole,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("UpdateRole")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceDeleteRoleHandler := connect_go.NewUnaryHandler(
+	adminServiceDeleteRoleHandler := connect.NewUnaryHandler(
 		AdminServiceDeleteRoleProcedure,
 		svc.DeleteRole,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("DeleteRole")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceCreatePermissionHandler := connect_go.NewUnaryHandler(
+	adminServiceCreatePermissionHandler := connect.NewUnaryHandler(
 		AdminServiceCreatePermissionProcedure,
 		svc.CreatePermission,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("CreatePermission")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceUpdatePermissionHandler := connect_go.NewUnaryHandler(
+	adminServiceUpdatePermissionHandler := connect.NewUnaryHandler(
 		AdminServiceUpdatePermissionProcedure,
 		svc.UpdatePermission,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("UpdatePermission")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceDeletePermissionHandler := connect_go.NewUnaryHandler(
+	adminServiceDeletePermissionHandler := connect.NewUnaryHandler(
 		AdminServiceDeletePermissionProcedure,
 		svc.DeletePermission,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("DeletePermission")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListPreferencesHandler := connect_go.NewUnaryHandler(
+	adminServiceListPreferencesHandler := connect.NewUnaryHandler(
 		AdminServiceListPreferencesProcedure,
 		svc.ListPreferences,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListPreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceCreatePreferencesHandler := connect_go.NewUnaryHandler(
+	adminServiceCreatePreferencesHandler := connect.NewUnaryHandler(
 		AdminServiceCreatePreferencesProcedure,
 		svc.CreatePreferences,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("CreatePreferences")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceCheckFederatedResourcePermissionHandler := connect_go.NewUnaryHandler(
+	adminServiceCheckFederatedResourcePermissionHandler := connect.NewUnaryHandler(
 		AdminServiceCheckFederatedResourcePermissionProcedure,
 		svc.CheckFederatedResourcePermission,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("CheckFederatedResourcePermission")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceAddPlatformUserHandler := connect_go.NewUnaryHandler(
+	adminServiceAddPlatformUserHandler := connect.NewUnaryHandler(
 		AdminServiceAddPlatformUserProcedure,
 		svc.AddPlatformUser,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("AddPlatformUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListPlatformUsersHandler := connect_go.NewUnaryHandler(
+	adminServiceListPlatformUsersHandler := connect.NewUnaryHandler(
 		AdminServiceListPlatformUsersProcedure,
 		svc.ListPlatformUsers,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListPlatformUsers")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceRemovePlatformUserHandler := connect_go.NewUnaryHandler(
+	adminServiceRemovePlatformUserHandler := connect.NewUnaryHandler(
 		AdminServiceRemovePlatformUserProcedure,
 		svc.RemovePlatformUser,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("RemovePlatformUser")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceDelegatedCheckoutHandler := connect_go.NewUnaryHandler(
+	adminServiceDelegatedCheckoutHandler := connect.NewUnaryHandler(
 		AdminServiceDelegatedCheckoutProcedure,
 		svc.DelegatedCheckout,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("DelegatedCheckout")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListAllInvoicesHandler := connect_go.NewUnaryHandler(
+	adminServiceListAllInvoicesHandler := connect.NewUnaryHandler(
 		AdminServiceListAllInvoicesProcedure,
 		svc.ListAllInvoices,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListAllInvoices")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceGenerateInvoicesHandler := connect_go.NewUnaryHandler(
+	adminServiceGenerateInvoicesHandler := connect.NewUnaryHandler(
 		AdminServiceGenerateInvoicesProcedure,
 		svc.GenerateInvoices,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("GenerateInvoices")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListAllBillingAccountsHandler := connect_go.NewUnaryHandler(
+	adminServiceListAllBillingAccountsHandler := connect.NewUnaryHandler(
 		AdminServiceListAllBillingAccountsProcedure,
 		svc.ListAllBillingAccounts,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListAllBillingAccounts")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceRevertBillingUsageHandler := connect_go.NewUnaryHandler(
+	adminServiceRevertBillingUsageHandler := connect.NewUnaryHandler(
 		AdminServiceRevertBillingUsageProcedure,
 		svc.RevertBillingUsage,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("RevertBillingUsage")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceCreateWebhookHandler := connect_go.NewUnaryHandler(
+	adminServiceCreateWebhookHandler := connect.NewUnaryHandler(
 		AdminServiceCreateWebhookProcedure,
 		svc.CreateWebhook,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("CreateWebhook")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceUpdateWebhookHandler := connect_go.NewUnaryHandler(
+	adminServiceUpdateWebhookHandler := connect.NewUnaryHandler(
 		AdminServiceUpdateWebhookProcedure,
 		svc.UpdateWebhook,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("UpdateWebhook")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceDeleteWebhookHandler := connect_go.NewUnaryHandler(
+	adminServiceDeleteWebhookHandler := connect.NewUnaryHandler(
 		AdminServiceDeleteWebhookProcedure,
 		svc.DeleteWebhook,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("DeleteWebhook")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListWebhooksHandler := connect_go.NewUnaryHandler(
+	adminServiceListWebhooksHandler := connect.NewUnaryHandler(
 		AdminServiceListWebhooksProcedure,
 		svc.ListWebhooks,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListWebhooks")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceUpdateBillingAccountLimitsHandler := connect_go.NewUnaryHandler(
+	adminServiceUpdateBillingAccountLimitsHandler := connect.NewUnaryHandler(
 		AdminServiceUpdateBillingAccountLimitsProcedure,
 		svc.UpdateBillingAccountLimits,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("UpdateBillingAccountLimits")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceGetBillingAccountDetailsHandler := connect_go.NewUnaryHandler(
+	adminServiceGetBillingAccountDetailsHandler := connect.NewUnaryHandler(
 		AdminServiceGetBillingAccountDetailsProcedure,
 		svc.GetBillingAccountDetails,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("GetBillingAccountDetails")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceUpdateBillingAccountDetailsHandler := connect_go.NewUnaryHandler(
+	adminServiceUpdateBillingAccountDetailsHandler := connect.NewUnaryHandler(
 		AdminServiceUpdateBillingAccountDetailsProcedure,
 		svc.UpdateBillingAccountDetails,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("UpdateBillingAccountDetails")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceCreateProspectHandler := connect_go.NewUnaryHandler(
+	adminServiceCreateProspectHandler := connect.NewUnaryHandler(
 		AdminServiceCreateProspectProcedure,
 		svc.CreateProspect,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("CreateProspect")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceListProspectsHandler := connect_go.NewUnaryHandler(
+	adminServiceListProspectsHandler := connect.NewUnaryHandler(
 		AdminServiceListProspectsProcedure,
 		svc.ListProspects,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("ListProspects")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceGetProspectHandler := connect_go.NewUnaryHandler(
+	adminServiceGetProspectHandler := connect.NewUnaryHandler(
 		AdminServiceGetProspectProcedure,
 		svc.GetProspect,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("GetProspect")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceUpdateProspectHandler := connect_go.NewUnaryHandler(
+	adminServiceUpdateProspectHandler := connect.NewUnaryHandler(
 		AdminServiceUpdateProspectProcedure,
 		svc.UpdateProspect,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("UpdateProspect")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceDeleteProspectHandler := connect_go.NewUnaryHandler(
+	adminServiceDeleteProspectHandler := connect.NewUnaryHandler(
 		AdminServiceDeleteProspectProcedure,
 		svc.DeleteProspect,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("DeleteProspect")),
+		connect.WithHandlerOptions(opts...),
 	)
-	adminServiceSearchInvoicesHandler := connect_go.NewUnaryHandler(
+	adminServiceSearchInvoicesHandler := connect.NewUnaryHandler(
 		AdminServiceSearchInvoicesProcedure,
 		svc.SearchInvoices,
-		opts...,
+		connect.WithSchema(adminServiceMethods.ByName("SearchInvoices")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/raystack.frontier.v1beta1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -1383,218 +1493,218 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect_go.HandlerO
 // UnimplementedAdminServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAdminServiceHandler struct{}
 
-func (UnimplementedAdminServiceHandler) ListAllUsers(context.Context, *connect_go.Request[v1beta1.ListAllUsersRequest]) (*connect_go.Response[v1beta1.ListAllUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllUsers is not implemented"))
+func (UnimplementedAdminServiceHandler) ListAllUsers(context.Context, *connect.Request[v1beta1.ListAllUsersRequest]) (*connect.Response[v1beta1.ListAllUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllUsers is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListGroups(context.Context, *connect_go.Request[v1beta1.ListGroupsRequest]) (*connect_go.Response[v1beta1.ListGroupsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListGroups is not implemented"))
+func (UnimplementedAdminServiceHandler) ListGroups(context.Context, *connect.Request[v1beta1.ListGroupsRequest]) (*connect.Response[v1beta1.ListGroupsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListGroups is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListAllOrganizations(context.Context, *connect_go.Request[v1beta1.ListAllOrganizationsRequest]) (*connect_go.Response[v1beta1.ListAllOrganizationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllOrganizations is not implemented"))
+func (UnimplementedAdminServiceHandler) ListAllOrganizations(context.Context, *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllOrganizations is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) AdminCreateOrganization(context.Context, *connect_go.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect_go.Response[v1beta1.AdminCreateOrganizationResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AdminCreateOrganization is not implemented"))
+func (UnimplementedAdminServiceHandler) AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AdminCreateOrganization is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchOrganizations(context.Context, *connect_go.Request[v1beta1.SearchOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizations is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizations is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchOrganizationUsers(context.Context, *connect_go.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect_go.Response[v1beta1.SearchOrganizationUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationUsers is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationUsers is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchProjectUsers(context.Context, *connect_go.Request[v1beta1.SearchProjectUsersRequest]) (*connect_go.Response[v1beta1.SearchProjectUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchProjectUsers is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchProjectUsers is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchOrganizationProjects(context.Context, *connect_go.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchOrganizationInvoices(context.Context, *connect_go.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect_go.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationInvoices is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationInvoices is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchOrganizationTokens(context.Context, *connect_go.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect_go.Response[v1beta1.SearchOrganizationTokensResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchOrganizationServiceUserCredentials(context.Context, *connect_go.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect_go.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationServiceUserCredentials is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationServiceUserCredentials is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ExportOrganizations(context.Context, *connect_go.Request[v1beta1.ExportOrganizationsRequest], *connect_go.ServerStream[httpbody.HttpBody]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizations is not implemented"))
+func (UnimplementedAdminServiceHandler) ExportOrganizations(context.Context, *connect.Request[v1beta1.ExportOrganizationsRequest], *connect.ServerStream[httpbody.HttpBody]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizations is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ExportOrganizationUsers(context.Context, *connect_go.Request[v1beta1.ExportOrganizationUsersRequest], *connect_go.ServerStream[httpbody.HttpBody]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizationUsers is not implemented"))
+func (UnimplementedAdminServiceHandler) ExportOrganizationUsers(context.Context, *connect.Request[v1beta1.ExportOrganizationUsersRequest], *connect.ServerStream[httpbody.HttpBody]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizationUsers is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ExportOrganizationProjects(context.Context, *connect_go.Request[v1beta1.ExportOrganizationProjectsRequest], *connect_go.ServerStream[httpbody.HttpBody]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizationProjects is not implemented"))
+func (UnimplementedAdminServiceHandler) ExportOrganizationProjects(context.Context, *connect.Request[v1beta1.ExportOrganizationProjectsRequest], *connect.ServerStream[httpbody.HttpBody]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizationProjects is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ExportOrganizationTokens(context.Context, *connect_go.Request[v1beta1.ExportOrganizationTokensRequest], *connect_go.ServerStream[httpbody.HttpBody]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizationTokens is not implemented"))
+func (UnimplementedAdminServiceHandler) ExportOrganizationTokens(context.Context, *connect.Request[v1beta1.ExportOrganizationTokensRequest], *connect.ServerStream[httpbody.HttpBody]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportOrganizationTokens is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ExportUsers(context.Context, *connect_go.Request[v1beta1.ExportUsersRequest], *connect_go.ServerStream[httpbody.HttpBody]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportUsers is not implemented"))
+func (UnimplementedAdminServiceHandler) ExportUsers(context.Context, *connect.Request[v1beta1.ExportUsersRequest], *connect.ServerStream[httpbody.HttpBody]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportUsers is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchUsers(context.Context, *connect_go.Request[v1beta1.SearchUsersRequest]) (*connect_go.Response[v1beta1.SearchUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchUsers is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchUsers(context.Context, *connect.Request[v1beta1.SearchUsersRequest]) (*connect.Response[v1beta1.SearchUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchUsers is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchUserOrganizations(context.Context, *connect_go.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect_go.Response[v1beta1.SearchUserOrganizationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchUserOrganizations is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchUserOrganizations(context.Context, *connect.Request[v1beta1.SearchUserOrganizationsRequest]) (*connect.Response[v1beta1.SearchUserOrganizationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchUserOrganizations is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchUserProjects(context.Context, *connect_go.Request[v1beta1.SearchUserProjectsRequest]) (*connect_go.Response[v1beta1.SearchUserProjectsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchUserProjects is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchUserProjects(context.Context, *connect.Request[v1beta1.SearchUserProjectsRequest]) (*connect.Response[v1beta1.SearchUserProjectsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchUserProjects is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SetOrganizationKyc(context.Context, *connect_go.Request[v1beta1.SetOrganizationKycRequest]) (*connect_go.Response[v1beta1.SetOrganizationKycResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SetOrganizationKyc is not implemented"))
+func (UnimplementedAdminServiceHandler) SetOrganizationKyc(context.Context, *connect.Request[v1beta1.SetOrganizationKycRequest]) (*connect.Response[v1beta1.SetOrganizationKycResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SetOrganizationKyc is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListOrganizationsKyc(context.Context, *connect_go.Request[v1beta1.ListOrganizationsKycRequest]) (*connect_go.Response[v1beta1.ListOrganizationsKycResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListOrganizationsKyc is not implemented"))
+func (UnimplementedAdminServiceHandler) ListOrganizationsKyc(context.Context, *connect.Request[v1beta1.ListOrganizationsKycRequest]) (*connect.Response[v1beta1.ListOrganizationsKycResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListOrganizationsKyc is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListProjects(context.Context, *connect_go.Request[v1beta1.ListProjectsRequest]) (*connect_go.Response[v1beta1.ListProjectsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListProjects is not implemented"))
+func (UnimplementedAdminServiceHandler) ListProjects(context.Context, *connect.Request[v1beta1.ListProjectsRequest]) (*connect.Response[v1beta1.ListProjectsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListProjects is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListRelations(context.Context, *connect_go.Request[v1beta1.ListRelationsRequest]) (*connect_go.Response[v1beta1.ListRelationsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListRelations is not implemented"))
+func (UnimplementedAdminServiceHandler) ListRelations(context.Context, *connect.Request[v1beta1.ListRelationsRequest]) (*connect.Response[v1beta1.ListRelationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListRelations is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListResources(context.Context, *connect_go.Request[v1beta1.ListResourcesRequest]) (*connect_go.Response[v1beta1.ListResourcesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListResources is not implemented"))
+func (UnimplementedAdminServiceHandler) ListResources(context.Context, *connect.Request[v1beta1.ListResourcesRequest]) (*connect.Response[v1beta1.ListResourcesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListResources is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) CreateRole(context.Context, *connect_go.Request[v1beta1.CreateRoleRequest]) (*connect_go.Response[v1beta1.CreateRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreateRole is not implemented"))
+func (UnimplementedAdminServiceHandler) CreateRole(context.Context, *connect.Request[v1beta1.CreateRoleRequest]) (*connect.Response[v1beta1.CreateRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreateRole is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) UpdateRole(context.Context, *connect_go.Request[v1beta1.UpdateRoleRequest]) (*connect_go.Response[v1beta1.UpdateRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateRole is not implemented"))
+func (UnimplementedAdminServiceHandler) UpdateRole(context.Context, *connect.Request[v1beta1.UpdateRoleRequest]) (*connect.Response[v1beta1.UpdateRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateRole is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) DeleteRole(context.Context, *connect_go.Request[v1beta1.DeleteRoleRequest]) (*connect_go.Response[v1beta1.DeleteRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeleteRole is not implemented"))
+func (UnimplementedAdminServiceHandler) DeleteRole(context.Context, *connect.Request[v1beta1.DeleteRoleRequest]) (*connect.Response[v1beta1.DeleteRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeleteRole is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) CreatePermission(context.Context, *connect_go.Request[v1beta1.CreatePermissionRequest]) (*connect_go.Response[v1beta1.CreatePermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreatePermission is not implemented"))
+func (UnimplementedAdminServiceHandler) CreatePermission(context.Context, *connect.Request[v1beta1.CreatePermissionRequest]) (*connect.Response[v1beta1.CreatePermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreatePermission is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) UpdatePermission(context.Context, *connect_go.Request[v1beta1.UpdatePermissionRequest]) (*connect_go.Response[v1beta1.UpdatePermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdatePermission is not implemented"))
+func (UnimplementedAdminServiceHandler) UpdatePermission(context.Context, *connect.Request[v1beta1.UpdatePermissionRequest]) (*connect.Response[v1beta1.UpdatePermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdatePermission is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) DeletePermission(context.Context, *connect_go.Request[v1beta1.DeletePermissionRequest]) (*connect_go.Response[v1beta1.DeletePermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeletePermission is not implemented"))
+func (UnimplementedAdminServiceHandler) DeletePermission(context.Context, *connect.Request[v1beta1.DeletePermissionRequest]) (*connect.Response[v1beta1.DeletePermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeletePermission is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListPreferences(context.Context, *connect_go.Request[v1beta1.ListPreferencesRequest]) (*connect_go.Response[v1beta1.ListPreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListPreferences is not implemented"))
+func (UnimplementedAdminServiceHandler) ListPreferences(context.Context, *connect.Request[v1beta1.ListPreferencesRequest]) (*connect.Response[v1beta1.ListPreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListPreferences is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) CreatePreferences(context.Context, *connect_go.Request[v1beta1.CreatePreferencesRequest]) (*connect_go.Response[v1beta1.CreatePreferencesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreatePreferences is not implemented"))
+func (UnimplementedAdminServiceHandler) CreatePreferences(context.Context, *connect.Request[v1beta1.CreatePreferencesRequest]) (*connect.Response[v1beta1.CreatePreferencesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreatePreferences is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) CheckFederatedResourcePermission(context.Context, *connect_go.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect_go.Response[v1beta1.CheckFederatedResourcePermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CheckFederatedResourcePermission is not implemented"))
+func (UnimplementedAdminServiceHandler) CheckFederatedResourcePermission(context.Context, *connect.Request[v1beta1.CheckFederatedResourcePermissionRequest]) (*connect.Response[v1beta1.CheckFederatedResourcePermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CheckFederatedResourcePermission is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) AddPlatformUser(context.Context, *connect_go.Request[v1beta1.AddPlatformUserRequest]) (*connect_go.Response[v1beta1.AddPlatformUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AddPlatformUser is not implemented"))
+func (UnimplementedAdminServiceHandler) AddPlatformUser(context.Context, *connect.Request[v1beta1.AddPlatformUserRequest]) (*connect.Response[v1beta1.AddPlatformUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AddPlatformUser is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListPlatformUsers(context.Context, *connect_go.Request[v1beta1.ListPlatformUsersRequest]) (*connect_go.Response[v1beta1.ListPlatformUsersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListPlatformUsers is not implemented"))
+func (UnimplementedAdminServiceHandler) ListPlatformUsers(context.Context, *connect.Request[v1beta1.ListPlatformUsersRequest]) (*connect.Response[v1beta1.ListPlatformUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListPlatformUsers is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) RemovePlatformUser(context.Context, *connect_go.Request[v1beta1.RemovePlatformUserRequest]) (*connect_go.Response[v1beta1.RemovePlatformUserResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.RemovePlatformUser is not implemented"))
+func (UnimplementedAdminServiceHandler) RemovePlatformUser(context.Context, *connect.Request[v1beta1.RemovePlatformUserRequest]) (*connect.Response[v1beta1.RemovePlatformUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.RemovePlatformUser is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) DelegatedCheckout(context.Context, *connect_go.Request[v1beta1.DelegatedCheckoutRequest]) (*connect_go.Response[v1beta1.DelegatedCheckoutResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DelegatedCheckout is not implemented"))
+func (UnimplementedAdminServiceHandler) DelegatedCheckout(context.Context, *connect.Request[v1beta1.DelegatedCheckoutRequest]) (*connect.Response[v1beta1.DelegatedCheckoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DelegatedCheckout is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListAllInvoices(context.Context, *connect_go.Request[v1beta1.ListAllInvoicesRequest]) (*connect_go.Response[v1beta1.ListAllInvoicesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllInvoices is not implemented"))
+func (UnimplementedAdminServiceHandler) ListAllInvoices(context.Context, *connect.Request[v1beta1.ListAllInvoicesRequest]) (*connect.Response[v1beta1.ListAllInvoicesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllInvoices is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) GenerateInvoices(context.Context, *connect_go.Request[v1beta1.GenerateInvoicesRequest]) (*connect_go.Response[v1beta1.GenerateInvoicesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.GenerateInvoices is not implemented"))
+func (UnimplementedAdminServiceHandler) GenerateInvoices(context.Context, *connect.Request[v1beta1.GenerateInvoicesRequest]) (*connect.Response[v1beta1.GenerateInvoicesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.GenerateInvoices is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListAllBillingAccounts(context.Context, *connect_go.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect_go.Response[v1beta1.ListAllBillingAccountsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts is not implemented"))
+func (UnimplementedAdminServiceHandler) ListAllBillingAccounts(context.Context, *connect.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect.Response[v1beta1.ListAllBillingAccountsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) RevertBillingUsage(context.Context, *connect_go.Request[v1beta1.RevertBillingUsageRequest]) (*connect_go.Response[v1beta1.RevertBillingUsageResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.RevertBillingUsage is not implemented"))
+func (UnimplementedAdminServiceHandler) RevertBillingUsage(context.Context, *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.RevertBillingUsage is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) CreateWebhook(context.Context, *connect_go.Request[v1beta1.CreateWebhookRequest]) (*connect_go.Response[v1beta1.CreateWebhookResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreateWebhook is not implemented"))
+func (UnimplementedAdminServiceHandler) CreateWebhook(context.Context, *connect.Request[v1beta1.CreateWebhookRequest]) (*connect.Response[v1beta1.CreateWebhookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreateWebhook is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) UpdateWebhook(context.Context, *connect_go.Request[v1beta1.UpdateWebhookRequest]) (*connect_go.Response[v1beta1.UpdateWebhookResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateWebhook is not implemented"))
+func (UnimplementedAdminServiceHandler) UpdateWebhook(context.Context, *connect.Request[v1beta1.UpdateWebhookRequest]) (*connect.Response[v1beta1.UpdateWebhookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateWebhook is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) DeleteWebhook(context.Context, *connect_go.Request[v1beta1.DeleteWebhookRequest]) (*connect_go.Response[v1beta1.DeleteWebhookResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeleteWebhook is not implemented"))
+func (UnimplementedAdminServiceHandler) DeleteWebhook(context.Context, *connect.Request[v1beta1.DeleteWebhookRequest]) (*connect.Response[v1beta1.DeleteWebhookResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeleteWebhook is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListWebhooks(context.Context, *connect_go.Request[v1beta1.ListWebhooksRequest]) (*connect_go.Response[v1beta1.ListWebhooksResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListWebhooks is not implemented"))
+func (UnimplementedAdminServiceHandler) ListWebhooks(context.Context, *connect.Request[v1beta1.ListWebhooksRequest]) (*connect.Response[v1beta1.ListWebhooksResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListWebhooks is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) UpdateBillingAccountLimits(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountLimitsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateBillingAccountLimits is not implemented"))
+func (UnimplementedAdminServiceHandler) UpdateBillingAccountLimits(context.Context, *connect.Request[v1beta1.UpdateBillingAccountLimitsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountLimitsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateBillingAccountLimits is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) GetBillingAccountDetails(context.Context, *connect_go.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.GetBillingAccountDetailsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.GetBillingAccountDetails is not implemented"))
+func (UnimplementedAdminServiceHandler) GetBillingAccountDetails(context.Context, *connect.Request[v1beta1.GetBillingAccountDetailsRequest]) (*connect.Response[v1beta1.GetBillingAccountDetailsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.GetBillingAccountDetails is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) UpdateBillingAccountDetails(context.Context, *connect_go.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect_go.Response[v1beta1.UpdateBillingAccountDetailsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateBillingAccountDetails is not implemented"))
+func (UnimplementedAdminServiceHandler) UpdateBillingAccountDetails(context.Context, *connect.Request[v1beta1.UpdateBillingAccountDetailsRequest]) (*connect.Response[v1beta1.UpdateBillingAccountDetailsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateBillingAccountDetails is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) CreateProspect(context.Context, *connect_go.Request[v1beta1.CreateProspectRequest]) (*connect_go.Response[v1beta1.CreateProspectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreateProspect is not implemented"))
+func (UnimplementedAdminServiceHandler) CreateProspect(context.Context, *connect.Request[v1beta1.CreateProspectRequest]) (*connect.Response[v1beta1.CreateProspectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreateProspect is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) ListProspects(context.Context, *connect_go.Request[v1beta1.ListProspectsRequest]) (*connect_go.Response[v1beta1.ListProspectsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListProspects is not implemented"))
+func (UnimplementedAdminServiceHandler) ListProspects(context.Context, *connect.Request[v1beta1.ListProspectsRequest]) (*connect.Response[v1beta1.ListProspectsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListProspects is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) GetProspect(context.Context, *connect_go.Request[v1beta1.GetProspectRequest]) (*connect_go.Response[v1beta1.GetProspectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.GetProspect is not implemented"))
+func (UnimplementedAdminServiceHandler) GetProspect(context.Context, *connect.Request[v1beta1.GetProspectRequest]) (*connect.Response[v1beta1.GetProspectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.GetProspect is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) UpdateProspect(context.Context, *connect_go.Request[v1beta1.UpdateProspectRequest]) (*connect_go.Response[v1beta1.UpdateProspectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateProspect is not implemented"))
+func (UnimplementedAdminServiceHandler) UpdateProspect(context.Context, *connect.Request[v1beta1.UpdateProspectRequest]) (*connect.Response[v1beta1.UpdateProspectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdateProspect is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) DeleteProspect(context.Context, *connect_go.Request[v1beta1.DeleteProspectRequest]) (*connect_go.Response[v1beta1.DeleteProspectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeleteProspect is not implemented"))
+func (UnimplementedAdminServiceHandler) DeleteProspect(context.Context, *connect.Request[v1beta1.DeleteProspectRequest]) (*connect.Response[v1beta1.DeleteProspectResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.DeleteProspect is not implemented"))
 }
 
-func (UnimplementedAdminServiceHandler) SearchInvoices(context.Context, *connect_go.Request[v1beta1.SearchInvoicesRequest]) (*connect_go.Response[v1beta1.SearchInvoicesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchInvoices is not implemented"))
+func (UnimplementedAdminServiceHandler) SearchInvoices(context.Context, *connect.Request[v1beta1.SearchInvoicesRequest]) (*connect.Response[v1beta1.SearchInvoicesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchInvoices is not implemented"))
 }
