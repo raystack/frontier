@@ -44,7 +44,7 @@ export const PriceFields = ({
                             <Select.Item value={price.value} key={price.value}>
                               {price.title}
                             </Select.Item>
-                          )
+                          ),
                         )}
                       </Select.Group>
                     </Select.Content>
@@ -78,7 +78,7 @@ export const PriceFields = ({
                   <Flex
                     direction="column"
                     align="center"
-                    style={{ paddingRight: "var(--pd-4)" }}
+                    style={{ paddingRight: "var(--rs-space-2)" }}
                   >
                     <PlusIcon />
                   </Flex>
@@ -94,7 +94,7 @@ export const PriceFields = ({
                   <Flex
                     direction="column"
                     align="center"
-                    style={{ paddingRight: "var(--pd-4)" }}
+                    style={{ paddingRight: "var(--rs-space-2)" }}
                   >
                     <Cross1Icon />
                   </Flex>

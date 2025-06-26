@@ -1,11 +1,14 @@
-import { DataTable } from "@raystack/apsara";
-import { EmptyState } from "@raystack/apsara/v1";
-import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
+import { EmptyState, DataTable, Flex } from "@raystack/apsara/v1";
+import type {
+  V1Beta1Preference,
+  V1Beta1PreferenceTrait,
+} from "@raystack/frontier";
 
 import PageHeader from "~/components/page-header";
 import { getColumns } from "./columns";
 import { useOutletContext } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import styles from "./preferences.module.css";
 
 const pageHeader = {
   title: "Preferences",
@@ -25,17 +28,6 @@ export function usePreferences() {
 export default function PreferencesList() {
   const { preferences, traits, isPreferencesLoading } = usePreferences();
 
-  const tableStyle = traits?.length
-    ? { width: "100%" }
-    : { width: "100%", height: "100%" };
-
-  const data = isPreferencesLoading
-    ? [...new Array(5)].map((_, i) => ({
-        name: i,
-        title: "",
-      }))
-    : traits;
-
   const columns = getColumns({
     traits,
     preferences,
@@ -43,21 +35,23 @@ export default function PreferencesList() {
 
   return (
     <DataTable
-      // @ts-ignore
-      data={data}
+      data={traits}
       columns={columns}
-      emptyState={noDataChildren}
-      parentStyle={{ height: "calc(100vh - 60px)" }}
-      style={tableStyle}
+      mode="client"
+      defaultSort={{ name: "title", order: "asc" }}
       isLoading={isPreferencesLoading}
     >
-      <DataTable.Toolbar>
+      <Flex direction="column" className={styles.tableWrapper}>
         <PageHeader
           title={pageHeader.title}
           breadcrumb={pageHeader.breadcrumb}
+          className={styles.header}
         />
-        <DataTable.FilterChips style={{ padding: "8px 24px" }} />
-      </DataTable.Toolbar>
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{ root: styles.tableRoot }}
+        />
+      </Flex>
     </DataTable>
   );
 }

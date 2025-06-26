@@ -68,8 +68,7 @@ export default function CreateWebhooks() {
         style={{
           width: "30vw",
           padding: 0,
-          borderRadius: "var(--pd-8)",
-          boxShadow: "var(--shadow-sm)",
+          boxShadow: "var(--rs-shadow-soft)",
         }}
         close={false}
       >

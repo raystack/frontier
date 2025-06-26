@@ -1,7 +1,11 @@
-import { ApsaraColumnDef } from "@raystack/apsara";
-import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
+import type { DataTableColumnDef } from "@raystack/apsara/v1";
+import type {
+  V1Beta1Preference,
+  V1Beta1PreferenceTrait,
+} from "@raystack/frontier";
 
 import { Link } from "react-router-dom";
+import styles from "./preferences.module.css";
 
 interface getColumnsOptions {
   traits: V1Beta1PreferenceTrait[];
@@ -9,8 +13,11 @@ interface getColumnsOptions {
 }
 
 export const getColumns: (
-  options: getColumnsOptions
-) => ApsaraColumnDef<V1Beta1PreferenceTrait>[] = ({ traits, preferences }) => {
+  options: getColumnsOptions,
+) => DataTableColumnDef<V1Beta1PreferenceTrait, unknown>[] = ({
+  traits,
+  preferences,
+}) => {
   return [
     {
       header: "Title",
@@ -27,6 +34,10 @@ export const getColumns: (
     },
     {
       header: "Value",
+      accessorKey: "id",
+      classNames: {
+        cell: styles.valueColumn,
+      },
       cell: (info) => {
         const name = info.row.original.name;
         const currentPreference =
