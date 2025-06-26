@@ -76,7 +76,7 @@ export function RenameProjectDialog({
             <Dialog.CloseButton data-test-id="rename-project-close-button" />
           </Dialog.Header>
           <Dialog.Body>
-            <Flex direction={"column"} gap={5}>
+            <Flex direction="column" gap={5}>
               <Controller
                 name="title"
                 control={control}
