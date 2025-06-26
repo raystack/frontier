@@ -150,7 +150,7 @@ const MembersTable = ({
         <Flex justify="between" gap={3}>
           <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
           {isLoading ? (
-            <Skeleton height={'34px'} width={'500px'} />
+            <Skeleton height='34px' width='500px' />
           ) : (
             <DataTable.Search
               placeholder="Search by name or email"
