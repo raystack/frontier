@@ -58,7 +58,7 @@ const NoAccess = () => {
       <EmptyState
         icon={<ExclamationTriangleIcon />}
         heading="Restricted Access"
-        subHeading={`Admin access required, please reach out to your admin incase you want to generate a key.`}
+        subHeading='Admin access required, please reach out to your admin incase you want to generate a key.'
       />
     </Flex>
   );

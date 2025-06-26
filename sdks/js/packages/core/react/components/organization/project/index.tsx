@@ -203,7 +203,7 @@ const ProjectsTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'No projects found'}
-    subHeading={'Get started by creating your first project.'}
+    heading='No projects found'
+    subHeading='Get started by creating your first project.'
   />
 );

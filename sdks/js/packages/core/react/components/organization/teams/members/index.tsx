@@ -335,7 +335,7 @@ const AddMemberDropdown = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'No members found'}
-    subHeading={'Get started by adding your first team member.'}
+    heading='No members found'
+    subHeading='Get started by adding your first team member.'
   />
 );

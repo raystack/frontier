@@ -175,7 +175,7 @@ const Domains = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'No domains found'}
-    subHeading={'Get started by adding your first domain.'}
+    heading='No domains found'
+    subHeading='Get started by adding your first domain.'
   />
 );

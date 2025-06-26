@@ -194,7 +194,7 @@ const MembersTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'No members found'}
-    subHeading={'Get started by adding your first member.'}
+    heading='No members found'
+    subHeading='Get started by adding your first member.'
   />
 );

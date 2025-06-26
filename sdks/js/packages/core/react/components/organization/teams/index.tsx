@@ -207,7 +207,7 @@ const TeamsTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'No teams found'}
-    subHeading={'Get started by creating your first team.'}
+    heading='No teams found'
+    subHeading='Get started by creating your first team.'
   />
 );
