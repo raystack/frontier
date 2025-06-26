@@ -1,9 +1,10 @@
-import { ApsaraColumnDef } from "@raystack/apsara";
-import { V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
+import type { DataTableColumnDef } from "@raystack/apsara/v1";
+import type { V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
 import { Link } from "react-router-dom";
 
-export const getColumns: () => ApsaraColumnDef<
-  V1Beta1User | V1Beta1ServiceUser
+export const getColumns: () => DataTableColumnDef<
+  V1Beta1User | V1Beta1ServiceUser,
+  unknown
 >[] = () => {
   return [
     {
@@ -37,7 +38,7 @@ export const getColumns: () => ApsaraColumnDef<
       header: "Organization",
       accessorKey: "org_id",
       cell: (info) => {
-        const org_id = info.getValue();
+        const org_id = info.getValue() as string;
         return org_id ? (
           <Link to={`/organizations/${org_id}`}>{org_id}</Link>
         ) : (

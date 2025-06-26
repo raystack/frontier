@@ -13,8 +13,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <BrowserRouter>
       <ThemeProvider {...themeConfig}>
         <SkeletonTheme
-          highlightColor="var(--background-base)"
-          baseColor="var(--background-base-hover)"
+          highlightColor="var(--rs-color-background-base-primary)"
+          baseColor="var--rs-color-background-base-primary-hover)"
         >
           <AppContextProvider>
             <Routes />

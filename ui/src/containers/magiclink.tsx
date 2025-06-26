@@ -23,7 +23,7 @@ export default function MagicLink() {
               src={config?.logo}
               width={80}
               height={80}
-              style={{ borderRadius: "var(--pd-8)" }}
+              style={{ borderRadius: "var(--rs-space-3)" }}
             />
           ) : (
             <IAMIcon width={80} height={80} />
