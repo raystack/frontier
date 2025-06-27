@@ -86,7 +86,7 @@ export const InviteTeamMembers = () => {
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
           teamId,
-          { withRoles: true }
+          { with_roles: true }
         );
 
         setMembers(users);
@@ -136,7 +136,7 @@ export const InviteTeamMembers = () => {
         const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
         const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
         const policy: V1Beta1PolicyRequestBody = {
-          roleId,
+          role_id: roleId,
           resource,
           principal
         };
@@ -150,7 +150,7 @@ export const InviteTeamMembers = () => {
     if (!userId || !role || !organization?.id) return;
     try {
       await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-        userIds: [userId]
+        user_ids: [userId]
       });
       await addGroupTeamPolicy(role, userId);
       toast.success('member added');
