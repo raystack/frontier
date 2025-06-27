@@ -163,7 +163,6 @@ export const General = ({
         canDeleteGroup={canDeleteGroup}
         isLoading={isLoading}
       />
-      <Separator />
     </Flex>
   );
 };

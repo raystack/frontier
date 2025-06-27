@@ -1,4 +1,4 @@
-import { Button, Skeleton, Text, Flex, toast } from '@raystack/apsara/v1';
+import { Button, Skeleton, Text, Flex, toast, Link } from '@raystack/apsara/v1';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -44,14 +44,15 @@ const BillingHeader = ({
             <>
               {' '}
               For more details, contact{' '}
-              <a
-                data-test-id="frontier-sdk-billing-email-link"
+              <Link
+                size="regular"
                 href={`mailto:${billingSupportEmail}`}
-                target="_blank"
-                style={{ fontWeight: 'var(--rs-font-weight-regular)', color: 'var(--rs-color-foreground-accent-primary)' }}
+                data-test-id="frontier-sdk-billing-email-link"
+                external
+                style={{ textDecoration: 'none' }}
               >
                 {billingSupportEmail}
-              </a>
+              </Link>
             </>
           ) : null}
         </Text>

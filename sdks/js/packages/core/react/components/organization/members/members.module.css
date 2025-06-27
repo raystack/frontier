@@ -28,3 +28,7 @@
   max-width: 500px;
   flex: 1;
 }
+
+.skeletonRow {
+  margin-top: var(--rs-space-8);
+}

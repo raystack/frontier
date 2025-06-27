@@ -4,7 +4,6 @@ import {
   Flex,
   Text,
   toast,
-  Separator,
   Image,
   Dialog
 } from '@raystack/apsara/v1';
@@ -64,7 +63,7 @@ export const DeleteServiceAccountKey = () => {
         className={styles.addDialogContent}
       >
         <Dialog.Header>
-          <Flex justify="between" className={styles.addDialogForm}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Revoke API Key
             </Text>
@@ -77,14 +76,12 @@ export const DeleteServiceAccountKey = () => {
               data-test-id="frontier-sdk-revoke-service-account-key-close-btn"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
 
         <Dialog.Body>
           <Flex
             direction="column"
             gap={5}
-            className={styles.addDialogFormContent}
           >
             <Text>
               This is an irreversible action doing this might lead to
@@ -92,13 +89,11 @@ export const DeleteServiceAccountKey = () => {
               to proceed?
             </Text>
           </Flex>
-          <Separator />
         </Dialog.Body>
 
         <Dialog.Footer>
           <Flex
             justify="end"
-            className={styles.addDialogFormBtnWrapper}
             gap={5}
           >
             <Button

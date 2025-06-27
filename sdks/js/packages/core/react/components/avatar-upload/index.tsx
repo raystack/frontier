@@ -14,6 +14,7 @@ import styles from './avatar-upload.module.css';
 interface CropModalProps {
   imgSrc?: string;
   onClose: () => void;
+  // eslint-disable-next-line no-unused-vars
   onSave: (data: string) => void;
 }
 
@@ -88,10 +89,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
     <Dialog open={true}>
       <Dialog.Content overlayClassName={styles.overlay} className={styles.cropModal}>
           <Dialog.Header>
-            <Flex justify="between" style={{
-              padding: 'var(--rs-space-5) var(--rs-space-7)',
-              borderBottom: '1px solid var(--rs-color-border-base-primary)'
-            }}>
+            <Flex justify="between" align="center" style={{ width: '100%' }}>
               <Text size="large" weight="medium">
                 Crop your photo
               </Text>
@@ -108,7 +106,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           <Dialog.Body>
             <Flex
               direction="column"
-              style={{ padding: 'var(--rs-space-5) var(--rs-space-9)', maxHeight: '280px', height: '100%' }}
+              style={{ maxHeight: '280px', height: '100%' }}
               justify={'center'}
               align={'center'}
             >
@@ -135,11 +133,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           <Dialog.Footer>
             <Flex
               justify="end"
-              style={{
-                padding: 'var(--rs-space-5)',
-                borderTop: '1px solid var(--rs-color-border-base-primary)'
-              }}
-              gap="medium"
+              gap={5}
             >
               <Button
                 variant="outline"

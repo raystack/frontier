@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import {
   Button,
-  Separator,
   toast,
   Image,
   Text,
@@ -77,11 +76,11 @@ export const AddProject = () => {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" style={{ fontWeight: '500' }}>
               Add Project
             </Text>
@@ -93,20 +92,19 @@ export const AddProject = () => {
               style={{ cursor: 'pointer' }}
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex
               direction="column"
-              gap="medium"
-              style={{ padding: '24px 32px' }}
+              gap={5}
             >
-              <InputField
-                name="orgId"
-                defaultValue={organization?.id}
-                hidden={true}
-              />
+              <div style={{ display: 'none' }}>
+                <InputField
+                  name="orgId"
+                  defaultValue={organization?.id}
+                />
+              </div>
               <InputField
                 label="Project title"
                 size="large"
@@ -122,10 +120,9 @@ export const AddProject = () => {
                 placeholder="Provide project name"
               />
             </Flex>
-            <Separator />
           </Dialog.Body>
           <Dialog.Footer>
-            <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
+            <Flex align="end">
               <Button
                 type="submit"
                 data-test-id="frontier-sdk-add-project-btn"

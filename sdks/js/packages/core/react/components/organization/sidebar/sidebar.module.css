@@ -1,5 +1,8 @@
 .sidebarWrapper { 
   box-sizing: border-box;
+  border-top-left-radius: var(--rs-radius-6);
+  border-bottom-left-radius: var(--rs-radius-6);
+  overflow: hidden;
 }
 
 .scrollArea {

@@ -172,7 +172,6 @@ export const General = ({
         canDeleteProject={canDeleteProject}
         isLoading={isLoading}
       />
-      <Separator />
     </Flex>
   );
 };

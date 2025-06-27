@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Button,
-  Separator,
   Skeleton,
   Image,
   Text,
@@ -75,12 +74,12 @@ export const VerifyDomain = () => {
     <Dialog open={true}>
       <Dialog.Content
         overlayClassName={styles.overlay}
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
-              Verify domain
+              Verify Domain
             </Text>
 
             <Image
@@ -91,14 +90,12 @@ export const VerifyDomain = () => {
               data-test-id="frontier-sdk-verify-domain-close-btn"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
 
         <Dialog.Body>
           <Flex
             direction="column"
             gap={5}
-            style={{ padding: 'var(--rs-space-7) var(--rs-space-9)' }}
           >
             {isDomainLoading ? (
               <>
@@ -129,11 +126,10 @@ export const VerifyDomain = () => {
               </>
             )}
           </Flex>
-          <Separator />
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }}>
+          <Flex justify="end">
             {isDomainLoading ? (
               <Skeleton height={'32px'} width={'64px'} />
             ) : (

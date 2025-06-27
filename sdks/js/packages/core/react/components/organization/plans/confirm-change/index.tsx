@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
-  Separator,
   toast,
   Skeleton,
   Image,
@@ -163,11 +162,11 @@ export default function ConfirmPlanChange() {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             {isLoading ? (
               <Skeleton containerClassName={planStyles.flex1} />
             ) : (
@@ -184,12 +183,10 @@ export default function ConfirmPlanChange() {
               data-test-id="frontier-sdk-confirm-plan-change-close-button"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
 
         <Dialog.Body>
           <Flex
-            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)' }}
             direction="column"
             gap={7}
           >
@@ -236,7 +233,6 @@ export default function ConfirmPlanChange() {
           <Flex
             justify={'end'}
             gap={5}
-            style={{ padding: 'var(--rs-space-5)' }}
           >
             <Button
               variant="outline"

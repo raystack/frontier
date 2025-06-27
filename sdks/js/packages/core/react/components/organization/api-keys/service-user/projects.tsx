@@ -3,7 +3,6 @@ import {
   Flex,
   Spinner,
   Text,
-  Separator,
   toast,
   Image,
   Dialog,
@@ -210,7 +209,7 @@ export default function ManageServiceUserProjects() {
         className={styles.manageProjectDialogContent}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Manage Project Access
             </Text>
@@ -223,13 +222,12 @@ export default function ManageServiceUserProjects() {
               data-test-id="frontier-sdk-service-account-manage-access-close-btn"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
 
         <Dialog.Body>
           <Flex
             className={styles.manageProjectDialogWrapper}
-            gap="large"
+            gap={9}
             direction={'column'}
           >
             <Text size="small" variant="secondary">

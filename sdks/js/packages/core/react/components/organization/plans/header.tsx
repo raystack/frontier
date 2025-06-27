@@ -1,4 +1,4 @@
-import { Text, Flex } from '@raystack/apsara/v1';
+import { Text, Flex, Link } from '@raystack/apsara/v1';
 
 interface PlansHeaderProps {
   billingSupportEmail?: string;
@@ -15,14 +15,15 @@ export const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
             <>
               {' '}
               For more details, contact{' '}
-              <a
+              <Link
+                size="regular"
                 href={`mailto:${billingSupportEmail}`}
                 data-test-id="frontier-sdk-billing-email-link"
-                target="_blank"
-                style={{ fontWeight: 'var(--rs-font-weight-regular)', color: 'var(--rs-color-foreground-accent-primary)' }}
+                external
+                style={{ textDecoration: 'none' }}
               >
                 {billingSupportEmail}
-              </a>
+              </Link>
             </>
           ) : null}
         </Text>

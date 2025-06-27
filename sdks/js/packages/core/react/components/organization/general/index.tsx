@@ -107,7 +107,6 @@ export const GeneralDeleteOrganization = ({
         )}
         <Outlet />
       </Flex>
-      <Separator />
     </>
   );
 };
