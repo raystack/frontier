@@ -1,7 +1,13 @@
-import { type DataTableColumnDef, Link, Text } from "@raystack/apsara/v1";
+import {
+  type DataTableColumnDef,
+  EmptyFilterValue,
+  Link,
+  Text,
+} from "@raystack/apsara/v1";
 import dayjs from "dayjs";
 import type { V1Beta1SearchInvoicesResponseInvoice } from "~/api/frontier";
 import { NULL_DATE } from "~/utils/constants";
+const currencyDecimal = 2;
 
 export const getColumns = (): DataTableColumnDef<
   V1Beta1SearchInvoicesResponseInvoice,
@@ -12,6 +18,7 @@ export const getColumns = (): DataTableColumnDef<
       accessorKey: "created_at",
       header: "Billed on",
       filterType: "date",
+      enableColumnFilter: true,
       cell: ({ getValue }) => {
         const value = getValue() as string;
         return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
@@ -20,7 +27,13 @@ export const getColumns = (): DataTableColumnDef<
       enableSorting: true,
     },
     {
+      enableColumnFilter: true,
       accessorKey: "state",
+      filterOptions: ["paid", "open", "draft"].map((value) => ({
+        value: value === "" ? EmptyFilterValue : value,
+        label: value,
+      })),
+      filterType: "select",
       header: "State",
       cell: ({ row, getValue }) => {
         return getValue() as string;
@@ -34,10 +47,23 @@ export const getColumns = (): DataTableColumnDef<
       },
     },
     {
-      accessorKey: "amount",
       header: "Amount",
+      accessorKey: "amount",
       cell: ({ row, getValue }) => {
-        return getValue() as string;
+        const currency = row?.original?.currency;
+
+        const value = getValue() as number;
+
+        const calculatedValue = (value / Math.pow(10, currencyDecimal)).toFixed(
+          currencyDecimal,
+        );
+        const [intValue, decimalValue] = calculatedValue.toString().split(".");
+
+        return (
+          <Text>
+            {currency} {intValue}.{decimalValue}
+          </Text>
+        );
       },
     },
     {

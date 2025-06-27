@@ -68,7 +68,7 @@ export const InvoicesList = () => {
         onLoadMore={fetchMore}
       >
         <Flex direction="column" style={{ width: "100%" }}>
-          <InvoicesNavabar />
+          <InvoicesNavabar searchQuery={query.search || ""} />
           <DataTable.Toolbar />
           <DataTable.Content
             classNames={{
