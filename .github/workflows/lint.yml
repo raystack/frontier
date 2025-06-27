@@ -20,7 +20,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.56.2
+          version: v1.57.2
   js-sdk-lint:
     name: JS SDK Lint
     runs-on: ubuntu-latest
