@@ -1,6 +1,5 @@
 import {
   Button,
-  Separator,
   toast,
   Skeleton,
   Image,
@@ -131,14 +130,15 @@ export const InviteMember = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content width={600} overlayClassname={styles.overlay}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
+        overlayClassName={styles.overlay}
+      >
+        <Dialog.Header>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Invite people
             </Text>
-
             <Image
               alt="cross"
               style={{ cursor: 'pointer' }}
@@ -147,122 +147,113 @@ export const InviteMember = () => {
               data-test-id="frontier-sdk-invite-member-close-btn"
             />
           </Flex>
-          <Separator />
-          <Flex
-            direction="column"
-            gap="medium"
-            style={{ padding: '24px 32px' }}
-          >
-            <TextArea
-              label="Email"
-              {...register('emails')}
-              style={{
-                appearance: 'none',
-                boxSizing: 'border-box',
-                margin: 0,
-                outline: 'none',
-                padding: 'var(--rs-space-3)',
-                height: 'auto',
-                width: '100%',
-                backgroundColor: 'var(--background-base)',
-                border: '0.5px solid var(--border-base)',
-                boxShadow: 'var(--shadow-xs)',
-                borderRadius: 'var(--br-4)',
-                color: 'var(--foreground-base)'
-              }}
-              placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
-              error={Boolean(errors.emails?.message)}
-              helperText={
-                errors.emails?.message ? String(errors.emails?.message) : ''
-              }
-            />
-            <Flex direction="column" gap={2}>
-              <Label>Invite as</Label>
+        </Dialog.Header>
+        <Dialog.Body>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Flex
+              direction="column"
+              gap={5}
+            >
               {isLoading ? (
-                <Skeleton height={'25px'} />
+                <Skeleton height='52px' />
               ) : (
-                <Controller
-                  render={({ field }) => {
-                    const { ref, onChange, ...rest } = field;
-                    return (
-                      <Select {...rest} onValueChange={onChange}>
-                        <Select.Trigger ref={ref}>
-                          <Select.Value placeholder="Select a role" />
-                        </Select.Trigger>
-                        <Select.Content style={{ zIndex: 65 }}>
-                          <Select.Group>
-                            {!roles.length && (
-                              <Text className={styles.noSelectItem}>
-                                No roles available
-                              </Text>
-                            )}
-                            {roles.map(role => (
-                              <Select.Item value={role.id || ''} key={role.id}>
-                                {role.title || role.name}
-                              </Select.Item>
-                            ))}
-                          </Select.Group>
-                        </Select.Content>
-                      </Select>
-                    );
-                  }}
-                  control={control}
-                  name="type"
+                <TextArea
+                  label="Email"
+                  {...register('emails')}
+                  placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
+                  error={Boolean(errors.emails?.message)}
+                  helperText={
+                    errors.emails?.message ? String(errors.emails?.message) : ''
+                  }
                 />
               )}
+              <Flex direction="column" gap={2}>
+                <Label>Invite as</Label>
+                {isLoading ? (
+                  <Skeleton height={'25px'} />
+                ) : (
+                  <Controller
+                    render={({ field }) => {
+                      const { ref, onChange, ...rest } = field;
+                      return (
+                        <Select {...rest} onValueChange={onChange}>
+                          <Select.Trigger ref={ref}>
+                            <Select.Value placeholder="Select a role" />
+                          </Select.Trigger>
+                          <Select.Content>
+                            <Select.Group>
+                              {!roles.length && (
+                                <Text className={styles.noSelectItem}>
+                                  No roles available
+                                </Text>
+                              )}
+                              {roles.map(role => (
+                                <Select.Item value={role.id || ''} key={role.id}>
+                                  {role.title || role.name}
+                                </Select.Item>
+                              ))}
+                            </Select.Group>
+                          </Select.Content>
+                        </Select>
+                      );
+                    }}
+                    control={control}
+                    name="type"
+                  />
+                )}
+              </Flex>
+              <Flex direction="column" gap={2}>
+                <Label>Add to team (optional)</Label>
+                {isLoading ? (
+                  <Skeleton height={'25px'} />
+                ) : (
+                  <Controller
+                    render={({ field }) => {
+                      const { ref, onChange, ...rest } = field;
+                      return (
+                        <Select {...rest} onValueChange={onChange}>
+                          <Select.Trigger ref={ref}>
+                            <Select.Value placeholder="Select a team" />
+                          </Select.Trigger>
+                          <Select.Content>
+                            <Select.Group>
+                              {!teams.length && (
+                                <Text className={styles.noSelectItem}>
+                                  No teams available
+                                </Text>
+                              )}
+                              {teams.map(t => (
+                                <Select.Item value={t.id || ''} key={t.id}>
+                                  {t.title}
+                                </Select.Item>
+                              ))}
+                            </Select.Group>
+                          </Select.Content>
+                        </Select>
+                      );
+                    }}
+                    control={control}
+                    name="team"
+                  />
+                )}
+                <Text size="mini" variant="danger">
+                  {errors.team && String(errors.team?.message)}
+                </Text>
+              </Flex>
+              <Flex justify="end">
+                <Button
+                  type="submit"
+                  disabled={isDisabled}
+                  data-test-id="frontier-sdk-send-member-invite-btn"
+                  loading={isSubmitting}
+                  loaderText="Sending..."
+                >
+                  Send invite
+                </Button>
+              </Flex>
             </Flex>
-            <Flex direction="column" gap={2}>
-              <Label>Add to team (optional)</Label>
-              {isLoading ? (
-                <Skeleton height={'25px'} />
-              ) : (
-                <Controller
-                  render={({ field }) => {
-                    const { ref, onChange, ...rest } = field;
-                    return (
-                      <Select {...rest} onValueChange={onChange}>
-                        <Select.Trigger ref={ref}>
-                          <Select.Value placeholder="Select a team" />
-                        </Select.Trigger>
-                        <Select.Content style={{ zIndex: 65 }}>
-                          <Select.Group>
-                            {!teams.length && (
-                              <Text className={styles.noSelectItem}>
-                                No teams available
-                              </Text>
-                            )}
-                            {teams.map(t => (
-                              <Select.Item value={t.id || ''} key={t.id}>
-                                {t.title}
-                              </Select.Item>
-                            ))}
-                          </Select.Group>
-                        </Select.Content>
-                      </Select>
-                    );
-                  }}
-                  control={control}
-                  name="team"
-                />
-              )}
-              <Text size="mini" variant="danger">
-                {errors.team && String(errors.team?.message)}
-              </Text>
-            </Flex>
-            <Separator />
-            <Flex justify="end">
-              <Button
-                type="submit"
-                disabled={isDisabled}
-                data-test-id="frontier-sdk-send-member-invite-btn"
-                loading={isSubmitting}
-                loaderText="Sending..."
-              >
-                Send invite
-              </Button>
-            </Flex>
-          </Flex>
-        </form>
+          </form>
+        </Dialog.Body>
       </Dialog.Content>
     </Dialog>
   );
