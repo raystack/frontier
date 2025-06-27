@@ -48,10 +48,9 @@ function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
   return (
     <div>
       <Button
-        variant="outline"
-        color="neutral"
+        variant="text"
+        color="accent"
         size="small"
-        className={billingStyles.linkBtn}
         onClick={onClick}
         data-test-id="frontier-sdk-plan-switch-btn"
       >
