@@ -25,7 +25,6 @@ import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
 
-import InvoicesList from "./containers/invoices.list";
 import { AppContext } from "./contexts/App";
 import { SuperAdminList } from "./containers/super_admins/list";
 import WebhooksList from "./containers/webhooks";
@@ -46,6 +45,8 @@ import { UsersList } from "./pages/users/list";
 import { UserDetails } from "./pages/users/details";
 import { UserDetailsSecurityPage } from "./pages/users/details/security";
 import { UserDetailsAuditLogPage } from "./pages/users/details/audit-log";
+
+import { InvoicesList } from "./pages/invoices/list";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);

@@ -278,6 +278,35 @@ export interface ApiHttpBody {
   extensions?: ProtobufAny[];
 }
 
+export interface Frontierv1Beta1Invoice {
+  id?: string;
+  customer_id?: string;
+  provider_id?: string;
+  state?: string;
+  currency?: string;
+  /** @format int64 */
+  amount?: string;
+  hosted_url?: string;
+  /**
+   * The date on which payment for this invoice is due
+   * @format date-time
+   */
+  due_date?: string;
+  /**
+   * The date when this invoice is in effect.
+   * @format date-time
+   */
+  effective_at?: string;
+  /** @format date-time */
+  period_start_at?: string;
+  /** @format date-time */
+  period_end_at?: string;
+  metadata?: object;
+  /** @format date-time */
+  created_at?: string;
+  customer?: V1Beta1BillingAccount;
+}
+
 export interface Frontierv1Beta1OrganizationRequestBody {
   /** The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"` */
   name: string;
@@ -1222,7 +1251,7 @@ export interface V1Beta1GetSubscriptionResponse {
 
 export interface V1Beta1GetUpcomingInvoiceResponse {
   /** Upcoming invoice */
-  invoice?: V1Beta1Invoice;
+  invoice?: Frontierv1Beta1Invoice;
 }
 
 export interface V1Beta1GetUserResponse {
@@ -1315,35 +1344,6 @@ export interface V1Beta1Invitation {
   role_ids?: string[];
 }
 
-export interface V1Beta1Invoice {
-  id?: string;
-  customer_id?: string;
-  provider_id?: string;
-  state?: string;
-  currency?: string;
-  /** @format int64 */
-  amount?: string;
-  hosted_url?: string;
-  /**
-   * The date on which payment for this invoice is due
-   * @format date-time
-   */
-  due_date?: string;
-  /**
-   * The date when this invoice is in effect.
-   * @format date-time
-   */
-  effective_at?: string;
-  /** @format date-time */
-  period_start_at?: string;
-  /** @format date-time */
-  period_end_at?: string;
-  metadata?: object;
-  /** @format date-time */
-  created_at?: string;
-  customer?: V1Beta1BillingAccount;
-}
-
 /** JSON Web Key as specified in RFC 7517 */
 export interface V1Beta1JSONWebKey {
   /** Key Type. */
@@ -1381,7 +1381,7 @@ export interface V1Beta1ListAllBillingAccountsResponse {
 }
 
 export interface V1Beta1ListAllInvoicesResponse {
-  invoices?: V1Beta1Invoice[];
+  invoices?: Frontierv1Beta1Invoice[];
   /**
    * Total number of records present
    * @format int32
@@ -1466,7 +1466,7 @@ export interface V1Beta1ListGroupsResponse {
 
 export interface V1Beta1ListInvoicesResponse {
   /** List of invoices */
-  invoices?: V1Beta1Invoice[];
+  invoices?: Frontierv1Beta1Invoice[];
 }
 
 export interface V1Beta1ListMetaSchemasResponse {
@@ -2271,6 +2271,26 @@ export interface V1Beta1RoleRequestBody {
   scopes?: string[];
 }
 
+export interface V1Beta1SearchInvoicesResponse {
+  invoices?: V1Beta1SearchInvoicesResponseInvoice[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchInvoicesResponseInvoice {
+  id?: string;
+  /** @format int64 */
+  amount?: string;
+  currency?: string;
+  state?: string;
+  invoice_link?: string;
+  /** @format date-time */
+  created_at?: string;
+  org_id?: string;
+  org_name?: string;
+  org_title?: string;
+}
+
 export interface V1Beta1SearchOrganizationInvoicesResponse {
   organization_invoices?: SearchOrganizationInvoicesResponseOrganizationInvoice[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
@@ -2975,6 +2995,29 @@ export class Api<
         method: "GET",
         query: query,
         secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags invoice
+     * @name AdminServiceSearchInvoices
+     * @summary Search invoices across all organizations
+     * @request POST:/v1beta1/admin/invoices/search
+     * @secure
+     */
+    adminServiceSearchInvoices: (
+      query: V1Beta1RQLRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<V1Beta1SearchInvoicesResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/invoices/search`,
+        method: "POST",
+        body: query,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

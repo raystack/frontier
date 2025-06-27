@@ -10,7 +10,7 @@ export const BaseFields = ({
   methods: UseFormReturn<ProductForm>;
 }) => {
   return (
-    <Flex direction="column" gap="large">
+    <Flex direction="column" gap={9}>
       <Flex gap="extra-large">
         <CustomFieldName
           name="title"

@@ -152,7 +152,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
               {isLoading ? (
                 <Skeleton height={"32px"} />
               ) : (
-                <Flex direction={"column"} gap={2}>
+                <Flex direction="column" gap={2}>
                   <Text variant="secondary" weight={"medium"} size="mini">
                     Token payment type
                   </Text>

@@ -22,7 +22,7 @@ export const getColumns: () => DataTableColumnDef<
               style={{
                 backgroundColor: "var(--rs-color-background-neutral-secondary)",
                 padding: "var(--rs-space-3)",
-                borderRadius: "--rs-radius-3)",
+                borderRadius: "var(--rs-radius-3)",
                 border: "1px solid var(--rs-color-border-base-primary)",
               }}
             />
