@@ -14,6 +14,7 @@ import styles from './avatar-upload.module.css';
 interface CropModalProps {
   imgSrc?: string;
   onClose: () => void;
+  // eslint-disable-next-line no-unused-vars
   onSave: (data: string) => void;
 }
 
