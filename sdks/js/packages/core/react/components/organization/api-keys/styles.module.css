@@ -13,6 +13,7 @@
   height: 100%;
   width: 100%;
   padding: var(--rs-space-9) var(--rs-space-11);
+  overflow: hidden;
 }
 
 .stateContent {
@@ -45,6 +46,7 @@
 
 .tableWrapper {
   height: 100%;
+  overflow: hidden;
 }
 
 .tableRoot {
