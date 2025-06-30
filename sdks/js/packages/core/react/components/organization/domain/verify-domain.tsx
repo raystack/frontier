@@ -79,7 +79,7 @@ export const VerifyDomain = () => {
         <Dialog.Header>
           <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
-              Verify Domain
+              Verify domain
             </Text>
 
             <Image
