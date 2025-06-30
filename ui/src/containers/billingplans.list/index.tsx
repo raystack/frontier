@@ -1,14 +1,21 @@
-import { DataTable } from "@raystack/apsara";
-import { EmptyState, Flex } from "@raystack/apsara/v1";
+import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara/v1";
 import { useEffect, useState } from "react";
-import { Outlet, useOutletContext, useParams } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 
-import { V1Beta1Plan } from "@raystack/frontier";
+import type { V1Beta1Plan } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { PlanHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { api } from "~/api";
+import styles from "./plans.module.css";
+import PageTitle from "~/components/page-title";
+import { SheetHeader } from "~/components/sheet/header";
 
 const pageHeader = {
   title: "Plans",
@@ -38,45 +45,45 @@ export default function PlanList() {
 
   let { planId } = useParams();
 
-  const userMapByName = reduceByKey(plans ?? [], "id");
-
-  const tableStyle = plans?.length
-    ? { width: "100%" }
-    : { width: "100%", height: "100%" };
-
-  const planList = isPlansLoading
-    ? [...new Array(5)].map((_, i) => ({
-        name: i.toString(),
-        title: "",
-      }))
-    : plans;
+  const planMapByName = reduceByKey(plans ?? [], "id");
 
   const columns = getColumns();
 
+  const navigate = useNavigate();
+
+  function onClose() {
+    navigate("/plans");
+  }
+
   return (
-    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
-      <DataTable
-        data={planList ?? []}
-        // @ts-ignore
-        columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: "calc(100vh - 60px)" }}
-        style={tableStyle}
-        isLoading={isPlansLoading}
-      >
-        <DataTable.Toolbar>
-          <PlanHeader header={pageHeader} />
-          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
-        </DataTable.Toolbar>
-        <DataTable.DetailContainer>
-          <Outlet
-            context={{
-              user: planId ? userMapByName[planId] : null,
-            }}
-          />
-        </DataTable.DetailContainer>
-      </DataTable>
-    </Flex>
+    <DataTable
+      data={plans}
+      columns={columns}
+      isLoading={isPlansLoading}
+      mode="client"
+      defaultSort={{ name: "title", order: "asc" }}
+    >
+      <Flex direction="column">
+        <PageTitle title="Plans" />
+        <PlanHeader header={pageHeader} />
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{ root: styles.tableRoot, table: styles.table }}
+        />
+      </Flex>
+      <Sheet open={planId !== undefined}>
+        <Sheet.Content className={styles.sheetContent}>
+          <SheetHeader title="Plan Details" onClick={onClose} />
+          <Flex className={styles.sheetContentBody}>
+            <Outlet
+              context={{
+                plan: planId ? planMapByName[planId] : null,
+              }}
+            />
+          </Flex>
+        </Sheet.Content>
+      </Sheet>
+    </DataTable>
   );
 }
 

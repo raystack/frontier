@@ -1,14 +1,14 @@
-import { DataTable } from "@raystack/apsara";
-import { EmptyState, Flex } from "@raystack/apsara/v1";
+import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara/v1";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
-import { V1Beta1Product } from "@raystack/frontier";
+import type { V1Beta1Product } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { ProductsHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { api } from "~/api";
+import styles from "./products.module.css";
 
 type ContextType = { product: V1Beta1Product | null };
 export default function ProductList() {
@@ -34,43 +34,29 @@ export default function ProductList() {
   let { productId } = useParams();
   const productMapByName = reduceByKey(products ?? [], "id");
 
-  const tableStyle = products?.length
-    ? { width: "100%" }
-    : { width: "100%", height: "100%" };
-
-  const productList = isProductsLoading
-    ? [...new Array(5)].map((_, i) => ({
-        name: i.toString(),
-        title: "",
-      }))
-    : products;
-
   const columns = getColumns();
 
   return (
-    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
-      <DataTable
-        data={productList ?? []}
-        // @ts-ignore
-        columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: "calc(100vh - 60px)" }}
-        style={tableStyle}
-        isLoading={isProductsLoading}
-      >
-        <DataTable.Toolbar>
-          <ProductsHeader />
-          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
-        </DataTable.Toolbar>
-        <DataTable.DetailContainer>
-          <Outlet
-            context={{
-              product: productId ? productMapByName[productId] : null,
-            }}
-          />
-        </DataTable.DetailContainer>
-      </DataTable>
-    </Flex>
+    <DataTable
+      data={products}
+      columns={columns}
+      isLoading={isProductsLoading}
+      mode="client"
+      defaultSort={{ name: "title", order: "asc" }}
+    >
+      <Flex direction="column" className={styles.tableWrapper}>
+        <ProductsHeader />
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{ root: styles.tableRoot }}
+        />
+        <Outlet
+          context={{
+            product: productId ? productMapByName[productId] : null,
+          }}
+        />
+      </Flex>
+    </DataTable>
   );
 }
 

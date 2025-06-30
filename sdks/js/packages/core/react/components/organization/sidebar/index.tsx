@@ -2,7 +2,7 @@ import {
   Image,
   Sidebar as SidebarComponent,
   Flex,
-  InputField
+  Search
 } from '@raystack/apsara/v1';
 import { Link, useRouteContext, useRouterState } from '@tanstack/react-router';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -10,8 +10,6 @@ import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { getOrganizationNavItems, getUserNavItems } from './helpers';
 
-// @ts-ignore
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import styles from './sidebar.module.css';
@@ -91,20 +89,19 @@ export const Sidebar = () => {
   );
 
   return (
-    <SidebarComponent open={true} className={styles.sidebarWrapper}>
+    <SidebarComponent open={true} className={styles.sidebarWrapper} collapsible={false}>
       <div className={styles.scrollArea}>
-        <Flex direction="column" gap={7} style={{ marginTop: '40px' }}>
-          <InputField
+        <Flex direction="column" gap={4} style={{ marginTop: '64px' }}>
+          <Search
             size="large"
-            leadingIcon={
-              <MagnifyingGlassIcon
-                style={{ color: 'var(--rs-color-foreground-base-primary)' }}
-              />
-            }
-            placeholder="Search"
+            value={search}
             onChange={event => setSearch(event.target.value)}
+            placeholder="Search pages"
+            showClearButton
+            onClear={() => setSearch('')}
             data-test-id="frontier-sdk-sidebar-search-field"
           />
+
           <SidebarComponent.Main>
             <SidebarComponent.Group
               name="Organization"

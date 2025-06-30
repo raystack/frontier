@@ -1,7 +1,11 @@
 import { DotsVerticalIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
-import { ApsaraColumnDef } from "@raystack/apsara";
-import { V1Beta1Webhook } from "@raystack/frontier";
-import { DropdownMenu, Flex } from "@raystack/apsara/v1";
+import type { V1Beta1Webhook } from "@raystack/frontier";
+import {
+  DropdownMenu,
+  Flex,
+  type DataTableColumnDef,
+} from "@raystack/apsara/v1";
+import styles from "./webhooks.module.css";
 
 interface getColumnsOptions {
   openEditPage: (id: string) => void;
@@ -9,7 +13,7 @@ interface getColumnsOptions {
 
 export const getColumns: (
   opt: getColumnsOptions,
-) => ApsaraColumnDef<V1Beta1Webhook>[] = ({ openEditPage }) => {
+) => DataTableColumnDef<V1Beta1Webhook, unknown>[] = ({ openEditPage }) => {
   return [
     {
       header: "Description",
@@ -21,6 +25,7 @@ export const getColumns: (
       header: "State",
       accessorKey: "state",
       filterVariant: "text",
+      classNames: { cell: styles.stateColumn, header: styles.stateColumn },
       cell: (info) => info.getValue() || "-",
     },
     {
@@ -31,6 +36,7 @@ export const getColumns: (
     {
       header: "Created at",
       accessorKey: "created_at",
+      classNames: { cell: styles.dateColumn, header: styles.dateColumn },
       cell: (info) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
           month: "long",
@@ -41,6 +47,7 @@ export const getColumns: (
     {
       header: "Action",
       accessorKey: "id",
+      classNames: { cell: styles.actionColumn, header: styles.actionColumn },
       cell: ({ getValue }) => (
         // @ts-ignore
         <DropdownMenu style={{ padding: "0 !important" }}>
@@ -54,7 +61,7 @@ export const getColumns: (
                   style={{ padding: "12px" }}
                   gap={"small"}
                   data-test-id="admin-ui-webhook-update-btn"
-                  onClick={() => openEditPage(getValue())}
+                  onClick={() => openEditPage(getValue() as string)}
                 >
                   <UpdateIcon />
                   Update

@@ -1,0 +1,24 @@
+.tableRoot {
+    width: 100%;
+}
+.tableWrapper {
+    width: 100%;
+}
+
+.table {
+    table-layout: fixed;
+}
+
+.header {
+    background-color: var(--rs-color-background-base-primary);
+    border-bottom: 1px solid var(--rs-color-border-base-primary);
+}
+
+.sheetContent {
+    width: 400px;
+    padding: 0;
+}
+
+.sheetContentBody {
+    padding: var(--rs-space-5);
+}
