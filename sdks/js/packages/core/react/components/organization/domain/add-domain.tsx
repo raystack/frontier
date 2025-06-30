@@ -107,7 +107,7 @@ export const AddDomain = () => {
                 loaderText="Adding..."
                 data-test-id="frontier-sdk-add-domain-btn"
               >
-                Add Domain
+                Add domain
               </Button>
             </Flex>
           </Dialog.Footer>
