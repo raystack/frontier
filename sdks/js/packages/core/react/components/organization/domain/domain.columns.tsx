@@ -86,7 +86,7 @@ const DomainActions = ({
             })
           }
         >
-          Verify Domain
+          Verify domain
         </Button>
       ) : (
         <Flex
