@@ -61,6 +61,10 @@ import (
 
 const (
 	grpcDialTimeout = 5 * time.Second
+
+	// keeping it in sync with https://github.com/raystack/salt/blob/v0.3.8/mux/mux.go#L15
+	// which is being used in GRPC server shutdown
+	connectServerGracePeriod = 10 * time.Second
 )
 
 type UIConfigApiResponse struct {
@@ -155,7 +159,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg ConnectConfig, dep
 	go func() {
 		<-ctx.Done()
 
-		ctxShutdown, cancel := context.WithTimeout(context.Background(), time.Minute)
+		ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
 		defer cancel()
 
 		if err := server.Shutdown(ctxShutdown); err != nil {
