@@ -1,5 +1,4 @@
 import '@raystack/apsara/style.css';
-import Amount from './components/helpers/Amount';
 
 export { AvatarUpload } from './components/avatar-upload';
 export { Container } from './components/Container';
@@ -17,7 +16,6 @@ export { Window } from './components/window';
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
 
-export { Amount };
 export { useTokens } from './hooks/useTokens';
 export { useBillingPermission } from './hooks/useBillingPermission';
 export { usePreferences } from './hooks/usePreferences';
