@@ -73,7 +73,7 @@ export const AddDomain = () => {
           <Dialog.Header>
             <Flex justify="between" align="center" style={{ width: '100%' }}>
               <Text size="large" weight="medium">
-                Add Domain
+                Add domain
               </Text>
 
               <Image
