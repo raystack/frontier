@@ -1,13 +1,12 @@
 import {
+  Amount,
   type DataTableColumnDef,
-  EmptyFilterValue,
   Link,
   Text,
 } from "@raystack/apsara/v1";
 import dayjs from "dayjs";
 import type { V1Beta1SearchInvoicesResponseInvoice } from "~/api/frontier";
 import { NULL_DATE } from "~/utils/constants";
-const currencyDecimal = 2;
 
 export const getColumns = (): DataTableColumnDef<
   V1Beta1SearchInvoicesResponseInvoice,
@@ -30,7 +29,7 @@ export const getColumns = (): DataTableColumnDef<
       enableColumnFilter: true,
       accessorKey: "state",
       filterOptions: ["paid", "open", "draft"].map((value) => ({
-        value: value === "" ? EmptyFilterValue : value,
+        value: value,
         label: value,
       })),
       filterType: "select",
@@ -51,19 +50,8 @@ export const getColumns = (): DataTableColumnDef<
       accessorKey: "amount",
       cell: ({ row, getValue }) => {
         const currency = row?.original?.currency;
-
         const value = getValue() as number;
-
-        const calculatedValue = (value / Math.pow(10, currencyDecimal)).toFixed(
-          currencyDecimal,
-        );
-        const [intValue, decimalValue] = calculatedValue.toString().split(".");
-
-        return (
-          <Text>
-            {currency} {intValue}.{decimalValue}
-          </Text>
-        );
+        return <Amount value={value} currency={currency} />;
       },
     },
     {
@@ -72,7 +60,7 @@ export const getColumns = (): DataTableColumnDef<
       cell: ({ row, getValue }) => {
         const link = getValue() as string;
         return link ? (
-          <Link href={link} target="__blank">
+          <Link href={link} external={true}>
             Link
           </Link>
         ) : (
