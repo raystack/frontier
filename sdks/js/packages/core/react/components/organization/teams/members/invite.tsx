@@ -19,6 +19,7 @@ import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
+import { handleSelectValueChange } from '~/react/utils';
 
 const inviteSchema = yup.object({
   userId: yup.string().required('Member is required'),
@@ -204,14 +205,15 @@ export const InviteTeamMembers = () => {
                   <Skeleton height={'25px'} />
                 ) : (
                   <Controller
-                    render={({ field }) => (
-                      <Select {...field} onValueChange={field.onChange}>
-                        <Select.Trigger>
+                    render={({ field: { onChange, ref, ...rest } }) => (
+                      <Select
+                        {...rest}
+                        onValueChange={handleSelectValueChange(onChange)}
+                      >
+                        <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select members" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{ width: '100% !important' }}
-                        >
+                        <Select.Content style={{ width: '100% !important' }}>
                           <Select.Viewport style={{ maxHeight: '300px' }}>
                             <Select.Group>
                               {!invitableUser.length && (
@@ -246,14 +248,15 @@ export const InviteTeamMembers = () => {
                   <Skeleton height={'25px'} />
                 ) : (
                   <Controller
-                    render={({ field }) => (
-                      <Select {...field} onValueChange={field.onChange}>
-                        <Select.Trigger>
+                    render={({ field: { onChange, ref, ...rest } }) => (
+                      <Select
+                        {...rest}
+                        onValueChange={handleSelectValueChange(onChange)}
+                      >
+                        <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a role" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{ width: '100% !important' }}
-                        >
+                        <Select.Content style={{ width: '100% !important' }}>
                           <Select.Group>
                             {!roles.length && (
                               <Text className={styles.noSelectItem}>
