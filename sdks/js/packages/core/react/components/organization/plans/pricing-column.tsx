@@ -3,7 +3,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Skeleton, Image, toast, Text, Flex, Tabs } from '@raystack/apsara/v1';
+import { Button, Skeleton, Image, toast, Text, Flex, Tabs, Amount } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -18,7 +18,6 @@ import {
   SUBSCRIPTION_STATES
 } from '~/react/utils/constants';
 import checkCircle from '~/react/assets/check-circle.svg';
-import Amount from '~/react/components/helpers/Amount';
 
 import plansStyles from './plans.module.css';
 
@@ -66,12 +65,13 @@ const PricingColumnHeader = ({
         ) : null}
       </Flex>
       <Flex gap={2} align="end">
-        <Amount
-          value={amount}
-          currency={selectedIntervalPricing?.currency}
-          className={plansStyles.planPrice}
-          hideDecimals={config?.billing?.hideDecimals}
-        />
+        <Text className={plansStyles.planPrice}>
+          <Amount
+            value={amount}
+            currency={selectedIntervalPricing?.currency}
+            hideDecimals={config?.billing?.hideDecimals}
+          />
+        </Text>
         <Text size="small" variant="tertiary">
           {perIntervalLabel}
         </Text>
