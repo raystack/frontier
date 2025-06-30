@@ -46,7 +46,7 @@ export default function CreateOrUpdateProduct({
     data.metadata = metadata.length ? metadata : [{ key: "", value: "" }];
     data.features = R.pathOr(
       [],
-      ["features"]
+      ["features"],
     )(data).map((f: V1Beta1Feature) => ({ label: f.name, value: f.name }));
     methods.reset(data);
   }, [product]);
@@ -80,7 +80,7 @@ export default function CreateOrUpdateProduct({
         lower: true,
         strict: false,
         trim: true,
-      })
+      }),
     );
   }, [watchTitle]);
 
@@ -92,8 +92,8 @@ export default function CreateOrUpdateProduct({
         style={{
           width: "30vw",
           padding: 0,
-          borderRadius: "var(--pd-8)",
-          boxShadow: "var(--shadow-sm)",
+          borderRadius: "var(--rs-space-3)",
+          boxShadow: "var(--rs-shadow-soft)",
         }}
         close={false}
       >

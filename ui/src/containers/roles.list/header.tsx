@@ -1,5 +1,6 @@
-import { DataTable, useTable } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara/v1";
 import PageHeader from "~/components/page-header";
+import styles from "./roles.module.css";
 
 const pageHeader = {
   title: "Roles",
@@ -7,14 +8,13 @@ const pageHeader = {
 };
 
 export const RolesHeader = () => {
-  const { filteredColumns } = useTable();
-  const isFiltered = filteredColumns.length > 0;
-
   return (
-    <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
-      {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
-      <DataTable.ViewOptions />
-      <DataTable.GloabalSearch placeholder="Search roles..." />
+    <PageHeader
+      title={pageHeader.title}
+      breadcrumb={pageHeader.breadcrumb}
+      className={styles.header}
+    >
+      <DataTable.Search size="small" placeholder="Search roles..." />
     </PageHeader>
   );
 };

@@ -1,9 +1,12 @@
-import { ApsaraColumnDef, Flex } from "@raystack/apsara";
-import { V1Beta1Role } from "@raystack/frontier";
+import { type DataTableColumnDef, Flex } from "@raystack/apsara/v1";
+import type { V1Beta1Role } from "@raystack/frontier";
 
 import { Link } from "react-router-dom";
-
-export const getColumns: () => ApsaraColumnDef<V1Beta1Role>[] = () => {
+import styles from "./roles.module.css";
+export const getColumns: () => DataTableColumnDef<
+  V1Beta1Role,
+  unknown
+>[] = () => {
   return [
     {
       accessorKey: "id",
@@ -12,7 +15,7 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Role>[] = () => {
       cell: ({ row, getValue }) => {
         return (
           <Link to={`${encodeURIComponent(row.getValue("id"))}`}>
-            {getValue()}
+            {getValue() as string}
           </Link>
         );
       },
@@ -33,7 +36,10 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Role>[] = () => {
       header: "Permissions",
       accessorKey: "permissions",
       enableColumnFilter: false,
-      cell: (info) => <Flex>{info.getValue().join(", ")}</Flex>,
+      classNames: {
+        cell: styles.permissionsColumn,
+      },
+      cell: (info) => <Flex>{(info.getValue() as string[]).join(", ")}</Flex>,
       footer: (props) => props.column.id,
     },
   ];

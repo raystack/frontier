@@ -1,0 +1,17 @@
+.tableRoot {
+    width: 100%;
+}
+
+.valueColumn {
+    max-width: 500px;
+    text-wrap: wrap;
+}
+
+.tableWrapper {
+    width: 100%;
+}
+
+.header {
+    background-color: var(--rs-color-background-base-primary);
+    border-bottom: 1px solid var(--rs-color-border-base-primary);
+}
