@@ -2,10 +2,9 @@ module github.com/raystack/frontier
 
 go 1.23.0
 
-toolchain go1.23.1
-
 require (
 	connectrpc.com/connect v1.18.1
+	connectrpc.com/grpchealth v1.4.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/authzed/authzed-go v0.11.2-0.20240507202708-8b150c491e4a
 	github.com/authzed/grpcutil v0.0.0-20240123092924-129dc0a6a6e1
@@ -62,7 +61,6 @@ require (
 require (
 	cloud.google.com/go/auth v0.3.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
-	connectrpc.com/grpchealth v1.4.0 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
