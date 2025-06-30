@@ -16,7 +16,7 @@ export const PriceFields = ({
   });
 
   return (
-    <Flex direction="column" gap="large">
+    <Flex direction="column" gap={9}>
       <Label size="large">Price</Label>
       {prices.fields.map((item, index) => {
         return (

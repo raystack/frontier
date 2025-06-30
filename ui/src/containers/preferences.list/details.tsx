@@ -147,7 +147,7 @@ export default function PreferenceDetails() {
   }, [name, value]);
 
   return (
-    <Flex direction={"column"} style={{ width: "100%" }} gap="large">
+    <Flex direction="column" style={{ width: "100%" }} gap={9}>
       <PageHeader
         title={pageHeader.title}
         breadcrumb={pageHeader.breadcrumb}
@@ -156,7 +156,7 @@ export default function PreferenceDetails() {
           gap: "16px",
         }}
       />
-      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
+      <Flex direction="column" gap={9} style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) =>
           isPreferencesLoading ? (
             <Grid columns={2} gap="small" key={detailItem.key}>
@@ -181,7 +181,7 @@ export default function PreferenceDetails() {
           </Text>
         )}
         {trait ? (
-          <Flex direction={"column"} gap={"medium"}>
+          <Flex direction="column" gap={"medium"}>
             <PreferenceValue
               trait={trait}
               value={value}

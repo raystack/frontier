@@ -79,7 +79,7 @@ export default function CreateWebhooks() {
               onClick={onOpenChange}
               data-test-id="admin-ui-add-new-webhook-btn"
             />
-            <Flex direction="column" gap="large" style={styles.main}>
+            <Flex direction="column" gap={9} style={styles.main}>
               <CustomFieldName
                 name="url"
                 register={methods.register}

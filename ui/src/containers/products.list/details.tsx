@@ -16,13 +16,9 @@ export default function ProductDetails() {
     <Sheet open>
       <Sheet.Content className={styles.sheetContent}>
         <SheetHeader title="Product Details" onClick={onClose} />
-        <Flex
-          className={styles.sheetContentBody}
-          direction="column"
-          gap="large"
-        >
+        <Flex className={styles.sheetContentBody} direction="column" gap={9}>
           <Text size={4}>{product?.title}</Text>
-          <Flex direction="column" gap="large">
+          <Flex direction="column" gap={9}>
             <Grid columns={2} gap="small">
               <Text size={1}>Name</Text>
               <Text size={1}>{product?.title}</Text>
