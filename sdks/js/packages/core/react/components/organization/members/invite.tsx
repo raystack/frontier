@@ -21,6 +21,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import styles from '../organization.module.css';
+import { handleSelectValueChange } from '~/react/utils';
 
 const inviteSchema = yup.object({
   type: yup.string().required(),
@@ -150,12 +151,9 @@ export const InviteMember = () => {
         </Dialog.Header>
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap={5}
-            >
+            <Flex direction="column" gap={5}>
               {isLoading ? (
-                <Skeleton height='52px' />
+                <Skeleton height="52px" />
               ) : (
                 <TextArea
                   label="Email"
@@ -176,7 +174,10 @@ export const InviteMember = () => {
                     render={({ field }) => {
                       const { ref, onChange, ...rest } = field;
                       return (
-                        <Select {...rest} onValueChange={onChange}>
+                        <Select
+                          {...rest}
+                          onValueChange={handleSelectValueChange(onChange)}
+                        >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select a role" />
                           </Select.Trigger>
@@ -188,7 +189,10 @@ export const InviteMember = () => {
                                 </Text>
                               )}
                               {roles.map(role => (
-                                <Select.Item value={role.id || ''} key={role.id}>
+                                <Select.Item
+                                  value={role.id || ''}
+                                  key={role.id}
+                                >
                                   {role.title || role.name}
                                 </Select.Item>
                               ))}
@@ -211,7 +215,10 @@ export const InviteMember = () => {
                     render={({ field }) => {
                       const { ref, onChange, ...rest } = field;
                       return (
-                        <Select {...rest} onValueChange={onChange}>
+                        <Select
+                          {...rest}
+                          onValueChange={handleSelectValueChange(onChange)}
+                        >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select a team" />
                           </Select.Trigger>

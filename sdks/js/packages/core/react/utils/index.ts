@@ -210,3 +210,12 @@ export interface HttpErrorResponse extends Response {
   data: unknown;
   error: RpcStatus;
 }
+
+export const handleSelectValueChange = (onChange: (value: string) => void) => {
+  // WORKAROUND FOR: https://github.com/radix-ui/primitives/issues/3135
+  return (value: string) => {
+    if (value !== '') {
+      onChange(value);
+    }
+  };
+};
