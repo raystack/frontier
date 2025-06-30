@@ -1,6 +1,5 @@
 import {
   Button,
-  Separator,
   Image,
   Text,
   Flex,
@@ -68,11 +67,11 @@ export const AddDomain = () => {
     <Dialog open={true}>
       <Dialog.Content
         overlayClassName={styles.overlay}
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
-            <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Flex justify="between" align="center" style={{ width: '100%' }}>
               <Text size="large" weight="medium">
                 Add domain
               </Text>
@@ -85,11 +84,10 @@ export const AddDomain = () => {
                 data-test-id="frontier-sdk-add-domain-btn"
               />
             </Flex>
-            <Separator />
           </Dialog.Header>
 
           <Dialog.Body>
-            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
+            <Flex direction="column" gap={5}>
               <InputField
                 label="Domain name"
                 size="large"
@@ -99,11 +97,10 @@ export const AddDomain = () => {
                 placeholder="Provide domain name"
               />
             </Flex>
-            <Separator />
           </Dialog.Body>
 
           <Dialog.Footer>
-            <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }}>
+            <Flex justify="end">
               <Button
                 type="submit"
                 loading={isSubmitting}

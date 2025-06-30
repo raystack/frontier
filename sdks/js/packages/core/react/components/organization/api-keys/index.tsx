@@ -35,7 +35,7 @@ const NoServiceAccounts = ({
     <Flex justify="center" align="center" className={styles.stateContent}>
       <EmptyState
         icon={<Image src={keyIcon as unknown as string} alt="keyIcon" />}
-        heading="No service account"
+        heading="No service account found"
         subHeading={`Create a new account to use the APIs of ${appName} platform`}
         primaryAction={
           <Button
@@ -58,7 +58,7 @@ const NoAccess = () => {
       <EmptyState
         icon={<ExclamationTriangleIcon />}
         heading="Restricted Access"
-        subHeading={`Admin access required, please reach out to your admin incase you want to generate a key.`}
+        subHeading='Admin access required, please reach out to your admin incase you want to generate a key'
       />
     </Flex>
   );

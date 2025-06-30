@@ -85,17 +85,3 @@
   border: 0.5px solid var(--rs-color-border-accent-primary);
   background: var(--rs-color-background-accent-primary);
 }
-
-.linkBtn {
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--rs-color-foreground-accent-primary);
-}
-
-.linkBtn:hover {
-  font-weight: 600;
-  border: none;
-  outline: none;
-  background: transparent;
-}

@@ -1,9 +1,8 @@
+import { useState } from 'react';
 import {
   Button,
   Checkbox,
-  Separator,
   toast,
-  Image,
   Text,
   Flex,
   Dialog,
@@ -14,12 +13,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
-// @ts-ignore
 import styles from './general.module.css';
-import { useState } from 'react';
 
 const orgSchema = yup
   .object({

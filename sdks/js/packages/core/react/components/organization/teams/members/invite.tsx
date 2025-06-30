@@ -1,7 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Button,
-  Separator,
   toast,
   Skeleton,
   Image,
@@ -20,6 +19,7 @@ import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
+import { handleSelectValueChange } from '~/react/utils';
 
 const inviteSchema = yup.object({
   userId: yup.string().required('Member is required'),
@@ -87,7 +87,7 @@ export const InviteTeamMembers = () => {
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
           teamId,
-          { withRoles: true }
+          { with_roles: true }
         );
 
         setMembers(users);
@@ -137,7 +137,7 @@ export const InviteTeamMembers = () => {
         const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
         const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
         const policy: V1Beta1PolicyRequestBody = {
-          roleId,
+          role_id: roleId,
           resource,
           principal
         };
@@ -151,7 +151,7 @@ export const InviteTeamMembers = () => {
     if (!userId || !role || !organization?.id) return;
     try {
       await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-        userIds: [userId]
+        user_ids: [userId]
       });
       await addGroupTeamPolicy(role, userId);
       toast.success('member added');
@@ -176,12 +176,12 @@ export const InviteTeamMembers = () => {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size="large" style={{ fontWeight: '500' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
+            <Text size="large" weight="medium">
               Add Member
             </Text>
 
@@ -195,29 +195,25 @@ export const InviteTeamMembers = () => {
               data-test-id="frontier-sdk-invite-team-members-close-btn"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap="medium"
-              style={{ padding: '24px 32px' }}
-            >
+            <Flex direction="column" gap={5}>
               <Flex direction="column" gap={2}>
                 <Label>Members</Label>
                 {isUserLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
                   <Controller
-                    render={({ field }) => (
-                      <Select {...field} onValueChange={field.onChange}>
-                        <Select.Trigger>
+                    render={({ field: { onChange, ref, ...rest } }) => (
+                      <Select
+                        {...rest}
+                        onValueChange={handleSelectValueChange(onChange)}
+                      >
+                        <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select members" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{ width: '100% !important', zIndex: 65 }}
-                        >
+                        <Select.Content style={{ width: '100% !important' }}>
                           <Select.Viewport style={{ maxHeight: '300px' }}>
                             <Select.Group>
                               {!invitableUser.length && (
@@ -252,14 +248,15 @@ export const InviteTeamMembers = () => {
                   <Skeleton height={'25px'} />
                 ) : (
                   <Controller
-                    render={({ field }) => (
-                      <Select {...field} onValueChange={field.onChange}>
-                        <Select.Trigger>
+                    render={({ field: { onChange, ref, ...rest } }) => (
+                      <Select
+                        {...rest}
+                        onValueChange={handleSelectValueChange(onChange)}
+                      >
+                        <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a role" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{ width: '100% !important', zIndex: 65 }}
-                        >
+                        <Select.Content style={{ width: '100% !important' }}>
                           <Select.Group>
                             {!roles.length && (
                               <Text className={styles.noSelectItem}>
@@ -283,11 +280,11 @@ export const InviteTeamMembers = () => {
                   {errors.role && String(errors.role?.message)}
                 </Text>
               </Flex>
-              <Separator />
               <Flex justify="end">
                 <Button
                   type="submit"
                   data-test-id="frontier-sdk-add-team-members-btn"
+                  disabled={isUserLoading || isRolesLoading}
                   loading={isSubmitting}
                   loaderText="Adding..."
                 >

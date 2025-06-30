@@ -64,11 +64,11 @@ export const AddTeam = () => {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
         overlayClassName={styles.overlay}
       >
         <Dialog.Header>
-          <Flex justify="between">
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Add Team
             </Text>
@@ -83,7 +83,7 @@ export const AddTeam = () => {
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
-            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
+            <Flex direction="column" gap={5}>
               <InputField
                 label="Team title"
                 size="large"
@@ -101,7 +101,7 @@ export const AddTeam = () => {
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>
-            <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
+            <Flex align="end">
               <Button
                 type="submit"
                 data-test-id="frontier-sdk-add-team-btn"

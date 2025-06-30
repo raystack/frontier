@@ -60,12 +60,11 @@ const PricingColumnHeader = ({
         </Text>
         {showDiscount ? (
           <Flex className={plansStyles.discountText}>
-            <Text weight="medium">{discountText}</Text>
+            <Text weight="medium" variant="tertiary">{discountText}</Text>
           </Flex>
         ) : null}
       </Flex>
       <Flex gap={2} align="end">
-        
         <Text className={plansStyles.planPrice}>
           <Amount
             value={amount}
@@ -73,11 +72,11 @@ const PricingColumnHeader = ({
             hideDecimals={config?.billing?.hideDecimals}
           />
         </Text>
-        <Text size="small">
+        <Text size="small" variant="tertiary">
           {perIntervalLabel}
         </Text>
       </Flex>
-      <Text size="small">
+      <Text size="small" variant="tertiary">
         {plan?.description}
       </Text>
     </Flex>
@@ -289,7 +288,9 @@ export const PlanPricingColumn = ({
         disabled: true,
         btnLabel: 'Current Plan',
         btnLoadingLabel: 'Current Plan',
-        btnVariant: 'secondary',
+        btnVariant: 'outline',
+        btnColor: 'neutral',
+        btnSize: 'small',
         btnDoneLabel: ''
       };
     }
@@ -391,14 +392,16 @@ export const PlanPricingColumn = ({
           {allowAction ? (
             <Button
               variant={action.btnVariant}
+              color={action.btnColor}
+              size={action.btnSize}
               className={plansStyles.planActionBtn}
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}
+              loading={isLoading && !isTrialCheckoutLoading}
+              loaderText={`${action.btnLoadingLabel}...`}
               data-test-id={`frontier-sdk-plan-action-button-${plan?.slug}`}
             >
-              {isLoading && !isTrialCheckoutLoading
-                ? `${action.btnLoadingLabel}....`
-                : action.btnLabel}
+              {action.btnLabel}
             </Button>
           ) : null}
           <PlanIntervals
