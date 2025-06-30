@@ -18,9 +18,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v1.56.2
+          version: v2.2.1
   js-sdk-lint:
     name: JS SDK Lint
     runs-on: ubuntu-latest
