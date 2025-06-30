@@ -14,7 +14,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <ThemeProvider {...themeConfig}>
         <SkeletonTheme
           highlightColor="var(--rs-color-background-base-primary)"
-          baseColor="var--rs-color-background-base-primary-hover)"
+          baseColor="var(--rs-color-background-base-primary-hover)"
         >
           <AppContextProvider>
             <Routes />

@@ -1,39 +1,45 @@
-run:
-  timeout: 5m
-  skip-dirs:
-    - ui
+version: "2"
 output:
-  format: colored-line-number
+  formats:
+    text:
+      path: stdout
 linters:
-  enable-all: false
-  disable-all: true
+  default: none
   enable:
-    - vet
-    - goimports
-    - thelper
-    - unconvert
-    - revive
-    - unused
-    - gofmt
-    - whitespace
-    - misspell
     - govet
     - importas
-    - protogetter
     - ineffassign
+    - misspell
+    - protogetter
+    - revive
+    - thelper
+    - unconvert
+    - unused
     - wastedassign
-#    - gosec
-#    - prealloc
-#    - errcheck
-#    - errorlint
-#    - staticcheck
-#    - gosimple
-#    - gocritic
-#    - goconst
-#    - perfsprint
-linters-settings:
-  revive:
-    ignore-generated-header: true
-    severity: warning
+    - whitespace
+  settings:
+    revive:
+      severity: warning
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 severity:
-  default-severity: error
+  default: error
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

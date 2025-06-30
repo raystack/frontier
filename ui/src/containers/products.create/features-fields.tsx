@@ -15,7 +15,7 @@ export const FeatureFields = ({
   const { features } = useFeatures();
   const watchBehavior = methods.watch("behavior", "basic");
   return (
-    <Flex direction="column" gap="large">
+    <Flex direction="column" gap={9}>
       <Label size="large">Behavior and features</Label>
       <Flex gap="extra-large" align="end">
         <Controller
@@ -73,7 +73,7 @@ export const FeatureFields = ({
                     name: d.value,
                     value: d.value,
                     label: d.value,
-                  }))
+                  })),
                 )
               }
               options={features as any}
