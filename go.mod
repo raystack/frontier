@@ -1,8 +1,10 @@
 module github.com/raystack/frontier
 
-go 1.22.3
+go 1.23.0
 
 require (
+	connectrpc.com/connect v1.18.1
+	connectrpc.com/grpchealth v1.4.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/authzed/authzed-go v0.11.2-0.20240507202708-8b150c491e4a
 	github.com/authzed/grpcutil v0.0.0-20240123092924-129dc0a6a6e1
@@ -44,11 +46,12 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0
 	go.uber.org/zap v1.26.0
 	gocloud.dev v0.28.0
+	golang.org/x/net v0.25.0
 	golang.org/x/oauth2 v0.19.0
 	golang.org/x/sync v0.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be
 	google.golang.org/grpc v1.63.2
-	google.golang.org/protobuf v1.34.0
+	google.golang.org/protobuf v1.34.2
 	gopkg.in/dnaeon/go-vcr.v3 v3.1.2
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -109,7 +112,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.26.0 // indirect
 	go.opentelemetry.io/otel/trace v1.26.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect

@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,6 +33,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
+	connecthealth "connectrpc.com/grpchealth"
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -42,7 +46,9 @@ import (
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1"
+	"github.com/raystack/frontier/internal/api/v1beta1connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/mux"
 	"go.uber.org/zap"
@@ -55,6 +61,10 @@ import (
 
 const (
 	grpcDialTimeout = 5 * time.Second
+
+	// keeping it in sync with https://github.com/raystack/salt/blob/v0.3.8/mux/mux.go#L15
+	// which is being used in GRPC server shutdown
+	connectServerGracePeriod = 10 * time.Second
 )
 
 type UIConfigApiResponse struct {
@@ -113,6 +123,58 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), nil); err != nil {
 		logger.Error("ui server failed", "err", err)
 	}
+}
+
+func ServeConnect(ctx context.Context, logger log.Logger, cfg ConnectConfig, deps api.Deps) error {
+	// Create the server handler with both services
+	frontierService := v1beta1connect.NewConnectHandler(deps)
+
+	// Initialize connect handlers
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService)
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService)
+
+	// Create mux and register handlers
+	mux := http.NewServeMux()
+	mux.Handle(frontierPath, frontierHandler)
+	mux.Handle(adminPath, adminHandler)
+
+	// configure healthcheck
+	// curl --header "Content-Type: application/json" \
+	// --data '{"service":"raystack.frontier.v1beta1.AdminService"}' \
+	// http://localhost:8002/grpc.health.v1.Health/Check
+	checker := connecthealth.NewStaticChecker(
+		"raystack.frontier.v1beta1.FrontierService",
+		"raystack.frontier.v1beta1.AdminService",
+	)
+	mux.Handle(connecthealth.NewHandler(checker))
+
+	// Configure and create the server
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
+		Handler: h2c.NewHandler(mux, &http2.Server{}),
+	}
+
+	logger.Info("connect server starting", "port", cfg.Port)
+
+	go func() {
+		<-ctx.Done()
+
+		ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
+		defer cancel()
+
+		if err := server.Shutdown(ctxShutdown); err != nil {
+			logger.Fatal("HTTP shutdown error: %v", err)
+		}
+
+		logger.Info("Graceful shutdown of connect server complete")
+	}()
+
+	// Start server
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("connect server failed: %w", err)
+	}
+
+	return nil
 }
 
 func Serve(
@@ -266,7 +328,7 @@ func Serve(
 		}))
 	}
 
-	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
+	logger.Info("api server starting", "http-port", cfg.Port, "connect-port", cfg.Connect.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 	if err := mux.Serve(
 		ctx,
 		metricsOps...,

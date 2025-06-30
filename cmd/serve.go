@@ -305,7 +305,14 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
-	// serving server
+	// start connect server
+	go func() {
+		if err := server.ServeConnect(ctx, logger, cfg.App.Connect, deps); err != nil {
+			logger.Fatal("connect server failed", "err", err.Error())
+		}
+	}()
+
+	// serving grpc server
 	return server.Serve(ctx, logger, cfg.App, nrApp, deps, promRegistry)
 }
 

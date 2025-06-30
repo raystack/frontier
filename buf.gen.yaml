@@ -1,21 +1,33 @@
 ---
-version: "v1"
+version: "v2"
+managed:
+  enabled: true
+  disable:
+    - module: buf.build/googleapis/googleapis
+    - module: buf.build/grpc-ecosystem/grpc-gateway
+    - module: buf.build/envoyproxy/protoc-gen-validate
+  override:
+    - file_option: "go_package"
+      value: "github.com/raystack/frontier/proto/v1beta1;frontierv1beta1"
 plugins:
-  - plugin: "buf.build/protocolbuffers/go:v1.30.0"
+  - remote: "buf.build/protocolbuffers/go:v1.30.0"
     out: "proto"
     opt: "paths=source_relative"
-  - plugin: "buf.build/grpc/go:v1.3.0"
+  - remote: "buf.build/grpc/go:v1.3.0"
     out: "proto"
     opt: "paths=source_relative"
-  - plugin: "buf.build/bufbuild/validate-go:v1.0.0"
+  - remote: "buf.build/bufbuild/validate-go:v1.0.0"
     out: "proto"
     opt: "paths=source_relative"
-  - plugin: "buf.build/grpc-ecosystem/gateway:v2.15.2"
+  - remote: "buf.build/grpc-ecosystem/gateway:v2.15.2"
     out: "proto"
     opt: "paths=source_relative"
-  - plugin: "buf.build/grpc-ecosystem/openapiv2:v2.16.0"
+  - remote: "buf.build/grpc-ecosystem/openapiv2:v2.16.0"
     out: "proto"
     opt:
       - allow_merge=true
       - output_format=yaml
       - json_names_for_fields=false
+  - remote: buf.build/connectrpc/go:v1.18.1
+    out: "proto"
+    opt: "paths=source_relative"
