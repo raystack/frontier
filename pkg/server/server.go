@@ -152,6 +152,19 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg ConnectConfig, dep
 
 	logger.Info("connect server starting", "port", cfg.Port)
 
+	go func() {
+		<-ctx.Done()
+
+		ctxShutdown, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+
+		if err := server.Shutdown(ctxShutdown); err != nil {
+			logger.Fatal("HTTP shutdown error: %v", err)
+		}
+
+		logger.Info("Graceful shutdown of connect server complete")
+	}()
+
 	// Start server
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("connect server failed: %w", err)
