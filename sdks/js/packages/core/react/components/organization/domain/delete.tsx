@@ -101,7 +101,7 @@ export const DeleteDomain = () => {
     <Dialog open={true}>
       <Dialog.Content width={600} overlayClassname={styles.overlay}>
         <Dialog.Header>
-          <Dialog.Title>Verify Domain deletion</Dialog.Title>
+          <Dialog.Title>Verify domain deletion</Dialog.Title>
           <Dialog.CloseButton
             onClick={() =>
               navigate({
