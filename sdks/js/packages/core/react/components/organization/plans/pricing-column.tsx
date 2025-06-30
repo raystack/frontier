@@ -66,7 +66,7 @@ const PricingColumnHeader = ({
       </Flex>
       <Flex gap={2} align="end">
         
-        <Text className={plansStyles.planPrice} size="large">
+        <Text className={plansStyles.planPrice}>
           <Amount
             value={amount}
             currency={selectedIntervalPricing?.currency}
