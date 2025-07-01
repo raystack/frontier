@@ -11603,17 +11603,19 @@ definitions:
   SearchOrganizationServiceUsersResponseOrganizationServiceUser:
     type: object
     properties:
+      id:
+        type: string
       title:
         type: string
-      created_at:
-        type: string
-        format: date-time
       org_id:
         type: string
       project_titles:
         type: array
         items:
           type: string
+      created_at:
+        type: string
+        format: date-time
   SearchOrganizationTokensResponseOrganizationToken:
     type: object
     properties:
