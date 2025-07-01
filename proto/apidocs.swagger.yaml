@@ -611,6 +611,51 @@ paths:
             $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - Organization
+  /v1beta1/admin/organizations/{id}/serviceusers/search:
+    post:
+      summary: Search organization service users
+      operationId: AdminService_SearchOrganizationServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/{id}/tokens/export:
     get:
       summary: Export organization tokens
@@ -1867,6 +1912,42 @@ paths:
           type: string
       tags:
         - Resource
+  /v1beta1/admin/serviceusers:
+    get:
+      summary: List all service users
+      description: Lists all the service users from all the organizations in a Frontier instance.
+      operationId: AdminService_ListAllServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListAllServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      tags:
+        - User
   /v1beta1/admin/users:
     get:
       summary: List all users
@@ -11519,6 +11600,20 @@ definitions:
         format: date-time
       org_id:
         type: string
+  SearchOrganizationServiceUsersResponseOrganizationServiceUser:
+    type: object
+    properties:
+      title:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      org_id:
+        type: string
+      project_titles:
+        type: array
+        items:
+          type: string
   SearchOrganizationTokensResponseOrganizationToken:
     type: object
     properties:
@@ -13254,6 +13349,14 @@ definitions:
         type: integer
         format: int32
         description: Total number of records present
+  v1beta1ListAllServiceUsersResponse:
+    type: object
+    properties:
+      service_users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1ListAllUsersResponse:
     type: object
     properties:
@@ -14754,6 +14857,18 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
+  v1beta1SearchOrganizationServiceUsersResponse:
+    type: object
+    properties:
+      organization_service_users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchOrganizationServiceUsersResponseOrganizationServiceUser'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:
