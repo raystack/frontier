@@ -61,23 +61,23 @@ export default function AddServiceUserToken({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex gap={3}>
-        <Flex className={styles.addKeyInputWrapper} direction="column">
+        <Flex className={styles.addKeyInputWrapper} gap={3}>
           <InputField
             {...register('title')}
             size="large"
             placeholder="Provide service key name"
             error={errors.title && String(errors.title?.message)}
           />
+          <Button
+            data-test-id="frontier-sdk-api-keys-new-token-btn"
+            type="submit"
+            loading={isSubmitting}
+            disabled={isSubmitting}
+            loaderText="Generating..."
+          >
+            Generate new key
+          </Button>
         </Flex>
-        <Button
-          data-test-id="frontier-sdk-api-keys-new-token-btn"
-          type="submit"
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          loaderText="Generating..."
-        >
-          Generate new key
-        </Button>
       </Flex>
     </form>
   );

@@ -68,6 +68,7 @@ function ServiceAccountDeleteAction({ id }: { id: string }) {
     <Button
       variant="text"
       size="small"
+      color="danger"
       data-test-id="frontier-sdk-delete-service-account-btn"
       onClick={onDeleteClick}
     >
