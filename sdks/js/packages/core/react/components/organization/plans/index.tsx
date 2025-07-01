@@ -15,8 +15,8 @@ import { styles } from '../styles';
 
 const PlansLoader = () => {
   return (
-    <Flex direction="column">
-      {[...new Array(15)].map((_, i) => (
+    <Flex direction="column" gap={4}>
+      {[...new Array(2)].map((_, i) => (
         <Skeleton containerClassName={plansStyles.flex1} key={`loader-${i}`} />
       ))}
     </Flex>

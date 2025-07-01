@@ -152,7 +152,11 @@ const TeamsTable = ({
       <Flex direction="column" gap={7} className={styles.tableWrapper}>
         <Flex justify="between" gap={3}>
           <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
-            <DataTable.Search placeholder="Search by name " size="medium" />
+            {isLoading ? (
+              <Skeleton height='34px' width='500px' />
+            ) : (
+              <DataTable.Search placeholder="Search by name " size="medium" />
+            )}
             {canListOrgGroups ? (
               <Select
                 defaultValue={teamsSelectOptions[0].value}
@@ -172,7 +176,7 @@ const TeamsTable = ({
             ) : null}
           </Flex>
           {isLoading ? (
-            <Skeleton height={'32px'} width={'64px'} />
+            <Skeleton height='34px' width='64px' />
           ) : (
             <Tooltip
               message={AuthTooltipMessage}
@@ -180,9 +184,6 @@ const TeamsTable = ({
               disabled={canCreateGroup}
             >
               <Button
-                variant="solid"
-                color="accent"
-                style={{ width: 'fit-content', height: '100%' }}
                 disabled={!canCreateGroup}
                 onClick={() => navigate({ to: '/teams/modal' })}
                 data-test-id="frontier-sdk-add-team-btn"
@@ -207,7 +208,7 @@ const TeamsTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'0 teams in your organization'}
-    subHeading={'Try adding new team.'}
+    heading='No teams found'
+    subHeading='Get started by creating your first team.'
   />
 );

@@ -1,9 +1,8 @@
 import type { DataTableColumnDef } from '@raystack/apsara/v1';
-import { EmptyState, Flex, Link, Text, DataTable } from '@raystack/apsara/v1';
+import { EmptyState, Flex, Link, Text, DataTable, Amount } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '~/react/utils/constants';
 import type { V1Beta1Invoice } from '~/src';

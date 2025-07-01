@@ -138,10 +138,14 @@ const Domains = ({
       <Flex direction="column" gap={7} className={styles.tableWrapper}>
         <Flex justify="between" gap={3}>
           <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
-            <DataTable.Search placeholder="Search by name " size="medium" />
+            {isLoading ? (
+              <Skeleton height='34px' width='500px' />
+            ) : (
+              <DataTable.Search placeholder="Search by name " size="medium" />
+            )}
           </Flex>
           {isLoading ? (
-            <Skeleton height={'32px'} width={'64px'} />
+            <Skeleton height='34px' width='64px' />
           ) : (
             <Tooltip
               message={AuthTooltipMessage}
@@ -150,7 +154,7 @@ const Domains = ({
             >
               <Button
                 disabled={!canCreateDomain}
-                size="small"
+                size="normal"
                 style={{ width: 'fit-content' }}
                 onClick={() => navigate({ to: '/domains/modal' })}
                 data-test-id="frontier-sdk-add-domain-btn"
@@ -175,7 +179,7 @@ const Domains = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'0 domains in your organization'}
-    subHeading={'Try adding new domains.'}
+    heading='No domains found'
+    subHeading='Get started by adding your first domain.'
   />
 );

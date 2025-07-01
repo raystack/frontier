@@ -7,7 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Amount } from "@raystack/frontier/react";
+import { Amount } from "@raystack/apsara/v1";
 import { OrganizationContext } from "../contexts/organization-context";
 
 export const BillingDetailsSection = () => {

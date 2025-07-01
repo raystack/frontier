@@ -11,13 +11,12 @@ import {
   Flex,
   DataTable,
   Popover,
-  InputField
+  Search
 } from '@raystack/apsara/v1';
 import { Link, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
-  MagnifyingGlassIcon,
   ExclamationTriangleIcon,
   PaperPlaneIcon
 } from '@radix-ui/react-icons';
@@ -193,7 +192,7 @@ const AddMemberDropdown = ({
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
           teamId,
-          { withRoles: true }
+          { with_roles: true }
         );
 
         setMembers(users);
@@ -239,7 +238,7 @@ const AddMemberDropdown = ({
       if (!userId || !organization?.id) return;
       try {
         await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-          userIds: [userId]
+          user_ids: [userId]
         });
         toast.success('member added');
         if (refetchMembers) {
@@ -259,25 +258,24 @@ const AddMemberDropdown = ({
     <Popover>
       <Popover.Trigger asChild>
         <Button
-          size="small"
+          size="normal"
           style={{ width: 'fit-content', display: 'flex' }}
           data-test-id="frontier-sdk-add-member-btn"
+          disabled={!canUpdateGroup}
         >
           Add a member
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" className={styles.popoverContent}>
-        <InputField
+        <Search
           data-test-id="frontier-sdk-add-project-member-textfield"
-          leading={
-            <MagnifyingGlassIcon
-              style={{ color: 'var(--rs-color-foreground-base-primary)' }}
-            />
-          }
           value={query}
+          variant='borderless'
           placeholder="Add team member"
-          className={styles.inviteDropdownSearch}
           onChange={onTextChange}
+          showClearButton
+          disabled={isUserLoading}
+          onClear={() => setQuery('')}
         />
         <Separator />
 
@@ -286,7 +284,7 @@ const AddMemberDropdown = ({
         ) : topUsers.length ? (
           <div style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}>
             {topUsers.map(user => {
-              const initals = getInitials(user?.title || user.email);
+              const initials = getInitials(user?.title || user.email);
               return (
                 <Flex
                   gap="small"
@@ -297,7 +295,7 @@ const AddMemberDropdown = ({
                 >
                   <Avatar
                     src={user?.avatar}
-                    fallback={initals}
+                    fallback={initials}
                     size={1}
                     radius="small"
                     imageProps={{ fontSize: '10px' }}
@@ -335,7 +333,7 @@ const AddMemberDropdown = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'0 members in your team'}
-    subHeading={'Try adding new members.'}
+    heading='No members found'
+    subHeading='Get started by adding your first team member.'
   />
 );

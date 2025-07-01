@@ -2,7 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
-import { Button, Tooltip, Image, toast, Skeleton, Text, Flex } from '@raystack/apsara/v1';
+import { Button, Tooltip, Image, toast, Skeleton, Text, Flex, Amount } from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import {
@@ -11,7 +11,6 @@ import {
   makePlanSlug
 } from '~/react/utils';
 import { NEGATIVE_BALANCE_TOOLTIP_MESSAGE } from '~/react/utils/constants';
-import Amount from '../../helpers/Amount';
 import line from '~/react/assets/line.svg';
 import billingStyles from './billing.module.css';
 
@@ -48,10 +47,9 @@ function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
   return (
     <div>
       <Button
-        variant="outline"
-        color="neutral"
+        variant="text"
+        color="accent"
         size="small"
-        className={billingStyles.linkBtn}
         onClick={onClick}
         data-test-id="frontier-sdk-plan-switch-btn"
       >
@@ -286,7 +284,9 @@ export const UpcomingBillingCycle = ({
         </Text>
       </Flex>
       <Button
-        variant={'secondary'}
+        variant='outline'
+        color='neutral'
+        size='small'
         onClick={onActionBtnClick}
         data-test-id="frontier-sdk-upcoming-billing-cycle-action-button"
       >
