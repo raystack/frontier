@@ -35,7 +35,6 @@ func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Requ
 		Count: int32(len(users)),
 		Users: users,
 	}), nil
-
 }
 
 func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {
