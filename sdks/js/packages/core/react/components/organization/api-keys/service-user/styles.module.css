@@ -46,10 +46,7 @@
 .addKeyInputWrapper {
   width: 100%;
   position: relative;
-}
-
-.addKeyButtonWrapper {
-  align-self: flex-start;
+  align-items: start;
 }
 
 .addKeyInputError {
