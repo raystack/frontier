@@ -34,7 +34,7 @@ export const getColumns: (
       const value = getValue() as string;
       return (
         <Flex direction="column">
-          <Text variant="secondary" size="regular">
+          <Text variant="secondary">
             {dayjs(value).format(dateFormat)}
           </Text>
         </Flex>
@@ -49,7 +49,7 @@ export const getColumns: (
       const prefix = row?.original?.type === 'credit' ? '+' : '-';
       return (
         <Flex direction="column">
-          <Text variant="secondary" size="regular">
+          <Text variant="secondary">
             {prefix}
             {value}
           </Text>
@@ -72,7 +72,7 @@ export const getColumns: (
       ) as string;
       return (
         <Flex direction="column">
-          <Text variant="secondary" size="regular">
+          <Text variant="secondary">
             {eventName || '-'}
           </Text>
         </Flex>
@@ -96,7 +96,7 @@ export const getColumns: (
             radius="small"
             color={color}
           />
-          <Text size="regular">{userTitle}</Text>
+          <Text>{userTitle}</Text>
         </Flex>
       );
     }
