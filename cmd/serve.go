@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
+	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	"github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
 	"github.com/raystack/frontier/core/aggregates/orgtokens"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
@@ -447,6 +448,9 @@ func buildAPIDependencies(
 	orgServiceUserCredentialsRepository := postgres.NewOrgServiceUserCredentialsRepository(dbc)
 	orgServiceUserCredentialsService := orgserviceusercredentials.NewService(orgServiceUserCredentialsRepository)
 
+	orgServiceUserRepository := postgres.NewOrgServiceUserRepository(dbc)
+	orgServiceUserService := orgserviceuser.NewService(orgServiceUserRepository)
+
 	userOrgsRepository := postgres.NewUserOrgsRepository(dbc)
 	userOrgsService := userorgs.NewService(userOrgsRepository)
 
@@ -598,6 +602,7 @@ func buildAPIDependencies(
 		OrgUsersService:                  orgUserService,
 		OrgProjectsService:               orgProjectsService,
 		OrgServiceUserCredentialsService: orgServiceUserCredentialsService,
+		OrgServiceUserService:            orgServiceUserService,
 		ProjectUsersService:              projectUserService,
 		UserOrgsService:                  userOrgsService,
 		UserProjectsService:              userProjectsService,
