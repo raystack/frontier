@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
+	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	"github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
 	"github.com/raystack/frontier/core/aggregates/orgtokens"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
@@ -85,6 +86,7 @@ type Deps struct {
 	OrgUsersService                  *orgusers.Service
 	OrgProjectsService               *orgprojects.Service
 	OrgServiceUserCredentialsService *orgserviceusercredentials.Service
+	OrgServiceUserService            *orgserviceuser.Service
 	ProjectUsersService              *projectusers.Service
 	UserOrgsService                  *userorgs.Service
 	UserProjectsService              *userprojects.Service
