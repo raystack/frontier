@@ -3,11 +3,10 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { Text, DropdownMenu } from '@raystack/apsara/v1';
+import { Text, DropdownMenu, DataTableColumnDef } from '@raystack/apsara/v1';
 import { Link } from '@tanstack/react-router';
 import type { V1Beta1Group } from '~/src';
 import styles from '../organization.module.css';
-import type { DataTableColumnDef } from '@raystack/apsara/v1';
 
 export const getColumns: (
   userAccessOnTeam: Record<string, string[]>
@@ -23,7 +22,8 @@ export const getColumns: (
         }}
         style={{
           textDecoration: 'none',
-          color: 'var(--rs-color-foreground-base-primary)'
+          color: 'var(--rs-color-foreground-base-primary)',
+          fontSize: 'var(--rs-font-size-small)'
         }}
       >
         {getValue() as string}

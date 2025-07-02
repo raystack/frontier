@@ -35,6 +35,11 @@ const getColumns = ({
       header: '',
       accessorKey: 'id',
       enableSorting: false,
+      styles: {
+        cell: {
+          width: 'var(--rs-space-2)'
+        }
+      },
       cell: ({ getValue }) => {
         const projectId = getValue();
         const { value, isLoading } = permMap[projectId] || {};
@@ -57,7 +62,11 @@ const getColumns = ({
       accessorKey: 'title',
       cell: ({ getValue }) => {
         const value = getValue();
-        return <Flex direction="column">{value}</Flex>;
+        return (
+          <Flex direction="column">
+            <Text>{value}</Text>
+          </Flex>
+        );
       }
     },
     {

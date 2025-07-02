@@ -53,10 +53,12 @@ export const getColumns: (
     cell: ({ row, getValue }) => {
       return (
         <Flex direction="column">
-          <Amount
-            currency={row?.original?.currency}
-            value={getValue() as number}
-          />
+          <Text>
+            <Amount
+              currency={row?.original?.currency}
+              value={getValue() as number}
+            />
+          </Text>
         </Flex>
       );
     }
