@@ -188,6 +188,13 @@ billing:
   # default currency to be used for billing if not provided by the user
   # e.g. usd, inr, eur
   default_currency: ""
+  # payment method configuration, allows to set min and max that the method
+  #should be allowed for. Supported types are card, customer_balance
+  payment_method_config:
+    - type: card
+    #   max: 500000
+    - type: customer_balance
+    #   min: 100000
   # billing customer account configuration
   customer:
     # automatically create a default customer account when an org is created
