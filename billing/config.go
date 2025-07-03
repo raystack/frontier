@@ -7,8 +7,9 @@ type Config struct {
 	StripeAutoTax        bool     `yaml:"stripe_auto_tax" mapstructure:"stripe_auto_tax"`
 	StripeWebhookSecrets []string `yaml:"stripe_webhook_secrets" mapstructure:"stripe_webhook_secrets"`
 	// PlansPath is a directory path where plans are defined
-	PlansPath       string `yaml:"plans_path" mapstructure:"plans_path"`
-	DefaultCurrency string `yaml:"default_currency" mapstructure:"default_currency"`
+	PlansPath           string                `yaml:"plans_path" mapstructure:"plans_path"`
+	DefaultCurrency     string                `yaml:"default_currency" mapstructure:"default_currency"`
+	PaymentMethodConfig []PaymentMethodConfig `yaml:"payment_method_config" mapstructure:"payment_method_config"`
 
 	AccountConfig      AccountConfig      `yaml:"customer" mapstructure:"customer"`
 	PlanChangeConfig   PlanChangeConfig   `yaml:"plan_change" mapstructure:"plan_change"`
@@ -67,4 +68,24 @@ type ProductConfig struct {
 	// "incremental" will change the seat count to the number of users within the organization
 	// but will not decrease the seat count if reduced
 	SeatChangeBehavior string `yaml:"seat_change_behavior" mapstructure:"seat_change_behavior" default:"exact"`
+}
+
+type PaymentMethodConfig struct {
+	// Type is the type of the payment method.
+	// possible values: card, customer_balance
+	Type string `yaml:"type" mapstructure:"type"`
+	// Max is the maximum amount in default currency that should be allowed to be charged to this payment method
+	Max int64 `yaml:"max" mapstructure:"max" default:"0"`
+	// Min is the minimum amount in default currency that should be allowed to be charged to this payment method
+	Min int64 `yaml:"min" mapstructure:"min" default:"0"`
+}
+
+func (c *PaymentMethodConfig) IsAllowedForAmount(amount int64) bool {
+	if c.Max > 0 && amount > c.Max {
+		return false
+	}
+	if c.Min > 0 && amount < c.Min {
+		return false
+	}
+	return true
 }
