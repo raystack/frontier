@@ -31,6 +31,11 @@ export const getColumns = (
     header: '',
     accessorKey: 'avatar',
     enableSorting: false,
+    styles: {
+      cell: {
+        width: 'var(--rs-space-5)'
+      }
+    },
     cell: ({ row, getValue }) => {
       const id = row.original?.id || '';
       const fallback =

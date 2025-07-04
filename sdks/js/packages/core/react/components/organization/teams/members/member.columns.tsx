@@ -40,6 +40,11 @@ export const getColumns: (
     header: '',
     accessorKey: 'avatar',
     enableSorting: false,
+    styles: {
+      cell: {
+        width: 'var(--rs-space-5)'
+      }
+    },
     cell: ({ row, getValue }) => {
       const color = getAvatarColor(row?.original?.id || '');
       return (
@@ -71,12 +76,14 @@ export const getColumns: (
     accessorKey: 'email',
     cell: ({ row, getValue }) => {
       return (
-        (row.original?.id &&
-          memberRoles[row.original?.id] &&
-          memberRoles[row.original?.id]
-            .map((r: any) => r.title || r.name)
-            .join(', ')) ??
-        'Inherited role'
+        <Text>
+          {(row.original?.id &&
+            memberRoles[row.original?.id] &&
+            memberRoles[row.original?.id]
+              .map((r: any) => r.title || r.name)
+              .join(', ')) ??
+            'Inherited role'}
+        </Text>
       );
     }
   },
