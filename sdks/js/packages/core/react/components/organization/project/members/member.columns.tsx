@@ -48,6 +48,11 @@ export const getColumns = (
     header: '',
     accessorKey: 'avatar',
     enableSorting: false,
+    styles: {
+      cell: {
+        width: 'var(--rs-space-5)'
+      }
+    },
     cell: ({ row, getValue }) => {
       const avatarSrc = row.original?.isTeam ? teamIcon : getValue();
       const fallback = row.original?.isTeam
@@ -91,20 +96,24 @@ export const getColumns = (
     header: 'Roles',
     accessorKey: 'email',
     cell: ({ row, getValue }) => {
-      return row.original?.isTeam
-        ? // hardcoding roles as we dont have team roles and team are invited as viewer and we dont allow role change
-          (row.original?.id &&
-            groupRoles[row.original?.id] &&
-            groupRoles[row.original?.id]
-              .map((r: any) => r.title || r.name)
-              .join(', ')) ??
-            'Project Viewer'
-        : (row.original?.id &&
-            memberRoles[row.original?.id] &&
-            memberRoles[row.original?.id]
-              .map((r: any) => r.title || r.name)
-              .join(', ')) ??
-            'Inherited role';
+      return (
+        <Text>
+          {row.original?.isTeam
+            ? // hardcoding roles as we dont have team roles and team are invited as viewer and we dont allow role change
+              (row.original?.id &&
+                groupRoles[row.original?.id] &&
+                groupRoles[row.original?.id]
+                  .map((r: any) => r.title || r.name)
+                  .join(', ')) ??
+                'Project Viewer'
+            : (row.original?.id &&
+                memberRoles[row.original?.id] &&
+                memberRoles[row.original?.id]
+                  .map((r: any) => r.title || r.name)
+                  .join(', ')) ??
+                'Inherited role'}
+        </Text>
+      );
     }
   },
   {
