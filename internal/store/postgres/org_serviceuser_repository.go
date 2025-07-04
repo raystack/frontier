@@ -120,7 +120,7 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 		Select(
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ID).As("id"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE).As("title"),
-			goqu.I(TABLE_SERVICE_USERS+"."+ORG_ID).As("org_id"),
+			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ORG_ID).As("org_id"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_CREATED_AT).As("created_at"),
 			goqu.L("STRING_AGG("+TABLE_PROJECTS+"."+COLUMN_TITLE+", ', ')").As("project_titles"),
 		).
