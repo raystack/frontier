@@ -40,6 +40,11 @@ func (h Handler) SearchOrganizationServiceUsers(ctx context.Context, request *fr
 
 	return &frontierv1beta1.SearchOrganizationServiceUsersResponse{
 		OrganizationServiceUsers: orgServiceUsers,
+		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+			Offset: uint32(serviceUsersData.Pagination.Offset),
+			Limit:  uint32(serviceUsersData.Pagination.Limit),
+		},
+		Group: nil,
 	}, nil
 }
 
