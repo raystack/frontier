@@ -31,8 +31,8 @@ import (
 	"github.com/raystack/frontier/pkg/server/health"
 	"github.com/raystack/frontier/ui"
 
+	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
-	"github.com/raystack/frontier/pkg/server/connect_interceptors"
 
 	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"
@@ -131,7 +131,21 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	// Create the server handler with both services
 	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
 
-	interceptors := connect.WithInterceptors(connectinterceptors.UnaryAuthenticationCheck(frontierService))
+	var sessionCookieCutter securecookie.Codec
+	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
+		// hash and block keys should be 32 bytes long
+		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
+	} else {
+		sessionCookieCutter = securecookie.New(
+			[]byte(cfg.Authentication.Session.HashSecretKey),
+			[]byte(cfg.Authentication.Session.BlockSecretKey),
+		)
+	}
+	sessionMiddleware := connectinterceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
+
+	interceptors := connect.WithInterceptors(
+		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
+		connectinterceptors.UnaryAuthenticationCheck(frontierService))
 
 	// Initialize connect handlers
 	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors)
@@ -150,19 +164,6 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		"raystack.frontier.v1beta1.FrontierService",
 		"raystack.frontier.v1beta1.AdminService",
 	)
-
-	// var sessionCookieCutter securecookie.Codec
-	// if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
-	// 	// hash and block keys should be 32 bytes long
-	// 	logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
-	// } else {
-	// 	sessionCookieCutter = securecookie.New(
-	// 		[]byte(cfg.Authentication.Session.HashSecretKey),
-	// 		[]byte(cfg.Authentication.Session.BlockSecretKey),
-	// 	)
-	// }
-	// sessionMiddleware := interceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
-
 
 	// commectMiddleware := getConnectMiddleware(logger, cfg.IdentityProxyHeader, nil, sessionMiddleware, nil, deps)
 
@@ -407,8 +408,3 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 		),
 	)
 }
-
-//func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) 
-//func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error)
-
-//func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error)

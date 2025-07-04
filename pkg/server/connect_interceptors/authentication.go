@@ -18,7 +18,7 @@ import (
 	// "google.golang.org/grpc"
 )
 
-func UnaryAuthenticationCheck(h * v1beta1connect.ConnectHandler) connect.UnaryInterceptorFunc {
+func UnaryAuthenticationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInterceptorFunc {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			fmt.Println("connect interceptor called")
@@ -43,7 +43,6 @@ func UnaryAuthenticationCheck(h * v1beta1connect.ConnectHandler) connect.UnaryIn
 		})
 	}
 	return connect.UnaryInterceptorFunc(interceptor)
-
 }
 
 // authenticationSkipList stores path to skip authentication, by default its enabled for all requests
