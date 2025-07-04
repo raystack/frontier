@@ -37,6 +37,9 @@ const (
 	// AdminServiceListAllUsersProcedure is the fully-qualified name of the AdminService's ListAllUsers
 	// RPC.
 	AdminServiceListAllUsersProcedure = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
+	// AdminServiceListAllServiceUsersProcedure is the fully-qualified name of the AdminService's
+	// ListAllServiceUsers RPC.
+	AdminServiceListAllServiceUsersProcedure = "/raystack.frontier.v1beta1.AdminService/ListAllServiceUsers"
 	// AdminServiceListGroupsProcedure is the fully-qualified name of the AdminService's ListGroups RPC.
 	AdminServiceListGroupsProcedure = "/raystack.frontier.v1beta1.AdminService/ListGroups"
 	// AdminServiceListAllOrganizationsProcedure is the fully-qualified name of the AdminService's
@@ -66,6 +69,9 @@ const (
 	// AdminServiceSearchOrganizationServiceUserCredentialsProcedure is the fully-qualified name of the
 	// AdminService's SearchOrganizationServiceUserCredentials RPC.
 	AdminServiceSearchOrganizationServiceUserCredentialsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUserCredentials"
+	// AdminServiceSearchOrganizationServiceUsersProcedure is the fully-qualified name of the
+	// AdminService's SearchOrganizationServiceUsers RPC.
+	AdminServiceSearchOrganizationServiceUsersProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUsers"
 	// AdminServiceExportOrganizationsProcedure is the fully-qualified name of the AdminService's
 	// ExportOrganizations RPC.
 	AdminServiceExportOrganizationsProcedure = "/raystack.frontier.v1beta1.AdminService/ExportOrganizations"
@@ -198,6 +204,7 @@ const (
 type AdminServiceClient interface {
 	// Users
 	ListAllUsers(context.Context, *connect.Request[v1beta1.ListAllUsersRequest]) (*connect.Response[v1beta1.ListAllUsersResponse], error)
+	ListAllServiceUsers(context.Context, *connect.Request[v1beta1.ListAllServiceUsersRequest]) (*connect.Response[v1beta1.ListAllServiceUsersResponse], error)
 	// Group
 	ListGroups(context.Context, *connect.Request[v1beta1.ListGroupsRequest]) (*connect.Response[v1beta1.ListGroupsResponse], error)
 	// Organizations
@@ -210,6 +217,7 @@ type AdminServiceClient interface {
 	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
 	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
+	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(context.Context, *connect.Request[v1beta1.ExportOrganizationsRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
@@ -298,6 +306,12 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(adminServiceMethods.ByName("ListAllUsers")),
 			connect.WithClientOptions(opts...),
 		),
+		listAllServiceUsers: connect.NewClient[v1beta1.ListAllServiceUsersRequest, v1beta1.ListAllServiceUsersResponse](
+			httpClient,
+			baseURL+AdminServiceListAllServiceUsersProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("ListAllServiceUsers")),
+			connect.WithClientOptions(opts...),
+		),
 		listGroups: connect.NewClient[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse](
 			httpClient,
 			baseURL+AdminServiceListGroupsProcedure,
@@ -356,6 +370,12 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationServiceUserCredentialsProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationServiceUserCredentials")),
+			connect.WithClientOptions(opts...),
+		),
+		searchOrganizationServiceUsers: connect.NewClient[v1beta1.SearchOrganizationServiceUsersRequest, v1beta1.SearchOrganizationServiceUsersResponse](
+			httpClient,
+			baseURL+AdminServiceSearchOrganizationServiceUsersProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationServiceUsers")),
 			connect.WithClientOptions(opts...),
 		),
 		exportOrganizations: connect.NewClient[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody](
@@ -622,6 +642,7 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 // adminServiceClient implements AdminServiceClient.
 type adminServiceClient struct {
 	listAllUsers                             *connect.Client[v1beta1.ListAllUsersRequest, v1beta1.ListAllUsersResponse]
+	listAllServiceUsers                      *connect.Client[v1beta1.ListAllServiceUsersRequest, v1beta1.ListAllServiceUsersResponse]
 	listGroups                               *connect.Client[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse]
 	listAllOrganizations                     *connect.Client[v1beta1.ListAllOrganizationsRequest, v1beta1.ListAllOrganizationsResponse]
 	adminCreateOrganization                  *connect.Client[v1beta1.AdminCreateOrganizationRequest, v1beta1.AdminCreateOrganizationResponse]
@@ -632,6 +653,7 @@ type adminServiceClient struct {
 	searchOrganizationInvoices               *connect.Client[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse]
 	searchOrganizationTokens                 *connect.Client[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse]
 	searchOrganizationServiceUserCredentials *connect.Client[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse]
+	searchOrganizationServiceUsers           *connect.Client[v1beta1.SearchOrganizationServiceUsersRequest, v1beta1.SearchOrganizationServiceUsersResponse]
 	exportOrganizations                      *connect.Client[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody]
 	exportOrganizationUsers                  *connect.Client[v1beta1.ExportOrganizationUsersRequest, httpbody.HttpBody]
 	exportOrganizationProjects               *connect.Client[v1beta1.ExportOrganizationProjectsRequest, httpbody.HttpBody]
@@ -680,6 +702,11 @@ type adminServiceClient struct {
 // ListAllUsers calls raystack.frontier.v1beta1.AdminService.ListAllUsers.
 func (c *adminServiceClient) ListAllUsers(ctx context.Context, req *connect.Request[v1beta1.ListAllUsersRequest]) (*connect.Response[v1beta1.ListAllUsersResponse], error) {
 	return c.listAllUsers.CallUnary(ctx, req)
+}
+
+// ListAllServiceUsers calls raystack.frontier.v1beta1.AdminService.ListAllServiceUsers.
+func (c *adminServiceClient) ListAllServiceUsers(ctx context.Context, req *connect.Request[v1beta1.ListAllServiceUsersRequest]) (*connect.Response[v1beta1.ListAllServiceUsersResponse], error) {
+	return c.listAllServiceUsers.CallUnary(ctx, req)
 }
 
 // ListGroups calls raystack.frontier.v1beta1.AdminService.ListGroups.
@@ -733,6 +760,12 @@ func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, req *
 // raystack.frontier.v1beta1.AdminService.SearchOrganizationServiceUserCredentials.
 func (c *adminServiceClient) SearchOrganizationServiceUserCredentials(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
 	return c.searchOrganizationServiceUserCredentials.CallUnary(ctx, req)
+}
+
+// SearchOrganizationServiceUsers calls
+// raystack.frontier.v1beta1.AdminService.SearchOrganizationServiceUsers.
+func (c *adminServiceClient) SearchOrganizationServiceUsers(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error) {
+	return c.searchOrganizationServiceUsers.CallUnary(ctx, req)
 }
 
 // ExportOrganizations calls raystack.frontier.v1beta1.AdminService.ExportOrganizations.
@@ -960,6 +993,7 @@ func (c *adminServiceClient) SearchInvoices(ctx context.Context, req *connect.Re
 type AdminServiceHandler interface {
 	// Users
 	ListAllUsers(context.Context, *connect.Request[v1beta1.ListAllUsersRequest]) (*connect.Response[v1beta1.ListAllUsersResponse], error)
+	ListAllServiceUsers(context.Context, *connect.Request[v1beta1.ListAllServiceUsersRequest]) (*connect.Response[v1beta1.ListAllServiceUsersResponse], error)
 	// Group
 	ListGroups(context.Context, *connect.Request[v1beta1.ListGroupsRequest]) (*connect.Response[v1beta1.ListGroupsResponse], error)
 	// Organizations
@@ -972,6 +1006,7 @@ type AdminServiceHandler interface {
 	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
 	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
+	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(context.Context, *connect.Request[v1beta1.ExportOrganizationsRequest], *connect.ServerStream[httpbody.HttpBody]) error
@@ -1056,6 +1091,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(adminServiceMethods.ByName("ListAllUsers")),
 		connect.WithHandlerOptions(opts...),
 	)
+	adminServiceListAllServiceUsersHandler := connect.NewUnaryHandler(
+		AdminServiceListAllServiceUsersProcedure,
+		svc.ListAllServiceUsers,
+		connect.WithSchema(adminServiceMethods.ByName("ListAllServiceUsers")),
+		connect.WithHandlerOptions(opts...),
+	)
 	adminServiceListGroupsHandler := connect.NewUnaryHandler(
 		AdminServiceListGroupsProcedure,
 		svc.ListGroups,
@@ -1114,6 +1155,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		AdminServiceSearchOrganizationServiceUserCredentialsProcedure,
 		svc.SearchOrganizationServiceUserCredentials,
 		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationServiceUserCredentials")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceSearchOrganizationServiceUsersHandler := connect.NewUnaryHandler(
+		AdminServiceSearchOrganizationServiceUsersProcedure,
+		svc.SearchOrganizationServiceUsers,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationServiceUsers")),
 		connect.WithHandlerOptions(opts...),
 	)
 	adminServiceExportOrganizationsHandler := connect.NewServerStreamHandler(
@@ -1378,6 +1425,8 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		switch r.URL.Path {
 		case AdminServiceListAllUsersProcedure:
 			adminServiceListAllUsersHandler.ServeHTTP(w, r)
+		case AdminServiceListAllServiceUsersProcedure:
+			adminServiceListAllServiceUsersHandler.ServeHTTP(w, r)
 		case AdminServiceListGroupsProcedure:
 			adminServiceListGroupsHandler.ServeHTTP(w, r)
 		case AdminServiceListAllOrganizationsProcedure:
@@ -1398,6 +1447,8 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceSearchOrganizationTokensHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationServiceUserCredentialsProcedure:
 			adminServiceSearchOrganizationServiceUserCredentialsHandler.ServeHTTP(w, r)
+		case AdminServiceSearchOrganizationServiceUsersProcedure:
+			adminServiceSearchOrganizationServiceUsersHandler.ServeHTTP(w, r)
 		case AdminServiceExportOrganizationsProcedure:
 			adminServiceExportOrganizationsHandler.ServeHTTP(w, r)
 		case AdminServiceExportOrganizationUsersProcedure:
@@ -1497,6 +1548,10 @@ func (UnimplementedAdminServiceHandler) ListAllUsers(context.Context, *connect.R
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllUsers is not implemented"))
 }
 
+func (UnimplementedAdminServiceHandler) ListAllServiceUsers(context.Context, *connect.Request[v1beta1.ListAllServiceUsersRequest]) (*connect.Response[v1beta1.ListAllServiceUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllServiceUsers is not implemented"))
+}
+
 func (UnimplementedAdminServiceHandler) ListGroups(context.Context, *connect.Request[v1beta1.ListGroupsRequest]) (*connect.Response[v1beta1.ListGroupsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListGroups is not implemented"))
 }
@@ -1535,6 +1590,10 @@ func (UnimplementedAdminServiceHandler) SearchOrganizationTokens(context.Context
 
 func (UnimplementedAdminServiceHandler) SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationServiceUserCredentials is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationServiceUsers is not implemented"))
 }
 
 func (UnimplementedAdminServiceHandler) ExportOrganizations(context.Context, *connect.Request[v1beta1.ExportOrganizationsRequest], *connect.ServerStream[httpbody.HttpBody]) error {
