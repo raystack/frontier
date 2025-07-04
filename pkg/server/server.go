@@ -31,8 +31,10 @@ import (
 	"github.com/raystack/frontier/pkg/server/health"
 	"github.com/raystack/frontier/ui"
 
+	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
+	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -125,13 +127,29 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 	}
 }
 
-func ServeConnect(ctx context.Context, logger log.Logger, cfg ConnectConfig, deps api.Deps) error {
+func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps) error {
 	// Create the server handler with both services
-	frontierService := v1beta1connect.NewConnectHandler(deps)
+	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
+
+	var sessionCookieCutter securecookie.Codec
+	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
+		// hash and block keys should be 32 bytes long
+		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
+	} else {
+		sessionCookieCutter = securecookie.New(
+			[]byte(cfg.Authentication.Session.HashSecretKey),
+			[]byte(cfg.Authentication.Session.BlockSecretKey),
+		)
+	}
+	sessionMiddleware := connectinterceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
+
+	interceptors := connect.WithInterceptors(
+		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
+		connectinterceptors.UnaryAuthenticationCheck(frontierService))
 
 	// Initialize connect handlers
-	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService)
-	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService)
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors)
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors)
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()
@@ -146,15 +164,18 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg ConnectConfig, dep
 		"raystack.frontier.v1beta1.FrontierService",
 		"raystack.frontier.v1beta1.AdminService",
 	)
+
+	// commectMiddleware := getConnectMiddleware(logger, cfg.IdentityProxyHeader, nil, sessionMiddleware, nil, deps)
+
 	mux.Handle(connecthealth.NewHandler(checker))
 
 	// Configure and create the server
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Port),
+		Addr:    fmt.Sprintf(":%d", cfg.Connect.Port),
 		Handler: h2c.NewHandler(mux, &http2.Server{}),
 	}
 
-	logger.Info("connect server starting", "port", cfg.Port)
+	logger.Info("connect server starting", "port", cfg.Connect.Port)
 
 	go func() {
 		<-ctx.Done()
