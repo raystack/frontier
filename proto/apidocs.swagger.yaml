@@ -611,6 +611,51 @@ paths:
             $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - Organization
+  /v1beta1/admin/organizations/{id}/serviceusers/search:
+    post:
+      summary: Search organization service users
+      operationId: AdminService_SearchOrganizationServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/{id}/tokens/export:
     get:
       summary: Export organization tokens
@@ -1867,6 +1912,42 @@ paths:
           type: string
       tags:
         - Resource
+  /v1beta1/admin/serviceusers:
+    get:
+      summary: List all service users
+      description: Lists all the service users from all the organizations in a Frontier instance.
+      operationId: AdminService_ListAllServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListAllServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      tags:
+        - User
   /v1beta1/admin/users:
     get:
       summary: List all users
@@ -11519,6 +11600,23 @@ definitions:
         format: date-time
       org_id:
         type: string
+  SearchOrganizationServiceUsersResponseOrganizationServiceUser:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      org_id:
+        type: string
+      projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1SearchOrganizationServiceUsersResponseProject'
+      created_at:
+        type: string
+        format: date-time
   SearchOrganizationTokensResponseOrganizationToken:
     type: object
     properties:
@@ -11835,6 +11933,35 @@ definitions:
         description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
     required:
       - name
+  frontierv1beta1Project:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      org_id:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the project was created.
+      updated_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the project was last updated.
+      members_count:
+        type: integer
+        format: int32
+        example: 2
+        description: The number of members explicitly added in the project.
+        readOnly: true
   googlerpcStatus:
     type: object
     properties:
@@ -12629,7 +12756,7 @@ definitions:
     type: object
     properties:
       project:
-        $ref: '#/definitions/v1beta1Project'
+        $ref: '#/definitions/frontierv1beta1Project'
   v1beta1CreateProspectPublicRequest:
     type: object
     properties:
@@ -13039,7 +13166,7 @@ definitions:
     type: object
     properties:
       project:
-        $ref: '#/definitions/v1beta1Project'
+        $ref: '#/definitions/frontierv1beta1Project'
   v1beta1GetProspectResponse:
     type: object
     properties:
@@ -13254,6 +13381,14 @@ definitions:
         type: integer
         format: int32
         description: Total number of records present
+  v1beta1ListAllServiceUsersResponse:
+    type: object
+    properties:
+      service_users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1ListAllUsersResponse:
     type: object
     properties:
@@ -13470,7 +13605,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
   v1beta1ListOrganizationRolesResponse:
     type: object
     properties:
@@ -13707,7 +13842,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
       access_pairs:
         type: array
         items:
@@ -13732,7 +13867,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
   v1beta1ListProjectsResponse:
     type: object
     properties:
@@ -13740,7 +13875,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
   v1beta1ListProspectsResponse:
     type: object
     properties:
@@ -13801,7 +13936,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
       access_pairs:
         type: array
         items:
@@ -14348,35 +14483,6 @@ definitions:
         $ref: '#/definitions/ProductBehaviorConfig'
       metadata:
         type: object
-  v1beta1Project:
-    type: object
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      title:
-        type: string
-      org_id:
-        type: string
-      metadata:
-        type: object
-      created_at:
-        type: string
-        format: date-time
-        example: "2023-06-07T05:39:56.961Z"
-        description: The time the project was created.
-      updated_at:
-        type: string
-        format: date-time
-        example: "2023-06-07T05:39:56.961Z"
-        description: The time the project was last updated.
-      members_count:
-        type: integer
-        format: int32
-        example: 2
-        description: The number of members explicitly added in the project.
-        readOnly: true
   v1beta1ProjectRequestBody:
     type: object
     properties:
@@ -14758,6 +14864,27 @@ definitions:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:
         $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
+  v1beta1SearchOrganizationServiceUsersResponse:
+    type: object
+    properties:
+      organization_service_users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchOrganizationServiceUsersResponseOrganizationServiceUser'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
+  v1beta1SearchOrganizationServiceUsersResponseProject:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      name:
+        type: string
   v1beta1SearchOrganizationTokensResponse:
     type: object
     properties:
@@ -15065,7 +15192,7 @@ definitions:
     type: object
     properties:
       project:
-        $ref: '#/definitions/v1beta1Project'
+        $ref: '#/definitions/frontierv1beta1Project'
   v1beta1UpdateProspectResponse:
     type: object
     properties:

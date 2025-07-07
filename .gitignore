@@ -2,6 +2,7 @@ build
 .env
 .DS_Store
 .idea/
+.zed/
 .vscode/
 proxies/*.yaml
 proxies/*.yml
