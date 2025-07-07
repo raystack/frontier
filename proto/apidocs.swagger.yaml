@@ -11609,10 +11609,11 @@ definitions:
         type: string
       org_id:
         type: string
-      project_titles:
+      projects:
         type: array
         items:
-          type: string
+          type: object
+          $ref: '#/definitions/v1beta1SearchOrganizationServiceUsersResponseProject'
       created_at:
         type: string
         format: date-time
@@ -11932,6 +11933,35 @@ definitions:
         description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
     required:
       - name
+  frontierv1beta1Project:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      org_id:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the project was created.
+      updated_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the project was last updated.
+      members_count:
+        type: integer
+        format: int32
+        example: 2
+        description: The number of members explicitly added in the project.
+        readOnly: true
   googlerpcStatus:
     type: object
     properties:
@@ -12726,7 +12756,7 @@ definitions:
     type: object
     properties:
       project:
-        $ref: '#/definitions/v1beta1Project'
+        $ref: '#/definitions/frontierv1beta1Project'
   v1beta1CreateProspectPublicRequest:
     type: object
     properties:
@@ -13136,7 +13166,7 @@ definitions:
     type: object
     properties:
       project:
-        $ref: '#/definitions/v1beta1Project'
+        $ref: '#/definitions/frontierv1beta1Project'
   v1beta1GetProspectResponse:
     type: object
     properties:
@@ -13575,7 +13605,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
   v1beta1ListOrganizationRolesResponse:
     type: object
     properties:
@@ -13812,7 +13842,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
       access_pairs:
         type: array
         items:
@@ -13837,7 +13867,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
   v1beta1ListProjectsResponse:
     type: object
     properties:
@@ -13845,7 +13875,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
   v1beta1ListProspectsResponse:
     type: object
     properties:
@@ -13906,7 +13936,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Project'
+          $ref: '#/definitions/frontierv1beta1Project'
       access_pairs:
         type: array
         items:
@@ -14453,35 +14483,6 @@ definitions:
         $ref: '#/definitions/ProductBehaviorConfig'
       metadata:
         type: object
-  v1beta1Project:
-    type: object
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      title:
-        type: string
-      org_id:
-        type: string
-      metadata:
-        type: object
-      created_at:
-        type: string
-        format: date-time
-        example: "2023-06-07T05:39:56.961Z"
-        description: The time the project was created.
-      updated_at:
-        type: string
-        format: date-time
-        example: "2023-06-07T05:39:56.961Z"
-        description: The time the project was last updated.
-      members_count:
-        type: integer
-        format: int32
-        example: 2
-        description: The number of members explicitly added in the project.
-        readOnly: true
   v1beta1ProjectRequestBody:
     type: object
     properties:
@@ -14875,6 +14876,15 @@ definitions:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:
         $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
+  v1beta1SearchOrganizationServiceUsersResponseProject:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      name:
+        type: string
   v1beta1SearchOrganizationTokensResponse:
     type: object
     properties:
@@ -15182,7 +15192,7 @@ definitions:
     type: object
     properties:
       project:
-        $ref: '#/definitions/v1beta1Project'
+        $ref: '#/definitions/frontierv1beta1Project'
   v1beta1UpdateProspectResponse:
     type: object
     properties:
