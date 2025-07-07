@@ -113,6 +113,8 @@ type Service struct {
 	productService      ProductService
 	orgService          OrganizationService
 	authnService        AuthnService
+	defaultCurrency     string
+	paymentMethodConfig []billing.PaymentMethodConfig
 
 	syncJob   *cron.Cron
 	mu        sync.Mutex
@@ -136,6 +138,8 @@ func NewService(stripeClient *client.API, cfg billing.Config, repository Reposit
 		orgService:          orgService,
 		authnService:        authnService,
 		syncDelay:           cfg.RefreshInterval.Checkout,
+		defaultCurrency:     cfg.DefaultCurrency,
+		paymentMethodConfig: cfg.PaymentMethodConfig,
 	}
 	return s
 }
@@ -383,20 +387,37 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		var defaultQ int64 = 1
 		if ch.Quantity > 0 && ch.Quantity <= maxQ && ch.Quantity >= minQ {
 			defaultQ = ch.Quantity
+			adjustableQuantity = false
 		}
+		amountSubtotal := int64(0)
 		for _, productPrice := range chProduct.Prices {
 			itemParams := &stripe.CheckoutSessionLineItemParams{
 				Price: stripe.String(productPrice.ProviderID),
 				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
 					Enabled: stripe.Bool(adjustableQuantity),
-					Minimum: stripe.Int64(minQ),
-					Maximum: stripe.Int64(maxQ),
 				},
+			}
+			if adjustableQuantity {
+				itemParams.AdjustableQuantity.Minimum = stripe.Int64(minQ)
+				itemParams.AdjustableQuantity.Maximum = stripe.Int64(maxQ)
 			}
 			if productPrice.UsageType == product.PriceUsageTypeLicensed {
 				itemParams.Quantity = stripe.Int64(defaultQ)
 			}
+
+			if productPrice.Currency == s.defaultCurrency {
+				amountSubtotal += productPrice.Amount * defaultQ
+			}
+
 			subsItems = append(subsItems, itemParams)
+		}
+
+		// plan payment methods on the basis of amount subtotal
+		var paymentMethodTypes []*string
+		for _, paymentMethodConfig := range s.paymentMethodConfig {
+			if paymentMethodConfig.IsAllowedForAmount(amountSubtotal) {
+				paymentMethodTypes = append(paymentMethodTypes, stripe.String(paymentMethodConfig.Type))
+			}
 		}
 
 		// create one time checkout link
@@ -407,7 +428,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
 				Enabled: stripe.Bool(s.stripeAutoTax),
 			},
-			Currency: stripe.String(billingCustomer.Currency),
+			Currency: stripe.String(s.defaultCurrency),
 			Customer: stripe.String(billingCustomer.ProviderID),
 			InvoiceCreation: &stripe.CheckoutSessionInvoiceCreationParams{
 				Enabled: stripe.Bool(true),
@@ -429,6 +450,15 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			CancelURL:           stripe.String(ch.CancelUrl),
 			SuccessURL:          stripe.String(ch.SuccessUrl),
 			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			PaymentMethodTypes:  paymentMethodTypes,
+			PaymentMethodOptions: &stripe.CheckoutSessionPaymentMethodOptionsParams{
+				CustomerBalance: &stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceParams{
+					FundingType: stripe.String(string(stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceFundingTypeBankTransfer)),
+					BankTransfer: &stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceBankTransferParams{
+						Type: stripe.String(string(stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceBankTransferTypeUSBankTransfer)),
+					},
+				},
+			},
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to buy product at billing provider: %w", err)
