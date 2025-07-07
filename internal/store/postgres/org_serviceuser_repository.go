@@ -91,9 +91,7 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rql 
 }
 
 func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
-	var query *goqu.SelectDataset
-
-	query = r.buildBaseQuery(orgID)
+	query := r.buildBaseQuery(orgID)
 
 	if rql != nil {
 		for _, filter := range rql.Filters {
