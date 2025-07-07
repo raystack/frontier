@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
@@ -15,25 +15,30 @@ import (
 )
 
 type ServiceUserRow struct {
-	ID            string       `db:"id"`
-	Title         string       `db:"title"`
-	OrgID         string       `db:"org_id"`
-	ProjectTitles string       `db:"project_titles"`
-	CreatedAt     sql.NullTime `db:"created_at"`
+	ID          string       `db:"id"`
+	Title       string       `db:"title"`
+	OrgID       string       `db:"org_id"`
+	ProjectData string       `db:"project_data"`
+	CreatedAt   sql.NullTime `db:"created_at"`
 }
 
 func (c *ServiceUserRow) transformToAggregatedServiceUser(orgID string) svc.AggregatedServiceUser {
-	var projectTitles []string
-	if c.ProjectTitles != "" {
-		projectTitles = strings.Split(c.ProjectTitles, ", ")
+	var projects []svc.Project
+	if c.ProjectData != "" && c.ProjectData != "null" {
+		// Parse JSON array of project objects
+		err := json.Unmarshal([]byte(c.ProjectData), &projects)
+		if err != nil {
+			// If JSON parsing fails, return empty projects array
+			projects = []svc.Project{}
+		}
 	}
 
 	return svc.AggregatedServiceUser{
-		ID:            c.ID,
-		OrgID:         orgID,
-		Title:         c.Title,
-		CreatedAt:     c.CreatedAt.Time,
-		ProjectTitles: projectTitles,
+		ID:        c.ID,
+		OrgID:     orgID,
+		Title:     c.Title,
+		CreatedAt: c.CreatedAt.Time,
+		Projects:  projects,
 	}
 }
 
@@ -122,7 +127,7 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE).As("title"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ORG_ID).As("org_id"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_CREATED_AT).As("created_at"),
-			goqu.L("STRING_AGG("+TABLE_PROJECTS+"."+COLUMN_TITLE+", ', ')").As("project_titles"),
+			goqu.L("JSON_AGG(JSON_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+"))").As("project_data"),
 		).
 		InnerJoin(
 			goqu.T(TABLE_POLICIES),

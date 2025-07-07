@@ -23,7 +23,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $4 OFFSET $5`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $4 OFFSET $5`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -41,7 +41,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -66,7 +66,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" = $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" = $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -91,7 +91,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" LIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" LIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -116,7 +116,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."created_at" > $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."created_at" > $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
 			wantParams: []interface{}{
 				"app/serviceuser",      // principal_type
 				"app/project",          // resource_type
@@ -140,7 +140,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."title" DESC LIMIT $4 OFFSET $5`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."title" DESC LIMIT $4 OFFSET $5`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -163,7 +163,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."created_at" ASC LIMIT $4 OFFSET $5`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."created_at" ASC LIMIT $4 OFFSET $5`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -203,7 +203,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (("serviceusers"."title" IS NULL) OR ("serviceusers"."title" = $4))) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (("serviceusers"."title" IS NULL) OR ("serviceusers"."title" = $4))) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -227,7 +227,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (("serviceusers"."title" IS NOT NULL) AND ("serviceusers"."title" != $4))) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (("serviceusers"."title" IS NOT NULL) AND ("serviceusers"."title" != $4))) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -252,7 +252,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" NOT LIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" NOT LIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $5 OFFSET $6`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -277,7 +277,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $4 OFFSET $5`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC LIMIT $4 OFFSET $5`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -313,7 +313,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 				Limit:  20,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" LIKE $4) AND ("serviceusers"."created_at" > $5) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $6)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."created_at" DESC LIMIT $7 OFFSET $8`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" LIKE $4) AND ("serviceusers"."created_at" > $5) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $6)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."created_at" DESC LIMIT $7 OFFSET $8`,
 			wantParams: []interface{}{
 				"app/serviceuser",      // principal_type
 				"app/project",          // resource_type
@@ -332,7 +332,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			rql: &rql.Query{
 				Search: "test",
 			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE (("serviceusers"."org_id" = $3) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type
@@ -345,7 +345,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			name:    "query with nil rql",
 			orgID:   "org1",
 			rql:     nil,
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", STRING_AGG(projects.title, ', ') AS "project_titles" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC`,
+			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) AS "project_data" FROM "serviceusers" INNER JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC`,
 			wantParams: []interface{}{
 				"app/serviceuser", // principal_type
 				"app/project",     // resource_type

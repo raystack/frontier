@@ -36,13 +36,19 @@ type Page struct {
 	Offset int `json:"offset"`
 }
 
+type Project struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+	Name  string `json:"name"`
+}
+
 type AggregatedServiceUser struct {
-	ID            string    `rql:"filter,sort,column=id"`
-	OrgID         string    `rql:"filter,sort,column=org_id"`
-	Title         string    `rql:"filter,sort,column=title"`
-	ProjectTitles []string  `rql:"filter,sort,column=project_titles"`
-	CreatedAt     time.Time `rql:"filter,sort,column=created_at"`
-	UpdatedAt     time.Time `rql:"filter,sort,column=updated_at"`
+	ID        string    `rql:"filter,sort,column=id"`
+	OrgID     string    `rql:"filter,sort,column=org_id"`
+	Title     string    `rql:"filter,sort,column=title"`
+	Projects  []Project `rql:"filter,sort,column=projects"`
+	CreatedAt time.Time `rql:"filter,sort,column=created_at"`
+	UpdatedAt time.Time `rql:"filter,sort,column=updated_at"`
 }
 
 func (s Service) Search(ctx context.Context, orgID string, query *rql.Query) (OrganizationServiceUsers, error) {

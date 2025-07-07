@@ -49,11 +49,20 @@ func (h Handler) SearchOrganizationServiceUsers(ctx context.Context, request *fr
 }
 
 func transformAggregatedServiceUserToPB(v orgserviceuser.AggregatedServiceUser) *frontierv1beta1.SearchOrganizationServiceUsersResponse_OrganizationServiceUser {
+	var projects []*frontierv1beta1.SearchOrganizationServiceUsersResponse_Project
+	for _, project := range v.Projects {
+		projects = append(projects, &frontierv1beta1.SearchOrganizationServiceUsersResponse_Project{
+			Id:    project.ID,
+			Title: project.Title,
+			Name:  project.Name,
+		})
+	}
+
 	return &frontierv1beta1.SearchOrganizationServiceUsersResponse_OrganizationServiceUser{
-		Id:            v.ID,
-		Title:         v.Title,
-		CreatedAt:     timestamppb.New(v.CreatedAt),
-		OrgId:         v.OrgID,
-		ProjectTitles: v.ProjectTitles,
+		Id:        v.ID,
+		Title:     v.Title,
+		CreatedAt: timestamppb.New(v.CreatedAt),
+		OrgId:     v.OrgID,
+		Projects:  projects,
 	}
 }
