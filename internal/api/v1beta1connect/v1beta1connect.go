@@ -52,6 +52,7 @@ type ConnectHandler struct {
 	orgProjectsService               apiv1beta1.OrgProjectsService
 	projectUsersService              apiv1beta1.ProjectUsersService
 	orgServiceUserCredentialsService apiv1beta1.OrgServiceUserCredentialsService
+	orgServiceUserService            apiv1beta1.OrgServiceUserService
 	userOrgsService                  apiv1beta1.UserOrgsService
 	userProjectsService              apiv1beta1.UserProjectsService
 }
@@ -98,6 +99,7 @@ func NewConnectHandler(deps api.Deps) *ConnectHandler {
 		orgProjectsService:               deps.OrgProjectsService,
 		projectUsersService:              deps.ProjectUsersService,
 		orgServiceUserCredentialsService: deps.OrgServiceUserCredentialsService,
+		orgServiceUserService:            deps.OrgServiceUserService,
 		userOrgsService:                  deps.UserOrgsService,
 		userProjectsService:              deps.UserProjectsService,
 	}

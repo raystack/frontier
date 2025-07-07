@@ -52,6 +52,7 @@ type Handler struct {
 	orgProjectsService               OrgProjectsService
 	projectUsersService              ProjectUsersService
 	orgServiceUserCredentialsService OrgServiceUserCredentialsService
+	orgServiceUserService            OrgServiceUserService
 	userOrgsService                  UserOrgsService
 	userProjectsService              UserProjectsService
 }
@@ -99,6 +100,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		orgProjectsService:               deps.OrgProjectsService,
 		projectUsersService:              deps.ProjectUsersService,
 		orgServiceUserCredentialsService: deps.OrgServiceUserCredentialsService,
+		orgServiceUserService:            deps.OrgServiceUserService,
 		userOrgsService:                  deps.UserOrgsService,
 		userProjectsService:              deps.UserProjectsService,
 	}
