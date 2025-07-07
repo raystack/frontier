@@ -6,7 +6,6 @@
 }
 
 .scrollArea {
-  padding-right: var(--rs-space-5);
   width: 100%;
   overflow-y: auto;
 }
