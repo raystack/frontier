@@ -2,17 +2,28 @@ package v1beta1connect
 
 import (
 	"context"
+	"encoding/base64"
 	"net/mail"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/authenticate/token"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/str"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/raystack/frontier/pkg/errors"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -58,6 +69,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		Endpoint: response.Flow.StartURL,
 		State:    response.State,
 	})
+
 	if request.Msg.GetRedirectOnstart() && len(response.Flow.StartURL) > 0 {
 		resp.Header().Set(consts.LocationGatewayKey, response.Flow.StartURL)
 	}
@@ -124,7 +136,152 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	return resp, nil
 }
 
+func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request[frontierv1beta1.AuthTokenRequest]) (*connect.Response[frontierv1beta1.AuthTokenResponse], error) {
+	// logger := grpczap.Extract(ctx)
+	// existingMD, ok := metadata.FromIncomingContext(ctx)
+	// if !ok {
+	existingMD := metadata.New(map[string]string{})
+	// }
+	// if values are passed in body instead of headers, populate them in context
+	switch request.Msg.GetGrantType() {
+	case "client_credentials":
+		if request.Msg.GetClientId() != "" && request.Msg.GetClientSecret() != "" {
+			secretVal := base64.StdEncoding.EncodeToString([]byte(request.Msg.GetClientId() + ":" + request.Msg.GetClientSecret()))
+			existingMD.Set(consts.UserSecretGatewayKey, secretVal)
+		}
+	case "urn:ietf:params:oauth:grant-type:jwt-bearer":
+		if request.Msg.GetAssertion() != "" {
+			existingMD.Set(consts.UserTokenGatewayKey, request.Msg.GetAssertion())
+		}
+	}
+	ctx = metadata.NewIncomingContext(ctx, existingMD)
+
+	// only get principal from service user assertions
+	principal, err := h.GetLoggedInPrincipal(ctx,
+		authenticate.SessionClientAssertion,
+		authenticate.ClientCredentialsClientAssertion,
+		authenticate.JWTGrantClientAssertion)
+	if err != nil {
+		// logger.Debug(fmt.Sprintf("unable to get GetLoggedInPrincipal: %v", err))
+		return nil, err
+	}
+
+	token, err := h.getAccessToken(ctx, principal, request.Header().Values(consts.ProjectRequestKey))
+	if err != nil {
+		// logger.Debug(fmt.Sprintf("unable to get accessToken: %v", err))
+		return nil, err
+	}
+
+	resp := connect.NewResponse(&frontierv1beta1.AuthTokenResponse{
+		AccessToken: string(token),
+		TokenType:   "Bearer",
+	})
+
+	resp.Header().Set(consts.UserTokenGatewayKey, string(token))
+	return resp, nil
+}
+
 func isValidEmail(str string) bool {
 	_, err := mail.ParseAddress(str)
 	return err == nil
+}
+
+// getAccessToken generates a jwt access token with user/org details
+func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authenticate.Principal, projectKey []string) ([]byte, error) {
+	// logger := grpczap.Extract(ctx)
+	customClaims := map[string]string{}
+
+	if h.authConfig.Token.Claims.AddOrgIDsClaim {
+		// get orgs a user belongs to
+		orgs, err := h.orgService.ListByUser(ctx, principal, organization.Filter{})
+		if err != nil {
+			return nil, err
+		}
+
+		var orgIds []string
+		for _, o := range orgs {
+			orgIds = append(orgIds, o.ID)
+		}
+		customClaims[token.OrgIDsClaimKey] = strings.Join(orgIds, ",")
+	}
+
+	// find selected project id
+	if len(projectKey) > 0 && projectKey[0] != "" {
+		// check if project exists and user has access to it
+		proj, err := h.projectService.Get(ctx, projectKey[0])
+		if err != nil {
+			// logger.Error("error getting project", zap.Error(err), zap.String("project", projectKey[0]))
+		} else {
+			if err := h.IsAuthorized(ctx, relation.Object{
+				Namespace: schema.ProjectNamespace,
+				ID:        proj.ID,
+			}, schema.GetPermission); err == nil {
+				customClaims["project_id"] = proj.ID
+			} else {
+				// logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principal.ID))
+			}
+		}
+	}
+
+	// build jwt for user context
+	return h.authnService.BuildToken(ctx, principal, customClaims)
+}
+
+func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Object, permission string) error {
+	if object.Namespace == "" || object.ID == "" {
+		return connect.NewError(connect.CodeInvalidArgument, errors.New("namespace and ID cannot be empty"))
+	}
+
+	currentUser, principalErr := h.GetLoggedInPrincipal(ctx)
+	if principalErr != nil {
+		return principalErr
+	}
+	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
+		Object: object,
+		Subject: relation.Subject{
+			Namespace: currentUser.Type,
+			ID:        currentUser.ID,
+		},
+		Permission: permission,
+	})
+	if err != nil {
+		return handleAuthErr(err)
+	}
+	if result {
+		return nil
+	}
+
+	// for invitation, we need to check if the user is the owner of the invitation by checking its email as well
+	if object.Namespace == schema.InvitationNamespace &&
+		currentUser.Type == schema.UserPrincipal {
+		result2, checkErr := h.resourceService.CheckAuthz(ctx, resource.Check{
+			Object: object,
+			Subject: relation.Subject{
+				Namespace: currentUser.Type,
+				ID:        str.GenerateUserSlug(currentUser.User.Email),
+			},
+			Permission: permission,
+		})
+		if checkErr != nil {
+			return handleAuthErr(checkErr)
+		}
+		if result2 {
+			return nil
+		}
+	}
+
+	return connect.NewError(connect.CodePermissionDenied, errors.New("permission denied"))
+}
+
+func handleAuthErr(err error) error {
+	switch {
+	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
+		return grpcUnauthenticated
+	case errors.Is(err, organization.ErrNotExist),
+		errors.Is(err, project.ErrNotExist),
+		errors.Is(err, resource.ErrNotExist):
+		return status.Errorf(codes.NotFound, err.Error())
+	default:
+		return err
+	}
 }

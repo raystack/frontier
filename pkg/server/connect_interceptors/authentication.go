@@ -4,18 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	// "github.com/go-playground/locales/ewo"
-	"github.com/raystack/frontier/core/audit"
-
-	// "github.com/raystack/frontier/pkg/server/health"
-	"github.com/raystack/frontier/internal/api/v1beta1connect"
-	// "github.com/raystack/frontier/pkg/server/interceptors"
-
-	"github.com/raystack/frontier/core/authenticate"
-
 	"connectrpc.com/connect"
-	// "github.com/raystack/frontier/internal/api/v1beta1"
-	// "google.golang.org/grpc"
+	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/internal/api/v1beta1connect"
 )
 
 func UnaryAuthenticationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInterceptorFunc {
@@ -58,7 +50,6 @@ var authenticationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies":     true,
 	"/raystack.frontier.v1beta1.FrontierService/Authenticate":           true,
 	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":           true,
-	"/raystack.frontier.v1beta1.FrontierService/AuthToken":              true,
 	"/raystack.frontier.v1beta1.FrontierService/AuthLogout":             true,
 	"/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas":        true,
 	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":          true,
