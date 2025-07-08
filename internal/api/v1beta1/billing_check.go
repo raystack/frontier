@@ -68,3 +68,31 @@ func (h Handler) CheckPlanEntitlement(ctx context.Context, obj relation.Object) 
 	// default condition is true for now to avoid false positives
 	return nil
 }
+
+func (h Handler) CheckCreditEntitlement(ctx context.Context, request *frontierv1beta1.CheckCreditEntitlementRequest) (*frontierv1beta1.CheckCreditEntitlementResponse, error) {
+	customerList, err := h.customerService.List(ctx, customer.Filter{
+		OrgID: request.GetOrgId(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	customer := customerList[0]
+	customerDetails, err := h.customerService.GetDetails(ctx, customer.ID)
+	if err != nil {
+		return nil, err
+	}
+	creditBalance, err := h.creditService.GetBalance(ctx, customer.ID)
+	if err != nil {
+		return nil, err
+	}
+	if creditBalance-request.GetAmount() >= customerDetails.CreditMin {
+		return &frontierv1beta1.CheckCreditEntitlementResponse{
+			Status: true,
+		}, nil
+	}
+
+	return &frontierv1beta1.CheckCreditEntitlementResponse{
+		Status: false,
+	}, nil
+}
