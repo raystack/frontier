@@ -53,10 +53,9 @@ func (s Session) UnaryConnectRequestHeadersAnnotator() connect.UnaryInterceptorF
 			// parse and process cookies
 			incomingMD := metadata.MD{}
 			if s.cookieCodec != nil {
-				// if mdCookies := incomingMD.Get("cookie"); len(mdCookies) > 0 {
-				if mdCookies := req.Header().Get("cookie"); len(mdCookies) > 0 {
+				if mdCookies := req.Header().Values("cookie"); len(mdCookies) > 0 && mdCookies[0] != "" {
 					header := http.Header{}
-					header.Add("Cookie", mdCookies)
+					header.Add("Cookie", mdCookies[0])
 					request := http.Request{Header: header}
 					for _, requestCookie := range request.Cookies() {
 						// check if cookie is session cookie
@@ -91,7 +90,6 @@ func (s Session) UnaryConnectRequestHeadersAnnotator() connect.UnaryInterceptorF
 			}
 
 			ctx = metadata.NewIncomingContext(ctx, incomingMD)
-			// }
 			return next(ctx, req)
 		})
 	}
