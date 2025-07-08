@@ -1,6 +1,7 @@
 package connectinterceptors
 
 import (
+	"fmt"
 	"context"
 	"net/http"
 	"strings"
@@ -22,6 +23,33 @@ type Session struct {
 	// use secure cookie EncodeMulti/DecodeMulti
 	cookieCodec securecookie.Codec
 	conf        authenticate.SessionConfig
+}
+
+// UnaryConnectResponseInterceptor adds session cookie to response if session id is present in header
+func (s Session) UnaryConnectResponseInterceptor() connect.UnaryInterceptorFunc {
+	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
+		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+			// Let the handler and other interceptors run first
+			resp, err := next(ctx, req)
+			if err != nil {
+				return nil, err
+			}
+
+			// Only attempt to set cookie if we have a codec and session ID
+			if sessionID := resp.Header().Get(consts.SessionIDGatewayKey); sessionID != "" && s.cookieCodec != nil {
+				// encode session id into cookie
+				encodedSession, err := s.cookieCodec.Encode(consts.SessionRequestKey, sessionID)
+				if err != nil {
+					return nil, connect.NewError(connect.CodeInternal, err)
+				}
+
+				// set cookie in response
+				resp.Header().Set("Set-Cookie", fmt.Sprintf("%s=%s; Path=/; HttpOnly; Secure", consts.SessionRequestKey, encodedSession))
+			}
+			return resp, nil
+		})
+	}
+	return connect.UnaryInterceptorFunc(interceptor)
 }
 
 func NewSession(cookieCutter securecookie.Codec, conf authenticate.SessionConfig) *Session {
@@ -53,9 +81,9 @@ func (s Session) UnaryConnectRequestHeadersAnnotator() connect.UnaryInterceptorF
 			// parse and process cookies
 			incomingMD := metadata.MD{}
 			if s.cookieCodec != nil {
-				if mdCookies := req.Header().Values("cookie"); len(mdCookies) > 0 && mdCookies[0] != "" {
+				if mdCookies := req.Header().Get("cookie"); len(mdCookies) > 0 {
 					header := http.Header{}
-					header.Add("Cookie", mdCookies[0])
+					header.Add("Cookie", mdCookies)
 					request := http.Request{Header: header}
 					for _, requestCookie := range request.Cookies() {
 						// check if cookie is session cookie

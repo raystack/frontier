@@ -141,8 +141,6 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 	// existingMD, ok := metadata.FromIncomingContext(ctx)
 	// if !ok {
 	existingMD := metadata.New(map[string]string{})
-	// }
-	// if values are passed in body instead of headers, populate them in context
 	switch request.Msg.GetGrantType() {
 	case "client_credentials":
 		if request.Msg.GetClientId() != "" && request.Msg.GetClientSecret() != "" {
