@@ -145,7 +145,8 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 
 	interceptors := connect.WithInterceptors(
 		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
-		connectinterceptors.UnaryAuthenticationCheck(frontierService))
+		connectinterceptors.UnaryAuthenticationCheck(frontierService),
+		sessionMiddleware.UnaryConnectResponseInterceptor())
 
 	// Initialize connect handlers
 	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors)
