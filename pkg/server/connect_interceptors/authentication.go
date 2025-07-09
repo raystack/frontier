@@ -13,7 +13,6 @@ import (
 func UnaryAuthenticationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInterceptorFunc {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			fmt.Println("UnaryAuthenticationCheck start")
 			// if _, ok := info.Server.(*health.Handler); ok {
 			// 	// pass through health handler
 			// 	return handler(ctx, req)
