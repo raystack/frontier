@@ -2,13 +2,14 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara/v1";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
 import styles from "./apis.module.css";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { getColumns } from "./columns";
 import { api } from "~/api";
 import type { SearchOrganizationServiceUsersResponseOrganizationServiceUser } from "~/api/frontier";
 import { useRQL } from "~/hooks/useRQL";
+import { ServiceUserDetailsDialog } from "./details-dialog";
 
 const NoCredentials = () => {
   return (
@@ -30,6 +31,10 @@ const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 export function OrganizationApisPage() {
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
+  const [selectedServiceUser, setSelectedServiceUser] =
+    useState<SearchOrganizationServiceUsersResponseOrganizationServiceUser | null>(
+      null,
+    );
 
   const {
     onChange: onSearchChange,
@@ -71,9 +76,23 @@ export function OrganizationApisPage() {
 
   const isLoading = loading;
 
+  function onDialogClose() {
+    setSelectedServiceUser(null);
+  }
+
+  function onRowClick(
+    row: SearchOrganizationServiceUsersResponseOrganizationServiceUser,
+  ) {
+    setSelectedServiceUser(row);
+  }
+
   const columns = getColumns({ groupCountMap });
   return (
     <Flex justify="center" className={styles["container"]}>
+      <ServiceUserDetailsDialog
+        serviceUser={selectedServiceUser}
+        onClose={onDialogClose}
+      />
       <PageTitle title={title} />
       <DataTable
         columns={columns}
@@ -84,6 +103,7 @@ export function OrganizationApisPage() {
         onTableQueryChange={onTableQueryChange}
         onLoadMore={fetchMore}
         query={{ ...query, search: searchQuery }}
+        onRowClick={onRowClick}
       >
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />

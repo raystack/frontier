@@ -1,21 +1,25 @@
 import { Dialog, Flex, Skeleton, Tabs, Text } from "@raystack/apsara/v1";
 import styles from "./apis.module.css";
 import { useCallback, useEffect, useState } from "react";
-import { V1Beta1Project } from "@raystack/frontier";
 import { api } from "~/api";
-import { V1Beta1ServiceUserToken } from "~/api/frontier";
+import type {
+  V1Beta1ServiceUserToken,
+  SearchOrganizationServiceUsersResponseOrganizationServiceUser,
+  Frontierv1Beta1Project,
+} from "~/api/frontier";
 import dayjs from "dayjs";
 
 interface ServiceUserDetailsDialogProps {
-  serviceUserId: string;
-  organizationId: string;
+  onClose: () => void;
+  serviceUser: SearchOrganizationServiceUsersResponseOrganizationServiceUser | null;
 }
 
 export const ServiceUserDetailsDialog = ({
-  serviceUserId,
-  organizationId,
+  serviceUser,
+  onClose,
 }: ServiceUserDetailsDialogProps) => {
-  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
+  const { id = "", org_id = "", title = "" } = serviceUser || {};
+  const [projects, setProjects] = useState<Frontierv1Beta1Project[]>([]);
   const [tokens, setTokens] = useState<V1Beta1ServiceUserToken[]>([]);
   const [isProjectLoading, setIsProjectLoading] = useState(false);
   const [isTokenLoading, setIsTokenLoading] = useState(false);
@@ -24,8 +28,8 @@ export const ServiceUserDetailsDialog = ({
     setIsProjectLoading(true);
     try {
       const resp = await api?.frontierServiceListServiceUserProjects(
-        organizationId,
-        serviceUserId,
+        org_id,
+        id,
       );
       const list = resp?.data?.projects || [];
       setProjects(list || []);
@@ -34,15 +38,12 @@ export const ServiceUserDetailsDialog = ({
     } finally {
       setIsProjectLoading(false);
     }
-  }, [organizationId, serviceUserId]);
+  }, [org_id, id]);
 
   const fetchTokens = useCallback(async () => {
     setIsTokenLoading(true);
     try {
-      const resp = await api?.frontierServiceListServiceUserTokens(
-        organizationId,
-        serviceUserId,
-      );
+      const resp = await api?.frontierServiceListServiceUserTokens(org_id, id);
       const list = resp?.data?.tokens || [];
       setTokens(list || []);
     } catch (error) {
@@ -50,20 +51,24 @@ export const ServiceUserDetailsDialog = ({
     } finally {
       setIsTokenLoading(false);
     }
-  }, [organizationId, serviceUserId]);
+  }, [org_id, id]);
 
   useEffect(() => {
     fetchProjects();
     fetchTokens();
   }, [fetchProjects, fetchTokens]);
 
-  const isLoading = isProjectLoading || isTokenLoading;
+  function onOpenChange(val: boolean) {
+    if (!val) {
+      onClose();
+    }
+  }
 
   return (
-    <Dialog open>
+    <Dialog open={id !== ""} onOpenChange={onOpenChange}>
       <Dialog.Content className={styles["details-dialog"]}>
         <Dialog.Header>
-          <Dialog.Title>Service Account Details</Dialog.Title>
+          <Dialog.Title>{title}</Dialog.Title>
           <Dialog.CloseButton />
         </Dialog.Header>
         <Dialog.Body>
