@@ -128,7 +128,6 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 
 	// save in browser cookies
 	resp.Header().Set(consts.SessionIDGatewayKey, session.ID.String())
-	resp.Header().Set("user-id", session.UserID)
 
 	// set location header for redirect to finish auth and send client to origin
 	if len(response.Flow.FinishURL) > 0 {

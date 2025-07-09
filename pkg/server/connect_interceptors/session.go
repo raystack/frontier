@@ -50,6 +50,10 @@ func (s Session) UnaryConnectResponseInterceptor() connect.UnaryInterceptorFunc 
 					s.conf.Domain,
 					CookieSameSite(s.conf.SameSite))
 				resp.Header().Set("Set-Cookie", cookie)
+
+				// delete the gateway headers to not expose any grpc-metadata in http response
+				resp.Header().Del(consts.SessionIDGatewayKey)
+				resp.Header().Del("grpc-metadata-" + consts.SessionIDGatewayKey)
 			}
 
 			// Check if we need to delete the session cookie (after any set operations)
