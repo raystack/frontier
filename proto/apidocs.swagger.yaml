@@ -2846,6 +2846,48 @@ paths:
             $ref: '#/definitions/v1beta1BatchCheckPermissionRequest'
       tags:
         - Authz
+  /v1beta1/billing/check:
+    post:
+      summary: Check credit entitlement
+      description: Check if a billing account has enough credits to cover the amount.
+      operationId: FrontierService_CheckCreditEntitlement
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CheckCreditEntitlementResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CheckCreditEntitlementRequest'
+      tags:
+        - Entitlement
   /v1beta1/billing/features:
     get:
       summary: List features
@@ -12427,6 +12469,19 @@ definitions:
     properties:
       phase:
         $ref: '#/definitions/SubscriptionPhase'
+  v1beta1CheckCreditEntitlementRequest:
+    type: object
+    properties:
+      org_id:
+        type: string
+      amount:
+        type: string
+        format: int64
+  v1beta1CheckCreditEntitlementResponse:
+    type: object
+    properties:
+      status:
+        type: boolean
   v1beta1CheckFeatureEntitlementRequest:
     type: object
     properties:
