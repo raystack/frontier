@@ -234,11 +234,7 @@ func (r BillingTransactionRepository) createTransactionEntry(ctx context.Context
 // If the customer has a credit min limit set, then a negative balance means loaner/overdraft limit and
 // a positive limit mean at least that much balance should be there in the account.
 func isSufficientBalance(customerMinLimit int64, currentBalance int64, txAmount int64) error {
-	if customerMinLimit < 0 {
-		if currentBalance-customerMinLimit < txAmount {
-			return credit.ErrInsufficientCredits
-		}
-	} else if currentBalance < txAmount+customerMinLimit {
+	if currentBalance-txAmount < customerMinLimit {
 		return credit.ErrInsufficientCredits
 	}
 	return nil
