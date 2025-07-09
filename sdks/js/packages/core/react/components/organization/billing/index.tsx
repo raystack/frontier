@@ -1,4 +1,4 @@
-import { Button, Skeleton, Text, Flex, toast, Link } from '@raystack/apsara/v1';
+import { Button, Skeleton, Text, Flex, toast, Link, Tooltip } from '@raystack/apsara/v1';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -88,9 +88,9 @@ const BillingDetails = ({
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
           <Tooltip
-          message="Contact support to update your billing address."
-          side="bottom-right"
-          disabled={!isButtonDisabled}
+            message="Contact support to update your billing address."
+            side="bottom-right"
+            disabled={!isButtonDisabled}
           >
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
