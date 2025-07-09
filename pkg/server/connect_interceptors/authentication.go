@@ -51,7 +51,6 @@ var authenticationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies":     true,
 	"/raystack.frontier.v1beta1.FrontierService/Authenticate":           true,
 	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":           true,
-	"/raystack.frontier.v1beta1.FrontierService/AuthLogout":             true,
 	"/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas":        true,
 	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":          true,
 	"/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback": true,
