@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/authenticate/token"
@@ -282,4 +283,42 @@ func handleAuthErr(err error) error {
 	default:
 		return err
 	}
+}
+
+func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Request[frontierv1beta1.AuthLogoutRequest]) (*connect.Response[frontierv1beta1.AuthLogoutResponse], error) {
+	// logger := grpczap.Extract(ctx)
+
+	// delete user session if exists
+	sessionID, err := h.getLoggedInSessionID(ctx)
+	if err == nil {
+		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
+			// logger.Error(err.Error())
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	resp := connect.NewResponse(&frontierv1beta1.AuthLogoutResponse{})
+
+	// delete from browser cookies
+	resp.Header().Set(consts.SessionDeleteGatewayKey, "true")
+	return resp, nil
+}
+
+func (h *ConnectHandler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
+	session, err := h.sessionService.ExtractFromContext(ctx)
+	if err == nil && session.IsValid(time.Now().UTC()) {
+		return session.ID, nil
+	}
+	return uuid.Nil, err
+}
+
+func (h *ConnectHandler) ListAuthStrategies(ctx context.Context, request *connect.Request[frontierv1beta1.ListAuthStrategiesRequest]) (*connect.Response[frontierv1beta1.ListAuthStrategiesResponse], error) {
+	var pbstrategy []*frontierv1beta1.AuthStrategy
+	for _, strategy := range h.authnService.SupportedStrategies() {
+		pbstrategy = append(pbstrategy, &frontierv1beta1.AuthStrategy{
+			Name:   strategy,
+			Params: nil,
+		})
+	}
+	return connect.NewResponse(&frontierv1beta1.ListAuthStrategiesResponse{Strategies: pbstrategy}), nil
 }
