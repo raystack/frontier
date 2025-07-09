@@ -1,6 +1,9 @@
-import { DataTableColumnDef } from "@raystack/apsara/v1";
+import { Text, type DataTableColumnDef } from "@raystack/apsara/v1";
 import dayjs from "dayjs";
-import { SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential } from "~/api/frontier";
+import type {
+  SearchOrganizationServiceUsersResponseOrganizationServiceUser,
+  V1Beta1SearchOrganizationServiceUsersResponseProject,
+} from "~/api/frontier";
 import { NULL_DATE } from "~/utils/constants";
 import styles from "./apis.module.css";
 
@@ -11,7 +14,7 @@ interface ColumnOptions {
 export function getColumns(
   options: ColumnOptions,
 ): DataTableColumnDef<
-  SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential,
+  SearchOrganizationServiceUsersResponseOrganizationServiceUser,
   unknown
 >[] {
   return [
@@ -24,16 +27,18 @@ export function getColumns(
       },
       cell: ({ getValue }) => {
         const value = getValue() as string;
-        return <>{value}</>;
+        return <Text>{value}</Text>;
       },
       enableColumnFilter: true,
     },
     {
-      accessorKey: "serviceuser_title",
-      header: "Account",
+      accessorKey: "projects",
+      header: "Projects",
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return <>{value}</>;
+        const value =
+          getValue() as V1Beta1SearchOrganizationServiceUsersResponseProject[];
+        const projectNames = value.map((project) => project.title).join(", ");
+        return <Text>{projectNames}</Text>;
       },
       enableColumnFilter: true,
     },

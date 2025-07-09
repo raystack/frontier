@@ -1,18 +1,13 @@
-import {
-  DataTable,
-  DataTableQuery,
-  DataTableSort,
-  EmptyState,
-  Flex,
-} from "@raystack/apsara/v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara/v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
 import styles from "./apis.module.css";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { getColumns } from "./columns";
 import { api } from "~/api";
-import { SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential } from "~/api/frontier";
+import type { SearchOrganizationServiceUsersResponseOrganizationServiceUser } from "~/api/frontier";
 import { useRQL } from "~/hooks/useRQL";
 
 const NoCredentials = () => {
@@ -46,28 +41,25 @@ export function OrganizationApisPage() {
 
   const apiCallback = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
-      const response =
-        await api?.adminServiceSearchOrganizationServiceUserCredentials(
-          organizationId,
-          { ...apiQuery, search: searchQuery || "" },
-        );
+      const response = await api?.adminServiceSearchOrganizationServiceUsers(
+        organizationId,
+        { ...apiQuery, search: searchQuery || "" },
+      );
       return response?.data;
     },
     [organizationId, searchQuery],
   );
 
   const { data, loading, query, onTableQueryChange, groupCountMap, fetchMore } =
-    useRQL<SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential>(
-      {
-        initialQuery: { offset: 0 },
-        key: organizationId,
-        dataKey: "organization_serviceuser_credentials",
-        fn: apiCallback,
-        searchParam: searchQuery || "",
-        onError: (error: Error | unknown) =>
-          console.error("Failed to fetch service user credentials:", error),
-      },
-    );
+    useRQL<SearchOrganizationServiceUsersResponseOrganizationServiceUser>({
+      initialQuery: { offset: 0 },
+      key: organizationId,
+      dataKey: "organization_service_users",
+      fn: apiCallback,
+      searchParam: searchQuery || "",
+      onError: (error: Error | unknown) =>
+        console.error("Failed to fetch service users:", error),
+    });
 
   useEffect(() => {
     setSearchVisibility(true);
