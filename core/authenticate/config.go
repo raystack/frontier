@@ -76,7 +76,11 @@ type MailLinkConfig struct {
 }
 
 type PassKeyConfig struct {
-	RPDisplayName string   `yaml:"rpdisplayname"`
-	RPID          string   `yaml:"rpid"`
-	RPOrigins     []string `yaml:"rporigins"`
+	// RPDisplayName configures the display name for the Relying Party Server. This can be any string.
+	RPDisplayName string `yaml:"rpdisplayname" mapstructure:"rpdisplayname"`
+	// RPID configures the Relying Party Server ID. This should generally be the origin without a scheme and port.
+	RPID string `yaml:"rpid" mapstructure:"rpid"`
+	// RPOrigins configures the list of Relying Party Server Origins that are permitted. These should be fully
+	// qualified origins.
+	RPOrigins []string `yaml:"rporigins" mapstructure:"rporigins"`
 }
