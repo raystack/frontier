@@ -26,3 +26,32 @@
 .first-column {
   padding-left: var(--rs-space-7);
 }
+
+.details-dialog {
+  width: 100%;
+  max-width: 600px;
+  height: 500px;
+}
+
+.skeleton {
+  flex: 1;
+}
+
+.tab-root {
+  position: relative;
+  height: 100%;
+}
+
+.tab-content {
+  padding: var(--rs-space-3) 0;
+  overflow: scroll;
+  max-height: calc(100% - var(--rs-space-15));
+}
+
+.list-item {
+  padding: var(--rs-space-4) 0;
+}
+
+.list-item + .list-item {
+  border-top: 1px solid var(--rs-color-border-base-primary);
+}
