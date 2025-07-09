@@ -134,11 +134,11 @@ func (s Session) UnaryConnectRequestHeadersAnnotator() connect.UnaryInterceptorF
 			}
 
 			// pass user token if in token header as gateway context
-			if userToken := incomingMD.Get(consts.UserTokenRequestKey); len(userToken) > 0 {
+			if userToken := req.Header().Values(consts.UserTokenRequestKey); len(userToken) > 0 {
 				incomingMD.Set(consts.UserTokenGatewayKey, strings.TrimSpace(userToken[0]))
 			}
 			// check if the same token is part of Authorization header
-			if authHeader := incomingMD.Get("authorization"); len(authHeader) > 0 {
+			if authHeader := req.Header().Values("authorization"); len(authHeader) > 0 {
 				tokenVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Bearer "))
 				if token, err := jwt.ParseInsecure([]byte(tokenVal)); err == nil {
 					if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
