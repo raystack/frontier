@@ -31,6 +31,8 @@
   width: 100%;
   max-width: 600px;
   height: 500px;
+  display: flex;
+  flex-direction: column;
 }
 
 .skeleton {
@@ -45,7 +47,6 @@
 .tab-content {
   padding: var(--rs-space-3) 0;
   overflow: scroll;
-  max-height: calc(100% - var(--rs-space-15));
 }
 
 .list-item {
@@ -54,4 +55,9 @@
 
 .list-item + .list-item {
   border-top: 1px solid var(--rs-color-border-base-primary);
+}
+
+.dialog-body {
+  flex: 1;
+  overflow: hidden;
 }

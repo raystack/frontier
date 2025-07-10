@@ -71,7 +71,7 @@ export const ServiceUserDetailsDialog = ({
           <Dialog.Title>{title}</Dialog.Title>
           <Dialog.CloseButton />
         </Dialog.Header>
-        <Dialog.Body>
+        <Dialog.Body className={styles["dialog-body"]}>
           <Tabs.Root defaultValue="keys" className={styles["tab-root"]}>
             <Tabs.List>
               <Tabs.Trigger value="keys">
