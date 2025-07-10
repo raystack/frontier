@@ -13,7 +13,6 @@ import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
 import coin from '~/react/assets/coin.svg';
-import billingStyles from '../billing/billing.module.css';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
