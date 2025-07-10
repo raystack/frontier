@@ -75,10 +75,16 @@ export const ServiceUserDetailsDialog = ({
           <Tabs.Root defaultValue="keys" className={styles["tab-root"]}>
             <Tabs.List>
               <Tabs.Trigger value="keys">
-                API keys {tokens.length > 0 ? `(${tokens.length})` : ""}
+                API keys{" "}
+                {!isTokenLoading && tokens.length > 0
+                  ? `(${tokens.length})`
+                  : ""}
               </Tabs.Trigger>
               <Tabs.Trigger value="projects">
-                Projects {projects.length > 0 ? `(${projects.length})` : ""}
+                Projects{" "}
+                {!isProjectLoading && projects.length > 0
+                  ? `(${projects.length})`
+                  : ""}
               </Tabs.Trigger>
             </Tabs.List>
             <Tabs.Content value="keys" className={styles["tab-content"]}>
