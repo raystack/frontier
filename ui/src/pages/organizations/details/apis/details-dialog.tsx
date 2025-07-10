@@ -25,6 +25,7 @@ export const ServiceUserDetailsDialog = ({
   const [isTokenLoading, setIsTokenLoading] = useState(false);
 
   const fetchProjects = useCallback(async () => {
+    if (!org_id || !id) return;
     setIsProjectLoading(true);
     try {
       const resp = await api?.frontierServiceListServiceUserProjects(
@@ -41,6 +42,7 @@ export const ServiceUserDetailsDialog = ({
   }, [org_id, id]);
 
   const fetchTokens = useCallback(async () => {
+    if (!org_id || !id) return;
     setIsTokenLoading(true);
     try {
       const resp = await api?.frontierServiceListServiceUserTokens(org_id, id);
