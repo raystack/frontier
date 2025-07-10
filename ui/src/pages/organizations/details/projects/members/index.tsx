@@ -5,7 +5,7 @@ import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";
 import type {
   SearchProjectUsersResponseProjectUser,
-  V1Beta1Project,
+  Frontierv1Beta1Project,
   V1Beta1Role,
 } from "~/api/frontier";
 import styles from "./members.module.css";
@@ -40,7 +40,7 @@ export const ProjectMembersDialog = ({
   projectId: string;
   onClose: () => void;
 }) => {
-  const [project, setProject] = useState<V1Beta1Project>({});
+  const [project, setProject] = useState<Frontierv1Beta1Project>({});
   const [isProjectLoading, setIsProjectLoading] = useState<boolean>(false);
 
   const [projectRoles, setProjectRoles] = useState<V1Beta1Role[]>([]);
