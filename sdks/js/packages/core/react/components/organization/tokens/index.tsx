@@ -123,12 +123,8 @@ interface TokenInfoBoxProps {
   canUpdateWorkspace: boolean;
 }
 
-function TokenInfoBox({
-  isLoading,
-  isCheckoutLoading,
-  canUpdateWorkspace
-}: TokenInfoBoxProps) {
-  const { billingDetails, isBillingAccountLoading } = useFrontier();
+function TokenInfoBox({}: TokenInfoBoxProps) {
+  const { billingDetails } = useFrontier();
   const isPostpaid = billingDetails?.credit_min && parseInt(billingDetails.credit_min) < 0
   return (
     <>
