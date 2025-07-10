@@ -1,4 +1,5 @@
-import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast, Link } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast, Link, Callout } from '@raystack/apsara/v1';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { styles } from '../styles';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -12,6 +13,7 @@ import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
 import coin from '~/react/assets/coin.svg';
+import billingStyles from '../billing/billing.module.css';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -111,6 +113,33 @@ function BalancePanel({
         </Tooltip>
       </Flex>
     </Flex>
+  );
+}
+
+interface TokenInfoBoxProps {
+  balance: number;
+  isLoading: boolean;
+  isCheckoutLoading: boolean;
+  canUpdateWorkspace: boolean;
+}
+
+function TokenInfoBox({
+  isLoading,
+  isCheckoutLoading,
+  canUpdateWorkspace
+}: TokenInfoBoxProps) {
+  const { billingDetails, isBillingAccountLoading } = useFrontier();
+  const isPostpaid = billingDetails?.credit_min && parseInt(billingDetails.credit_min) < 0
+  return (
+    <>
+      {isPostpaid && (
+      <Callout
+        type="accent"
+        icon={<InfoCircledIcon className={tokenStyles.tokenInfoText} />}
+        className={tokenStyles.tokenInfoBox}
+      >You can now add tokens anytime to reduce next month’s invoice. But this won’t settle any existing or overdue invoices.
+      </Callout>)}
+    </>
   );
 }
 
@@ -225,6 +254,12 @@ export default function Tokens() {
           <TokensHeader
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}
+          />
+          <TokenInfoBox
+            balance={tokenBalance}
+            isLoading={isLoading}
+            isCheckoutLoading={isCheckoutLoading}
+            canUpdateWorkspace={isAllowed}
           />
           <BalancePanel
             balance={tokenBalance}
