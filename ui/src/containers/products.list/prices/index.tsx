@@ -1,7 +1,7 @@
-import { DataTable } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara/v1";
 import { Flex, EmptyState } from "@raystack/apsara/v1";
 import { V1Beta1Product } from "@raystack/frontier";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ProductsHeader } from "../header";
 import { getColumns } from "./columns";
@@ -10,6 +10,7 @@ import { api } from "~/api";
 
 export default function ProductPrices() {
   let { productId } = useParams();
+  const [isProductLoading, setIsProductLoading] = useState(false);
   const [product, setProduct] = useState<V1Beta1Product>();
 
   const pageHeader = {
@@ -30,46 +31,45 @@ export default function ProductPrices() {
     ],
   };
 
-  async function getProduct() {
+  const getProduct = useCallback(async () => {
     try {
+      setIsProductLoading(true);
       const res = await api?.frontierServiceGetProduct(productId ?? "");
       const product = res?.data?.product;
       setProduct(product);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsProductLoading(false);
     }
-  }
+  }, [productId]);
 
   useEffect(() => {
     getProduct();
-  }, [productId]);
+  }, [getProduct]);
 
   const prices = product?.prices || [];
-  const tableStyle = prices?.length
-    ? { width: "100%" }
-    : { width: "100%", height: "100%" };
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={prices ?? []}
-        // @ts-ignore
+        data={prices}
         columns={getColumns(prices)}
-        emptyState={noDataChildren}
-        parentStyle={{ height: "calc(100vh - 60px)" }}
-        style={tableStyle}
+        mode="client"
+        isLoading={isProductLoading}
+        defaultSort={{ name: "created_at", order: "desc" }}
       >
-        <DataTable.Toolbar>
+        <Flex direction="column" width="full">
           <ProductsHeader header={pageHeader} />
-          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
-        </DataTable.Toolbar>
+          <DataTable.Content emptyState={noDataChildren} />
+        </Flex>
       </DataTable>
     </Flex>
   );
 }
 
 export const noDataChildren = (
-  <EmptyState icon={<ExclamationTriangleIcon />} heading="0 invoice created" />
+  <EmptyState icon={<ExclamationTriangleIcon />} heading="0 prices found" />
 );
 
 export const TableDetailContainer = ({ children }: any) => (
