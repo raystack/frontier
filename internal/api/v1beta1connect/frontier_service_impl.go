@@ -3,12 +3,17 @@ package v1beta1connect
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"net/mail"
 	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/billing/entitlement"
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/authenticate/token"
@@ -16,6 +21,7 @@ import (
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -27,6 +33,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (h *ConnectHandler) ListUsers(context.Context, *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
@@ -320,4 +327,152 @@ func (h *ConnectHandler) ListAuthStrategies(ctx context.Context, request *connec
 		})
 	}
 	return connect.NewResponse(&frontierv1beta1.ListAuthStrategiesResponse{Strategies: pbstrategy}), nil
+}
+
+func (h *ConnectHandler) ListPlatformPreferences(ctx context.Context) (map[string]string, error) {
+	return h.preferenceService.LoadPlatformPreferences(ctx)
+}
+
+func (h *ConnectHandler) IsSuperUser(ctx context.Context) error {
+	currentUser, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return err
+	}
+
+	if currentUser.Type == schema.UserPrincipal {
+		if ok, err := h.userService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
+	} else {
+		if ok, err := h.serviceUserService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
+	}
+	return connect.NewError(connect.CodePermissionDenied, errors.ErrForbidden)
+}
+
+func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetServiceUserRequest]) (*connect.Response[frontierv1beta1.GetServiceUserResponse], error) {
+	svUser, err := h.serviceUserService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("service user not found"))
+		default:
+			return nil, err
+		}
+	}
+
+	svUserPb, err := transformServiceUserToPB(svUser)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&frontierv1beta1.GetServiceUserResponse{
+		Serviceuser: svUserPb,
+	}), nil
+}
+
+func transformServiceUserToPB(usr serviceuser.ServiceUser) (*frontierv1beta1.ServiceUser, error) {
+	metaData, err := usr.Metadata.ToStructPB()
+	if err != nil {
+		return nil, err
+	}
+
+	return &frontierv1beta1.ServiceUser{
+		Id:        usr.ID,
+		OrgId:     usr.OrgID,
+		Title:     usr.Title,
+		State:     usr.State,
+		Metadata:  metaData,
+		CreatedAt: timestamppb.New(usr.CreatedAt),
+		UpdatedAt: timestamppb.New(usr.UpdatedAt),
+	}, nil
+}
+
+// CheckPlanEntitlement is only currently used to restrict seat based plans
+func (h *ConnectHandler) CheckPlanEntitlement(ctx context.Context, obj relation.Object) error {
+	// only check for project or org
+	var orgID string
+	switch obj.Namespace {
+	case schema.ProjectNamespace:
+		proj, err := h.projectService.Get(ctx, obj.ID)
+		if err != nil {
+			return err
+		}
+		orgID = proj.Organization.ID
+	case schema.OrganizationNamespace:
+		org, err := h.orgService.Get(ctx, obj.ID)
+		if err != nil {
+			return err
+		}
+		orgID = org.ID
+	}
+	if orgID != "" {
+		customers, err := h.customerService.List(ctx, customer.Filter{
+			OrgID: orgID,
+		})
+		if err != nil {
+			return err
+		}
+		for _, customr := range customers {
+			audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.BillingEntitlementCheckedEvent, audit.Target{
+				ID:   customr.ID,
+				Type: "billing_account",
+			}, map[string]string{})
+			if err := h.entitlementService.CheckPlanEligibility(ctx, customr.ID); err != nil {
+				return fmt.Errorf("%s: %w", entitlement.ErrPlanEntitlementFailed, err)
+			}
+		}
+	}
+
+	// default condition is true for now to avoid false positives
+	return nil
+}
+
+func (h *ConnectHandler) GetRawCheckout(ctx context.Context, id string) (checkout.Checkout, error) {
+	return h.checkoutService.GetByID(ctx, id)
+}
+
+func (h *ConnectHandler) GetOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.GetOrganizationRequest]) (*connect.Response[frontierv1beta1.GetOrganizationResponse], error) {
+	fetchedOrg, err := h.orgService.GetRaw(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("org doesn't exist"))
+		case errors.Is(err, organization.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid syntax in body"))
+		default:
+			return nil, err
+		}
+	}
+
+	orgPB, err := transformOrgToPB(fetchedOrg)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetOrganizationResponse{
+		Organization: orgPB,
+	}), nil
+}
+
+func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {
+	metaData, err := org.Metadata.ToStructPB()
+	if err != nil {
+		return nil, err
+	}
+
+	return &frontierv1beta1.Organization{
+		Id:        org.ID,
+		Name:      org.Name,
+		Title:     org.Title,
+		Metadata:  metaData,
+		State:     org.State.String(),
+		Avatar:    org.Avatar,
+		CreatedAt: timestamppb.New(org.CreatedAt),
+		UpdatedAt: timestamppb.New(org.UpdatedAt),
+	}, nil
 }
