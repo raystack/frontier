@@ -22,6 +22,7 @@ var grpcSvcUserCredNotFound = status.Error(codes.NotFound, "service user credent
 
 type ServiceUserService interface {
 	List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error)
+	ListAll(ctx context.Context) ([]serviceuser.ServiceUser, error)
 	Create(ctx context.Context, serviceUser serviceuser.ServiceUser) (serviceuser.ServiceUser, error)
 	Get(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 	Delete(ctx context.Context, id string) error
@@ -62,6 +63,28 @@ func (h Handler) ListServiceUsers(ctx context.Context, request *frontierv1beta1.
 
 	return &frontierv1beta1.ListServiceUsersResponse{
 		Serviceusers: users,
+	}, nil
+}
+
+func (h Handler) ListAllServiceUsers(ctx context.Context, request *frontierv1beta1.ListAllServiceUsersRequest) (*frontierv1beta1.ListAllServiceUsersResponse, error) {
+	var serviceUsers []*frontierv1beta1.ServiceUser
+
+	// ListAll returns all service users across all organizations without any filtering
+	serviceUsersList, err := h.serviceUserService.ListAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, su := range serviceUsersList {
+		serviceUserPB, err := transformServiceUserToPB(su)
+		if err != nil {
+			return nil, err
+		}
+		serviceUsers = append(serviceUsers, serviceUserPB)
+	}
+
+	return &frontierv1beta1.ListAllServiceUsersResponse{
+		ServiceUsers: serviceUsers,
 	}, nil
 }
 
