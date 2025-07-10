@@ -143,7 +143,20 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	}
 	sessionMiddleware := connectinterceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
 
+	// grpcZapLogger := zap.Must(zap.NewProduction())
+	grpcZapLogger := zap.NewExample().Sugar()
+	loggerZap, ok := logger.(*log.Zap)
+	if ok {
+		grpcZapLogger = loggerZap.GetInternalZapLogger()
+	}
+	loggerOpts := connectinterceptors.NewLoggerOptions(connectinterceptors.LoggerOption{
+		Decider: func(procedure string) bool {
+			return procedure != "/grpc.health.v1.Health/Check"
+		},
+	})
+
 	interceptors := connect.WithInterceptors(
+		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
 		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
 		connectinterceptors.UnaryAuthenticationCheck(frontierService),
 		connectinterceptors.UnaryAuthorizationCheck(frontierService),
@@ -166,8 +179,6 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		"raystack.frontier.v1beta1.FrontierService",
 		"raystack.frontier.v1beta1.AdminService",
 	)
-
-	// commectMiddleware := getConnectMiddleware(logger, cfg.IdentityProxyHeader, nil, sessionMiddleware, nil, deps)
 
 	mux.Handle(connecthealth.NewHandler(checker))
 
