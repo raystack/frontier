@@ -2,7 +2,6 @@ package connectinterceptors
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -30,7 +29,6 @@ func UnaryAuthenticationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInt
 				ID:   principal.ID,
 				Type: principal.Type,
 			})
-			fmt.Println("UnaryAuthenticationCheck finish")
 			return next(ctx, req)
 		})
 	}

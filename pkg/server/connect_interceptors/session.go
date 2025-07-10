@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raystack/frontier/core/authenticate"
-
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/raystack/frontier/pkg/server/consts"
 

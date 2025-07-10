@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/raystack/frontier/core/authenticate"
-
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/errors"
 

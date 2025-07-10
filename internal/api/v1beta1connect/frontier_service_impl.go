@@ -58,7 +58,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 	}
 
 	if (request.Msg.GetStrategyName() == authenticate.MailLinkAuthMethod.String() || request.Msg.GetStrategyName() == authenticate.MailOTPAuthMethod.String()) && !isValidEmail(request.Msg.GetEmail()) {
-		return nil, status.Error(codes.InvalidArgument, "Invalid email")
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("Invalid email"))
 	}
 
 	// not logged in, try registration
@@ -69,7 +69,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		Email:       request.Msg.GetEmail(),
 	})
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// set location header for redirect to start auth?
@@ -85,11 +85,11 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 	if request.Msg.GetStrategyName() == authenticate.PassKeyAuthMethod.String() {
 		userCredentils := &structpb.Value{}
 		if err = userCredentils.UnmarshalJSON(response.StateConfig["options"].([]byte)); err != nil {
-			return nil, err
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		typeValue, ok := response.Flow.Metadata["passkey_type"].(string)
 		if !ok {
-			return nil, err
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		stringValue := &structpb.Value{
 			Kind: &structpb.Value_StringValue{
@@ -120,15 +120,15 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	})
 	if err != nil {
 		if errors.Is(err, authenticate.ErrInvalidMailOTP) || errors.Is(err, authenticate.ErrMissingOIDCCode) || errors.Is(err, authenticate.ErrInvalidOIDCState) || errors.Is(err, authenticate.ErrFlowInvalid) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// registration/login complete, build a session
 	session, err := h.sessionService.Create(ctx, response.User.ID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	// create response and set headers
 	resp := connect.NewResponse(&frontierv1beta1.AuthCallbackResponse{})
@@ -144,9 +144,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 }
 
 func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request[frontierv1beta1.AuthTokenRequest]) (*connect.Response[frontierv1beta1.AuthTokenResponse], error) {
-	// logger := grpczap.Extract(ctx)
-	// existingMD, ok := metadata.FromIncomingContext(ctx)
-	// if !ok {
+	logger := ExtractLogger(ctx)
 	existingMD := metadata.New(map[string]string{})
 	switch request.Msg.GetGrantType() {
 	case "client_credentials":
@@ -167,14 +165,14 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		authenticate.ClientCredentialsClientAssertion,
 		authenticate.JWTGrantClientAssertion)
 	if err != nil {
-		// logger.Debug(fmt.Sprintf("unable to get GetLoggedInPrincipal: %v", err))
-		return nil, err
+		logger.Debug(fmt.Sprintf("unable to get GetLoggedInPrincipal: %v", err))
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	token, err := h.getAccessToken(ctx, principal, request.Header().Values(consts.ProjectRequestKey))
 	if err != nil {
-		// logger.Debug(fmt.Sprintf("unable to get accessToken: %v", err))
-		return nil, err
+		logger.Debug(fmt.Sprintf("unable to get accessToken: %v", err))
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	resp := connect.NewResponse(&frontierv1beta1.AuthTokenResponse{
@@ -292,14 +290,14 @@ func handleAuthErr(err error) error {
 }
 
 func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Request[frontierv1beta1.AuthLogoutRequest]) (*connect.Response[frontierv1beta1.AuthLogoutResponse], error) {
-	// logger := grpczap.Extract(ctx)
+	logger := ExtractLogger(ctx)
 
 	// delete user session if exists
 	sessionID, err := h.getLoggedInSessionID(ctx)
 	if err == nil {
 		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
-			// logger.Error(err.Error())
-			return nil, status.Error(codes.Internal, err.Error())
+			logger.Error(err.Error())
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
 
@@ -341,13 +339,13 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context) error {
 
 	if currentUser.Type == schema.UserPrincipal {
 		if ok, err := h.userService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
-			return err
+			return connect.NewError(connect.CodeInternal, err)
 		} else if ok {
 			return nil
 		}
 	} else {
 		if ok, err := h.serviceUserService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
-			return err
+			return connect.NewError(connect.CodeInternal, err)
 		} else if ok {
 			return nil
 		}
@@ -360,15 +358,15 @@ func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Re
 	if err != nil {
 		switch {
 		case err == serviceuser.ErrNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, errors.New("service user not found"))
+			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
 		default:
-			return nil, err
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)
 	if err != nil {
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(&frontierv1beta1.GetServiceUserResponse{
 		Serviceuser: svUserPb,
@@ -441,17 +439,17 @@ func (h *ConnectHandler) GetOrganization(ctx context.Context, request *connect.R
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
-			return nil, connect.NewError(connect.CodeNotFound, errors.New("org doesn't exist"))
+			return nil, connect.NewError(connect.CodeNotFound, err)
 		case errors.Is(err, organization.ErrInvalidUUID):
-			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid syntax in body"))
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
-			return nil, err
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
 
 	orgPB, err := transformOrgToPB(fetchedOrg)
 	if err != nil {
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetOrganizationResponse{

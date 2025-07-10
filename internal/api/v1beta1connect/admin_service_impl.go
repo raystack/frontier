@@ -20,13 +20,13 @@ func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Requ
 		State:   user.State(request.Msg.GetState()),
 	})
 	if err != nil {
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	for _, user := range usersList {
 		userPB, err := transformUserToPB(user)
 		if err != nil {
-			return nil, err
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		users = append(users, userPB)
 	}
