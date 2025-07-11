@@ -226,7 +226,7 @@ func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Reques
 
 	resp := connect.NewResponse(&frontierv1beta1.AuthLogoutResponse{})
 
-	// delete from browser cookies
+	// instruct interceptor to invalidate cookie
 	resp.Header().Set(consts.SessionDeleteGatewayKey, "true")
 	return resp, nil
 }

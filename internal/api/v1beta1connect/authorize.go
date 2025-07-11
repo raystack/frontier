@@ -62,7 +62,7 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 		}
 	}
 
-	return connect.NewError(connect.CodePermissionDenied, errors.New("permission denied"))
+	return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 }
 
 func handleAuthErr(err error) error {
