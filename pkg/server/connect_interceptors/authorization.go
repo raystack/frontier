@@ -2,7 +2,6 @@ package connectinterceptors
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -48,7 +47,7 @@ func UnaryAuthorizationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInte
 			if !azVerifier {
 				// deny access if not configured by default
 				// return nil, status.Error(codes.Unauthenticated, "unauthorized access")
-				return nil, connect.NewError(connect.CodePermissionDenied, errors.New("unauthorized access"))
+				return nil, connect.NewError(connect.CodePermissionDenied, v1beta1connect.ErrUnauthorized)
 			}
 			if err := azFunc(ctx, h, req); err != nil {
 				return nil, err
