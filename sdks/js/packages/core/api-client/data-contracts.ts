@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -8,6 +9,29 @@
  * ## SOURCE: https://github.com/acacode/swagger-typescript-api ##
  * ---------------------------------------------------------------
  */
+
+/**
+ * subscription status
+ * @default "STATUS_UNSPECIFIED"
+ */
+export enum V1Beta1ProspectStatus {
+  STATUS_UNSPECIFIED = "STATUS_UNSPECIFIED",
+  STATUS_UNSUBSCRIBED = "STATUS_UNSUBSCRIBED",
+  STATUS_SUBSCRIBED = "STATUS_SUBSCRIBED",
+}
+
+/**
+ * `NullValue` is a singleton enumeration to represent the null value for the
+ * `Value` type union.
+ *
+ * The JSON representation for `NullValue` is JSON `null`.
+ *
+ *  - NULL_VALUE: Null value.
+ * @default "NULL_VALUE"
+ */
+export enum ProtobufNullValue {
+  NULL_VALUE = "NULL_VALUE",
+}
 
 export interface BillingAccountAddress {
   line1?: string;
@@ -92,6 +116,15 @@ export interface SearchOrganizationServiceUserCredentialsResponseOrganizationSer
   org_id?: string;
 }
 
+export interface SearchOrganizationServiceUsersResponseOrganizationServiceUser {
+  id?: string;
+  title?: string;
+  org_id?: string;
+  projects?: V1Beta1SearchOrganizationServiceUsersResponseProject[];
+  /** @format date-time */
+  created_at?: string;
+}
+
 export interface SearchOrganizationTokensResponseOrganizationToken {
   /** @format int64 */
   amount?: string;
@@ -151,6 +184,35 @@ export interface SearchProjectUsersResponseProjectUser {
   role_titles?: string[];
   role_ids?: string[];
   project_id?: string;
+}
+
+export interface SearchUserOrganizationsResponseUserOrganization {
+  org_id?: string;
+  org_title?: string;
+  org_name?: string;
+  org_avatar?: string;
+  /** @format int64 */
+  project_count?: string;
+  role_names?: string[];
+  role_titles?: string[];
+  role_ids?: string[];
+  /** @format date-time */
+  org_joined_on?: string;
+  user_id?: string;
+}
+
+export interface SearchUserProjectsResponseUserProject {
+  project_id?: string;
+  project_title?: string;
+  project_name?: string;
+  /** @format date-time */
+  project_created_on?: string;
+  user_names?: string[];
+  user_titles?: string[];
+  user_ids?: string[];
+  user_avatars?: string[];
+  org_id?: string;
+  user_id?: string;
 }
 
 export interface SubscriptionPhase {
@@ -223,6 +285,75 @@ export interface ApiHttpBody {
    * for streaming APIs.
    */
   extensions?: ProtobufAny[];
+}
+
+export interface Frontierv1Beta1Invoice {
+  id?: string;
+  customer_id?: string;
+  provider_id?: string;
+  state?: string;
+  currency?: string;
+  /** @format int64 */
+  amount?: string;
+  hosted_url?: string;
+  /**
+   * The date on which payment for this invoice is due
+   * @format date-time
+   */
+  due_date?: string;
+  /**
+   * The date when this invoice is in effect.
+   * @format date-time
+   */
+  effective_at?: string;
+  /** @format date-time */
+  period_start_at?: string;
+  /** @format date-time */
+  period_end_at?: string;
+  metadata?: object;
+  /** @format date-time */
+  created_at?: string;
+  customer?: V1Beta1BillingAccount;
+}
+
+export interface Frontierv1Beta1OrganizationRequestBody {
+  /** The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"` */
+  name: string;
+  /** The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"` */
+  title?: string;
+  /** Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}` */
+  metadata?: object;
+  /**
+   * The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
+   * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA"
+   */
+  avatar?: string;
+}
+
+export interface Frontierv1Beta1Project {
+  id?: string;
+  name?: string;
+  title?: string;
+  org_id?: string;
+  metadata?: object;
+  /**
+   * The time the project was created.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  created_at?: string;
+  /**
+   * The time the project was last updated.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  updated_at?: string;
+  /**
+   * The number of members explicitly added in the project.
+   * @format int32
+   * @example 2
+   */
+  members_count?: number;
 }
 
 export interface GooglerpcStatus {
@@ -350,21 +481,8 @@ export interface ProtobufAny {
    * Schemes other than `http`, `https` (or the empty scheme) might be
    * used with implementation specific semantics.
    */
-  '@type'?: string;
+  "@type"?: string;
   [key: string]: any;
-}
-
-/**
- * `NullValue` is a singleton enumeration to represent the null value for the
- * `Value` type union.
- *
- * The JSON representation for `NullValue` is JSON `null`.
- *
- *  - NULL_VALUE: Null value.
- * @default "NULL_VALUE"
- */
-export enum ProtobufNullValue {
-  NULL_VALUE = 'NULL_VALUE'
 }
 
 export type V1Beta1AcceptOrganizationInvitationResponse = object;
@@ -383,6 +501,30 @@ export interface V1Beta1AddPlatformUserRequest {
 }
 
 export type V1Beta1AddPlatformUserResponse = object;
+
+export interface V1Beta1AdminCreateOrganizationRequestOrganizationRequestBody {
+  /** The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"` */
+  name: string;
+  /** The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"` */
+  title?: string;
+  /** Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}` */
+  metadata?: object;
+  /**
+   * The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
+   * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA"
+   */
+  avatar?: string;
+  /**
+   * this user will be invited to org as owner.
+   * if this user doesn't exist, it will be created first
+   * The email of the user. The email must be unique within the entire Frontier instance.<br/>*Example:*`"john.doe@raystack.org"`
+   */
+  org_owner_email: string;
+}
+
+export interface V1Beta1AdminCreateOrganizationResponse {
+  organization?: V1Beta1Organization;
+}
 
 export interface V1Beta1AuditLog {
   /** A unique identifier of the audit log if not supplied will be autogenerated */
@@ -511,6 +653,23 @@ export interface V1Beta1BillingAccount {
   organization?: V1Beta1Organization;
 }
 
+export interface V1Beta1BillingAccountDetails {
+  /**
+   * credit_min is the minimum credit limit for the billing account
+   * default is 0, negative numbers work as overdraft, positive
+   * numbers work as minimum purchase limit
+   * @format int64
+   */
+  credit_min?: string;
+  /**
+   * due_in_days is the number of days after the invoice finalization
+   * that it will be considered overdue, if set to 0, the customer will
+   * be charged immediately
+   * @format int64
+   */
+  due_in_days?: string;
+}
+
 export interface V1Beta1BillingAccountRequestBody {
   name?: string;
   email?: string;
@@ -547,6 +706,16 @@ export type V1Beta1CancelSubscriptionResponse = object;
 
 export interface V1Beta1ChangeSubscriptionResponse {
   phase?: SubscriptionPhase;
+}
+
+export interface V1Beta1CheckCreditEntitlementRequest {
+  org_id?: string;
+  /** @format int64 */
+  amount?: string;
+}
+
+export interface V1Beta1CheckCreditEntitlementResponse {
+  status?: boolean;
 }
 
 export interface V1Beta1CheckFeatureEntitlementRequest {
@@ -771,7 +940,7 @@ export interface V1Beta1CreateProjectResourceResponse {
 }
 
 export interface V1Beta1CreateProjectResponse {
-  project?: V1Beta1Project;
+  project?: Frontierv1Beta1Project;
 }
 
 export interface V1Beta1CreateProspectPublicRequest {
@@ -992,11 +1161,30 @@ export type V1Beta1GenerateInvoicesRequest = object;
 
 export type V1Beta1GenerateInvoicesResponse = object;
 
+export interface V1Beta1GetBillingAccountDetailsResponse {
+  /**
+   * credit_min is the minimum credit limit for the billing account
+   * default is 0, negative numbers work as overdraft, positive
+   * numbers work as minimum purchase limit
+   * @format int64
+   */
+  credit_min?: string;
+  /**
+   * due_in_days is the number of days after the invoice finalization
+   * that it will be considered overdue, if set to 0, the customer will
+   * be charged immediately
+   * @format int64
+   */
+  due_in_days?: string;
+}
+
 export interface V1Beta1GetBillingAccountResponse {
   /** Billing account */
   billing_account?: V1Beta1BillingAccount;
   /** List of payment methods */
   payment_methods?: V1Beta1PaymentMethod[];
+  /** Billing details */
+  billing_details?: V1Beta1BillingAccountDetails;
 }
 
 export interface V1Beta1GetBillingBalanceResponse {
@@ -1083,7 +1271,7 @@ export interface V1Beta1GetProjectResourceResponse {
 }
 
 export interface V1Beta1GetProjectResponse {
-  project?: V1Beta1Project;
+  project?: Frontierv1Beta1Project;
 }
 
 export interface V1Beta1GetProspectResponse {
@@ -1108,7 +1296,7 @@ export interface V1Beta1GetSubscriptionResponse {
 
 export interface V1Beta1GetUpcomingInvoiceResponse {
   /** Upcoming invoice */
-  invoice?: V1Beta1Invoice;
+  invoice?: Frontierv1Beta1Invoice;
 }
 
 export interface V1Beta1GetUserResponse {
@@ -1201,35 +1389,6 @@ export interface V1Beta1Invitation {
   role_ids?: string[];
 }
 
-export interface V1Beta1Invoice {
-  id?: string;
-  customer_id?: string;
-  provider_id?: string;
-  state?: string;
-  currency?: string;
-  /** @format int64 */
-  amount?: string;
-  hosted_url?: string;
-  /**
-   * The date on which payment for this invoice is due
-   * @format date-time
-   */
-  due_date?: string;
-  /**
-   * The date when this invoice is in effect.
-   * @format date-time
-   */
-  effective_at?: string;
-  /** @format date-time */
-  period_start_at?: string;
-  /** @format date-time */
-  period_end_at?: string;
-  metadata?: object;
-  /** @format date-time */
-  created_at?: string;
-  customer?: V1Beta1BillingAccount;
-}
-
 /** JSON Web Key as specified in RFC 7517 */
 export interface V1Beta1JSONWebKey {
   /** Key Type. */
@@ -1267,7 +1426,7 @@ export interface V1Beta1ListAllBillingAccountsResponse {
 }
 
 export interface V1Beta1ListAllInvoicesResponse {
-  invoices?: V1Beta1Invoice[];
+  invoices?: Frontierv1Beta1Invoice[];
   /**
    * Total number of records present
    * @format int32
@@ -1282,6 +1441,10 @@ export interface V1Beta1ListAllOrganizationsResponse {
    * @format int32
    */
   count?: number;
+}
+
+export interface V1Beta1ListAllServiceUsersResponse {
+  service_users?: V1Beta1ServiceUser[];
 }
 
 export interface V1Beta1ListAllUsersResponse {
@@ -1352,7 +1515,7 @@ export interface V1Beta1ListGroupsResponse {
 
 export interface V1Beta1ListInvoicesResponse {
   /** List of invoices */
-  invoices?: V1Beta1Invoice[];
+  invoices?: Frontierv1Beta1Invoice[];
 }
 
 export interface V1Beta1ListMetaSchemasResponse {
@@ -1388,7 +1551,7 @@ export interface V1Beta1ListOrganizationPreferencesResponse {
 }
 
 export interface V1Beta1ListOrganizationProjectsResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
 }
 
 export interface V1Beta1ListOrganizationRolesResponse {
@@ -1497,7 +1660,7 @@ export interface V1Beta1ListProjectUsersResponseRolePair {
 }
 
 export interface V1Beta1ListProjectsByCurrentUserResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
   access_pairs?: V1Beta1ListProjectsByCurrentUserResponseAccessPair[];
   /** @format int32 */
   count?: number;
@@ -1509,11 +1672,11 @@ export interface V1Beta1ListProjectsByCurrentUserResponseAccessPair {
 }
 
 export interface V1Beta1ListProjectsByUserResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
 }
 
 export interface V1Beta1ListProjectsResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
 }
 
 export interface V1Beta1ListProspectsResponse {
@@ -1544,7 +1707,7 @@ export interface V1Beta1ListServiceUserJWKsResponse {
 }
 
 export interface V1Beta1ListServiceUserProjectsResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
   access_pairs?: V1Beta1ListServiceUserProjectsResponseAccessPair[];
 }
 
@@ -1682,20 +1845,6 @@ export interface V1Beta1OrganizationKyc {
    * @example "2023-06-07T05:39:56.961Z"
    */
   updated_at?: string;
-}
-
-export interface V1Beta1OrganizationRequestBody {
-  /** The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"` */
-  name: string;
-  /** The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"` */
-  title?: string;
-  /** Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}` */
-  metadata?: object;
-  /**
-   * The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
-   * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA"
-   */
-  avatar?: string;
 }
 
 export interface V1Beta1PaymentMethod {
@@ -1935,32 +2084,6 @@ export interface V1Beta1ProductRequestBody {
   metadata?: object;
 }
 
-export interface V1Beta1Project {
-  id?: string;
-  name?: string;
-  title?: string;
-  org_id?: string;
-  metadata?: object;
-  /**
-   * The time the project was created.
-   * @format date-time
-   * @example "2023-06-07T05:39:56.961Z"
-   */
-  created_at?: string;
-  /**
-   * The time the project was last updated.
-   * @format date-time
-   * @example "2023-06-07T05:39:56.961Z"
-   */
-  updated_at?: string;
-  /**
-   * The number of members explicitly added in the project.
-   * @format int32
-   * @example 2
-   */
-  members_count?: number;
-}
-
 export interface V1Beta1ProjectRequestBody {
   /** The name of the project. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> *Example:* `frontier-playground` */
   name: string;
@@ -1988,16 +2111,6 @@ export interface V1Beta1Prospect {
   /** @format date-time */
   updated_at?: string;
   metadata?: object;
-}
-
-/**
- * subscription status
- * @default "STATUS_UNSPECIFIED"
- */
-export enum V1Beta1ProspectStatus {
-  STATUS_UNSPECIFIED = 'STATUS_UNSPECIFIED',
-  STATUS_UNSUBSCRIBED = 'STATUS_UNSUBSCRIBED',
-  STATUS_SUBSCRIBED = 'STATUS_SUBSCRIBED'
 }
 
 export interface V1Beta1RQLFilter {
@@ -2181,6 +2294,26 @@ export interface V1Beta1RoleRequestBody {
   scopes?: string[];
 }
 
+export interface V1Beta1SearchInvoicesResponse {
+  invoices?: V1Beta1SearchInvoicesResponseInvoice[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchInvoicesResponseInvoice {
+  id?: string;
+  /** @format int64 */
+  amount?: string;
+  currency?: string;
+  state?: string;
+  invoice_link?: string;
+  /** @format date-time */
+  created_at?: string;
+  org_id?: string;
+  org_name?: string;
+  org_title?: string;
+}
+
 export interface V1Beta1SearchOrganizationInvoicesResponse {
   organization_invoices?: SearchOrganizationInvoicesResponseOrganizationInvoice[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
@@ -2197,6 +2330,18 @@ export interface V1Beta1SearchOrganizationServiceUserCredentialsResponse {
   organization_serviceuser_credentials?: SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
   group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationServiceUsersResponse {
+  organization_service_users?: SearchOrganizationServiceUsersResponseOrganizationServiceUser[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationServiceUsersResponseProject {
+  id?: string;
+  title?: string;
+  name?: string;
 }
 
 export interface V1Beta1SearchOrganizationTokensResponse {
@@ -2219,6 +2364,24 @@ export interface V1Beta1SearchOrganizationsResponse {
 
 export interface V1Beta1SearchProjectUsersResponse {
   project_users?: SearchProjectUsersResponseProjectUser[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchUserOrganizationsResponse {
+  user_organizations?: SearchUserOrganizationsResponseUserOrganization[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchUserProjectsResponse {
+  user_projects?: SearchUserProjectsResponseUserProject[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchUsersResponse {
+  users?: V1Beta1User[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
   group?: V1Beta1RQLQueryGroupResponse;
 }
@@ -2338,6 +2501,8 @@ export interface V1Beta1TotalDebitedTransactionsResponse {
   debited?: BillingAccountBalance;
 }
 
+export type V1Beta1UpdateBillingAccountDetailsResponse = object;
+
 export type V1Beta1UpdateBillingAccountLimitsResponse = object;
 
 export interface V1Beta1UpdateBillingAccountResponse {
@@ -2393,7 +2558,7 @@ export interface V1Beta1UpdateProjectResourceResponse {
 }
 
 export interface V1Beta1UpdateProjectResponse {
-  project?: V1Beta1Project;
+  project?: Frontierv1Beta1Project;
 }
 
 export interface V1Beta1UpdateProspectResponse {

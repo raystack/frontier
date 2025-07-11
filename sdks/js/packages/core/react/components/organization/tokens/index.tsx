@@ -1,4 +1,5 @@
-import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast, Link } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast, Link, Callout } from '@raystack/apsara/v1';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { styles } from '../styles';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -114,6 +115,26 @@ function BalancePanel({
   );
 }
 
+interface TokenInfoBoxProps {
+  balance: number;
+  isLoading: boolean;
+  isCheckoutLoading: boolean;
+  canUpdateWorkspace: boolean;
+}
+
+function TokenInfoBox({ canUpdateWorkspace }: TokenInfoBoxProps) {
+  const { billingDetails } = useFrontier();
+  const isPostpaid = billingDetails?.credit_min && parseInt(billingDetails.credit_min) < 0
+
+  return isPostpaid && canUpdateWorkspace ? (
+    <Callout
+      type="accent"
+      icon={<InfoCircledIcon className={tokenStyles.tokenInfoText} />}
+      className={tokenStyles.tokenInfoBox}
+    >You can now add tokens anytime to reduce next month’s invoice. But this won’t settle any existing or overdue invoices.
+    </Callout>) : null;
+}
+
 export default function Tokens() {
   const {
     config,
@@ -225,6 +246,12 @@ export default function Tokens() {
           <TokensHeader
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}
+          />
+          <TokenInfoBox
+            balance={tokenBalance}
+            isLoading={isLoading}
+            isCheckoutLoading={isCheckoutLoading}
+            canUpdateWorkspace={isAllowed}
           />
           <BalancePanel
             balance={tokenBalance}

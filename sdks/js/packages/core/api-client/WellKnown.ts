@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -9,10 +10,12 @@
  * ---------------------------------------------------------------
  */
 
-import { GooglerpcStatus, V1Beta1GetJWKsResponse } from './data-contracts';
-import { HttpClient, RequestParams } from './http-client';
+import { GooglerpcStatus, V1Beta1GetJWKsResponse } from "./data-contracts";
+import { HttpClient, RequestParams } from "./http-client";
 
-export class WellKnown<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class WellKnown<
+  SecurityDataType = unknown,
+> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
@@ -25,9 +28,9 @@ export class WellKnown<SecurityDataType = unknown> extends HttpClient<SecurityDa
   frontierServiceGetJwKs2 = (params: RequestParams = {}) =>
     this.request<V1Beta1GetJWKsResponse, GooglerpcStatus>({
       path: `/.well-known/jwks.json`,
-      method: 'GET',
+      method: "GET",
       secure: true,
-      format: 'json',
-      ...params
+      format: "json",
+      ...params,
     });
 }

@@ -24,7 +24,8 @@ import {
   V1Beta1PaymentMethod,
   V1Beta1Plan,
   V1Beta1Subscription,
-  V1Beta1User
+  V1Beta1User,
+  V1Beta1BillingAccountDetails,
 } from '../../api-client/data-contracts';
 import {
   getActiveSubscription,
@@ -106,6 +107,9 @@ interface FrontierContextProviderProps {
 
   isOrganizationKycLoading: boolean;
   setIsOrganizationKycLoading: Dispatch<SetStateAction<boolean>>;
+
+  billingDetails: V1Beta1BillingAccountDetails | undefined;
+  setBillingDetails: Dispatch<SetStateAction<V1Beta1BillingAccountDetails | undefined>>;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -184,7 +188,10 @@ const initialValues: FrontierContextProviderProps = {
   setOrganizationKyc: () => undefined,
 
   isOrganizationKycLoading: false,
-  setIsOrganizationKycLoading: () => false
+  setIsOrganizationKycLoading: () => false,
+
+  billingDetails: undefined,
+  setBillingDetails: () => undefined,
 };
 
 export const FrontierContext =
@@ -225,6 +232,7 @@ export const FrontierContextProvider = ({
 
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
+  const [billingDetails, setBillingDetails] = useState<V1Beta1BillingAccountDetails>();
   const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(false);
 
   const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
@@ -248,6 +256,7 @@ export const FrontierContextProvider = ({
 
   const [organizationKyc, setOrganizationKyc] = useState<V1Beta1OrganizationKyc>();
   const [isOrganizationKycLoading, setIsOrganizationKycLoading] = useState(false);
+
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -393,7 +402,7 @@ export const FrontierContextProvider = ({
             frontierClient?.frontierServiceGetBillingAccount(
               orgId,
               billingAccountId,
-              { with_payment_methods: true }
+              { with_payment_methods: true, with_billing_details: true }
             ),
             getSubscription(orgId, billingAccountId)
           ]);
@@ -401,12 +410,14 @@ export const FrontierContextProvider = ({
           if (resp?.data) {
             const paymentMethods = resp?.data?.payment_methods || [];
             setBillingAccount(resp.data.billing_account);
+            setBillingDetails(resp.data.billing_details);
             const defaultPaymentMethod =
               getDefaultPaymentMethod(paymentMethods);
             setPaymentMethod(defaultPaymentMethod);
           }
         } else {
           setBillingAccount(undefined);
+          setBillingDetails(undefined);
           setActiveSubscription(undefined);
         }
       } catch (error) {
@@ -524,7 +535,9 @@ export const FrontierContextProvider = ({
         organizationKyc,
         setOrganizationKyc,
         isOrganizationKycLoading,
-        setIsOrganizationKycLoading
+        setIsOrganizationKycLoading,
+        billingDetails,
+        setBillingDetails,
       }}
     >
       {children}
