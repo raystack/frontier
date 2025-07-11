@@ -125,17 +125,14 @@ interface TokenInfoBoxProps {
 function TokenInfoBox({ canUpdateWorkspace }: TokenInfoBoxProps) {
   const { billingDetails } = useFrontier();
   const isPostpaid = billingDetails?.credit_min && parseInt(billingDetails.credit_min) < 0
-  return (
-    <>
-      {isPostpaid && canUpdateWorkspace ? (
-      <Callout
-        type="accent"
-        icon={<InfoCircledIcon className={tokenStyles.tokenInfoText} />}
-        className={tokenStyles.tokenInfoBox}
-      >You can now add tokens anytime to reduce next month’s invoice. But this won’t settle any existing or overdue invoices.
-      </Callout>) : null}
-    </>
-  );
+
+  return isPostpaid && canUpdateWorkspace ? (
+    <Callout
+      type="accent"
+      icon={<InfoCircledIcon className={tokenStyles.tokenInfoText} />}
+      className={tokenStyles.tokenInfoBox}
+    >You can now add tokens anytime to reduce next month’s invoice. But this won’t settle any existing or overdue invoices.
+    </Callout>) : null;
 }
 
 export default function Tokens() {
