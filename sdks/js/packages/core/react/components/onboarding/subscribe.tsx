@@ -125,7 +125,6 @@ export const Subscribe = ({
 
   return (
     <Flex direction="column" gap={9} align="center" justify="center">
-      <ToastContainer />
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Flex
           className={styles.subscribeContainer}
