@@ -20,6 +20,7 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/raystack/frontier/pkg/errors"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -172,7 +173,7 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 
 // getAccessToken generates a jwt access token with user/org details
 func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authenticate.Principal, projectKey []string) ([]byte, error) {
-	// logger := grpczap.Extract(ctx)
+	logger := ExtractLogger(ctx)
 	customClaims := map[string]string{}
 
 	if h.authConfig.Token.Claims.AddOrgIDsClaim {
@@ -194,7 +195,7 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 		// check if project exists and user has access to it
 		proj, err := h.projectService.Get(ctx, projectKey[0])
 		if err != nil {
-			// logger.Error("error getting project", zap.Error(err), zap.String("project", projectKey[0]))
+			logger.Error("error getting project", zap.Error(err), zap.String("project", projectKey[0]))
 		} else {
 			if err := h.IsAuthorized(ctx, relation.Object{
 				Namespace: schema.ProjectNamespace,
@@ -202,7 +203,7 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 			}, schema.GetPermission); err == nil {
 				customClaims["project_id"] = proj.ID
 			} else {
-				// logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principal.ID))
+				logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principal.ID))
 			}
 		}
 	}
