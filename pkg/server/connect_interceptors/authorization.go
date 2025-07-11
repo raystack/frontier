@@ -2,6 +2,7 @@ package connectinterceptors
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -14,24 +15,17 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/metrics"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
-	ErrNotAvailable      = fmt.Errorf("function not available at the moment")
-	ErrDeniedInvalidArgs = status.Error(codes.PermissionDenied, "invalid arguments")
+	ErrNotAvailable      = connect.NewError(connect.CodeUnavailable, fmt.Errorf("function not available at the moment"))
+	ErrDeniedInvalidArgs = connect.NewError(connect.CodePermissionDenied, errors.New("invalid arguments"))
 )
 
 // UnaryAuthorizationCheck returns a unary server interceptor that checks for authorization
 func UnaryAuthorizationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInterceptorFunc {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			// if _, ok := info.Server.(*health.Handler); ok {
-			// 	// pass through health handler
-			// 	return next(ctx, req)
-			// }
-
 			// check if authorization needs to be skipped
 			if authorizationSkipEndpoints[req.Spec().Procedure] {
 				return next(ctx, req)
@@ -46,7 +40,7 @@ func UnaryAuthorizationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInte
 			azFunc, azVerifier := authorizationValidationMap[req.Spec().Procedure]
 			if !azVerifier {
 				// deny access if not configured by default
-				// return nil, status.Error(codes.Unauthenticated, "unauthorized access")
+				// return nil, connect.NewError(codes.Unauthenticated, "unauthorized access")
 				return nil, connect.NewError(connect.CodePermissionDenied, v1beta1connect.ErrUnauthorized)
 			}
 			if err := azFunc(ctx, h, req); err != nil {
@@ -118,10 +112,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.FrontierService/ListUsers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		prefs, err := handler.ListPlatformPreferences(ctx)
 		if err != nil {
-			return status.Error(codes.Unavailable, err.Error())
+			return connect.NewError(connect.CodeUnavailable, err)
 		}
 		if prefs[preference.PlatformDisableUsersListing] == "true" {
-			return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+			return ErrNotAvailable
 		}
 		return nil
 	},
@@ -129,61 +123,61 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListUserGroups": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DisableUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectsByUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListUserInvitations": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 
 	// serviceuser
@@ -267,10 +261,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		// check if true or not
 		prefs, err := handler.ListPlatformPreferences(ctx)
 		if err != nil {
-			return status.Error(codes.Unavailable, err.Error())
+			return connect.NewError(connect.CodeUnavailable, err)
 		}
 		if prefs[preference.PlatformDisableOrgsListing] == "true" {
-			return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+			return ErrNotAvailable
 		}
 		return nil
 	},
@@ -560,7 +554,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return nil
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdatePolicy": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeletePolicy": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.DeletePolicyRequest])
@@ -1006,7 +1000,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/DeletePermission": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.AdminService/CreatePreferences": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx)
