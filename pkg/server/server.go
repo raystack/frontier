@@ -131,16 +131,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	// Create the server handler with both services
 	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
 
-	var sessionCookieCutter securecookie.Codec
-	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
-		// hash and block keys should be 32 bytes long
-		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
-	} else {
-		sessionCookieCutter = securecookie.New(
-			[]byte(cfg.Authentication.Session.HashSecretKey),
-			[]byte(cfg.Authentication.Session.BlockSecretKey),
-		)
-	}
+	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
 	sessionMiddleware := connectinterceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
 
 	// grpcZapLogger := zap.Must(zap.NewProduction())
@@ -244,16 +235,7 @@ func Serve(
 		return err
 	}
 
-	var sessionCookieCutter securecookie.Codec
-	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
-		// hash and block keys should be 32 bytes long
-		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
-	} else {
-		sessionCookieCutter = securecookie.New(
-			[]byte(cfg.Authentication.Session.HashSecretKey),
-			[]byte(cfg.Authentication.Session.BlockSecretKey),
-		)
-	}
+	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
 	sessionMiddleware := interceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
 
 	defaultMimeMarshaler := &runtime.JSONPb{
@@ -373,6 +355,20 @@ func Serve(
 
 	logger.Info("stopping server gracefully")
 	return nil
+}
+
+func getSessionCookieCutter(blockSecretKey string, hashSecretKey string, logger log.Logger) securecookie.Codec {
+	var sessionCookieCutter securecookie.Codec
+	if len(hashSecretKey) != 32 || len(blockSecretKey) != 32 {
+		// hash and block keys should be 32 bytes long
+		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
+	} else {
+		sessionCookieCutter = securecookie.New(
+			[]byte(hashSecretKey),
+			[]byte(blockSecretKey),
+		)
+	}
+	return sessionCookieCutter
 }
 
 // REVISIT: passing config.Frontier as reference
