@@ -15,16 +15,13 @@ import (
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/pkg/str"
-
 	"github.com/raystack/frontier/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/raystack/frontier/pkg/str"
 )
 
 func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Object, permission string) error {
 	if object.Namespace == "" || object.ID == "" {
-		return connect.NewError(connect.CodeInvalidArgument, errors.New("namespace and ID cannot be empty"))
+		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidNamesapceOrID)
 	}
 
 	currentUser, principalErr := h.GetLoggedInPrincipal(ctx)
@@ -71,13 +68,13 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 func handleAuthErr(err error) error {
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
-		return grpcUnauthenticated
+		return connect.NewError(connect.CodeUnauthenticated, err)
 	case errors.Is(err, organization.ErrNotExist),
 		errors.Is(err, project.ErrNotExist),
 		errors.Is(err, resource.ErrNotExist):
-		return status.Errorf(codes.NotFound, err.Error())
+		return connect.NewError(connect.CodeNotFound, err)
 	default:
-		return err
+		return connect.NewError(connect.CodeInternal, err)
 	}
 }
 
@@ -100,7 +97,7 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context) error {
 			return nil
 		}
 	}
-	return connect.NewError(connect.CodePermissionDenied, errors.ErrForbidden)
+	return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 }
 
 // CheckPlanEntitlement is only currently used to restrict seat based plans

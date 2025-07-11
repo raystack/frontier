@@ -26,9 +26,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")
-var grpcUnauthenticated = status.Error(codes.Unauthenticated, errors.ErrUnauthenticated.Error())
-
 func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Request[frontierv1beta1.AuthenticateRequest]) (*connect.Response[frontierv1beta1.AuthenticateResponse], error) {
 	returnToURL := h.authnService.SanitizeReturnToURL(request.Msg.GetReturnTo())
 	callbackURL := h.authnService.SanitizeCallbackURL(request.Msg.GetCallbackUrl())
@@ -47,7 +44,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 	}
 
 	if (request.Msg.GetStrategyName() == authenticate.MailLinkAuthMethod.String() || request.Msg.GetStrategyName() == authenticate.MailOTPAuthMethod.String()) && !isValidEmail(request.Msg.GetEmail()) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("Invalid email"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidEmail)
 	}
 
 	// not logged in, try registration
@@ -246,11 +243,11 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 	if err != nil {
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
-			return principal, grpcUserNotFoundError
+			return principal, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, errors.ErrUnauthenticated):
-			return principal, grpcUnauthenticated
+			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
-			return principal, err
+			return principal, connect.NewError(connect.CodeInternal, err)
 		}
 	}
 	return principal, nil
