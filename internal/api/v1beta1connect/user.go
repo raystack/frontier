@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"net/mail"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/user"
@@ -35,6 +36,15 @@ func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Requ
 		Count: int32(len(users)),
 		Users: users,
 	}), nil
+}
+
+func (h *ConnectHandler) ListUsers(context.Context, *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, nil)
+}
+
+func isValidEmail(str string) bool {
+	_, err := mail.ParseAddress(str)
+	return err == nil
 }
 
 func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {
