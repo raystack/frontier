@@ -167,7 +167,6 @@ export const AddTokens = () => {
                 type="number"
                 error={errors.tokens && String(errors.tokens.message)}
                 {...register('tokens', {valueAsNumber: true})}
-                name="tokens"
                 placeholder="Enter no. of tokens"
                 helperText={productDescription}
                 className={tokenStyles.tokenInputField}
