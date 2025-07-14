@@ -23,26 +23,6 @@ export const UserDetailsNavbar = ({
 }: UserDetailsNavbarProps) => {
   const { user } = useUser();
 
-  const breadcrumbItems = [
-    {
-      label: "Users",
-      href: "/users",
-      icon: <UserIcon />,
-    },
-    {
-      label: getUserName(user),
-      href: ``,
-      icon: (
-        <Avatar
-          color={getAvatarColor(user?.id || "")}
-          src={user?.avatar}
-          fallback={getUserName(user)?.[0]}
-          size={1}
-        />
-      ),
-    },
-  ];
-
   const links = [
     { name: "Audit log", path: `/users/${user?.id}/audit-log` },
     { name: "Security", path: `/users/${user?.id}/security` },
@@ -51,11 +31,25 @@ export const UserDetailsNavbar = ({
   return (
     <nav className={styles.navbar}>
       <Flex gap="medium" align="center">
-        <Breadcrumb
-          size="small"
-          separator={<ChevronRightIcon style={{ display: "flex" }} />}
-          items={breadcrumbItems}
-        />
+        <Breadcrumb size="small">
+          <Breadcrumb.Item href="/users" leadingIcon={<UserIcon />}>
+            Users
+          </Breadcrumb.Item>
+          <Breadcrumb.Separator />
+          <Breadcrumb.Item
+            href={`/users/${user?.id}`}
+            leadingIcon={
+              <Avatar
+                color={getAvatarColor(user?.id || "")}
+                src={user?.avatar}
+                fallback={getUserName(user)?.[0]}
+                size={1}
+              />
+            }
+          >
+            {getUserName(user)}
+          </Breadcrumb.Item>
+        </Breadcrumb>
         <Flex gap="small">
           {links.map((link, index) => (
             <NavLink to={link.path} key={link.path + index}>
@@ -63,7 +57,8 @@ export const UserDetailsNavbar = ({
                 <Chip
                   data-state={isActive ? "active" : undefined}
                   variant="filled"
-                  className={styles["nav-chip"]}>
+                  className={styles["nav-chip"]}
+                >
                   {link.name}
                 </Chip>
               )}
@@ -75,7 +70,8 @@ export const UserDetailsNavbar = ({
         <IconButton
           size={3}
           data-test-id="admin-ui-user-details-sidepanel-button"
-          onClick={toggleSidePanel}>
+          onClick={toggleSidePanel}
+        >
           <SidebarIcon />
         </IconButton>
       </Flex>
