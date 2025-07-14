@@ -128,12 +128,12 @@ export const AddTokens = () => {
           window.location.href = resp?.data?.checkout_session.checkout_url;
         }
       }
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error('Something went wrong', {
         description: error.message
       });
     }
-  }
+  };
 
   return (
     <Dialog open={true}>
