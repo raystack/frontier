@@ -34,6 +34,7 @@ import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
+import { AddTokens } from './tokens/add-tokens';
 import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
@@ -298,6 +299,12 @@ const tokensRoute = createRoute({
   component: Tokens
 });
 
+const addTokensRoute = createRoute({
+  getParentRoute: () => tokensRoute,
+  path: '/modal',
+  component: AddTokens
+});
+
 const apiKeysRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/api-keys',
@@ -359,7 +366,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     preferencesRoute,
     billingRoute.addChildren([switchBillingCycleModalRoute]),
     plansRoute.addChildren([planDowngradeRoute]),
-    tokensRoute,
+    tokensRoute.addChildren([addTokensRoute]),
     apiKeysRoute.addChildren([
       addServiceAccountRoute,
       deleteServiceAccountRoute

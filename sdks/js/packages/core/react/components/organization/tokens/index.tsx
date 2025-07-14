@@ -8,11 +8,10 @@ import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
 import { V1Beta1BillingTransaction } from '~/src';
 import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';
-import qs from 'query-string';
-import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
 import coin from '~/react/assets/coin.svg';
+import { useNavigate, Outlet } from '@tanstack/react-router';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -144,6 +143,7 @@ export default function Tokens() {
     isActiveOrganizationLoading,
     isBillingAccountLoading
   } = useFrontier();
+  const navigate = useNavigate({ from: '/tokens' });
   const [transactionsList, setTransactionsList] = useState<
     V1Beta1BillingTransaction[]
   >([]);
@@ -180,54 +180,6 @@ export default function Tokens() {
     }
   }, [activeOrganization?.id, billingAccount?.id, client]);
 
-  const onAddTokenClick = async () => {
-    setIsCheckoutLoading(true);
-    try {
-      if (activeOrganization?.id && billingAccount?.id) {
-        // Token product id or name can be used here
-        const tokenProductId =
-          config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
-        const query = qs.stringify(
-          {
-            details: btoa(
-              qs.stringify({
-                billing_id: billingAccount?.id,
-                organization_id: activeOrganization?.id,
-                type: 'tokens'
-              })
-            ),
-            checkout_id: '{{.CheckoutID}}'
-          },
-          { encode: false }
-        );
-        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
-        const success_url = `${config?.billing?.successUrl}?${query}`;
-
-        const resp = await client?.frontierServiceCreateCheckout(
-          activeOrganization?.id,
-          billingAccount?.id,
-          {
-            cancel_url: cancel_url,
-            success_url: success_url,
-            product_body: {
-              product: tokenProductId
-            }
-          }
-        );
-        if (resp?.data?.checkout_session?.checkout_url) {
-          window.location.href = resp?.data?.checkout_session.checkout_url;
-        }
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error('Something went wrong', {
-        description: err?.message
-      });
-    } finally {
-      setIsCheckoutLoading(false);
-    }
-  };
-
   const isLoading =
     isActiveOrganizationLoading ||
     isBillingAccountLoading ||
@@ -256,7 +208,7 @@ export default function Tokens() {
           <BalancePanel
             balance={tokenBalance}
             isLoading={isLoading}
-            onAddTokenClick={onAddTokenClick}
+            onAddTokenClick={() => navigate({ to: '/tokens/modal' })}
             isCheckoutLoading={isCheckoutLoading}
             canUpdateWorkspace={isAllowed}
           />
@@ -266,6 +218,7 @@ export default function Tokens() {
           />
         </Flex>
       </Flex>
+      <Outlet />
     </Flex>
   );
 }
