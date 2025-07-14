@@ -87,7 +87,7 @@ export const TokensDetailsSection = () => {
             <Skeleton />
           ) : (
             <Flex gap={3}>
-              {Number(billingAccountDetails?.credit_min) > 0
+              {Number(billingAccountDetails?.credit_min) < 0
                 ? "Postpaid"
                 : "Prepaid"}
             </Flex>
@@ -102,7 +102,9 @@ export const TokensDetailsSection = () => {
           {isLoading ? (
             <Skeleton />
           ) : (
-            <Flex gap={3}>{billingAccountDetails?.credit_min}</Flex>
+            <Flex gap={3}>
+              {Math.abs(Number(billingAccountDetails?.credit_min))}
+            </Flex>
           )}
         </List.Value>
       </List.Item>
