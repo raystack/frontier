@@ -177,7 +177,7 @@ function ProjectActions({
           onRename={handleProjectUpdate}
         />
       ) : null}
-      <DropdownMenu open={open} setOpen={handleOpen}>
+      <DropdownMenu open={open} onOpenChange={handleOpen}>
         <DropdownMenu.Trigger asChild>
           <DotsHorizontalIcon
             onClick={preventClickBubbling}
