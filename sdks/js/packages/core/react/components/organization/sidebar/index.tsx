@@ -89,7 +89,11 @@ export const Sidebar = () => {
   );
 
   return (
-    <SidebarComponent open={true} className={styles.sidebarWrapper} collapsible={false}>
+    <SidebarComponent
+      open
+      className={styles.sidebarWrapper}
+      collapsible={false}
+    >
       <div className={styles.scrollArea}>
         <Flex direction="column" gap={4} style={{ marginTop: '64px' }}>
           <Search
@@ -104,8 +108,8 @@ export const Sidebar = () => {
 
           <SidebarComponent.Main>
             <SidebarComponent.Group
-              name="Organization"
-              icon={
+              label="Organization"
+              leadingIcon={
                 <Image
                   alt="organization"
                   width={16}
@@ -120,7 +124,7 @@ export const Sidebar = () => {
                   return (
                     <SidebarComponent.Item
                       key={nav.name}
-                      icon={<></>}
+                      leadingIcon={<></>}
                       as={
                         <Link
                           to={nav.to as string}
@@ -141,15 +145,17 @@ export const Sidebar = () => {
                 })}
             </SidebarComponent.Group>
             <SidebarComponent.Group
-              name="My Account"
-              icon={<Image alt="user" width={16} height={16} src={user} />}
+              label="My Account"
+              leadingIcon={
+                <Image alt="user" width={16} height={16} src={user} />
+              }
             >
               {userNavItems
                 .filter(s => s.name.toLowerCase().includes(search))
                 .map(nav => (
                   <SidebarComponent.Item
                     key={nav.name}
-                    icon={<></>}
+                    leadingIcon={<></>}
                     as={
                       <Link
                         to={nav.to as string}
