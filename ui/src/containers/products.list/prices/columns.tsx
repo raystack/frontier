@@ -1,10 +1,12 @@
 import { V1Beta1Invoice, V1Beta1Price } from "@raystack/frontier";
-import type { ColumnDef } from "@tanstack/react-table";
 import { Price } from "~/components/Price";
+import type { DataTableColumnDef } from "@raystack/apsara/v1";
 
 export const getColumns: (
-  prices: V1Beta1Price[]
-) => ColumnDef<V1Beta1Invoice, any>[] = (prices: V1Beta1Price[]) => {
+  prices: V1Beta1Price[],
+) => DataTableColumnDef<V1Beta1Invoice, unknown>[] = (
+  prices: V1Beta1Price[],
+) => {
   return [
     {
       header: "Id",
@@ -49,25 +51,16 @@ export const getColumns: (
     {
       header: "creation date",
       accessorKey: "created_at",
-      meta: {
-        headerFilter: false,
-      },
-
       cell: (info) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
           month: "long",
           day: "numeric",
           year: "numeric",
         }),
-
-      footer: (props) => props.column.id,
     },
     {
       header: "Updated date",
       accessorKey: "updated_at",
-      meta: {
-        headerFilter: false,
-      },
       enableColumnFilter: false,
       cell: (info) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
@@ -75,8 +68,6 @@ export const getColumns: (
           day: "numeric",
           year: "numeric",
         }),
-
-      footer: (props) => props.column.id,
     },
   ];
 };

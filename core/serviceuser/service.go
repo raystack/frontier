@@ -65,6 +65,12 @@ func (s Service) List(ctx context.Context, flt Filter) ([]ServiceUser, error) {
 	return s.repo.List(ctx, flt)
 }
 
+func (s Service) ListAll(ctx context.Context) ([]ServiceUser, error) {
+	// ListAll allows listing all service users without any filtering
+	// This is intended for admin usage to get all service users across all organizations
+	return s.repo.List(ctx, Filter{})
+}
+
 func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUser, error) {
 	createdSU, err := s.repo.Create(ctx, serviceUser)
 	if err != nil {

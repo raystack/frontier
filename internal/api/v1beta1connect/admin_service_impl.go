@@ -10,3 +10,7 @@ import (
 func (h *ConnectHandler) ListAllUsers(context.Context, *connect.Request[frontierv1beta1.ListAllUsersRequest]) (*connect.Response[frontierv1beta1.ListAllUsersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, nil)
 }
+
+func (h *ConnectHandler) ListAllServiceUsers(context.Context, *connect.Request[frontierv1beta1.ListAllServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListAllServiceUsersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, nil)
+}

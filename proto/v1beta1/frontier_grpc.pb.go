@@ -178,6 +178,7 @@ const (
 	FrontierService_ListCheckouts_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/ListCheckouts"
 	FrontierService_GetCheckout_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/GetCheckout"
 	FrontierService_CheckFeatureEntitlement_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement"
+	FrontierService_CheckCreditEntitlement_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CheckCreditEntitlement"
 	FrontierService_CreateBillingUsage_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage"
 	FrontierService_ListBillingTransactions_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
 	FrontierService_TotalDebitedTransactions_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/TotalDebitedTransactions"
@@ -373,6 +374,7 @@ type FrontierServiceClient interface {
 	GetCheckout(ctx context.Context, in *GetCheckoutRequest, opts ...grpc.CallOption) (*GetCheckoutResponse, error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(ctx context.Context, in *CheckFeatureEntitlementRequest, opts ...grpc.CallOption) (*CheckFeatureEntitlementResponse, error)
+	CheckCreditEntitlement(ctx context.Context, in *CheckCreditEntitlementRequest, opts ...grpc.CallOption) (*CheckCreditEntitlementResponse, error)
 	// Transactions
 	CreateBillingUsage(ctx context.Context, in *CreateBillingUsageRequest, opts ...grpc.CallOption) (*CreateBillingUsageResponse, error)
 	ListBillingTransactions(ctx context.Context, in *ListBillingTransactionsRequest, opts ...grpc.CallOption) (*ListBillingTransactionsResponse, error)
@@ -1825,6 +1827,15 @@ func (c *frontierServiceClient) CheckFeatureEntitlement(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *frontierServiceClient) CheckCreditEntitlement(ctx context.Context, in *CheckCreditEntitlementRequest, opts ...grpc.CallOption) (*CheckCreditEntitlementResponse, error) {
+	out := new(CheckCreditEntitlementResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CheckCreditEntitlement_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) CreateBillingUsage(ctx context.Context, in *CreateBillingUsageRequest, opts ...grpc.CallOption) (*CreateBillingUsageResponse, error) {
 	out := new(CreateBillingUsageResponse)
 	err := c.cc.Invoke(ctx, FrontierService_CreateBillingUsage_FullMethodName, in, out, opts...)
@@ -2074,6 +2085,7 @@ type FrontierServiceServer interface {
 	GetCheckout(context.Context, *GetCheckoutRequest) (*GetCheckoutResponse, error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error)
+	CheckCreditEntitlement(context.Context, *CheckCreditEntitlementRequest) (*CheckCreditEntitlementResponse, error)
 	// Transactions
 	CreateBillingUsage(context.Context, *CreateBillingUsageRequest) (*CreateBillingUsageResponse, error)
 	ListBillingTransactions(context.Context, *ListBillingTransactionsRequest) (*ListBillingTransactionsResponse, error)
@@ -2568,6 +2580,9 @@ func (UnimplementedFrontierServiceServer) GetCheckout(context.Context, *GetCheck
 }
 func (UnimplementedFrontierServiceServer) CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckFeatureEntitlement not implemented")
+}
+func (UnimplementedFrontierServiceServer) CheckCreditEntitlement(context.Context, *CheckCreditEntitlementRequest) (*CheckCreditEntitlementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckCreditEntitlement not implemented")
 }
 func (UnimplementedFrontierServiceServer) CreateBillingUsage(context.Context, *CreateBillingUsageRequest) (*CreateBillingUsageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBillingUsage not implemented")
@@ -5465,6 +5480,24 @@ func _FrontierService_CheckFeatureEntitlement_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CheckCreditEntitlement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckCreditEntitlementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CheckCreditEntitlement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CheckCreditEntitlement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CheckCreditEntitlement(ctx, req.(*CheckCreditEntitlementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_CreateBillingUsage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateBillingUsageRequest)
 	if err := dec(in); err != nil {
@@ -6233,6 +6266,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckFeatureEntitlement",
 			Handler:    _FrontierService_CheckFeatureEntitlement_Handler,
+		},
+		{
+			MethodName: "CheckCreditEntitlement",
+			Handler:    _FrontierService_CheckCreditEntitlement_Handler,
 		},
 		{
 			MethodName: "CreateBillingUsage",

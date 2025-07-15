@@ -116,6 +116,15 @@ export interface SearchOrganizationServiceUserCredentialsResponseOrganizationSer
   org_id?: string;
 }
 
+export interface SearchOrganizationServiceUsersResponseOrganizationServiceUser {
+  id?: string;
+  title?: string;
+  org_id?: string;
+  projects?: V1Beta1SearchOrganizationServiceUsersResponseProject[];
+  /** @format date-time */
+  created_at?: string;
+}
+
 export interface SearchOrganizationTokensResponseOrganizationToken {
   /** @format int64 */
   amount?: string;
@@ -319,6 +328,32 @@ export interface Frontierv1Beta1OrganizationRequestBody {
    * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA"
    */
   avatar?: string;
+}
+
+export interface Frontierv1Beta1Project {
+  id?: string;
+  name?: string;
+  title?: string;
+  org_id?: string;
+  metadata?: object;
+  /**
+   * The time the project was created.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  created_at?: string;
+  /**
+   * The time the project was last updated.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  updated_at?: string;
+  /**
+   * The number of members explicitly added in the project.
+   * @format int32
+   * @example 2
+   */
+  members_count?: number;
 }
 
 export interface GooglerpcStatus {
@@ -895,7 +930,7 @@ export interface V1Beta1CreateProjectResourceResponse {
 }
 
 export interface V1Beta1CreateProjectResponse {
-  project?: V1Beta1Project;
+  project?: Frontierv1Beta1Project;
 }
 
 export interface V1Beta1CreateProspectPublicRequest {
@@ -1226,7 +1261,7 @@ export interface V1Beta1GetProjectResourceResponse {
 }
 
 export interface V1Beta1GetProjectResponse {
-  project?: V1Beta1Project;
+  project?: Frontierv1Beta1Project;
 }
 
 export interface V1Beta1GetProspectResponse {
@@ -1398,6 +1433,10 @@ export interface V1Beta1ListAllOrganizationsResponse {
   count?: number;
 }
 
+export interface V1Beta1ListAllServiceUsersResponse {
+  service_users?: V1Beta1ServiceUser[];
+}
+
 export interface V1Beta1ListAllUsersResponse {
   /** @format int32 */
   count?: number;
@@ -1502,7 +1541,7 @@ export interface V1Beta1ListOrganizationPreferencesResponse {
 }
 
 export interface V1Beta1ListOrganizationProjectsResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
 }
 
 export interface V1Beta1ListOrganizationRolesResponse {
@@ -1611,7 +1650,7 @@ export interface V1Beta1ListProjectUsersResponseRolePair {
 }
 
 export interface V1Beta1ListProjectsByCurrentUserResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
   access_pairs?: V1Beta1ListProjectsByCurrentUserResponseAccessPair[];
   /** @format int32 */
   count?: number;
@@ -1623,11 +1662,11 @@ export interface V1Beta1ListProjectsByCurrentUserResponseAccessPair {
 }
 
 export interface V1Beta1ListProjectsByUserResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
 }
 
 export interface V1Beta1ListProjectsResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
 }
 
 export interface V1Beta1ListProspectsResponse {
@@ -1658,7 +1697,7 @@ export interface V1Beta1ListServiceUserJWKsResponse {
 }
 
 export interface V1Beta1ListServiceUserProjectsResponse {
-  projects?: V1Beta1Project[];
+  projects?: Frontierv1Beta1Project[];
   access_pairs?: V1Beta1ListServiceUserProjectsResponseAccessPair[];
 }
 
@@ -2035,32 +2074,6 @@ export interface V1Beta1ProductRequestBody {
   metadata?: object;
 }
 
-export interface V1Beta1Project {
-  id?: string;
-  name?: string;
-  title?: string;
-  org_id?: string;
-  metadata?: object;
-  /**
-   * The time the project was created.
-   * @format date-time
-   * @example "2023-06-07T05:39:56.961Z"
-   */
-  created_at?: string;
-  /**
-   * The time the project was last updated.
-   * @format date-time
-   * @example "2023-06-07T05:39:56.961Z"
-   */
-  updated_at?: string;
-  /**
-   * The number of members explicitly added in the project.
-   * @format int32
-   * @example 2
-   */
-  members_count?: number;
-}
-
 export interface V1Beta1ProjectRequestBody {
   /** The name of the project. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> *Example:* `frontier-playground` */
   name: string;
@@ -2309,6 +2322,18 @@ export interface V1Beta1SearchOrganizationServiceUserCredentialsResponse {
   group?: V1Beta1RQLQueryGroupResponse;
 }
 
+export interface V1Beta1SearchOrganizationServiceUsersResponse {
+  organization_service_users?: SearchOrganizationServiceUsersResponseOrganizationServiceUser[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationServiceUsersResponseProject {
+  id?: string;
+  title?: string;
+  name?: string;
+}
+
 export interface V1Beta1SearchOrganizationTokensResponse {
   organization_tokens?: SearchOrganizationTokensResponseOrganizationToken[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
@@ -2523,7 +2548,7 @@ export interface V1Beta1UpdateProjectResourceResponse {
 }
 
 export interface V1Beta1UpdateProjectResponse {
-  project?: V1Beta1Project;
+  project?: Frontierv1Beta1Project;
 }
 
 export interface V1Beta1UpdateProspectResponse {
@@ -3169,6 +3194,33 @@ export class Api<
         GooglerpcStatus
       >({
         path: `/v1beta1/admin/organizations/${id}/serviceuser_credentials/search`,
+        method: "POST",
+        body: query,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Organization
+     * @name AdminServiceSearchOrganizationServiceUsers
+     * @summary Search organization service users
+     * @request POST:/v1beta1/admin/organizations/{id}/serviceusers/search
+     * @secure
+     */
+    adminServiceSearchOrganizationServiceUsers: (
+      id: string,
+      query: V1Beta1RQLRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        V1Beta1SearchOrganizationServiceUsersResponse,
+        GooglerpcStatus
+      >({
+        path: `/v1beta1/admin/organizations/${id}/serviceusers/search`,
         method: "POST",
         body: query,
         secure: true,
@@ -3833,6 +3885,24 @@ export class Api<
         path: `/v1beta1/admin/resources`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Lists all the service users from all the organizations in a Frontier instance.
+     *
+     * @tags User
+     * @name AdminServiceListAllServiceUsers
+     * @summary List all service users
+     * @request GET:/v1beta1/admin/serviceusers
+     * @secure
+     */
+    adminServiceListAllServiceUsers: (params: RequestParams = {}) =>
+      this.request<V1Beta1ListAllServiceUsersResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/serviceusers`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,

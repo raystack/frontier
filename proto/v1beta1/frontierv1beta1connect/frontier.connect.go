@@ -507,6 +507,9 @@ const (
 	// FrontierServiceCheckFeatureEntitlementProcedure is the fully-qualified name of the
 	// FrontierService's CheckFeatureEntitlement RPC.
 	FrontierServiceCheckFeatureEntitlementProcedure = "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement"
+	// FrontierServiceCheckCreditEntitlementProcedure is the fully-qualified name of the
+	// FrontierService's CheckCreditEntitlement RPC.
+	FrontierServiceCheckCreditEntitlementProcedure = "/raystack.frontier.v1beta1.FrontierService/CheckCreditEntitlement"
 	// FrontierServiceCreateBillingUsageProcedure is the fully-qualified name of the FrontierService's
 	// CreateBillingUsage RPC.
 	FrontierServiceCreateBillingUsageProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage"
@@ -714,6 +717,7 @@ type FrontierServiceClient interface {
 	GetCheckout(context.Context, *connect.Request[v1beta1.GetCheckoutRequest]) (*connect.Response[v1beta1.GetCheckoutResponse], error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(context.Context, *connect.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[v1beta1.CheckFeatureEntitlementResponse], error)
+	CheckCreditEntitlement(context.Context, *connect.Request[v1beta1.CheckCreditEntitlementRequest]) (*connect.Response[v1beta1.CheckCreditEntitlementResponse], error)
 	// Transactions
 	CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error)
 	ListBillingTransactions(context.Context, *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error)
@@ -1692,6 +1696,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("CheckFeatureEntitlement")),
 			connect.WithClientOptions(opts...),
 		),
+		checkCreditEntitlement: connect.NewClient[v1beta1.CheckCreditEntitlementRequest, v1beta1.CheckCreditEntitlementResponse](
+			httpClient,
+			baseURL+FrontierServiceCheckCreditEntitlementProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CheckCreditEntitlement")),
+			connect.WithClientOptions(opts...),
+		),
 		createBillingUsage: connect.NewClient[v1beta1.CreateBillingUsageRequest, v1beta1.CreateBillingUsageResponse](
 			httpClient,
 			baseURL+FrontierServiceCreateBillingUsageProcedure,
@@ -1898,6 +1908,7 @@ type frontierServiceClient struct {
 	listCheckouts                  *connect.Client[v1beta1.ListCheckoutsRequest, v1beta1.ListCheckoutsResponse]
 	getCheckout                    *connect.Client[v1beta1.GetCheckoutRequest, v1beta1.GetCheckoutResponse]
 	checkFeatureEntitlement        *connect.Client[v1beta1.CheckFeatureEntitlementRequest, v1beta1.CheckFeatureEntitlementResponse]
+	checkCreditEntitlement         *connect.Client[v1beta1.CheckCreditEntitlementRequest, v1beta1.CheckCreditEntitlementResponse]
 	createBillingUsage             *connect.Client[v1beta1.CreateBillingUsageRequest, v1beta1.CreateBillingUsageResponse]
 	listBillingTransactions        *connect.Client[v1beta1.ListBillingTransactionsRequest, v1beta1.ListBillingTransactionsResponse]
 	totalDebitedTransactions       *connect.Client[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse]
@@ -2725,6 +2736,11 @@ func (c *frontierServiceClient) CheckFeatureEntitlement(ctx context.Context, req
 	return c.checkFeatureEntitlement.CallUnary(ctx, req)
 }
 
+// CheckCreditEntitlement calls raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement.
+func (c *frontierServiceClient) CheckCreditEntitlement(ctx context.Context, req *connect.Request[v1beta1.CheckCreditEntitlementRequest]) (*connect.Response[v1beta1.CheckCreditEntitlementResponse], error) {
+	return c.checkCreditEntitlement.CallUnary(ctx, req)
+}
+
 // CreateBillingUsage calls raystack.frontier.v1beta1.FrontierService.CreateBillingUsage.
 func (c *frontierServiceClient) CreateBillingUsage(ctx context.Context, req *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error) {
 	return c.createBillingUsage.CallUnary(ctx, req)
@@ -2946,6 +2962,7 @@ type FrontierServiceHandler interface {
 	GetCheckout(context.Context, *connect.Request[v1beta1.GetCheckoutRequest]) (*connect.Response[v1beta1.GetCheckoutResponse], error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(context.Context, *connect.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[v1beta1.CheckFeatureEntitlementResponse], error)
+	CheckCreditEntitlement(context.Context, *connect.Request[v1beta1.CheckCreditEntitlementRequest]) (*connect.Response[v1beta1.CheckCreditEntitlementResponse], error)
 	// Transactions
 	CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error)
 	ListBillingTransactions(context.Context, *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error)
@@ -3920,6 +3937,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("CheckFeatureEntitlement")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceCheckCreditEntitlementHandler := connect.NewUnaryHandler(
+		FrontierServiceCheckCreditEntitlementProcedure,
+		svc.CheckCreditEntitlement,
+		connect.WithSchema(frontierServiceMethods.ByName("CheckCreditEntitlement")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceCreateBillingUsageHandler := connect.NewUnaryHandler(
 		FrontierServiceCreateBillingUsageProcedure,
 		svc.CreateBillingUsage,
@@ -4282,6 +4305,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceGetCheckoutHandler.ServeHTTP(w, r)
 		case FrontierServiceCheckFeatureEntitlementProcedure:
 			frontierServiceCheckFeatureEntitlementHandler.ServeHTTP(w, r)
+		case FrontierServiceCheckCreditEntitlementProcedure:
+			frontierServiceCheckCreditEntitlementHandler.ServeHTTP(w, r)
 		case FrontierServiceCreateBillingUsageProcedure:
 			frontierServiceCreateBillingUsageHandler.ServeHTTP(w, r)
 		case FrontierServiceListBillingTransactionsProcedure:
@@ -4939,6 +4964,10 @@ func (UnimplementedFrontierServiceHandler) GetCheckout(context.Context, *connect
 
 func (UnimplementedFrontierServiceHandler) CheckFeatureEntitlement(context.Context, *connect.Request[v1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[v1beta1.CheckFeatureEntitlementResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) CheckCreditEntitlement(context.Context, *connect.Request[v1beta1.CheckCreditEntitlementRequest]) (*connect.Response[v1beta1.CheckCreditEntitlementResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error) {
