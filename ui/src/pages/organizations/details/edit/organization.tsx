@@ -264,6 +264,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                         onValueChange={(value) => {
                           field?.onChange({ target: { value } });
                         }}
+                        autocomplete
                       >
                         <Select.Trigger>
                           <Select.Value
