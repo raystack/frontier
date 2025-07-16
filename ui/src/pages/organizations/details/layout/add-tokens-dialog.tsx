@@ -95,6 +95,11 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                           type="number"
                           min={0}
                           className={styles["add-token-dialog-tokens-field"]}
+                          onKeyDown={(e) =>
+                            ["+", "-", ".", "e", "E"].includes(e.key) &&
+                            e.preventDefault()
+                          }
+                          onPaste={(e) => e.preventDefault()}
                         />
                       );
                     }}

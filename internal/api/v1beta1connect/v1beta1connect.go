@@ -1,17 +1,22 @@
 package v1beta1connect
 
 import (
+	"context"
+
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/api"
 	apiv1beta1 "github.com/raystack/frontier/internal/api/v1beta1"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
+	"go.uber.org/zap"
 )
 
-// TODO: add a field "authConfig" in this struct which should be of type Config from core/authenticate
-// removed to avoid lint errors
+const loggerContextKey = "logger"
+
 type ConnectHandler struct {
 	frontierv1beta1connect.UnimplementedAdminServiceHandler
 	frontierv1beta1connect.UnimplementedFrontierServiceHandler
 
+	authConfig                       authenticate.Config
 	orgService                       apiv1beta1.OrganizationService
 	orgKycService                    apiv1beta1.KycService
 	projectService                   apiv1beta1.ProjectService
@@ -57,8 +62,9 @@ type ConnectHandler struct {
 	userProjectsService              apiv1beta1.UserProjectsService
 }
 
-func NewConnectHandler(deps api.Deps) *ConnectHandler {
+func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHandler {
 	return &ConnectHandler{
+		authConfig:                       authConf,
 		orgService:                       deps.OrgService,
 		orgKycService:                    deps.OrgKycService,
 		projectService:                   deps.ProjectService,
@@ -103,4 +109,11 @@ func NewConnectHandler(deps api.Deps) *ConnectHandler {
 		userOrgsService:                  deps.UserOrgsService,
 		userProjectsService:              deps.UserProjectsService,
 	}
+}
+
+func ExtractLogger(ctx context.Context) *zap.Logger {
+	if logger, ok := ctx.Value(loggerContextKey).(*zap.Logger); ok {
+		return logger
+	}
+	return nil
 }
