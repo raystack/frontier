@@ -150,7 +150,8 @@ func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.Auth
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	// save in browser cookies
+
+	// instruct interceptor to set cookie in response header
 	if err = setCookieHeaders(ctx, session.ID.String()); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
