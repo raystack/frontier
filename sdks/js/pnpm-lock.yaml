@@ -83,8 +83,8 @@ importers:
         specifier: ^1.3.2
         version: 1.3.2(react@18.3.1)
       '@raystack/apsara':
-        specifier: ^0.48.4
-        version: 0.48.4(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))
+        specifier: ^0.48.5
+        version: 0.48.5(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))
       '@raystack/eslint-config':
         specifier: workspace:^
         version: link:../../tools/eslint-config
@@ -158,11 +158,11 @@ importers:
   packages/sdk-demo:
     dependencies:
       '@raystack/apsara':
-        specifier: ^0.48.4
-        version: 0.48.4(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))
+        specifier: ^0.48.5
+        version: 0.48.5(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))
       '@raystack/frontier':
-        specifier: ^0.67.0
-        version: 0.67.0(@raystack/apsara@0.48.4(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: workspace:*
+        version: link:../core
       next:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1895,27 +1895,9 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
-  '@raystack/apsara@0.48.4':
-    resolution: {integrity: sha512-2iQtWbvDher9bc+bkbRolBICd+7Pe9OAJ/zhZeocweXARDj4nMuQUmC1gLcFKOGP3mk9NZmGbMSk67GsnlNDOA==}
+  '@raystack/apsara@0.48.5':
+    resolution: {integrity: sha512-UJM1mgqtY7WphnI0uZNDofjCmtpV6OGfjO5JEBfBTUI+aRfJ1YLWFDP7d+S8c2qZxc9wvupyrvqGWRJB+jMxeQ==}
     engines: {node: '>=18'}
-
-  '@raystack/frontier@0.67.0':
-    resolution: {integrity: sha512-fqKRLpbrWjJ9dv9sNfgNDGaJ+8baTmxilV3rxPYSag5mkr8NVkwhwJTOoFTbiN3xTLMhvvD0YC/2zXo7F5dmiQ==}
-    peerDependencies:
-      '@raystack/apsara': '>=0.30.0'
-      react: ^18.2.0
-      solid-js: '*'
-      svelte: '*'
-      vue: '*'
-    peerDependenciesMeta:
-      react:
-        optional: true
-      solid-js:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -8798,7 +8780,7 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
-  '@raystack/apsara@0.48.4(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))':
+  '@raystack/apsara@0.48.5(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))':
     dependencies:
       '@ariakit/react': 0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-icons': 1.3.2(react@18.3.1)
@@ -8815,29 +8797,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
-      - react-dom
-
-  '@raystack/frontier@0.67.0(@raystack/apsara@0.48.4(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@hookform/resolvers': 3.10.0(react-hook-form@7.57.0(react@18.3.1))
-      '@raystack/apsara': 0.48.4(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))
-      '@tanstack/react-router': 1.58.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      axios: 1.9.0
-      class-variance-authority: 0.7.1
-      dayjs: 1.11.13
-      lodash: 4.17.21
-      query-string: 8.2.0
-      react-hook-form: 7.57.0(react@18.3.1)
-      react-image-crop: 10.1.8(react@18.3.1)
-      slugify: 1.6.6
-      uuid: 10.0.0
-      validator: 13.15.15
-      yup: 1.6.1
-    optionalDependencies:
-      react: 18.3.1
-    transitivePeerDependencies:
-      - '@tanstack/router-generator'
-      - debug
       - react-dom
 
   '@rtsao/scc@1.1.0': {}

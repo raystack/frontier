@@ -1,4 +1,4 @@
-.sidebarWrapper { 
+.sidebarWrapper {
   box-sizing: border-box;
   border-top-left-radius: var(--rs-radius-6);
   border-bottom-left-radius: var(--rs-radius-6);
@@ -8,4 +8,15 @@
 .scrollArea {
   width: 100%;
   overflow-y: auto;
+}
+
+.sidebarItemIcon {
+  display: none;
+}
+
+.sidebarItemGroupContainer {
+  gap: var(--rs-space-2);
+}
+.sidebarItemGroup {
+  padding-left: var(--rs-space-7);
 }
