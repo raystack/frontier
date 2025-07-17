@@ -8,7 +8,8 @@ import {
   Text,
   useTheme,
 } from "@raystack/apsara/v1";
-import { api } from "~/api";
+import { useMutation } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 
 import styles from "./sidebar.module.css";
 import { OrganizationIcon } from "@raystack/apsara/icons";
@@ -170,12 +171,12 @@ export default function IAMSidebar() {
 function UserDropdown() {
   const { user } = useContext(AppContext);
   const { theme, setTheme } = useTheme();
-
-  async function logout() {
-    await api?.frontierServiceAuthLogout();
-    window.location.href = "/";
-    window.location.reload();
-  }
+  const logoutMutation = useMutation(FrontierServiceQueries.authLogout, {
+    onSuccess: () => {
+      window.location.href = "/";
+      window.location.reload();
+    },
+  });
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -209,7 +210,7 @@ function UserDropdown() {
           data-test-id="admin-ui-toggle-theme">
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={logout} data-test-id="admin-ui-logout-btn">
+        <DropdownMenu.Item onClick={() => logoutMutation.mutate({})} data-test-id="admin-ui-logout-btn">
           Logout
         </DropdownMenu.Item>
       </DropdownMenu.Content>
