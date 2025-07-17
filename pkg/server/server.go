@@ -20,7 +20,9 @@ import (
 	"github.com/raystack/salt/spa"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -35,6 +37,7 @@ import (
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
 	"connectrpc.com/connect"
+	"connectrpc.com/otelconnect"
 	connecthealth "connectrpc.com/grpchealth"
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -146,8 +149,29 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		},
 	})
 
+	// The exporter embeds a default OpenTelemetry Reader and
+	// implements prometheus.Collector, allowing it to be used as
+	// both a Reader and Collector.
+	promExporter, err := promexporter.New()
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
+	
+	otelInterceptor, err := otelconnect.NewInterceptor(
+		otelconnect.WithMeterProvider(provider),
+		otelconnect.WithoutTracing(),
+	)
+	if err != nil {
+		logger.Fatal("OTEL ConnectRPC interceptor init error: %v", err)
+		return err
+	}
+
+
 	interceptors := connect.WithInterceptors(
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
+		otelInterceptor,
 		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
 		connectinterceptors.UnaryAuthenticationCheck(frontierService),
 		connectinterceptors.UnaryAuthorizationCheck(frontierService),
@@ -161,6 +185,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	mux := http.NewServeMux()
 	mux.Handle(frontierPath, frontierHandler)
 	mux.Handle(adminPath, adminHandler)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	// configure healthcheck
 	// curl --header "Content-Type: application/json" \
