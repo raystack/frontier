@@ -74,7 +74,13 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 			}
 
 			switch connect.CodeOf(err) {
-			case connect.CodeInvalidArgument, connect.CodeNotFound, connect.CodeAlreadyExists:
+			case connect.CodeInvalidArgument,
+				connect.CodeNotFound,
+				connect.CodeAlreadyExists,
+				connect.CodeUnauthenticated,
+				connect.CodePermissionDenied,
+				connect.CodeFailedPrecondition,
+				connect.CodeOutOfRange:
 				logger.Warn("finished call", fields...)
 			default:
 				logger.Error("finished call", fields...)
