@@ -13164,6 +13164,8 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+      service_user:
+        $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1GetCurrentUserResponse:
     type: object
     properties:
