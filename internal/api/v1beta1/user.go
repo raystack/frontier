@@ -113,6 +113,32 @@ func (h Handler) ListAllUsers(ctx context.Context, request *frontierv1beta1.List
 	}, nil
 }
 
+func (h Handler) GetCurrentAdminUser(ctx context.Context, request *frontierv1beta1.GetCurrentAdminUserRequest) (*frontierv1beta1.GetCurrentAdminUserResponse, error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if principal.Type == schema.ServiceUserPrincipal {
+		serviceUserPB, err := transformServiceUserToPB(*principal.ServiceUser)
+		if err != nil {
+			return nil, err
+		}
+		return &frontierv1beta1.GetCurrentAdminUserResponse{
+			ServiceUser: serviceUserPB,
+		}, nil
+	}
+
+	userPB, err := transformUserToPB(*principal.User)
+	if err != nil {
+		return nil, err
+	}
+
+	return &frontierv1beta1.GetCurrentAdminUserResponse{
+		User: userPB,
+	}, nil
+}
+
 func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.CreateUserRequest) (*frontierv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
@@ -211,16 +237,12 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *frontierv1beta1.Ge
 	}
 
 	if principal.Type == schema.ServiceUserPrincipal {
+		serviceUserPB, err := transformServiceUserToPB(*principal.ServiceUser)
+		if err != nil {
+			return nil, err
+		}
 		return &frontierv1beta1.GetCurrentUserResponse{
-			Serviceuser: &frontierv1beta1.ServiceUser{
-				Id:        principal.ServiceUser.ID,
-				Title:     principal.ServiceUser.Title,
-				State:     principal.ServiceUser.State,
-				OrgId:     principal.ServiceUser.OrgID,
-				Metadata:  nil,
-				CreatedAt: timestamppb.New(principal.ServiceUser.CreatedAt),
-				UpdatedAt: timestamppb.New(principal.ServiceUser.UpdatedAt),
-			},
+			Serviceuser: serviceUserPB,
 		}, nil
 	}
 
