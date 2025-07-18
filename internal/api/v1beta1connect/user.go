@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -35,6 +36,32 @@ func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Requ
 	return connect.NewResponse(&frontierv1beta1.ListAllUsersResponse{
 		Count: int32(len(users)),
 		Users: users,
+	}), nil
+}
+
+func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetCurrentAdminUserRequest]) (*connect.Response[frontierv1beta1.GetCurrentAdminUserResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	if principal.Type == schema.ServiceUserPrincipal {
+		serviceUserPB, err := transformServiceUserToPB(*principal.ServiceUser)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+		return connect.NewResponse(&frontierv1beta1.GetCurrentAdminUserResponse{
+			ServiceUser: serviceUserPB,
+		}), nil
+	}
+
+	userPB, err := transformUserToPB(*principal.User)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetCurrentAdminUserResponse{
+		User: userPB,
 	}), nil
 }
 
