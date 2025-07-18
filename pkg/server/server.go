@@ -149,12 +149,12 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		},
 	})
 
-	connectPromRegistry := prometheus.NewRegistry()
+	//(TODO: abhishek) use separate registry after grpc server is deprecated to expose connect rpc metrics
 
 	// The exporter embeds a default OpenTelemetry Reader and
 	// implements prometheus.Collector, allowing it to be used as
 	// both a Reader and Collector.
-	promExporter, err := promexporter.New(promexporter.WithNamespace("connect"), promexporter.WithRegisterer(connectPromRegistry))
+	promExporter, err := promexporter.New(promexporter.WithNamespace("connect"), promexporter.WithRegisterer(promRegistry))
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
@@ -185,7 +185,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	mux := http.NewServeMux()
 	mux.Handle(frontierPath, frontierHandler)
 	mux.Handle(adminPath, adminHandler)
-	mux.Handle("/metrics", promhttp.HandlerFor(connectPromRegistry, promhttp.HandlerOpts{}))
+	mux.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{}))
 
 	// configure healthcheck
 	// curl --header "Content-Type: application/json" \
