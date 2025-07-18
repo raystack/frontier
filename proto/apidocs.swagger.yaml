@@ -2197,6 +2197,42 @@ paths:
             $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - User
+  /v1beta1/admin/users/self:
+    get:
+      summary: Get current admin user
+      description: Returns the current authenticated admin user profile. Returns 403 Forbidden if the user is not an admin.
+      operationId: AdminService_GetCurrentAdminUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetCurrentAdminUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      tags:
+        - User
   /v1beta1/admin/webhooks:
     get:
       summary: List webhooks
@@ -13123,6 +13159,11 @@ definitions:
       checkout_session:
         $ref: '#/definitions/v1beta1CheckoutSession'
         title: Checkout session
+  v1beta1GetCurrentAdminUserResponse:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/v1beta1User'
   v1beta1GetCurrentUserResponse:
     type: object
     properties:
