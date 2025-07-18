@@ -7,6 +7,7 @@ import type {
   V1Beta1User,
 } from "~/api/frontier";
 import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@connectrpc/connect-query";
 import { api } from "~/api";
 import { Outlet, useParams } from "react-router-dom";
 
@@ -14,6 +15,8 @@ import { OrganizationDetailsLayout } from "./layout";
 import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
 import { AxiosError } from "axios";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import { queryClient } from "~/contexts/ConnectProvider";
 
 export const OrganizationDetails = () => {
   const [orgRoles, setOrgRoles] = useState<V1Beta1Role[]>([]);
@@ -26,9 +29,6 @@ export const OrganizationDetails = () => {
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [billingAccountDetails, setBillingAccountDetails] =
     useState<V1Beta1BillingAccountDetails>();
-
-  const [organization, setOrganization] = useState<V1Beta1Organization>();
-  const [isOrganizationLoading, setIsOrganizationLoading] = useState(true);
 
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +43,34 @@ export const OrganizationDetails = () => {
   >();
   const [isKYCLoading, setIsKYCLoading] = useState(true);
   const { organizationId } = useParams();
+
+  // Use Connect RPC for fetching organization
+  const {
+    data: organizationResponse,
+    isLoading: isOrganizationLoading,
+    refetch,
+  } = useQuery(
+    FrontierServiceQueries.getOrganization,
+    { id: organizationId },
+    {
+      enabled: !!organizationId,
+    },
+  );
+
+  const organization = organizationResponse?.organization;
+
+  const getOrganizationQueryKey = [
+    FrontierServiceQueries.getOrganization,
+    { id: organizationId },
+  ];
+
+  async function fetchOrganization() {
+    await refetch();
+  }
+
+  async function updateOrganization(org: V1Beta1Organization) {
+    queryClient.setQueryData(getOrganizationQueryKey, { organization: org });
+  }
 
   async function fetchKYCDetails(id: string) {
     setIsKYCLoading(true);
@@ -153,36 +181,18 @@ export const OrganizationDetails = () => {
     [fetchOrgTokenBalance],
   );
 
-  async function fetchOrganization(id: string) {
-    try {
-      setIsOrganizationLoading(true);
-      const response = await api?.frontierServiceGetOrganization(id);
-      const org = response.data?.organization;
-      setOrganization(org);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsOrganizationLoading(false);
-    }
-  }
-
   function updateKYCDetails(kycDetails: V1Beta1OrganizationKyc) {
     setKycDetails(kycDetails);
   }
 
-  async function updateOrganization(org: V1Beta1Organization) {
-    setOrganization(org);
-  }
-
   useEffect(() => {
-    if (organizationId) {
-      fetchOrganization(organizationId);
-      fetchRoles(organizationId);
-      fetchBillingAccount(organizationId);
-      fetchOrgMembers(organizationId);
-      fetchKYCDetails(organizationId);
+    if (organization?.id) {
+      fetchRoles(organization.id);
+      fetchBillingAccount(organization.id);
+      fetchOrgMembers(organization.id);
+      fetchKYCDetails(organization.id);
     }
-  }, [organizationId, fetchBillingAccount]);
+  }, [organization?.id, fetchBillingAccount]);
 
   const isLoading =
     isOrganizationLoading || isOrgRolesLoading || isBillingAccountLoading;

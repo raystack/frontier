@@ -89,22 +89,39 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		logger.Warn("failed to load ui", "err", err)
 		return
 	} else {
-		remoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Port)
-		remote, err := url.Parse(remoteHost)
+		restRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Port)
+		restRemote, err := url.Parse(restRemoteHost)
 		if err != nil {
 			logger.Error("ui server failed: unable to parse api server host")
 			return
 		}
 
-		handler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+		connectRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Connect.Port)
+		connectRemote, err := url.Parse(connectRemoteHost)
+		if err != nil {
+			logger.Error("ui server failed: unable to parse connect server host")
+			return
+		}
+
+		restProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 			return func(w http.ResponseWriter, r *http.Request) {
 				r.URL.Path = strings.Replace(r.URL.Path, "/frontier-api", "", -1)
-				r.Host = remoteHost
+				r.Host = restRemoteHost
 				p.ServeHTTP(w, r)
 			}
 		}
 
-		proxy := httputil.NewSingleHostReverseProxy(remote)
+		connectProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+			return func(w http.ResponseWriter, r *http.Request) {
+				r.URL.Path = strings.Replace(r.URL.Path, "/frontier-connect", "", -1)
+				r.Host = connectRemoteHost
+				p.ServeHTTP(w, r)
+			}
+		}
+
+		restProxy := httputil.NewSingleHostReverseProxy(restRemote)
+		connectProxy := httputil.NewSingleHostReverseProxy(connectRemote)
+
 		http.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			confResp := UIConfigApiResponse{
@@ -117,7 +134,8 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 			json.NewEncoder(w).Encode(confResp)
 		})
 
-		http.HandleFunc("/frontier-api/", handler(proxy))
+		http.HandleFunc("/frontier-api/", restProxyHandler(restProxy))
+		http.HandleFunc("/frontier-connect/", connectProxyHandler(connectProxy))
 		http.Handle("/", http.StripPrefix("/", spaHandler))
 	}
 

@@ -19,6 +19,11 @@ export default defineConfig(() => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/frontier-api/, ""),
         },
+        "/frontier-connect": {
+          target: process.env.FRONTIER_CONNECTRPC_URL,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/frontier-connect/, ""),
+        },
       },
       fs: {
         // Allow serving files from one level up to the project root
