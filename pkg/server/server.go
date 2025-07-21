@@ -149,12 +149,12 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		},
 	})
 
-	//(TODO: abhishek) use separate registry after grpc server is deprecated to expose connect rpc metrics
-
 	// The exporter embeds a default OpenTelemetry Reader and
 	// implements prometheus.Collector, allowing it to be used as
 	// both a Reader and Collector.
-	promExporter, err := promexporter.New(promexporter.WithNamespace("connect"), promexporter.WithRegisterer(promRegistry))
+	promExporter, err := promexporter.New(promexporter.WithNamespace("connect"),
+		promexporter.WithRegisterer(promRegistry),
+		promexporter.WithoutScopeInfo())
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
@@ -163,6 +163,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	otelInterceptor, err := otelconnect.NewInterceptor(
 		otelconnect.WithMeterProvider(provider),
 		otelconnect.WithoutTracing(),
+		otelconnect.WithoutServerPeerAttributes(),
 	)
 	if err != nil {
 		logger.Fatal("OTEL ConnectRPC interceptor init error: %v", err)
