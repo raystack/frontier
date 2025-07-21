@@ -308,7 +308,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	// start connect server
 	go func() {
-		if err := server.ServeConnect(ctx, logger, cfg.App, deps); err != nil {
+		if err := server.ServeConnect(ctx, logger, cfg.App, deps, promRegistry); err != nil {
 			logger.Fatal("connect server failed", "err", err.Error())
 		}
 	}()

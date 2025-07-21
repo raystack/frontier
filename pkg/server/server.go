@@ -21,6 +21,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -36,6 +38,7 @@ import (
 
 	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"
+	"connectrpc.com/otelconnect"
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -145,7 +148,7 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 	}
 }
 
-func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps) error {
+func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
 	// Create the server handler with both services
 	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
 
@@ -164,8 +167,30 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		},
 	})
 
+	// The exporter embeds a default OpenTelemetry Reader and
+	// implements prometheus.Collector, allowing it to be used as
+	// both a Reader and Collector.
+	promExporter, err := promexporter.New(promexporter.WithNamespace("connect"),
+		promexporter.WithRegisterer(promRegistry),
+		promexporter.WithoutScopeInfo())
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
+	otelInterceptor, err := otelconnect.NewInterceptor(
+		otelconnect.WithMeterProvider(provider),
+		otelconnect.WithoutTracing(),
+		otelconnect.WithoutServerPeerAttributes(),
+	)
+	if err != nil {
+		logger.Fatal("OTEL ConnectRPC interceptor init error: %v", err)
+		return err
+	}
+
 	interceptors := connect.WithInterceptors(
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
+		otelInterceptor,
 		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
 		connectinterceptors.UnaryAuthenticationCheck(frontierService),
 		connectinterceptors.UnaryAuthorizationCheck(frontierService),
@@ -179,6 +204,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	mux := http.NewServeMux()
 	mux.Handle(frontierPath, frontierHandler)
 	mux.Handle(adminPath, adminHandler)
+	mux.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{}))
 
 	// configure healthcheck
 	// curl --header "Content-Type: application/json" \
