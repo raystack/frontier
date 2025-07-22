@@ -2,8 +2,22 @@
 import config from '@/config/frontier';
 import AuthContextProvider from '@/contexts/auth/provider';
 import { customFetch } from '@/utils/custom-fetch';
-import { FrontierProvider } from '@raystack/frontier/react';
+import {
+  FrontierProvider,
+  TranslationResources
+} from '@raystack/frontier/react';
 import type React from 'react';
+
+const translations: TranslationResources = {
+  en: {
+    apiPlatform: {
+      appName: 'Frontier Demo'
+    },
+    billing: {
+      plan_change: {}
+    }
+  }
+};
 
 export default function RootLayout({
   children
@@ -13,7 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <FrontierProvider config={config} customFetch={customFetch}>
+        <FrontierProvider
+          config={config}
+          customFetch={customFetch}
+          translations={translations}
+        >
           <AuthContextProvider>{children}</AuthContextProvider>
         </FrontierProvider>
       </body>
