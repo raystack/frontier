@@ -1,26 +1,29 @@
 import { Pencil2Icon } from "@radix-ui/react-icons";
-import { ApsaraColumnDef } from "@raystack/apsara";
-import { Flex, Image } from "@raystack/apsara/v1";
-import { V1Beta1Product } from "@raystack/frontier";
+import { Flex, Image, type DataTableColumnDef } from "@raystack/apsara/v1";
+import type { V1Beta1Product } from "@raystack/frontier";
 import { Link, NavLink } from "react-router-dom";
 import { Price } from "~/components/Price";
 
-export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
+export const getColumns: () => DataTableColumnDef<
+  V1Beta1Product,
+  unknown
+>[] = () => {
   return [
     {
-      header: " ",
-      cell: ({ row }) => {
+      accessorKey: "id",
+      header: "",
+      cell: (info) => {
         return (
-          <Link to={`/products/${row.getValue("id")}`}>
+          <Link to={`/products/${info.getValue() as string}`}>
             <Image
               src="/product.svg"
               alt="product-icon"
               width={20}
               style={{
-                backgroundColor: "var(--background-inset)",
-                padding: "var(--pd-6)",
-                borderRadius: "var(--pd-6)",
-                border: "1px solid var(--border-base)",
+                backgroundColor: "var(--rs-color-background-neutral-secondary)",
+                padding: "var(--rs-space-3)",
+                borderRadius: "var(--rs-radius-3)",
+                border: "1px solid var(--rs-color-border-base-primary)",
               }}
             />
           </Link>
@@ -30,12 +33,11 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
     {
       header: "Name",
       accessorKey: "title",
-      filterVariant: "text",
       cell: ({ row }) => {
         const prices = row?.original?.prices;
 
         const priceComp =
-          prices?.length == 1 ? (
+          prices?.length === 1 ? (
             <Price value={prices[0].amount} currency={prices[0].currency} />
           ) : (
             <NavLink to={`/products/${row?.original?.id}/prices`}>
@@ -56,15 +58,11 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
       accessorKey: "id",
       filterVariant: "text",
       cell: (info) => info.getValue(),
-      footer: (props) => props.column.id,
     },
 
     {
       header: "Created on",
       accessorKey: "created_at",
-      meta: {
-        headerFilter: false,
-      },
       cell: (info) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
           month: "long",
@@ -72,14 +70,10 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
           year: "numeric",
         }),
       filterVariant: "date",
-      footer: (props) => props.column.id,
     },
     {
       header: "Updated on",
       accessorKey: "updated_at",
-      meta: {
-        headerFilter: false,
-      },
       cell: (info) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
           month: "long",
@@ -87,9 +81,9 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
           year: "numeric",
         }),
       filterVariant: "date",
-      footer: (props) => props.column.id,
     },
     {
+      accessorKey: "id",
       header: "Actions",
       cell: ({ row }) => {
         return (

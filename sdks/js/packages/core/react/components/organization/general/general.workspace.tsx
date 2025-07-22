@@ -118,7 +118,7 @@ export const GeneralOrganization = ({
             <Skeleton
               width="80px"
               height="80px"
-              borderRadius="var(--rs-radius-6)"
+              borderRadius="50%"
             />
             <Skeleton height="16px" width="100%" />
           </Flex>
@@ -152,7 +152,7 @@ export const GeneralOrganization = ({
               label="Organization name"
               size="large"
               error={errors.title && String(errors.title?.message)}
-              value={organization?.title || ''}
+              defaultValue={organization?.title || ''}
               disabled={!canUpdateWorkspace}
               placeholder="Provide organization name"
               {...register('title')}
@@ -170,7 +170,7 @@ export const GeneralOrganization = ({
               label="Organization URL"
               size="large"
               error={errors.name && String(errors.name?.message)}
-              value={organization?.name || ''}
+              defaultValue={organization?.name || ''}
               disabled
               prefix={URL_PREFIX}
               placeholder="Provide organization URL"

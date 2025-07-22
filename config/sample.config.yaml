@@ -9,22 +9,48 @@ log:
   # list of audit events to be ignored
   # e.g. ["app.user.created", "app.permission.checked"]
   ignored_audit_events: []
+
+new_relic:
+  # enable new relic for tracing and metrics
+  enabled: false
+  # name of the application in new relic
+  app_name: "Frontier"
+  # license key for new relic
+  license: "NEWRELIC_LICENSE_KEY"
+
+# Admin UI configuration
 ui:
   # port to serve the UI
   port: 8100
+  # title to show on the browser tab
+  title: "Frontier Admin"
+  # logo to show on login page
+  logo: ""
+  # url to use for showing user the full org url
+  app_url: ""
+  # product id to use for adding credits
+  token_product_id: ""
+  # list of organization industry types
+  organization_types: []
 
 app:
   port: 8000
   grpc:
     port: 8001
+    # gRPC message size limits
+    # max_recv_msg_size: 33554432
+    # max_send_msg_size: 33554432
     # optional tls config
     # tls_cert_file: "temp/server-cert.pem"
     # tls_key_file: "temp/server-key.pem"
     # tls_client_ca_file: "temp/ca-cert.pem"
+  connect:
+    port: 8002
   # port for application metrics
   metrics_port: 9000
   # enable pprof endpoints for cpu/mem/mutex profiling
   profiler: false
+  host: "127.0.0.1"
   # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
   # full path prefixed with scheme where resources config yaml files are kept
@@ -57,10 +83,22 @@ app:
       - Content-Type
   # configuration to allow authentication in frontier
   authentication:
+    # Public facing host used for oidc redirect uri and mail link redirection
+    # after user credentials are verified.
+    # If frontier is exposed behind a proxy, this should set as proxy endpoint
+    # e.g. http://localhost:7400/v1beta1/auth/callback
+    # Only the first host is used for callback by default, if multiple hosts are provided
+    # they can be used to override the callback host for specific strategies using query param
+    callback_urls: ["http://localhost:8000/v1beta1/auth/callback"]
+    # by default, after successful authentication(flow completes) no operation will be performed,
+    # to apply redirection in case of browsers, provide a list of urls one of which will be used
+    # after authentication where users will be redirected to.
+    # this is optional
+    authorized_redirect_urls: []
     # to use frontier as session store
     session:
       # both of them should be 32 chars long
-      # hash helps identify if the value is tempered with
+      # hash helps identify if the value is tampered with
       hash_secret_key: "hash-secret-should-be-32-chars--"
       # block helps in encryption
       block_secret_key: "block-secret-should-be-32-chars-"
@@ -69,10 +107,10 @@ app:
       # same site policy for cookies
       # can be one of: "", "lax"(default value), "strict", "none"
       same_site: "lax"
-      # secure flag for cookies
-      secure: false
       # validity of the session
       validity: "720h"
+      # secure flag for cookies
+      secure: false
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
@@ -92,18 +130,6 @@ app:
         add_org_ids: true
         # if set to true, the jwt will contain the user email in the claim
         add_user_email: true
-    # Public facing host used for oidc redirect uri and mail link redirection
-    # after user credentials are verified.
-    # If frontier is exposed behind a proxy, this should set as proxy endpoint
-    # e.g. http://localhost:7400/v1beta1/auth/callback
-    # Only the first host is used for callback by default, if multiple hosts are provided
-    # they can be used to override the callback host for specific strategies using query param
-    callback_urls: ["http://localhost:8000/v1beta1/auth/callback"]
-    # by default, after successful authentication(flow completes) no operation will be performed,
-    # to apply redirection in case of browsers, provide a list of urls one of which will be used
-    # after authentication where users will be redirected to.
-    # this is optional
-    authorized_redirect_urls: []
     # oidc auth server configs
     oidc_config:
       google:
@@ -122,6 +148,14 @@ app:
       # body is a go template with `Otp` as a variable
       body: "Click on the following link or copy/paste the url in browser to login.<br><h2><a href='{{.Link}}' target='_blank'>Login</a></h2><br>Address: {{.Link}} <br>This link will expire in 15 minutes."
       validity: 15m
+    passkey:
+      # the display name for the Relying Party Server. This can be any string.
+      rpdisplayname: ""
+      # the Relying Party Server ID. This should generally be the origin without a scheme and port.
+      rpid: ""
+      # list of Relying Party Server Origins that are permitted. These should be fully
+      # qualified origins.
+      rporigins: []
     test_users:
       enabled: false
       domain: example.com
@@ -151,24 +185,32 @@ app:
     # no: Never use STARTTLS.
     smtp_tls_policy: "mandatory"
 
+  webhook:
+    # encryption key to be used for encrypting webhook payloads
+    # this is used to validate the webhook payloads
+    encryption_key: "hash-secret-should-be-32-chars--"
+
 db:
   driver: postgres
   url: postgres://frontier:@localhost:5432/frontier?sslmode=disable
   max_query_timeout: 500ms
+  max_idle_conns: 10
+  max_open_conns: 10
+  conn_max_life_time: 15m
 
 spicedb:
   host: spicedb.localhost
-  pre_shared_key: randomkey
   port: 50051
-  # check_trace enables tracing in check api for spicedb, it adds considerable
-  # latency to the check calls and shouldn't be enabled in production
-  check_trace: false
+  pre_shared_key: randomkey
   # consistency ensures Authz server consistency guarantees for various operations
   # Possible values are:
   # - "full": Guarantees that the data is always fresh although API calls might be slower than usual
   # - "best_effort": Guarantees that the data is the best effort fresh [default]
   # - "minimize_latency": Tries to prioritise minimal latency
   consistency: "best_effort"
+  # check_trace enables tracing in check api for spicedb, it adds considerable
+  # latency to the check calls and shouldn't be enabled in production
+  check_trace: false
 
 billing:
   # stripe key to be used for billing
@@ -186,6 +228,13 @@ billing:
   # default currency to be used for billing if not provided by the user
   # e.g. usd, inr, eur
   default_currency: ""
+  # payment method configuration, allows to set min and max that the method
+  #should be allowed for. Supported types are card, customer_balance
+  payment_method_config:
+    - type: card
+    #   max: 500000
+    - type: customer_balance
+    #   min: 100000
   # billing customer account configuration
   customer:
     # automatically create a default customer account when an org is created
@@ -201,6 +250,8 @@ billing:
     # credit_overdraft_product is the product name that should be used to calculate per unit cost
     # of the overdraft credits, it uses the first price available for the product
     credit_overdraft_product: ""
+    # credit_overdraft_invoice_day is the day of the range(month) when the overdraft credits are invoiced
+    credit_overdraft_invoice_day: 1
     # credit_overdraft_invoice_range_shift is the number of months to shift the invoice range
     # positive value will shift the invoice range to the future and negative value will shift to the past
     credit_overdraft_invoice_range_shift: 0
@@ -213,6 +264,8 @@ billing:
     immediate_proration_behavior: "create_prorations"
     # collection_method can be one of "charge_automatically", "send_invoice"
     collection_method: "charge_automatically"
+  subscription:
+    behaviour_after_trial: release
   # product configuration
   product:
     # seat_change_behavior can be one of "exact", "incremental"
@@ -227,5 +280,3 @@ billing:
     subscription: 1m
     invoice: 5m
     checkout: 1m
-  subscription:
-    cancel_after_trial: true

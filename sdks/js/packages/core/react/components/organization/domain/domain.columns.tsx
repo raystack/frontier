@@ -74,8 +74,9 @@ const DomainActions = ({
     <Flex align="center" justify="end" gap={9}>
       {domain.state === 'pending' ? (
         <Button
-          variant="solid"
+          variant="outline"
           color="neutral"
+          size="small"
           data-test-id="frontier-sdk-verify-domain-btn-verify"
           onClick={() =>
             navigate({
@@ -86,15 +87,16 @@ const DomainActions = ({
             })
           }
         >
-          verify domain
+          Verify domain
         </Button>
       ) : (
         <Flex
           gap={2}
+          align="center"
           style={{ color: 'var(--rs-color-foreground-success-primary)' }}
         >
           <CheckCircledIcon style={{ cursor: 'pointer' }} />
-          Verified
+          <Text variant="success">Verified</Text>
         </Flex>
       )}
 

@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	AdminService_ListAllUsers_FullMethodName                             = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
+	AdminService_ListAllServiceUsers_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/ListAllServiceUsers"
 	AdminService_ListGroups_FullMethodName                               = "/raystack.frontier.v1beta1.AdminService/ListGroups"
 	AdminService_ListAllOrganizations_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
 	AdminService_AdminCreateOrganization_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/AdminCreateOrganization"
@@ -31,6 +32,7 @@ const (
 	AdminService_SearchOrganizationInvoices_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices"
 	AdminService_SearchOrganizationTokens_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens"
 	AdminService_SearchOrganizationServiceUserCredentials_FullMethodName = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUserCredentials"
+	AdminService_SearchOrganizationServiceUsers_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUsers"
 	AdminService_ExportOrganizations_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/ExportOrganizations"
 	AdminService_ExportOrganizationUsers_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationUsers"
 	AdminService_ExportOrganizationProjects_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationProjects"
@@ -73,6 +75,8 @@ const (
 	AdminService_GetProspect_FullMethodName                              = "/raystack.frontier.v1beta1.AdminService/GetProspect"
 	AdminService_UpdateProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/UpdateProspect"
 	AdminService_DeleteProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/DeleteProspect"
+	AdminService_SearchInvoices_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/SearchInvoices"
+	AdminService_GetCurrentAdminUser_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/GetCurrentAdminUser"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -81,6 +85,7 @@ const (
 type AdminServiceClient interface {
 	// Users
 	ListAllUsers(ctx context.Context, in *ListAllUsersRequest, opts ...grpc.CallOption) (*ListAllUsersResponse, error)
+	ListAllServiceUsers(ctx context.Context, in *ListAllServiceUsersRequest, opts ...grpc.CallOption) (*ListAllServiceUsersResponse, error)
 	// Group
 	ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error)
 	// Organizations
@@ -93,6 +98,7 @@ type AdminServiceClient interface {
 	SearchOrganizationInvoices(ctx context.Context, in *SearchOrganizationInvoicesRequest, opts ...grpc.CallOption) (*SearchOrganizationInvoicesResponse, error)
 	SearchOrganizationTokens(ctx context.Context, in *SearchOrganizationTokensRequest, opts ...grpc.CallOption) (*SearchOrganizationTokensResponse, error)
 	SearchOrganizationServiceUserCredentials(ctx context.Context, in *SearchOrganizationServiceUserCredentialsRequest, opts ...grpc.CallOption) (*SearchOrganizationServiceUserCredentialsResponse, error)
+	SearchOrganizationServiceUsers(ctx context.Context, in *SearchOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*SearchOrganizationServiceUsersResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error)
@@ -160,6 +166,9 @@ type AdminServiceClient interface {
 	GetProspect(ctx context.Context, in *GetProspectRequest, opts ...grpc.CallOption) (*GetProspectResponse, error)
 	UpdateProspect(ctx context.Context, in *UpdateProspectRequest, opts ...grpc.CallOption) (*UpdateProspectResponse, error)
 	DeleteProspect(ctx context.Context, in *DeleteProspectRequest, opts ...grpc.CallOption) (*DeleteProspectResponse, error)
+	SearchInvoices(ctx context.Context, in *SearchInvoicesRequest, opts ...grpc.CallOption) (*SearchInvoicesResponse, error)
+	// Admin Self
+	GetCurrentAdminUser(ctx context.Context, in *GetCurrentAdminUserRequest, opts ...grpc.CallOption) (*GetCurrentAdminUserResponse, error)
 }
 
 type adminServiceClient struct {
@@ -173,6 +182,15 @@ func NewAdminServiceClient(cc grpc.ClientConnInterface) AdminServiceClient {
 func (c *adminServiceClient) ListAllUsers(ctx context.Context, in *ListAllUsersRequest, opts ...grpc.CallOption) (*ListAllUsersResponse, error) {
 	out := new(ListAllUsersResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListAllUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListAllServiceUsers(ctx context.Context, in *ListAllServiceUsersRequest, opts ...grpc.CallOption) (*ListAllServiceUsersResponse, error) {
+	out := new(ListAllServiceUsersResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListAllServiceUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,6 +281,15 @@ func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, in *S
 func (c *adminServiceClient) SearchOrganizationServiceUserCredentials(ctx context.Context, in *SearchOrganizationServiceUserCredentialsRequest, opts ...grpc.CallOption) (*SearchOrganizationServiceUserCredentialsResponse, error) {
 	out := new(SearchOrganizationServiceUserCredentialsResponse)
 	err := c.cc.Invoke(ctx, AdminService_SearchOrganizationServiceUserCredentials_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) SearchOrganizationServiceUsers(ctx context.Context, in *SearchOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*SearchOrganizationServiceUsersResponse, error) {
+	out := new(SearchOrganizationServiceUsersResponse)
+	err := c.cc.Invoke(ctx, AdminService_SearchOrganizationServiceUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -763,12 +790,31 @@ func (c *adminServiceClient) DeleteProspect(ctx context.Context, in *DeleteProsp
 	return out, nil
 }
 
+func (c *adminServiceClient) SearchInvoices(ctx context.Context, in *SearchInvoicesRequest, opts ...grpc.CallOption) (*SearchInvoicesResponse, error) {
+	out := new(SearchInvoicesResponse)
+	err := c.cc.Invoke(ctx, AdminService_SearchInvoices_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetCurrentAdminUser(ctx context.Context, in *GetCurrentAdminUserRequest, opts ...grpc.CallOption) (*GetCurrentAdminUserResponse, error) {
+	out := new(GetCurrentAdminUserResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetCurrentAdminUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
 type AdminServiceServer interface {
 	// Users
 	ListAllUsers(context.Context, *ListAllUsersRequest) (*ListAllUsersResponse, error)
+	ListAllServiceUsers(context.Context, *ListAllServiceUsersRequest) (*ListAllServiceUsersResponse, error)
 	// Group
 	ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error)
 	// Organizations
@@ -781,6 +827,7 @@ type AdminServiceServer interface {
 	SearchOrganizationInvoices(context.Context, *SearchOrganizationInvoicesRequest) (*SearchOrganizationInvoicesResponse, error)
 	SearchOrganizationTokens(context.Context, *SearchOrganizationTokensRequest) (*SearchOrganizationTokensResponse, error)
 	SearchOrganizationServiceUserCredentials(context.Context, *SearchOrganizationServiceUserCredentialsRequest) (*SearchOrganizationServiceUserCredentialsResponse, error)
+	SearchOrganizationServiceUsers(context.Context, *SearchOrganizationServiceUsersRequest) (*SearchOrganizationServiceUsersResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
@@ -848,6 +895,9 @@ type AdminServiceServer interface {
 	GetProspect(context.Context, *GetProspectRequest) (*GetProspectResponse, error)
 	UpdateProspect(context.Context, *UpdateProspectRequest) (*UpdateProspectResponse, error)
 	DeleteProspect(context.Context, *DeleteProspectRequest) (*DeleteProspectResponse, error)
+	SearchInvoices(context.Context, *SearchInvoicesRequest) (*SearchInvoicesResponse, error)
+	// Admin Self
+	GetCurrentAdminUser(context.Context, *GetCurrentAdminUserRequest) (*GetCurrentAdminUserResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -857,6 +907,9 @@ type UnimplementedAdminServiceServer struct {
 
 func (UnimplementedAdminServiceServer) ListAllUsers(context.Context, *ListAllUsersRequest) (*ListAllUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllUsers not implemented")
+}
+func (UnimplementedAdminServiceServer) ListAllServiceUsers(context.Context, *ListAllServiceUsersRequest) (*ListAllServiceUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAllServiceUsers not implemented")
 }
 func (UnimplementedAdminServiceServer) ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGroups not implemented")
@@ -887,6 +940,9 @@ func (UnimplementedAdminServiceServer) SearchOrganizationTokens(context.Context,
 }
 func (UnimplementedAdminServiceServer) SearchOrganizationServiceUserCredentials(context.Context, *SearchOrganizationServiceUserCredentialsRequest) (*SearchOrganizationServiceUserCredentialsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationServiceUserCredentials not implemented")
+}
+func (UnimplementedAdminServiceServer) SearchOrganizationServiceUsers(context.Context, *SearchOrganizationServiceUsersRequest) (*SearchOrganizationServiceUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationServiceUsers not implemented")
 }
 func (UnimplementedAdminServiceServer) ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ExportOrganizations not implemented")
@@ -1014,6 +1070,12 @@ func (UnimplementedAdminServiceServer) UpdateProspect(context.Context, *UpdatePr
 func (UnimplementedAdminServiceServer) DeleteProspect(context.Context, *DeleteProspectRequest) (*DeleteProspectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProspect not implemented")
 }
+func (UnimplementedAdminServiceServer) SearchInvoices(context.Context, *SearchInvoicesRequest) (*SearchInvoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchInvoices not implemented")
+}
+func (UnimplementedAdminServiceServer) GetCurrentAdminUser(context.Context, *GetCurrentAdminUserRequest) (*GetCurrentAdminUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentAdminUser not implemented")
+}
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
 // UnsafeAdminServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1041,6 +1103,24 @@ func _AdminService_ListAllUsers_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).ListAllUsers(ctx, req.(*ListAllUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListAllServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllServiceUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListAllServiceUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListAllServiceUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListAllServiceUsers(ctx, req.(*ListAllServiceUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1221,6 +1301,24 @@ func _AdminService_SearchOrganizationServiceUserCredentials_Handler(srv interfac
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).SearchOrganizationServiceUserCredentials(ctx, req.(*SearchOrganizationServiceUserCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_SearchOrganizationServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOrganizationServiceUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SearchOrganizationServiceUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SearchOrganizationServiceUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SearchOrganizationServiceUsers(ctx, req.(*SearchOrganizationServiceUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1996,6 +2094,42 @@ func _AdminService_DeleteProspect_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_SearchInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SearchInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SearchInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SearchInvoices(ctx, req.(*SearchInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetCurrentAdminUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCurrentAdminUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetCurrentAdminUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetCurrentAdminUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetCurrentAdminUser(ctx, req.(*GetCurrentAdminUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2006,6 +2140,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllUsers",
 			Handler:    _AdminService_ListAllUsers_Handler,
+		},
+		{
+			MethodName: "ListAllServiceUsers",
+			Handler:    _AdminService_ListAllServiceUsers_Handler,
 		},
 		{
 			MethodName: "ListGroups",
@@ -2046,6 +2184,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchOrganizationServiceUserCredentials",
 			Handler:    _AdminService_SearchOrganizationServiceUserCredentials_Handler,
+		},
+		{
+			MethodName: "SearchOrganizationServiceUsers",
+			Handler:    _AdminService_SearchOrganizationServiceUsers_Handler,
 		},
 		{
 			MethodName: "SearchUsers",
@@ -2194,6 +2336,14 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProspect",
 			Handler:    _AdminService_DeleteProspect_Handler,
+		},
+		{
+			MethodName: "SearchInvoices",
+			Handler:    _AdminService_SearchInvoices_Handler,
+		},
+		{
+			MethodName: "GetCurrentAdminUser",
+			Handler:    _AdminService_GetCurrentAdminUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

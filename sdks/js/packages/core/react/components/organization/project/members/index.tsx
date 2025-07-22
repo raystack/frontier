@@ -1,6 +1,5 @@
 import {
   CardStackPlusIcon,
-  MagnifyingGlassIcon,
   PlusIcon,
   ExclamationTriangleIcon
 } from '@radix-ui/react-icons';
@@ -18,7 +17,7 @@ import {
   Flex,
   DataTable,
   Popover,
-  InputField
+  Search
 } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -295,7 +294,7 @@ const AddMemberDropdown = ({
     <Popover>
       <Popover.Trigger asChild>
         <Button
-          size="small"
+          size="normal"
           style={{ width: 'fit-content', display: 'flex' }}
           data-test-id="frontier-sdk-add-project-member-btn"
           disabled={!canUpdateProject}
@@ -304,17 +303,15 @@ const AddMemberDropdown = ({
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" className={styles.popoverContent}>
-        <InputField
-          data-test-id="frontier-sdk-add-project-member-textfield"
-          leadingIcon={
-            <MagnifyingGlassIcon
-              style={{ color: 'var(--rs-color-foreground-base-primary)' }}
-            />
-          }
+        <Search
+          data-test-id="frontier-sdk-add-project-project-textfield"
           value={query}
           placeholder={showTeam ? 'Add team to project' : 'Add project member'}
-          className={styles.inviteDropdownSearch}
           onChange={onTextChange}
+          variant='borderless'
+          showClearButton
+          disabled={isTeamsLoading || isUserLoading}
+          onClear={() => setQuery('')}
         />
         <Separator />
 
@@ -422,7 +419,7 @@ const AddMemberDropdown = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'0 members in your team'}
-    subHeading={'Try adding new members.'}
+    heading='No members found'
+    subHeading='Get started by adding your first member.'
   />
 );

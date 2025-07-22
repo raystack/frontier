@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
+	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	"github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
 	"github.com/raystack/frontier/core/aggregates/orgtokens"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
@@ -305,7 +306,14 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
-	// serving server
+	// start connect server
+	go func() {
+		if err := server.ServeConnect(ctx, logger, cfg.App, deps, promRegistry); err != nil {
+			logger.Fatal("connect server failed", "err", err.Error())
+		}
+	}()
+
+	// serving grpc server
 	return server.Serve(ctx, logger, cfg.App, nrApp, deps, promRegistry)
 }
 
@@ -439,6 +447,9 @@ func buildAPIDependencies(
 
 	orgServiceUserCredentialsRepository := postgres.NewOrgServiceUserCredentialsRepository(dbc)
 	orgServiceUserCredentialsService := orgserviceusercredentials.NewService(orgServiceUserCredentialsRepository)
+
+	orgServiceUserRepository := postgres.NewOrgServiceUserRepository(dbc)
+	orgServiceUserService := orgserviceuser.NewService(orgServiceUserRepository)
 
 	userOrgsRepository := postgres.NewUserOrgsRepository(dbc)
 	userOrgsService := userorgs.NewService(userOrgsRepository)
@@ -591,6 +602,7 @@ func buildAPIDependencies(
 		OrgUsersService:                  orgUserService,
 		OrgProjectsService:               orgProjectsService,
 		OrgServiceUserCredentialsService: orgServiceUserCredentialsService,
+		OrgServiceUserService:            orgServiceUserService,
 		ProjectUsersService:              projectUserService,
 		UserOrgsService:                  userOrgsService,
 		UserProjectsService:              userProjectsService,

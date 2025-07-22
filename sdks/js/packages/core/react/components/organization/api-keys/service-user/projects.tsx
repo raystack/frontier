@@ -3,7 +3,6 @@ import {
   Flex,
   Spinner,
   Text,
-  Separator,
   toast,
   Image,
   Dialog,
@@ -36,6 +35,11 @@ const getColumns = ({
       header: '',
       accessorKey: 'id',
       enableSorting: false,
+      styles: {
+        cell: {
+          width: 'var(--rs-space-2)'
+        }
+      },
       cell: ({ getValue }) => {
         const projectId = getValue();
         const { value, isLoading } = permMap[projectId] || {};
@@ -58,7 +62,11 @@ const getColumns = ({
       accessorKey: 'title',
       cell: ({ getValue }) => {
         const value = getValue();
-        return <Flex direction="column">{value}</Flex>;
+        return (
+          <Flex direction="column">
+            <Text>{value}</Text>
+          </Flex>
+        );
       }
     },
     {
@@ -210,7 +218,7 @@ export default function ManageServiceUserProjects() {
         className={styles.manageProjectDialogContent}
       >
         <Dialog.Header>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
               Manage Project Access
             </Text>
@@ -223,13 +231,12 @@ export default function ManageServiceUserProjects() {
               data-test-id="frontier-sdk-service-account-manage-access-close-btn"
             />
           </Flex>
-          <Separator />
         </Dialog.Header>
 
         <Dialog.Body>
           <Flex
             className={styles.manageProjectDialogWrapper}
-            gap="large"
+            gap={9}
             direction={'column'}
           >
             <Text size="small" variant="secondary">

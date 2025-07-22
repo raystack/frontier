@@ -7,7 +7,7 @@ import { api } from "~/api";
 import { getColumns } from "./columns";
 import type {
   SearchOrganizationProjectsResponseOrganizationProject,
-  V1Beta1Project,
+  Frontierv1Beta1Project,
 } from "~/api/frontier";
 import { OrganizationContext } from "../contexts/organization-context";
 import { FileIcon } from "@radix-ui/react-icons";
@@ -84,7 +84,7 @@ export function OrganizationProjectssPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  function handleMemberDialogOpen(project: V1Beta1Project) {
+  function handleMemberDialogOpen(project: Frontierv1Beta1Project) {
     setMemberDialogConfig({
       projectId: project.id || "",
       open: true,

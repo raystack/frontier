@@ -5720,6 +5720,236 @@ var _ interface {
 	ErrorName() string
 } = CheckFeatureEntitlementResponseValidationError{}
 
+// Validate checks the field values on CheckCreditEntitlementRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CheckCreditEntitlementRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckCreditEntitlementRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CheckCreditEntitlementRequestMultiError, or nil if none found.
+func (m *CheckCreditEntitlementRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckCreditEntitlementRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := CheckCreditEntitlementRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetAmount() <= 0 {
+		err := CheckCreditEntitlementRequestValidationError{
+			field:  "Amount",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return CheckCreditEntitlementRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckCreditEntitlementRequestMultiError is an error wrapping multiple
+// validation errors returned by CheckCreditEntitlementRequest.ValidateAll()
+// if the designated constraints aren't met.
+type CheckCreditEntitlementRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckCreditEntitlementRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckCreditEntitlementRequestMultiError) AllErrors() []error { return m }
+
+// CheckCreditEntitlementRequestValidationError is the validation error
+// returned by CheckCreditEntitlementRequest.Validate if the designated
+// constraints aren't met.
+type CheckCreditEntitlementRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckCreditEntitlementRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckCreditEntitlementRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckCreditEntitlementRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckCreditEntitlementRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckCreditEntitlementRequestValidationError) ErrorName() string {
+	return "CheckCreditEntitlementRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckCreditEntitlementRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckCreditEntitlementRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckCreditEntitlementRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckCreditEntitlementRequestValidationError{}
+
+// Validate checks the field values on CheckCreditEntitlementResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CheckCreditEntitlementResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckCreditEntitlementResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CheckCreditEntitlementResponseMultiError, or nil if none found.
+func (m *CheckCreditEntitlementResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckCreditEntitlementResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return CheckCreditEntitlementResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckCreditEntitlementResponseMultiError is an error wrapping multiple
+// validation errors returned by CheckCreditEntitlementResponse.ValidateAll()
+// if the designated constraints aren't met.
+type CheckCreditEntitlementResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckCreditEntitlementResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckCreditEntitlementResponseMultiError) AllErrors() []error { return m }
+
+// CheckCreditEntitlementResponseValidationError is the validation error
+// returned by CheckCreditEntitlementResponse.Validate if the designated
+// constraints aren't met.
+type CheckCreditEntitlementResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckCreditEntitlementResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckCreditEntitlementResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckCreditEntitlementResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckCreditEntitlementResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckCreditEntitlementResponseValidationError) ErrorName() string {
+	return "CheckCreditEntitlementResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckCreditEntitlementResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckCreditEntitlementResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckCreditEntitlementResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckCreditEntitlementResponseValidationError{}
+
 // Validate checks the field values on CreateCheckoutRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

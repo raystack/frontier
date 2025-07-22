@@ -149,13 +149,17 @@ const MembersTable = ({
       <Flex direction="column" gap={7} className={styles.tableWrapper}>
         <Flex justify="between" gap={3}>
           <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+          {isLoading ? (
+            <Skeleton height='34px' width='500px' />
+          ) : (
             <DataTable.Search
               placeholder="Search by name or email"
               size="medium"
             />
+          )}
           </Flex>
           {isLoading ? (
-            <Skeleton height={'32px'} width={'64px'} />
+            <Skeleton height='34px' width='64px' />
           ) : (
             <Tooltip
               message={AuthTooltipMessage}
@@ -194,7 +198,7 @@ const MembersTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={'0 members in your workspace'}
-    subHeading={'Try adding new members.'}
+    heading='No members found'
+    subHeading='Get started by adding your first member'
   />
 );

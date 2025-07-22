@@ -6,7 +6,6 @@ import {
   Separator,
   Skeleton,
   Box,
-  Text,
   Flex,
   Button,
   InputField
@@ -95,7 +94,7 @@ export const UpdateProfile = () => {
                 label="Full name"
                 size="large"
                 error={errors.title && String(errors.title?.message)}
-                value={user?.title || ''}
+                defaultValue={user?.title || ''}
                 placeholder="Provide full name"
                 {...register('title')}
                 disabled={isLoading}
@@ -110,7 +109,7 @@ export const UpdateProfile = () => {
                 label="Email Address"
                 size="large"
                 error={errors.email && String(errors.email?.message)}
-                value={user?.name || ''}
+                value={user?.email || ''}
                 type="email"
                 placeholder="Provide email address"
                 {...register('email')}
@@ -121,7 +120,6 @@ export const UpdateProfile = () => {
           </Box>
           <Button
             size="medium"
-            variant="primary"
             type="submit"
             style={{ width: 'fit-content' }}
             disabled={isLoading || isSubmitting}

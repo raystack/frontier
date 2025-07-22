@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,6 +21,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -28,8 +33,12 @@ import (
 	"github.com/raystack/frontier/pkg/server/health"
 	"github.com/raystack/frontier/ui"
 
+	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
+	"connectrpc.com/connect"
+	connecthealth "connectrpc.com/grpchealth"
+	"connectrpc.com/otelconnect"
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -42,7 +51,9 @@ import (
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1"
+	"github.com/raystack/frontier/internal/api/v1beta1connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/mux"
 	"go.uber.org/zap"
@@ -55,6 +66,10 @@ import (
 
 const (
 	grpcDialTimeout = 5 * time.Second
+
+	// keeping it in sync with https://github.com/raystack/salt/blob/v0.3.8/mux/mux.go#L15
+	// which is being used in GRPC server shutdown
+	connectServerGracePeriod = 10 * time.Second
 )
 
 type UIConfigApiResponse struct {
@@ -77,22 +92,39 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		logger.Warn("failed to load ui", "err", err)
 		return
 	} else {
-		remoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Port)
-		remote, err := url.Parse(remoteHost)
+		restRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Port)
+		restRemote, err := url.Parse(restRemoteHost)
 		if err != nil {
 			logger.Error("ui server failed: unable to parse api server host")
 			return
 		}
 
-		handler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+		connectRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Connect.Port)
+		connectRemote, err := url.Parse(connectRemoteHost)
+		if err != nil {
+			logger.Error("ui server failed: unable to parse connect server host")
+			return
+		}
+
+		restProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 			return func(w http.ResponseWriter, r *http.Request) {
 				r.URL.Path = strings.Replace(r.URL.Path, "/frontier-api", "", -1)
-				r.Host = remoteHost
+				r.Host = restRemoteHost
 				p.ServeHTTP(w, r)
 			}
 		}
 
-		proxy := httputil.NewSingleHostReverseProxy(remote)
+		connectProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+			return func(w http.ResponseWriter, r *http.Request) {
+				r.URL.Path = strings.Replace(r.URL.Path, "/frontier-connect", "", -1)
+				r.Host = connectRemoteHost
+				p.ServeHTTP(w, r)
+			}
+		}
+
+		restProxy := httputil.NewSingleHostReverseProxy(restRemote)
+		connectProxy := httputil.NewSingleHostReverseProxy(connectRemote)
+
 		http.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			confResp := UIConfigApiResponse{
@@ -105,7 +137,8 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 			json.NewEncoder(w).Encode(confResp)
 		})
 
-		http.HandleFunc("/frontier-api/", handler(proxy))
+		http.HandleFunc("/frontier-api/", restProxyHandler(restProxy))
+		http.HandleFunc("/frontier-connect/", connectProxyHandler(connectProxy))
 		http.Handle("/", http.StripPrefix("/", spaHandler))
 	}
 
@@ -113,6 +146,104 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), nil); err != nil {
 		logger.Error("ui server failed", "err", err)
 	}
+}
+
+func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
+	// Create the server handler with both services
+	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
+
+	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
+	sessionMiddleware := connectinterceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
+
+	// grpcZapLogger := zap.Must(zap.NewProduction())
+	grpcZapLogger := zap.NewExample().Sugar()
+	loggerZap, ok := logger.(*log.Zap)
+	if ok {
+		grpcZapLogger = loggerZap.GetInternalZapLogger()
+	}
+	loggerOpts := connectinterceptors.NewLoggerOptions(connectinterceptors.LoggerOption{
+		Decider: func(procedure string) bool {
+			return procedure != "/grpc.health.v1.Health/Check"
+		},
+	})
+
+	// The exporter embeds a default OpenTelemetry Reader and
+	// implements prometheus.Collector, allowing it to be used as
+	// both a Reader and Collector.
+	promExporter, err := promexporter.New(promexporter.WithNamespace("connect"),
+		promexporter.WithRegisterer(promRegistry),
+		promexporter.WithoutScopeInfo())
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
+	otelInterceptor, err := otelconnect.NewInterceptor(
+		otelconnect.WithMeterProvider(provider),
+		otelconnect.WithoutTracing(),
+		otelconnect.WithoutServerPeerAttributes(),
+	)
+	if err != nil {
+		logger.Fatal("OTEL ConnectRPC interceptor init error: %v", err)
+		return err
+	}
+
+	interceptors := connect.WithInterceptors(
+		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
+		otelInterceptor,
+		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
+		connectinterceptors.UnaryAuthenticationCheck(frontierService),
+		connectinterceptors.UnaryAuthorizationCheck(frontierService),
+		sessionMiddleware.UnaryConnectResponseInterceptor())
+
+	// Initialize connect handlers
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors)
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors)
+
+	// Create mux and register handlers
+	mux := http.NewServeMux()
+	mux.Handle(frontierPath, frontierHandler)
+	mux.Handle(adminPath, adminHandler)
+	mux.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{}))
+
+	// configure healthcheck
+	// curl --header "Content-Type: application/json" \
+	// --data '{"service":"raystack.frontier.v1beta1.AdminService"}' \
+	// http://localhost:8002/grpc.health.v1.Health/Check
+	checker := connecthealth.NewStaticChecker(
+		"raystack.frontier.v1beta1.FrontierService",
+		"raystack.frontier.v1beta1.AdminService",
+	)
+
+	mux.Handle(connecthealth.NewHandler(checker))
+
+	// Configure and create the server
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", cfg.Connect.Port),
+		Handler: h2c.NewHandler(mux, &http2.Server{}),
+	}
+
+	logger.Info("connect server starting", "port", cfg.Connect.Port)
+
+	go func() {
+		<-ctx.Done()
+
+		ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
+		defer cancel()
+
+		if err := server.Shutdown(ctxShutdown); err != nil {
+			logger.Fatal("HTTP shutdown error: %v", err)
+		}
+
+		logger.Info("Graceful shutdown of connect server complete")
+	}()
+
+	// Start server
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("connect server failed: %w", err)
+	}
+
+	return nil
 }
 
 func Serve(
@@ -148,16 +279,7 @@ func Serve(
 		return err
 	}
 
-	var sessionCookieCutter securecookie.Codec
-	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
-		// hash and block keys should be 32 bytes long
-		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
-	} else {
-		sessionCookieCutter = securecookie.New(
-			[]byte(cfg.Authentication.Session.HashSecretKey),
-			[]byte(cfg.Authentication.Session.BlockSecretKey),
-		)
-	}
+	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
 	sessionMiddleware := interceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
 
 	defaultMimeMarshaler := &runtime.JSONPb{
@@ -266,7 +388,7 @@ func Serve(
 		}))
 	}
 
-	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
+	logger.Info("api server starting", "http-port", cfg.Port, "connect-port", cfg.Connect.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 	if err := mux.Serve(
 		ctx,
 		metricsOps...,
@@ -277,6 +399,20 @@ func Serve(
 
 	logger.Info("stopping server gracefully")
 	return nil
+}
+
+func getSessionCookieCutter(blockSecretKey string, hashSecretKey string, logger log.Logger) securecookie.Codec {
+	var sessionCookieCutter securecookie.Codec
+	if len(hashSecretKey) != 32 || len(blockSecretKey) != 32 {
+		// hash and block keys should be 32 bytes long
+		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
+	} else {
+		sessionCookieCutter = securecookie.New(
+			[]byte(hashSecretKey),
+			[]byte(blockSecretKey),
+		)
+	}
+	return sessionCookieCutter
 }
 
 // REVISIT: passing config.Frontier as reference

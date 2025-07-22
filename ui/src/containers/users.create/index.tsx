@@ -54,8 +54,8 @@ export default function NewUser() {
         style={{
           width: "30vw",
           padding: 0,
-          borderRadius: "var(--pd-8)",
-          boxShadow: "var(--shadow-sm)",
+          borderRadius: "var(--rs-space-3)",
+          boxShadow: "var(--rs-shadow-soft)",
         }}
         close={false}
       >
@@ -66,7 +66,7 @@ export default function NewUser() {
               onClick={onOpenChange}
               data-test-id="admin-ui-sheet-header"
             ></SheetHeader>
-            <Flex direction="column" gap="large" style={styles.main}>
+            <Flex direction="column" gap={9} style={styles.main}>
               <CustomFieldName
                 name="title"
                 register={methods.register}

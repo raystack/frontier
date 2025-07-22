@@ -1,14 +1,21 @@
-import { EmptyState, Flex } from "@raystack/apsara/v1";
-import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara/v1";
 import { useEffect, useState } from "react";
-import { Outlet, useOutletContext, useParams } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 
-import { V1Beta1Role } from "@raystack/frontier";
+import type { V1Beta1Role } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { RolesHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { api } from "~/api";
+import PageTitle from "~/components/page-title";
+import styles from "./roles.module.css";
+import { SheetHeader } from "~/components/sheet/header";
 
 type ContextType = { role: V1Beta1Role | null };
 export default function RoleList() {
@@ -32,43 +39,45 @@ export default function RoleList() {
   }, []);
   let { roleId } = useParams();
   const roleMapByName = reduceByKey(roles ?? [], "id");
+  const navigate = useNavigate();
 
-  const tableStyle = roles?.length
-    ? { width: "100%" }
-    : { width: "100%", height: "100%" };
-
-  const roleList = isRolesLoading
-    ? [...new Array(5)].map((_, i) => ({
-        name: i.toString(),
-        title: "",
-      }))
-    : roles;
+  function onClose() {
+    navigate("/roles");
+  }
 
   const columns = getColumns();
   return (
-    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
-      <DataTable
-        data={roleList ?? []}
-        // @ts-ignore
-        columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: "calc(100vh - 60px)" }}
-        style={tableStyle}
-        isLoading={isRolesLoading}
-      >
-        <DataTable.Toolbar>
-          <RolesHeader />
-          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
-        </DataTable.Toolbar>
-        <DataTable.DetailContainer>
-          <Outlet
-            context={{
-              role: roleId ? roleMapByName[roleId] : null,
-            }}
-          />
-        </DataTable.DetailContainer>
-      </DataTable>
-    </Flex>
+    <DataTable
+      data={roles}
+      columns={columns}
+      mode="client"
+      defaultSort={{ name: "title", order: "asc" }}
+      isLoading={isRolesLoading}
+    >
+      <Flex direction="column">
+        <PageTitle title="Roles" />
+        <RolesHeader />
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{
+            root: styles.tableRoot,
+            table: styles.table,
+          }}
+        />
+        <Sheet open={roleId !== undefined}>
+          <Sheet.Content className={styles.sheetContent}>
+            <SheetHeader title="Role Details" onClick={onClose} />
+            <Flex className={styles.sheetContentBody}>
+              <Outlet
+                context={{
+                  role: roleId ? roleMapByName[roleId] : null,
+                }}
+              />
+            </Flex>
+          </Sheet.Content>
+        </Sheet>
+      </Flex>
+    </DataTable>
   );
 }
 

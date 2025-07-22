@@ -20,7 +20,6 @@
 .serviceKeyItem {
   padding: var(--rs-space-5);
   border: 1px solid var(--rs-color-border-base-primary);
-  border-radius: var();
 }
 
 .serviceKeyItem + .serviceKeyItem {
@@ -47,6 +46,7 @@
 .addKeyInputWrapper {
   width: 100%;
   position: relative;
+  align-items: start;
 }
 
 .addKeyInputError {
@@ -70,43 +70,24 @@
   padding: 0;
   max-width: 400px;
   width: 100%;
-  z-index: 60;
 }
 
 .overlay {
-  z-index: 55;
   background-color: rgba(104, 112, 118, 0.5);
 }
 
-.addDialogForm {
-  padding: var(--rs-space-5) var(--rs-space-7);
-}
-
-.addDialogFormContent {
-  padding: var(--rs-space-9) var(--rs-space-7);
-}
-
-.addDialogFormBtnWrapper {
-  padding: var(--rs-space-5);
-}
-
-.manageProjectDialog {
-  padding: var(--rs-space-5) var(--rs-space-7);
-}
-
 .manageProjectDialogWrapper {
-  padding: var(--rs-space-5) var(--rs-space-7);
-  height: calc(100% - var(--rs-space-9) - var(--rs-space-9));
-  overflow: hidden;
+  max-height: calc(80vh - var(--rs-space-17));
+  overflow: auto;
 }
 
 .manageProjectDialogContent {
-  height: 70%;
+  height: 80vh;
   width: 70%;
   padding: 0;
 }
 
 .tableRoot {
   height: 100%;
-  overflow-y: auto;
+  overflow: auto;
 }

@@ -27,7 +27,8 @@ export const getColumns = ({
             }}
             style={{
               textDecoration: 'none',
-              color: 'var(--rs-color-foreground-base-primary)'
+              color: 'var(--rs-color-foreground-base-primary)',
+              fontSize: 'var(--rs-font-size-small)'
             }}
           >
             {getValue()}
@@ -68,6 +69,7 @@ function ServiceAccountDeleteAction({ id }: { id: string }) {
     <Button
       variant="text"
       size="small"
+      color="danger"
       data-test-id="frontier-sdk-delete-service-account-btn"
       onClick={onDeleteClick}
     >

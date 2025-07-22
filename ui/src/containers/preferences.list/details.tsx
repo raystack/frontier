@@ -1,6 +1,13 @@
 import PageHeader from "~/components/page-header";
-import { Grid, TextField } from "@raystack/apsara";
-import { Button, Flex, Separator, Switch, Text } from "@raystack/apsara/v1";
+import {
+  Grid,
+  Button,
+  Flex,
+  Separator,
+  Switch,
+  Text,
+  InputField,
+} from "@raystack/apsara/v1";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useOutletContext, useParams } from "react-router-dom";
@@ -39,7 +46,7 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
     );
   } else if (R.has("text")(trait) || R.has("textarea")(trait)) {
     return (
-      <TextField
+      <InputField
         value={value}
         onChange={(e) => onChange(e.target.value)}
         data-test-id="admin-ui-preference-value-input"
@@ -140,13 +147,16 @@ export default function PreferenceDetails() {
   }, [name, value]);
 
   return (
-    <Flex direction={"column"} style={{ width: "100%" }} gap="large">
+    <Flex direction="column" style={{ width: "100%" }} gap={9}>
       <PageHeader
         title={pageHeader.title}
         breadcrumb={pageHeader.breadcrumb}
-        style={{ borderBottom: "1px solid var(--border-base)", gap: "16px" }}
+        style={{
+          borderBottom: "1px solid var(--rs-color-border-base-primary)",
+          gap: "16px",
+        }}
       />
-      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
+      <Flex direction="column" gap={9} style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) =>
           isPreferencesLoading ? (
             <Grid columns={2} gap="small" key={detailItem.key}>
@@ -171,7 +181,7 @@ export default function PreferenceDetails() {
           </Text>
         )}
         {trait ? (
-          <Flex direction={"column"} gap={"medium"}>
+          <Flex direction="column" gap={"medium"}>
             <PreferenceValue
               trait={trait}
               value={value}

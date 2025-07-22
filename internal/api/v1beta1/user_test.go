@@ -22,6 +22,7 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -463,6 +464,132 @@ func TestGetCurrentUser(t *testing.T) {
 				orgService:   mockOrgService,
 			}
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
+			assert.EqualValues(t, resp, tt.want)
+			assert.EqualValues(t, err, tt.err)
+		})
+	}
+}
+
+func TestGetCurrentAdminUser(t *testing.T) {
+	email := "admin@raystack.org"
+	table := []struct {
+		title  string
+		setup  func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context
+		header string
+		want   *frontierv1beta1.GetCurrentAdminUserResponse
+		err    error
+	}{
+		{
+			title: "should return unauthenticated error if no auth email header in context",
+			want:  nil,
+			err:   grpcUnauthenticated,
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+				return ctx
+			},
+		},
+		{
+			title: "should return not found error if user does not exist",
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(authenticate.Principal{}, user.ErrNotExist)
+				return authenticate.SetContextWithEmail(ctx, email)
+			},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return error if user service return some error",
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(authenticate.Principal{}, errors.New("test error"))
+				return authenticate.SetContextWithEmail(ctx, email)
+			},
+			want: nil,
+			err:  errors.New("test error"),
+		},
+		{
+			title: "should return admin user if user service return nil error",
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(
+					authenticate.Principal{
+						ID:   "admin-user-id-1",
+						Type: schema.UserPrincipal,
+						User: &user.User{
+							ID:    "admin-user-id-1",
+							Title: "Admin User",
+							Email: "admin@test.com",
+							Metadata: metadata.Metadata{
+								"role": "admin",
+							},
+							CreatedAt: time.Time{},
+							UpdatedAt: time.Time{},
+						},
+					}, nil)
+				return authenticate.SetContextWithEmail(ctx, email)
+			},
+			want: &frontierv1beta1.GetCurrentAdminUserResponse{User: &frontierv1beta1.User{
+				Id:    "admin-user-id-1",
+				Title: "Admin User",
+				Email: "admin@test.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"role": structpb.NewStringValue("admin"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}},
+			err: nil,
+		},
+		{
+			title: "should return admin service user if service user principal is returned",
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(
+					authenticate.Principal{
+						ID:   "admin-service-user-id-1",
+						Type: schema.ServiceUserPrincipal,
+						ServiceUser: &serviceuser.ServiceUser{
+							ID:    "admin-service-user-id-1",
+							Title: "Admin Service User",
+							State: "enabled",
+							OrgID: "org-id-1",
+							Metadata: metadata.Metadata{
+								"type": "admin",
+							},
+							CreatedAt: time.Time{},
+							UpdatedAt: time.Time{},
+						},
+					}, nil)
+				return authenticate.SetContextWithEmail(ctx, email)
+			},
+			want: &frontierv1beta1.GetCurrentAdminUserResponse{ServiceUser: &frontierv1beta1.ServiceUser{
+				Id:    "admin-service-user-id-1",
+				Title: "Admin Service User",
+				State: "enabled",
+				OrgId: "org-id-1",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"type": structpb.NewStringValue("admin"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}},
+			err: nil,
+		},
+	}
+
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			ctx := context.Background()
+			mockAuthnSrv := new(mocks.AuthnService)
+
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockAuthnSrv, nil)
+			}
+			mockDep := Handler{
+				authnService: mockAuthnSrv,
+			}
+			resp, err := mockDep.GetCurrentAdminUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
 		})

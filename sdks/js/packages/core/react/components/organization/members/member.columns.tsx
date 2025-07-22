@@ -3,7 +3,6 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import type { DataTableColumnDef } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import {
   toast,
@@ -12,7 +11,8 @@ import {
   Avatar,
   Text,
   getAvatarColor,
-  DropdownMenu
+  DropdownMenu,
+  DataTableColumnDef
 } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role } from '~/src';
@@ -31,6 +31,11 @@ export const getColumns = (
     header: '',
     accessorKey: 'avatar',
     enableSorting: false,
+    styles: {
+      cell: {
+        width: 'var(--rs-space-5)'
+      }
+    },
     cell: ({ row, getValue }) => {
       const id = row.original?.id || '';
       const fallback =
@@ -67,14 +72,18 @@ export const getColumns = (
     header: 'Roles',
     accessorKey: 'email',
     cell: ({ row }) => {
-      return row.original.invited
-        ? 'Pending Invite'
-        : (row.original?.id &&
-            memberRoles[row.original?.id] &&
-            memberRoles[row.original?.id]
-              .map((r: V1Beta1Role) => r.title || r.name)
-              .join(', ')) ??
-            'Inherited role';
+      return (
+        <Text>
+          {row.original.invited
+            ? 'Pending Invite'
+            : (row.original?.id &&
+                memberRoles[row.original?.id] &&
+                memberRoles[row.original?.id]
+                  .map((r: V1Beta1Role) => r.title || r.name)
+                  .join(', ')) ??
+                'Inherited role'}
+        </Text>
+      );
     }
   },
   {

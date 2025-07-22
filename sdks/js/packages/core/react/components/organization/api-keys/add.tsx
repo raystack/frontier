@@ -3,7 +3,6 @@ import {
   Flex,
   Text,
   toast,
-  Separator,
   Image,
   Skeleton,
   Dialog,
@@ -21,6 +20,7 @@ import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import styles from './styles.module.css';
+import { handleSelectValueChange } from '~/react/utils';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 
@@ -137,7 +137,7 @@ export const AddServiceAccount = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
-            <Flex justify="between" className={styles.addDialogForm}>
+            <Flex justify="between" align="center" style={{ width: '100%' }}>
               <Text size={6} weight={500}>
                 New Service Account
               </Text>
@@ -149,15 +149,10 @@ export const AddServiceAccount = () => {
                 data-test-id="frontier-sdk-new-service-account-close-btn"
               />
             </Flex>
-            <Separator />
           </Dialog.Header>
 
           <Dialog.Body>
-            <Flex
-              direction="column"
-              gap={5}
-              className={styles.addDialogFormContent}
-            >
+            <Flex direction="column" gap={5}>
               <Text>
                 Create a dedicated service account to facilitate secure API
                 interactions on behalf of the organization.
@@ -182,13 +177,14 @@ export const AddServiceAccount = () => {
                     render={({ field }) => {
                       const { ref, onChange, ...rest } = field;
                       return (
-                        <Select {...rest} onValueChange={onChange}>
+                        <Select
+                          {...rest}
+                          onValueChange={handleSelectValueChange(onChange)}
+                        >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select a project" />
                           </Select.Trigger>
-                          <Select.Content
-                            style={{ width: '100% !important', zIndex: 65 }}
-                          >
+                          <Select.Content style={{ width: '100% !important' }}>
                             <Select.Viewport style={{ maxHeight: '300px' }}>
                               {projects.map(project => (
                                 <Select.Item
@@ -215,7 +211,7 @@ export const AddServiceAccount = () => {
           </Dialog.Body>
 
           <Dialog.Footer>
-            <Flex justify="end" className={styles.addDialogFormBtnWrapper}>
+            <Flex justify="end">
               <Button
                 variant="solid"
                 color="accent"

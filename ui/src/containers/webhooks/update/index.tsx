@@ -97,8 +97,7 @@ export default function UpdateWebhooks() {
         style={{
           width: "30vw",
           padding: 0,
-          borderRadius: "var(--pd-8)",
-          boxShadow: "var(--shadow-sm)",
+          boxShadow: "var(--rs-shadow-soft)",
         }}
         close={false}
       >
@@ -109,7 +108,7 @@ export default function UpdateWebhooks() {
               onClick={onClose}
               data-test-id="admin-ui-update-webhook-close-btn"
             />
-            <Flex direction="column" gap="large" style={styles.main}>
+            <Flex direction="column" gap={9} style={styles.main}>
               <CustomFieldName
                 name="url"
                 defaultValue={webhook?.url}

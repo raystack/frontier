@@ -117,9 +117,12 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 		skipTrial = request.GetSubscriptionBody().GetSkipTrial()
 		cancelAfterTrail = request.GetSubscriptionBody().GetCancelAfterTrial()
 	}
-	featureID := ""
+
+	var featureID string
+	var quantity int64
 	if request.GetProductBody() != nil {
 		featureID = request.GetProductBody().GetProduct()
+		quantity = request.GetProductBody().GetQuantity()
 	}
 	newCheckout, err := h.checkoutService.Create(ctx, checkout.Checkout{
 		CustomerID:       request.GetBillingId(),
@@ -127,6 +130,7 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 		CancelUrl:        request.GetCancelUrl(),
 		PlanID:           planID,
 		ProductID:        featureID,
+		Quantity:         quantity,
 		SkipTrial:        skipTrial,
 		CancelAfterTrial: cancelAfterTrail,
 	})

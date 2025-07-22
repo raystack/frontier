@@ -9,9 +9,6 @@ import UnauthorizedState from "./components/states/Unauthorized";
 import App from "./App";
 import PlanList from "./containers/billingplans.list";
 import PlanDetails from "./containers/billingplans.list/details";
-import NewGroup from "./containers/groups.create";
-import Groups from "./containers/groups.list";
-import GroupDetails from "./containers/groups.list/details";
 import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
 
@@ -28,7 +25,6 @@ import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
 
-import InvoicesList from "./containers/invoices.list";
 import { AppContext } from "./contexts/App";
 import { SuperAdminList } from "./containers/super_admins/list";
 import WebhooksList from "./containers/webhooks";
@@ -49,6 +45,8 @@ import { UsersList } from "./pages/users/list";
 import { UserDetails } from "./pages/users/details";
 import { UserDetailsSecurityPage } from "./pages/users/details/security";
 import { UserDetailsAuditLogPage } from "./pages/users/details/audit-log";
+
+import { InvoicesList } from "./pages/invoices/list";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -74,7 +72,8 @@ export default memo(function AppRoutes() {
         <Route path="organizations" element={<OrganizationList />} />
         <Route
           path="organizations/:organizationId"
-          element={<OrganizationDetails />}>
+          element={<OrganizationDetails />}
+        >
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
@@ -96,10 +95,6 @@ export default memo(function AppRoutes() {
           <Route path=":planId" element={<PlanDetails />} />
         </Route>
 
-        <Route path="groups" element={<Groups />}>
-          <Route path="create" element={<NewGroup />} />
-          <Route path=":groupId" element={<GroupDetails />} />
-        </Route>
         <Route path="roles" element={<Roles />}>
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>

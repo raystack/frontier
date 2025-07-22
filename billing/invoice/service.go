@@ -22,6 +22,7 @@ import (
 	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/rql"
 	"go.uber.org/zap"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -42,6 +43,7 @@ type Repository interface {
 	List(ctx context.Context, filter Filter) ([]Invoice, error)
 	UpdateByID(ctx context.Context, invoice Invoice) (Invoice, error)
 	Delete(ctx context.Context, id string) error
+	Search(ctx context.Context, rqlQuery *rql.Query) ([]InvoiceWithOrganization, error)
 }
 
 type CustomerService interface {
@@ -82,6 +84,9 @@ type Service struct {
 	creditOverdraftInvoiceDay      int
 	creditOverdraftRangeOfInvoice  string
 	creditOverdraftRangeShift      int
+
+	defaultCurrency     string
+	paymentMethodConfig []billing.PaymentMethodConfig
 }
 
 func NewService(stripeClient *client.API, invoiceRepository Repository,
@@ -100,6 +105,8 @@ func NewService(stripeClient *client.API, invoiceRepository Repository,
 		creditOverdraftInvoiceDay:     cfg.AccountConfig.CreditOverdraftInvoiceDay,
 		creditOverdraftRangeShift:     cfg.AccountConfig.CreditOverdraftInvoiceRangeShift,
 		creditOverdraftRangeOfInvoice: MonthCreditRangeForInvoice,
+		defaultCurrency:               cfg.DefaultCurrency,
+		paymentMethodConfig:           cfg.PaymentMethodConfig,
 	}
 }
 
@@ -574,6 +581,7 @@ func abs(x int64) int64 {
 // regular syncer/webhook loop.
 func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer,
 	description string, items []Item, currency string) (*stripe.Invoice, error) {
+	amountSubtotal := int64(0)
 	// validate items if any
 	for _, item := range items {
 		if item.UnitAmount == 0 || item.Quantity == 0 {
@@ -586,6 +594,10 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		if item.ID == "" {
 			return nil, errors.New("item id is required")
 		}
+
+		if currency == s.defaultCurrency {
+			amountSubtotal += item.UnitAmount * item.Quantity
+		}
 	}
 
 	custmrDetails, err := s.customerService.GetDetails(ctx, custmr.ID)
@@ -596,6 +608,14 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 	var daysUntilDue *int64
 	if custmrDetails.DueInDays > 0 {
 		daysUntilDue = stripe.Int64(custmrDetails.DueInDays)
+	}
+
+	// invoice payment methods on the basis of amount subtotal
+	var paymentMethodTypes []*string
+	for _, paymentMethodConfig := range s.paymentMethodConfig {
+		if paymentMethodConfig.IsAllowedForAmount(amountSubtotal) {
+			paymentMethodTypes = append(paymentMethodTypes, stripe.String(paymentMethodConfig.Type))
+		}
 	}
 
 	stripeInvoice, err := s.stripeClient.Invoices.New(&stripe.InvoiceParams{
@@ -615,6 +635,17 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		Metadata: map[string]string{
 			"org_id":     custmr.OrgID,
 			"managed_by": "frontier",
+		},
+		PaymentSettings: &stripe.InvoicePaymentSettingsParams{
+			PaymentMethodTypes: paymentMethodTypes,
+			PaymentMethodOptions: &stripe.InvoicePaymentSettingsPaymentMethodOptionsParams{
+				CustomerBalance: &stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceParams{
+					FundingType: stripe.String(string(stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceFundingTypeBankTransfer)),
+					BankTransfer: &stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceBankTransferParams{
+						Type: stripe.String("us_bank_transfer"),
+					},
+				},
+			},
 		},
 	})
 	if err != nil {
@@ -774,4 +805,8 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 		return ErrNotFound
 	}
 	return s.SyncWithProvider(ctx, customrs[0])
+}
+
+func (s *Service) SearchInvoices(ctx context.Context, rqlQuery *rql.Query) ([]InvoiceWithOrganization, error) {
+	return s.repository.Search(ctx, rqlQuery)
 }

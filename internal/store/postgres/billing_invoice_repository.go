@@ -17,6 +17,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/salt/rql"
 )
 
 type Invoice struct {
@@ -99,6 +100,32 @@ func (i Invoice) transform() (invoice.Invoice, error) {
 		PeriodStartAt: periodStartAt,
 		PeriodEndAt:   periodEndAt,
 	}, nil
+}
+
+type InvoiceWithOrgModel struct {
+	ID        string    `db:"id"`
+	Amount    int64     `db:"amount"`
+	Currency  string    `db:"currency"`
+	State     string    `db:"state"`
+	HostedURL string    `db:"hosted_url"`
+	CreatedAt time.Time `db:"created_at"`
+	OrgID     string    `db:"org_id"`
+	OrgName   string    `db:"org_name"`
+	OrgTitle  string    `db:"org_title"`
+}
+
+func (i InvoiceWithOrgModel) transform() invoice.InvoiceWithOrganization {
+	return invoice.InvoiceWithOrganization{
+		ID:          i.ID,
+		Amount:      i.Amount,
+		Currency:    i.Currency,
+		State:       invoice.State(i.State),
+		InvoiceLink: i.HostedURL,
+		CreatedAt:   i.CreatedAt,
+		OrgID:       i.OrgID,
+		OrgName:     i.OrgName,
+		OrgTitle:    i.OrgTitle,
+	}
 }
 
 type BillingInvoiceRepository struct {
@@ -309,4 +336,138 @@ func (r BillingInvoiceRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %w", txnErr, err)
 	}
 	return nil
+}
+
+func (r BillingInvoiceRepository) Search(ctx context.Context, rqlQuery *rql.Query) ([]invoice.InvoiceWithOrganization, error) {
+	dataQuery, params, err := r.prepareDataQuery(rqlQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	var invoiceModels []InvoiceWithOrgModel
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Search", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &invoiceModels, dataQuery, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	// Transform results
+	invoices := make([]invoice.InvoiceWithOrganization, 0, len(invoiceModels))
+	for _, invoiceModel := range invoiceModels {
+		invoices = append(invoices, invoiceModel.transform())
+	}
+
+	return invoices, nil
+}
+
+func (r BillingInvoiceRepository) prepareDataQuery(rqlQuery *rql.Query) (string, []interface{}, error) {
+	query := r.buildBaseQuery()
+
+	// Apply filters
+	for _, filter := range rqlQuery.Filters {
+		query = r.addFilter(query, filter)
+	}
+
+	// Apply search
+	if rqlQuery.Search != "" {
+		query = r.addSearch(query, rqlQuery.Search)
+	}
+
+	// Add sorting
+	query, err := r.addSort(query, rqlQuery.Sort)
+	if err != nil {
+		return "", nil, err
+	}
+
+	query = query.Offset(uint(rqlQuery.Offset)).Limit(uint(rqlQuery.Limit))
+
+	return query.ToSQL()
+}
+
+func (r BillingInvoiceRepository) buildBaseQuery() *goqu.SelectDataset {
+	return dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
+		InnerJoin(
+			goqu.T(TABLE_BILLING_CUSTOMERS),
+			goqu.On(goqu.I(TABLE_BILLING_INVOICES+".customer_id").Eq(goqu.I(TABLE_BILLING_CUSTOMERS+".id"))),
+		).
+		InnerJoin(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+".org_id").Eq(goqu.I(TABLE_ORGANIZATIONS+".id"))),
+		).
+		Select(
+			goqu.I(TABLE_BILLING_INVOICES+".id").As("id"),
+			goqu.I(TABLE_BILLING_INVOICES+".amount").As("amount"),
+			goqu.I(TABLE_BILLING_INVOICES+".currency").As("currency"),
+			goqu.I(TABLE_BILLING_INVOICES+".state").As("state"),
+			goqu.I(TABLE_BILLING_INVOICES+".hosted_url").As("hosted_url"),
+			goqu.I(TABLE_BILLING_INVOICES+".created_at").As("created_at"),
+			goqu.I(TABLE_ORGANIZATIONS+".id").As("org_id"),
+			goqu.I(TABLE_ORGANIZATIONS+".name").As("org_name"),
+			goqu.I(TABLE_ORGANIZATIONS+".title").As("org_title"),
+		)
+}
+
+func (r BillingInvoiceRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) *goqu.SelectDataset {
+	field := TABLE_BILLING_INVOICES + "." + filter.Name
+
+	switch filter.Operator {
+	case "empty":
+		return query.Where(goqu.Or(goqu.I(field).IsNull(), goqu.I(field).Eq("")))
+	case "notempty":
+		return query.Where(goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq("")))
+	case "like", "notlike":
+		value := "%" + filter.Value.(string) + "%"
+		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: value}})
+	default:
+		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}})
+	}
+}
+
+func (r BillingInvoiceRepository) addSearch(query *goqu.SelectDataset, search string) *goqu.SelectDataset {
+	searchableColumns := []string{
+		TABLE_BILLING_INVOICES + ".state",
+		TABLE_BILLING_INVOICES + ".currency",
+		TABLE_BILLING_INVOICES + ".amount",
+		TABLE_ORGANIZATIONS + ".name",
+		TABLE_ORGANIZATIONS + ".title",
+	}
+
+	searchPattern := "%" + search + "%"
+
+	searchExpressions := make([]goqu.Expression, 0)
+	for _, col := range searchableColumns {
+		searchExpressions = append(searchExpressions,
+			goqu.Cast(goqu.I(col), "TEXT").ILike(searchPattern),
+		)
+	}
+
+	return query.Where(goqu.Or(searchExpressions...))
+}
+
+func (r BillingInvoiceRepository) addSort(query *goqu.SelectDataset, sorts []rql.Sort) (*goqu.SelectDataset, error) {
+	// Map of allowed sort fields to their table-qualified names
+	allowedSortFields := map[string]string{
+		"state":      TABLE_BILLING_INVOICES + ".state",
+		"amount":     TABLE_BILLING_INVOICES + ".amount",
+		"created_at": TABLE_BILLING_INVOICES + ".created_at",
+		"org_name":   TABLE_ORGANIZATIONS + ".name",
+		"org_title":  TABLE_ORGANIZATIONS + ".title",
+	}
+
+	for _, sort := range sorts {
+		field, allowed := allowedSortFields[sort.Name]
+		if !allowed {
+			return nil, fmt.Errorf("sorting not allowed on field: %s", sort.Name)
+		}
+
+		switch sort.Order {
+		case "asc":
+			query = query.OrderAppend(goqu.I(field).Asc())
+		case "desc":
+			query = query.OrderAppend(goqu.I(field).Desc())
+		}
+	}
+
+	return query, nil
 }

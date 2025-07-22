@@ -1,18 +1,19 @@
-import { Flex, Link, List, Text } from "@raystack/apsara/v1";
+import { CopyButton, Flex, Link, List, Text } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
-import { V1Beta1Invoice } from "~/api/frontier";
+import { Frontierv1Beta1Invoice } from "~/api/frontier";
 import { converBillingAddressToString } from "~/utils/helper";
 import Skeleton from "react-loading-skeleton";
 import { useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Amount } from "@raystack/frontier/react";
+import { Amount } from "@raystack/apsara/v1";
 import { OrganizationContext } from "../contexts/organization-context";
 
 export const BillingDetailsSection = () => {
   const { billingAccount, organization } = useContext(OrganizationContext);
-  const [upcomingInvoice, setUpcomingInvoice] = useState<V1Beta1Invoice>();
+  const [upcomingInvoice, setUpcomingInvoice] =
+    useState<Frontierv1Beta1Invoice>();
   const [isUpcomingInvoiceLoading, setIsUpcomingInvoiceLoading] =
     useState(false);
 
@@ -63,6 +64,22 @@ export const BillingDetailsSection = () => {
           ) : (
             <Text>{billingAccount?.name || "N/A"}</Text>
           )}
+        </List.Value>
+      </List.Item>
+      <List.Item>
+        <List.Label className={styles["side-panel-section-item-label"]}>
+          Billing Account ID
+        </List.Label>
+        <List.Value>
+          <Flex gap={3}>
+            <CopyButton
+              text={billingAccount?.id || ""}
+              data-test-id="copy-button"
+            />
+            <Text className={styles["org-details-section-org-id"]}>
+              {billingAccount?.id}
+            </Text>
+          </Flex>
         </List.Value>
       </List.Item>
       <List.Item>
