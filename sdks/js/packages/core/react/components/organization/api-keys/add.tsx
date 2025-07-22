@@ -21,6 +21,7 @@ import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import styles from './styles.module.css';
 import { handleSelectValueChange } from '~/react/utils';
+import { useTranslation } from 'react-i18next';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 
@@ -40,6 +41,8 @@ export const AddServiceAccount = () => {
   const [projects, setProjects] = useState<V1Beta1Project[]>([]);
 
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+
+  const { t } = useTranslation();
 
   const {
     register,
@@ -155,7 +158,8 @@ export const AddServiceAccount = () => {
             <Flex direction="column" gap={5}>
               <Text>
                 Create a dedicated service account to facilitate secure API
-                interactions on behalf of the organization.
+                interactions on behalf of the{' '}
+                {t('terminology.organization').toLowerCase()}.
               </Text>
               {isLoading ? (
                 <Skeleton height={'25px'} />
