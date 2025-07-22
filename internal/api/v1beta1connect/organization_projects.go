@@ -37,7 +37,7 @@ func (h *ConnectHandler) SearchOrganizationProjects(ctx context.Context, request
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
 		}
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	for _, v := range orgProjectsData.Projects {
