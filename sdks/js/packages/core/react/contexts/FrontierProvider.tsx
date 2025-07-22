@@ -8,14 +8,14 @@ export const multipleFrontierProvidersError =
   "Frontier: You've added multiple <FrontierProvider> components in your React component tree. Wrap your components in a single <FrontierProvider>.";
 
 export const FrontierProvider = (props: FrontierProviderProps) => {
-  const { children, initialState, config, theme, ...options } = props;
+  const { children, initialState, config, theme, translations, ...options } = props;
   return (
     <FrontierContextProvider
       initialState={initialState}
       config={config}
       {...options}
     >
-      <I18nProvider>
+      <I18nProvider resources={translations}>
         <ThemeProvider {...theme}>{children}</ThemeProvider>
       </I18nProvider>
     </FrontierContextProvider>

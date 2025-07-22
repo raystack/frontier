@@ -18,7 +18,6 @@ export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
 export { I18nProvider } from './components/I18nProvider';
 
-export type { TranslationResources } from './i18n';
 
 export { useTokens } from './hooks/useTokens';
 export { useBillingPermission } from './hooks/useBillingPermission';
@@ -29,5 +28,7 @@ export type {
   FrontierClientOptions,
   FrontierClientBillingOptions
 } from '../shared/types';
+
+export type { TranslationResources } from './i18n';
 
 export { PREFERENCE_OPTIONS } from './utils/constants';

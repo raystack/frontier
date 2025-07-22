@@ -2,39 +2,36 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { merge, keys, forEach } from 'lodash';
 import en from './locales/en.json';
+import type { TranslationResources } from './types';
 
-export type TranslationResources = {
-  [language: string]: {
-    [namespace: string]: Record<string, any>;
-  };
-};
 
 const defaultResources: TranslationResources = {
-  en: {
-    translation: en,
-  },
+  en: en,
 };
 
 const mergeResources = (resources?: TranslationResources): TranslationResources => {
   if (!resources) return defaultResources;
   
   return Object.keys(resources).reduce((acc, lang) => {
-    acc[lang] = {
-      translation: merge(
-        {},
-        defaultResources[lang]?.translation || {},
-        resources[lang]?.translation || {}
-      )
-    };
+    acc[lang] = merge(
+      {},
+      defaultResources[lang] || {},
+      resources[lang] || {}
+    );
     return acc;
   }, {} as TranslationResources);
 };
 
 const initializeI18n = (mergedResources: TranslationResources, language: string) => {
+  const i18nextResources = Object.keys(mergedResources).reduce((acc, lang) => {
+    acc[lang] = { translation: mergedResources[lang] };
+    return acc;
+  }, {} as any);
+
   i18n
     .use(initReactI18next)
     .init({
-      resources: mergedResources,
+      resources: i18nextResources,
       lng: language,
       fallbackLng: 'en',
       interpolation: {
@@ -45,9 +42,7 @@ const initializeI18n = (mergedResources: TranslationResources, language: string)
 
 const addResourceBundles = (mergedResources: TranslationResources) => {
   forEach(keys(mergedResources), (lang) => {
-    forEach(keys(mergedResources[lang]), (namespace) => {
-      i18n.addResourceBundle(lang, namespace, mergedResources[lang][namespace], true, true);
-    });
+    i18n.addResourceBundle(lang, 'translation', mergedResources[lang], true, true);
   });
 };
 
@@ -66,4 +61,5 @@ export const initI18n = (resources?: TranslationResources, language = 'en') => {
 
 initI18n();
 
+export type { TranslationResources } from './types';
 export default i18n;
