@@ -34,6 +34,34 @@ func (h *ConnectHandler) GetOrganization(ctx context.Context, request *connect.R
 	}), nil
 }
 
+func (h *ConnectHandler) ListAllOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllOrganizationsRequest]) (*connect.Response[frontierv1beta1.ListAllOrganizationsResponse], error) {
+	var orgs []*frontierv1beta1.Organization
+	paginate := pagination.NewPagination(request.Msg.GetPageNum(), request.Msg.GetPageSize())
+
+	orgList, err := h.orgService.List(ctx, organization.Filter{
+		State:      organization.State(request.Msg.GetState()),
+		UserID:     request.Msg.GetUserId(),
+		Pagination: paginate,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range orgList {
+		orgPB, err := transformOrgToPB(v)
+		if err != nil {
+			return nil, err
+		}
+
+		orgs = append(orgs, orgPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListAllOrganizationsResponse{
+		Organizations: orgs,
+		Count:         paginate.Count,
+	}), nil
+}
+
 func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {
 	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {
