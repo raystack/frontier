@@ -208,8 +208,8 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	reflector := grpcreflect.NewStaticReflector(
 		"raystack.frontier.v1beta1.FrontierService",
 		"raystack.frontier.v1beta1.AdminService") // protoc-gen-connect-go generates package-level constants
-	// for these fully-qualified protobuf service names, so you'd more likely
-	// reference userv1.UserServiceName and groupv1.GroupServiceName.
+	// for these fully-qualified protobuf service names, such as
+	// frontierv1beta1.FrontierServiceName and frontierv1beta1.AdminServiceName
 
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	// Many tools still expect the older version of the server reflection API, so
