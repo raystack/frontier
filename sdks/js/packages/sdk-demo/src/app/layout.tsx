@@ -15,6 +15,9 @@ const translations: TranslationResources = {
     },
     billing: {
       plan_change: {}
+    },
+    terminology: {
+      organization: 'Workspace'
     }
   }
 };
