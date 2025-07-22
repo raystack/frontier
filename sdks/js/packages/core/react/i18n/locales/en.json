@@ -4,5 +4,8 @@
   },
   "billing": {
     "plan_change": {}
+  },
+  "terminology": {
+    "organization": "Organization"
   }
 }

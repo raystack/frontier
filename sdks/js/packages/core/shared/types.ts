@@ -2,6 +2,7 @@ import React from 'react';
 import { V1Beta1Organization } from '../api-client';
 import { BasePlan } from '../src/types';
 import { ThemeProviderProps } from '@raystack/apsara/v1';
+import type { TranslationResources } from '../react/i18n/types';
 export type CustomFetch = typeof fetch;
 
 export interface FrontierClientBillingOptions {
@@ -36,4 +37,5 @@ export interface FrontierProviderProps {
   initialState?: InitialState;
   customFetch?: (activeOrg?: V1Beta1Organization) => CustomFetch;
   theme?: ThemeProviderProps;
+  translations?: TranslationResources;
 }
