@@ -4,7 +4,8 @@
     "paths": {
       "~/*": ["./*"]
     },
-    "types": ["jest"]
+    "types": ["jest"],
+    "resolveJsonModule": true
   },
   "include": ["."],
   "exclude": ["dist", "react/dist", "node_modules"]
