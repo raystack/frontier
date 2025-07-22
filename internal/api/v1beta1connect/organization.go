@@ -5,9 +5,9 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/organization"
-	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-
 	"github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/pagination"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
