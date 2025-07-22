@@ -14,7 +14,6 @@ import {
   DEFAULT_API_PLATFORM_APP_NAME,
   DEFAULT_DATE_FORMAT
 } from '~/react/utils/constants';
-import type { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { useEffect, useMemo, useState } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -22,13 +21,11 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getColumns } from './columns';
 import type { V1Beta1ServiceUser } from '~/api-client';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 
-const NoServiceAccounts = ({
-  config
-}: {
-  config?: FrontierClientAPIPlatformOptions;
-}) => {
-  const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+const NoServiceAccounts = () => {
+  const { t } = useTranslation();
+  const appName = t('apiPlatform.appName', DEFAULT_API_PLATFORM_APP_NAME);
 
   const navigate = useNavigate({ from: '/api-keys' });
   return (
@@ -65,13 +62,12 @@ const NoAccess = () => {
 };
 
 const Headings = ({
-  config,
   isLoading
 }: {
-  config?: FrontierClientAPIPlatformOptions;
   isLoading: boolean;
 }) => {
-  const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+  const { t } = useTranslation();
+  const appName = t('apiPlatform.appName', DEFAULT_API_PLATFORM_APP_NAME);
   return (
     <Flex direction="column" gap={3} style={{ width: '100%' }}>
       {isLoading ? (
@@ -227,7 +223,7 @@ export default function ApiKeys() {
       {canUpdateWorkspace || isLoading ? (
         serviceAccountsCount > 0 || isLoading ? (
           <Flex className={styles.content} direction="column" gap={9}>
-            <Headings isLoading={isLoading} config={config?.apiPlatform} />
+            <Headings isLoading={isLoading} />
             <ServiceAccountsTable
               isLoading={isLoading}
               serviceUsers={serviceUsers}
@@ -235,7 +231,7 @@ export default function ApiKeys() {
             />
           </Flex>
         ) : (
-          <NoServiceAccounts config={config?.apiPlatform} />
+          <NoServiceAccounts />
         )
       ) : (
         <NoAccess />

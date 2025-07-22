@@ -9,7 +9,7 @@ import {
   Dialog
 } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import * as _ from 'lodash';
+import { useTranslation } from 'react-i18next';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import {
@@ -26,6 +26,7 @@ import styles from '../../organization.module.css';
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
   const { planId } = useParams({ from: '/plans/confirm-change/$planId' });
+  const { t } = useTranslation();
   const {
     activePlan,
     isActivePlanLoading,
@@ -70,7 +71,7 @@ export default function ConfirmPlanChange() {
       : '';
 
   const planChangeMessage = planChangeSlug
-    ? _.get(config, ['messages', 'billing', 'plan_change', planChangeSlug])
+    ? t(`billing.plan_change.${planChangeSlug}`, '')
     : '';
 
   const isUpgrade = planAction.btnLabel === 'Upgrade';

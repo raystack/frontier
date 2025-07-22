@@ -7,7 +7,6 @@ import {
   useNavigate,
   useParams
 } from '@tanstack/react-router';
-import { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -15,19 +14,19 @@ import type { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
+import { useTranslation } from 'react-i18next';
 
 const Headings = ({
   isLoading,
-  config,
   name,
   serviceUserId
 }: {
   isLoading: boolean;
   name: string;
-  config?: FrontierClientAPIPlatformOptions;
   serviceUserId: string;
 }) => {
-  const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+  const { t } = useTranslation();
+  const appName = t('apiPlatform.appName', DEFAULT_API_PLATFORM_APP_NAME);
 
   const navigate = useNavigate({ from: '/api-keys/$id' });
 

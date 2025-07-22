@@ -15,10 +15,6 @@ export interface FrontierClientBillingOptions {
   basePlan?: BasePlan;
 }
 
-export interface FrontierClientAPIPlatformOptions {
-  appName?: string;
-}
-
 export interface FrontierClientOptions {
   endpoint: string;
   redirectSignup?: string;
@@ -28,12 +24,6 @@ export interface FrontierClientOptions {
   dateFormat?: string;
   shortDateFormat?: string;
   billing?: FrontierClientBillingOptions;
-  apiPlatform?: FrontierClientAPIPlatformOptions;
-  messages?: {
-    billing?: {
-      plan_change?: Record<string, string>;
-    };
-  };
 }
 
 export interface InitialState {
