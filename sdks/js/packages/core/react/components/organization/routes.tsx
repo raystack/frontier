@@ -45,7 +45,7 @@ import ServiceUserPage from './api-keys/service-user';
 import { DeleteServiceAccount } from './api-keys/delete';
 import { DeleteServiceAccountKey } from './api-keys/service-user/delete';
 import ManageServiceUserProjects from './api-keys/service-user/projects';
-import SessionsPage from './sessions';
+import { SessionsPage, RevokeSessionConfirm } from './sessions';
 export interface CustomScreen {
   name: string;
   path: string;
@@ -348,6 +348,12 @@ const sessionsRoute = createRoute({
   component: SessionsPage
 });
 
+const revokeSessionRoute = createRoute({
+  getParentRoute: () => sessionsRoute,
+  path: '/revoke',
+  component: RevokeSessionConfirm
+});
+
 interface getRootTreeOptions {
   customScreens?: CustomScreen[];
 }
@@ -356,7 +362,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
   return rootRoute.addChildren([
     indexRoute.addChildren([deleteOrgRoute]),
     securityRoute,
-    sessionsRoute,
+    sessionsRoute.addChildren([revokeSessionRoute]),
     membersRoute.addChildren([inviteMemberRoute, removeMemberRoute]),
     teamsRoute.addChildren([addTeamRoute]),
     domainsRoute.addChildren([

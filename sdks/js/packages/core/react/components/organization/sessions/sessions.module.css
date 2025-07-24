@@ -1,6 +1,11 @@
+* {
+  font-family: var(--rs-font-inter);
+}
+
 .header {
   margin-bottom: var(--rs-space-9);
 }
+
 
 .container {
   padding: var(--rs-space-9) var(--rs-space-11);
@@ -8,7 +13,28 @@
 
 .sessionItem {
   padding: var(--rs-space-7) 0 var(--rs-space-7) 0;
-  border-bottom: 1px solid var(--rs-color-border-base-primary);
+  border-bottom: 0.9px solid var(--rs-color-border-base-primary);
 }
-  
-  
+
+/* Revoke Session Confirm START */
+.revokeSessionConfirmHeader {
+  border-bottom: none;
+}
+
+.revokeSessionConfirmBody {
+  padding: var(--rs-space-5) var(--rs-space-7);
+  border-bottom: 0.9px solid var(--rs-color-border-base-primary);
+}
+
+.listItem {
+  border-bottom: 0.9px solid var(--rs-color-border-base-primary);
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.listRoot {
+  gap: 0;
+}
+/* Revoke Session Confirm END */
