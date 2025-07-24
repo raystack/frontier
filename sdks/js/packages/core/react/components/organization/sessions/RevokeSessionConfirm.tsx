@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import {
   Button,
   toast,
@@ -8,10 +10,8 @@ import {
   IconButton,
   Image
 } from '@raystack/apsara/v1';
-import { useNavigate } from '@tanstack/react-router';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useState } from 'react';
+import cross from '~/react/assets/cross.svg';
 import styles from './sessions.module.css';
 
 export const RevokeSessionConfirm = () => {
