@@ -1,7 +1,14 @@
+.header {
+  margin-bottom: var(--rs-space-9);
+}
+
 .container {
-    height: 100%;
-    padding: var(--rs-space-9) var(--rs-space-11);
-    overflow: hidden;
-  }
+  padding: var(--rs-space-9) var(--rs-space-11);
+}
+
+.sessionItem {
+  padding: var(--rs-space-7) 0 var(--rs-space-7) 0;
+  border-bottom: 1px solid var(--rs-color-border-base-primary);
+}
   
   
