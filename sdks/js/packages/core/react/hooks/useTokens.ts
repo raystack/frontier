@@ -3,7 +3,7 @@ import { useFrontier } from '../contexts/FrontierContext';
 import { toast } from '@raystack/apsara/v1';
 
 export const useTokens = () => {
-  const { client, activeOrganization, billingAccount } = useFrontier();
+  const { client, billingAccount } = useFrontier();
 
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokensLoading, setIsTokensLoading] = useState(true);
@@ -29,10 +29,10 @@ export const useTokens = () => {
   );
 
   const fetchTokenBalance = useCallback(() => {
-    if (client && activeOrganization?.id && billingAccount?.id) {
-      getBalance(activeOrganization.id, billingAccount.id);
+    if (client && billingAccount?.org_id && billingAccount?.id) {
+      getBalance(billingAccount?.org_id, billingAccount.id);
     }
-  }, [activeOrganization?.id, billingAccount?.id, client, getBalance]);
+  }, [billingAccount?.org_id, billingAccount?.id, client, getBalance]);
 
   useEffect(() => {
     fetchTokenBalance();
