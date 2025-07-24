@@ -5,9 +5,11 @@ import {
   DropdownMenu,
   Flex,
   Sidebar,
+  Text,
   useTheme,
 } from "@raystack/apsara/v1";
-import { api } from "~/api";
+import { useMutation } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 
 import styles from "./sidebar.module.css";
 import { OrganizationIcon } from "@raystack/apsara/icons";
@@ -120,25 +122,25 @@ export default function IAMSidebar() {
     return isMatchingPath;
   };
   return (
-    <Sidebar open className={styles.sidebar}>
-      <Sidebar.Header
-        logo={
-          <Flex align="center" style={{ height: "100%" }}>
-            <IAMIcon />
-          </Flex>
-        }
-        title={BRAND_NAME}
-      />
+    <Sidebar open className={styles.sidebar} collapsible={false}>
+      <Sidebar.Header>
+        <Flex align="center" style={{ height: "100%" }}>
+          <IAMIcon />
+        </Flex>
+        <Text size="small" weight="medium">
+          {BRAND_NAME}
+        </Text>
+      </Sidebar.Header>
       <Sidebar.Main>
         {navigationItems.map(nav => {
           return nav?.subItems?.length ? (
             <Sidebar.Group
-              name={nav.name}
+              label={nav.name}
               key={nav.name}
               className={styles["sidebar-group"]}>
               {nav.subItems?.map(subItem => (
                 <Sidebar.Item
-                  icon={subItem.icon}
+                  leadingIcon={subItem.icon}
                   key={subItem.name}
                   active={isActive(subItem.to)}
                   data-test-id={`admin-ui-sidebar-navigation-cell-${subItem.name}`}
@@ -149,7 +151,7 @@ export default function IAMSidebar() {
             </Sidebar.Group>
           ) : (
             <Sidebar.Item
-              icon={nav.icon}
+              leadingIcon={nav.icon}
               key={nav.name}
               active={isActive(nav.to)}
               data-test-id={`admin-ui-sidebar-navigation-cell-${nav.name}`}
@@ -169,12 +171,12 @@ export default function IAMSidebar() {
 function UserDropdown() {
   const { user } = useContext(AppContext);
   const { theme, setTheme } = useTheme();
-
-  async function logout() {
-    await api?.frontierServiceAuthLogout();
-    window.location.href = "/";
-    window.location.reload();
-  }
+  const logoutMutation = useMutation(FrontierServiceQueries.authLogout, {
+    onSuccess: () => {
+      window.location.href = "/";
+      window.location.reload();
+    },
+  });
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -195,7 +197,9 @@ function UserDropdown() {
     <DropdownMenu placement="top">
       <DropdownMenu.Trigger asChild>
         <Sidebar.Item
-          icon={<Avatar src={user?.avatar} fallback={userInital} size={3} />}
+          leadingIcon={
+            <Avatar src={user?.avatar} fallback={userInital} size={3} />
+          }
           data-test-id="frontier-sdk-sidebar-logout">
           {user?.email}
         </Sidebar.Item>
@@ -206,7 +210,7 @@ function UserDropdown() {
           data-test-id="admin-ui-toggle-theme">
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={logout} data-test-id="admin-ui-logout-btn">
+        <DropdownMenu.Item onClick={() => logoutMutation.mutate({})} data-test-id="admin-ui-logout-btn">
           Logout
         </DropdownMenu.Item>
       </DropdownMenu.Content>

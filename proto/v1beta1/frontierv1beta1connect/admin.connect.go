@@ -198,6 +198,9 @@ const (
 	// AdminServiceSearchInvoicesProcedure is the fully-qualified name of the AdminService's
 	// SearchInvoices RPC.
 	AdminServiceSearchInvoicesProcedure = "/raystack.frontier.v1beta1.AdminService/SearchInvoices"
+	// AdminServiceGetCurrentAdminUserProcedure is the fully-qualified name of the AdminService's
+	// GetCurrentAdminUser RPC.
+	AdminServiceGetCurrentAdminUserProcedure = "/raystack.frontier.v1beta1.AdminService/GetCurrentAdminUser"
 )
 
 // AdminServiceClient is a client for the raystack.frontier.v1beta1.AdminService service.
@@ -287,6 +290,8 @@ type AdminServiceClient interface {
 	UpdateProspect(context.Context, *connect.Request[v1beta1.UpdateProspectRequest]) (*connect.Response[v1beta1.UpdateProspectResponse], error)
 	DeleteProspect(context.Context, *connect.Request[v1beta1.DeleteProspectRequest]) (*connect.Response[v1beta1.DeleteProspectResponse], error)
 	SearchInvoices(context.Context, *connect.Request[v1beta1.SearchInvoicesRequest]) (*connect.Response[v1beta1.SearchInvoicesResponse], error)
+	// Admin Self
+	GetCurrentAdminUser(context.Context, *connect.Request[v1beta1.GetCurrentAdminUserRequest]) (*connect.Response[v1beta1.GetCurrentAdminUserResponse], error)
 }
 
 // NewAdminServiceClient constructs a client for the raystack.frontier.v1beta1.AdminService service.
@@ -636,6 +641,12 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(adminServiceMethods.ByName("SearchInvoices")),
 			connect.WithClientOptions(opts...),
 		),
+		getCurrentAdminUser: connect.NewClient[v1beta1.GetCurrentAdminUserRequest, v1beta1.GetCurrentAdminUserResponse](
+			httpClient,
+			baseURL+AdminServiceGetCurrentAdminUserProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("GetCurrentAdminUser")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -697,6 +708,7 @@ type adminServiceClient struct {
 	updateProspect                           *connect.Client[v1beta1.UpdateProspectRequest, v1beta1.UpdateProspectResponse]
 	deleteProspect                           *connect.Client[v1beta1.DeleteProspectRequest, v1beta1.DeleteProspectResponse]
 	searchInvoices                           *connect.Client[v1beta1.SearchInvoicesRequest, v1beta1.SearchInvoicesResponse]
+	getCurrentAdminUser                      *connect.Client[v1beta1.GetCurrentAdminUserRequest, v1beta1.GetCurrentAdminUserResponse]
 }
 
 // ListAllUsers calls raystack.frontier.v1beta1.AdminService.ListAllUsers.
@@ -989,6 +1001,11 @@ func (c *adminServiceClient) SearchInvoices(ctx context.Context, req *connect.Re
 	return c.searchInvoices.CallUnary(ctx, req)
 }
 
+// GetCurrentAdminUser calls raystack.frontier.v1beta1.AdminService.GetCurrentAdminUser.
+func (c *adminServiceClient) GetCurrentAdminUser(ctx context.Context, req *connect.Request[v1beta1.GetCurrentAdminUserRequest]) (*connect.Response[v1beta1.GetCurrentAdminUserResponse], error) {
+	return c.getCurrentAdminUser.CallUnary(ctx, req)
+}
+
 // AdminServiceHandler is an implementation of the raystack.frontier.v1beta1.AdminService service.
 type AdminServiceHandler interface {
 	// Users
@@ -1076,6 +1093,8 @@ type AdminServiceHandler interface {
 	UpdateProspect(context.Context, *connect.Request[v1beta1.UpdateProspectRequest]) (*connect.Response[v1beta1.UpdateProspectResponse], error)
 	DeleteProspect(context.Context, *connect.Request[v1beta1.DeleteProspectRequest]) (*connect.Response[v1beta1.DeleteProspectResponse], error)
 	SearchInvoices(context.Context, *connect.Request[v1beta1.SearchInvoicesRequest]) (*connect.Response[v1beta1.SearchInvoicesResponse], error)
+	// Admin Self
+	GetCurrentAdminUser(context.Context, *connect.Request[v1beta1.GetCurrentAdminUserRequest]) (*connect.Response[v1beta1.GetCurrentAdminUserResponse], error)
 }
 
 // NewAdminServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -1421,6 +1440,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(adminServiceMethods.ByName("SearchInvoices")),
 		connect.WithHandlerOptions(opts...),
 	)
+	adminServiceGetCurrentAdminUserHandler := connect.NewUnaryHandler(
+		AdminServiceGetCurrentAdminUserProcedure,
+		svc.GetCurrentAdminUser,
+		connect.WithSchema(adminServiceMethods.ByName("GetCurrentAdminUser")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/raystack.frontier.v1beta1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AdminServiceListAllUsersProcedure:
@@ -1535,6 +1560,8 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceDeleteProspectHandler.ServeHTTP(w, r)
 		case AdminServiceSearchInvoicesProcedure:
 			adminServiceSearchInvoicesHandler.ServeHTTP(w, r)
+		case AdminServiceGetCurrentAdminUserProcedure:
+			adminServiceGetCurrentAdminUserHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1766,4 +1793,8 @@ func (UnimplementedAdminServiceHandler) DeleteProspect(context.Context, *connect
 
 func (UnimplementedAdminServiceHandler) SearchInvoices(context.Context, *connect.Request[v1beta1.SearchInvoicesRequest]) (*connect.Response[v1beta1.SearchInvoicesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchInvoices is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) GetCurrentAdminUser(context.Context, *connect.Request[v1beta1.GetCurrentAdminUserRequest]) (*connect.Response[v1beta1.GetCurrentAdminUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.GetCurrentAdminUser is not implemented"))
 }

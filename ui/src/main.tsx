@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import Routes from "./routes";
 import { AppContextProvider } from "./contexts/App";
+import { ConnectProvider } from "./contexts/ConnectProvider";
 import { themeConfig } from "~/configs/theme";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
@@ -16,10 +17,12 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           highlightColor="var(--rs-color-background-base-primary)"
           baseColor="var(--rs-color-background-base-primary-hover)"
         >
-          <AppContextProvider>
-            <Routes />
-          </AppContextProvider>
-          <ToastContainer richColors />
+          <ConnectProvider>
+            <AppContextProvider>
+              <Routes />
+            </AppContextProvider>
+            <ToastContainer richColors />
+          </ConnectProvider>
         </SkeletonTheme>
       </ThemeProvider>
     </BrowserRouter>

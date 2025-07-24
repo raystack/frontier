@@ -307,29 +307,28 @@ export const OrganizationsDetailsNavabar = ({
   return (
     <nav className={styles.navbar}>
       <Flex gap={4} align="center">
-        <Breadcrumb
-          size="small"
-          separator={<ChevronRightIcon style={{ display: "flex" }} />}
-          items={[
-            {
-              label: "Organizations",
-              href: "/organizations",
-              icon: <OrganizationIcon />,
-            },
-            {
-              label: organization?.title || "NA",
-              href: `/organigations/${organization?.id}`,
-              icon: (
-                <Avatar
-                  color={getAvatarColor(organization?.id || "")}
-                  src={organization?.avatar}
-                  fallback={organization?.title?.[0]}
-                  size={1}
-                />
-              ),
-            },
-          ]}
-        />
+        <Breadcrumb size="small">
+          <Breadcrumb.Item
+            href="/organizations"
+            leadingIcon={<OrganizationIcon />}
+          >
+            Organizations
+          </Breadcrumb.Item>
+          <Breadcrumb.Separator />
+          <Breadcrumb.Item
+            href={`/organigations/${organization?.id}`}
+            leadingIcon={
+              <Avatar
+                color={getAvatarColor(organization?.id || "")}
+                src={organization?.avatar}
+                fallback={organization?.title?.[0]}
+                size={1}
+              />
+            }
+          >
+            {organization?.title || "NA"}
+          </Breadcrumb.Item>
+        </Breadcrumb>
         <NavbarActionMenu
           organizationId={organization?.id || ""}
           openKYCPanel={openKYCPanel}

@@ -26,7 +26,10 @@ interface EditBillingPanelProps {
 const billingDetailsUpdateSchema = z
   .object({
     token_payment_type: z.enum(["prepaid", "postpaid"]),
-    credit_min: z.number(),
+    credit_min: z.number().transform((val) => {
+      // Convert negative API values to positive UI values
+      return Math.abs(val);
+    }),
     due_in_days: z.number().min(0),
   })
   .refine(
@@ -39,6 +42,17 @@ const billingDetailsUpdateSchema = z
       path: ["credit_min"],
     },
   );
+
+// Schema for API submission (converts UI values back to API format)
+const billingDetailsApiSchema = billingDetailsUpdateSchema.transform(
+  (data) => ({
+    ...data,
+    credit_min:
+      data.token_payment_type === "postpaid"
+        ? -Math.abs(data.credit_min)
+        : data.credit_min,
+  }),
+);
 
 type BillingDetailsForm = z.infer<typeof billingDetailsUpdateSchema>;
 
@@ -67,7 +81,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
           billingId,
         );
         const data = resp?.data;
-        const credit_min = Number(data?.credit_min);
+        const credit_min = Number(data?.credit_min) * -1;
         reset({
           token_payment_type: credit_min > 0 ? "postpaid" : "prepaid",
           credit_min: credit_min,
@@ -89,12 +103,15 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
   }, [billingAccount?.org_id, billingAccount?.id, getBillingDetails]);
 
   const onSubmit = async (data: BillingDetailsForm) => {
+    // Transform data for API submission
+    const apiData = billingDetailsApiSchema.parse(data);
+
     await api?.adminServiceUpdateBillingAccountDetails(
       billingAccount?.org_id || "",
       billingAccount?.id || "",
       {
-        credit_min: data.credit_min.toString(),
-        due_in_days: data.due_in_days.toString(),
+        credit_min: apiData.credit_min.toString(),
+        due_in_days: apiData.due_in_days.toString(),
       },
     );
     const getBillingResp = await api?.frontierServiceGetBillingAccount(
@@ -115,6 +132,9 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     if (paymentType === "prepaid") {
       setValue("credit_min", 0);
       setValue("due_in_days", 0);
+    } else {
+      setValue("credit_min", 0);
+      setValue("due_in_days", 30);
     }
   };
 

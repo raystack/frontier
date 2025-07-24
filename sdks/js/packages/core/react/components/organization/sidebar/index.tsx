@@ -89,7 +89,11 @@ export const Sidebar = () => {
   );
 
   return (
-    <SidebarComponent open={true} className={styles.sidebarWrapper} collapsible={false}>
+    <SidebarComponent
+      open
+      className={styles.sidebarWrapper}
+      collapsible={false}
+    >
       <div className={styles.scrollArea}>
         <Flex direction="column" gap={4} style={{ marginTop: '64px' }}>
           <Search
@@ -102,10 +106,10 @@ export const Sidebar = () => {
             data-test-id="frontier-sdk-sidebar-search-field"
           />
 
-          <SidebarComponent.Main>
+          <SidebarComponent.Main style={{ gap: 'var(--rs-space-5)' }}>
             <SidebarComponent.Group
-              name="Organization"
-              icon={
+              label="Organization"
+              leadingIcon={
                 <Image
                   alt="organization"
                   width={16}
@@ -113,14 +117,62 @@ export const Sidebar = () => {
                   src={organization}
                 />
               }
+              className={styles.sidebarItemGroupContainer}
             >
-              {organizationNavItems
-                .filter(s => s.name.toLowerCase().includes(search))
-                .map(nav => {
-                  return (
+              <Flex
+                direction="column"
+                gap={2}
+                className={styles.sidebarItemGroup}
+              >
+                {organizationNavItems
+                  .filter(s => s.name.toLowerCase().includes(search))
+                  .map(nav => {
+                    return (
+                      <SidebarComponent.Item
+                        key={nav.name}
+                        classNames={{
+                          leadingIcon: styles.sidebarItemIcon
+                        }}
+                        as={
+                          <Link
+                            to={nav.to as string}
+                            data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
+                            style={{
+                              width: '100%',
+                              textDecoration: 'none'
+                            }}
+                            search={{}}
+                            params={{}}
+                          />
+                        }
+                        active={!!isActive(nav?.to as string)}
+                      >
+                        {nav.name}
+                      </SidebarComponent.Item>
+                    );
+                  })}
+              </Flex>
+            </SidebarComponent.Group>
+            <SidebarComponent.Group
+              label="My Account"
+              leadingIcon={
+                <Image alt="user" width={16} height={16} src={user} />
+              }
+              className={styles.sidebarItemGroupContainer}
+            >
+              <Flex
+                direction="column"
+                gap={2}
+                className={styles.sidebarItemGroup}
+              >
+                {userNavItems
+                  .filter(s => s.name.toLowerCase().includes(search))
+                  .map(nav => (
                     <SidebarComponent.Item
                       key={nav.name}
-                      icon={<></>}
+                      classNames={{
+                        leadingIcon: styles.sidebarItemIcon
+                      }}
                       as={
                         <Link
                           to={nav.to as string}
@@ -137,36 +189,8 @@ export const Sidebar = () => {
                     >
                       {nav.name}
                     </SidebarComponent.Item>
-                  );
-                })}
-            </SidebarComponent.Group>
-            <SidebarComponent.Group
-              name="My Account"
-              icon={<Image alt="user" width={16} height={16} src={user} />}
-            >
-              {userNavItems
-                .filter(s => s.name.toLowerCase().includes(search))
-                .map(nav => (
-                  <SidebarComponent.Item
-                    key={nav.name}
-                    icon={<></>}
-                    as={
-                      <Link
-                        to={nav.to as string}
-                        data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
-                        style={{
-                          width: '100%',
-                          textDecoration: 'none'
-                        }}
-                        search={{}}
-                        params={{}}
-                      />
-                    }
-                    active={!!isActive(nav?.to as string)}
-                  >
-                    {nav.name}
-                  </SidebarComponent.Item>
-                ))}
+                  ))}
+              </Flex>
             </SidebarComponent.Group>
           </SidebarComponent.Main>
         </Flex>
