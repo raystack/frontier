@@ -1,14 +1,15 @@
 import {
   Button,
   toast,
-  Image,
   Text,
   Dialog,
   Flex,
-  List
+  List,
+  IconButton,
+  Image
 } from '@raystack/apsara/v1';
-import cross from '~/react/assets/cross.svg';
 import { useNavigate } from '@tanstack/react-router';
+import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useState } from 'react';
 import styles from './sessions.module.css';
@@ -43,13 +44,18 @@ export const RevokeSessionConfirm = () => {
             <Text size="regular">
               Chrome on Mac OS x
             </Text>
-            <Image
-              alt="cross"
-              src={cross as unknown as string}
-              onClick={() => (isLoading ? null : navigate({ to: '/sessions' }))}
-              style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
+            <IconButton
+              size={3}
+              onClick={() => !isLoading && navigate({ to: '/sessions' })}
+              disabled={isLoading}
               data-test-id="frontier-sdk-close-revoke-session-dialog"
-            />
+              aria-label="Close dialog"
+            >
+              <Image
+                alt="close"
+                src={cross as unknown as string}
+              />
+            </IconButton>
           </Flex>
         </Dialog.Header>
 
