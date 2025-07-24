@@ -1,0 +1,7 @@
+.container {
+    height: 100%;
+    padding: var(--rs-space-9) var(--rs-space-11);
+    overflow: hidden;
+  }
+  
+  
