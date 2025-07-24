@@ -40,7 +40,7 @@ export const SessionsPage = () => {
                 <Text variant="success" size="micro">Current session</Text>
               </Flex>
             </Flex>
-            <Button variant="text" color="neutral" onClick={handleRevoke}>Revoke</Button>
+            <Button variant="text" color="neutral" onClick={handleRevoke} data-test-id="frontier-sdk-revoke-session-button">Revoke</Button>
           </Flex>
 
           <Flex justify="between" align="center" className={styles.sessionItem}>
@@ -52,7 +52,7 @@ export const SessionsPage = () => {
                 <Text variant="tertiary" size="micro">Last active 10 minutes ago</Text>
               </Flex>
             </Flex>
-            <Button variant="text" color="neutral" onClick={handleRevoke}>Revoke</Button>
+            <Button variant="text" color="neutral" onClick={handleRevoke} data-test-id="frontier-sdk-revoke-session-button">Revoke</Button>
           </Flex>
 
         </Flex>
