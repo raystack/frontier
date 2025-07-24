@@ -38,6 +38,7 @@ import (
 
 	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"
+	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -204,6 +205,16 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	mux := http.NewServeMux()
 	mux.Handle(frontierPath, frontierHandler)
 	mux.Handle(adminPath, adminHandler)
+	reflector := grpcreflect.NewStaticReflector(
+		"raystack.frontier.v1beta1.FrontierService",
+		"raystack.frontier.v1beta1.AdminService") // protoc-gen-connect-go generates package-level constants
+	// for these fully-qualified protobuf service names, such as
+	// frontierv1beta1.FrontierServiceName and frontierv1beta1.AdminServiceName
+
+	mux.Handle(grpcreflect.NewHandlerV1(reflector))
+	// Many tools still expect the older version of the server reflection API, so
+	// most servers should mount both handlers.
+	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 	mux.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{}))
 
 	// configure healthcheck
