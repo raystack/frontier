@@ -40,7 +40,7 @@ export const RevokeSessionConfirm = () => {
       >
         <Dialog.Header className={styles.revokeSessionConfirmHeader}>
           <Flex justify="between" align="center" style={{ width: '100%' }}>
-            <Text size="large" weight="medium">
+            <Text size="regular">
               Chrome on Mac OS x
             </Text>
             <Image
@@ -48,7 +48,7 @@ export const RevokeSessionConfirm = () => {
               src={cross as unknown as string}
               onClick={() => (isLoading ? null : navigate({ to: '/sessions' }))}
               style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
-              data-test-id="close-revoke-session-dialog"
+              data-test-id="frontier-sdk-close-revoke-session-dialog"
             />
           </Flex>
         </Dialog.Header>
@@ -56,19 +56,19 @@ export const RevokeSessionConfirm = () => {
         <Dialog.Body className={styles.revokeSessionConfirmBody}>
             <List.Root className={styles.listRoot}>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="100px">Device</List.Label>
+                <List.Label minWidth="120px">Device</List.Label>
                 <List.Value>Chrome on Mac OS x</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="100px">IP Address</List.Label>
+                <List.Label minWidth="120px">IP Address</List.Label>
                 <List.Value>203.0.113.25</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="100px">Last Location</List.Label>
+                <List.Label minWidth="120px">Last Location</List.Label>
                 <List.Value>Bangalore, India</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="100px">Last Active</List.Label>
+                <List.Label minWidth="120px">Last Active</List.Label>
                 <List.Value>10 minutes ago</List.Value>
               </List.Item>
             </List.Root>
@@ -80,7 +80,7 @@ export const RevokeSessionConfirm = () => {
               variant="outline"
               color="neutral"
               onClick={() => navigate({ to: '/sessions' })}
-              data-test-id="cancel-revoke-session-dialog"
+              data-test-id="frontier-sdk-cancel-revoke-session-dialog"
               disabled={isLoading}
             >
               Cancel
@@ -89,7 +89,7 @@ export const RevokeSessionConfirm = () => {
               variant="solid"
               color="danger"
               onClick={handleRevoke}
-              data-test-id="confirm-revoke-session-dialog"
+              data-test-id="frontier-sdk-confirm-revoke-session-dialog"
               disabled={isLoading}
             >
               {isLoading ? 'Revoking...' : 'Revoke'}

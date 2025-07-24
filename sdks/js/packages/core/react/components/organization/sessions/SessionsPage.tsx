@@ -22,7 +22,7 @@ export const SessionsPage = () => {
         <Flex direction="row" justify="between" align="center" className={styles.header}>
           <Flex direction="column" gap={2}>
             <Headline size="t1">
-              Session
+              Sessions
             </Headline>
             <Text size="regular" variant="secondary">
               Devices logged into this account.

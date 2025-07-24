@@ -28,6 +28,8 @@
 
 .listItem {
   border-bottom: 0.9px solid var(--rs-color-border-base-primary);
+  padding-top: var(--rs-space-5);
+  padding-bottom: var(--rs-space-5);
 }
 
 .listItem:last-child {
@@ -37,4 +39,5 @@
 .listRoot {
   gap: 0;
 }
+
 /* Revoke Session Confirm END */
