@@ -1,4 +1,5 @@
 import '@raystack/apsara/style.css';
+import './i18n';
 
 export { AvatarUpload } from './components/avatar-upload';
 export { Container } from './components/Container';
@@ -15,6 +16,8 @@ export { Window } from './components/window';
 
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
+export { I18nProvider } from './components/I18nProvider';
+
 
 export { useTokens } from './hooks/useTokens';
 export { useBillingPermission } from './hooks/useBillingPermission';
@@ -25,5 +28,7 @@ export type {
   FrontierClientOptions,
   FrontierClientBillingOptions
 } from '../shared/types';
+
+export type { TranslationResources } from './i18n';
 
 export { PREFERENCE_OPTIONS } from './utils/constants';

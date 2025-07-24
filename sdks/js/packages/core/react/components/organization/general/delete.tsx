@@ -16,6 +16,7 @@ import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import styles from './general.module.css';
+import { useTranslation } from 'react-i18next';
 
 const orgSchema = yup
   .object({
@@ -36,16 +37,19 @@ export const DeleteOrganization = () => {
   const navigate = useNavigate({ from: '/delete' });
   const { client, activeOrganization: organization } = useFrontier();
   const [isAcknowledged, setIsAcknowledged] = useState(false);
+  const { t } = useTranslation();
 
   async function onSubmit(data: any) {
     if (!client) return;
     if (!organization?.id) return;
     if (data.name !== organization.name)
-      return setError('name', { message: 'organization name is not same' });
+      return setError('name', {
+        message: `${t('terminology.organization')} name is not same`
+      });
 
     try {
       await client.frontierServiceDeleteOrganization(organization?.id);
-      toast.success('Organization deleted');
+      toast.success(`${t('terminology.organization')} deleted`);
 
       // @ts-ignore
       window.location = window.location.origin;
@@ -61,7 +65,9 @@ export const DeleteOrganization = () => {
     <Dialog open={true}>
       <Dialog.Content overlayClassName={styles.overlay} width={600}>
         <Dialog.Header>
-          <Dialog.Title>Verify organization deletion</Dialog.Title>
+          <Dialog.Title>
+            Verify {t('terminology.organization').toLowerCase()} deletion
+          </Dialog.Title>
           <Dialog.CloseButton
             onClick={() => navigate({ to: '/' })}
             data-test-id="frontier-sdk-delete-organization-close-btn"
@@ -76,11 +82,15 @@ export const DeleteOrganization = () => {
                 <b>{organization?.title}</b>.
               </Text>
               <InputField
-                label="Please type name of the organization to confirm."
+                label={`Please type name of the ${t(
+                  'terminology.organization'
+                ).toLowerCase()} to confirm.`}
                 size="large"
                 error={errors.name && String(errors.name?.message)}
                 {...register('name')}
-                placeholder="Provide organization name"
+                placeholder={`Provide ${t(
+                  'terminology.organization'
+                ).toLowerCase()} name`}
               />
             </Flex>
           </Dialog.Body>
@@ -92,8 +102,9 @@ export const DeleteOrganization = () => {
                 data-test-id="frontier-sdk-delete-organization-checkbox"
               />
               <Text size="small">
-                I acknowledge I understand that all of the organization data
-                will be deleted and want to proceed.
+                I acknowledge I understand that all of the{' '}
+                {t('terminology.organization').toLowerCase()} data will be
+                deleted and want to proceed.
               </Text>
             </Flex>
 
@@ -107,7 +118,7 @@ export const DeleteOrganization = () => {
               loading={isSubmitting}
               loaderText="Deleting..."
             >
-              Delete this organization
+              Delete this {t('terminology.organization').toLowerCase()}
             </Button>
           </Dialog.Footer>
         </form>

@@ -10,6 +10,7 @@ import { Container } from '../Container';
 
 // @ts-ignore
 import styles from './organization.module.css';
+import { useTranslation } from 'react-i18next';
 
 type CreateOrganizationProps = ComponentPropsWithRef<typeof Container> & {
   title?: string;
@@ -35,7 +36,7 @@ export const CreateOrganization = ({
   } = useForm({
     resolver: yupResolver(schema)
   });
-
+  const { t } = useTranslation();
   const { client } = useFrontier();
   async function onSubmit(data: any) {
     if (!client) return;
@@ -63,14 +64,16 @@ export const CreateOrganization = ({
         <form onSubmit={handleSubmit(onSubmit)}>
           <Container className={styles.createContainer} shadow="sm" radius="sm">
             <InputField
-              label="Organization name"
+              label={`${t('terminology.organization')} name`}
               size="large"
               error={errors.title && String(errors.title?.message)}
               {...register('title')}
-              placeholder="Provide organization name"
+              placeholder={`Provide ${t(
+                'terminology.organization'
+              ).toLowerCase()} name`}
             />
             <InputField
-              label="Workspace URL"
+              label={`${t('terminology.organization')} URL`}
               size="large"
               error={errors.name && String(errors.name?.message)}
               {...register('name')}
@@ -81,7 +84,7 @@ export const CreateOrganization = ({
               type="submit"
               data-test-id="frontier-sdk-create-workspace-btn"
             >
-              Create workspace
+              Create {t('terminology.organization').toLowerCase()}
             </Button>
           </Container>
         </form>

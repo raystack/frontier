@@ -13,6 +13,7 @@ import { getOrganizationNavItems, getUserNavItems } from './helpers';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import styles from './sidebar.module.css';
+import { useTranslation } from 'react-i18next';
 
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
@@ -88,6 +89,8 @@ export const Sidebar = () => {
     [customRoutes.User, showPreferences]
   );
 
+  const { t } = useTranslation();
+
   return (
     <SidebarComponent
       open
@@ -108,7 +111,7 @@ export const Sidebar = () => {
 
           <SidebarComponent.Main style={{ gap: 'var(--rs-space-5)' }}>
             <SidebarComponent.Group
-              label="Organization"
+              label={t('terminology.organization')}
               leadingIcon={
                 <Image
                   alt="organization"

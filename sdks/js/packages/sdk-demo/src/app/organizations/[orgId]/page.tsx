@@ -11,6 +11,7 @@ export default function OrgPage({ params }: { params: { orgId: string } }) {
         showBilling={true}
         showTokens={true}
         showPreferences={true}
+        showAPIKeys={true}
       />
     </Window>
   ) : null;
