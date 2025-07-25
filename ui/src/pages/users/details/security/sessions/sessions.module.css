@@ -1,0 +1,43 @@
+.sessionsContainer {
+  border: 0.9px solid var(--rs-color-border-base-primary);
+  border-radius: var(--rs-radius-2);
+  padding-left: var(--rs-space-6);
+  padding-right: var(--rs-space-6);
+}
+
+.sessionItem {
+  padding: var(--rs-space-7) 0 var(--rs-space-7) 0;
+  border-bottom: 0.9px solid var(--rs-color-border-base-primary);
+}
+
+.sessionItem:last-child {
+  border-bottom: none;
+}
+
+/* Revoke Session Confirm START */
+
+.revokeSessionConfirmHeader {
+  border-bottom: none !important;
+}
+
+.listItem {
+  border-bottom: 0.9px solid var(--rs-color-border-base-primary);
+  padding-top: var(--rs-space-5);
+  padding-bottom: var(--rs-space-5);
+}
+
+.listItem:last-child {
+  border-bottom: none;
+} 
+
+.listRoot {
+  gap: 0;
+  padding-bottom: var(--rs-space-5);
+}
+
+.revokeSessionConfirmBody {
+  padding: 0 var(--rs-space-7);
+  border-bottom: 0.9px solid var(--rs-color-border-base-primary);
+}
+
+/* Revoke Session Confirm END */
