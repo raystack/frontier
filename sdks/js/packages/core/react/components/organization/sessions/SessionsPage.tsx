@@ -35,9 +35,9 @@ export const SessionsPage = () => {
             <Flex direction="column" gap={3}>
               <Text weight="medium" size="regular">Chrome on Mac OS x</Text>
               <Flex gap={2} align="center">
-                <Text variant="tertiary" size="micro">Bangalore</Text>
-                <Text variant="tertiary" size="micro">•</Text>
-                <Text variant="success" size="micro">Current session</Text>
+                <Text variant="tertiary" size="small">Bangalore</Text>
+                <Text variant="tertiary" size="small">•</Text>
+                <Text variant="success" size="small">Current session</Text>
               </Flex>
             </Flex>
             <Button variant="text" color="neutral" onClick={handleRevoke} data-test-id="frontier-sdk-revoke-session-button">Revoke</Button>
@@ -47,9 +47,9 @@ export const SessionsPage = () => {
             <Flex direction="column" gap={3}>
               <Text weight="medium" size="regular">Chrome on Mac OS x</Text>
               <Flex gap={2} align="center">
-                <Text variant="tertiary" size="micro">Bangalore</Text>
-                <Text variant="tertiary" size="micro">•</Text>
-                <Text variant="tertiary" size="micro">Last active 10 minutes ago</Text>
+                <Text variant="tertiary" size="small">Bangalore</Text>
+                <Text variant="tertiary" size="small">•</Text>
+                <Text variant="tertiary" size="small">Last active 10 minutes ago</Text>
               </Flex>
             </Flex>
             <Button variant="text" color="neutral" onClick={handleRevoke} data-test-id="frontier-sdk-revoke-session-button">Revoke</Button>

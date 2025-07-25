@@ -6,9 +6,7 @@ import {
   Text,
   Dialog,
   Flex,
-  List,
-  IconButton,
-  Image
+  List
 } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import cross from '~/react/assets/cross.svg';
@@ -44,18 +42,7 @@ export const RevokeSessionConfirm = () => {
             <Text size="regular">
               Chrome on Mac OS x
             </Text>
-            <IconButton
-              size={3}
-              onClick={() => !isLoading && navigate({ to: '/sessions' })}
-              disabled={isLoading}
-              data-test-id="frontier-sdk-close-revoke-session-dialog"
-              aria-label="Close dialog"
-            >
-              <Image
-                alt="close"
-                src={cross as unknown as string}
-              />
-            </IconButton>
+            <Dialog.CloseButton data-test-id="frontier-sdk-close-revoke-session-dialog" />
           </Flex>
         </Dialog.Header>
 
