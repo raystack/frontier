@@ -126,7 +126,7 @@ func (s *SessionInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc
 }
 
 // UnaryConnectResponseInterceptor adds session cookie to response if session id is present in header
-func (s SessionInterceptor) UnaryConnectResponseInterceptor() connect.UnaryInterceptorFunc {
+func (s *SessionInterceptor) UnaryConnectResponseInterceptor() connect.UnaryInterceptorFunc {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			// Let the handler and other interceptors run first
@@ -210,7 +210,7 @@ func CookieSameSite(name string) http.SameSite {
 
 // UnaryConnectRequestHeadersAnnotator converts session cookies set in grpc metadata to context
 // this requires decrypting the cookie and setting it as context
-func (s SessionInterceptor) UnaryConnectRequestHeadersAnnotator() connect.UnaryInterceptorFunc {
+func (s *SessionInterceptor) UnaryConnectRequestHeadersAnnotator() connect.UnaryInterceptorFunc {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (resp connect.AnyResponse, err error) {
 			// parse and process cookies
