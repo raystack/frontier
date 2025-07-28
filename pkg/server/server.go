@@ -188,6 +188,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	}
 
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)
+	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
 	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
 
 	interceptors := connect.WithInterceptors(
@@ -195,7 +196,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		otelInterceptor,
 		sessionInterceptor,
 		authNInterceptor,
-		connectinterceptors.UnaryAuthorizationCheck(frontierService),
+		authZInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 
 	// Initialize connect handlers

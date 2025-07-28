@@ -2,7 +2,6 @@ package connectinterceptors
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -20,7 +19,6 @@ func NewAuthenticationInterceptor(h *v1beta1connect.ConnectHandler) *Authenticat
 
 func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-		fmt.Println("called WrapUnary")
 		if authenticationSkipList[req.Spec().Procedure] {
 			return next(ctx, req)
 		}
@@ -40,7 +38,6 @@ func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.Un
 
 func (i *AuthenticationInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
 	return connect.StreamingClientFunc(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
-		fmt.Println("called WrapStreamingClient")
 		conn := next(ctx, spec)
 		return conn
 	})
@@ -48,10 +45,6 @@ func (i *AuthenticationInterceptor) WrapStreamingClient(next connect.StreamingCl
 
 func (i *AuthenticationInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
 	return connect.StreamingHandlerFunc(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
-		fmt.Println("called WrapStreamingHandler")
-		fmt.Println("addr", conn.Peer().Addr)
-		fmt.Println("Protocol", conn.Peer().Protocol)
-		fmt.Println("query", conn.Peer().Query)
 		if authenticationSkipList[conn.Spec().Procedure] {
 			return next(ctx, conn)
 		}
