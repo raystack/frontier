@@ -48,6 +48,23 @@ func (i *AuthenticationInterceptor) WrapStreamingClient(next connect.StreamingCl
 
 func (i *AuthenticationInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
 	return connect.StreamingHandlerFunc(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
+		fmt.Println("called WrapStreamingHandler")
+		fmt.Println("addr", conn.Peer().Addr)
+		fmt.Println("Protocol", conn.Peer().Protocol)
+		fmt.Println("query", conn.Peer().Query)
+		if authenticationSkipList[conn.Spec().Procedure] {
+			return next(ctx, conn)
+		}
+
+		principal, err := i.h.GetLoggedInPrincipal(ctx)
+		if err != nil {
+			return err
+		}
+		ctx = authenticate.SetContextWithPrincipal(ctx, &principal)
+		ctx = audit.SetContextWithActor(ctx, audit.Actor{
+			ID:   principal.ID,
+			Type: principal.Type,
+		})
 		return next(ctx, conn)
 	})
 }
