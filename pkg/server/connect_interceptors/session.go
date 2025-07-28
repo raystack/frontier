@@ -26,8 +26,11 @@ type SessionInterceptor struct {
 	h           *v1beta1connect.ConnectHandler
 }
 
-func (s *SessionInterceptor) WrapStreamingClient(connect.StreamingClientFunc) connect.StreamingClientFunc {
-	panic("unimplemented")
+func (s *SessionInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+	return connect.StreamingClientFunc(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
+		conn := next(ctx, spec)
+		return conn
+	})
 }
 
 func (s *SessionInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
