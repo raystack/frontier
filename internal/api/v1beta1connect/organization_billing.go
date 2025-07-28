@@ -59,29 +59,29 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 	}), nil
 }
 
-//ExportOrganizations(context.Context, *connect.Request[v1beta1.ExportOrganizationsRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
-
-func (h *ConnectHandler) ExportOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationsRequest]) (stream *connect.ServerStreamForClient[httpbody.HttpBody], err error) {
+func (h *ConnectHandler) ExportOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
 	orgBillingDataBytes, contentType, err := h.orgBillingService.Export(ctx)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
-	chunkSize := 1024 * 200 // 200KB
+	chunkSize := 100 * 200 // 200KB
 
 	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
 		end := min(i+chunkSize, len(orgBillingDataBytes))
 
 		chunk := orgBillingDataBytes[i:end]
-
-		// how to steam the msg?
 		msg := &httpbody.HttpBody{
 			ContentType: contentType,
 			Data:        chunk,
 		}
 
+		err := stream.Send(msg)
+		if err != nil {
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
-	return nil, nil
+	return nil
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {

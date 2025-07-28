@@ -189,11 +189,13 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		return err
 	}
 
+	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)
+
 	interceptors := connect.WithInterceptors(
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
 		otelInterceptor,
 		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
-		connectinterceptors.UnaryAuthenticationCheck(frontierService),
+		authNInterceptor,
 		connectinterceptors.UnaryAuthorizationCheck(frontierService),
 		sessionMiddleware.UnaryConnectResponseInterceptor())
 
