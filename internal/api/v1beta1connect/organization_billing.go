@@ -65,7 +65,7 @@ func (h *ConnectHandler) ExportOrganizations(ctx context.Context, request *conne
 		return nil
 	}
 
-	chunkSize := 100 * 200 // 200KB
+	chunkSize := 1024 * 200 // 200KB
 
 	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
 		end := min(i+chunkSize, len(orgBillingDataBytes))
