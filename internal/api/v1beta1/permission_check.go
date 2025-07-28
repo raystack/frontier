@@ -201,6 +201,10 @@ func (h Handler) IsSuperUser(ctx context.Context) error {
 	return grpcPermissionDenied
 }
 
+func (h Handler) IsUserIDSuperUser(ctx context.Context, userID string) (bool, error) {
+	return h.userService.IsSudo(ctx, userID, schema.PlatformSudoPermission)
+}
+
 func (h Handler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace string, ids, permissions []string) ([]relation.CheckPair, error) {
 	checks := make([]resource.Check, 0, len(ids)*len(permissions))
 	for _, id := range ids {
