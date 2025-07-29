@@ -1,14 +1,12 @@
-'use client';
-
 import { useEffect, useCallback, Suspense } from 'react';
 import frontierClient from '@/api/frontier';
 import { Flex } from '@raystack/apsara/v1';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 
-function Callback() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+function CallbackComponent() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const callFrontierCallback = useCallback(async () => {
     const state = searchParams?.get('state');
@@ -21,15 +19,15 @@ function Callback() {
           code
         });
         if (resp?.status === 200) {
-          router.push('/');
+          navigate('/');
         } else {
           throw new Error('Auth callback failed');
         }
       }
     } catch (err) {
-      router.replace('/login');
+      navigate('/login', { replace: true });
     }
-  }, [router, searchParams]);
+  }, [navigate, searchParams]);
 
   useEffect(() => {
     callFrontierCallback();
@@ -46,12 +44,12 @@ function Callback() {
   );
 }
 
-export default function Page() {
+export default function Callback() {
   useAuthRedirect();
 
   return (
     <Suspense>
-      <Callback />
+      <CallbackComponent />
     </Suspense>
   );
 }

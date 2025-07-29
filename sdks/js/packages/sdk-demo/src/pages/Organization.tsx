@@ -1,8 +1,8 @@
-'use client';
 import { Window, OrganizationProfile } from '@raystack/frontier/react';
+import { useParams } from 'react-router-dom';
 
-export default function OrgPage({ params }: { params: { orgId: string } }) {
-  const orgId = params.orgId;
+export default function Organization() {
+  const { orgId } = useParams<{ orgId: string }>();
 
   return orgId ? (
     <Window open={true} onOpenChange={() => {}}>

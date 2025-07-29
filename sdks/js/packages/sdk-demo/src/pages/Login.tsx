@@ -1,17 +1,16 @@
-'use client';
-
+import useAuthRedirect from '@/hooks/useAuthRedirect';
 import { Flex } from '@raystack/apsara/v1';
-import { MagicLinkVerify } from '@raystack/frontier/react';
-import React from 'react';
+import { SignIn } from '@raystack/frontier/react';
 
-export default function LoginRoute() {
+export default function Login() {
+  useAuthRedirect();
   return (
     <Flex
       justify="center"
       align="center"
       style={{ height: '100vh', width: '100vw' }}
     >
-      <MagicLinkVerify />
+      <SignIn />
     </Flex>
   );
 }
