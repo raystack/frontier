@@ -21,6 +21,7 @@ export interface FrontierClientAPIPlatformOptions {
 
 export interface FrontierClientOptions {
   endpoint: string;
+  connectEndpoint?: string;
   redirectSignup?: string;
   redirectLogin?: string;
   redirectMagicLinkVerify?: string;
