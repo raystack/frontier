@@ -222,10 +222,6 @@ export default function Billing() {
     isFetching ||
     isOrganizationKycLoading;
 
-  const isProviderIdUnavailable =
-    billingAccount?.provider_id === undefined ||
-    billingAccount?.provider_id === '';
-
   const isOrganizationKycCompleted = organizationKyc?.status === true;
 
   return (
