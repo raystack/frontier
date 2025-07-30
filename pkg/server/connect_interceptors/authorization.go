@@ -40,11 +40,6 @@ func (a *AuthorizationInterceptor) WrapStreamingHandler(next connect.StreamingHa
 			return next(ctx, conn)
 		}
 
-		if metrics.ServiceOprLatency != nil {
-			promCollect := metrics.ServiceOprLatency("authenticate", "UnaryAuthorizationCheck")
-			defer promCollect()
-		}
-
 		// apply authorization rules
 		azFunc, azVerifier := authorizationValidationMap[conn.Spec().Procedure]
 		if !azVerifier {
@@ -65,11 +60,6 @@ func (a *AuthorizationInterceptor) WrapUnary(next connect.UnaryFunc) connect.Una
 		// check if authorization needs to be skipped
 		if authorizationSkipEndpoints[req.Spec().Procedure] {
 			return next(ctx, req)
-		}
-
-		if metrics.ServiceOprLatency != nil {
-			promCollect := metrics.ServiceOprLatency("authenticate", "UnaryAuthorizationCheck")
-			defer promCollect()
 		}
 
 		// apply authorization rules
