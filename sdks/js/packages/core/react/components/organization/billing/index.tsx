@@ -66,7 +66,6 @@ interface BillingDetailsProps {
   onAddDetailsClick?: () => void;
   isLoading: boolean;
   isAllowed: boolean;
-  // hideUpdateBillingDetailsBtn: boolean;
   disabled?: boolean;
 }
 
@@ -75,7 +74,6 @@ const BillingDetails = ({
   onAddDetailsClick = () => {},
   isLoading,
   isAllowed,
-  // hideUpdateBillingDetailsBtn = false,
   disabled = false
 }: BillingDetailsProps) => {
   // const addressStr = converBillingAddressToString(billingAccount?.address);
