@@ -6,6 +6,7 @@ import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import isEmail from 'validator/lib/isEmail';
 import { HttpErrorResponse } from '~/react/utils';
+import { useMutation, FrontierServiceQueries } from '~hooks';
 
 const styles = {
   container: {
@@ -42,9 +43,12 @@ const emailSchema = yup.object({
 type FormData = yup.InferType<typeof emailSchema>;
 
 export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
-  const { client, config } = useFrontier();
-  const [visiable, setVisiable] = useState<boolean>(open);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { config } = useFrontier();
+  const [visible, setVisible] = useState<boolean>(open);
+
+  const { mutateAsync: authenticate, isPending } = useMutation(
+    FrontierServiceQueries.authenticate
+  );
 
   const {
     watch,
@@ -58,18 +62,17 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
 
   const magicLinkHandler = useCallback(
     async (data: FormData) => {
-      setLoading(true);
       try {
-        if (!client) return;
-
-        const {
-          data: { state = '' }
-        } = await client.frontierServiceAuthenticate('mailotp', {
+        const response = await authenticate({
+          strategyName: 'mailotp',
           email: data.email,
-          callback_url: config.callbackUrl
+          callbackUrl: config.callbackUrl
         });
 
-        const searchParams = new URLSearchParams({ state, email: data.email });
+        const searchParams = new URLSearchParams({
+          state: response.state || '',
+          email: data.email
+        });
 
         // @ts-ignore
         window.location = `${
@@ -83,22 +86,20 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         } else {
           setError('email', { message: 'An unexpected error occurred' });
         }
-      } finally {
-        setLoading(false);
       }
     },
-    [client, config.callbackUrl, config.redirectMagicLinkVerify, setError]
+    [authenticate, config.callbackUrl, config.redirectMagicLinkVerify, setError]
   );
 
   const email = watch('email', '');
 
-  if (!visiable)
+  if (!visible)
     return (
       <Button
         variant="outline"
         color="neutral"
         style={styles.button}
-        onClick={() => setVisiable(true)}
+        onClick={() => setVisible(true)}
         data-test-id="frontier-sdk-mail-otp-login-btn"
       >
         Continue with Email
@@ -141,7 +142,7 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         style={{ ...styles.button }}
         disabled={!email}
         type="submit"
-        loading={loading}
+        loading={isPending}
         loaderText="Loading..."
         data-test-id="frontier-sdk-mail-otp-login-submit-btn"
       >
