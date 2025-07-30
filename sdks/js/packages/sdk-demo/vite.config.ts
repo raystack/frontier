@@ -5,6 +5,8 @@ import path from 'path';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const frontierUrl = env.FRONTIER_ENDPOINT || 'http://localhost:8080';
+  const frontierConnectUrl =
+    env.FRONTIER_CONNECT_ENDPOINT || 'http://localhost:8080';
 
   return {
     plugins: [react()],
@@ -20,6 +22,11 @@ export default defineConfig(({ mode }) => {
           target: frontierUrl,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/api/, '')
+        },
+        '/frontier-connect': {
+          target: frontierConnectUrl,
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/frontier-connect/, '')
         }
       }
     }
