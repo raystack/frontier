@@ -1,7 +1,7 @@
 import { Link, Text, Flex } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useQuery } from '@connectrpc/connect-query';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { Container } from '../Container';
 import { Header } from '../Header';
@@ -24,25 +24,31 @@ export const SignIn = ({
   footer = true,
   ...props
 }: SignedInProps) => {
-  const { config, client } = useFrontier();
+  const { config } = useFrontier();
 
   const { data: strategiesData } = useQuery(
     FrontierServiceQueries.listAuthStrategies
   );
   const strategies = strategiesData?.strategies || [];
 
+  const authenticateMutation = useMutation(FrontierServiceQueries.authenticate);
+
   const clickHandler = useCallback(
     async (name?: string) => {
       if (!name) return;
-      if (!client) return;
-      const {
-        data: { endpoint = '' }
-      } = await client.frontierServiceAuthenticate(name, {
-        callback_url: config.callbackUrl
-      });
-      window.location.href = endpoint;
+      try {
+        const response = await authenticateMutation.mutateAsync({
+          strategyName: name,
+          callbackUrl: config.callbackUrl
+        });
+        if (response.endpoint) {
+          window.location.href = response.endpoint;
+        }
+      } catch (error) {
+        console.error('Authentication failed:', error);
+      }
     },
-    [client, config.callbackUrl]
+    [authenticateMutation, config.callbackUrl]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
