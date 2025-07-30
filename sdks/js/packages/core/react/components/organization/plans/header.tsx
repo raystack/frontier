@@ -10,7 +10,7 @@ export const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
       <Flex direction="column" gap={3}>
         <Text size="large">Plans</Text>
         <Text size="regular" variant="secondary">
-          Oversee your billing and invoices.
+          View and manage your subscription plan.
           {billingSupportEmail ? (
             <>
               {' '}
