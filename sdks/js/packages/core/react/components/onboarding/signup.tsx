@@ -8,6 +8,8 @@ import { OIDCButton } from './oidc';
 
 // @ts-ignore
 import styles from './onboarding.module.css';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { useQuery } from '@connectrpc/connect-query';
 
 type SignUpProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
@@ -20,8 +22,12 @@ export const SignUp = ({
   excludes = [],
   ...props
 }: SignUpProps) => {
-  const { config } = useFrontier();
-  const { client, strategies = [] } = useFrontier();
+  const { config, client } = useFrontier();
+
+  const { data: strategiesData } = useQuery(
+    FrontierServiceQueries.listAuthStrategies
+  );
+  const strategies = strategiesData?.strategies || [];
 
   const clickHandler = useCallback(
     async (name?: string) => {
@@ -47,7 +53,7 @@ export const SignUp = ({
   return (
     <Container {...props}>
       <Header logo={logo} title={title} />
-      <Flex direction="column" gap={3} style={{ width: '100%' }}>
+      <Flex direction="column" gap={3} width="full">
         {filteredOIDC.map((s, index) => {
           return (
             <OIDCButton

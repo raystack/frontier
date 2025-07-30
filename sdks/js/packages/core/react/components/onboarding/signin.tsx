@@ -1,6 +1,8 @@
 import { Link, Text, Flex } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { Container } from '../Container';
 import { Header } from '../Header';
 import { MagicLink } from './magiclink';
@@ -22,7 +24,12 @@ export const SignIn = ({
   footer = true,
   ...props
 }: SignedInProps) => {
-  const { config, client, strategies = [] } = useFrontier();
+  const { config, client } = useFrontier();
+
+  const { data: strategiesData } = useQuery(
+    FrontierServiceQueries.listAuthStrategies
+  );
+  const strategies = strategiesData?.strategies || [];
 
   const clickHandler = useCallback(
     async (name?: string) => {
@@ -46,7 +53,7 @@ export const SignIn = ({
   return (
     <Container {...props}>
       <Header logo={logo} title={title} />
-      <Flex direction="column" style={{ width: '100%', gap: 'var(--rs-space-5)' }}>
+      <Flex direction="column" width="full" gap={5}>
         {filteredOIDC.map((s, index) => {
           return (
             <OIDCButton
