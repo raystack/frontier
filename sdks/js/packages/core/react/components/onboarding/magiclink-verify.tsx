@@ -12,6 +12,7 @@ import { Container } from '~/react/components/Container';
 import { Header } from '~/react/components/Header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { hasWindow } from '~/utils/index';
+import { useMutation, FrontierServiceQueries } from '~hooks';
 
 // @ts-ignore
 import styles from './onboarding.module.css';
@@ -26,8 +27,9 @@ export const MagicLinkVerify = ({
   title = 'Check your email',
   ...props
 }: MagicLinkVerifyProps) => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const { client, config } = useFrontier();
+  const { config } = useFrontier();
+  
+  const { mutateAsync: authCallback, isPending } = useMutation(FrontierServiceQueries.authCallback);
   const [emailParam, setEmailParam] = useState<string>('');
   const [stateParam, setStateParam] = useState<string>('');
   const [otp, setOTP] = useState<string>('');
@@ -53,12 +55,9 @@ export const MagicLinkVerify = ({
   const OTPVerifyHandler = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      setLoading(true);
       try {
-        if (!client) return;
-
-        await client.frontierServiceAuthCallback({
-          strategy_name: 'mailotp',
+        await authCallback({
+          strategyName: 'mailotp',
           code: otp,
           state: stateParam
         });
@@ -75,11 +74,9 @@ export const MagicLinkVerify = ({
         console.log(error);
         isButtonDisabledRef.current = true;
         setSubmitError('Please enter a valid OTP');
-      } finally {
-        setLoading(false);
       }
     },
-    [otp]
+    [otp, stateParam, authCallback]
   );
 
   return (
@@ -115,7 +112,7 @@ export const MagicLinkVerify = ({
           className={styles.container}
           disabled={isButtonDisabledRef.current}
           type="submit"
-          loading={loading}
+          loading={isPending}
           loaderText="Submitting..."
         >
           Submit OTP
