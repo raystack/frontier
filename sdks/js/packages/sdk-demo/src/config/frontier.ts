@@ -6,6 +6,11 @@ const config: FrontierClientOptions = {
     basePlan: {
       title: 'Standard Plan'
     }
+  },
+  customization: {
+    terminology: {
+      appName: 'SDK Demo'
+    }
   }
 };
 

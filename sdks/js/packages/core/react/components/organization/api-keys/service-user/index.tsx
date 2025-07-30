@@ -7,28 +7,24 @@ import {
   useNavigate,
   useParams
 } from '@tanstack/react-router';
-import { FrontierClientAPIPlatformOptions } from '~/shared/types';
-import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 const Headings = ({
   isLoading,
-  config,
   name,
   serviceUserId
 }: {
   isLoading: boolean;
   name: string;
-  config?: FrontierClientAPIPlatformOptions;
   serviceUserId: string;
 }) => {
-  const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
-
+  const t = useTerminology();
   const navigate = useNavigate({ from: '/api-keys/$id' });
 
   function openProjectsPage() {
@@ -61,7 +57,7 @@ const Headings = ({
         <Skeleton containerClassName={styles.flex1} />
       ) : (
         <Text size="regular" variant="secondary">
-          Create API key for accessing {appName} and its features
+          Create API key for accessing {t.appName} and its features
         </Text>
       )}
     </Flex>
@@ -187,7 +183,7 @@ const SerivceUserTokenList = ({
 
 export default function ServiceUserPage() {
   let { id } = useParams({ from: '/api-keys/$id' });
-  const { client, config, activeOrganization } = useFrontier();
+  const { client, activeOrganization } = useFrontier();
   const navigate = useNavigate({ from: '/api-keys/$id' });
 
   const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
@@ -279,7 +275,6 @@ export default function ServiceUserPage() {
           <Headings
             isLoading={isLoading}
             name={serviceUser?.title || ''}
-            config={config?.apiPlatform}
             serviceUserId={id}
           />
           <AddServiceUserToken serviceUserId={id} onAddToken={onAddToken} />
