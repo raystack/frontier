@@ -66,7 +66,7 @@ interface BillingDetailsProps {
   onAddDetailsClick?: () => void;
   isLoading: boolean;
   isAllowed: boolean;
-  hideUpdateBillingDetailsBtn: boolean;
+  // hideUpdateBillingDetailsBtn: boolean;
   disabled?: boolean;
 }
 
@@ -75,7 +75,7 @@ const BillingDetails = ({
   onAddDetailsClick = () => {},
   isLoading,
   isAllowed,
-  hideUpdateBillingDetailsBtn = false,
+  // hideUpdateBillingDetailsBtn = false,
   disabled = false
 }: BillingDetailsProps) => {
   // const addressStr = converBillingAddressToString(billingAccount?.address);
@@ -86,7 +86,7 @@ const BillingDetails = ({
     <div className={billingStyles.detailsBox}>
       <Flex align="center" justify="between" style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        {isAllowed && !hideUpdateBillingDetailsBtn ? (
+        {isAllowed ? (
           <Tooltip
             message="Contact support to update your billing address."
             side="bottom-right"
@@ -255,14 +255,14 @@ export default function Billing() {
               paymentMethod={paymentMethod}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              hideUpdatePaymentMethodBtn={isProviderIdUnavailable}
+              // hideUpdatePaymentMethodBtn={isProviderIdUnavailable}
             />
             <BillingDetails
               billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
+              // hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
               disabled={isOrganizationKycCompleted}
             />
           </Flex>
