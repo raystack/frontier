@@ -30,7 +30,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
         <Text size="regular" variant="secondary">
-          Oversee your billing and invoices.
+          Track your token balance, credit limit, and all transactions.
           {billingSupportEmail ? (
             <>
               {' '}
