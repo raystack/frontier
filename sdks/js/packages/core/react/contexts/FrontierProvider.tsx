@@ -1,6 +1,7 @@
 import { ThemeProvider } from '@raystack/apsara/v1';
 import { FrontierProviderProps } from '../../shared/types';
 import { FrontierContextProvider } from './FrontierContext';
+import { CustomizationProvider } from './CustomizationContext';
 import { withMaxAllowedInstancesGuard } from './useMaxAllowedInstancesGuard';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TransportProvider } from '@connectrpc/connect-query';
@@ -14,21 +15,27 @@ const queryClient = new QueryClient();
 
 export const FrontierProvider = (props: FrontierProviderProps) => {
   const { children, initialState, config, theme, ...options } = props;
-  
-  const transport = useMemo(() => createConnectTransport({
-    baseUrl: config.connectEndpoint || '/frontier-connect',
-  }), [config.connectEndpoint]);
-  
+
+  const transport = useMemo(
+    () =>
+      createConnectTransport({
+        baseUrl: config.connectEndpoint || '/frontier-connect'
+      }),
+    [config.connectEndpoint]
+  );
+
   return (
     <QueryClientProvider client={queryClient}>
       <TransportProvider transport={transport}>
-        <FrontierContextProvider
-          initialState={initialState}
-          config={config}
-          {...options}
-        >
-          <ThemeProvider {...theme}>{children}</ThemeProvider>
-        </FrontierContextProvider>
+        <CustomizationProvider config={config.customization}>
+          <FrontierContextProvider
+            initialState={initialState}
+            config={config}
+            {...options}
+          >
+            <ThemeProvider {...theme}>{children}</ThemeProvider>
+          </FrontierContextProvider>
+        </CustomizationProvider>
       </TransportProvider>
     </QueryClientProvider>
   );
