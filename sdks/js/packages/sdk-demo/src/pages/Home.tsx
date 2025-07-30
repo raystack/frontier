@@ -1,14 +1,16 @@
 import AuthContext from '@/contexts/auth';
 import { Button, Flex } from '@raystack/apsara/v1';
 import { useFrontier } from '@raystack/frontier/react';
+import { useMutation, FrontierServiceQueries } from '@raystack/frontier/hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { useContext, useEffect } from 'react';
-import frontierClient from '@/api/frontier';
 
 export default function Home() {
   const { isAuthorized } = useContext(AuthContext);
   const { organizations } = useFrontier();
   const navigate = useNavigate();
+
+  const logoutMutation = useMutation(FrontierServiceQueries.authLogout);
 
   useEffect(() => {
     if (!isAuthorized) {
@@ -17,9 +19,11 @@ export default function Home() {
   }, [isAuthorized, navigate]);
 
   async function logout() {
-    const resp = await frontierClient?.frontierServiceAuthLogout();
-    if (resp?.status === 200) {
+    try {
+      await logoutMutation.mutateAsync({});
       window.location.reload();
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
   }
 
