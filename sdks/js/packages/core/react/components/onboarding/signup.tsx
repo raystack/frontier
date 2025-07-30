@@ -28,13 +28,15 @@ export const SignUp = ({
   );
   const strategies = strategiesData?.strategies || [];
 
-  const authenticateMutation = useMutation(FrontierServiceQueries.authenticate);
+  const { mutateAsync: authenticate } = useMutation(
+    FrontierServiceQueries.authenticate
+  );
 
   const clickHandler = useCallback(
     async (name?: string) => {
       if (!name) return;
       try {
-        const response = await authenticateMutation.mutateAsync({
+        const response = await authenticate({
           strategyName: name,
           callbackUrl: config.callbackUrl
         });
@@ -45,7 +47,7 @@ export const SignUp = ({
         console.error('Authentication failed:', error);
       }
     },
-    [authenticateMutation, config.callbackUrl]
+    [authenticate, config.callbackUrl]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
