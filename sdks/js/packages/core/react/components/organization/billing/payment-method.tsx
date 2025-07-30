@@ -11,14 +11,12 @@ interface PaymentMethodProps {
   paymentMethod?: V1Beta1PaymentMethod;
   isLoading: boolean;
   isAllowed: boolean;
-  hideUpdatePaymentMethodBtn: boolean;
 }
 
 export const PaymentMethod = ({
   paymentMethod = {},
   isLoading,
-  isAllowed,
-  // hideUpdatePaymentMethodBtn = false
+  isAllowed
 }: PaymentMethodProps) => {
   const { client, config, billingAccount } = useFrontier();
   const [isActionLoading, setIsActionLoading] = useState(false);

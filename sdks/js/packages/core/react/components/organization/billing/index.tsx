@@ -255,14 +255,12 @@ export default function Billing() {
               paymentMethod={paymentMethod}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              // hideUpdatePaymentMethodBtn={isProviderIdUnavailable}
             />
             <BillingDetails
               billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              // hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
               disabled={isOrganizationKycCompleted}
             />
           </Flex>
