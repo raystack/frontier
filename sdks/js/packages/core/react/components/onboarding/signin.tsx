@@ -1,8 +1,7 @@
 import { Link, Text, Flex } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useQuery, useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { useQuery, useMutation, FrontierServiceQueries } from '~hooks';
 import { Container } from '../Container';
 import { Header } from '../Header';
 import { MagicLink } from './magiclink';
