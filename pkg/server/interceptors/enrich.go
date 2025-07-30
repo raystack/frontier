@@ -293,7 +293,11 @@ func APIResponseEnrich(ctx context.Context, handler *v1beta1.Handler, methodName
 					user, _ := handler.GetUser(ctx, &frontierv1beta1.GetUserRequest{
 						Id: t.GetUserId(),
 					})
-					resp.Transactions[tIdx].User = user.GetUser()
+					if isSuper, err := handler.IsUserIDSuperUser(ctx, user.GetUser().GetId()); err == nil {
+						if !isSuper {
+							resp.Transactions[tIdx].User = user.GetUser()
+						}
+					}
 				}
 			}
 		}
