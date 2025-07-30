@@ -13,7 +13,6 @@ import (
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/internal/metrics"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
