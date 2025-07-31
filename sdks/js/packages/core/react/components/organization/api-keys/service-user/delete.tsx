@@ -11,7 +11,7 @@ export const DeleteServiceAccountKey = () => {
     from: '/api-keys/$id/key/$tokenId/delete'
   });
   const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
-  const { client, config, activeOrganization } = useFrontier();
+  const { client, activeOrganization } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
 
   const orgId = activeOrganization?.id || '';

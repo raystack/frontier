@@ -11,7 +11,6 @@ import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
-import type { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { useEffect, useMemo, useState } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
