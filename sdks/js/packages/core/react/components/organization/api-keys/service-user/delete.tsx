@@ -76,8 +76,8 @@ export const DeleteServiceAccountKey = () => {
           <Flex direction="column" gap={5}>
             <Text>
               This is an irreversible action doing this might lead to
-              discontinuation of access to the {t.appName} features. Do you wish
-              to proceed?
+              discontinuation of access to the {t.appName()} features. Do you
+              wish to proceed?
             </Text>
           </Flex>
         </Dialog.Body>

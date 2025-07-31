@@ -30,7 +30,7 @@ const NoServiceAccounts = () => {
       <EmptyState
         icon={<Image src={keyIcon as unknown as string} alt="keyIcon" />}
         heading="No service account found"
-        subHeading={`Create a new account to use the APIs of ${t.appName} platform`}
+        subHeading={`Create a new account to use the APIs of ${t.appName()} platform`}
         primaryAction={
           <Button
             data-test-id="frontier-sdk-new-service-account-btn"
@@ -71,8 +71,7 @@ const Headings = ({ isLoading }: { isLoading: boolean }) => {
         <Skeleton containerClassName={styles.flex1} />
       ) : (
         <Text size="regular" variant="secondary">
-          Create a non-human identity to allow access to{' '}
-          {t.appName.toLowerCase()} resources
+          Create a non-human identity to allow access to {t.appName()} resources
         </Text>
       )}
     </Flex>

@@ -57,7 +57,7 @@ const Headings = ({
         <Skeleton containerClassName={styles.flex1} />
       ) : (
         <Text size="regular" variant="secondary">
-          Create API key for accessing {t.appName} and its features
+          Create API key for accessing {t.appName()} and its features
         </Text>
       )}
     </Flex>
