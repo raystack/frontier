@@ -1,6 +1,9 @@
 import { useContext } from 'react';
 import { get } from 'lodash';
-import { CustomizationContext, defaultCustomization } from '../contexts/CustomizationContext';
+import {
+  CustomizationContext,
+  defaultCustomization
+} from '../contexts/CustomizationContext';
 
 export const useMessages = () => {
   const context = useContext(CustomizationContext);
@@ -12,5 +15,5 @@ export const useMessages = () => {
     return typeof value === 'string' ? value : undefined;
   };
 
-  return { getMessage };
+  return getMessage;
 };
