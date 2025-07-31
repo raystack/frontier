@@ -6,15 +6,30 @@ import {
 
 export interface TerminologyOptions {
   plural?: boolean;
+  case?: 'lower' | 'upper' | 'capital';
 }
 
 export interface TerminologyEntity {
   (options?: TerminologyOptions): string;
 }
 
+const applyCase = (text: string, caseType?: 'lower' | 'upper' | 'capital'): string => {
+  switch (caseType) {
+    case 'lower':
+      return text.toLowerCase();
+    case 'upper':
+      return text.toUpperCase();
+    case 'capital':
+      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    default:
+      return text;
+  }
+};
+
 const createEntity = (singular: string, plural: string): TerminologyEntity => {
-  return ({ plural: isPlural = false }: TerminologyOptions = {}) => {
-    return isPlural ? plural : singular;
+  return ({ plural: isPlural = false, case: caseType }: TerminologyOptions = {}) => {
+    const text = isPlural ? plural : singular;
+    return applyCase(text, caseType);
   };
 };
 
@@ -38,6 +53,6 @@ export const useTerminology = () => {
       terminology.member!.plural
     ),
     user: createEntity(terminology.user!.singular, terminology.user!.plural),
-    appName: terminology.appName!
+    appName: createEntity(terminology.appName!, terminology.appName!)
   };
 };
