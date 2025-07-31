@@ -13,10 +13,12 @@ import { getOrganizationNavItems, getUserNavItems } from './helpers';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import styles from './sidebar.module.css';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
+  const t = useTerminology();
   const {
     organizationId,
     showBilling,
@@ -108,7 +110,7 @@ export const Sidebar = () => {
 
           <SidebarComponent.Main style={{ gap: 'var(--rs-space-5)' }}>
             <SidebarComponent.Group
-              label="Organization"
+              label={t.organization({ case: 'capital' })}
               leadingIcon={
                 <Image
                   alt="organization"

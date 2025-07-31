@@ -10,6 +10,7 @@ import { Container } from '../Container';
 
 // @ts-ignore
 import styles from './organization.module.css';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 type CreateOrganizationProps = ComponentPropsWithRef<typeof Container> & {
   title?: string;
@@ -28,6 +29,7 @@ export const CreateOrganization = ({
   description = 'Organizations are shared environments where team can work on assets, connections and data operations.',
   ...props
 }: CreateOrganizationProps) => {
+  const t = useTerminology();
   const {
     handleSubmit,
     formState: { errors },
@@ -63,14 +65,14 @@ export const CreateOrganization = ({
         <form onSubmit={handleSubmit(onSubmit)}>
           <Container className={styles.createContainer} shadow="sm" radius="sm">
             <InputField
-              label="Organization name"
+              label={`${t.organization({ case: 'capital' })} name`}
               size="large"
               error={errors.title && String(errors.title?.message)}
               {...register('title')}
-              placeholder="Provide organization name"
+              placeholder={`Provide ${t.organization({ case: 'lower' })} name`}
             />
             <InputField
-              label="Workspace URL"
+              label={`${t.organization({ case: 'capital' })} URL`}
               size="large"
               error={errors.name && String(errors.name?.message)}
               {...register('name')}
@@ -81,7 +83,7 @@ export const CreateOrganization = ({
               type="submit"
               data-test-id="frontier-sdk-create-workspace-btn"
             >
-              Create workspace
+              Create {t.organization({ case: 'lower' })}
             </Button>
           </Container>
         </form>
