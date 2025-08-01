@@ -7,6 +7,12 @@ import {
   Text,
 } from "@raystack/apsara/v1";
 import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
+import type { SearchOrganizationsResponse_OrganizationResult } from "@raystack/proton/frontier";
+import {
+  isNullTimestamp,
+  TimeStamp,
+  timestampToDate,
+} from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import { NULL_DATE } from "~/utils/constants";
@@ -29,7 +35,10 @@ interface getColumnsOptions {
 export const getColumns = ({
   plans,
   groupCountMap,
-}: getColumnsOptions): DataTableColumnDef<V1Beta1Organization, unknown>[] => {
+}: getColumnsOptions): DataTableColumnDef<
+  SearchOrganizationsResponse_OrganizationResult,
+  unknown
+>[] => {
   const planMap = plans.reduce(
     (acc, plan) => {
       const name = plan.name || "";
@@ -64,14 +73,14 @@ export const getColumns = ({
       enableSorting: true,
     },
     {
-      accessorKey: "created_by",
+      accessorKey: "createdBy",
       header: "Creator",
       cell: ({ getValue }) => {
         return getValue();
       },
     },
     {
-      accessorKey: "plan_name",
+      accessorKey: "planName",
       header: "Plan",
       cell: ({ getValue }) => {
         return planMap[getValue() as string];
@@ -85,16 +94,19 @@ export const getColumns = ({
       enableHiding: true,
       enableGrouping: true,
       showGroupCount: true,
-      groupCountMap: groupCountMap["plan_name"] || {},
+      groupCountMap: groupCountMap["planName"] || {},
       groupLabelsMap: planMap,
     },
     {
-      accessorKey: "subscription_cycle_end_at",
+      accessorKey: "subscriptionCycleEndAt",
       header: "Cycle ends on",
       filterType: "date",
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return <Text>{date}</Text>;
       },
       enableColumnFilter: true,
       // enableSorting: true,
@@ -112,7 +124,7 @@ export const getColumns = ({
       },
     },
     {
-      accessorKey: "payment_mode",
+      accessorKey: "paymentMode",
       header: "Payment mode",
       cell: ({ getValue }) => {
         return getValue();
@@ -121,7 +133,7 @@ export const getColumns = ({
       defaultHidden: true,
     },
     {
-      accessorKey: "subscription_state",
+      accessorKey: "subscriptionState",
       header: "Status",
       cell: ({ getValue }) => {
         return SUBSCRIPTION_STATES[getValue() as SubscriptionState];
@@ -138,16 +150,19 @@ export const getColumns = ({
       defaultHidden: true,
       enableGrouping: true,
       showGroupCount: true,
-      groupCountMap: groupCountMap["subscription_state"] || {},
+      groupCountMap: groupCountMap["subscriptionState"] || {},
       groupLabelsMap: SUBSCRIPTION_STATES,
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Created On",
       filterType: "date",
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return <Text>{date}</Text>;
       },
       enableHiding: true,
       defaultHidden: true,
