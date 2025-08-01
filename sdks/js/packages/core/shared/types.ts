@@ -15,13 +15,18 @@ export interface FrontierClientBillingOptions {
   basePlan?: BasePlan;
 }
 
+export interface EntityTerminologies {
+  singular: string;
+  plural: string;
+}
+
 export interface FrontierClientCustomizationOptions {
   terminology?: {
-    organization?: { singular: string; plural: string };
-    project?: { singular: string; plural: string };
-    team?: { singular: string; plural: string };
-    member?: { singular: string; plural: string };
-    user?: { singular: string; plural: string };
+    organization?: EntityTerminologies;
+    project?: EntityTerminologies;
+    team?: EntityTerminologies;
+    member?: EntityTerminologies;
+    user?: EntityTerminologies;
     appName?: string;
   };
   messages?: {

@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext } from 'react';
 import { merge } from 'lodash';
 import type { FrontierClientCustomizationOptions } from '../../shared/types';
 
@@ -9,15 +9,18 @@ const defaultCustomization: Required<FrontierClientCustomizationOptions> = {
     team: { singular: 'Team', plural: 'Teams' },
     member: { singular: 'Member', plural: 'Members' },
     user: { singular: 'User', plural: 'Users' },
-    appName: 'Frontier',
+    appName: 'Frontier'
   },
   messages: {
     billing: {},
-    general: {},
-  },
+    general: {}
+  }
 };
 
-export const CustomizationContext = createContext<Required<FrontierClientCustomizationOptions>>(defaultCustomization);
+export const CustomizationContext =
+  createContext<Required<FrontierClientCustomizationOptions>>(
+    defaultCustomization
+  );
 
 export interface CustomizationProviderProps {
   children: ReactNode;
@@ -41,4 +44,9 @@ export const CustomizationProvider: React.FC<CustomizationProviderProps> = ({
   );
 };
 
-export { defaultCustomization };
+const useCustomizationContext = () => {
+  const context = useContext(CustomizationContext);
+  return context || defaultCustomization;
+};
+
+export { defaultCustomization, useCustomizationContext };
