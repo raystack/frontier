@@ -1,40 +1,39 @@
-import { useEffect, useCallback, Suspense } from 'react';
+import { useEffect, Suspense, useContext } from 'react';
 import { Flex } from '@raystack/apsara/v1';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { useMutation, FrontierServiceQueries } from '@raystack/frontier/hooks';
+import { FrontierServiceQueries, useQuery } from '@raystack/frontier/hooks';
+import AuthContext from '@/contexts/auth';
 
 function CallbackComponent() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { setIsAuthorized } = useContext(AuthContext);
 
-  const { mutateAsync: authCallback } = useMutation(
-    FrontierServiceQueries.authCallback
-  );
-  const state = searchParams?.get('state');
-  const code = searchParams?.get('code');
+  const state = searchParams.get('state') || '';
+  const code = searchParams.get('code') || '';
 
-  const callFrontierCallback = useCallback(
-    async (state: string, code: string) => {
-      try {
-        await authCallback({
-          state,
-          code
-        });
-        navigate('/');
-      } catch (err) {
-        console.error('Auth callback failed:', err);
-        navigate('/login', { replace: true });
-      }
+  const { isSuccess, isError, error, isLoading } = useQuery(
+    FrontierServiceQueries.authCallback,
+    {
+      state,
+      code
     },
-    [authCallback, navigate]
+    { enabled: !!state && !!code }
   );
 
   useEffect(() => {
-    if (state && code) {
-      callFrontierCallback(state, code);
+    if (!isLoading) {
+      if (isSuccess) {
+        navigate('/');
+        setIsAuthorized(true);
+      } else if (isError) {
+        console.error('Auth callback failed:', error);
+        setIsAuthorized(false);
+        navigate('/login', { replace: true });
+      }
     }
-  }, [state, code, callFrontierCallback]);
+  }, [isSuccess, isError, navigate, error, isLoading, setIsAuthorized]);
 
   return (
     <Flex
