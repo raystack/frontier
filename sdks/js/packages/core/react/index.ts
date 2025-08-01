@@ -15,6 +15,10 @@ export { Window } from './components/window';
 
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
+export { 
+  CustomizationProvider
+} from './contexts/CustomizationContext';
+
 
 export { useTokens } from './hooks/useTokens';
 export { useBillingPermission } from './hooks/useBillingPermission';
@@ -23,7 +27,8 @@ export { Layout } from './components/Layout';
 
 export type {
   FrontierClientOptions,
-  FrontierClientBillingOptions
+  FrontierClientBillingOptions,
+  FrontierClientCustomizationOptions
 } from '../shared/types';
 
 export { PREFERENCE_OPTIONS } from './utils/constants';

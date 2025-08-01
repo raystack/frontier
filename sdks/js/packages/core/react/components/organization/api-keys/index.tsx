@@ -10,11 +10,7 @@ import {
 import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import {
-  DEFAULT_API_PLATFORM_APP_NAME,
-  DEFAULT_DATE_FORMAT
-} from '~/react/utils/constants';
-import type { FrontierClientAPIPlatformOptions } from '~/shared/types';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { useEffect, useMemo, useState } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -22,13 +18,10 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getColumns } from './columns';
 import type { V1Beta1ServiceUser } from '~/api-client';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
-const NoServiceAccounts = ({
-  config
-}: {
-  config?: FrontierClientAPIPlatformOptions;
-}) => {
-  const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+const NoServiceAccounts = () => {
+  const t = useTerminology();
 
   const navigate = useNavigate({ from: '/api-keys' });
   return (
@@ -36,7 +29,7 @@ const NoServiceAccounts = ({
       <EmptyState
         icon={<Image src={keyIcon as unknown as string} alt="keyIcon" />}
         heading="No service account found"
-        subHeading={`Create a new account to use the APIs of ${appName} platform`}
+        subHeading={`Create a new account to use the APIs of ${t.appName()} platform`}
         primaryAction={
           <Button
             data-test-id="frontier-sdk-new-service-account-btn"
@@ -58,20 +51,14 @@ const NoAccess = () => {
       <EmptyState
         icon={<ExclamationTriangleIcon />}
         heading="Restricted Access"
-        subHeading='Admin access required, please reach out to your admin incase you want to generate a key'
+        subHeading="Admin access required, please reach out to your admin incase you want to generate a key"
       />
     </Flex>
   );
 };
 
-const Headings = ({
-  config,
-  isLoading
-}: {
-  config?: FrontierClientAPIPlatformOptions;
-  isLoading: boolean;
-}) => {
-  const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+const Headings = ({ isLoading }: { isLoading: boolean }) => {
+  const t = useTerminology();
   return (
     <Flex direction="column" gap={3} style={{ width: '100%' }}>
       {isLoading ? (
@@ -83,8 +70,7 @@ const Headings = ({
         <Skeleton containerClassName={styles.flex1} />
       ) : (
         <Text size="regular" variant="secondary">
-          Create a non-human identity to allow access to {appName.toLowerCase()}{' '}
-          resources
+          Create a non-human identity to allow access to {t.appName()} resources
         </Text>
       )}
     </Flex>
@@ -227,7 +213,7 @@ export default function ApiKeys() {
       {canUpdateWorkspace || isLoading ? (
         serviceAccountsCount > 0 || isLoading ? (
           <Flex className={styles.content} direction="column" gap={9}>
-            <Headings isLoading={isLoading} config={config?.apiPlatform} />
+            <Headings isLoading={isLoading} />
             <ServiceAccountsTable
               isLoading={isLoading}
               serviceUsers={serviceUsers}
@@ -235,7 +221,7 @@ export default function ApiKeys() {
             />
           </Flex>
         ) : (
-          <NoServiceAccounts config={config?.apiPlatform} />
+          <NoServiceAccounts />
         )
       ) : (
         <NoAccess />

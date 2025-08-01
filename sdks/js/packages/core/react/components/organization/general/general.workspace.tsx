@@ -20,6 +20,7 @@ import styles from './general.module.css';
 import { AuthTooltipMessage } from '~/react/utils';
 import { AvatarUpload } from '../../avatar-upload';
 import { getInitials } from '~/utils';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 const generalSchema = yup
   .object({
@@ -75,6 +76,7 @@ export const GeneralOrganization = ({
   canUpdateWorkspace?: boolean;
 }) => {
   const { client, setActiveOrganization } = useFrontier();
+  const t = useTerminology();
   const {
     reset,
     control,
@@ -102,7 +104,7 @@ export const GeneralOrganization = ({
       if (resp.data?.organization) {
         setActiveOrganization(resp.data?.organization);
       }
-      toast.success('Updated organization');
+      toast.success(`Updated ${t.organization({ case: 'lower' })}`);
     } catch (error: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -115,11 +117,7 @@ export const GeneralOrganization = ({
       <Flex direction="column" gap={9} style={{ maxWidth: '320px' }}>
         {isLoading ? (
           <Flex gap={5} direction="column" style={{ width: '100%' }}>
-            <Skeleton
-              width="80px"
-              height="80px"
-              borderRadius="50%"
-            />
+            <Skeleton width="80px" height="80px" borderRadius="50%" />
             <Skeleton height="16px" width="100%" />
           </Flex>
         ) : (
@@ -127,7 +125,9 @@ export const GeneralOrganization = ({
             render={({ field }) => (
               <AvatarUpload
                 {...field}
-                subText="Pick a logo for your organization."
+                subText={`Pick a logo for your ${t.organization({
+                  case: 'lower'
+                })}.`}
                 initials={getInitials(
                   organization?.title || organization?.name
                 )}
@@ -149,12 +149,12 @@ export const GeneralOrganization = ({
             </>
           ) : (
             <InputField
-              label="Organization name"
+              label={`${t.organization({ case: 'capital' })} name`}
               size="large"
               error={errors.title && String(errors.title?.message)}
               defaultValue={organization?.title || ''}
               disabled={!canUpdateWorkspace}
-              placeholder="Provide organization name"
+              placeholder={`Provide ${t.organization({ case: 'lower' })} name`}
               {...register('title')}
             />
           )}
@@ -167,13 +167,13 @@ export const GeneralOrganization = ({
             </>
           ) : (
             <InputField
-              label="Organization URL"
+              label={`${t.organization({ case: 'capital' })} URL`}
               size="large"
               error={errors.name && String(errors.name?.message)}
               defaultValue={organization?.name || ''}
               disabled
               prefix={URL_PREFIX}
-              placeholder="Provide organization URL"
+              placeholder={`Provide ${t.organization({ case: 'lower' })} URL`}
               {...register('name')}
             />
           )}

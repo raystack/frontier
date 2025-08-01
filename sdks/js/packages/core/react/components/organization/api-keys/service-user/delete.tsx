@@ -1,24 +1,17 @@
 import { useState } from 'react';
-import {
-  Button,
-  Flex,
-  Text,
-  toast,
-  Image,
-  Dialog
-} from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import styles from './styles.module.css';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 export const DeleteServiceAccountKey = () => {
   const { id, tokenId } = useParams({
     from: '/api-keys/$id/key/$tokenId/delete'
   });
   const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
-  const { client, config, activeOrganization } = useFrontier();
+  const { client, activeOrganization } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
 
   const orgId = activeOrganization?.id || '';
@@ -54,7 +47,8 @@ export const DeleteServiceAccountKey = () => {
       }
     });
   }
-  const appName = config?.apiPlatform?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+
+  const t = useTerminology();
 
   return (
     <Dialog open={true}>
@@ -79,23 +73,17 @@ export const DeleteServiceAccountKey = () => {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex
-            direction="column"
-            gap={5}
-          >
+          <Flex direction="column" gap={5}>
             <Text>
               This is an irreversible action doing this might lead to
-              discontinuation of access to the {appName} features. Do you wish
-              to proceed?
+              discontinuation of access to the {t.appName()} features. Do you
+              wish to proceed?
             </Text>
           </Flex>
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex
-            justify="end"
-            gap={5}
-          >
+          <Flex justify="end" gap={5}>
             <Button
               variant="outline"
               color="neutral"
