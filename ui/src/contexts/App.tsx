@@ -13,6 +13,8 @@ import {
   V1Beta1Plan,
   V1Beta1User,
 } from "@raystack/frontier";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { Config, defaultConfig } from "~/utils/constants";
 import { api } from "~/api";
 
@@ -62,7 +64,6 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   const [isUserLoading, setIsUserLoading] = useState(true);
 
   const [isOrgListLoading, setIsOrgListLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [enabledOrganizations, setEnabledOrganizations] = useState<
     V1Beta1Organization[]
   >([]);
@@ -82,7 +83,16 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   const [enabledOrgHasMoreData, setEnabledOrgHasMoreData] = useState(true);
   const [disabledOrgHasMoreData, setDisabledOrgHasMoreData] = useState(true);
 
-  const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
+  const { mutateAsync: listAllOrganizations } = useMutation(
+    AdminServiceQueries.listAllOrganizations,
+  );
+
+  const { error: adminUserError } = useQuery(
+    AdminServiceQueries.getCurrentAdminUser,
+    {},
+  );
+
+  const isAdmin = Boolean(user?.id) && !adminUserError;
 
   const fetchOrganizations = useCallback(async () => {
     if (!enabledOrgHasMoreData && !disabledOrgHasMoreData) return;
@@ -90,41 +100,47 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     setIsOrgListLoading(true);
     try {
       const [orgResp, disabledOrgResp] = await Promise.all([
-        api?.adminServiceListAllOrganizations({ page_num: page, page_size }),
-        api?.adminServiceListAllOrganizations({
+        listAllOrganizations({
+          pageNum: page,
+          pageSize: page_size,
+        }),
+        listAllOrganizations({
           state: "disabled",
-          page_num: page,
-          page_size,
+          pageNum: page,
+          pageSize: page_size,
         }),
       ]);
 
-      if (orgResp?.data?.organizations?.length) {
+      if (orgResp?.organizations?.length) {
         setEnabledOrganizations((prev: V1Beta1Organization[]) => [
           ...prev,
-          ...(orgResp.data.organizations || []),
+          ...(orgResp.organizations || []),
         ]);
       } else {
         setEnabledOrgHasMoreData(false);
       }
 
-      if (disabledOrgResp?.data?.organizations?.length) {
+      if (disabledOrgResp?.organizations?.length) {
         setDisabledOrganizations((prev: V1Beta1Organization[]) => [
           ...prev,
-          ...(disabledOrgResp.data.organizations || []),
+          ...(disabledOrgResp.organizations || []),
         ]);
       } else {
         setDisabledOrgHasMoreData(false);
       }
-      setIsAdmin(true);
     } catch (error) {
       console.error(error);
-      setIsAdmin(false);
       setEnabledOrgHasMoreData(false);
       setDisabledOrgHasMoreData(false);
     } finally {
       setIsOrgListLoading(false);
     }
-  }, [page, enabledOrgHasMoreData, disabledOrgHasMoreData]);
+  }, [
+    page,
+    enabledOrgHasMoreData,
+    disabledOrgHasMoreData,
+    listAllOrganizations,
+  ]);
 
   const loadMoreOrganizations = () => {
     if (
@@ -151,10 +167,10 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   }, []);
 
   useEffect(() => {
-    if (!isUserEmpty) {
+    if (isAdmin) {
       fetchOrganizations();
     }
-  }, [isUserEmpty, page, fetchOrganizations]);
+  }, [isAdmin, page, fetchOrganizations]);
 
   const fetchPlatformUsers = useCallback(async () => {
     setIsPlatformUsersLoading(true);
