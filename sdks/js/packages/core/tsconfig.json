@@ -1,11 +1,13 @@
 {
   "extends": "@raystack/frontier-tsconfig/react-library.json",
   "compilerOptions": {
+    "moduleResolution": "bundler",
     "paths": {
-      "~/*": ["./*"]
+      "~/*": ["./*"],
+      "~hooks": ["./hooks/index.ts"]
     },
     "types": ["jest"]
   },
   "include": ["."],
-  "exclude": ["dist", "react/dist", "node_modules"]
+  "exclude": ["dist", "react/dist", "hooks/dist", "node_modules"]
 }

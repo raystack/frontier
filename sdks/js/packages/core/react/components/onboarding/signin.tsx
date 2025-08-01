@@ -1,6 +1,7 @@
 import { Link, Text, Flex } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useQuery, useMutation, FrontierServiceQueries } from '~hooks';
 import { Container } from '../Container';
 import { Header } from '../Header';
 import { MagicLink } from './magiclink';
@@ -22,20 +23,33 @@ export const SignIn = ({
   footer = true,
   ...props
 }: SignedInProps) => {
-  const { config, client, strategies = [] } = useFrontier();
+  const { config } = useFrontier();
+
+  const { data: strategiesData } = useQuery(
+    FrontierServiceQueries.listAuthStrategies
+  );
+  const strategies = strategiesData?.strategies || [];
+
+  const { mutateAsync: authenticate } = useMutation(
+    FrontierServiceQueries.authenticate
+  );
 
   const clickHandler = useCallback(
     async (name?: string) => {
       if (!name) return;
-      if (!client) return;
-      const {
-        data: { endpoint = '' }
-      } = await client.frontierServiceAuthenticate(name, {
-        callback_url: config.callbackUrl
-      });
-      window.location.href = endpoint;
+      try {
+        const response = await authenticate({
+          strategyName: name,
+          callbackUrl: config.callbackUrl
+        });
+        if (response.endpoint) {
+          window.location.href = response.endpoint;
+        }
+      } catch (error) {
+        console.error('Authentication failed:', error);
+      }
     },
-    [client, config.callbackUrl]
+    [authenticate, config.callbackUrl]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
@@ -46,7 +60,7 @@ export const SignIn = ({
   return (
     <Container {...props}>
       <Header logo={logo} title={title} />
-      <Flex direction="column" style={{ width: '100%', gap: 'var(--rs-space-5)' }}>
+      <Flex direction="column" width="full" gap={5}>
         {filteredOIDC.map((s, index) => {
           return (
             <OIDCButton

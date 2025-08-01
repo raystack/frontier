@@ -52,6 +52,12 @@
       "module": "./react/dist/index.mjs",
       "require": "./react/dist/index.js"
     },
+    "./hooks": {
+      "types": "./hooks/dist/index.d.ts",
+      "import": "./hooks/dist/index.mjs",
+      "module": "./hooks/dist/index.mjs",
+      "require": "./hooks/dist/index.js"
+    },
     "./api-client": {
       "types": "./api-client/dist/index.d.ts",
       "import": "./api-client/dist/index.mjs",
@@ -91,7 +97,7 @@
     "@connectrpc/connect-query": "^2.1.1",
     "@connectrpc/connect-web": "^2.0.2",
     "@hookform/resolvers": "^3.10.0",
-    "@raystack/proton": "0.1.0-35dd68d487bfa7e7339c40e9b103ee7377aac6e6",
+    "@raystack/proton": "0.1.0-881c92a4cab2490e6c680462a94660b551b1040f",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "1.58.17",
     "axios": "^1.9.0",
