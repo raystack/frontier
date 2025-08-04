@@ -11,8 +11,9 @@
     "build:client": "node scripts/gen-swagger-client.mjs"
   },
   "dependencies": {
-    "@connectrpc/connect-query": "^1.4.2",
-    "@connectrpc/connect-web": "^1.6.1",
+    "@bufbuild/protobuf": "^2.6.2",
+    "@connectrpc/connect-query": "^2.1.1",
+    "@connectrpc/connect-web": "^2.0.3",
     "@hookform/resolvers": "^3.0.1",
     "@radix-ui/react-form": "^0.0.2",
     "@radix-ui/react-icons": "^1.3.0",
