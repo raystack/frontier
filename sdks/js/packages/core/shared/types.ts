@@ -15,8 +15,26 @@ export interface FrontierClientBillingOptions {
   basePlan?: BasePlan;
 }
 
-export interface FrontierClientAPIPlatformOptions {
-  appName?: string;
+export interface EntityTerminologies {
+  singular: string;
+  plural: string;
+}
+
+export interface FrontierClientCustomizationOptions {
+  terminology?: {
+    organization?: EntityTerminologies;
+    project?: EntityTerminologies;
+    team?: EntityTerminologies;
+    member?: EntityTerminologies;
+    user?: EntityTerminologies;
+    appName?: string;
+  };
+  messages?: {
+    billing?: {
+      plan_change?: Record<string, string>;
+    };
+    general?: Record<string, string>;
+  };
 }
 
 export interface FrontierClientOptions {
@@ -29,12 +47,7 @@ export interface FrontierClientOptions {
   dateFormat?: string;
   shortDateFormat?: string;
   billing?: FrontierClientBillingOptions;
-  apiPlatform?: FrontierClientAPIPlatformOptions;
-  messages?: {
-    billing?: {
-      plan_change?: Record<string, string>;
-    };
-  };
+  customization?: FrontierClientCustomizationOptions;
 }
 
 export interface InitialState {

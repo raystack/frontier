@@ -11,6 +11,7 @@ export default function Organization() {
         showBilling={true}
         showTokens={true}
         showPreferences={true}
+        showAPIKeys={true}
       />
     </Window>
   ) : null;

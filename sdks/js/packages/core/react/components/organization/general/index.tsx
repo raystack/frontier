@@ -1,7 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Button, Tooltip, Separator, Skeleton, Text, Flex } from '@raystack/apsara/v1';
+import {
+  Button,
+  Tooltip,
+  Separator,
+  Skeleton,
+  Text,
+  Flex
+} from '@raystack/apsara/v1';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -9,6 +16,7 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { GeneralOrganization } from './general.workspace';
 import { AuthTooltipMessage } from '~/react/utils';
 import { styles } from '../styles';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 export default function GeneralSetting() {
   const { activeOrganization: organization, isActiveOrganizationLoading } =
@@ -77,6 +85,7 @@ export const GeneralDeleteOrganization = ({
   isLoading?: boolean;
   canDelete: boolean;
 }) => {
+  const t = useTerminology();
   const navigate = useNavigate({ from: '/' });
   return (
     <>
@@ -85,8 +94,8 @@ export const GeneralDeleteOrganization = ({
           <Skeleton height={'16px'} width={'50%'} />
         ) : (
           <Text size={3} variant="secondary">
-            If you want to permanently delete this organization and all of its
-            data.
+            If you want to permanently delete this{' '}
+            {t.organization({ case: 'lower' })} and all of its data.
           </Text>
         )}
         {isLoading ? (
@@ -101,7 +110,7 @@ export const GeneralDeleteOrganization = ({
               disabled={!canDelete}
               data-test-id="frontier-sdk-delete-organization-btn"
             >
-              Delete organization
+              Delete {t.organization({ case: 'lower' })}
             </Button>
           </Tooltip>
         )}
