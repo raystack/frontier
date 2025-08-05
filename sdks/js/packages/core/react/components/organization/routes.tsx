@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { transformConnectOrgToV1Beta1 } from '../../../shared/utils/organization';
 import {
   Outlet,
   createRoute,
@@ -96,7 +97,11 @@ const RootRouter = () => {
   const { setActiveOrganization, setIsActiveOrganizationLoading } =
     useFrontier();
 
-  const { data: organizationData, isLoading, error } = useQuery(
+  const {
+    data: organizationData,
+    isLoading,
+    error
+  } = useQuery(
     FrontierServiceQueries.getOrganization,
     { id: organizationId },
     { enabled: !!organizationId }
@@ -108,7 +113,11 @@ const RootRouter = () => {
 
   useEffect(() => {
     if (organizationId) {
-      setActiveOrganization(organizationData?.organization);
+      setActiveOrganization(
+        organizationData?.organization
+          ? transformConnectOrgToV1Beta1(organizationData.organization)
+          : undefined
+      );
     } else {
       setActiveOrganization(undefined);
     }
