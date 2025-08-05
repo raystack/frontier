@@ -153,7 +153,7 @@ const ProjectsTable = ({
             {isLoading ? (
                 <Skeleton height='34px' width='500px' />
             ) : (
-              <DataTable.Search placeholder="Search by name " size="medium" />
+              <DataTable.Search placeholder="Search by title " size="medium" />
             )}
             {canListOrgProjects ? (
               <Select
