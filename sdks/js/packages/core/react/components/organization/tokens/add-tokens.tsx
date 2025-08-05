@@ -35,11 +35,11 @@ export const AddTokens = () => {
     .object({
       tokens: yup
         .number()
-        .required()
+        .required("Please enter valid number")
         .min(minQuantity, `Minimum ${minQuantity} token is required`)
         .max(maxQuantity, `Maximum ${maxQuantity} tokens are allowed`)
+        .typeError('Please enter valid number of tokens')
     })
-    .typeError('Please enter a valid number')
     .required();
 
   type FormData = yup.InferType<typeof tokensSchema>;
