@@ -94,10 +94,11 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.6.3",
     "@connectrpc/connect-query": "^2.1.1",
     "@connectrpc/connect-web": "^2.0.2",
     "@hookform/resolvers": "^3.10.0",
-    "@raystack/proton": "0.1.0-881c92a4cab2490e6c680462a94660b551b1040f",
+    "@raystack/proton": "0.1.0-8cb19702a3e47d173732860d58084b83d6941865",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "1.58.17",
     "axios": "^1.9.0",
