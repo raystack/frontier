@@ -33,6 +33,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@bufbuild/protobuf':
+        specifier: ^2.6.3
+        version: 2.6.3
       '@connectrpc/connect-query':
         specifier: ^2.1.1
         version: 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -42,9 +45,6 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.57.0(react@18.3.1))
-      '@raystack/frontier':
-        specifier: ^0.72.0
-        version: 0.72.0(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@raystack/apsara@0.48.5(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1)))(@tanstack/query-core@5.83.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/proton':
         specifier: 0.1.0-8cb19702a3e47d173732860d58084b83d6941865
         version: 0.1.0-8cb19702a3e47d173732860d58084b83d6941865(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2097,32 +2097,6 @@ packages:
   '@raystack/apsara@0.48.5':
     resolution: {integrity: sha512-UJM1mgqtY7WphnI0uZNDofjCmtpV6OGfjO5JEBfBTUI+aRfJ1YLWFDP7d+S8c2qZxc9wvupyrvqGWRJB+jMxeQ==}
     engines: {node: '>=18'}
-
-  '@raystack/frontier@0.72.0':
-    resolution: {integrity: sha512-htItwlM1vnw+/QGaCiPax3HAuJa80Eb+qDdamD0E5kKDspJO7hx3faIz6fbakTfvBEV73nSNZ1NrJTYUxrMJBA==}
-    peerDependencies:
-      '@raystack/apsara': '>=0.30.0'
-      react: ^18.2.0
-      solid-js: '*'
-      svelte: '*'
-      vue: '*'
-    peerDependenciesMeta:
-      react:
-        optional: true
-      solid-js:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
-
-  '@raystack/proton@0.1.0-881c92a4cab2490e6c680462a94660b551b1040f':
-    resolution: {integrity: sha512-UawStxGaThAzN8sQ43bIw2PO8HUAI7C1mdBevE1w+tdEryd5v5RR0cIg3ah+BrrRTY6iLSU/FTmH5IxEZ3oWNA==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.0.0
-    peerDependenciesMeta:
-      '@tanstack/react-query':
-        optional: true
 
   '@raystack/proton@0.1.0-8cb19702a3e47d173732860d58084b83d6941865':
     resolution: {integrity: sha512-+DJTA9sgA4UepL/0DRRt8bkEuAvQo0EuckU1nHIzB4gIAG/XodUNRhMGaVMkhVVCkinIlFWSYb7kvhFfmPGgpA==}
@@ -9375,50 +9349,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
-      - react-dom
-
-  '@raystack/frontier@0.72.0(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@raystack/apsara@0.48.5(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1)))(@tanstack/query-core@5.83.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@connectrpc/connect-query': 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@connectrpc/connect-web': 2.0.2(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))
-      '@hookform/resolvers': 3.10.0(react-hook-form@7.57.0(react@18.3.1))
-      '@raystack/apsara': 0.48.5(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))
-      '@raystack/proton': 0.1.0-881c92a4cab2490e6c680462a94660b551b1040f(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/react-query': 5.83.0(react@18.3.1)
-      '@tanstack/react-router': 1.58.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      axios: 1.9.0
-      class-variance-authority: 0.7.1
-      dayjs: 1.11.13
-      lodash: 4.17.21
-      query-string: 8.2.0
-      react-hook-form: 7.57.0(react@18.3.1)
-      react-image-crop: 10.1.8(react@18.3.1)
-      slugify: 1.6.6
-      uuid: 10.0.0
-      validator: 13.15.15
-      yup: 1.6.1
-    optionalDependencies:
-      react: 18.3.1
-    transitivePeerDependencies:
-      - '@bufbuild/protobuf'
-      - '@connectrpc/connect'
-      - '@tanstack/query-core'
-      - '@tanstack/router-generator'
-      - debug
-      - react-dom
-
-  '@raystack/proton@0.1.0-881c92a4cab2490e6c680462a94660b551b1040f(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@bufbuild/protobuf': 2.6.3
-      '@connectrpc/connect': 2.0.3(@bufbuild/protobuf@2.6.3)
-      '@connectrpc/connect-query': 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@protobuf-ts/runtime': 2.11.1
-      '@protobuf-ts/runtime-rpc': 2.11.1
-    optionalDependencies:
-      '@tanstack/react-query': 5.83.0(react@18.3.1)
-    transitivePeerDependencies:
-      - '@tanstack/query-core'
-      - react
       - react-dom
 
   '@raystack/proton@0.1.0-8cb19702a3e47d173732860d58084b83d6941865(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
