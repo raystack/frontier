@@ -9,6 +9,7 @@
   "files": [
     "dist/**/*",
     "react/dist/**/*",
+    "hooks/dist/**/*",
     "api-client/dist/**/*",
     "README.md"
   ],
