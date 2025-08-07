@@ -11,6 +11,13 @@ import { useMemo } from 'react';
 export const multipleFrontierProvidersError =
   "Frontier: You've added multiple <FrontierProvider> components in your React component tree. Wrap your components in a single <FrontierProvider>.";
 
+const fetchWithCreds: typeof fetch = (input, init) => {
+  return fetch(input, {
+    ...init,
+    credentials: 'include'
+  });
+};
+
 const queryClient = new QueryClient();
 
 export const FrontierProvider = (props: FrontierProviderProps) => {
@@ -19,7 +26,8 @@ export const FrontierProvider = (props: FrontierProviderProps) => {
   const transport = useMemo(
     () =>
       createConnectTransport({
-        baseUrl: config.connectEndpoint || '/frontier-connect'
+        baseUrl: config.connectEndpoint || '/frontier-connect',
+        fetch: fetchWithCreds
       }),
     [config.connectEndpoint]
   );
