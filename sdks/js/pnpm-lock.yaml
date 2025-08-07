@@ -46,8 +46,8 @@ importers:
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.57.0(react@18.3.1))
       '@raystack/proton':
-        specifier: 0.1.0-8cb19702a3e47d173732860d58084b83d6941865
-        version: 0.1.0-8cb19702a3e47d173732860d58084b83d6941865(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.1.0-2dbafa5913a214851fdc4f1beefbe27c4a6de55a
+        version: 0.1.0-2dbafa5913a214851fdc4f1beefbe27c4a6de55a(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
         specifier: ^5.83.0
         version: 5.83.0(react@18.3.1)
@@ -2098,8 +2098,8 @@ packages:
     resolution: {integrity: sha512-UJM1mgqtY7WphnI0uZNDofjCmtpV6OGfjO5JEBfBTUI+aRfJ1YLWFDP7d+S8c2qZxc9wvupyrvqGWRJB+jMxeQ==}
     engines: {node: '>=18'}
 
-  '@raystack/proton@0.1.0-8cb19702a3e47d173732860d58084b83d6941865':
-    resolution: {integrity: sha512-+DJTA9sgA4UepL/0DRRt8bkEuAvQo0EuckU1nHIzB4gIAG/XodUNRhMGaVMkhVVCkinIlFWSYb7kvhFfmPGgpA==}
+  '@raystack/proton@0.1.0-2dbafa5913a214851fdc4f1beefbe27c4a6de55a':
+    resolution: {integrity: sha512-YSDOtLJn28NiqSptZmLIFTLpQ+utzP/8i+2/aARBtXXuK2dpjKLKkRRwZMX2P67YKcgSswgaqpKfgEaPuQhyfg==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
     peerDependenciesMeta:
@@ -9351,7 +9351,7 @@ snapshots:
       - '@types/react-dom'
       - react-dom
 
-  '@raystack/proton@0.1.0-8cb19702a3e47d173732860d58084b83d6941865(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/proton@0.1.0-2dbafa5913a214851fdc4f1beefbe27c4a6de55a(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@bufbuild/protobuf': 2.6.3
       '@connectrpc/connect': 2.0.3(@bufbuild/protobuf@2.6.3)
