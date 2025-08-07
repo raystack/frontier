@@ -1,4 +1,4 @@
-import { ThemeProvider, ToastContainer } from "@raystack/apsara/v1";
+import { ThemeProvider, ToastContainer } from "@raystack/apsara";
 import { SkeletonTheme } from "react-loading-skeleton";
 import React from "react";
 import ReactDOM from "react-dom/client";

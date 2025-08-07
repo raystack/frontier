@@ -1,4 +1,4 @@
-import type { DataTableColumnDef } from "@raystack/apsara/v1";
+import type { DataTableColumnDef } from "@raystack/apsara";
 import type { V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
 import { Link } from "react-router-dom";
 

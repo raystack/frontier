@@ -10,7 +10,7 @@ import {
   Switch,
   Text,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import styles from "./edit.module.css";
 import { z } from "zod";
 import { api } from "~/api";

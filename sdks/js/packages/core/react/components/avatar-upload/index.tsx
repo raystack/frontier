@@ -5,7 +5,7 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
-import { Button, Avatar, Image, Text, Dialog, Flex } from '@raystack/apsara/v1';
+import { Button, Avatar, Image, Text, Dialog, Flex } from '@raystack/apsara';
 
 import cross from '~/react/assets/cross.svg';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -87,70 +87,70 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} className={styles.cropModal}>
-          <Dialog.Header>
-            <Flex justify="between" align="center" style={{ width: '100%' }}>
-              <Text size="large" weight="medium">
-                Crop your photo
-              </Text>
-              <Image
-                alt="cross"
-                style={{ cursor: 'pointer' }}
-                src={cross as unknown as string}
-                onClick={onClose}
-                data-test-id="frontier-sdk-avatar-crop-modal-close-btn"
-              />
-            </Flex>
-          </Dialog.Header>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        className={styles.cropModal}
+      >
+        <Dialog.Header>
+          <Flex justify="between" align="center" style={{ width: '100%' }}>
+            <Text size="large" weight="medium">
+              Crop your photo
+            </Text>
+            <Image
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={onClose}
+              data-test-id="frontier-sdk-avatar-crop-modal-close-btn"
+            />
+          </Flex>
+        </Dialog.Header>
 
-          <Dialog.Body>
-            <Flex
-              direction="column"
-              style={{ maxHeight: '280px', height: '100%' }}
-              justify={'center'}
-              align={'center'}
-            >
-              {imgSrc ? (
-                <ReactCrop
-                  crop={crop}
-                  onChange={(_, percentCrop) => setCrop(percentCrop)}
-                  aspect={1}
-                  className={styles.reactCrop}
-                  data-test-id="frontier-sdk-image-crop-preview"
-                >
-                  <img
-                    src={imgSrc}
-                    alt="preview-pic"
-                    ref={imgRef}
-                    onLoad={onImageLoad}
-                    className={styles.previewImg}
-                  />
-                </ReactCrop>
-              ) : null}
-            </Flex>
-          </Dialog.Body>
+        <Dialog.Body>
+          <Flex
+            direction="column"
+            style={{ maxHeight: '280px', height: '100%' }}
+            justify={'center'}
+            align={'center'}
+          >
+            {imgSrc ? (
+              <ReactCrop
+                crop={crop}
+                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                aspect={1}
+                className={styles.reactCrop}
+                data-test-id="frontier-sdk-image-crop-preview"
+              >
+                <img
+                  src={imgSrc}
+                  alt="preview-pic"
+                  ref={imgRef}
+                  onLoad={onImageLoad}
+                  className={styles.previewImg}
+                />
+              </ReactCrop>
+            ) : null}
+          </Flex>
+        </Dialog.Body>
 
-          <Dialog.Footer>
-            <Flex
-              justify="end"
-              gap={5}
+        <Dialog.Footer>
+          <Flex justify="end" gap={5}>
+            <Button
+              variant="outline"
+              color="neutral"
+              onClick={onClose}
+              data-test-id="frontier-sdk-avatar-crop-modal-cancel-btn"
             >
-              <Button
-                variant="outline"
-                color="neutral"
-                onClick={onClose}
-                data-test-id="frontier-sdk-avatar-crop-modal-cancel-btn"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSave}
-                data-test-id="frontier-sdk-avatar-crop-modal-save-btn"
-              >
-                Save
-              </Button>
-            </Flex>
-          </Dialog.Footer>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              data-test-id="frontier-sdk-avatar-crop-modal-save-btn"
+            >
+              Save
+            </Button>
+          </Flex>
+        </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   );
@@ -206,12 +206,7 @@ export const AvatarUpload = React.forwardRef<
       <div className={styles.container} ref={forwardedRef}>
         {disabled ? (
           <div>
-            <Avatar
-              src={value}
-              fallback={initials}
-              size={11}
-              radius="full"
-            />
+            <Avatar src={value} fallback={initials} size={11} radius="full" />
           </div>
         ) : (
           <div
@@ -220,11 +215,7 @@ export const AvatarUpload = React.forwardRef<
             onMouseLeave={() => setIsHover(false)}
           >
             {value && !isHover ? (
-              <Avatar
-                src={value}
-                size={11}
-                radius="full"
-              />
+              <Avatar src={value} size={11} radius="full" />
             ) : (
               <div
                 className={styles.uploadIconWrapper}
@@ -237,9 +228,7 @@ export const AvatarUpload = React.forwardRef<
           </div>
         )}
 
-        {subText ? (
-          <Text variant="secondary">{subText}</Text>
-        ) : null}
+        {subText ? <Text variant="secondary">{subText}</Text> : null}
         <input
           type="file"
           accept="image/png, image/jpeg"

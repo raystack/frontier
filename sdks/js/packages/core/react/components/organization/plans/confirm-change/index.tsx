@@ -7,7 +7,7 @@ import {
   Text,
   Flex,
   Dialog
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import { useFrontier } from '~/react/contexts/FrontierContext';

@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Flex, Image } from "@raystack/apsara/v1";
+import { Box, Flex, Image } from "@raystack/apsara";
 import { Header, MagicLink } from "@raystack/frontier/react";
 import { useContext } from "react";
 import PageTitle from "~/components/page-title";

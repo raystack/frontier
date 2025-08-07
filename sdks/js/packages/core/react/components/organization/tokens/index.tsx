@@ -1,4 +1,15 @@
-import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast, Link, Callout } from '@raystack/apsara/v1';
+import {
+  Button,
+  Tooltip,
+  Skeleton,
+  Text,
+  Headline,
+  Flex,
+  Image,
+  toast,
+  Link,
+  Callout
+} from '@raystack/apsara';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { styles } from '../styles';
 import tokenStyles from './token.module.css';
@@ -73,7 +84,11 @@ function BalancePanel({
   return (
     <Flex className={tokenStyles.balancePanel} justify="between">
       <Flex className={tokenStyles.balanceTokenBox}>
-        <Image src={coin as unknown as string} alt="coin" className={tokenStyles.coinIcon} />
+        <Image
+          src={coin as unknown as string}
+          alt="coin"
+          className={tokenStyles.coinIcon}
+        />
         <Flex direction="column" gap={2}>
           <Text weight="medium" variant="secondary">
             Available tokens
@@ -90,23 +105,23 @@ function BalancePanel({
       <Flex>
         <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
           {isLoading ? (
-            <Skeleton height='28px' width='72px' />
+            <Skeleton height="28px" width="72px" />
           ) : (
-          <Button
-            variant="outline"
-            color="neutral"
-            size="small"
-            className={tokenStyles.addTokenButton}
-            onClick={onAddTokenClick}
-            disabled={disableAddTokensBtn}
-            loading={isCheckoutLoading}
-            loaderText="Adding tokens..."
-            data-test-id="frontier-sdk-add-tokens-btn"
-          >
-            <Flex gap={2} align="center">
-              <PlusIcon /> Add tokens
-            </Flex>
-          </Button>
+            <Button
+              variant="outline"
+              color="neutral"
+              size="small"
+              className={tokenStyles.addTokenButton}
+              onClick={onAddTokenClick}
+              disabled={disableAddTokensBtn}
+              loading={isCheckoutLoading}
+              loaderText="Adding tokens..."
+              data-test-id="frontier-sdk-add-tokens-btn"
+            >
+              <Flex gap={2} align="center">
+                <PlusIcon /> Add tokens
+              </Flex>
+            </Button>
           )}
         </Tooltip>
       </Flex>
@@ -123,15 +138,19 @@ interface TokenInfoBoxProps {
 
 function TokenInfoBox({ canUpdateWorkspace }: TokenInfoBoxProps) {
   const { billingDetails } = useFrontier();
-  const isPostpaid = billingDetails?.credit_min && parseInt(billingDetails.credit_min) < 0
+  const isPostpaid =
+    billingDetails?.credit_min && parseInt(billingDetails.credit_min) < 0;
 
   return isPostpaid && canUpdateWorkspace ? (
     <Callout
       type="accent"
       icon={<InfoCircledIcon className={tokenStyles.tokenInfoText} />}
       className={tokenStyles.tokenInfoBox}
-    >You can now add tokens anytime to reduce next month’s invoice. But this won’t settle any existing or overdue invoices.
-    </Callout>) : null;
+    >
+      You can now add tokens anytime to reduce next month’s invoice. But this
+      won’t settle any existing or overdue invoices.
+    </Callout>
+  ) : null;
 }
 
 export default function Tokens() {

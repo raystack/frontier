@@ -3,7 +3,7 @@ import {
   Sidebar as SidebarComponent,
   Flex,
   Search
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { Link, useRouteContext, useRouterState } from '@tanstack/react-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';

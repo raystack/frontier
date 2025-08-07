@@ -8,7 +8,7 @@ import {
   Flex,
   Dialog,
   InputField
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -92,7 +92,7 @@ export const DeleteProject = () => {
       >
         <Dialog.Header>
           <Flex justify="between" align="center" style={{ width: '100%' }}>
-            <Text size='large' weight="medium">
+            <Text size="large" weight="medium">
               Verify project deletion
             </Text>
             <Image
@@ -108,10 +108,7 @@ export const DeleteProject = () => {
         </Dialog.Header>
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap={5}
-            >
+            <Flex direction="column" gap={5}>
               {isProjectLoading ? (
                 <>
                   <Skeleton height={'16px'} />
@@ -122,7 +119,7 @@ export const DeleteProject = () => {
                 </>
               ) : (
                 <>
-                  <Text size='small'>
+                  <Text size="small">
                     This action can not be undone. This will permanently delete
                     project <b>{project?.title}</b>.
                   </Text>
@@ -141,9 +138,9 @@ export const DeleteProject = () => {
                       onCheckedChange={v => setIsAcknowledged(v === true)}
                       data-test-id="frontier-sdk-delete-project-checkbox"
                     />
-                    <Text size='small'>
-                      I understand that all of the project data
-                      will be deleted and want to proceed.
+                    <Text size="small">
+                      I understand that all of the project data will be deleted
+                      and want to proceed.
                     </Text>
                   </Flex>
                   <Button

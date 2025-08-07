@@ -1,4 +1,4 @@
-import { DataTable } from "@raystack/apsara/v1";
+import { DataTable } from "@raystack/apsara";
 import PageHeader from "~/components/page-header";
 import styles from "./roles.module.css";
 

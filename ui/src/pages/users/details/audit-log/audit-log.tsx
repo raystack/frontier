@@ -1,4 +1,4 @@
-import { EmptyState, Flex, Button } from "@raystack/apsara/v1";
+import { EmptyState, Flex, Button } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import ChipIcon from "~/assets/icons/cpu-chip.svg?react";
 import { useAppContext } from "~/contexts/App";

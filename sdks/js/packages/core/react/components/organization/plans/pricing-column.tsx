@@ -3,7 +3,16 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Skeleton, Image, toast, Text, Flex, Tabs, Amount } from '@raystack/apsara/v1';
+import {
+  Button,
+  Skeleton,
+  Image,
+  toast,
+  Text,
+  Flex,
+  Tabs,
+  Amount
+} from '@raystack/apsara';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -60,7 +69,9 @@ const PricingColumnHeader = ({
         </Text>
         {showDiscount ? (
           <Flex className={plansStyles.discountText}>
-            <Text weight="medium" variant="tertiary">{discountText}</Text>
+            <Text weight="medium" variant="tertiary">
+              {discountText}
+            </Text>
           </Flex>
         ) : null}
       </Flex>
@@ -107,10 +118,7 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
         className={plansStyles.featureCell}
       >
         {isAvailable ? (
-          <Image
-            src={checkCircle as unknown as string}
-            alt="checked"
-          />
+          <Image src={checkCircle as unknown as string} alt="checked" />
         ) : value ? (
           <Text>{value}</Text>
         ) : (
@@ -139,7 +147,7 @@ const PlanIntervals = ({
     <Tabs.Root
       className={plansStyles.plansIntervalList}
       value={selectedInterval}
-      onValueChange={(value) => onIntervalChange(value as IntervalKeys)}
+      onValueChange={value => onIntervalChange(value as IntervalKeys)}
     >
       <Tabs.List>
         {planIntervals.map(key => (

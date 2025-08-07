@@ -8,7 +8,7 @@ import {
   Skeleton,
   Text,
   Flex
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';

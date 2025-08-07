@@ -1,4 +1,4 @@
-import { Text, Flex, Link } from '@raystack/apsara/v1';
+import { Text, Flex, Link } from '@raystack/apsara';
 
 interface PlansHeaderProps {
   billingSupportEmail?: string;

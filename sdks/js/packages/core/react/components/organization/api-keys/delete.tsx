@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import {
-  Button,
-  Flex,
-  Text,
-  toast,
-  Image,
-  Dialog
-} from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -67,10 +60,7 @@ export const DeleteServiceAccount = () => {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex
-            direction="column"
-            gap={5}
-          >
+          <Flex direction="column" gap={5}>
             <Text>
               This is an irreversible and permanent action doing this might
               result in deletion of the service account and the keys associated
@@ -80,10 +70,7 @@ export const DeleteServiceAccount = () => {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex
-            justify="end"
-            gap={5}
-          >
+          <Flex justify="end" gap={5}>
             <Button
               variant="outline"
               color="neutral"

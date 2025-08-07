@@ -1,4 +1,4 @@
-import { DataTable } from "@raystack/apsara/v1";
+import { DataTable } from "@raystack/apsara";
 import { useContext } from "react";
 import { AppContext } from "~/contexts/App";
 import { getColumns } from "./columns";

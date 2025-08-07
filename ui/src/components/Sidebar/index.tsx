@@ -7,7 +7,7 @@ import {
   Sidebar,
   Text,
   useTheme,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 
@@ -132,19 +132,21 @@ export default function IAMSidebar() {
         </Text>
       </Sidebar.Header>
       <Sidebar.Main>
-        {navigationItems.map(nav => {
+        {navigationItems.map((nav) => {
           return nav?.subItems?.length ? (
             <Sidebar.Group
               label={nav.name}
               key={nav.name}
-              className={styles["sidebar-group"]}>
-              {nav.subItems?.map(subItem => (
+              className={styles["sidebar-group"]}
+            >
+              {nav.subItems?.map((subItem) => (
                 <Sidebar.Item
                   leadingIcon={subItem.icon}
                   key={subItem.name}
                   active={isActive(subItem.to)}
                   data-test-id={`admin-ui-sidebar-navigation-cell-${subItem.name}`}
-                  as={<Link to={subItem?.to ?? ""} />}>
+                  as={<Link to={subItem?.to ?? ""} />}
+                >
                   {subItem.name}
                 </Sidebar.Item>
               ))}
@@ -155,7 +157,8 @@ export default function IAMSidebar() {
               key={nav.name}
               active={isActive(nav.to)}
               data-test-id={`admin-ui-sidebar-navigation-cell-${nav.name}`}
-              as={<Link to={nav?.to ?? ""} />}>
+              as={<Link to={nav?.to ?? ""} />}
+            >
               {nav.name}
             </Sidebar.Item>
           );
@@ -200,17 +203,22 @@ function UserDropdown() {
           leadingIcon={
             <Avatar src={user?.avatar} fallback={userInital} size={3} />
           }
-          data-test-id="frontier-sdk-sidebar-logout">
+          data-test-id="frontier-sdk-sidebar-logout"
+        >
           {user?.email}
         </Sidebar.Item>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         <DropdownMenu.Item
           onClick={toggleTheme}
-          data-test-id="admin-ui-toggle-theme">
+          data-test-id="admin-ui-toggle-theme"
+        >
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={() => logoutMutation.mutate({})} data-test-id="admin-ui-logout-btn">
+        <DropdownMenu.Item
+          onClick={() => logoutMutation.mutate({})}
+          data-test-id="admin-ui-logout-btn"
+        >
           Logout
         </DropdownMenu.Item>
       </DropdownMenu.Content>

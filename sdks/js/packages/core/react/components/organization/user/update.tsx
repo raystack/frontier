@@ -9,7 +9,7 @@ import {
   Flex,
   Button,
   InputField
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';

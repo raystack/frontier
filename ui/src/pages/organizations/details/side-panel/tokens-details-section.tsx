@@ -1,4 +1,4 @@
-import { List, Text, Flex } from "@raystack/apsara/v1";
+import { List, Text, Flex } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import CoinIcon from "~/assets/icons/coin.svg?react";
 import CoinColoredIcon from "~/assets/icons/coin-colored.svg?react";

@@ -5,7 +5,7 @@ import {
   Flex,
   IconButton,
   getAvatarColor,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { NavLink } from "react-router-dom";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { SidebarIcon } from "@raystack/apsara/icons";

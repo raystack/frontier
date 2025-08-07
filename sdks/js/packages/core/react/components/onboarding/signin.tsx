@@ -1,4 +1,4 @@
-import { Link, Text, Flex } from '@raystack/apsara/v1';
+import { Link, Text, Flex } from '@raystack/apsara';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQuery, useMutation, FrontierServiceQueries } from '~hooks';

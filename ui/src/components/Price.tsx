@@ -1,4 +1,4 @@
-import { Flex } from "@raystack/apsara/v1";
+import { Flex } from "@raystack/apsara";
 import { getCurrencyValue } from "~/utils/helper";
 
 type PriceProps = {

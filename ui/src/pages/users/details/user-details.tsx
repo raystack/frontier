@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
-import { Flex, EmptyState } from "@raystack/apsara/v1";
+import { Flex, EmptyState } from "@raystack/apsara";
 import { V1Beta1User } from "~/api/frontier";
 import { api } from "~/api";
 import LoadingState from "~/components/states/Loading";
@@ -43,7 +43,8 @@ export const UserDetails = () => {
       <Flex
         style={{ height: "100vh", width: "100%" }}
         align="center"
-        justify="center">
+        justify="center"
+      >
         <PageTitle title="User not found" />
         <EmptyState
           icon={<UserIcon />}

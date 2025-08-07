@@ -8,7 +8,7 @@ import {
   Text,
   TextArea,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { AxiosError } from "axios";
 import * as z from "zod";
@@ -26,7 +26,7 @@ const inviteSchema = z.object({
   organizationId: z.string(),
   emails: z
     .string()
-    .transform(value => value.split(",").map(str => str.trim()))
+    .transform((value) => value.split(",").map((str) => str.trim()))
     .pipe(z.array(z.string().email())),
 });
 
@@ -46,7 +46,7 @@ export const InviteUser = () => {
   const { organizations, isLoading } = useAppContext();
 
   const defaultRoleId = useMemo(
-    () => roles?.find(role => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
+    () => roles?.find((role) => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
     [roles],
   );
 
@@ -112,7 +112,8 @@ export const InviteUser = () => {
           variant="text"
           color="neutral"
           leadingIcon={<PlusIcon />}
-          data-test-id="users-list-invite-user-btn">
+          data-test-id="users-list-invite-user-btn"
+        >
           Invite User
         </Button>
       </Dialog.Trigger>
@@ -162,12 +163,13 @@ export const InviteUser = () => {
                       <>
                         <Select
                           {...rest}
-                          onValueChange={value => field.onChange(value)}>
+                          onValueChange={(value) => field.onChange(value)}
+                        >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select a Role" />
                           </Select.Trigger>
                           <Select.Content>
-                            {roles?.map(role => (
+                            {roles?.map((role) => (
                               <Select.Item key={role.id} value={role.id ?? ""}>
                                 {role.title}
                               </Select.Item>
@@ -177,7 +179,8 @@ export const InviteUser = () => {
                         {error && (
                           <Text
                             size={1}
-                            className={styles["form-error-message"]}>
+                            className={styles["form-error-message"]}
+                          >
                             {error?.message}
                           </Text>
                         )}
@@ -202,7 +205,8 @@ export const InviteUser = () => {
                       <>
                         <Select
                           {...rest}
-                          onValueChange={value => field.onChange(value)}>
+                          onValueChange={(value) => field.onChange(value)}
+                        >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select an Organization" />
                           </Select.Trigger>
@@ -210,8 +214,9 @@ export const InviteUser = () => {
                             style={{
                               maxHeight: 280,
                               overflowY: "auto",
-                            }}>
-                            {organizations?.map(org => (
+                            }}
+                          >
+                            {organizations?.map((org) => (
                               <Select.Item key={org.id} value={org.id ?? ""}>
                                 {org.name}
                               </Select.Item>
@@ -221,7 +226,8 @@ export const InviteUser = () => {
                         {error && (
                           <Text
                             size={1}
-                            className={styles["form-error-message"]}>
+                            className={styles["form-error-message"]}
+                          >
                             {error?.message}
                           </Text>
                         )}
@@ -237,7 +243,8 @@ export const InviteUser = () => {
               data-test-id="users-list-invite-user-submit-btn"
               type="submit"
               loading={isSubmitting}
-              loaderText="Sending...">
+              loaderText="Sending..."
+            >
               Send invite
             </Button>
           </Dialog.Footer>

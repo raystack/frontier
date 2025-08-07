@@ -1,4 +1,4 @@
-import { Tabs, Image, Text, toast, Flex } from '@raystack/apsara/v1';
+import { Tabs, Image, Text, toast, Flex } from '@raystack/apsara';
 import {
   Outlet,
   useLocation,

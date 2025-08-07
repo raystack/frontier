@@ -2,7 +2,7 @@ import { useState } from "react";
 import { SearchProjectUsersResponseProjectUser } from "~/api/frontier";
 import styles from "./members.module.css";
 
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara/v1";
+import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { api } from "~/api";
 
 interface RemoveMemberProps {

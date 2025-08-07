@@ -1,4 +1,4 @@
-import { Flex, List, Text, Avatar } from "@raystack/apsara/v1";
+import { Flex, List, Text, Avatar } from "@raystack/apsara";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";

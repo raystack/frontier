@@ -1,4 +1,4 @@
-import { DataTable, Flex, IconButton, Text } from "@raystack/apsara/v1";
+import { DataTable, Flex, IconButton, Text } from "@raystack/apsara";
 import styles from "./list.module.css";
 import InvoicesIcon from "~/assets/icons/invoices.svg?react";
 import { useState } from "react";

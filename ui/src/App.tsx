@@ -1,4 +1,4 @@
-import { Flex } from "@raystack/apsara/v1";
+import { Flex } from "@raystack/apsara";
 import { Outlet } from "react-router-dom";
 import "@raystack/apsara/style.css";
 import "@raystack/apsara/normalize.css";

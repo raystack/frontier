@@ -18,7 +18,7 @@ import {
   DataTable,
   Popover,
   Search
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -308,7 +308,7 @@ const AddMemberDropdown = ({
           value={query}
           placeholder={showTeam ? 'Add team to project' : 'Add project member'}
           onChange={onTextChange}
-          variant='borderless'
+          variant="borderless"
           showClearButton
           disabled={isTeamsLoading || isUserLoading}
           onClear={() => setQuery('')}
@@ -419,7 +419,7 @@ const AddMemberDropdown = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading='No members found'
-    subHeading='Get started by adding your first member.'
+    heading="No members found"
+    subHeading="Get started by adding your first member."
   />
 );

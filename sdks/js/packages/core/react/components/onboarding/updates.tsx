@@ -2,7 +2,7 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactNode } from '@tanstack/react-router';
-import { Button, Flex, Text, Switch, Skeleton } from '@raystack/apsara/v1';
+import { Button, Flex, Text, Switch, Skeleton } from '@raystack/apsara';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
@@ -64,11 +64,7 @@ export const Updates = ({
     <Flex direction="column" gap={9}>
       <Header logo={logo} title={title} />
       <form onSubmit={handleSubmit(onFormSubmit)}>
-        <Container
-          className={styles.updatesContainer}
-          shadow="sm"
-          radius="xs"
-        >
+        <Container className={styles.updatesContainer} shadow="sm" radius="xs">
           <Flex direction="column" gap={5}>
             <Flex justify="between">
               <Text size="large" weight="medium">

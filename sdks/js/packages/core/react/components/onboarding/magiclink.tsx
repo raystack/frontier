@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Text, Separator, Flex, InputField } from '@raystack/apsara/v1';
+import { Button, Text, Separator, Flex, InputField } from '@raystack/apsara';
 import React, { useCallback, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';

@@ -1,4 +1,4 @@
-import { Button, Skeleton, Text, Flex, toast } from '@raystack/apsara/v1';
+import { Button, Skeleton, Text, Flex, toast } from '@raystack/apsara';
 import {
   DEFAULT_DATE_FORMAT,
   SUBSCRIPTION_STATES

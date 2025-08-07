@@ -1,7 +1,7 @@
 import { V1Beta1Subscription, V1Beta1Plan } from "~/api/frontier";
 import { useContext, useEffect, useState } from "react";
 import { api } from "~/api";
-import { List, Text, Flex } from "@raystack/apsara/v1";
+import { List, Text, Flex } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";

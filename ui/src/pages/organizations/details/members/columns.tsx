@@ -5,7 +5,7 @@ import {
   Flex,
   Text,
   DropdownMenu,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import {
   SearchOrganizationUsersResponseOrganizationUser,
   V1Beta1Role,

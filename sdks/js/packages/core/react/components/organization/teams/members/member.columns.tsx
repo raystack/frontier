@@ -13,7 +13,7 @@ import {
   DropdownMenu,
   type DataTableColumnDef,
   getAvatarColor
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
 import type { Role } from '~/src/types';
