@@ -13,7 +13,7 @@ import {
   getAvatarColor,
   DropdownMenu,
   DataTableColumnDef
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role } from '~/src';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
@@ -81,7 +81,7 @@ export const getColumns = (
                 memberRoles[row.original?.id]
                   .map((r: V1Beta1Role) => r.title || r.name)
                   .join(', ')) ??
-                'Inherited role'}
+              'Inherited role'}
         </Text>
       );
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Text, Link, Flex, InputField } from '@raystack/apsara/v1';
+import { Button, Text, Link, Flex, InputField } from '@raystack/apsara';
 import React, {
   ComponentPropsWithRef,
   useCallback,
@@ -28,8 +28,10 @@ export const MagicLinkVerify = ({
   ...props
 }: MagicLinkVerifyProps) => {
   const { config } = useFrontier();
-  
-  const { mutateAsync: authCallback, isPending } = useMutation(FrontierServiceQueries.authCallback);
+
+  const { mutateAsync: authCallback, isPending } = useMutation(
+    FrontierServiceQueries.authCallback
+  );
   const [emailParam, setEmailParam] = useState<string>('');
   const [stateParam, setStateParam] = useState<string>('');
   const [otp, setOTP] = useState<string>('');

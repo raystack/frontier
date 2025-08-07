@@ -9,7 +9,7 @@ import {
   Sheet,
   SidePanel,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import styles from "./edit.module.css";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";

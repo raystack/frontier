@@ -1,7 +1,7 @@
 import { NULL_DATE } from "~/utils/constants";
 import styles from "./invoices.module.css";
 import dayjs from "dayjs";
-import { DataTableColumnDef, Link, Amount } from "@raystack/apsara/v1";
+import { DataTableColumnDef, Link, Amount } from "@raystack/apsara";
 import { SearchOrganizationInvoicesResponseOrganizationInvoice } from "~/api/frontier";
 
 // https://docs.stripe.com/invoicing/overview#invoice-statuses

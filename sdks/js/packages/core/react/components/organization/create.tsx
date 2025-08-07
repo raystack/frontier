@@ -1,7 +1,7 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Text, Headline, Flex, InputField } from '@raystack/apsara/v1';
+import { Button, Text, Headline, Flex, InputField } from '@raystack/apsara';
 import { ComponentPropsWithRef } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';

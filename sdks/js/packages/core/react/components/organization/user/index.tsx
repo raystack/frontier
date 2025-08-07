@@ -1,6 +1,6 @@
 'use client';
 
-import { Text, Flex } from '@raystack/apsara/v1';
+import { Text, Flex } from '@raystack/apsara';
 import { styles } from '../styles';
 import { UpdateProfile } from './update';
 

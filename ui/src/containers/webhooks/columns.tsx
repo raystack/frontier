@@ -1,10 +1,6 @@
 import { DotsVerticalIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
 import type { V1Beta1Webhook } from "@raystack/frontier";
-import {
-  DropdownMenu,
-  Flex,
-  type DataTableColumnDef,
-} from "@raystack/apsara/v1";
+import { DropdownMenu, Flex, type DataTableColumnDef } from "@raystack/apsara";
 import styles from "./webhooks.module.css";
 
 interface getColumnsOptions {

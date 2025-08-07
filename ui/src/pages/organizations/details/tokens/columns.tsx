@@ -7,7 +7,7 @@ import {
   Flex,
   getAvatarColor,
   Text,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { SearchOrganizationTokensResponseOrganizationToken } from "~/api/frontier";
 
 export const getColumns = (): DataTableColumnDef<

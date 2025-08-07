@@ -11,7 +11,7 @@ import {
   Image,
   Headline,
   Select
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import bell from '~/react/assets/bell.svg';
 import bellSlash from '~/react/assets/bell-slash.svg';
 import { styles } from '../styles';

@@ -1,5 +1,5 @@
 import AuthContext from '@/contexts/auth';
-import { Button, Flex } from '@raystack/apsara/v1';
+import { Button, Flex } from '@raystack/apsara';
 import { useFrontier } from '@raystack/frontier/react';
 import { useMutation, FrontierServiceQueries } from '@raystack/frontier/hooks';
 import { Link, useNavigate } from 'react-router-dom';

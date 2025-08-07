@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { type DataTableColumnDef } from "@raystack/apsara/v1";
+import { type DataTableColumnDef } from "@raystack/apsara";
 import type { V1Beta1Plan } from "@raystack/frontier";
 
 export const getColumns: () => DataTableColumnDef<

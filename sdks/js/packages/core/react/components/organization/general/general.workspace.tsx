@@ -9,7 +9,7 @@ import {
   Text,
   Flex,
   InputField
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';

@@ -1,4 +1,12 @@
-import { Button, Skeleton, Text, Flex, toast, Link, Tooltip } from '@raystack/apsara/v1';
+import {
+  Button,
+  Skeleton,
+  Text,
+  Flex,
+  toast,
+  Link,
+  Tooltip
+} from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -90,16 +98,16 @@ const BillingDetails = ({
             side="bottom-right"
             disabled={!isButtonDisabled}
           >
-          <Button
-            data-test-id="frontier-sdk-billing-details-update-button"
-            variant="outline"
-            color="neutral"
-            size="small"
-            onClick={onAddDetailsClick}
-            disabled={isButtonDisabled}
-          >
-            {btnText}
-          </Button>
+            <Button
+              data-test-id="frontier-sdk-billing-details-update-button"
+              variant="outline"
+              color="neutral"
+              size="small"
+              onClick={onAddDetailsClick}
+              disabled={isButtonDisabled}
+            >
+              {btnText}
+            </Button>
           </Tooltip>
         ) : null}
       </Flex>

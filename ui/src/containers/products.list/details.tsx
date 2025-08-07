@@ -1,4 +1,4 @@
-import { Flex, Text, Grid, Sheet } from "@raystack/apsara/v1";
+import { Flex, Text, Grid, Sheet } from "@raystack/apsara";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useProduct } from ".";
 import styles from "./products.module.css";

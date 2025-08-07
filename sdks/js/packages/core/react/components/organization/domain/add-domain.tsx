@@ -6,7 +6,7 @@ import {
   toast,
   Dialog,
   InputField
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';

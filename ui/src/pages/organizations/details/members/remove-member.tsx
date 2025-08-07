@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier";
 
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara/v1";
+import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { api } from "~/api";
 import { AxiosError } from "axios";
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara/v1";
+import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { api } from "~/api";
 
 interface SuspendDropdownProps {
@@ -46,7 +46,8 @@ export const SuspendUser = ({
               type="button"
               variant="outline"
               color="neutral"
-              data-test-id="admin-ui-user-details-suspend-cancel">
+              data-test-id="admin-ui-user-details-suspend-cancel"
+            >
               Cancel
             </Button>
           </Dialog.Close>
@@ -57,7 +58,8 @@ export const SuspendUser = ({
             data-test-id="admin-ui-user-details-suspend-confirm"
             onClick={handleSuspend}
             loading={isSubmitting}
-            loaderText="Suspending...">
+            loaderText="Suspending..."
+          >
             Suspend
           </Button>
         </Dialog.Footer>

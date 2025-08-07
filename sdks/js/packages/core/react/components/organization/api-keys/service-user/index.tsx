@@ -1,4 +1,4 @@
-import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara';
 import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
 import {

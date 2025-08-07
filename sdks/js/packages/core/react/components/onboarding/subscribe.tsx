@@ -5,7 +5,16 @@ import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { Button, Flex, Text, InputField, toast, ToastContainer, Image, EmptyState } from '@raystack/apsara/v1';
+import {
+  Button,
+  Flex,
+  Text,
+  InputField,
+  toast,
+  ToastContainer,
+  Image,
+  EmptyState
+} from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import checkCircle from '~/react/assets/check-circle.svg';
@@ -16,12 +25,16 @@ const schema = yup.object({
   email: yup.string().email('Invalid email').required('Email is required'),
   contactNumber: yup
     .string()
-    .transform((value) => value.trim() === '' ? null : value)
+    .transform(value => (value.trim() === '' ? null : value))
     .nullable()
-    .test('digits-only', 'Must contain only numbers with country code', (value) => {
-      if (!value?.trim()) return true;
-      return /^[+\d\s\-()]+$/.test(value);
-    })
+    .test(
+      'digits-only',
+      'Must contain only numbers with country code',
+      value => {
+        if (!value?.trim()) return true;
+        return /^[+\d\s\-()]+$/.test(value);
+      }
+    )
     .optional()
 });
 
@@ -47,20 +60,29 @@ type SubscribeProps = {
 };
 
 const DEFAULT_TITLE = 'Updates, News & Events';
-const DEFAULT_DESCRIPTION = 'Stay informed on new features, improvements, and key updates';
+const DEFAULT_DESCRIPTION =
+  'Stay informed on new features, improvements, and key updates';
 const DEFAULT_SUCCESS_TITLE = 'Thank you for subscribing!';
-const DEFAULT_SUCCESS_DESCRIPTION = 'You have successfully subscribed to our list. We will let you know about the updates.';
+const DEFAULT_SUCCESS_DESCRIPTION =
+  'You have successfully subscribed to our list. We will let you know about the updates.';
 
 const ConfirmSection = () => {
   return (
     <Flex direction="column" gap={9} align="center" justify="center">
-        <EmptyState
-          icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
-          heading={DEFAULT_SUCCESS_TITLE}
-          subHeading={DEFAULT_SUCCESS_DESCRIPTION}
-        />
-        <ToastContainer />
-      </Flex>
+      <EmptyState
+        icon={
+          <Image
+            alt=""
+            width={32}
+            height={32}
+            src={checkCircle as unknown as string}
+          />
+        }
+        heading={DEFAULT_SUCCESS_TITLE}
+        subHeading={DEFAULT_SUCCESS_DESCRIPTION}
+      />
+      <ToastContainer />
+    </Flex>
   );
 };
 
@@ -116,11 +138,7 @@ export const Subscribe = ({
   }
 
   if (isSuccess) {
-    return (
-      <>
-        {confirmSection}
-      </>
-    );
+    return <>{confirmSection}</>;
   }
 
   return (
@@ -128,14 +146,18 @@ export const Subscribe = ({
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Flex
           className={styles.subscribeContainer}
-          direction='column'
-          justify='start'
+          direction="column"
+          justify="start"
           align="start"
           gap={9}
         >
           <Flex direction="column" gap={3} style={{ width: '100%' }}>
-            <Text size="large" className={styles.subscribeTitle}>{title}</Text>
-            <Text size="regular" className={styles.subscribeDescription}>{desc}</Text>
+            <Text size="large" className={styles.subscribeTitle}>
+              {title}
+            </Text>
+            <Text size="regular" className={styles.subscribeDescription}>
+              {desc}
+            </Text>
           </Flex>
           <InputField
             {...register('name')}
@@ -158,7 +180,7 @@ export const Subscribe = ({
             label="Contact number"
             placeholder="Enter contact"
             error={errors.contactNumber?.message}
-            helperText='Add country code at the start'
+            helperText="Add country code at the start"
             data-testid="subscribe-contact-input"
           />
           <Button

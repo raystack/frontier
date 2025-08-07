@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Sheet } from "@raystack/apsara/v1";
+import { Button, Flex, Sheet } from "@raystack/apsara";
 import * as z from "zod";
 
 import { useCallback } from "react";

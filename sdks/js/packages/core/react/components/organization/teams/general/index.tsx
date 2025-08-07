@@ -7,7 +7,7 @@ import {
   Text,
   Flex,
   InputField
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';

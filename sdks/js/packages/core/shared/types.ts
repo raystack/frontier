@@ -1,7 +1,7 @@
 import React from 'react';
 import { V1Beta1Organization } from '../api-client';
 import { BasePlan } from '../src/types';
-import { ThemeProviderProps } from '@raystack/apsara/v1';
+import { ThemeProviderProps } from '@raystack/apsara';
 export type CustomFetch = typeof fetch;
 
 export interface FrontierClientBillingOptions {

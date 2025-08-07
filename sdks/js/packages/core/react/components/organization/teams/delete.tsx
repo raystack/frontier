@@ -8,7 +8,7 @@ import {
   Dialog,
   toast,
   InputField
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -116,10 +116,7 @@ export const DeleteTeam = () => {
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
-            <Flex
-              direction="column"
-              gap={5}
-            >
+            <Flex direction="column" gap={5}>
               {isTeamLoading ? (
                 <>
                   <Skeleton height={'16px'} />

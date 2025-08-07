@@ -1,5 +1,5 @@
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { Flex } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 import { SignIn } from '@raystack/frontier/react';
 
 export default function Login() {

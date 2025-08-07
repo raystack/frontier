@@ -1,10 +1,5 @@
 import { TrashIcon } from '@radix-ui/react-icons';
-import {
-  Button,
-  type DataTableColumnDef,
-  Flex,
-  Text
-} from '@raystack/apsara/v1';
+import { Button, type DataTableColumnDef, Flex, Text } from '@raystack/apsara';
 import { Link, useNavigate } from '@tanstack/react-router';
 import dayjs from 'dayjs';
 import type { V1Beta1ServiceUser } from '~/api-client';

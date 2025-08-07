@@ -9,7 +9,7 @@ import {
   InputField,
   Select,
   Label
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';

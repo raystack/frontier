@@ -1,4 +1,4 @@
-import { Flex, Image, Dialog } from '@raystack/apsara/v1';
+import { Flex, Image, Dialog } from '@raystack/apsara';
 import type React from 'react';
 import { useState } from 'react';
 import closeClose from '~/react/assets/close-close.svg';

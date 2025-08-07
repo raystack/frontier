@@ -1,5 +1,5 @@
 import { useEffect, Suspense, useContext } from 'react';
-import { Flex } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 import { FrontierServiceQueries, useQuery } from '@raystack/frontier/hooks';

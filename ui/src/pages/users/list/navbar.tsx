@@ -5,7 +5,7 @@ import {
   Separator,
   IconButton,
   Spinner,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import UserIcon from "~/assets/icons/users.svg?react";
 import styles from "./list.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
@@ -23,7 +23,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   function toggleSearch() {
-    setShowSearch(prev => !prev);
+    setShowSearch((prev) => !prev);
   }
 
   function onSearchBlur(e: React.FocusEvent<HTMLInputElement>) {
@@ -70,7 +70,8 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
             size={3}
             aria-label="Search"
             data-test-id="admin-ui-search-users-btn"
-            onClick={toggleSearch}>
+            onClick={toggleSearch}
+          >
             <MagnifyingGlassIcon />
           </IconButton>
         )}
@@ -79,7 +80,8 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
           aria-label="Download"
           data-test-id="admin-ui-download-users-list-btn"
           onClick={onDownloadClick}
-          disabled={isDownloading}>
+          disabled={isDownloading}
+        >
           {isDownloading ? <Spinner /> : <DownloadIcon />}
         </IconButton>
       </Flex>

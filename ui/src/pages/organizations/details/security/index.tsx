@@ -5,7 +5,7 @@ import {
   Separator,
   Text,
   Tooltip,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 
 import styles from "./security.module.css";
 import { PlusIcon } from "@radix-ui/react-icons";

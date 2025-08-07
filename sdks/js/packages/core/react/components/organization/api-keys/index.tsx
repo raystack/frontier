@@ -6,7 +6,7 @@ import {
   Skeleton,
   Image,
   DataTable
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';

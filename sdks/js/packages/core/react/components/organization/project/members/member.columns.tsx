@@ -13,7 +13,7 @@ import {
   DropdownMenu,
   type DataTableColumnDef,
   getAvatarColor
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
 import teamIcon from '~/react/assets/users.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -105,13 +105,13 @@ export const getColumns = (
                 groupRoles[row.original?.id]
                   .map((r: any) => r.title || r.name)
                   .join(', ')) ??
-                'Project Viewer'
+              'Project Viewer'
             : (row.original?.id &&
                 memberRoles[row.original?.id] &&
                 memberRoles[row.original?.id]
                   .map((r: any) => r.title || r.name)
                   .join(', ')) ??
-                'Inherited role'}
+              'Inherited role'}
         </Text>
       );
     }

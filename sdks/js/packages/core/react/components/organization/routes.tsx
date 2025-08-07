@@ -7,7 +7,7 @@ import {
   useRouteContext,
   RouteComponent
 } from '@tanstack/react-router';
-import { Flex, ToastContainer } from '@raystack/apsara/v1';
+import { Flex, ToastContainer } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQuery, FrontierServiceQueries } from '~hooks';
 import Domain from './domain';

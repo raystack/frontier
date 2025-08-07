@@ -9,8 +9,8 @@ import {
   Flex,
   getAvatarColor,
   Text,
-} from "@raystack/apsara/v1";
-import type { DataTableColumnDef } from "@raystack/apsara/v1";
+} from "@raystack/apsara";
+import type { DataTableColumnDef } from "@raystack/apsara";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 interface getColumnsOptions {

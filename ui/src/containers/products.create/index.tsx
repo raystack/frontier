@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Separator, Sheet } from "@raystack/apsara/v1";
+import { Button, Flex, Separator, Sheet } from "@raystack/apsara";
 
 import { V1Beta1Feature, V1Beta1Product } from "@raystack/frontier";
 import * as R from "ramda";
