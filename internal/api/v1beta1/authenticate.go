@@ -289,6 +289,14 @@ func (h Handler) getAccessToken(ctx context.Context, principal authenticate.Prin
 			return nil, err
 		}
 
+		// For service users, ensure their organization is not disabled
+		// ListByUser filters out disabled organizations, so empty list means disabled org
+		if principal.Type == schema.ServiceUserPrincipal && len(orgs) == 0 {
+			logger.Info("service user authentication failed: organization is disabled",
+				zap.String("service_user_id", principal.ID))
+			return nil, errors.ErrUnauthenticated
+		}
+
 		var orgIds []string
 		for _, o := range orgs {
 			orgIds = append(orgIds, o.ID)
