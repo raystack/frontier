@@ -90,54 +90,57 @@ type TokenService interface {
 
 type Service struct {
 	log                  log.Logger
-	cron                 *cron.Cron
 	flowRepo             FlowRepository
 	userService          UserService
 	config               Config
 	mailDialer           mailer.Dialer
-	Now                  func() time.Time
 	internalTokenService TokenService
 	sessionService       SessionService
 	serviceUserService   ServiceUserService
 	webAuth              *webauthn.WebAuthn
+	cron                 *cron.Cron
+	Now                  func() time.Time
 }
 
 func NewService(logger log.Logger, config Config, flowRepo FlowRepository,
 	mailDialer mailer.Dialer, tokenService TokenService, sessionService SessionService,
 	userService UserService, serviceUserService ServiceUserService, webAuthConfig *webauthn.WebAuthn) *Service {
-	r := &Service{
+	return &Service{
 		log: logger,
-		cron: cron.New(cron.WithChain(
-			cron.SkipIfStillRunning(cron.DefaultLogger),
-			cron.Recover(cron.DefaultLogger),
-		)),
 		flowRepo:    flowRepo,
 		userService: userService,
 		config:      config,
 		mailDialer:  mailDialer,
-		Now: func() time.Time {
-			return time.Now().UTC()
-		},
 		internalTokenService: tokenService,
 		sessionService:       sessionService,
 		serviceUserService:   serviceUserService,
 		webAuth:              webAuthConfig,
+		cron: cron.New(cron.WithChain(
+			cron.SkipIfStillRunning(cron.DefaultLogger),
+			cron.Recover(cron.DefaultLogger),
+		)),
+		Now: func() time.Time {
+			return time.Now().UTC()
+		},
 	}
-	return r
 }
 
 func (s Service) SupportedStrategies() []string {
 	// add here strategies like mail link once implemented
 	var strategies []string
+	
 	for name := range s.config.OIDCConfig {
 		strategies = append(strategies, name)
 	}
+
 	if s.mailDialer != nil {
 		strategies = append(strategies, MailOTPAuthMethod.String(), MailLinkAuthMethod.String())
 	}
+
 	if s.webAuth != nil {
 		strategies = append(strategies, PassKeyAuthMethod.String())
 	}
+	
 	return strategies
 }
 
@@ -170,177 +173,79 @@ func (s Service) SanitizeCallbackURL(url string) string {
 	return ""
 }
 
-func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest) (*RegistrationStartResponse, error) {
-	if !utils.Contains(s.SupportedStrategies(), request.Method) {
-		return nil, ErrUnsupportedMethod
-	}
-	flow := &Flow{
-		ID:        uuid.New(),
-		Method:    request.Method,
-		FinishURL: request.ReturnToURL,
-		CreatedAt: s.Now(),
-		ExpiresAt: s.Now().Add(defaultFlowExp),
-		Email:     request.Email,
-		Metadata: metadata.Metadata{
-			"callback_url": request.CallbackUrl,
-		},
-	}
+type FinishFlow func(s Service, ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error)
 
-	if request.Method == PassKeyAuthMethod.String() {
-		needRegistration := false
-		loggedInUser, err := s.userService.GetByID(ctx, request.Email)
-		if err != nil {
-			needRegistration = true
-		} else {
-			storedPasskey, passKeyExists := loggedInUser.Metadata["passkey_credentials"]
-			if !passKeyExists {
-				needRegistration = true
-			}
-			if _, ok := storedPasskey.(string); !ok {
-				needRegistration = true
-			}
-		}
-
-		if needRegistration {
-			response, err := s.startPassKeyRegisterMethod(ctx, flow)
-			if err != nil {
-				return nil, err
-			}
-			return response, nil
-		} else {
-			response, err := s.startPassKeyLoginMethod(ctx, loggedInUser, flow)
-			if err != nil {
-				return nil, err
-			}
-			return response, nil
-		}
-	}
-
-	if request.Method == MailOTPAuthMethod.String() {
-		mailLinkStrat := strategy.NewMailOTP(s.mailDialer, s.config.MailOTP.Subject, s.config.MailOTP.Body)
-		nonce, err := mailLinkStrat.SendMail(request.Email, s.config.TestUsers)
-		if err != nil {
-			return nil, err
-		}
-
-		flow.Nonce = nonce
-		if s.config.MailOTP.Validity != 0 {
-			flow.ExpiresAt = flow.CreatedAt.Add(s.config.MailOTP.Validity)
-		}
-		flow.Email = strings.ToLower(request.Email)
-		if err = s.flowRepo.Set(ctx, flow); err != nil {
-			return nil, err
-		}
-		return &RegistrationStartResponse{
-			Flow:  flow,
-			State: flow.ID.String(),
-		}, nil
-	}
-
-	if len(request.CallbackUrl) == 0 {
-		return nil, fmt.Errorf("callback url not configured")
-	}
-
-	if request.Method == MailLinkAuthMethod.String() {
-		mailLinkStrat := strategy.NewMailLink(s.mailDialer, request.CallbackUrl, s.config.MailLink.Subject, s.config.MailLink.Body)
-		nonce, err := mailLinkStrat.SendMail(flow.ID.String(), request.Email, s.config.TestUsers)
-		if err != nil {
-			return nil, err
-		}
-
-		flow.Nonce = nonce
-		if s.config.MailLink.Validity != 0 {
-			flow.ExpiresAt = flow.CreatedAt.Add(s.config.MailLink.Validity)
-		}
-		flow.Email = strings.ToLower(request.Email)
-		if err = s.flowRepo.Set(ctx, flow); err != nil {
-			return nil, err
-		}
-		return &RegistrationStartResponse{
-			Flow: flow,
-		}, nil
-	}
-
-	// check for oidc flow
-	if oidcConfig, ok := s.config.OIDCConfig[request.Method]; ok {
-		idp, err := strategy.NewRelyingPartyOIDC(
-			oidcConfig.ClientID,
-			oidcConfig.ClientSecret,
-			request.CallbackUrl).
-			Init(ctx, oidcConfig.IssuerUrl)
-		if err != nil {
-			return nil, err
-		}
-
-		oidcState, err := strategy.EmbedFlowInOIDCState(flow.ID.String())
-		if err != nil {
-			return nil, err
-		}
-		endpoint, nonce, err := idp.AuthURL(oidcState)
-		if err != nil {
-			return nil, err
-		}
-
-		flow.StartURL = endpoint
-		flow.Nonce = nonce
-		if oidcConfig.Validity != 0 {
-			flow.ExpiresAt = flow.CreatedAt.Add(oidcConfig.Validity)
-		}
-		if err = s.flowRepo.Set(ctx, flow); err != nil {
-			return nil, err
-		}
-		return &RegistrationStartResponse{
-			Flow: flow,
-		}, nil
-	}
-
-	return nil, ErrUnsupportedMethod
+var finishFlow = map[string]FinishFlow{
+	PassKeyAuthMethod.String():   finishKeyPassFlow,
+    MailOTPAuthMethod.String():   finishMailOTPFlow,
+    MailLinkAuthMethod.String():  finishMailLinkFlow,
+    OIDCAuthMethod.String():      finishOCIDFlow,
 }
 
 func (s Service) FinishFlow(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
-	if request.Method == MailOTPAuthMethod.String() || request.Method == MailLinkAuthMethod.String() {
-		response, err := s.applyMailOTP(ctx, request)
-		if err != nil && !errors.Is(err, ErrStrategyNotApplicable) {
-			return nil, err
-		}
-		return response, nil
-	}
-	if request.Method == PassKeyAuthMethod.String() {
-		response, err := s.applyPasskey(ctx, request)
-		if err != nil && !errors.Is(err, ErrStrategyNotApplicable) {
-			return nil, err
-		}
-		return response, nil
+	var flowMethod string = request.Method
+	if _, ok := s.config.OIDCConfig[request.Method]; ok {
+		flowMethod = OIDCAuthMethod.String()
 	}
 
-	// check for oidc method config
-	{
-		response, err := s.applyOIDC(ctx, request)
-		if err == nil {
-			return response, nil
-		}
-		if err != nil && !errors.Is(err, ErrStrategyNotApplicable) {
-			return nil, err
-		}
-	}
-	return nil, ErrUnsupportedMethod
+	finishFn, ok := finishFlow[flowMethod]
+    
+	if !ok {
+        return nil, ErrUnsupportedMethod
+    }
+
+	return finishFn(s, ctx, request)
 }
 
-// applyMailOTP actions when user submitted otp from the email
+func finishKeyPassFlow(s Service, ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
+	
+	flowIdString := request.State
+
+	flowId, err := uuid.Parse(flowIdString)
+
+	if err != nil {
+		return nil, err
+	}
+
+	flow, err := s.flowRepo.Get(ctx, flowId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	requestType := flow.Metadata["passkey_type"]
+
+	if requestType == strategy.PasskeyRegisterType {
+		return s.finishPassKeyRegister(ctx, request)
+	}
+
+	if requestType == strategy.PasskeyLoginType {
+		return s.finishPassKeyLogin(ctx, request)
+	}
+
+	return nil, err
+}
+
+// finishMailOTPFlow actions when user submitted otp from the email
 // user can be considered as verified if code is valid
 // create a new user if required
-func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
+func finishMailOTPFlow(s Service, ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
 	if len(request.Code) == 0 {
 		return nil, ErrStrategyNotApplicable
 	}
+
 	flowID, err := uuid.Parse(request.State)
+	
 	if err != nil {
 		return nil, ErrStrategyNotApplicable
 	}
+
 	flow, err := s.flowRepo.Get(ctx, flowID)
+	
 	if err != nil {
 		return nil, fmt.Errorf("invalid state for mail otp: %w", err)
 	}
+
 	if !flow.IsValid(s.Now()) {
 		return nil, ErrFlowInvalid
 	}
@@ -370,249 +275,22 @@ func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishReq
 	}
 
 	newUser, err := s.getOrCreateUser(ctx, flow.Email, "")
+	
 	if err != nil {
 		return nil, err
 	}
+
 	return &RegistrationFinishResponse{
 		User: newUser,
 		Flow: flow,
 	}, nil
 }
 
-func (s Service) startPassKeyRegisterMethod(ctx context.Context, flow *Flow) (*RegistrationStartResponse, error) {
-	newPassKeyUser := strategy.NewPassKeyUser(flow.Email)
-	options, session, err := s.webAuth.BeginRegistration(newPassKeyUser)
-	if err != nil {
-		return nil, err
-	}
-
-	// webauthn library expects base64 encoded challenge when verifying the session
-	session.Challenge = base64.RawURLEncoding.EncodeToString([]byte(session.Challenge))
-	sessionInBytes, err := json.Marshal(session)
-	if err != nil {
-		return nil, err
-	}
-	flow.Metadata["passkey_session"] = sessionInBytes
-	flow.Metadata["passkey_type"] = strategy.PasskeyRegisterType
-	if err = s.flowRepo.Set(ctx, flow); err != nil {
-		return nil, err
-	}
-	optionsBytes, err := json.Marshal(options)
-	if err != nil {
-		return nil, err
-	}
-
-	return &RegistrationStartResponse{
-		Flow:  flow,
-		State: flow.ID.String(),
-		StateConfig: map[string]any{
-			"options": optionsBytes,
-		},
-	}, nil
+func finishMailLinkFlow(s Service, ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
+	return finishMailOTPFlow(s, ctx, request)
 }
 
-func (s Service) startPassKeyLoginMethod(ctx context.Context, loggedInUser user.User, flow *Flow) (*RegistrationStartResponse, error) {
-	decodedCredBytes, err := base64.StdEncoding.DecodeString(loggedInUser.Metadata["passkey_credentials"].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	var webAuthCredentialData []webauthn.Credential
-	err = json.Unmarshal(decodedCredBytes, &webAuthCredentialData)
-	if err != nil {
-		return nil, err
-	}
-	newPassKeyUser := strategy.NewPasskeyUserWithCredentials(flow.Email, webAuthCredentialData)
-	options, session, err := s.webAuth.BeginLogin(newPassKeyUser)
-	if err != nil {
-		return nil, err
-	}
-
-	// webauthn library expects base64 encoded challenge when verifying the session
-	session.Challenge = base64.RawURLEncoding.EncodeToString([]byte(session.Challenge))
-	sessionInBytes, err := json.Marshal(session)
-	if err != nil {
-		return nil, err
-	}
-	flow.Metadata["passkey_session"] = sessionInBytes
-	flow.Metadata["passkey_type"] = strategy.PasskeyLoginType
-	if err = s.flowRepo.Set(ctx, flow); err != nil {
-		return nil, err
-	}
-	optionsBytes, err := json.Marshal(options)
-	if err != nil {
-		return nil, err
-	}
-
-	return &RegistrationStartResponse{
-		Flow:  flow,
-		State: flow.ID.String(),
-		StateConfig: map[string]any{
-			"options": optionsBytes,
-		},
-	}, nil
-}
-
-func (s Service) finishPassKeyRegisterMethod(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
-	passkeyOptions, ok := request.StateConfig["options"].(string)
-	if !ok {
-		return nil, errors.New("invalid auth state")
-	}
-	requestReader := bytes.NewReader([]byte(passkeyOptions))
-	credentialCreationResponse, err := protocol.ParseCredentialCreationResponseBody(requestReader)
-	if err != nil {
-		return nil, err
-	}
-
-	flowIdString := request.State
-	flowId, err := uuid.Parse(flowIdString)
-	if err != nil {
-		return nil, err
-	}
-	flow, err := s.flowRepo.Get(ctx, flowId)
-	if err != nil {
-		return nil, err
-	}
-
-	userFinishRegister := strategy.NewPassKeyUser(flow.Email)
-	encodedPasskeySession := flow.Metadata["passkey_session"]
-	var webAuthSessionData webauthn.SessionData
-	sessionBytes, err := base64.StdEncoding.DecodeString(encodedPasskeySession.(string))
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(sessionBytes, &webAuthSessionData)
-	if err != nil {
-		return nil, err
-	}
-	credential, err := s.webAuth.CreateCredential(userFinishRegister, webAuthSessionData, credentialCreationResponse)
-	if err != nil {
-		return nil, err
-	}
-	newUser, err := s.getOrCreateUser(ctx, flow.Email, "")
-	if err != nil {
-		return nil, err
-	}
-	if newUser.Metadata == nil {
-		newUser.Metadata = metadata.Metadata{}
-	}
-
-	webAuthCredentialData := []webauthn.Credential{*credential}
-	credBytes, err := json.Marshal(webAuthCredentialData)
-	if err != nil {
-		return nil, err
-	}
-	credBase64 := base64.StdEncoding.EncodeToString(credBytes)
-	newUser.Metadata["passkey_credentials"] = credBase64
-	newUpdatedUser, err := s.userService.Update(ctx, newUser)
-	if err != nil {
-		return nil, err
-	}
-
-	return &RegistrationFinishResponse{
-		User: newUpdatedUser,
-		Flow: flow,
-	}, nil
-}
-
-func (s Service) finishPassKeyLoginMethod(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
-	passkeyOptions, ok := request.StateConfig["options"].(string)
-	if !ok {
-		return nil, errors.New("invalid auth state")
-	}
-	requestReader := bytes.NewReader([]byte(passkeyOptions))
-	response, err := protocol.ParseCredentialRequestResponseBody(requestReader)
-	if err != nil {
-		return nil, err
-	}
-
-	flowIdString := request.State
-	flowId, err := uuid.Parse(flowIdString)
-	if err != nil {
-		return nil, err
-	}
-	flow, err := s.flowRepo.Get(ctx, flowId)
-	if err != nil {
-		return nil, err
-	}
-	userFinishRegister := strategy.NewPassKeyUser(flow.Email)
-	sessionInterface, ok := flow.Metadata["passkey_session"]
-	if !ok {
-		return nil, err
-	}
-	var webAuthSessionData webauthn.SessionData
-	sessionBytes, err := base64.StdEncoding.DecodeString(sessionInterface.(string))
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(sessionBytes, &webAuthSessionData)
-	if err != nil {
-		return nil, err
-	}
-
-	existingUser, err := s.getOrCreateUser(ctx, flow.Email, "")
-	if err != nil {
-		return nil, err
-	}
-	userCred, ok := existingUser.Metadata["passkey_credentials"]
-	if !ok {
-		return nil, err
-	}
-
-	decodedCredBytes, err := base64.StdEncoding.DecodeString(userCred.(string))
-	if err != nil {
-		return nil, err
-	}
-	var webAuthCredentialData []webauthn.Credential
-	err = json.Unmarshal(decodedCredBytes, &webAuthCredentialData)
-	if err != nil {
-		return nil, err
-	}
-	userFinishRegister.Credentials = webAuthCredentialData
-
-	_, err = s.webAuth.ValidateLogin(userFinishRegister, webAuthSessionData, response)
-	if err != nil {
-		return nil, err
-	}
-
-	return &RegistrationFinishResponse{
-		User: existingUser,
-		Flow: flow,
-	}, nil
-}
-
-func (s Service) applyPasskey(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
-	flowIdString := request.State
-	flowId, err := uuid.Parse(flowIdString)
-	if err != nil {
-		return nil, err
-	}
-	flow, err := s.flowRepo.Get(ctx, flowId)
-	if err != nil {
-		return nil, err
-	}
-	requestType := flow.Metadata["passkey_type"]
-	if request.Method == PassKeyAuthMethod.String() {
-		if requestType == strategy.PasskeyRegisterType {
-			response, err := s.finishPassKeyRegisterMethod(ctx, request)
-			if err != nil {
-				return nil, err
-			}
-			return response, nil
-		}
-
-		if requestType == strategy.PasskeyLoginType {
-			response, err := s.finishPassKeyLoginMethod(ctx, request)
-			if err != nil {
-				return nil, err
-			}
-			return response, nil
-		}
-	}
-	return nil, err
-}
-
-func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
+func finishOCIDFlow(s Service, ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
 	// flow id is added in state params
 	if len(request.State) == 0 {
 		return nil, ErrInvalidOIDCState
@@ -678,12 +356,405 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 	}, nil
 }
 
+type StartFlow func(s Service, ctx context.Context, flow *Flow) (*RegistrationStartResponse, error)
+
+var startFlow = map[string]StartFlow{
+    PassKeyAuthMethod.String():   startKeyPassFlow,
+    MailOTPAuthMethod.String():   startMailOTPAuthFlow,
+    MailLinkAuthMethod.String():  startMailLinkAuthFlow,
+    OIDCAuthMethod.String():      startOIDCAuthFlow,
+}
+
+func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest) (*RegistrationStartResponse, error) {
+	if !utils.Contains(s.SupportedStrategies(), request.Method) {
+		return nil, ErrUnsupportedMethod
+	}
+
+	var flowMethod string = request.Method
+	if _, ok := s.config.OIDCConfig[request.Method]; ok {
+		flowMethod = OIDCAuthMethod.String()
+	}
+
+    stratFn, ok := startFlow[flowMethod]
+    
+	if !ok {
+        return nil, ErrUnsupportedMethod
+    }
+
+	flow := &Flow{
+		ID:        uuid.New(),
+		Method:    request.Method,
+		FinishURL: request.ReturnToURL,
+		CreatedAt: s.Now(),
+		ExpiresAt: s.Now().Add(defaultFlowExp),
+		Email: request.Email,
+		Metadata: metadata.Metadata{
+			"callback_url": request.CallbackUrl,
+		},
+	}
+
+	return stratFn(s, ctx, flow)
+}
+
+func startKeyPassFlow(s Service, ctx context.Context, flow *Flow) (*RegistrationStartResponse, error) {
+	loggedInUser, err := s.userService.GetByID(ctx, flow.Email)
+	
+	needRegistration := false
+	
+	if err != nil {
+		needRegistration = true
+	} else {
+		storedPasskey, passKeyExists := loggedInUser.Metadata["passkey_credentials"]
+		
+		if !passKeyExists {
+			needRegistration = true
+		}
+
+		if _, ok := storedPasskey.(string); !ok {
+			needRegistration = true
+		}
+	}
+
+	if needRegistration {
+		return s.startPassKeyRegister(ctx, flow)
+	} else {
+		return s.startPassKeyLogin(ctx, loggedInUser, flow)
+	} 
+}
+
+func startMailOTPAuthFlow(s Service, ctx context.Context, flow *Flow) (*RegistrationStartResponse, error) {
+	mailLinkStrat := strategy.NewMailOTP(s.mailDialer, s.config.MailOTP.Subject, s.config.MailOTP.Body)
+	nonce, err := mailLinkStrat.SendMail(flow.Email, s.config.TestUsers)
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	flow.Nonce = nonce
+	
+	if s.config.MailOTP.Validity != 0 {
+		flow.ExpiresAt = flow.CreatedAt.Add(s.config.MailOTP.Validity)
+	}
+	
+	flow.Email = strings.ToLower(flow.Email)
+	
+	if err = s.flowRepo.Set(ctx, flow); err != nil {
+		return nil, err
+	}
+	
+	return &RegistrationStartResponse{
+		Flow:  flow,
+		State: flow.ID.String(),
+	}, nil
+}
+
+func startMailLinkAuthFlow(s Service, ctx context.Context, flow *Flow) (*RegistrationStartResponse, error) {
+	cb := flow.Metadata["callback_url"].(string)
+
+	if len(cb) == 0 {
+		return nil, fmt.Errorf("callback url not configured")
+	}
+
+	mailLinkStrat := strategy.NewMailLink(s.mailDialer, cb, s.config.MailLink.Subject, s.config.MailLink.Body)
+	nonce, err := mailLinkStrat.SendMail(flow.ID.String(), flow.Email, s.config.TestUsers)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	flow.Nonce = nonce
+	if s.config.MailLink.Validity != 0 {
+		flow.ExpiresAt = flow.CreatedAt.Add(s.config.MailLink.Validity)
+	}
+	
+	flow.Email = strings.ToLower(flow.Email)
+
+	if err = s.flowRepo.Set(ctx, flow); err != nil {
+		return nil, err
+	}
+
+	return &RegistrationStartResponse{
+		Flow: flow,
+	}, nil
+}
+
+func startOIDCAuthFlow(s Service, ctx context.Context, flow *Flow) (*RegistrationStartResponse, error) {
+	cb := flow.Metadata["callback_url"].(string)
+
+	if len(cb) == 0 {
+		return nil, fmt.Errorf("callback url not configured")
+	}
+
+	oidcConfig, ok := s.config.OIDCConfig[flow.Method];
+
+	if !ok {
+		return nil, ErrUnsupportedMethod
+	}
+
+	idp, err := strategy.NewRelyingPartyOIDC(
+		oidcConfig.ClientID,
+		oidcConfig.ClientSecret,
+		cb,
+	).Init(ctx, oidcConfig.IssuerUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	oidcState, err := strategy.EmbedFlowInOIDCState(flow.ID.String())
+
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint, nonce, err := idp.AuthURL(oidcState)
+
+	if err != nil {
+		return nil, err
+	}
+
+	flow.StartURL = endpoint
+
+	flow.Nonce = nonce
+
+	if oidcConfig.Validity != 0 {
+		flow.ExpiresAt = flow.CreatedAt.Add(oidcConfig.Validity)
+	}
+
+	if err = s.flowRepo.Set(ctx, flow); err != nil {
+		return nil, err
+	}
+
+	return &RegistrationStartResponse{
+		Flow: flow,
+	}, nil
+}
+
+func (s Service) startPassKeyRegister(ctx context.Context, flow *Flow) (*RegistrationStartResponse, error) {
+	newPassKeyUser := strategy.NewPassKeyUser(flow.Email)
+	options, session, err := s.webAuth.BeginRegistration(newPassKeyUser)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	// webauthn library expects base64 encoded challenge when verifying the session
+	session.Challenge = base64.RawURLEncoding.EncodeToString([]byte(session.Challenge))
+	sessionInBytes, err := json.Marshal(session)
+
+	if err != nil {
+		return nil, err
+	}
+
+	flow.Metadata["passkey_session"] = sessionInBytes
+	flow.Metadata["passkey_type"] = strategy.PasskeyRegisterType
+	
+	if err = s.flowRepo.Set(ctx, flow); err != nil {
+		return nil, err
+	}
+
+	optionsBytes, err := json.Marshal(options)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &RegistrationStartResponse{
+		Flow:  flow,
+		State: flow.ID.String(),
+		StateConfig: map[string]any{
+			"options": optionsBytes,
+		},
+	}, nil
+}
+
+func (s Service) startPassKeyLogin(ctx context.Context, loggedInUser user.User, flow *Flow) (*RegistrationStartResponse, error) {
+	decodedCredBytes, err := base64.StdEncoding.DecodeString(loggedInUser.Metadata["passkey_credentials"].(string))
+	
+	if err != nil {
+		return nil, err
+	}
+
+	var webAuthCredentialData []webauthn.Credential
+	err = json.Unmarshal(decodedCredBytes, &webAuthCredentialData)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	newPassKeyUser := strategy.NewPasskeyUserWithCredentials(flow.Email, webAuthCredentialData)
+	options, session, err := s.webAuth.BeginLogin(newPassKeyUser)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	// webauthn library expects base64 encoded challenge when verifying the session
+	session.Challenge = base64.RawURLEncoding.EncodeToString([]byte(session.Challenge))
+	sessionInBytes, err := json.Marshal(session)
+
+	if err != nil {
+		return nil, err
+	}
+
+	flow.Metadata["passkey_session"] = sessionInBytes
+	flow.Metadata["passkey_type"] = strategy.PasskeyLoginType
+
+	if err = s.flowRepo.Set(ctx, flow); err != nil {
+		return nil, err
+	}
+
+	optionsBytes, err := json.Marshal(options)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &RegistrationStartResponse{
+		Flow:  flow,
+		State: flow.ID.String(),
+		StateConfig: map[string]any{
+			"options": optionsBytes,
+		},
+	}, nil
+}
+
+func (s Service) finishPassKeyRegister(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
+	passkeyOptions, ok := request.StateConfig["options"].(string)
+	if !ok {
+		return nil, errors.New("invalid auth state")
+	}
+	requestReader := bytes.NewReader([]byte(passkeyOptions))
+	credentialCreationResponse, err := protocol.ParseCredentialCreationResponseBody(requestReader)
+	if err != nil {
+		return nil, err
+	}
+
+	flowIdString := request.State
+	flowId, err := uuid.Parse(flowIdString)
+	if err != nil {
+		return nil, err
+	}
+	flow, err := s.flowRepo.Get(ctx, flowId)
+	if err != nil {
+		return nil, err
+	}
+
+	userFinishRegister := strategy.NewPassKeyUser(flow.Email)
+	encodedPasskeySession := flow.Metadata["passkey_session"]
+	var webAuthSessionData webauthn.SessionData
+	sessionBytes, err := base64.StdEncoding.DecodeString(encodedPasskeySession.(string))
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(sessionBytes, &webAuthSessionData)
+	if err != nil {
+		return nil, err
+	}
+	credential, err := s.webAuth.CreateCredential(userFinishRegister, webAuthSessionData, credentialCreationResponse)
+	if err != nil {
+		return nil, err
+	}
+	newUser, err := s.getOrCreateUser(ctx, flow.Email, "")
+	if err != nil {
+		return nil, err
+	}
+	if newUser.Metadata == nil {
+		newUser.Metadata = metadata.Metadata{}
+	}
+
+	webAuthCredentialData := []webauthn.Credential{*credential}
+	credBytes, err := json.Marshal(webAuthCredentialData)
+	if err != nil {
+		return nil, err
+	}
+	credBase64 := base64.StdEncoding.EncodeToString(credBytes)
+	newUser.Metadata["passkey_credentials"] = credBase64
+	newUpdatedUser, err := s.userService.Update(ctx, newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RegistrationFinishResponse{
+		User: newUpdatedUser,
+		Flow: flow,
+	}, nil
+}
+
+func (s Service) finishPassKeyLogin(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
+	passkeyOptions, ok := request.StateConfig["options"].(string)
+	if !ok {
+		return nil, errors.New("invalid auth state")
+	}
+	requestReader := bytes.NewReader([]byte(passkeyOptions))
+	response, err := protocol.ParseCredentialRequestResponseBody(requestReader)
+	if err != nil {
+		return nil, err
+	}
+
+	flowIdString := request.State
+	flowId, err := uuid.Parse(flowIdString)
+	if err != nil {
+		return nil, err
+	}
+	flow, err := s.flowRepo.Get(ctx, flowId)
+	if err != nil {
+		return nil, err
+	}
+	userFinishRegister := strategy.NewPassKeyUser(flow.Email)
+	sessionInterface, ok := flow.Metadata["passkey_session"]
+	if !ok {
+		return nil, err
+	}
+	var webAuthSessionData webauthn.SessionData
+	sessionBytes, err := base64.StdEncoding.DecodeString(sessionInterface.(string))
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(sessionBytes, &webAuthSessionData)
+	if err != nil {
+		return nil, err
+	}
+
+	existingUser, err := s.getOrCreateUser(ctx, flow.Email, "")
+	if err != nil {
+		return nil, err
+	}
+	userCred, ok := existingUser.Metadata["passkey_credentials"]
+	if !ok {
+		return nil, err
+	}
+
+	decodedCredBytes, err := base64.StdEncoding.DecodeString(userCred.(string))
+	if err != nil {
+		return nil, err
+	}
+	var webAuthCredentialData []webauthn.Credential
+	err = json.Unmarshal(decodedCredBytes, &webAuthCredentialData)
+	if err != nil {
+		return nil, err
+	}
+	userFinishRegister.Credentials = webAuthCredentialData
+
+	_, err = s.webAuth.ValidateLogin(userFinishRegister, webAuthSessionData, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RegistrationFinishResponse{
+		User: existingUser,
+		Flow: flow,
+	}, nil
+}
+
 // BuildToken creates an access token for the given subjectID
 func (s Service) BuildToken(ctx context.Context, principal Principal, metadata map[string]string) ([]byte, error) {
 	metadata[token.SubTypeClaimsKey] = principal.Type
+	
 	if principal.Type == schema.UserPrincipal && s.config.Token.Claims.AddUserEmailClaim {
 		metadata[token.SubEmailClaimsKey] = principal.User.Email
 	}
+
 	return s.internalTokenService.Build(principal.ID, metadata)
 }
 
@@ -691,7 +762,7 @@ func (s Service) BuildToken(ctx context.Context, principal Principal, metadata m
 func (s Service) JWKs(ctx context.Context) jwk.Set {
 	return s.internalTokenService.GetPublicKeySet()
 }
-
+ 
 func (s Service) InitFlows(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.flowRepo.DeleteExpiredFlows(ctx); err != nil {
@@ -906,3 +977,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 func (s Service) Close() error {
 	return s.cron.Stop().Err()
 }
+
+
+
+
