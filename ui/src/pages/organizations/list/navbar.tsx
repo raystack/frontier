@@ -15,8 +15,10 @@ import {
   PlusIcon,
 } from "@radix-ui/react-icons";
 import React, { useState } from "react";
-import { api } from "~/api";
-import { downloadFile } from "~/utils/helper";
+import { exportCsvFromStream } from "~/utils/helper";
+import { clients } from "~/connect/clients";
+
+const adminClient = clients.admin({ useBinary: true });
 
 interface OrganizationsNavabarProps {
   searchQuery?: string;
@@ -44,10 +46,11 @@ export const OrganizationsNavabar = ({
   async function onDownloadClick() {
     try {
       setIsDownloading(true);
-      const response = await api.adminServiceExportOrganizations({
-        format: "blob",
-      });
-      downloadFile(response.data, "organizations.csv");
+      await exportCsvFromStream(
+        adminClient.exportOrganizations,
+        {},
+        "organizations.csv"
+      );
     } catch (error) {
       console.error(error);
     } finally {

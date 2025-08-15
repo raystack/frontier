@@ -72,13 +72,38 @@ export const converBillingAddressToString = (
  * @param data - The file to download
  * @param filename - The name of the file to download
  */
-export const downloadFile = (data: File, filename: string) => {
+export const downloadFile = (data: File | Blob, filename: string) => {
   const link = document.createElement("a");
-  const downloadUrl = window.URL.createObjectURL(new Blob([data]));
+  const downloadUrl = window.URL.createObjectURL(
+    data instanceof Blob ? data : new Blob([data]),
+  );
   link.href = downloadUrl;
   link.setAttribute("download", filename);
   document.body.appendChild(link);
   link.click();
   link.parentNode?.removeChild(link);
   window.URL.revokeObjectURL(downloadUrl);
+};
+
+/**
+ * @desc Export CSV data from a Connect streaming service method
+ * @param streamingMethod - The streaming method from the client
+ * @param request - The request object
+ * @param filename - The name of the CSV file to download
+ */
+export const exportCsvFromStream = async <T>(
+  streamingMethod: (request: T) => AsyncIterable<{ data?: Uint8Array }>,
+  request: T,
+  filename: string,
+) => {
+  const chunks: Uint8Array[] = [];
+
+  for await (const response of streamingMethod(request)) {
+    if (response.data) {
+      chunks.push(response.data);
+    }
+  }
+
+  const blob = new Blob(chunks, { type: "text/csv" });
+  downloadFile(blob, filename);
 };
