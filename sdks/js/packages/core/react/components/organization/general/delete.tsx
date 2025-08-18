@@ -66,7 +66,7 @@ export const DeleteOrganization = () => {
       <Dialog.Content overlayClassName={styles.overlay} width={600}>
         <Dialog.Header>
           <Dialog.Title>
-            Verify ${t.organization({ case: 'lower' })} deletion
+            Verify {t.organization({ case: 'lower' })} deletion
           </Dialog.Title>
           <Dialog.CloseButton
             onClick={() => navigate({ to: '/' })}
