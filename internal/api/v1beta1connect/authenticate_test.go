@@ -128,8 +128,8 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
-				assert.Equal(t, tt.want.Msg.AccessToken, resp.Msg.AccessToken)
-				assert.Equal(t, tt.want.Msg.TokenType, resp.Msg.TokenType)
+				assert.Equal(t, tt.want.Msg.GetAccessToken(), resp.Msg.GetAccessToken())
+				assert.Equal(t, tt.want.Msg.GetTokenType(), resp.Msg.GetTokenType())
 			}
 		})
 	}

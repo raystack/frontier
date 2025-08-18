@@ -205,8 +205,8 @@ func TestHandler_AuthToken_ServiceUser(t *testing.T) {
 				assert.Nil(t, resp)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want.AccessToken, resp.AccessToken)
-				assert.Equal(t, tt.want.TokenType, resp.TokenType)
+				assert.Equal(t, tt.want.GetAccessToken(), resp.GetAccessToken())
+				assert.Equal(t, tt.want.GetTokenType(), resp.GetTokenType())
 			}
 		})
 	}
