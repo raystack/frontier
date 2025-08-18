@@ -3,10 +3,10 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { Text, DropdownMenu } from '@raystack/apsara/v1';
+import { Text, DropdownMenu } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
 import type { V1Beta1Project } from '~/src';
-import type { DataTableColumnDef } from '@raystack/apsara/v1';
+import type { DataTableColumnDef } from '@raystack/apsara';
 
 export const getColumns: (
   userAccessOnProject: Record<string, string[]>

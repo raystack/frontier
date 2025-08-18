@@ -7,7 +7,7 @@ import {
   Switch,
   Text,
   InputField,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useOutletContext, useParams } from "react-router-dom";

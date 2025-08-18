@@ -1,15 +1,16 @@
 import AuthContext from '@/contexts/auth';
-import { redirect } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { useContext, useEffect } from 'react';
 
 const useAuthRedirect = () => {
   const { isAuthorized } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthorized) {
-      redirect('/');
+      navigate('/');
     }
-  }, [isAuthorized]);
+  }, [isAuthorized, navigate]);
 };
 
 export default useAuthRedirect;

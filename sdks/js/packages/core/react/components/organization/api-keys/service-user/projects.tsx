@@ -8,7 +8,7 @@ import {
   Dialog,
   DataTable,
   type DataTableColumnDef
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
 import type {

@@ -1,15 +1,9 @@
-import {
-  Button,
-  toast,
-  Image,
-  Text,
-  Dialog,
-  Flex
-} from '@raystack/apsara/v1';
+import { Button, toast, Image, Text, Dialog, Flex } from '@raystack/apsara';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useState } from 'react';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 const MemberRemoveConfirm = () => {
   const navigate = useNavigate({
@@ -21,7 +15,7 @@ const MemberRemoveConfirm = () => {
   const { client, activeOrganization } = useFrontier();
   const organizationId = activeOrganization?.id ?? '';
   const [isLoading, setIsLoading] = useState(false);
-
+  const t = useTerminology();
   const deleteMember = async () => {
     setIsLoading(true);
     try {
@@ -49,9 +43,7 @@ const MemberRemoveConfirm = () => {
 
   return (
     <Dialog open={true} onOpenChange={() => navigate({ to: '/members' })}>
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '400px', width: '100%' }}
-      >
+      <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%' }}>
         <Dialog.Header>
           <Flex justify="between" align="center" style={{ width: '100%' }}>
             <Text size="large" weight="medium">
@@ -70,7 +62,8 @@ const MemberRemoveConfirm = () => {
         <Dialog.Body>
           <Flex direction="column" gap={5}>
             <Text size="regular">
-              Are you sure you want to remove this member from the organization?
+              Are you sure you want to remove this member from the{' '}
+              {t.organization({ case: 'lower' })}?
             </Text>
           </Flex>
         </Dialog.Body>

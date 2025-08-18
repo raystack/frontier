@@ -25,7 +25,7 @@ import {
   V1Beta1Plan,
   V1Beta1Subscription,
   V1Beta1User,
-  V1Beta1BillingAccountDetails,
+  V1Beta1BillingAccountDetails
 } from '../../api-client/data-contracts';
 import {
   getActiveSubscription,
@@ -49,9 +49,6 @@ interface FrontierContextProviderProps {
 
   groups: V1Beta1Group[];
   setGroups: Dispatch<SetStateAction<V1Beta1Group[]>>;
-
-  strategies: V1Beta1AuthStrategy[];
-  setStrategies: Dispatch<SetStateAction<V1Beta1AuthStrategy[]>>;
 
   user: V1Beta1User | undefined;
   setUser: Dispatch<SetStateAction<V1Beta1User | undefined>>;
@@ -103,13 +100,17 @@ interface FrontierContextProviderProps {
   basePlan?: V1Beta1Plan;
 
   organizationKyc: V1Beta1OrganizationKyc | undefined;
-  setOrganizationKyc: Dispatch<SetStateAction<V1Beta1OrganizationKyc | undefined>>;
+  setOrganizationKyc: Dispatch<
+    SetStateAction<V1Beta1OrganizationKyc | undefined>
+  >;
 
   isOrganizationKycLoading: boolean;
   setIsOrganizationKycLoading: Dispatch<SetStateAction<boolean>>;
 
   billingDetails: V1Beta1BillingAccountDetails | undefined;
-  setBillingDetails: Dispatch<SetStateAction<V1Beta1BillingAccountDetails | undefined>>;
+  setBillingDetails: Dispatch<
+    SetStateAction<V1Beta1BillingAccountDetails | undefined>
+  >;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -137,9 +138,6 @@ const initialValues: FrontierContextProviderProps = {
 
   groups: [],
   setGroups: () => undefined,
-
-  strategies: [],
-  setStrategies: () => undefined,
 
   user: undefined,
   setUser: () => undefined,
@@ -191,7 +189,7 @@ const initialValues: FrontierContextProviderProps = {
   setIsOrganizationKycLoading: () => false,
 
   billingDetails: undefined,
-  setBillingDetails: () => undefined,
+  setBillingDetails: () => undefined
 };
 
 export const FrontierContext =
@@ -225,14 +223,14 @@ export const FrontierContextProvider = ({
 
   const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
   const [groups, setGroups] = useState<V1Beta1Group[]>([]);
-  const [strategies, setStrategies] = useState<V1Beta1AuthStrategy[]>([]);
   const [user, setUser] = useState<V1Beta1User>();
 
   const [isUserLoading, setIsUserLoading] = useState(false);
 
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
-  const [billingDetails, setBillingDetails] = useState<V1Beta1BillingAccountDetails>();
+  const [billingDetails, setBillingDetails] =
+    useState<V1Beta1BillingAccountDetails>();
   const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(false);
 
   const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
@@ -254,25 +252,10 @@ export const FrontierContextProvider = ({
 
   const [basePlan, setBasePlan] = useState<V1Beta1Plan>();
 
-  const [organizationKyc, setOrganizationKyc] = useState<V1Beta1OrganizationKyc>();
-  const [isOrganizationKycLoading, setIsOrganizationKycLoading] = useState(false);
-
-
-  useEffect(() => {
-    async function getFrontierInformation() {
-      try {
-        const {
-          data: { strategies = [] }
-        } = await frontierClient.frontierServiceListAuthStrategies();
-        setStrategies(strategies);
-      } catch (error) {
-        console.error(
-          'frontier:sdk:: There is problem with fetching auth strategies'
-        );
-      }
-    }
-    getFrontierInformation();
-  }, []);
+  const [organizationKyc, setOrganizationKyc] =
+    useState<V1Beta1OrganizationKyc>();
+  const [isOrganizationKycLoading, setIsOrganizationKycLoading] =
+    useState(false);
 
   useEffect(() => {
     async function getFrontierCurrentUser() {
@@ -465,23 +448,30 @@ export const FrontierContextProvider = ({
     }
   }, [config?.billing?.basePlan]);
 
-  const fetchOrganizationKyc = useCallback(async (orgId: string) => {
-    try {
-      setIsOrganizationKycLoading(true);
-      const resp = await frontierClient.frontierServiceGetOrganizationKyc(orgId);
-      setOrganizationKyc(resp?.data?.organization_kyc);
-    } catch (err: unknown) {
-      if (err instanceof AxiosError && err.response?.status === 404) {
-        console.warn("frontier:sdk:: org kyc details not found");
-        setOrganizationKyc({ org_id: orgId, status: false, link: '' });
-      } else {
-        console.error('frontier:sdk:: There is problem with fetching org kyc');
-        console.error(err);
+  const fetchOrganizationKyc = useCallback(
+    async (orgId: string) => {
+      try {
+        setIsOrganizationKycLoading(true);
+        const resp = await frontierClient.frontierServiceGetOrganizationKyc(
+          orgId
+        );
+        setOrganizationKyc(resp?.data?.organization_kyc);
+      } catch (err: unknown) {
+        if (err instanceof AxiosError && err.response?.status === 404) {
+          console.warn('frontier:sdk:: org kyc details not found');
+          setOrganizationKyc({ org_id: orgId, status: false, link: '' });
+        } else {
+          console.error(
+            'frontier:sdk:: There is problem with fetching org kyc'
+          );
+          console.error(err);
+        }
+      } finally {
+        setIsOrganizationKycLoading(false);
       }
-    } finally {
-      setIsOrganizationKycLoading(false);
-    }
-  }, [frontierClient, activeOrganization?.id]);
+    },
+    [frontierClient, activeOrganization?.id]
+  );
 
   useEffect(() => {
     if (activeOrganization?.id) {
@@ -502,8 +492,6 @@ export const FrontierContextProvider = ({
         setOrganizations,
         groups,
         setGroups,
-        strategies,
-        setStrategies,
         user,
         setUser,
         activeOrganization,
@@ -537,7 +525,7 @@ export const FrontierContextProvider = ({
         isOrganizationKycLoading,
         setIsOrganizationKycLoading,
         billingDetails,
-        setBillingDetails,
+        setBillingDetails
       }}
     >
       {children}

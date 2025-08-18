@@ -1,4 +1,4 @@
-import { Text, type DataTableColumnDef } from "@raystack/apsara/v1";
+import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import dayjs from "dayjs";
 import type {
   SearchOrganizationServiceUsersResponseOrganizationServiceUser,

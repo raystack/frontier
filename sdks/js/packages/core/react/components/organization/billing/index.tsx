@@ -1,4 +1,12 @@
-import { Button, Skeleton, Text, Flex, toast, Link, Tooltip } from '@raystack/apsara/v1';
+import {
+  Button,
+  Skeleton,
+  Text,
+  Flex,
+  toast,
+  Link,
+  Tooltip
+} from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -66,7 +74,6 @@ interface BillingDetailsProps {
   onAddDetailsClick?: () => void;
   isLoading: boolean;
   isAllowed: boolean;
-  hideUpdateBillingDetailsBtn: boolean;
   disabled?: boolean;
 }
 
@@ -75,7 +82,6 @@ const BillingDetails = ({
   onAddDetailsClick = () => {},
   isLoading,
   isAllowed,
-  hideUpdateBillingDetailsBtn = false,
   disabled = false
 }: BillingDetailsProps) => {
   // const addressStr = converBillingAddressToString(billingAccount?.address);
@@ -86,22 +92,22 @@ const BillingDetails = ({
     <div className={billingStyles.detailsBox}>
       <Flex align="center" justify="between" style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        {isAllowed && !hideUpdateBillingDetailsBtn ? (
+        {isAllowed ? (
           <Tooltip
             message="Contact support to update your billing address."
             side="bottom-right"
             disabled={!isButtonDisabled}
           >
-          <Button
-            data-test-id="frontier-sdk-billing-details-update-button"
-            variant="outline"
-            color="neutral"
-            size="small"
-            onClick={onAddDetailsClick}
-            disabled={isButtonDisabled}
-          >
-            {btnText}
-          </Button>
+            <Button
+              data-test-id="frontier-sdk-billing-details-update-button"
+              variant="outline"
+              color="neutral"
+              size="small"
+              onClick={onAddDetailsClick}
+              disabled={isButtonDisabled}
+            >
+              {btnText}
+            </Button>
           </Tooltip>
         ) : null}
       </Flex>
@@ -222,10 +228,6 @@ export default function Billing() {
     isFetching ||
     isOrganizationKycLoading;
 
-  const isProviderIdUnavailable =
-    billingAccount?.provider_id === undefined ||
-    billingAccount?.provider_id === '';
-
   const isOrganizationKycCompleted = organizationKyc?.status === true;
 
   return (
@@ -255,14 +257,12 @@ export default function Billing() {
               paymentMethod={paymentMethod}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              hideUpdatePaymentMethodBtn={isProviderIdUnavailable}
             />
             <BillingDetails
               billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
               disabled={isOrganizationKycCompleted}
             />
           </Flex>

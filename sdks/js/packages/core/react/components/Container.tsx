@@ -1,4 +1,4 @@
-import { Flex } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 import { cva } from 'class-variance-authority';
 import React, { ComponentPropsWithRef } from 'react';
 // @ts-ignore

@@ -5,7 +5,7 @@ import {
   IconButton,
   Text,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { V1Beta1Domain } from "~/api/frontier";
 import styles from "./security.module.css";
 import { CheckCircledIcon, TrashIcon } from "@radix-ui/react-icons";

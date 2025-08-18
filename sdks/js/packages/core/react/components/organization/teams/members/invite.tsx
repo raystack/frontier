@@ -9,7 +9,7 @@ import {
   Dialog,
   Select,
   Label
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';

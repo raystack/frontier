@@ -7,7 +7,7 @@ import {
   Flex,
   Dialog,
   InputField
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import * as yup from 'yup';
 
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -95,15 +95,9 @@ export const AddProject = () => {
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
-            <Flex
-              direction="column"
-              gap={5}
-            >
+            <Flex direction="column" gap={5}>
               <div style={{ display: 'none' }}>
-                <InputField
-                  name="orgId"
-                  defaultValue={organization?.id}
-                />
+                <InputField name="orgId" defaultValue={organization?.id} />
               </div>
               <InputField
                 label="Project title"

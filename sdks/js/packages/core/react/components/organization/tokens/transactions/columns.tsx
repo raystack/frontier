@@ -4,7 +4,7 @@ import {
   Flex,
   type DataTableColumnDef,
   getAvatarColor
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import dayjs from 'dayjs';
 import type { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
@@ -34,9 +34,7 @@ export const getColumns: (
       const value = getValue() as string;
       return (
         <Flex direction="column">
-          <Text variant="secondary">
-            {dayjs(value).format(dateFormat)}
-          </Text>
+          <Text variant="secondary">{dayjs(value).format(dateFormat)}</Text>
         </Flex>
       );
     }
@@ -72,9 +70,7 @@ export const getColumns: (
       ) as string;
       return (
         <Flex direction="column">
-          <Text variant="secondary">
-            {eventName || '-'}
-          </Text>
+          <Text variant="secondary">{eventName || '-'}</Text>
         </Flex>
       );
     }

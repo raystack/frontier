@@ -1,6 +1,6 @@
 import { OrganizationsDetailsNavabar } from "./navbar";
 import styles from "./layout.module.css";
-import { EmptyState, Flex } from "@raystack/apsara/v1";
+import { EmptyState, Flex } from "@raystack/apsara";
 import { OrgSidePanel } from "../side-panel/";
 import { V1Beta1Organization } from "~/api/frontier";
 import React, { useState } from "react";

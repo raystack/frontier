@@ -10,7 +10,7 @@ import {
   Text,
   Select,
   DataTable
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
@@ -151,9 +151,9 @@ const ProjectsTable = ({
         <Flex justify="between" gap={3}>
           <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
             {isLoading ? (
-                <Skeleton height='34px' width='500px' />
+              <Skeleton height="34px" width="500px" />
             ) : (
-              <DataTable.Search placeholder="Search by name " size="medium" />
+              <DataTable.Search placeholder="Search by title " size="medium" />
             )}
             {canListOrgProjects ? (
               <Select
@@ -207,7 +207,7 @@ const ProjectsTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading='No projects found'
-    subHeading='Get started by creating your first project.'
+    heading="No projects found"
+    subHeading="Get started by creating your first project."
   />
 );

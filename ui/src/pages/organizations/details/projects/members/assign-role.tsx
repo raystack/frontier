@@ -6,7 +6,7 @@ import {
   Label,
   Text,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import styles from "./members.module.css";
 import { useCallback } from "react";
 import {

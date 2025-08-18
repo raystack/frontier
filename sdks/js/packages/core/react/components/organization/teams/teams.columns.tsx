@@ -3,7 +3,7 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { Text, DropdownMenu, DataTableColumnDef } from '@raystack/apsara/v1';
+import { Text, DropdownMenu, DataTableColumnDef } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
 import type { V1Beta1Group } from '~/src';
 import styles from '../organization.module.css';

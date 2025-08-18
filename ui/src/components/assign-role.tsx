@@ -6,7 +6,7 @@ import {
   Label,
   Text,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { useCallback } from "react";
 import {
   SearchOrganizationUsersResponseOrganizationUser,
@@ -26,7 +26,7 @@ interface AssignRoleProps {
 }
 
 const formSchema = z.object({
-  roleIds: z.instanceof(Set<string>).refine(set => set.size > 0, {
+  roleIds: z.instanceof(Set<string>).refine((set) => set.size > 0, {
     message: "At least one role must be selected",
   }),
 });
@@ -84,10 +84,10 @@ export const AssignRole = ({
       const policies = policiesResp?.data?.policies || [];
 
       const removedRolesPolicies = policies.filter(
-        policy => !(policy.role_id && data.roleIds.has(policy.role_id)),
+        (policy) => !(policy.role_id && data.roleIds.has(policy.role_id)),
       );
       await Promise.all(
-        removedRolesPolicies.map(policy =>
+        removedRolesPolicies.map((policy) =>
           api?.frontierServiceDeletePolicy(policy.id as string),
         ),
       );
@@ -97,7 +97,7 @@ export const AssignRole = ({
 
       const assignedRolesArr = Array.from(data.roleIds);
       await Promise.all(
-        assignedRolesArr.map(role_id =>
+        assignedRolesArr.map((role_id) =>
           api?.frontierServiceCreatePolicy({
             role_id,
             resource: resource,
@@ -135,7 +135,7 @@ export const AssignRole = ({
               </Text>
               <div role="group" aria-labelledby="roles-group">
                 <Flex direction="column" gap={4}>
-                  {roles.map(role => {
+                  {roles.map((role) => {
                     const htmlId = `role-${role.id}`;
                     const checked = checkRole(role.id);
                     return (
@@ -144,7 +144,7 @@ export const AssignRole = ({
                           id={htmlId}
                           data-test-id={`role-checkbox-${role.id}`}
                           checked={checked}
-                          onCheckedChange={value =>
+                          onCheckedChange={(value) =>
                             onCheckedChange(value, role.id)
                           }
                         />
@@ -165,7 +165,8 @@ export const AssignRole = ({
                 type="button"
                 variant="outline"
                 color="neutral"
-                data-test-id="assign-role-cancel-button">
+                data-test-id="assign-role-cancel-button"
+              >
                 Cancel
               </Button>
             </Dialog.Close>
@@ -173,7 +174,8 @@ export const AssignRole = ({
               type="submit"
               data-test-id="assign-role-update-button"
               loading={isSubmitting}
-              loaderText="Updating...">
+              loaderText="Updating..."
+            >
               Update
             </Button>
           </Dialog.Footer>

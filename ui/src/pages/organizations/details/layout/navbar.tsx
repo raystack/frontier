@@ -11,7 +11,7 @@ import {
   Spinner,
   getAvatarColor,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 
 import styles from "./layout.module.css";
 import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";

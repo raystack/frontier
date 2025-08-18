@@ -7,7 +7,7 @@ import {
   toast,
   Flex,
   Dialog
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Plan } from '~/src';
@@ -151,10 +151,7 @@ export function ConfirmCycleSwitch() {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex
-            direction={'column'}
-            gap={7}
-          >
+          <Flex direction={'column'} gap={7}>
             {isLoading ? (
               <Skeleton />
             ) : (
@@ -187,10 +184,7 @@ export function ConfirmCycleSwitch() {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex
-            justify="end"
-            gap={5}
-          >
+          <Flex justify="end" gap={5}>
             <Button
               variant="outline"
               color="neutral"

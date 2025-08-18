@@ -7,7 +7,7 @@ import {
   Text,
   TextArea,
   toast,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { useContext, useMemo } from "react";
 import styles from "./layout.module.css";
 import { OrganizationContext } from "../contexts/organization-context";

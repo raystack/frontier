@@ -1,4 +1,4 @@
-import { EmptyState, DataTable, Flex } from "@raystack/apsara/v1";
+import { EmptyState, DataTable, Flex } from "@raystack/apsara";
 import type {
   V1Beta1Preference,
   V1Beta1PreferenceTrait,

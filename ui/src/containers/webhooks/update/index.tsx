@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Flex, Sheet } from "@raystack/apsara/v1";
+import { Button, Flex, Sheet } from "@raystack/apsara";
 import { useNavigate, useParams } from "react-router-dom";
 import { SheetHeader } from "~/components/sheet/header";
 import * as z from "zod";

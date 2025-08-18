@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import type { DataTableQuery } from "@raystack/apsara/v1";
+import type { DataTableQuery } from "@raystack/apsara";
 import type {
   V1Beta1RQLQueryPaginationResponse,
   V1Beta1RQLQueryGroupResponse,

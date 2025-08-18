@@ -1,4 +1,4 @@
-import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara/v1";
+import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 

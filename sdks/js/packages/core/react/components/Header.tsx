@@ -1,4 +1,4 @@
-import { Headline, Flex } from '@raystack/apsara/v1';
+import { Headline, Flex } from '@raystack/apsara';
 import React, { ComponentPropsWithRef } from 'react';
 import logo from '~/react/assets/logo.png';
 

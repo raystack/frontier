@@ -1,4 +1,4 @@
-import { Button, Dialog, Flex, InputField, toast } from "@raystack/apsara/v1";
+import { Button, Dialog, Flex, InputField, toast } from "@raystack/apsara";
 import { api } from "~/api";
 import { SearchOrganizationProjectsResponseOrganizationProject } from "~/api/frontier";
 

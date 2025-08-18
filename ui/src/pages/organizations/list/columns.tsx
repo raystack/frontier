@@ -5,7 +5,7 @@ import {
   Flex,
   getAvatarColor,
   Text,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
 import dayjs from "dayjs";
 import styles from "./list.module.css";

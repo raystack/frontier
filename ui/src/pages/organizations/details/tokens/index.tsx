@@ -4,7 +4,7 @@ import {
   DataTableSort,
   EmptyState,
   Flex,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import styles from "./tokens.module.css";
 import { CoinIcon } from "@raystack/apsara/icons";
 import { useCallback, useContext, useEffect, useMemo } from "react";

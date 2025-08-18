@@ -1,4 +1,4 @@
-import { Flex } from "@raystack/apsara/v1";
+import { Flex } from "@raystack/apsara";
 import { UseFormReturn } from "react-hook-form";
 
 import { CustomFieldName } from "~/components/CustomField";

@@ -1,4 +1,4 @@
-import { CopyButton, Flex, Link, List, Text } from "@raystack/apsara/v1";
+import { CopyButton, Flex, Link, List, Text } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { Frontierv1Beta1Invoice } from "~/api/frontier";
 import { converBillingAddressToString } from "~/utils/helper";
@@ -7,7 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Amount } from "@raystack/apsara/v1";
+import { Amount } from "@raystack/apsara";
 import { OrganizationContext } from "../contexts/organization-context";
 
 export const BillingDetailsSection = () => {

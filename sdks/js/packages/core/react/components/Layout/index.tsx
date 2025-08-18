@@ -1,4 +1,4 @@
-import { Flex, Text } from '@raystack/apsara/v1';
+import { Flex, Text } from '@raystack/apsara';
 import { PropsWithChildren } from 'react';
 import styles from './layout.module.css';
 

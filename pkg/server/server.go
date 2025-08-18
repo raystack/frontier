@@ -154,8 +154,6 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
 
 	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
-	sessionMiddleware := connectinterceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
-
 	// grpcZapLogger := zap.Must(zap.NewProduction())
 	grpcZapLogger := zap.NewExample().Sugar()
 	loggerZap, ok := logger.(*log.Zap)
@@ -189,13 +187,17 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		return err
 	}
 
+	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)
+	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
+	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
+
 	interceptors := connect.WithInterceptors(
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
 		otelInterceptor,
-		sessionMiddleware.UnaryConnectRequestHeadersAnnotator(),
-		connectinterceptors.UnaryAuthenticationCheck(frontierService),
-		connectinterceptors.UnaryAuthorizationCheck(frontierService),
-		sessionMiddleware.UnaryConnectResponseInterceptor())
+		sessionInterceptor,
+		authNInterceptor,
+		authZInterceptor,
+		sessionInterceptor.UnaryConnectResponseInterceptor())
 
 	// Initialize connect handlers
 	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors)
