@@ -9,6 +9,7 @@
   "files": [
     "dist/**/*",
     "react/dist/**/*",
+    "hooks/dist/**/*",
     "api-client/dist/**/*",
     "README.md"
   ],
@@ -52,6 +53,12 @@
       "module": "./react/dist/index.mjs",
       "require": "./react/dist/index.js"
     },
+    "./hooks": {
+      "types": "./hooks/dist/index.d.ts",
+      "import": "./hooks/dist/index.mjs",
+      "module": "./hooks/dist/index.mjs",
+      "require": "./hooks/dist/index.js"
+    },
     "./api-client": {
       "types": "./api-client/dist/index.d.ts",
       "import": "./api-client/dist/index.mjs",
@@ -88,7 +95,12 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.6.3",
+    "@connectrpc/connect-query": "^2.1.1",
+    "@connectrpc/connect-web": "^2.0.2",
     "@hookform/resolvers": "^3.10.0",
+    "@raystack/proton": "0.1.0-2dbafa5913a214851fdc4f1beefbe27c4a6de55a",
+    "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "1.58.17",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",

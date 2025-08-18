@@ -1,4 +1,4 @@
-import { Flex, Label, Select } from "@raystack/apsara/v1";
+import { Flex, Label, Select } from "@raystack/apsara";
 
 import RSelect from "react-select";
 

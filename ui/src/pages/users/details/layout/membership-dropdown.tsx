@@ -1,4 +1,4 @@
-import { Text, DropdownMenu } from "@raystack/apsara/v1";
+import { Text, DropdownMenu } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -55,11 +55,11 @@ export const MembershipDropdown = ({
   }, [data?.org_id, fetchRoles]);
 
   const toggleAssignRoleDialog = () => {
-    setIsAssignRoleDialogOpen(value => !value);
+    setIsAssignRoleDialogOpen((value) => !value);
   };
 
   const toggleSuspendDialog = () => {
-    setIsSuspendDialogOpen(value => !value);
+    setIsSuspendDialogOpen((value) => !value);
   };
 
   const onRoleUpdate = () => {
@@ -108,7 +108,8 @@ export const MembershipDropdown = ({
         <DropdownMenu.Content>
           <DropdownMenu.Item
             onClick={toggleAssignRoleDialog}
-            data-test-id="admin-ui-user-details-assign-role">
+            data-test-id="admin-ui-user-details-assign-role"
+          >
             Assign role...
           </DropdownMenu.Item>
           {/* TODO: Removed for now */}

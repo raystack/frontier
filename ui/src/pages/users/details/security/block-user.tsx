@@ -1,5 +1,5 @@
 import { ComponentProps, useState } from "react";
-import { Button, Dialog, toast } from "@raystack/apsara/v1";
+import { Button, Dialog, toast } from "@raystack/apsara";
 import { api } from "~/api";
 import { useUser } from "../user-context";
 import { getUserName } from "../../util";
@@ -74,7 +74,8 @@ export const BlockUserDialog = () => {
         <Button
           color={config.btnColor}
           size="small"
-          data-test-id="admin-ui-security-block-user">
+          data-test-id="admin-ui-security-block-user"
+        >
           {config.btnText}
         </Button>
       </Dialog.Trigger>
@@ -88,7 +89,8 @@ export const BlockUserDialog = () => {
             <Button
               color="neutral"
               variant="outline"
-              data-test-id="admin-ui-security-block-user-cancel">
+              data-test-id="admin-ui-security-block-user-cancel"
+            >
               Cancel
             </Button>
           </Dialog.Close>
@@ -97,7 +99,8 @@ export const BlockUserDialog = () => {
             data-test-id="admin-ui-security-block-user-submit"
             loading={isSubmitting}
             loaderText={config.dialogConfirmLoadingText}
-            onClick={config.onClick}>
+            onClick={config.onClick}
+          >
             {config.dialogConfirmText}
           </Button>
         </Dialog.Footer>

@@ -2,7 +2,16 @@ import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
-import { Button, Tooltip, Image, toast, Skeleton, Text, Flex, Amount } from '@raystack/apsara/v1';
+import {
+  Button,
+  Tooltip,
+  Image,
+  toast,
+  Skeleton,
+  Text,
+  Flex,
+  Amount
+} from '@raystack/apsara';
 import dayjs from 'dayjs';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import {
@@ -284,9 +293,9 @@ export const UpcomingBillingCycle = ({
         </Text>
       </Flex>
       <Button
-        variant='outline'
-        color='neutral'
-        size='small'
+        variant="outline"
+        color="neutral"
+        size="small"
         onClick={onActionBtnClick}
         data-test-id="frontier-sdk-upcoming-billing-cycle-action-button"
       >

@@ -1,24 +1,22 @@
 import qs from 'query-string';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
-import { Button, Skeleton, Text, Flex } from '@raystack/apsara/v1';
+import { Button, Skeleton, Text, Flex } from '@raystack/apsara';
 import billingStyles from './billing.module.css';
 import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
-import { toast } from '@raystack/apsara/v1';
+import { toast } from '@raystack/apsara';
 import { useState } from 'react';
 
 interface PaymentMethodProps {
   paymentMethod?: V1Beta1PaymentMethod;
   isLoading: boolean;
   isAllowed: boolean;
-  hideUpdatePaymentMethodBtn: boolean;
 }
 
 export const PaymentMethod = ({
   paymentMethod = {},
   isLoading,
-  isAllowed,
-  hideUpdatePaymentMethodBtn = false
+  isAllowed
 }: PaymentMethodProps) => {
   const { client, config, billingAccount } = useFrontier();
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -95,7 +93,7 @@ export const PaymentMethod = ({
     <div className={billingStyles.detailsBox}>
       <Flex align="center" justify="between" style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
-        {isAllowed && !hideUpdatePaymentMethodBtn ? (
+        {isAllowed ? (
           <Button
             variant="outline"
             color="neutral"
@@ -109,14 +107,34 @@ export const PaymentMethod = ({
         ) : null}
       </Flex>
       <Flex direction="column" gap={2}>
-        <Text size="small" weight="medium" className={billingStyles.detailsBoxRowLabel}>Card Number</Text>
-        <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
+        <Text
+          size="small"
+          weight="medium"
+          className={billingStyles.detailsBoxRowLabel}
+        >
+          Card Number
+        </Text>
+        <Text
+          size="small"
+          variant="secondary"
+          className={billingStyles.detailsBoxRowValue}
+        >
           {isLoading ? <Skeleton /> : cardNumber}
         </Text>
       </Flex>
       <Flex direction="column" gap={2}>
-        <Text size="small" weight="medium" className={billingStyles.detailsBoxRowLabel}>Expiry</Text>
-        <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
+        <Text
+          size="small"
+          weight="medium"
+          className={billingStyles.detailsBoxRowLabel}
+        >
+          Expiry
+        </Text>
+        <Text
+          size="small"
+          variant="secondary"
+          className={billingStyles.detailsBoxRowValue}
+        >
           {isLoading ? <Skeleton /> : cardExp}
         </Text>
       </Flex>

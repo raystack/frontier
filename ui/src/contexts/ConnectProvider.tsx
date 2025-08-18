@@ -1,16 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { TransportProvider } from "@connectrpc/connect-query";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import { ReactNode } from "react";
-
-const frontierConnectEndpoint = process.env.NEXT_PUBLIC_FRONTIER_CONNECT_URL || "/frontier-connect";
-
-// Create the transport for Connect RPC
-const transport = createConnectTransport({
-  baseUrl: frontierConnectEndpoint,
-  useBinaryFormat: false,
-  interceptors: [],
-});
+import { jsonTransport as transport } from "~/connect/transport";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient({

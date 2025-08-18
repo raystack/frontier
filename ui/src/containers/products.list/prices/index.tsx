@@ -1,5 +1,5 @@
-import { DataTable } from "@raystack/apsara/v1";
-import { Flex, EmptyState } from "@raystack/apsara/v1";
+import { DataTable } from "@raystack/apsara";
+import { Flex, EmptyState } from "@raystack/apsara";
 import { V1Beta1Product } from "@raystack/frontier";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Tabs, Image, Text, Flex, toast } from '@raystack/apsara/v1';
+import { Tabs, Image, Text, Flex, toast } from '@raystack/apsara';
 import {
   Outlet,
   useNavigate,

@@ -1,4 +1,4 @@
-import { Flex, List, Text, Link, Tooltip } from "@raystack/apsara/v1";
+import { Flex, List, Text, Link, Tooltip } from "@raystack/apsara";
 import { useContext } from "react";
 import styles from "./side-panel.module.css";
 import Skeleton from "react-loading-skeleton";

@@ -7,7 +7,7 @@ import {
   Dialog,
   InputField,
   Skeleton
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -35,11 +35,11 @@ export const AddTokens = () => {
     .object({
       tokens: yup
         .number()
-        .required()
+        .required('Please enter valid number')
         .min(minQuantity, `Minimum ${minQuantity} token is required`)
         .max(maxQuantity, `Maximum ${maxQuantity} tokens are allowed`)
+        .typeError('Please enter valid number of tokens')
     })
-    .typeError('Please enter a valid number')
     .required();
 
   type FormData = yup.InferType<typeof tokensSchema>;
@@ -57,15 +57,18 @@ export const AddTokens = () => {
   useEffect(() => {
     const fetchProductDescription = async () => {
       try {
-        const tokenProductId = config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
-        const response = await client?.frontierServiceGetProduct(tokenProductId);
+        const tokenProductId =
+          config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
+        const response = await client?.frontierServiceGetProduct(
+          tokenProductId
+        );
         const product = response?.data?.product;
 
         if (product) {
           // Set price description
           const productPrice = product?.prices?.[0];
-          const price = parseInt(productPrice?.amount || "100")/100;
-          const currency = productPrice?.currency || "USD";
+          const price = parseInt(productPrice?.amount || '100') / 100;
+          const currency = productPrice?.currency || 'USD';
           const description = `1 token = ${currency} ${price}`;
           setProductDescription(description);
 
@@ -160,32 +163,47 @@ export const AddTokens = () => {
 
           <Dialog.Body>
             <Flex direction="column" gap={5}>
-              {isLoading ? <Skeleton count={3}/> :
-              <InputField
-                label="Add tokens"
-                size="large"
-                type="number"
-                error={errors.tokens && String(errors.tokens.message)}
-                {...register('tokens', {valueAsNumber: true})}
-                placeholder="Enter no. of tokens"
-                helperText={productDescription}
-                className={tokenStyles.tokenInputField}
-                onKeyDown={(e) => ['e','E','+','-','.'].includes(e.key) && e.preventDefault()}
-                onPaste={(e) => {
-                  const pastedText = e.clipboardData.getData('text/plain');
-                  const parsedValue = parseInt(pastedText);
-                  e.preventDefault();
-                  if (!isNaN(parsedValue) && parsedValue >= minQuantity && parsedValue <= maxQuantity) {
-                    setValue('tokens', parsedValue);
+              {isLoading ? (
+                <Skeleton count={3} />
+              ) : (
+                <InputField
+                  label="Add tokens"
+                  size="large"
+                  type="number"
+                  error={errors.tokens && String(errors.tokens.message)}
+                  {...register('tokens', { valueAsNumber: true })}
+                  placeholder="Enter no. of tokens"
+                  helperText={productDescription}
+                  className={tokenStyles.tokenInputField}
+                  onKeyDown={e =>
+                    ['e', 'E', '+', '-', '.'].includes(e.key) &&
+                    e.preventDefault()
                   }
-                }}
-              />
-              }
+                  onPaste={e => {
+                    const pastedText = e.clipboardData.getData('text/plain');
+                    const parsedValue = parseInt(pastedText);
+                    e.preventDefault();
+                    if (
+                      !isNaN(parsedValue) &&
+                      parsedValue >= minQuantity &&
+                      parsedValue <= maxQuantity
+                    ) {
+                      setValue('tokens', parsedValue);
+                    }
+                  }}
+                />
+              )}
             </Flex>
           </Dialog.Body>
 
           <Dialog.Footer>
-            <Button variant="outline" color="neutral" onClick={() => navigate({ to: '/tokens' })}>Cancel</Button>
+            <Button
+              variant="outline"
+              color="neutral"
+              onClick={() => navigate({ to: '/tokens' })}
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               loading={isSubmitting}

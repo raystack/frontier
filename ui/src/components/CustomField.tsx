@@ -5,7 +5,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@radix-ui/react-form";
-import { Flex, Select, Switch, Text, InputField } from "@raystack/apsara/v1";
+import { Flex, Select, Switch, Text, InputField } from "@raystack/apsara";
 import React, { CSSProperties } from "react";
 
 import { Control, Controller, UseFormRegister } from "react-hook-form";

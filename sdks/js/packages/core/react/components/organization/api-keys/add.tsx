@@ -9,7 +9,7 @@ import {
   InputField,
   Select,
   Label
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -21,6 +21,7 @@ import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import styles from './styles.module.css';
 import { handleSelectValueChange } from '~/react/utils';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 
@@ -36,7 +37,7 @@ type FormData = yup.InferType<typeof serviceAccountSchema>;
 export const AddServiceAccount = () => {
   const navigate = useNavigate({ from: '/api-keys/add' });
   const { client, activeOrganization: organization } = useFrontier();
-
+  const t = useTerminology();
   const [projects, setProjects] = useState<V1Beta1Project[]>([]);
 
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
@@ -155,7 +156,8 @@ export const AddServiceAccount = () => {
             <Flex direction="column" gap={5}>
               <Text>
                 Create a dedicated service account to facilitate secure API
-                interactions on behalf of the organization.
+                interactions on behalf of the{' '}
+                {t.organization({ case: 'lower' })}.
               </Text>
               {isLoading ? (
                 <Skeleton height={'25px'} />

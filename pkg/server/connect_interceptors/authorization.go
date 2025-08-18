@@ -13,7 +13,6 @@ import (
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/internal/metrics"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -22,35 +21,63 @@ var (
 	ErrDeniedInvalidArgs = connect.NewError(connect.CodePermissionDenied, errors.New("invalid arguments"))
 )
 
-// UnaryAuthorizationCheck returns a unary server interceptor that checks for authorization
-func UnaryAuthorizationCheck(h *v1beta1connect.ConnectHandler) connect.UnaryInterceptorFunc {
-	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
-		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			// check if authorization needs to be skipped
-			if authorizationSkipEndpoints[req.Spec().Procedure] {
-				return next(ctx, req)
-			}
+type AuthorizationInterceptor struct {
+	h *v1beta1connect.ConnectHandler
+}
 
-			if metrics.ServiceOprLatency != nil {
-				promCollect := metrics.ServiceOprLatency("authenticate", "UnaryAuthorizationCheck")
-				defer promCollect()
-			}
+func (a *AuthorizationInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+	return connect.StreamingClientFunc(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
+		conn := next(ctx, spec)
+		return conn
+	})
+}
 
-			// apply authorization rules
-			azFunc, azVerifier := authorizationValidationMap[req.Spec().Procedure]
-			if !azVerifier {
-				// deny access if not configured by default
-				// return nil, connect.NewError(codes.Unauthenticated, "unauthorized access")
-				return nil, connect.NewError(connect.CodePermissionDenied, v1beta1connect.ErrUnauthorized)
-			}
-			if err := azFunc(ctx, h, req); err != nil {
-				return nil, err
-			}
+func (a *AuthorizationInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
+	return connect.StreamingHandlerFunc(func(ctx context.Context, conn connect.StreamingHandlerConn) error {
+		// check if authorization needs to be skipped
+		if authorizationSkipEndpoints[conn.Spec().Procedure] {
+			return next(ctx, conn)
+		}
 
+		// apply authorization rules
+		azFunc, azVerifier := authorizationValidationMap[conn.Spec().Procedure]
+		if !azVerifier {
+			// deny access if not configured by default
+			// return nil, connect.NewError(codes.Unauthenticated, "unauthorized access")
+			return connect.NewError(connect.CodePermissionDenied, v1beta1connect.ErrUnauthorized)
+		}
+		if err := azFunc(ctx, a.h, nil); err != nil {
+			return err
+		}
+
+		return next(ctx, conn)
+	})
+}
+
+func (a *AuthorizationInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
+	return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		// check if authorization needs to be skipped
+		if authorizationSkipEndpoints[req.Spec().Procedure] {
 			return next(ctx, req)
-		})
-	}
-	return connect.UnaryInterceptorFunc(interceptor)
+		}
+
+		// apply authorization rules
+		azFunc, azVerifier := authorizationValidationMap[req.Spec().Procedure]
+		if !azVerifier {
+			// deny access if not configured by default
+			// return nil, connect.NewError(codes.Unauthenticated, "unauthorized access")
+			return nil, connect.NewError(connect.CodePermissionDenied, v1beta1connect.ErrUnauthorized)
+		}
+		if err := azFunc(ctx, a.h, req); err != nil {
+			return nil, err
+		}
+
+		return next(ctx, req)
+	})
+}
+
+func NewAuthorizationInterceptor(h *v1beta1connect.ConnectHandler) *AuthorizationInterceptor {
+	return &AuthorizationInterceptor{h}
 }
 
 // authorizationSkipEndpoints stores path to skip authorization, by default its enabled for all requests

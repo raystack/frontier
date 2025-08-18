@@ -1,5 +1,5 @@
 import { Pencil2Icon } from "@radix-ui/react-icons";
-import { Flex, Image, type DataTableColumnDef } from "@raystack/apsara/v1";
+import { Flex, Image, type DataTableColumnDef } from "@raystack/apsara";
 import type { V1Beta1Product } from "@raystack/frontier";
 import { Link, NavLink } from "react-router-dom";
 import { Price } from "~/components/Price";

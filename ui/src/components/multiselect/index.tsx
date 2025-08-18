@@ -1,4 +1,4 @@
-import { Button, Checkbox, Command, Flex, Popover } from "@raystack/apsara/v1";
+import { Button, Checkbox, Command, Flex, Popover } from "@raystack/apsara";
 
 interface Option<T> {
   value: T;

@@ -1,4 +1,4 @@
-import { Flex, Text, Grid } from "@raystack/apsara/v1";
+import { Flex, Text, Grid } from "@raystack/apsara";
 import { usePlan } from ".";
 export default function PlanDetails() {
   const { plan } = usePlan();

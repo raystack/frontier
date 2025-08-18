@@ -5,7 +5,7 @@ import type {
 } from "~/api/frontier";
 import { OrganizationContext } from "../contexts/organization-context";
 import { api } from "~/api";
-import { toast } from "@raystack/apsara/v1";
+import { toast } from "@raystack/apsara";
 import { DEFAULT_ROLES } from "~/utils/constants";
 
 interface useAddProjectMembersProps {

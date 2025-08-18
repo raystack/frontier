@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { EmptyState, toast, Skeleton, Text, Flex } from '@raystack/apsara/v1';
+import { EmptyState, toast, Skeleton, Text, Flex } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -28,7 +28,9 @@ const NoPlans = () => {
     <EmptyState
       icon={<ExclamationTriangleIcon />}
       heading={<span style={{ fontWeight: 'bold' }}>No Plans Available</span>}
-      subHeading={"Sorry, No plans available at this moment. Please try again later"}
+      subHeading={
+        'Sorry, No plans available at this moment. Please try again later'
+      }
     />
   );
 };

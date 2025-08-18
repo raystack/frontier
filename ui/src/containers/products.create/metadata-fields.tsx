@@ -1,4 +1,4 @@
-import { Button, Flex, Label, Text } from "@raystack/apsara/v1";
+import { Button, Flex, Label, Text } from "@raystack/apsara";
 
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
 import { UseFormReturn, useFieldArray } from "react-hook-form";

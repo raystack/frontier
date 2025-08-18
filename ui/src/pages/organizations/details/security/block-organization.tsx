@@ -1,4 +1,4 @@
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara/v1";
+import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { api } from "~/api";

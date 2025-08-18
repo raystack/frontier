@@ -11,7 +11,7 @@ import {
   SidePanel,
   Text,
   Label,
-} from "@raystack/apsara/v1";
+} from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { AvatarUpload } from "@raystack/frontier/react";
 import { AppContext } from "~/contexts/App";

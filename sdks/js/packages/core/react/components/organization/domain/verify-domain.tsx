@@ -7,7 +7,7 @@ import {
   Flex,
   toast,
   Dialog
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -93,10 +93,7 @@ export const VerifyDomain = () => {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex
-            direction="column"
-            gap={5}
-          >
+          <Flex direction="column" gap={5}>
             {isDomainLoading ? (
               <>
                 <Skeleton height={'16px'} />

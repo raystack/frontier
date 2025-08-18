@@ -1,21 +1,51 @@
-import { ThemeProvider } from '@raystack/apsara/v1';
+import { ThemeProvider } from '@raystack/apsara';
 import { FrontierProviderProps } from '../../shared/types';
 import { FrontierContextProvider } from './FrontierContext';
+import { CustomizationProvider } from './CustomizationContext';
 import { withMaxAllowedInstancesGuard } from './useMaxAllowedInstancesGuard';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TransportProvider } from '@connectrpc/connect-query';
+import { createConnectTransport } from '@connectrpc/connect-web';
+import { useMemo } from 'react';
 
 export const multipleFrontierProvidersError =
   "Frontier: You've added multiple <FrontierProvider> components in your React component tree. Wrap your components in a single <FrontierProvider>.";
 
+const fetchWithCreds: typeof fetch = (input, init) => {
+  return fetch(input, {
+    ...init,
+    credentials: 'include'
+  });
+};
+
+const queryClient = new QueryClient();
+
 export const FrontierProvider = (props: FrontierProviderProps) => {
   const { children, initialState, config, theme, ...options } = props;
+
+  const transport = useMemo(
+    () =>
+      createConnectTransport({
+        baseUrl: config.connectEndpoint || '/frontier-connect',
+        fetch: fetchWithCreds
+      }),
+    [config.connectEndpoint]
+  );
+
   return (
-    <FrontierContextProvider
-      initialState={initialState}
-      config={config}
-      {...options}
-    >
-      <ThemeProvider {...theme}>{children}</ThemeProvider>
-    </FrontierContextProvider>
+    <QueryClientProvider client={queryClient}>
+      <TransportProvider transport={transport}>
+        <CustomizationProvider config={config.customization}>
+          <FrontierContextProvider
+            initialState={initialState}
+            config={config}
+            {...options}
+          >
+            <ThemeProvider {...theme}>{children}</ThemeProvider>
+          </FrontierContextProvider>
+        </CustomizationProvider>
+      </TransportProvider>
+    </QueryClientProvider>
   );
 };
 FrontierProvider.displayName = 'FrontierProvider';

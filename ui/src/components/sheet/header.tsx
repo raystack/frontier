@@ -1,5 +1,5 @@
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { Flex, Text } from "@raystack/apsara/v1";
+import { Flex, Text } from "@raystack/apsara";
 
 type SheetHeaderProps = {
   title: string;

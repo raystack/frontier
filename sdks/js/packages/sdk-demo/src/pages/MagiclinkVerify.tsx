@@ -1,10 +1,8 @@
-'use client';
-
-import { Flex } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 import { MagicLinkVerify } from '@raystack/frontier/react';
 import React from 'react';
 
-export default function LoginRoute() {
+export default function MagiclinkVerify() {
   return (
     <Flex
       justify="center"

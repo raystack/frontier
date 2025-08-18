@@ -8,6 +8,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -56,6 +57,31 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 			Data: groupResponse,
 		},
 	}), nil
+}
+
+func (h *ConnectHandler) ExportOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	orgBillingDataBytes, contentType, err := h.orgBillingService.Export(ctx)
+	if err != nil {
+		return nil
+	}
+
+	chunkSize := 1024 * 200 // 200KB
+
+	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
+		end := min(i+chunkSize, len(orgBillingDataBytes))
+
+		chunk := orgBillingDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		err := stream.Send(msg)
+		if err != nil {
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	return nil
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {

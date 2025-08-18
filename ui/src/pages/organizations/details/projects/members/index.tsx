@@ -1,5 +1,5 @@
-import { DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara/v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
+import { DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";

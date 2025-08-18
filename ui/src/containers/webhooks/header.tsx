@@ -1,6 +1,6 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, Flex, DataTable } from "@raystack/apsara/v1";
+import { Button, Flex, DataTable } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 import styles from "./webhooks.module.css";

@@ -12,14 +12,11 @@ import {
   DataTable,
   Popover,
   Search
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { Link, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  ExclamationTriangleIcon,
-  PaperPlaneIcon
-} from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
@@ -270,7 +267,7 @@ const AddMemberDropdown = ({
         <Search
           data-test-id="frontier-sdk-add-project-member-textfield"
           value={query}
-          variant='borderless'
+          variant="borderless"
           placeholder="Add team member"
           onChange={onTextChange}
           showClearButton
@@ -333,7 +330,7 @@ const AddMemberDropdown = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading='No members found'
-    subHeading='Get started by adding your first team member.'
+    heading="No members found"
+    subHeading="Get started by adding your first team member."
   />
 );

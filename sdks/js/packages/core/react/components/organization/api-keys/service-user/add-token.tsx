@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback } from 'react';
-import { Flex, toast, Button, InputField } from '@raystack/apsara/v1';
+import { Flex, toast, Button, InputField } from '@raystack/apsara';
 import { V1Beta1ServiceUserToken } from '~/api-client';
 import styles from './styles.module.css';
 

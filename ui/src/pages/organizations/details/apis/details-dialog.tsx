@@ -1,4 +1,4 @@
-import { Dialog, Flex, Skeleton, Tabs, Text } from "@raystack/apsara/v1";
+import { Dialog, Flex, Skeleton, Tabs, Text } from "@raystack/apsara";
 import styles from "./apis.module.css";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "~/api";

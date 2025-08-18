@@ -24,6 +24,17 @@ export default defineConfig(() => [
     },
     esbuildPlugins: [cssModulesPlugin()]
   },
+  // Hooks APIs
+  {
+    entry: ['hooks/index.ts'],
+    outDir: 'hooks/dist',
+    banner: {
+      js: "'use client'"
+    },
+    format: ['cjs', 'esm'],
+    external: ['react'],
+    dts: true
+  },
   {
     entry: ['api-client/index.ts'],
     format: ['cjs', 'esm'],

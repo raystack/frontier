@@ -1,4 +1,4 @@
-import { Button, Text } from '@raystack/apsara/v1';
+import { Button, Text } from '@raystack/apsara';
 import React from 'react';
 import GoogleLogo from '~/react/assets/logos/google-logo.svg';
 import { capitalize } from '~/utils';
@@ -10,10 +10,7 @@ type ButtonProps = React.HTMLProps<HTMLButtonElement> & {
   provider: string;
 };
 
-export const OIDCButton = ({
-  onClick,
-  provider
-}: ButtonProps) => (
+export const OIDCButton = ({ onClick, provider }: ButtonProps) => (
   <Button
     variant="outline"
     color="neutral"

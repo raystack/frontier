@@ -771,8 +771,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
 }
 
 func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout) (Checkout, error) {
-	// get billing
-	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	billingCustomer, err := s.customerService.RegisterToProviderIfRequired(ctx, ch.CustomerID)
 	if err != nil {
 		return Checkout{}, err
 	}
@@ -820,8 +819,7 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 }
 
 func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkout) (Checkout, error) {
-	// get billing
-	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	billingCustomer, err := s.customerService.RegisterToProviderIfRequired(ctx, ch.CustomerID)
 	if err != nil {
 		return Checkout{}, err
 	}
@@ -865,6 +863,11 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 	ch.ID = uuid.New().String()
 	// get billing
 	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	currentPrincipal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1033,6 +1036,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			Metadata:    ch.Metadata,
 			Source:      credit.SourceSystemAwardedEvent,
 			Description: fmt.Sprintf("Awarded %d credits for %s", amount, chProduct.Title),
+			UserID:      currentPrincipal.ID,
 		}); err != nil {
 			return nil, nil, err
 		}

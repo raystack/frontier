@@ -1,9 +1,8 @@
-'use client';
-import { Flex } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 // import { Updates } from '@raystack/frontier/react';
 import React from 'react';
 
-export default function SubscribeRoute() {
+export default function Updates() {
   return (
     <Flex
       justify="center"

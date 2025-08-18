@@ -1,4 +1,4 @@
-import { Flex, Text } from "@raystack/apsara/v1";
+import { Flex, Text } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import { useUser } from "../user-context";
 import styles from "./security.module.css";

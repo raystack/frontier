@@ -1,6 +1,6 @@
 "use client";
 
-import { Flex, Image } from "@raystack/apsara/v1";
+import { Flex, Image } from "@raystack/apsara";
 import { MagicLinkVerify } from "@raystack/frontier/react";
 import IAMIcon from "~/assets/icons/iam.svg?react";
 import { AppContext } from "~/contexts/App";

@@ -1,4 +1,5 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
+import { transformConnectOrgToV1Beta1 } from '../../../shared/utils/organization';
 import {
   Outlet,
   createRoute,
@@ -6,8 +7,9 @@ import {
   useRouteContext,
   RouteComponent
 } from '@tanstack/react-router';
-import { Flex, ToastContainer } from '@raystack/apsara/v1';
+import { Flex, ToastContainer } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useQuery, FrontierServiceQueries } from '~hooks';
 import Domain from './domain';
 import { AddDomain } from './domain/add-domain';
 import { VerifyDomain } from './domain/verify-domain';
@@ -93,34 +95,40 @@ export function getCustomRoutes(customScreens: CustomScreen[] = []) {
 
 const RootRouter = () => {
   const { organizationId, hideToast } = useRouteContext({ from: '__root__' });
-  const { client, setActiveOrganization, setIsActiveOrganizationLoading } =
+  const { setActiveOrganization, setIsActiveOrganizationLoading } =
     useFrontier();
 
-  const fetchOrganization = useCallback(async () => {
-    try {
-      setIsActiveOrganizationLoading(true);
-      const resp = await client?.frontierServiceGetOrganization(organizationId);
-      const organization = resp?.data.organization;
-      setActiveOrganization(organization);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsActiveOrganizationLoading(false);
-    }
-  }, [
-    client,
-    organizationId,
-    setActiveOrganization,
-    setIsActiveOrganizationLoading
-  ]);
+  const {
+    data: organizationData,
+    isLoading,
+    error
+  } = useQuery(
+    FrontierServiceQueries.getOrganization,
+    { id: organizationId },
+    { enabled: !!organizationId }
+  );
+
+  useEffect(() => {
+    setIsActiveOrganizationLoading(isLoading);
+  }, [isLoading, setIsActiveOrganizationLoading]);
 
   useEffect(() => {
     if (organizationId) {
-      fetchOrganization();
+      setActiveOrganization(
+        organizationData?.organization
+          ? transformConnectOrgToV1Beta1(organizationData.organization)
+          : undefined
+      );
     } else {
       setActiveOrganization(undefined);
     }
-  }, [organizationId, fetchOrganization, setActiveOrganization]);
+  }, [organizationId, organizationData?.organization, setActiveOrganization]);
+
+  useEffect(() => {
+    if (error) {
+      console.error('Failed to fetch organization:', error);
+    }
+  }, [error]);
 
   const visibleToasts = hideToast ? 0 : 1;
 

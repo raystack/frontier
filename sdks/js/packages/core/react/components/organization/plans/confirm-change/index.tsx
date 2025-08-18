@@ -7,7 +7,7 @@ import {
   Text,
   Flex,
   Dialog
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -22,6 +22,7 @@ import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
+import { useMessages } from '~/react/hooks/useMessages';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
@@ -37,6 +38,7 @@ export default function ConfirmPlanChange() {
   } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
+  const m = useMessages();
 
   const {
     changePlan,
@@ -63,14 +65,14 @@ export default function ConfirmPlanChange() {
   );
 
   const cancel = useCallback(() => navigate({ to: '/plans' }), [navigate]);
+  const newPlanSlug = isNewPlanBasePlan ? 'base' : newPlan?.name;
 
-  const planChangeSlug =
-    activePlan?.name && newPlan?.name
-      ? `${activePlan?.name}:${newPlan?.name}`
-      : '';
+  const planChangeSlug = activePlan?.name
+    ? `${activePlan?.name}:${newPlanSlug}`
+    : '';
 
   const planChangeMessage = planChangeSlug
-    ? _.get(config, ['messages', 'billing', 'plan_change', planChangeSlug])
+    ? m(`billing.plan_change.${planChangeSlug}`)
     : '';
 
   const isUpgrade = planAction.btnLabel === 'Upgrade';
@@ -186,10 +188,7 @@ export default function ConfirmPlanChange() {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex
-            direction="column"
-            gap={7}
-          >
+          <Flex direction="column" gap={7}>
             {isLoading ? (
               <Skeleton />
             ) : (
@@ -230,10 +229,7 @@ export default function ConfirmPlanChange() {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex
-            justify={'end'}
-            gap={5}
-          >
+          <Flex justify={'end'} gap={5}>
             <Button
               variant="outline"
               color="neutral"

@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara/v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import type { V1Beta1User } from "@raystack/frontier";
 import { useCallback } from "react";
 import Navbar from "./navbar";

@@ -10,7 +10,7 @@ import {
   Button,
   Select,
   DataTable
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -153,9 +153,9 @@ const TeamsTable = ({
         <Flex justify="between" gap={3}>
           <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
             {isLoading ? (
-              <Skeleton height='34px' width='500px' />
+              <Skeleton height="34px" width="500px" />
             ) : (
-              <DataTable.Search placeholder="Search by name " size="medium" />
+              <DataTable.Search placeholder="Search by title" size="medium" />
             )}
             {canListOrgGroups ? (
               <Select
@@ -176,7 +176,7 @@ const TeamsTable = ({
             ) : null}
           </Flex>
           {isLoading ? (
-            <Skeleton height='34px' width='64px' />
+            <Skeleton height="34px" width="64px" />
           ) : (
             <Tooltip
               message={AuthTooltipMessage}
@@ -208,7 +208,7 @@ const TeamsTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading='No teams found'
-    subHeading='Get started by creating your first team.'
+    heading="No teams found"
+    subHeading="Get started by creating your first team."
   />
 );

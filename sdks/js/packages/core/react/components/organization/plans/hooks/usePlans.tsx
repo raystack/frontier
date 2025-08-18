@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
-import { toast } from '@raystack/apsara/v1';
+import { toast } from '@raystack/apsara';
 import { SubscriptionPhase, V1Beta1CheckoutSession, V1Beta1Plan } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { PlanMetadata } from '~/src/types';
