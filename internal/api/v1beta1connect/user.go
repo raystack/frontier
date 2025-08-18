@@ -13,8 +13,8 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllUsersRequest]) (*connect.Response[frontierv1beta1.ListAllUsersResponse], error) {
