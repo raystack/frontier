@@ -69,7 +69,7 @@ func (h Handler) SearchUserOrganizations(ctx context.Context, request *frontierv
 	}, nil
 }
 
-// Helper function to transform aggregated organization to protobuf
+// transformAggregatedUserOrganizationToPB transforms an AggregatedUserOrganization
 func transformAggregatedUserOrganizationToPB(userOrg userorgs.AggregatedUserOrganization) *frontierv1beta1.SearchUserOrganizationsResponse_UserOrganization {
 	return &frontierv1beta1.SearchUserOrganizationsResponse_UserOrganization{
 		OrgId:        userOrg.OrgID,

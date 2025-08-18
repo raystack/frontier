@@ -62,7 +62,6 @@ func (h Handler) SearchUserProjects(ctx context.Context, request *frontierv1beta
 			Offset: uint32(userProjectsData.Pagination.Offset),
 			Limit:  uint32(userProjectsData.Pagination.Limit),
 		},
-		Group: nil,
 	}, nil
 }
 
