@@ -14,6 +14,7 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 )
 
 func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllUsersRequest]) (*connect.Response[frontierv1beta1.ListAllUsersResponse], error) {
@@ -100,6 +101,32 @@ func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {
 
 func (h *ConnectHandler) ListAllServiceUsers(context.Context, *connect.Request[frontierv1beta1.ListAllServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListAllServiceUsersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, nil)
+}
+
+func (h *ConnectHandler) ExportUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ExportUsersRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	userDataBytes, contentType, err := h.userService.Export(ctx)
+	if err != nil {
+		if errors.Is(err, user.ErrNoUsersFound) {
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
+		}
+		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	chunkSize := 1024 * 200 // 200KB chunks
+	for i := 0; i < len(userDataBytes); i += chunkSize {
+		end := min(i+chunkSize, len(userDataBytes))
+
+		chunk := userDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	return nil
 }
 
 func (h *ConnectHandler) SearchUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchUsersRequest]) (*connect.Response[frontierv1beta1.SearchUsersResponse], error) {
