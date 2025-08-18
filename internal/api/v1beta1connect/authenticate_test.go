@@ -18,12 +18,12 @@ import (
 
 func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 	tests := []struct {
-		name            string
-		setup           func(authn *mocks.AuthnService, org *mocks.OrganizationService)
-		request         *connect.Request[frontierv1beta1.AuthTokenRequest]
-		want            *connect.Response[frontierv1beta1.AuthTokenResponse]
-		wantErr         bool
-		expectedErr     error
+		name        string
+		setup       func(authn *mocks.AuthnService, org *mocks.OrganizationService)
+		request     *connect.Request[frontierv1beta1.AuthTokenRequest]
+		want        *connect.Response[frontierv1beta1.AuthTokenResponse]
+		wantErr     bool
+		expectedErr error
 	}{
 		{
 			name: "should return error when service user org is disabled",
@@ -46,7 +46,7 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 				org.EXPECT().Get(mock.Anything, orgID).Return(
 					organization.Organization{}, organization.ErrDisabled)
 			},
-			request: connect.NewRequest(&frontierv1beta1.AuthTokenRequest{}),
+			request:     connect.NewRequest(&frontierv1beta1.AuthTokenRequest{}),
 			wantErr:     true,
 			expectedErr: organization.ErrDisabled,
 			want:        nil,
@@ -95,7 +95,7 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(mockAuthnSrv, mockOrgSrv)
 			}
-			
+
 			handler := &ConnectHandler{
 				authnService: mockAuthnSrv,
 				orgService:   mockOrgSrv,
@@ -111,7 +111,7 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 			logger := zap.NewNop()
 			ctx := context.WithValue(context.Background(), "logger", logger)
 			resp, err := handler.AuthToken(ctx, tt.request)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErr != nil {

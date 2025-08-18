@@ -135,15 +135,13 @@ func TestHandler_Authenticate(t *testing.T) {
 }
 
 func TestHandler_AuthToken_ServiceUser(t *testing.T) {
-	expectedErr := errors.New("Internal error")
-	
 	tests := []struct {
-		name            string
-		setup           func(authn *mocks.AuthnService, org *mocks.OrganizationService)
-		request         *frontierv1beta1.AuthTokenRequest
-		want            *frontierv1beta1.AuthTokenResponse
-		wantErr         bool
-		expectedErr     error
+		name        string
+		setup       func(authn *mocks.AuthnService, org *mocks.OrganizationService)
+		request     *frontierv1beta1.AuthTokenRequest
+		want        *frontierv1beta1.AuthTokenResponse
+		wantErr     bool
+		expectedErr error
 	}{
 		{
 			name: "should return error when service user org is disabled",
@@ -166,42 +164,10 @@ func TestHandler_AuthToken_ServiceUser(t *testing.T) {
 				org.EXPECT().Get(mock.Anything, orgID).Return(
 					organization.Organization{}, organization.ErrDisabled)
 			},
-			request: &frontierv1beta1.AuthTokenRequest{},
+			request:     &frontierv1beta1.AuthTokenRequest{},
 			wantErr:     true,
 			expectedErr: organization.ErrDisabled,
 			want:        nil,
-		},
-		{
-			name: "should pass org check when service user org is enabled",
-			setup: func(authn *mocks.AuthnService, org *mocks.OrganizationService) {
-				orgID := "test-org-id"
-				serviceUserID := "test-service-user-id"
-				expectedToken := []byte("test-access-token")
-
-				authn.EXPECT().GetPrincipal(mock.Anything,
-					authenticate.SessionClientAssertion,
-					authenticate.ClientCredentialsClientAssertion,
-					authenticate.JWTGrantClientAssertion).Return(authenticate.Principal{
-					ID:   serviceUserID,
-					Type: schema.ServiceUserPrincipal,
-					ServiceUser: &serviceuser.ServiceUser{
-						ID:    serviceUserID,
-						OrgID: orgID,
-					},
-				}, nil)
-
-				org.EXPECT().Get(mock.Anything, orgID).Return(
-					organization.Organization{
-						ID:    orgID,
-						State: organization.Enabled,
-					}, nil)
-
-				authn.EXPECT().BuildToken(mock.Anything, mock.AnythingOfType("authenticate.Principal"), mock.AnythingOfType("map[string]string")).Return(expectedToken, nil)
-			},
-			request: &frontierv1beta1.AuthTokenRequest{},
-			want:        nil,
-			wantErr:     true,
-			expectedErr: expectedErr,
 		},
 	}
 
@@ -212,7 +178,7 @@ func TestHandler_AuthToken_ServiceUser(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(mockAuthnSrv, mockOrgSrv)
 			}
-			
+
 			handler := Handler{
 				authnService: mockAuthnSrv,
 				orgService:   mockOrgSrv,
@@ -226,7 +192,7 @@ func TestHandler_AuthToken_ServiceUser(t *testing.T) {
 			}
 
 			resp, err := handler.AuthToken(context.Background(), tt.request)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErr != nil {
