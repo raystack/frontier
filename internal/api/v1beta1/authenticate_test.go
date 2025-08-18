@@ -7,7 +7,10 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -127,6 +130,118 @@ func TestHandler_Authenticate(t *testing.T) {
 			resp, err := mockDep.Authenticate(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_AuthToken_ServiceUser(t *testing.T) {
+	expectedErr := errors.New("Internal error")
+	
+	tests := []struct {
+		name            string
+		setup           func(authn *mocks.AuthnService, org *mocks.OrganizationService)
+		request         *frontierv1beta1.AuthTokenRequest
+		want            *frontierv1beta1.AuthTokenResponse
+		wantErr         bool
+		expectedErr     error
+	}{
+		{
+			name: "should return error when service user org is disabled",
+			setup: func(authn *mocks.AuthnService, org *mocks.OrganizationService) {
+				orgID := "test-org-id"
+				serviceUserID := "test-service-user-id"
+
+				authn.EXPECT().GetPrincipal(mock.Anything,
+					authenticate.SessionClientAssertion,
+					authenticate.ClientCredentialsClientAssertion,
+					authenticate.JWTGrantClientAssertion).Return(authenticate.Principal{
+					ID:   serviceUserID,
+					Type: schema.ServiceUserPrincipal,
+					ServiceUser: &serviceuser.ServiceUser{
+						ID:    serviceUserID,
+						OrgID: orgID,
+					},
+				}, nil)
+
+				org.EXPECT().Get(mock.Anything, orgID).Return(
+					organization.Organization{}, organization.ErrDisabled)
+			},
+			request: &frontierv1beta1.AuthTokenRequest{},
+			wantErr:     true,
+			expectedErr: organization.ErrDisabled,
+			want:        nil,
+		},
+		{
+			name: "should pass org check when service user org is enabled",
+			setup: func(authn *mocks.AuthnService, org *mocks.OrganizationService) {
+				orgID := "test-org-id"
+				serviceUserID := "test-service-user-id"
+				expectedToken := []byte("test-access-token")
+
+				authn.EXPECT().GetPrincipal(mock.Anything,
+					authenticate.SessionClientAssertion,
+					authenticate.ClientCredentialsClientAssertion,
+					authenticate.JWTGrantClientAssertion).Return(authenticate.Principal{
+					ID:   serviceUserID,
+					Type: schema.ServiceUserPrincipal,
+					ServiceUser: &serviceuser.ServiceUser{
+						ID:    serviceUserID,
+						OrgID: orgID,
+					},
+				}, nil)
+
+				org.EXPECT().Get(mock.Anything, orgID).Return(
+					organization.Organization{
+						ID:    orgID,
+						State: organization.Enabled,
+					}, nil)
+
+				authn.EXPECT().BuildToken(mock.Anything, mock.AnythingOfType("authenticate.Principal"), mock.AnythingOfType("map[string]string")).Return(expectedToken, nil)
+			},
+			request: &frontierv1beta1.AuthTokenRequest{},
+			want:        nil,
+			wantErr:     true,
+			expectedErr: expectedErr,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockAuthnSrv := new(mocks.AuthnService)
+			mockOrgSrv := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockAuthnSrv, mockOrgSrv)
+			}
+			
+			handler := Handler{
+				authnService: mockAuthnSrv,
+				orgService:   mockOrgSrv,
+				authConfig: authenticate.Config{
+					Token: authenticate.TokenConfig{
+						Claims: authenticate.TokenClaimConfig{
+							AddOrgIDsClaim: false,
+						},
+					},
+				},
+			}
+
+			resp, err := handler.AuthToken(context.Background(), tt.request)
+			
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.expectedErr != nil {
+					if tt.expectedErr == organization.ErrDisabled {
+						assert.Equal(t, organization.ErrDisabled, err)
+					} else {
+						assert.Contains(t, err.Error(), "Internal")
+					}
+				}
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want.AccessToken, resp.AccessToken)
+				assert.Equal(t, tt.want.TokenType, resp.TokenType)
+			}
 		})
 	}
 }
