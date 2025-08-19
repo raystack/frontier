@@ -25,6 +25,7 @@ type Repository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	DeleteExpiredSessions(ctx context.Context) error
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
+	List(ctx context.Context, userID string) ([]*Session, error)
 }
 
 type Service struct {
@@ -97,6 +98,10 @@ func (s Service) InitSessions(ctx context.Context) error {
 	}
 	s.cron.Start()
 	return nil
+}
+
+func (s Service) List(ctx context.Context, userID string) ([]*Session, error) {
+	return s.repo.List(ctx, userID)
 }
 
 func (s Service) Close() error {

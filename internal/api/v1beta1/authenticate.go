@@ -52,6 +52,7 @@ type SessionService interface {
 	Create(ctx context.Context, userID string) (*frontiersession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
+	List(ctx context.Context, userID string) ([]*frontiersession.Session, error)
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
@@ -262,6 +263,39 @@ func (h Handler) AuthToken(ctx context.Context, request *frontierv1beta1.AuthTok
 		TokenType:   "Bearer",
 	}, nil
 }
+
+// TODO: Uncomment once proto definitions are added
+// func (h Handler) ListSessions(ctx context.Context, request *frontierv1beta1.ListSessionsRequest) (*frontierv1beta1.ListSessionsResponse, error) {
+// 	// Check if user is authenticated
+// 	principal, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion)
+// 	if err != nil {
+// 		return nil, status.Error(codes.Unauthenticated, err.Error())
+// 	}
+// 
+// 	// Get all active sessions for the current user
+// 	sessions, err := h.sessionService.List(ctx, principal.ID)
+// 	if err != nil {
+// 		return nil, status.Error(codes.Internal, err.Error())
+// 	}
+// 
+// 	// Transform to protobuf format
+// 	var pbSessions []*frontierv1beta1.Session
+// 	for _, session := range sessions {
+// 		pbSession := &frontierv1beta1.Session{
+// 			Id:              session.ID.String(),
+// 			UserId:          session.UserID,
+// 			AuthenticatedAt: timestamppb.New(session.AuthenticatedAt),
+// 			ExpiresAt:       timestamppb.New(session.ExpiresAt),
+// 			CreatedAt:       timestamppb.New(session.CreatedAt),
+// 			Metadata:        session.Metadata,
+// 		}
+// 		pbSessions = append(pbSessions, pbSession)
+// 	}
+// 
+// 	return &frontierv1beta1.ListSessionsResponse{
+// 		Sessions: pbSessions,
+// 	}, nil
+// }
 
 func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
 	session, err := h.sessionService.ExtractFromContext(ctx)

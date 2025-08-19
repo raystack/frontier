@@ -174,3 +174,40 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 		return fmt.Errorf("error updating session validity")
 	})
 }
+
+func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontiersession.Session, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing user id: %w", err)
+	}
+
+	query := dialect.From(TABLE_SESSIONS).
+		Where(goqu.Ex{"user_id": userUUID}).
+		Where(goqu.Ex{"expires_at": goqu.Op{"gt": s.Now()}}).
+		Order(goqu.I("created_at").Desc())
+
+	sqlQuery, params, err := query.ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var sessions []Session
+	if err := s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "List", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &sessions, sqlQuery, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	// Transform to domain objects
+	var result []*frontiersession.Session
+	for _, session := range sessions {
+		transformed, err := session.transformToSession()
+		if err != nil {
+			return nil, fmt.Errorf("error transforming session: %w", err)
+		}
+		result = append(result, transformed)
+	}
+
+	return result, nil
+}
