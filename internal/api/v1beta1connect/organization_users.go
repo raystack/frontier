@@ -12,8 +12,8 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type OrgUsersService interface {
