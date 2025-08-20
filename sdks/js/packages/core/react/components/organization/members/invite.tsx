@@ -157,7 +157,10 @@ export const InviteMember = () => {
               ) : (
                 <TextArea
                   label="Email"
+                  required
                   {...register('emails')}
+                  //  TODO: Fix placeholder prop in apsara TextAreaProps
+                  //  @ts-expect-error placeholder prop exists on textarea but not in apsara TextAreaProps type definition
                   placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
                   error={Boolean(errors.emails?.message)}
                   helperText={
