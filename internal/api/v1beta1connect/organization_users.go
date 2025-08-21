@@ -94,12 +94,15 @@ func (h *ConnectHandler) ExportOrganizationUsers(ctx context.Context, request *c
 		}
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
+	return streamBytesInChunks(orgUsersDataBytes, contentType, stream)
+}
 
+func streamBytesInChunks(data []byte, contentType string, stream *connect.ServerStream[httpbody.HttpBody]) error {
 	chunkSize := 1024 * 200 // 200KB
-	for i := 0; i < len(orgUsersDataBytes); i += chunkSize {
-		end := min(i+chunkSize, len(orgUsersDataBytes))
+	for i := 0; i < len(data); i += chunkSize {
+		end := min(i+chunkSize, len(data))
 
-		chunk := orgUsersDataBytes[i:end]
+		chunk := data[i:end]
 		msg := &httpbody.HttpBody{
 			ContentType: contentType,
 			Data:        chunk,

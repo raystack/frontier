@@ -89,19 +89,5 @@ func (h *ConnectHandler) ExportOrganizationProjects(ctx context.Context, request
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	chunkSize := 1024 * 200 // 200KB chunks
-	for i := 0; i < len(orgProjectsDataBytes); i += chunkSize {
-		end := min(i+chunkSize, len(orgProjectsDataBytes))
-
-		chunk := orgProjectsDataBytes[i:end]
-		msg := &httpbody.HttpBody{
-			ContentType: contentType,
-			Data:        chunk,
-		}
-
-		if err := stream.Send(msg); err != nil {
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
-	return nil
+	return streamBytesInChunks(orgProjectsDataBytes, contentType, stream)
 }

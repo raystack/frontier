@@ -76,19 +76,5 @@ func (h *ConnectHandler) ExportOrganizationTokens(ctx context.Context, request *
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	chunkSize := 1024 * 200 // 200KB chunks
-	for i := 0; i < len(orgTokensDataBytes); i += chunkSize {
-		end := min(i+chunkSize, len(orgTokensDataBytes))
-
-		chunk := orgTokensDataBytes[i:end]
-		msg := &httpbody.HttpBody{
-			ContentType: contentType,
-			Data:        chunk,
-		}
-
-		if err := stream.Send(msg); err != nil {
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
-	return nil
+	return streamBytesInChunks(orgTokensDataBytes, contentType, stream)
 }
