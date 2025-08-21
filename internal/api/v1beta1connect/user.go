@@ -112,21 +112,7 @@ func (h *ConnectHandler) ExportUsers(ctx context.Context, request *connect.Reque
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	chunkSize := 1024 * 200 // 200KB chunks
-	for i := 0; i < len(userDataBytes); i += chunkSize {
-		end := min(i+chunkSize, len(userDataBytes))
-
-		chunk := userDataBytes[i:end]
-		msg := &httpbody.HttpBody{
-			ContentType: contentType,
-			Data:        chunk,
-		}
-
-		if err := stream.Send(msg); err != nil {
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
-	return nil
+	return streamBytesInChunks(userDataBytes, contentType, stream)
 }
 
 func (h *ConnectHandler) SearchUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchUsersRequest]) (*connect.Response[frontierv1beta1.SearchUsersResponse], error) {
