@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -77,4 +78,16 @@ func transformAggregatedProjectToPB(p orgprojects.AggregatedProject) *frontierv1
 		CreatedAt:      timestamppb.New(p.CreatedAt),
 		OrganizationId: p.OrganizationID,
 	}
+}
+
+func (h *ConnectHandler) ExportOrganizationProjects(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationProjectsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	orgProjectsDataBytes, contentType, err := h.orgProjectsService.Export(ctx, request.Msg.GetId())
+	if err != nil {
+		if errors.Is(err, orgprojects.ErrNoContent) {
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
+		}
+		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return streamBytesInChunks(orgProjectsDataBytes, contentType, stream)
 }

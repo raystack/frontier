@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/salt/rql"
 )
+
+var ErrNoContent = errors.New("no content")
 
 const CSVContentType = "text/csv"
 
@@ -139,7 +142,11 @@ func (s Service) Search(ctx context.Context, query *rql.Query) (OrgBilling, erro
 func (s Service) Export(ctx context.Context) ([]byte, string, error) {
 	orgBillingData, err := s.repository.Search(ctx, &rql.Query{})
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to export organizations: %w", err)
+	}
+
+	if len(orgBillingData.Organizations) == 0 {
+		return nil, "", fmt.Errorf("%w: no organization found", ErrNoContent)
 	}
 
 	// Create a buffer to write CSV data

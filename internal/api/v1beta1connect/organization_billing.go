@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -62,26 +63,12 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 func (h *ConnectHandler) ExportOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
 	orgBillingDataBytes, contentType, err := h.orgBillingService.Export(ctx)
 	if err != nil {
-		return nil
-	}
-
-	chunkSize := 1024 * 200 // 200KB
-
-	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
-		end := min(i+chunkSize, len(orgBillingDataBytes))
-
-		chunk := orgBillingDataBytes[i:end]
-		msg := &httpbody.HttpBody{
-			ContentType: contentType,
-			Data:        chunk,
+		if errors.Is(err, orgbilling.ErrNoContent) {
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
-
-		err := stream.Send(msg)
-		if err != nil {
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return nil
+	return streamBytesInChunks(orgBillingDataBytes, contentType, stream)
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {
