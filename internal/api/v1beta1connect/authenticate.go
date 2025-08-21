@@ -156,6 +156,15 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	if principal.Type == schema.ServiceUserPrincipal {
+		orgId := principal.ServiceUser.OrgID
+		_, err := h.orgService.Get(ctx, orgId)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error while fetching service user org: %v", err))
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+	}
+
 	token, err := h.getAccessToken(ctx, principal, request.Header().Values(consts.ProjectRequestKey))
 	if err != nil {
 		logger.Debug(fmt.Sprintf("unable to get accessToken: %v", err))

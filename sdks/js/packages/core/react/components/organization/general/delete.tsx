@@ -44,7 +44,7 @@ export const DeleteOrganization = () => {
     if (!organization?.id) return;
     if (data.name !== organization.name)
       return setError('name', {
-        message: `${t.organization({ case: 'lower' })} name is not same`
+        message: `The ${t.organization({ case: 'lower' })} URL is not same`
       });
 
     try {
@@ -66,7 +66,7 @@ export const DeleteOrganization = () => {
       <Dialog.Content overlayClassName={styles.overlay} width={600}>
         <Dialog.Header>
           <Dialog.Title>
-            Verify ${t.organization({ case: 'lower' })} deletion
+            Verify {t.organization({ case: 'lower' })} deletion
           </Dialog.Title>
           <Dialog.CloseButton
             onClick={() => navigate({ to: '/' })}
@@ -82,15 +82,15 @@ export const DeleteOrganization = () => {
                 <b>{organization?.title}</b>.
               </Text>
               <InputField
-                label={`Please type name of the ${t.organization({
+                label={`Please type the URL of the ${t.organization({
                   case: 'lower'
                 })} to confirm.`}
                 size="large"
                 error={errors.name && String(errors.name?.message)}
                 {...register('name')}
-                placeholder={`Provide ${t.organization({
+                placeholder={`Provide the ${t.organization({
                   case: 'lower'
-                })} name`}
+                })} URL`}
               />
             </Flex>
           </Dialog.Body>
@@ -102,7 +102,7 @@ export const DeleteOrganization = () => {
                 data-test-id="frontier-sdk-delete-organization-checkbox"
               />
               <Text size="small">
-                I acknowledge I understand that all of the{' '}
+                I acknowledge and understand that all of the{' '}
                 {t.organization({ case: 'lower' })} data will be deleted and
                 want to proceed.
               </Text>

@@ -238,6 +238,15 @@ func (h Handler) AuthToken(ctx context.Context, request *frontierv1beta1.AuthTok
 		return nil, err
 	}
 
+	if principal.Type == schema.ServiceUserPrincipal {
+		orgId := principal.ServiceUser.OrgID
+		_, err := h.orgService.Get(ctx, orgId)
+		if err != nil {
+			logger.Error(fmt.Errorf("error while fetching service user org: %w", err).Error())
+			return nil, err
+		}
+	}
+
 	token, err := h.getAccessToken(ctx, principal)
 	if err != nil {
 		logger.Debug(fmt.Sprintf("unable to get accessToken: %v", err))

@@ -10,9 +10,11 @@ import UserIcon from "~/assets/icons/users.svg?react";
 import styles from "./list.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
-import { api } from "~/api";
-import { downloadFile } from "~/utils/helper";
+import { clients } from "~/connect/clients";
+import { exportCsvFromStream } from "~/utils/helper";
 import { InviteUser } from "./invite-users";
+
+const adminClient = clients.admin({ useBinary: true });
 
 interface NavbarProps {
   searchQuery?: string;
@@ -36,10 +38,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
   async function onDownloadClick() {
     try {
       setIsDownloading(true);
-      const response = await api.adminServiceExportUsers({
-        format: "blob",
-      });
-      downloadFile(response.data, "users.csv");
+      await exportCsvFromStream(adminClient.exportUsers, {}, "users.csv");
     } catch (error) {
       console.error(error);
     } finally {
