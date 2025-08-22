@@ -17,8 +17,8 @@ import { AppContext } from "~/contexts/App";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "~/api";
-import { V1Beta1AdminCreateOrganizationRequestOrganizationRequestBody } from "~/api/frontier";
+import { useMutation } from "@connectrpc/connect-query";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { useNavigate } from "react-router-dom";
 
 const orgCreateSchema = z
@@ -26,7 +26,7 @@ const orgCreateSchema = z
     avatar: z.string().optional(),
     title: z.string(),
     name: z.string(),
-    org_owner_email: z.string().email(),
+    orgOwnerEmail: z.string().email(),
     size: z.string().transform((value) => parseInt(value)),
     type: z.string(),
     otherType: z.string().optional(),
@@ -75,34 +75,45 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
     resolver: zodResolver(orgCreateSchema),
   });
 
+  const {
+    mutateAsync: createOrganization,
+    error: mutationError,
+    isPending,
+  } = useMutation(AdminServiceQueries.adminCreateOrganization);
+
+  useEffect(() => {
+    if (mutationError) {
+      if (mutationError.message?.includes("already exists")) {
+        setError("name", { message: "Organization name already exists" });
+      } else {
+        console.error("Unable to create new org:", mutationError);
+      }
+    }
+  }, [mutationError, setError]);
+
   async function onSubmit(data: OrgCreateSchema) {
     try {
-      const payload: V1Beta1AdminCreateOrganizationRequestOrganizationRequestBody =
-        {
-          avatar: data.avatar,
-          name: data.name,
-          title: data.title,
-          org_owner_email: data.org_owner_email,
-          metadata: {
-            size: data.size.toString(),
-            type: data.otherType
-              ? `${otherTypePrefix}${data.otherType}`
-              : data.type,
-            country: data.country,
-          },
-        };
+      const payload = {
+        avatar: data.avatar || "",
+        name: data.name,
+        title: data.title,
+        orgOwnerEmail: data.orgOwnerEmail,
+        metadata: {
+          size: data.size.toString(),
+          type: data.otherType
+            ? `${otherTypePrefix}${data.otherType}`
+            : data.type,
+          country: data.country,
+        },
+      };
 
-      const orgResp = await api.adminServiceAdminCreateOrganization(payload);
-      const organization = orgResp?.data?.organization;
+      const orgResp = await createOrganization({ body: payload });
+      const organization = orgResp.organization;
       if (organization) {
         navigate(`/organizations/${organization.id}`);
       }
     } catch (err: unknown) {
-      if (err instanceof Response && err?.status === 409) {
-        setError("name", { message: "Organization name already exists" });
-      } else {
-        console.error(err);
-      }
+      console.error("Unable to create new org:", err);
     }
   }
 
@@ -156,9 +167,9 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
               />
               <InputField {...register("title")} label="Organization title" />
               <InputField
-                {...register("org_owner_email")}
+                {...register("orgOwnerEmail")}
                 label="Organization owner"
-                error={errors.org_owner_email?.message}
+                error={errors.orgOwnerEmail?.message}
               />
               <InputField
                 {...register("name")}
@@ -261,7 +272,7 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
                 Cancel
               </Button>
               <Button
-                loading={isSubmitting}
+                loading={isSubmitting || isPending}
                 data-test-id="save-edit-org-button"
                 type="submit"
                 loaderText="Saving..."
