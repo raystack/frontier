@@ -18,6 +18,9 @@ export const createFrontierTransport = (
     baseUrl,
     useBinaryFormat: useBinary,
     interceptors: [],
+    jsonOptions: {
+      alwaysEmitImplicit: true,
+    },
   });
 };
 
