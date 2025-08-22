@@ -36,6 +36,24 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1bet
 	}, nil
 }
 
+func transformSessionToPB(session *frontierv1beta1.Session, currentUserID string) (*frontierv1beta1.Session, error) {
+	// Check if this is the current session
+	isCurrentSession := session.Id == currentUserID
+
+	return &frontierv1beta1.Session{
+		Id:               session.Id,
+		Metadata:         &frontierv1beta1.Session_Meta{
+			OperatingSystem: session.Metadata.OperatingSystem,
+			Browser:         session.Metadata.Browser,
+			IpAddress:       session.Metadata.IpAddress,
+			Location:        session.Metadata.Location,
+		},
+		IsCurrentSession: isCurrentSession,
+		CreatedAt:        session.CreatedAt,
+		UpdatedAt:        session.UpdatedAt,
+	}, nil
+}
+
 // Revoke a specific session for the current authenticated user.
 func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1beta1.RevokeSessionRequest) (*frontierv1beta1.RevokeSessionResponse, error) {
 	return nil, nil
