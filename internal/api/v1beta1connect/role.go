@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -137,4 +138,22 @@ func transformRoleToPB(from role.Role) (frontierv1beta1.Role, error) {
 		CreatedAt:   timestamppb.New(from.CreatedAt),
 		UpdatedAt:   timestamppb.New(from.UpdatedAt),
 	}, nil
+}
+
+func (h *ConnectHandler) DeleteRole(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteRoleRequest]) (*connect.Response[frontierv1beta1.DeleteRoleResponse], error) {
+	if utils.IsNullUUID(request.Msg.GetId()) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	err := h.roleService.Delete(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.DeleteRoleResponse{}), nil
 }

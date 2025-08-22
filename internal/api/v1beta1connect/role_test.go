@@ -161,3 +161,68 @@ func TestHandler_CreateRole(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_DeleteRole(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.RoleService)
+		request *connect.Request[frontierv1beta1.DeleteRoleRequest]
+		want    *connect.Response[frontierv1beta1.DeleteRoleResponse]
+		wantErr error
+	}{
+		{
+			name: "should return bad body error if role id is not valid uuid",
+			request: connect.NewRequest(&frontierv1beta1.DeleteRoleRequest{
+				Id: "invalid-role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			name: "should return not found error if role service return err not found",
+			setup: func(rs *mocks.RoleService) {
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(role.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteRoleRequest{
+				Id: testRoleID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return internal error if role service gives unknown error",
+			setup: func(rs *mocks.RoleService) {
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(ErrInternalServerError)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteRoleRequest{
+				Id: testRoleID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return nil if role service return nil",
+			setup: func(rs *mocks.RoleService) {
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteRoleRequest{
+				Id: testRoleID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteRoleResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRoleSrv := new(mocks.RoleService)
+			if tt.setup != nil {
+				tt.setup(mockRoleSrv)
+			}
+			mockDep := &ConnectHandler{roleService: mockRoleSrv}
+			resp, err := mockDep.DeleteRole(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
