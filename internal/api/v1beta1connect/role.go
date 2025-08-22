@@ -72,6 +72,53 @@ func (h *ConnectHandler) CreateRole(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.CreateRoleResponse{Role: &rolePB}), nil
 }
 
+func (h *ConnectHandler) UpdateRole(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateRoleRequest]) (*connect.Response[frontierv1beta1.UpdateRoleResponse], error) {
+	if len(request.Msg.GetBody().GetPermissions()) == 0 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+
+	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	}
+
+	updatedRole, err := h.roleService.Update(ctx, role.Role{
+		ID:          request.Msg.GetId(),
+		OrgID:       schema.PlatformOrgID.String(), // to create a platform wide role
+		Title:       request.Msg.GetBody().GetTitle(),
+		Name:        request.Msg.GetBody().GetName(),
+		Scopes:      request.Msg.GetBody().GetScopes(),
+		Permissions: request.Msg.GetBody().GetPermissions(),
+		Metadata:    metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, role.ErrInvalidDetail):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, role.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	rolePB, err := transformRoleToPB(updatedRole)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleUpdatedEvent, audit.Target{
+		ID:   updatedRole.ID,
+		Type: schema.RoleNamespace,
+		Name: updatedRole.Name,
+	})
+	return connect.NewResponse(&frontierv1beta1.UpdateRoleResponse{Role: &rolePB}), nil
+}
+
 func transformRoleToPB(from role.Role) (frontierv1beta1.Role, error) {
 	metaData, err := from.Metadata.ToStructPB()
 	if err != nil {
