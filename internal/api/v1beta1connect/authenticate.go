@@ -273,34 +273,3 @@ func (h *ConnectHandler) ListAuthStrategies(ctx context.Context, request *connec
 	}
 	return connect.NewResponse(&frontierv1beta1.ListAuthStrategiesResponse{Strategies: pbstrategy}), nil
 }
-
-
-// Session management - Start
-// SDK APIs
-// Returns a list of all sessions for the current authenticated user.
-func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1beta1.ListSessionsRequest) (*frontierv1beta1.ListSessionsResponse, error) {
-	return nil, nil
-}
-
-// Revoke a specific session for the current authenticated user.
-func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1beta1.RevokeSessionRequest) (*frontierv1beta1.RevokeSessionResponse, error) {
-	return nil, nil
-}
-
-// Ping user current active session.
-func (h ConnectHandler) PingUserSession(ctx context.Context, request *frontierv1beta1.PingUserSessionRequest) (*frontierv1beta1.PingUserSessionResponse, error) {
-	return nil, nil
-}
-
-// Admin APIs
-// Returns a list of all sessions for a specific user.
-func (h ConnectHandler) ListUserSessions(ctx context.Context, request *frontierv1beta1.ListUserSessionsRequest) (*frontierv1beta1.ListUserSessionsResponse, error) {
-	return nil, nil
-}
-
-// Revoke a specific session for a specific user (admin only).
-func (h ConnectHandler) RevokeUserSession(ctx context.Context, request *frontierv1beta1.RevokeUserSessionRequest) (*frontierv1beta1.RevokeUserSessionResponse, error) {
-	return nil, nil
-}
-
-// Session management - End
