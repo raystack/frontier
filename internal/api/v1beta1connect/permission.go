@@ -108,3 +108,41 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 		Key:       schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name),
 	}, nil
 }
+
+// UpdatePermission should only be used to update permission metadata at the moment
+func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.Request[frontierv1beta1.UpdatePermissionRequest]) (*connect.Response[frontierv1beta1.UpdatePermissionResponse], error) {
+	var metaDataMap metadata.Metadata
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	}
+
+	permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(request.Msg.GetBody().GetKey())
+	if permNamespace == "" || permName == "" {
+		permNamespace, permName = request.Msg.GetBody().GetNamespace(), request.Msg.GetBody().GetName()
+	}
+	updatedPermission, err := h.permissionService.Update(ctx, permission.Permission{
+		ID:          request.Msg.GetId(),
+		Name:        permName,
+		NamespaceID: permNamespace,
+		Metadata:    metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, permission.ErrNotExist),
+			errors.Is(err, permission.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, permission.ErrInvalidDetail):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	permissionPB, err := transformPermissionToPB(updatedPermission)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.UpdatePermissionResponse{Permission: permissionPB}), nil
+}
