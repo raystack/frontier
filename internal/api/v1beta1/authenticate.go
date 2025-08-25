@@ -52,6 +52,7 @@ type SessionService interface {
 	Create(ctx context.Context, userID string) (*frontiersession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
+	ListSessions(ctx context.Context, userID string) ([]*frontiersession.Session, error)
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {

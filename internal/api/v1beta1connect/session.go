@@ -4,14 +4,11 @@ import (
 	"context"
 
 	"github.com/raystack/frontier/core/authenticate"
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-type SessionService interface {
-	List(ctx context.Context, userID string) ([]*frontierv1beta1.Session, error)
-}
 
 // SDK APIs
 // Returns a list of all sessions for the current authenticated user.
@@ -21,7 +18,7 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1bet
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
 
-	sessions, err := h.sessionService.List(ctx, principal.ID)
+	sessions, err := h.sessionService.ListSessions(ctx, principal.ID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -40,7 +37,7 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1bet
 	}, nil
 }
 
-func transformSessionToPB(session *frontierv1beta1.Session, currentUserID string) (*frontierv1beta1.Session, error) {
+func transformSessionToPB(session *frontiersession.Session, currentUserID string) (*frontierv1beta1.Session, error) {
 	// Check if this is the current session
 	isCurrentSession := session.Id == currentUserID
 

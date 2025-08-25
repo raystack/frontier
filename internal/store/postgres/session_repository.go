@@ -174,3 +174,14 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 		return fmt.Errorf("error updating session validity")
 	})
 }
+
+func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontiersession.Session, error) {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing user id: %w", err)
+	}
+
+	// TODO: Implement ListSessions data fetch.
+
+	return nil, nil
+}
