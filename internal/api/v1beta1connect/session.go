@@ -80,7 +80,16 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1be
 
 // Ping user current active session.
 func (h ConnectHandler) PingUserSession(ctx context.Context, request *frontierv1beta1.PingUserSessionRequest) (*frontierv1beta1.PingUserSessionResponse, error) {
-	return nil, nil
+	// extract current session from context (set by interceptor)
+	sess, err := h.sessionService.ExtractFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	// update last active time only
+	if err := h.sessionService.Heartbeat(ctx, sess.ID); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &frontierv1beta1.PingUserSessionResponse{}, nil
 }
 
 // Admin APIs

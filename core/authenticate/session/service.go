@@ -26,6 +26,7 @@ type Repository interface {
 	DeleteExpiredSessions(ctx context.Context) error
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
 	List(ctx context.Context, userID string) ([]*Session, error)
+	UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error
 }
 
 type Service struct {
@@ -121,4 +122,9 @@ func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, e
 	}
 
 	return activeSessions, nil
+}
+
+// Heartbeat updates last active timestamp without extending expiry
+func (s Service) Heartbeat(ctx context.Context, sessionID uuid.UUID) error {
+	return s.repo.UpdateLastActive(ctx, sessionID, s.Now())
 }

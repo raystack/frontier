@@ -21,6 +21,7 @@ type Session struct {
 	// ExpiresAt is ideally now() + lifespan of session, e.g. 7 days
 	ExpiresAt time.Time
 	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	Metadata metadata.Metadata
 }

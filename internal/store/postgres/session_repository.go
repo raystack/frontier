@@ -50,6 +50,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *frontiersession.Se
 			"authenticated_at": session.CreatedAt,
 			"expires_at":       session.ExpiresAt,
 			"created_at":       session.CreatedAt,
+			"updated_at":       session.CreatedAt,
 			"metadata":         marshaledMetadata,
 		}).Returning(&Session{}).ToSQL()
 	if err != nil {
@@ -172,6 +173,27 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 		}
 
 		return fmt.Errorf("error updating session validity")
+	})
+}
+
+func (s *SessionRepository) UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error {
+	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
+		goqu.Record{
+			"updated_at": lastActive,
+		},
+	).Where(goqu.Ex{"id": id}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "UpdateLastActive", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+		if count, _ := result.RowsAffected(); count == 0 {
+			return sql.ErrNoRows
+		}
+		return nil
 	})
 }
 
