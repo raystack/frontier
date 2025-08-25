@@ -17,6 +17,7 @@ type Session struct {
 	ExpiresAt       time.Time `db:"expires_at"`
 	Metadata        []byte    `db:"metadata"`
 	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
 }
 
 func (s *Session) transformToSession() (*session.Session, error) {
@@ -32,5 +33,6 @@ func (s *Session) transformToSession() (*session.Session, error) {
 		ExpiresAt:       s.ExpiresAt,
 		Metadata:        unmarshalledMetadata,
 		CreatedAt:       s.CreatedAt,
+		UpdatedAt:       s.UpdatedAt,
 	}, nil
 }
