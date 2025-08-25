@@ -3,8 +3,8 @@ package v1beta1connect
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
-	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,20 +24,20 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1bet
 	}
 
 	var pbSessions []*frontierv1beta1.Session
-    for _, session := range sessions {
-        pbSession, err := transformSessionToPB(session, principal.ID)
-        if err != nil {
-            return nil, status.Error(codes.Internal, "error transforming session data")
-        }
-        pbSessions = append(pbSessions, pbSession)
-    }
+	for _, session := range sessions {
+		pbSession, err := transformSessionToPB(session, principal.ID)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "error transforming session data")
+		}
+		pbSessions = append(pbSessions, pbSession)
+	}
 
 	return &frontierv1beta1.ListSessionsResponse{
 		Sessions: pbSessions,
 	}, nil
 }
 
-func transformSessionToPB(session *frontiersession.Session, currentUserID string) (*frontierv1beta1.Session, error) {
+func transformSessionToPB(session *frontierv1beta1.Session, currentUserID string) (*frontierv1beta1.Session, error) {
 	// Check if this is the current session
 	isCurrentSession := session.Id == currentUserID
 
@@ -57,7 +57,25 @@ func transformSessionToPB(session *frontiersession.Session, currentUserID string
 
 // Revoke a specific session for the current authenticated user.
 func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1beta1.RevokeSessionRequest) (*frontierv1beta1.RevokeSessionResponse, error) {
-	return nil, nil
+	if _, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion); err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+
+	if request.GetSessionId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "session_id is required")
+	}
+
+	id, err := uuid.Parse(request.GetSessionId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
+	}
+
+	// TODO: instead of directly calling delete we need to mark it as deleted and delete after a day with a cron job.
+	if err := h.sessionService.Delete(ctx, id); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &frontierv1beta1.RevokeSessionResponse{}, nil
 }
 
 // Ping user current active session.
