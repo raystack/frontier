@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	testRelation = relation.Relation{
+	testRelationV2 = relation.Relation{
 		ID: "relation-id-1",
 		Subject: relation.Subject{
 			ID:        "subject-id",
@@ -55,7 +55,7 @@ func TestHandler_ListRelations(t *testing.T) {
 			name: "should return relations if relation service return nil error",
 			setup: func(rs *mocks.RelationService) {
 				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), relation.Filter{}).Return([]relation.Relation{
-					testRelation,
+					testRelationV2,
 				}, nil)
 			},
 			want: connect.NewResponse(&frontierv1beta1.ListRelationsResponse{
