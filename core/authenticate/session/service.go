@@ -25,6 +25,7 @@ type Repository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	DeleteExpiredSessions(ctx context.Context) error
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
+	List(ctx context.Context, userID string) ([]*Session, error)
 }
 
 type Service struct {
@@ -101,4 +102,23 @@ func (s Service) InitSessions(ctx context.Context) error {
 
 func (s Service) Close() error {
 	return s.cron.Stop().Err()
+}
+
+// ListSessions returns all active sessions for a user
+func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, error) {
+	sessions, err := s.repo.List(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter out expired sessions
+	var activeSessions []*Session
+	now := s.Now()
+	for _, session := range sessions {
+		if session.IsValid(now) {
+			activeSessions = append(activeSessions, session)
+		}
+	}
+
+	return activeSessions, nil
 }

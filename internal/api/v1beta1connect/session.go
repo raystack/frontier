@@ -9,6 +9,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type SessionService interface {
+	List(ctx context.Context, userID string) ([]*frontierv1beta1.Session, error)
+}
+
 // SDK APIs
 // Returns a list of all sessions for the current authenticated user.
 func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1beta1.ListSessionsRequest) (*frontierv1beta1.ListSessionsResponse, error) {
