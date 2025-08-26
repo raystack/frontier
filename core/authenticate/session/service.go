@@ -74,8 +74,8 @@ func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
 }
 
 // SoftDelete marks a session as deleted without removing it from the database
-func (s Service) SoftDelete(ctx context.Context, sessionID uuid.UUID) error {
-	return s.repo.SoftDelete(ctx, sessionID, s.Now())
+func (s Service) SoftDelete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error {
+	return s.repo.SoftDelete(ctx, sessionID, deletedAt)
 }
 
 func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {

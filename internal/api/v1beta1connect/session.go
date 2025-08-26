@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
@@ -83,8 +84,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1be
 		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
 	}
 
-	// TODO: instead of directly calling delete we need to mark it as deleted and delete after a day with a cron job.
-	if err := h.sessionService.SoftDelete(ctx, id); err != nil {
+	if err := h.sessionService.SoftDelete(ctx, id, time.Now()); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 

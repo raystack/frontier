@@ -126,8 +126,27 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 // SoftDelete marks a session as deleted by setting deleted_at timestamp
 func (s *SessionRepository) SoftDelete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
-	// TODO: Implement soft delete
-	return nil
+	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
+		goqu.Record{
+			"deleted_at": deletedAt,
+		},
+	).Where(goqu.Ex{"id": id}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "SoftDelete", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+		
+		if count, _ := result.RowsAffected(); count == 0 {
+			return frontiersession.ErrNoSession
+		}
+		
+		return nil
+	})
 }
 
 func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
