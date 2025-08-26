@@ -123,6 +123,9 @@ const (
 	FrontierService_CheckResourcePermission_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission"
 	FrontierService_BatchCheckPermission_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission"
 	FrontierService_GetJWKs_FullMethodName                        = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
+	FrontierService_ListSessions_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListSessions"
+	FrontierService_RevokeSession_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/RevokeSession"
+	FrontierService_PingUserSession_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/PingUserSession"
 	FrontierService_ListAuthStrategies_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
 	FrontierService_Authenticate_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/Authenticate"
 	FrontierService_AuthCallback_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/AuthCallback"
@@ -310,6 +313,12 @@ type FrontierServiceClient interface {
 	BatchCheckPermission(ctx context.Context, in *BatchCheckPermissionRequest, opts ...grpc.CallOption) (*BatchCheckPermissionResponse, error)
 	// Authn
 	GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error)
+	// Ping user current active session.
+	PingUserSession(ctx context.Context, in *PingUserSessionRequest, opts ...grpc.CallOption) (*PingUserSessionResponse, error)
 	ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error)
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error)
@@ -1332,6 +1341,33 @@ func (c *frontierServiceClient) GetJWKs(ctx context.Context, in *GetJWKsRequest,
 	return out, nil
 }
 
+func (c *frontierServiceClient) ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error) {
+	out := new(ListSessionsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListSessions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error) {
+	out := new(RevokeSessionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_RevokeSession_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) PingUserSession(ctx context.Context, in *PingUserSessionRequest, opts ...grpc.CallOption) (*PingUserSessionResponse, error) {
+	out := new(PingUserSessionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_PingUserSession_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error) {
 	out := new(ListAuthStrategiesResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListAuthStrategies_FullMethodName, in, out, opts...)
@@ -2021,6 +2057,12 @@ type FrontierServiceServer interface {
 	BatchCheckPermission(context.Context, *BatchCheckPermissionRequest) (*BatchCheckPermissionResponse, error)
 	// Authn
 	GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error)
+	// Ping user current active session.
+	PingUserSession(context.Context, *PingUserSessionRequest) (*PingUserSessionResponse, error)
 	ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error)
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error)
@@ -2415,6 +2457,15 @@ func (UnimplementedFrontierServiceServer) BatchCheckPermission(context.Context, 
 }
 func (UnimplementedFrontierServiceServer) GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJWKs not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSessions not implemented")
+}
+func (UnimplementedFrontierServiceServer) RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeSession not implemented")
+}
+func (UnimplementedFrontierServiceServer) PingUserSession(context.Context, *PingUserSessionRequest) (*PingUserSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PingUserSession not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthStrategies not implemented")
@@ -4490,6 +4541,60 @@ func _FrontierService_GetJWKs_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ListSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSessionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListSessions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListSessions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListSessions(ctx, req.(*ListSessionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_RevokeSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).RevokeSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_RevokeSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).RevokeSession(ctx, req.(*RevokeSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_PingUserSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingUserSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).PingUserSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_PingUserSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).PingUserSession(ctx, req.(*PingUserSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_ListAuthStrategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAuthStrategiesRequest)
 	if err := dec(in); err != nil {
@@ -6046,6 +6151,18 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJWKs",
 			Handler:    _FrontierService_GetJWKs_Handler,
+		},
+		{
+			MethodName: "ListSessions",
+			Handler:    _FrontierService_ListSessions_Handler,
+		},
+		{
+			MethodName: "RevokeSession",
+			Handler:    _FrontierService_RevokeSession_Handler,
+		},
+		{
+			MethodName: "PingUserSession",
+			Handler:    _FrontierService_PingUserSession_Handler,
 		},
 		{
 			MethodName: "ListAuthStrategies",
