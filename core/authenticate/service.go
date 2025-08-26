@@ -80,6 +80,8 @@ type FlowRepository interface {
 
 type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
+	ListSessions(ctx context.Context, userID string) ([]*frontiersession.Session, error)
+	SoftDelete(ctx context.Context, sessionID uuid.UUID) error
 }
 
 type TokenService interface {

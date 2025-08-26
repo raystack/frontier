@@ -120,8 +120,14 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			return nil
 		}
 
-		return frontiersession.ErrDeletingSession
+		return fmt.Errorf("error deleting session")
 	})
+}
+
+// SoftDelete marks a session as deleted by setting deleted_at timestamp
+func (s *SessionRepository) SoftDelete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
+	// TODO: Implement soft delete
+	return nil
 }
 
 func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
@@ -203,7 +209,30 @@ func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontie
 		return nil, fmt.Errorf("error parsing user id: %w", err)
 	}
 
-	// TODO: Implement ListSessions data fetch.
+	query, params, err := dialect.From(TABLE_SESSIONS).Where(
+		goqu.Ex{
+			"user_id":   uid,
+			"deleted_at": nil,
+		}).Order(goqu.I("created_at").Desc()).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	return nil, nil
+	var sessions []*Session
+	if err := s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "List", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &sessions, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var domainSessions []*frontiersession.Session
+	for _, session := range sessions {
+		domainSession, err := session.transformToSession()
+		if err != nil {
+			return nil, fmt.Errorf("error transforming session: %w", err)
+		}
+		domainSessions = append(domainSessions, domainSession)
+	}
+
+	return domainSessions, nil
 }

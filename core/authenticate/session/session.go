@@ -22,12 +22,13 @@ type Session struct {
 	ExpiresAt time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time // Soft delete timestamp (nil = not deleted)
 
 	Metadata metadata.Metadata
 }
 
 func (s Session) IsValid(now time.Time) bool {
-	if s.ExpiresAt.After(now) && !s.AuthenticatedAt.IsZero() {
+	if s.ExpiresAt.After(now) && !s.AuthenticatedAt.IsZero() && s.DeletedAt == nil {
 		return true
 	}
 	return false

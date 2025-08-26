@@ -18,6 +18,7 @@ type Session struct {
 	Metadata        []byte    `db:"metadata"`
 	CreatedAt       time.Time `db:"created_at"`
 	UpdatedAt       time.Time `db:"updated_at"`
+	DeletedAt       *time.Time `db:"deleted_at"`
 }
 
 func (s *Session) transformToSession() (*session.Session, error) {
@@ -34,5 +35,6 @@ func (s *Session) transformToSession() (*session.Session, error) {
 		Metadata:        unmarshalledMetadata,
 		CreatedAt:       s.CreatedAt,
 		UpdatedAt:       s.UpdatedAt,
+		DeletedAt:       s.DeletedAt,
 	}, nil
 }

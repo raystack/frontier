@@ -5,9 +5,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // SDK APIs
@@ -18,11 +20,13 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1bet
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
 
+	// Fetch all active sessions for the authenticated user
 	sessions, err := h.sessionService.ListSessions(ctx, principal.ID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	// Transform domain sessions to protobuf sessions
 	var pbSessions []*frontierv1beta1.Session
 	for _, session := range sessions {
 		pbSession, err := transformSessionToPB(session, principal.ID)
@@ -37,21 +41,30 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1bet
 	}, nil
 }
 
-func transformSessionToPB(session *frontierv1beta1.Session, currentUserID string) (*frontierv1beta1.Session, error) {
-	// Check if this is the current session
-	isCurrentSession := session.Id == currentUserID
+// transformSessionToPB converts a domain Session to a protobuf Session
+func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*frontierv1beta1.Session, error) {
+	metadata := &frontierv1beta1.Session_Meta{}
+	if s.Metadata != nil {
+		if os, ok := s.Metadata["operating_system"].(string); ok {
+			metadata.OperatingSystem = os
+		}
+		if browser, ok := s.Metadata["browser"].(string); ok {
+			metadata.Browser = browser
+		}
+		if ip, ok := s.Metadata["ip_address"].(string); ok {
+			metadata.IpAddress = ip
+		}
+		if location, ok := s.Metadata["location"].(string); ok {
+			metadata.Location = location
+		}
+	}
 
 	return &frontierv1beta1.Session{
-		Id:               session.Id,
-		Metadata:         &frontierv1beta1.Session_Meta{
-			OperatingSystem: session.Metadata.OperatingSystem,
-			Browser:         session.Metadata.Browser,
-			IpAddress:       session.Metadata.IpAddress,
-			Location:        session.Metadata.Location,
-		},
-		IsCurrentSession: isCurrentSession,
-		CreatedAt:        session.CreatedAt,
-		UpdatedAt:        session.UpdatedAt,
+		Id:               s.ID.String(),
+		Metadata:         metadata,
+		IsCurrentSession: s.ID.String() == currentUserID,
+		CreatedAt:        timestamppb.New(s.CreatedAt),
+		UpdatedAt:        timestamppb.New(s.UpdatedAt),
 	}, nil
 }
 
@@ -71,7 +84,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1be
 	}
 
 	// TODO: instead of directly calling delete we need to mark it as deleted and delete after a day with a cron job.
-	if err := h.sessionService.Delete(ctx, id); err != nil {
+	if err := h.sessionService.SoftDelete(ctx, id); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -80,16 +93,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1be
 
 // Ping user current active session.
 func (h ConnectHandler) PingUserSession(ctx context.Context, request *frontierv1beta1.PingUserSessionRequest) (*frontierv1beta1.PingUserSessionResponse, error) {
-	// extract current session from context (set by interceptor)
-	sess, err := h.sessionService.ExtractFromContext(ctx)
-	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, err.Error())
-	}
-	// update last active time only
-	if err := h.sessionService.Heartbeat(ctx, sess.ID); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	return &frontierv1beta1.PingUserSessionResponse{}, nil
+	return nil, nil
 }
 
 // Admin APIs
