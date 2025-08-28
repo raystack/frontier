@@ -3,9 +3,11 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/core/audit"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -17,6 +19,7 @@ type CustomerService interface {
 	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Details, error)
 	GetDetails(ctx context.Context, customerID string) (customer.Details, error)
 	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
+	UpdateDetails(ctx context.Context, customerID string, details customer.Details) (customer.Details, error)
 }
 
 func (h *ConnectHandler) ListAllBillingAccounts(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllBillingAccountsRequest]) (*connect.Response[frontierv1beta1.ListAllBillingAccountsResponse], error) {
@@ -161,4 +164,29 @@ func transformPaymentMethodToPB(pm customer.PaymentMethod) (*frontierv1beta1.Pay
 		Metadata:        metaData,
 		CreatedAt:       timestamppb.New(pm.CreatedAt),
 	}, nil
+}
+
+func (h *ConnectHandler) UpdateBillingAccountDetails(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateBillingAccountDetailsRequest]) (*connect.Response[frontierv1beta1.UpdateBillingAccountDetailsResponse], error) {
+	if request.Msg.GetDueInDays() < 0 {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("cannot create predated invoices: due in days should be greater than 0"))
+	}
+
+	details, err := h.customerService.UpdateDetails(ctx, request.Msg.GetId(), customer.Details{
+		CreditMin: request.Msg.GetCreditMin(),
+		DueInDays: request.Msg.GetDueInDays(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	// Add audit log
+	audit.GetAuditor(ctx, request.Msg.GetOrgId()).LogWithAttrs(audit.BillingAccountDetailsUpdatedEvent, audit.Target{
+		ID:   request.Msg.GetId(),
+		Type: "billing_account",
+	}, map[string]string{
+		"credit_min":  fmt.Sprintf("%d", details.CreditMin),
+		"due_in_days": fmt.Sprintf("%d", details.DueInDays),
+	})
+
+	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountDetailsResponse{}), nil
 }
