@@ -13,6 +13,7 @@ type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
 	Create(ctx context.Context, customer customer.Customer, offline bool) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
+	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Details, error)
 }
 
 func (h *ConnectHandler) ListAllBillingAccounts(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllBillingAccountsRequest]) (*connect.Response[frontierv1beta1.ListAllBillingAccountsResponse], error) {
@@ -70,4 +71,13 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 		UpdatedAt: timestamppb.New(customer.UpdatedAt),
 		Metadata:  metaData,
 	}, nil
+}
+
+func (h *ConnectHandler) UpdateBillingAccountLimits(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateBillingAccountLimitsRequest]) (*connect.Response[frontierv1beta1.UpdateBillingAccountLimitsResponse], error) {
+	_, err := h.customerService.UpdateCreditMinByID(ctx, request.Msg.GetId(), request.Msg.GetCreditMin())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountLimitsResponse{}), nil
 }
