@@ -2,10 +2,13 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/pkg/pagination"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -83,4 +86,52 @@ func (h *ConnectHandler) GenerateInvoices(ctx context.Context, request *connect.
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.GenerateInvoicesResponse{}), nil
+}
+
+func (h *ConnectHandler) SearchInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.SearchInvoicesRequest]) (*connect.Response[frontierv1beta1.SearchInvoicesResponse], error) {
+	var invoices []*frontierv1beta1.SearchInvoicesResponse_Invoice
+
+	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), invoice.InvoiceWithOrganization{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
+	}
+
+	err = rql.ValidateQuery(rqlQuery, invoice.InvoiceWithOrganization{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
+	}
+
+	invoicesData, err := h.invoiceService.SearchInvoices(ctx, rqlQuery)
+	if err != nil {
+		if errors.Is(err, invoice.ErrBadInput) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, v := range invoicesData {
+		invoices = append(invoices, transformInvoiceToSearchPB(v))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.SearchInvoicesResponse{
+		Invoices: invoices,
+		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+			Offset: uint32(rqlQuery.Offset),
+			Limit:  uint32(rqlQuery.Limit),
+		},
+	}), nil
+}
+
+func transformInvoiceToSearchPB(v invoice.InvoiceWithOrganization) *frontierv1beta1.SearchInvoicesResponse_Invoice {
+	return &frontierv1beta1.SearchInvoicesResponse_Invoice{
+		Id:          v.ID,
+		Amount:      v.Amount,
+		Currency:    v.Currency,
+		State:       v.State.String(),
+		InvoiceLink: v.InvoiceLink,
+		CreatedAt:   timestamppb.New(v.CreatedAt),
+		OrgId:       v.OrgID,
+		OrgName:     v.OrgName,
+		OrgTitle:    v.OrgTitle,
+	}
 }
