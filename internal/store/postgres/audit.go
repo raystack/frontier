@@ -17,6 +17,11 @@ type Audit struct {
 	Target   types.NullJSONText `db:"target"`
 	Metadata types.NullJSONText `db:"metadata"`
 
+	IdempotencyKey *string            `db:"idempotency_key"`
+	Resource       types.NullJSONText `db:"resource"`
+	DeletedAt      *time.Time         `db:"deleted_at"`
+	OccurredAt     *time.Time         `db:"occurred_at"`
+
 	CreatedAt time.Time `db:"created_at"`
 }
 
