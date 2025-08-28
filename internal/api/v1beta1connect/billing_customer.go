@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/customer"
@@ -14,6 +15,8 @@ type CustomerService interface {
 	Create(ctx context.Context, customer customer.Customer, offline bool) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Details, error)
+	GetDetails(ctx context.Context, customerID string) (customer.Details, error)
+	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
 }
 
 func (h *ConnectHandler) ListAllBillingAccounts(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllBillingAccountsRequest]) (*connect.Response[frontierv1beta1.ListAllBillingAccountsResponse], error) {
@@ -80,4 +83,82 @@ func (h *ConnectHandler) UpdateBillingAccountLimits(ctx context.Context, request
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountLimitsResponse{}), nil
+}
+
+func (h *ConnectHandler) GetBillingAccountDetails(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingAccountDetailsRequest]) (*connect.Response[frontierv1beta1.GetBillingAccountDetailsResponse], error) {
+	details, err := h.customerService.GetDetails(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetBillingAccountDetailsResponse{
+		CreditMin: details.CreditMin,
+		DueInDays: details.DueInDays,
+	}), nil
+}
+
+func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingAccountRequest]) (*connect.Response[frontierv1beta1.GetBillingAccountResponse], error) {
+	customerOb, err := h.customerService.GetByID(ctx, request.Msg.GetId())
+	if err != nil {
+		if errors.Is(err, customer.ErrNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		}
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var paymentMethodsPbs []*frontierv1beta1.PaymentMethod
+	if request.Msg.GetWithPaymentMethods() {
+		pms, err := h.customerService.ListPaymentMethods(ctx, request.Msg.GetId())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		for _, v := range pms {
+			pmPB, err := transformPaymentMethodToPB(v)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			}
+			paymentMethodsPbs = append(paymentMethodsPbs, pmPB)
+		}
+	}
+
+	var billingDetailsPb *frontierv1beta1.BillingAccountDetails
+	if request.Msg.GetWithBillingDetails() {
+		billingDetails, err := h.customerService.GetDetails(ctx, request.Msg.GetId())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		billingDetailsPb = &frontierv1beta1.BillingAccountDetails{
+			CreditMin: billingDetails.CreditMin,
+			DueInDays: billingDetails.DueInDays,
+		}
+	}
+
+	customerPB, err := transformCustomerToPB(customerOb)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.GetBillingAccountResponse{
+		BillingAccount: customerPB,
+		PaymentMethods: paymentMethodsPbs,
+		BillingDetails: billingDetailsPb,
+	}), nil
+}
+
+func transformPaymentMethodToPB(pm customer.PaymentMethod) (*frontierv1beta1.PaymentMethod, error) {
+	metaData, err := pm.Metadata.ToStructPB()
+	if err != nil {
+		return &frontierv1beta1.PaymentMethod{}, err
+	}
+	return &frontierv1beta1.PaymentMethod{
+		Id:              pm.ID,
+		CustomerId:      pm.CustomerID,
+		ProviderId:      pm.ProviderID,
+		Type:            pm.Type,
+		CardLast4:       pm.CardLast4,
+		CardBrand:       pm.CardBrand,
+		CardExpiryMonth: pm.CardExpiryMonth,
+		CardExpiryYear:  pm.CardExpiryYear,
+		Metadata:        metaData,
+		CreatedAt:       timestamppb.New(pm.CreatedAt),
+	}, nil
 }
