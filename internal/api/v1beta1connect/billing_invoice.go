@@ -76,3 +76,11 @@ func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 	}
 	return pb, nil
 }
+
+func (h *ConnectHandler) GenerateInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.GenerateInvoicesRequest]) (*connect.Response[frontierv1beta1.GenerateInvoicesResponse], error) {
+	err := h.invoiceService.TriggerCreditOverdraftInvoices(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.GenerateInvoicesResponse{}), nil
+}
