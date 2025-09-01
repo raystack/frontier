@@ -68,13 +68,13 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 func handleAuthErr(err error) error {
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
-		return connect.NewError(connect.CodeUnauthenticated, err)
+		return connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 	case errors.Is(err, organization.ErrNotExist),
 		errors.Is(err, project.ErrNotExist),
 		errors.Is(err, resource.ErrNotExist):
-		return connect.NewError(connect.CodeNotFound, err)
+		return connect.NewError(connect.CodeNotFound, ErrNotFound)
 	default:
-		return connect.NewError(connect.CodeInternal, err)
+		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 }
 
