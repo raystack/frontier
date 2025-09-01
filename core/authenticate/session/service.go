@@ -60,6 +60,7 @@ func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 		CreatedAt:       now,
 		UpdatedAt:       now,
 		DeletedAt:       nil,
+		Metadata:        nil,
 	}
 	return sess, s.repo.Set(ctx, sess)
 }
