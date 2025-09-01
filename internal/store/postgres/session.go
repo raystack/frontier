@@ -11,13 +11,13 @@ import (
 )
 
 type Session struct {
-	ID              uuid.UUID `db:"id"`
-	UserID          uuid.UUID `db:"user_id"`
-	AuthenticatedAt time.Time `db:"authenticated_at"`
-	ExpiresAt       time.Time `db:"expires_at"`
-	Metadata        []byte    `db:"metadata"`
-	CreatedAt       time.Time `db:"created_at"`
-	UpdatedAt       time.Time `db:"updated_at"`
+	ID              uuid.UUID  `db:"id"`
+	UserID          uuid.UUID  `db:"user_id"`
+	AuthenticatedAt time.Time  `db:"authenticated_at"`
+	ExpiresAt       time.Time  `db:"expires_at"`
+	Metadata        []byte     `db:"metadata"`
+	CreatedAt       time.Time  `db:"created_at"`
+	UpdatedAt       time.Time  `db:"updated_at"`
 	DeletedAt       *time.Time `db:"deleted_at"`
 }
 

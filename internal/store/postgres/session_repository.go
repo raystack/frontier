@@ -140,11 +140,11 @@ func (s *SessionRepository) SoftDelete(ctx context.Context, id uuid.UUID, delete
 		if err != nil {
 			return fmt.Errorf("%w: %s", dbErr, err)
 		}
-		
+
 		if count, _ := result.RowsAffected(); count == 0 {
 			return frontiersession.ErrNoSession
 		}
-		
+
 		return nil
 	})
 }
@@ -230,7 +230,7 @@ func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontie
 
 	query, params, err := dialect.From(TABLE_SESSIONS).Where(
 		goqu.Ex{
-			"user_id":   uid,
+			"user_id":    uid,
 			"deleted_at": nil,
 		}).Order(goqu.I("created_at").Desc()).ToSQL()
 	if err != nil {
