@@ -69,6 +69,8 @@ func (s Service) Revert(ctx context.Context, customerID, usageID string, amount 
 	}
 
 	reversedTxTillNow, err := s.creditService.List(ctx, credit.Filter{
+		CustomerID: customerID,
+		StartRange: creditTx.CreatedAt,
 		Metadata: metadata.FromString(map[string]string{
 			"revert_request_using": creditTx.ID,
 		}),
