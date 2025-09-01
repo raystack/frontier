@@ -7,12 +7,14 @@ import (
 	"strings"
 
 	"github.com/raystack/frontier/billing/credit"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 type CreditService interface {
 	Add(ctx context.Context, cred credit.Credit) error
 	Deduct(ctx context.Context, cred credit.Credit) error
 	GetByID(ctx context.Context, id string) (credit.Transaction, error)
+	List(ctx context.Context, flt credit.Filter) ([]credit.Transaction, error)
 }
 
 type Service struct {
@@ -60,6 +62,26 @@ func (s Service) Revert(ctx context.Context, customerID, usageID string, amount 
 	if amount > creditTx.Amount {
 		return ErrRevertAmountExceeds
 	}
+
+	reversedTxTillNow, err := s.creditService.List(ctx, credit.Filter{
+		Metadata: metadata.FromString(map[string]string{
+			"revert_request_using": creditTx.ID,
+		}),
+	})
+	if err != nil {
+		return fmt.Errorf("creditService.List: %w", err)
+	}
+
+	currentReversedTotal := int64(0)
+	currentReversedCount := len(reversedTxTillNow)
+	for _, reversedTx := range reversedTxTillNow {
+		currentReversedTotal += reversedTx.Amount
+	}
+
+	if amount+currentReversedTotal > creditTx.Amount {
+		return ErrRevertAmountExceeds
+	}
+
 	// a revert can't be reverted
 	if strings.HasPrefix(creditTx.Source, credit.SourceSystemRevertEvent) {
 		return ErrExistingRevertedUsage
@@ -69,7 +91,7 @@ func (s Service) Revert(ctx context.Context, customerID, usageID string, amount 
 
 	// Revert the usage
 	if err := s.creditService.Add(ctx, credit.Credit{
-		ID:          credit.TxUUID(usageID, customerID),
+		ID:          credit.TxUUID(usageID, fmt.Sprintf("%d", currentReversedCount), customerID),
 		CustomerID:  customerID,
 		Amount:      amount,
 		Description: fmt.Sprintf("Revert: %s", creditTx.Description),
