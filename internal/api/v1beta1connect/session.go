@@ -43,7 +43,7 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 	}), nil
 }
 
-// transformSessionToPB converts a domain Session to a protobuf Session
+// transformSessionToPB converts a domain Session to a protobuf
 func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*frontierv1beta1.Session, error) {
 	metadata := &frontierv1beta1.Session_Meta{}
 	if s.Metadata != nil {
