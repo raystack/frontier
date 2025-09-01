@@ -63,6 +63,11 @@ func (s Service) Revert(ctx context.Context, customerID, usageID string, amount 
 		return ErrRevertAmountExceeds
 	}
 
+	// a revert can't be reverted
+	if strings.HasPrefix(creditTx.Source, credit.SourceSystemRevertEvent) {
+		return ErrExistingRevertedUsage
+	}
+
 	reversedTxTillNow, err := s.creditService.List(ctx, credit.Filter{
 		Metadata: metadata.FromString(map[string]string{
 			"revert_request_using": creditTx.ID,
@@ -82,10 +87,6 @@ func (s Service) Revert(ctx context.Context, customerID, usageID string, amount 
 		return ErrRevertAmountExceeds
 	}
 
-	// a revert can't be reverted
-	if strings.HasPrefix(creditTx.Source, credit.SourceSystemRevertEvent) {
-		return ErrExistingRevertedUsage
-	}
 	revertMeta := creditTx.Metadata
 	revertMeta["revert_request_using"] = creditTx.ID
 
