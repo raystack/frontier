@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
@@ -15,7 +16,7 @@ import (
 
 // SDK APIs
 // Returns a list of all sessions for the current authenticated user.
-func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1beta1.ListSessionsRequest) (*frontierv1beta1.ListSessionsResponse, error) {
+func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSessionsRequest]) (*connect.Response[frontierv1beta1.ListSessionsResponse], error) {
 	principal, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -37,9 +38,9 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *frontierv1bet
 		pbSessions = append(pbSessions, pbSession)
 	}
 
-	return &frontierv1beta1.ListSessionsResponse{
+	return connect.NewResponse(&frontierv1beta1.ListSessionsResponse{
 		Sessions: pbSessions,
-	}, nil
+	}), nil
 }
 
 // transformSessionToPB converts a domain Session to a protobuf Session
@@ -70,16 +71,16 @@ func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*fr
 }
 
 // Revoke a specific session for the current authenticated user.
-func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1beta1.RevokeSessionRequest) (*frontierv1beta1.RevokeSessionResponse, error) {
+func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeSessionRequest]) (*connect.Response[frontierv1beta1.RevokeSessionResponse], error) {
 	if _, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion); err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
 
-	if request.GetSessionId() == "" {
+	if request.Msg.GetSessionId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "session_id is required")
 	}
 
-	id, err := uuid.Parse(request.GetSessionId())
+	id, err := uuid.Parse(request.Msg.GetSessionId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
 	}
@@ -88,21 +89,21 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *frontierv1be
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &frontierv1beta1.RevokeSessionResponse{}, nil
+	return connect.NewResponse(&frontierv1beta1.RevokeSessionResponse{}), nil
 }
 
 // Ping user current active session.
-func (h ConnectHandler) PingUserSession(ctx context.Context, request *frontierv1beta1.PingUserSessionRequest) (*frontierv1beta1.PingUserSessionResponse, error) {
+func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.PingUserSessionRequest]) (*connect.Response[frontierv1beta1.PingUserSessionResponse], error) {
 	return nil, nil
 }
 
 // Admin APIs
 // Returns a list of all sessions for a specific user.
-func (h ConnectHandler) ListUserSessions(ctx context.Context, request *frontierv1beta1.ListUserSessionsRequest) (*frontierv1beta1.ListUserSessionsResponse, error) {
+func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
 	return nil, nil
 }
 
 // Revoke a specific session for a specific user (admin only).
-func (h ConnectHandler) RevokeUserSession(ctx context.Context, request *frontierv1beta1.RevokeUserSessionRequest) (*frontierv1beta1.RevokeUserSessionResponse, error) {
+func (h ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeUserSessionRequest]) (*connect.Response[frontierv1beta1.RevokeUserSessionResponse], error) {
 	return nil, nil
 }
