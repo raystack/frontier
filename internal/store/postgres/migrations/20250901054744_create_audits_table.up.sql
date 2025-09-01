@@ -62,26 +62,6 @@ CREATE INDEX idx_audit_records_resource
 CREATE INDEX idx_audit_records_event 
     ON audit_records(event, occurred_at DESC);
 
--- Composite indexes for combined filters
-CREATE INDEX idx_audit_records_org_event 
-    ON audit_records(organization_id, event, occurred_at DESC);
-
-CREATE INDEX idx_audit_records_org_actor 
-    ON audit_records(organization_id, actor_id, occurred_at DESC);
-
-CREATE INDEX idx_audit_records_org_resource 
-    ON audit_records(organization_id, resource_id, occurred_at DESC);
-
--- Request tracing
-CREATE INDEX idx_audit_records_request_id 
-    ON audit_records(request_id) 
-    WHERE request_id IS NOT NULL;
-
--- Partial index for soft-deleted records
-CREATE INDEX idx_audit_records_deleted 
-    ON audit_records(deleted_at) 
-    WHERE deleted_at IS NOT NULL;
-
 -- Target resource queries
 CREATE INDEX idx_audit_records_target 
     ON audit_records(target_id, target_type) 
