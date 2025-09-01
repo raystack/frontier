@@ -20,7 +20,7 @@ type CheckoutService interface {
 }
 
 func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.DelegatedCheckoutRequest]) (*connect.Response[frontierv1beta1.DelegatedCheckoutResponse], error) {
-	planID := ""
+	var planID string
 	var skipTrial bool
 	var cancelAfterTrail bool
 	var providerCouponID string
@@ -30,7 +30,7 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 		cancelAfterTrail = request.Msg.GetSubscriptionBody().GetCancelAfterTrial()
 		providerCouponID = request.Msg.GetSubscriptionBody().GetProviderCouponId()
 	}
-	productID := ""
+	var productID string
 	var productQuantity int64
 	if request.Msg.GetProductBody() != nil {
 		productID = request.Msg.GetProductBody().GetProduct()
