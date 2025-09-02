@@ -11874,6 +11874,17 @@ definitions:
         type: string
       user_id:
         type: string
+  SessionMeta:
+    type: object
+    properties:
+      operating_system:
+        type: string
+      browser:
+        type: string
+      ip_address:
+        type: string
+      location:
+        type: string
   SubscriptionPhase:
     type: object
     properties:
@@ -14065,6 +14076,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1ServiceUser'
+  v1beta1ListSessionsResponse:
+    type: object
+    properties:
+      sessions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Session'
   v1beta1ListSubscriptionsResponse:
     type: object
     properties:
@@ -14098,6 +14117,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
+  v1beta1ListUserSessionsResponse:
+    type: object
+    properties:
+      sessions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Session'
   v1beta1ListUsersResponse:
     type: object
     properties:
@@ -14296,6 +14323,8 @@ definitions:
         title: |-
           key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
           Use this instead of using name and namespace fields
+  v1beta1PingUserSessionResponse:
+    type: object
   v1beta1Plan:
     type: object
     properties:
@@ -14841,6 +14870,10 @@ definitions:
         title: amount should be equal or less than the usage amount
   v1beta1RevertBillingUsageResponse:
     type: object
+  v1beta1RevokeSessionResponse:
+    type: object
+  v1beta1RevokeUserSessionResponse:
+    type: object
   v1beta1Role:
     type: object
     properties:
@@ -15154,6 +15187,21 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the token was created.
+  v1beta1Session:
+    type: object
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/SessionMeta'
+      is_current_session:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
   v1beta1SetOrganizationKycResponse:
     type: object
     properties:

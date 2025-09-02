@@ -50,6 +50,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *frontiersession.Se
 			"authenticated_at": session.CreatedAt,
 			"expires_at":       session.ExpiresAt,
 			"created_at":       session.CreatedAt,
+			"updated_at":       session.CreatedAt,
 			"metadata":         marshaledMetadata,
 		}).Returning(&Session{}).ToSQL()
 	if err != nil {
@@ -119,7 +120,32 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			return nil
 		}
 
-		return frontiersession.ErrDeletingSession
+		return fmt.Errorf("error deleting session")
+	})
+}
+
+// SoftDelete marks a session as deleted by setting deleted_at timestamp
+func (s *SessionRepository) SoftDelete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
+	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
+		goqu.Record{
+			"deleted_at": deletedAt,
+		},
+	).Where(goqu.Ex{"id": id}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "SoftDelete", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+
+		if count, _ := result.RowsAffected(); count == 0 {
+			return frontiersession.ErrNoSession
+		}
+
+		return nil
 	})
 }
 
@@ -173,4 +199,59 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 
 		return fmt.Errorf("error updating session validity")
 	})
+}
+
+func (s *SessionRepository) UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error {
+	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
+		goqu.Record{
+			"updated_at": lastActive,
+		},
+	).Where(goqu.Ex{"id": id}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "UpdateLastActive", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+		if count, _ := result.RowsAffected(); count == 0 {
+			return sql.ErrNoRows
+		}
+		return nil
+	})
+}
+
+func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontiersession.Session, error) {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing user id: %w", err)
+	}
+
+	query, params, err := dialect.From(TABLE_SESSIONS).Where(
+		goqu.Ex{
+			"user_id":    uid,
+			"deleted_at": nil,
+		}).Order(goqu.I("created_at").Desc()).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var sessions []*Session
+	if err := s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "List", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &sessions, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var domainSessions []*frontiersession.Session
+	for _, session := range sessions {
+		domainSession, err := session.transformToSession()
+		if err != nil {
+			return nil, fmt.Errorf("error transforming session: %w", err)
+		}
+		domainSessions = append(domainSessions, domainSession)
+	}
+
+	return domainSessions, nil
 }

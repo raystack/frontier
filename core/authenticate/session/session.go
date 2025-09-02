@@ -21,12 +21,14 @@ type Session struct {
 	// ExpiresAt is ideally now() + lifespan of session, e.g. 7 days
 	ExpiresAt time.Time
 	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time // Soft delete timestamp (nil = not deleted)
 
 	Metadata metadata.Metadata
 }
 
 func (s Session) IsValid(now time.Time) bool {
-	if s.ExpiresAt.After(now) && !s.AuthenticatedAt.IsZero() {
+	if s.ExpiresAt.After(now) && !s.AuthenticatedAt.IsZero() && s.DeletedAt == nil {
 		return true
 	}
 	return false

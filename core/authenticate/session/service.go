@@ -23,8 +23,11 @@ type Repository interface {
 	Set(ctx context.Context, session *Session) error
 	Get(ctx context.Context, id uuid.UUID) (*Session, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	SoftDelete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error
 	DeleteExpiredSessions(ctx context.Context) error
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
+	List(ctx context.Context, userID string) ([]*Session, error)
+	UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error
 }
 
 type Service struct {
@@ -48,12 +51,16 @@ func NewService(logger log.Logger, repo Repository, validity time.Duration) *Ser
 }
 
 func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
+	now := s.Now()
 	sess := &Session{
 		ID:              uuid.New(),
 		UserID:          userID,
-		AuthenticatedAt: s.Now(),
-		ExpiresAt:       s.Now().Add(s.validity),
-		CreatedAt:       s.Now(),
+		AuthenticatedAt: now,
+		ExpiresAt:       now.Add(s.validity),
+		CreatedAt:       now,
+		UpdatedAt:       now,
+		DeletedAt:       nil,
+		Metadata:        nil,
 	}
 	return sess, s.repo.Set(ctx, sess)
 }
@@ -65,6 +72,11 @@ func (s Service) Refresh(ctx context.Context, sessionID uuid.UUID) error {
 
 func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.Delete(ctx, sessionID)
+}
+
+// SoftDelete marks a session as deleted without removing it from the database
+func (s Service) SoftDelete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error {
+	return s.repo.SoftDelete(ctx, sessionID, deletedAt)
 }
 
 func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
@@ -101,4 +113,29 @@ func (s Service) InitSessions(ctx context.Context) error {
 
 func (s Service) Close() error {
 	return s.cron.Stop().Err()
+}
+
+// ListSessions returns all active sessions for a user
+func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, error) {
+	// Fetch all sessions for the user from repository
+	sessions, err := s.repo.List(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter for active sessions only
+	var activeSessions []*Session
+	now := s.Now()
+	for _, session := range sessions {
+		if session.IsValid(now) {
+			activeSessions = append(activeSessions, session)
+		}
+	}
+
+	return activeSessions, nil
+}
+
+// Heartbeat updates last active timestamp without extending expiry
+func (s Service) Heartbeat(ctx context.Context, sessionID uuid.UUID) error {
+	return s.repo.UpdateLastActive(ctx, sessionID, s.Now())
 }

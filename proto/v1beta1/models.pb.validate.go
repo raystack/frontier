@@ -9950,6 +9950,195 @@ var _ interface {
 	ErrorName() string
 } = ExportOrganizationsRequestValidationError{}
 
+// Validate checks the field values on Session with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Session) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Session with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in SessionMultiError, or nil if none found.
+func (m *Session) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Session) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SessionValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SessionValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SessionValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for IsCurrentSession
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SessionValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SessionValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SessionValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SessionValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SessionValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SessionValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SessionMultiError(errors)
+	}
+
+	return nil
+}
+
+// SessionMultiError is an error wrapping multiple validation errors returned
+// by Session.ValidateAll() if the designated constraints aren't met.
+type SessionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SessionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SessionMultiError) AllErrors() []error { return m }
+
+// SessionValidationError is the validation error returned by Session.Validate
+// if the designated constraints aren't met.
+type SessionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SessionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SessionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SessionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SessionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SessionValidationError) ErrorName() string { return "SessionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SessionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSession.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SessionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SessionValidationError{}
+
 // Validate checks the field values on BillingAccount_Address with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -10671,3 +10860,110 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = Webhook_SecretValidationError{}
+
+// Validate checks the field values on Session_Meta with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Session_Meta) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Session_Meta with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in Session_MetaMultiError, or
+// nil if none found.
+func (m *Session_Meta) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Session_Meta) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for OperatingSystem
+
+	// no validation rules for Browser
+
+	// no validation rules for IpAddress
+
+	// no validation rules for Location
+
+	if len(errors) > 0 {
+		return Session_MetaMultiError(errors)
+	}
+
+	return nil
+}
+
+// Session_MetaMultiError is an error wrapping multiple validation errors
+// returned by Session_Meta.ValidateAll() if the designated constraints aren't met.
+type Session_MetaMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m Session_MetaMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m Session_MetaMultiError) AllErrors() []error { return m }
+
+// Session_MetaValidationError is the validation error returned by
+// Session_Meta.Validate if the designated constraints aren't met.
+type Session_MetaValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Session_MetaValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Session_MetaValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Session_MetaValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Session_MetaValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Session_MetaValidationError) ErrorName() string { return "Session_MetaValidationError" }
+
+// Error satisfies the builtin error interface
+func (e Session_MetaValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSession_Meta.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Session_MetaValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Session_MetaValidationError{}

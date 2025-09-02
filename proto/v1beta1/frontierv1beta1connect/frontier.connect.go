@@ -343,6 +343,15 @@ const (
 	FrontierServiceBatchCheckPermissionProcedure = "/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission"
 	// FrontierServiceGetJWKsProcedure is the fully-qualified name of the FrontierService's GetJWKs RPC.
 	FrontierServiceGetJWKsProcedure = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
+	// FrontierServiceListSessionsProcedure is the fully-qualified name of the FrontierService's
+	// ListSessions RPC.
+	FrontierServiceListSessionsProcedure = "/raystack.frontier.v1beta1.FrontierService/ListSessions"
+	// FrontierServiceRevokeSessionProcedure is the fully-qualified name of the FrontierService's
+	// RevokeSession RPC.
+	FrontierServiceRevokeSessionProcedure = "/raystack.frontier.v1beta1.FrontierService/RevokeSession"
+	// FrontierServicePingUserSessionProcedure is the fully-qualified name of the FrontierService's
+	// PingUserSession RPC.
+	FrontierServicePingUserSessionProcedure = "/raystack.frontier.v1beta1.FrontierService/PingUserSession"
 	// FrontierServiceListAuthStrategiesProcedure is the fully-qualified name of the FrontierService's
 	// ListAuthStrategies RPC.
 	FrontierServiceListAuthStrategiesProcedure = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
@@ -653,6 +662,12 @@ type FrontierServiceClient interface {
 	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
 	// Authn
 	GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(context.Context, *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(context.Context, *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error)
+	// Ping user current active session.
+	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
@@ -1366,6 +1381,24 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("GetJWKs")),
 			connect.WithClientOptions(opts...),
 		),
+		listSessions: connect.NewClient[v1beta1.ListSessionsRequest, v1beta1.ListSessionsResponse](
+			httpClient,
+			baseURL+FrontierServiceListSessionsProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("ListSessions")),
+			connect.WithClientOptions(opts...),
+		),
+		revokeSession: connect.NewClient[v1beta1.RevokeSessionRequest, v1beta1.RevokeSessionResponse](
+			httpClient,
+			baseURL+FrontierServiceRevokeSessionProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("RevokeSession")),
+			connect.WithClientOptions(opts...),
+		),
+		pingUserSession: connect.NewClient[v1beta1.PingUserSessionRequest, v1beta1.PingUserSessionResponse](
+			httpClient,
+			baseURL+FrontierServicePingUserSessionProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("PingUserSession")),
+			connect.WithClientOptions(opts...),
+		),
 		listAuthStrategies: connect.NewClient[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse](
 			httpClient,
 			baseURL+FrontierServiceListAuthStrategiesProcedure,
@@ -1853,6 +1886,9 @@ type frontierServiceClient struct {
 	checkResourcePermission        *connect.Client[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse]
 	batchCheckPermission           *connect.Client[v1beta1.BatchCheckPermissionRequest, v1beta1.BatchCheckPermissionResponse]
 	getJWKs                        *connect.Client[v1beta1.GetJWKsRequest, v1beta1.GetJWKsResponse]
+	listSessions                   *connect.Client[v1beta1.ListSessionsRequest, v1beta1.ListSessionsResponse]
+	revokeSession                  *connect.Client[v1beta1.RevokeSessionRequest, v1beta1.RevokeSessionResponse]
+	pingUserSession                *connect.Client[v1beta1.PingUserSessionRequest, v1beta1.PingUserSessionResponse]
 	listAuthStrategies             *connect.Client[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse]
 	authenticate                   *connect.Client[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse]
 	authCallback                   *connect.Client[v1beta1.AuthCallbackRequest, v1beta1.AuthCallbackResponse]
@@ -2454,6 +2490,21 @@ func (c *frontierServiceClient) GetJWKs(ctx context.Context, req *connect.Reques
 	return c.getJWKs.CallUnary(ctx, req)
 }
 
+// ListSessions calls raystack.frontier.v1beta1.FrontierService.ListSessions.
+func (c *frontierServiceClient) ListSessions(ctx context.Context, req *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error) {
+	return c.listSessions.CallUnary(ctx, req)
+}
+
+// RevokeSession calls raystack.frontier.v1beta1.FrontierService.RevokeSession.
+func (c *frontierServiceClient) RevokeSession(ctx context.Context, req *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error) {
+	return c.revokeSession.CallUnary(ctx, req)
+}
+
+// PingUserSession calls raystack.frontier.v1beta1.FrontierService.PingUserSession.
+func (c *frontierServiceClient) PingUserSession(ctx context.Context, req *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error) {
+	return c.pingUserSession.CallUnary(ctx, req)
+}
+
 // ListAuthStrategies calls raystack.frontier.v1beta1.FrontierService.ListAuthStrategies.
 func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, req *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error) {
 	return c.listAuthStrategies.CallUnary(ctx, req)
@@ -2898,6 +2949,12 @@ type FrontierServiceHandler interface {
 	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
 	// Authn
 	GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(context.Context, *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(context.Context, *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error)
+	// Ping user current active session.
+	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
@@ -3607,6 +3664,24 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("GetJWKs")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceListSessionsHandler := connect.NewUnaryHandler(
+		FrontierServiceListSessionsProcedure,
+		svc.ListSessions,
+		connect.WithSchema(frontierServiceMethods.ByName("ListSessions")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceRevokeSessionHandler := connect.NewUnaryHandler(
+		FrontierServiceRevokeSessionProcedure,
+		svc.RevokeSession,
+		connect.WithSchema(frontierServiceMethods.ByName("RevokeSession")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServicePingUserSessionHandler := connect.NewUnaryHandler(
+		FrontierServicePingUserSessionProcedure,
+		svc.PingUserSession,
+		connect.WithSchema(frontierServiceMethods.ByName("PingUserSession")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceListAuthStrategiesHandler := connect.NewUnaryHandler(
 		FrontierServiceListAuthStrategiesProcedure,
 		svc.ListAuthStrategies,
@@ -4195,6 +4270,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceBatchCheckPermissionHandler.ServeHTTP(w, r)
 		case FrontierServiceGetJWKsProcedure:
 			frontierServiceGetJWKsHandler.ServeHTTP(w, r)
+		case FrontierServiceListSessionsProcedure:
+			frontierServiceListSessionsHandler.ServeHTTP(w, r)
+		case FrontierServiceRevokeSessionProcedure:
+			frontierServiceRevokeSessionHandler.ServeHTTP(w, r)
+		case FrontierServicePingUserSessionProcedure:
+			frontierServicePingUserSessionHandler.ServeHTTP(w, r)
 		case FrontierServiceListAuthStrategiesProcedure:
 			frontierServiceListAuthStrategiesHandler.ServeHTTP(w, r)
 		case FrontierServiceAuthenticateProcedure:
@@ -4744,6 +4825,18 @@ func (UnimplementedFrontierServiceHandler) BatchCheckPermission(context.Context,
 
 func (UnimplementedFrontierServiceHandler) GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetJWKs is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) ListSessions(context.Context, *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListSessions is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) RevokeSession(context.Context, *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RevokeSession is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.PingUserSession is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error) {
