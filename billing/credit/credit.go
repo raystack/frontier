@@ -72,6 +72,7 @@ type Filter struct {
 	CustomerID string
 	StartRange time.Time
 	EndRange   time.Time
+	Metadata   metadata.Metadata
 }
 
 func TxUUID(tags ...string) string {
