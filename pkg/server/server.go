@@ -190,10 +190,12 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)
 	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
 	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
+	sessionMetadataInterceptor := connectinterceptors.NewSessionMetadataInterceptor()
 
 	interceptors := connect.WithInterceptors(
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
 		otelInterceptor,
+		sessionMetadataInterceptor,
 		sessionInterceptor,
 		authNInterceptor,
 		authZInterceptor,

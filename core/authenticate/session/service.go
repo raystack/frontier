@@ -52,6 +52,9 @@ func NewService(logger log.Logger, repo Repository, validity time.Duration) *Ser
 
 func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 	now := s.Now()
+	
+	metadata, _ := consts.GetSessionMetadata(ctx)
+
 	sess := &Session{
 		ID:              uuid.New(),
 		UserID:          userID,
@@ -60,7 +63,7 @@ func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 		CreatedAt:       now,
 		UpdatedAt:       now,
 		DeletedAt:       nil,
-		Metadata:        nil,
+		Metadata:        metadata,
 	}
 	return sess, s.repo.Set(ctx, sess)
 }
