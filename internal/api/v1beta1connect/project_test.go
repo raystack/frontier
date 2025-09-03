@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	testProjectID     = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
 	testProjectIDList = []string{"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", "c7772c63-fca4-4c7c-bf93-c8f85115de4b"}
 	testProjectMap    = map[string]project.Project{
 		"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
