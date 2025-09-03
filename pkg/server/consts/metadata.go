@@ -16,4 +16,3 @@ func GetSessionMetadata(ctx context.Context) (map[string]any, bool) {
 	metadata, ok := ctx.Value(SessionMetadataKey).(map[string]any)
 	return metadata, ok
 }
-

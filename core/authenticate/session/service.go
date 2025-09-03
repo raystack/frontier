@@ -52,7 +52,6 @@ func NewService(logger log.Logger, repo Repository, validity time.Duration) *Ser
 
 func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 	now := s.Now()
-	
 	metadata, _ := consts.GetSessionMetadata(ctx)
 
 	sess := &Session{
