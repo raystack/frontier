@@ -15,5 +15,6 @@ var (
 	ErrInvalidEmail           = errors.New("Invalid email")
 	ErrUserNotExist           = errors.New("user doesn't exist")
 	ErrInvalidNamesapceOrID   = errors.New("namespace and ID cannot be empty")
+	ErrConflictRequest        = errors.New("already exist")
 	ErrBadBodyMetaSchemaError = errors.New(ErrBadRequest.Error() + " : " + ErrInvalidMetadata.Error())
 )
