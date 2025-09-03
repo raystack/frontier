@@ -1,17 +1,16 @@
-package v1beta1
+package v1beta1connect
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"connectrpc.com/connect"
+	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/aggregates/userorgs"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,29 +18,29 @@ type UserOrgsService interface {
 	Search(ctx context.Context, id string, query *rql.Query) (userorgs.UserOrgs, error)
 }
 
-func (h Handler) SearchUserOrganizations(ctx context.Context, request *frontierv1beta1.SearchUserOrganizationsRequest) (*frontierv1beta1.SearchUserOrganizationsResponse, error) {
+func (h *ConnectHandler) SearchUserOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.SearchUserOrganizationsRequest]) (*connect.Response[frontierv1beta1.SearchUserOrganizationsResponse], error) {
 	var userOrgs []*frontierv1beta1.SearchUserOrganizationsResponse_UserOrganization
 
-	rqlQuery, err := utils.TransformProtoToRQL(request.GetQuery(), userorgs.AggregatedUserOrganization{})
+	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), userorgs.AggregatedUserOrganization{})
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to read rql query: %v", err))
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
 	}
 
 	err = rql.ValidateQuery(rqlQuery, userorgs.AggregatedUserOrganization{})
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
 
 	if len(rqlQuery.GroupBy) > 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "group by is not supported")
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("group by is not supported"))
 	}
 
-	userOrgsData, err := h.userOrgsService.Search(ctx, request.GetId(), rqlQuery)
+	userOrgsData, err := h.userOrgsService.Search(ctx, request.Msg.GetId(), rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	for _, v := range userOrgsData.Organizations {
@@ -56,7 +55,7 @@ func (h Handler) SearchUserOrganizations(ctx context.Context, request *frontierv
 		})
 	}
 
-	return &frontierv1beta1.SearchUserOrganizationsResponse{
+	return connect.NewResponse(&frontierv1beta1.SearchUserOrganizationsResponse{
 		UserOrganizations: userOrgs,
 		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
 			Offset: uint32(userOrgsData.Pagination.Offset),
@@ -66,10 +65,10 @@ func (h Handler) SearchUserOrganizations(ctx context.Context, request *frontierv
 			Name: userOrgsData.Group.Name,
 			Data: groupResponse,
 		},
-	}, nil
+	}), nil
 }
 
-// transformAggregatedUserOrganizationToPB transforms an AggregatedUserOrganization
+// Helper function to transform aggregated organization to protobuf
 func transformAggregatedUserOrganizationToPB(userOrg userorgs.AggregatedUserOrganization) *frontierv1beta1.SearchUserOrganizationsResponse_UserOrganization {
 	return &frontierv1beta1.SearchUserOrganizationsResponse_UserOrganization{
 		OrgId:        userOrg.OrgID,

@@ -321,6 +321,11 @@ func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Fi
 			"created_at": goqu.Op{"lte": filter.EndRange},
 		})
 	}
+	if len(filter.Metadata) != 0 {
+		for k, v := range filter.Metadata {
+			stmt = stmt.Where(goqu.L("metadata->>? = ?", k, v))
+		}
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

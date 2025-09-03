@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -83,4 +84,33 @@ func transformAggregatedUserToPB(v orgusers.AggregatedUser) *frontierv1beta1.Sea
 		OrganizationId: v.OrgID,
 		OrgJoinedAt:    timestamppb.New(v.OrgJoinedAt),
 	}
+}
+
+func (h *ConnectHandler) ExportOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationUsersRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	orgUsersDataBytes, contentType, err := h.orgUsersService.Export(ctx, request.Msg.GetId())
+	if err != nil {
+		if errors.Is(err, orgusers.ErrNoContent) {
+			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
+		}
+		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return streamBytesInChunks(orgUsersDataBytes, contentType, stream)
+}
+
+func streamBytesInChunks(data []byte, contentType string, stream *connect.ServerStream[httpbody.HttpBody]) error {
+	chunkSize := 1024 * 200 // 200KB
+	for i := 0; i < len(data); i += chunkSize {
+		end := min(i+chunkSize, len(data))
+
+		chunk := data[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	return nil
 }
