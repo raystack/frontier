@@ -43,6 +43,7 @@ type ConnectHeader struct {
 type ConnectConfig struct {
 	// port to listen buf connect requests on
 	Port int `yaml:"port" mapstructure:"port" default:"8002"`
+	// headers to extract from http headers
 	Headers ConnectHeader `yaml:"headers" mapstructure:"headers"`
 }
 
