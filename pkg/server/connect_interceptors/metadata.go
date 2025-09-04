@@ -14,7 +14,7 @@ type MetadataConfig struct {
 	ViewerCity    string
 }
 
-type SessionMetadataInterceptor struct{
+type SessionMetadataInterceptor struct {
 	config MetadataConfig
 }
 
@@ -69,7 +69,7 @@ func (s *SessionMetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.U
 
 func extractBrowser(userAgent string) string {
 	userAgent = strings.ToLower(userAgent)
-	
+
 	switch {
 	case strings.Contains(userAgent, "edg/"):
 		return "Edge"
@@ -88,7 +88,7 @@ func extractBrowser(userAgent string) string {
 
 func extractOS(userAgent string) string {
 	userAgent = strings.ToLower(userAgent)
-	
+
 	switch {
 	case strings.Contains(userAgent, "windows"):
 		return "Windows"
