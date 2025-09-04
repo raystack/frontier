@@ -8,10 +8,20 @@ import (
 	"github.com/raystack/frontier/pkg/server/consts"
 )
 
-type SessionMetadataInterceptor struct{}
+type MetadataConfig struct {
+	ViewerAddress string
+	ViewerCountry string
+	ViewerCity    string
+}
 
-func NewSessionMetadataInterceptor() connect.Interceptor {
-	return &SessionMetadataInterceptor{}
+type SessionMetadataInterceptor struct{
+	config MetadataConfig
+}
+
+func NewSessionMetadataInterceptor(config MetadataConfig) connect.Interceptor {
+	return &SessionMetadataInterceptor{
+		config: config,
+	}
 }
 
 func (s *SessionMetadataInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
@@ -26,20 +36,30 @@ func (s *SessionMetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.U
 	return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 		metadata := make(map[string]any)
 
-		// Get User-Agent
-		userAgent := req.Header().Get("User-Agent")
-		if userAgent != "" {
-			metadata["browser"] = extractBrowser(userAgent)
-			metadata["operating_system"] = extractOS(userAgent)
+		// IP Address
+		if viewerAddress := req.Header().Get(s.config.ViewerAddress); viewerAddress != "" {
+			if parts := strings.Split(viewerAddress, ":"); len(parts) > 0 {
+				metadata["ip"] = parts[0]
+			}
 		}
 
-		// Get IP Address
-		ip := req.Header().Get("X-Forwarded-For")
-		if ip == "" {
-			ip = req.Header().Get("X-Real-IP")
+		// Location
+		location := make(map[string]string)
+		if country := req.Header().Get(s.config.ViewerCountry); country != "" {
+			location["country"] = country
 		}
-		if ip != "" {
-			metadata["ip_address"] = strings.Split(ip, ",")[0] // Get first IP if multiple
+		if city := req.Header().Get(s.config.ViewerCity); city != "" {
+			location["city"] = city
+		}
+		if len(location) > 0 {
+			metadata["location"] = location
+		}
+
+		// OS and Browser (from User-Agent)
+		userAgent := req.Header().Get("User-Agent")
+		if userAgent != "" {
+			metadata["os"] = extractOS(userAgent)
+			metadata["browser"] = extractBrowser(userAgent)
 		}
 
 		ctx = consts.WithSessionMetadata(ctx, metadata)
@@ -48,30 +68,40 @@ func (s *SessionMetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.U
 }
 
 func extractBrowser(userAgent string) string {
+	userAgent = strings.ToLower(userAgent)
+	
 	switch {
-	case strings.Contains(userAgent, "Chrome"):
+	case strings.Contains(userAgent, "edg/"):
+		return "Edge"
+	case strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "edg/"):
 		return "Chrome"
-	case strings.Contains(userAgent, "Firefox"):
+	case strings.Contains(userAgent, "firefox/"):
 		return "Firefox"
-	case strings.Contains(userAgent, "Safari"):
+	case strings.Contains(userAgent, "safari/") && !strings.Contains(userAgent, "chrome/"):
 		return "Safari"
+	case strings.Contains(userAgent, "opera/"):
+		return "Opera"
 	default:
 		return "Unknown"
 	}
 }
 
 func extractOS(userAgent string) string {
+	userAgent = strings.ToLower(userAgent)
+	
 	switch {
-	case strings.Contains(userAgent, "Windows"):
+	case strings.Contains(userAgent, "windows"):
 		return "Windows"
-	case strings.Contains(userAgent, "Mac OS"):
-		return "Mac OS"
-	case strings.Contains(userAgent, "Linux"):
+	case strings.Contains(userAgent, "mac os") || strings.Contains(userAgent, "macos"):
+		return "macOS"
+	case strings.Contains(userAgent, "linux"):
 		return "Linux"
-	case strings.Contains(userAgent, "iPhone"):
+	case strings.Contains(userAgent, "iphone") || strings.Contains(userAgent, "ipad"):
 		return "iOS"
-	case strings.Contains(userAgent, "Android"):
+	case strings.Contains(userAgent, "android"):
 		return "Android"
+	case strings.Contains(userAgent, "chrome os"):
+		return "Chrome OS"
 	default:
 		return "Unknown"
 	}

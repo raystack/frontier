@@ -34,9 +34,16 @@ type UIConfig struct {
 	OrganizationTypes []string `yaml:"organization_types" mapstructure:"organization_types"`
 }
 
+type ConnectHeader struct {
+	ViewerAddress string `yaml:"viewer_address" mapstructure:"viewer_address" default:"CloudFront-Viewer-Address"`
+	ViewerCountry string `yaml:"viewer_country" mapstructure:"viewer_country" default:"CloudFront-Viewer-Country"`
+	ViewerCity    string `yaml:"viewer_city" mapstructure:"viewer_city" default:"CloudFront-Viewer-City"`
+}
+
 type ConnectConfig struct {
 	// port to listen buf connect requests on
 	Port int `yaml:"port" mapstructure:"port" default:"8002"`
+	Headers ConnectHeader `yaml:"headers" mapstructure:"headers"`
 }
 
 type Config struct {
