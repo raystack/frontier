@@ -8,23 +8,26 @@ import Routes from "./routes";
 import { AppContextProvider } from "./contexts/App";
 import { ConnectProvider } from "./contexts/ConnectProvider";
 import { themeConfig } from "~/configs/theme";
+import { ErrorBoundary } from "./components/error-boundary";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ThemeProvider {...themeConfig}>
-        <SkeletonTheme
-          highlightColor="var(--rs-color-background-base-primary)"
-          baseColor="var(--rs-color-background-base-primary-hover)"
-        >
-          <ConnectProvider>
-            <AppContextProvider>
-              <Routes />
-            </AppContextProvider>
-            <ToastContainer richColors />
-          </ConnectProvider>
-        </SkeletonTheme>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider {...themeConfig}>
+          <SkeletonTheme
+            highlightColor="var(--rs-color-background-base-primary)"
+            baseColor="var(--rs-color-background-base-primary-hover)"
+          >
+            <ConnectProvider>
+              <AppContextProvider>
+                <Routes />
+              </AppContextProvider>
+              <ToastContainer richColors />
+            </ConnectProvider>
+          </SkeletonTheme>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>,
 );
