@@ -187,13 +187,21 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		return err
 	}
 
+	metadataConfig := connectinterceptors.MetadataConfig{
+		ClientIP:      cfg.Authentication.Session.Headers.ClientIP,
+		ClientCountry: cfg.Authentication.Session.Headers.ClientCountry,
+		ClientCity:    cfg.Authentication.Session.Headers.ClientCity,
+	}
+
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)
 	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
 	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
+	sessionMetadataInterceptor := connectinterceptors.NewSessionMetadataInterceptor(metadataConfig)
 
 	interceptors := connect.WithInterceptors(
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
 		otelInterceptor,
+		sessionMetadataInterceptor,
 		sessionInterceptor,
 		authNInterceptor,
 		authZInterceptor,
