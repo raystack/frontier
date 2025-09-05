@@ -34,17 +34,9 @@ type UIConfig struct {
 	OrganizationTypes []string `yaml:"organization_types" mapstructure:"organization_types"`
 }
 
-type ConnectHeader struct {
-	ClientIP      string `yaml:"client_ip" mapstructure:"client_ip" default:"x-frontier-ip"`
-	ClientCountry string `yaml:"client_country" mapstructure:"client_country" default:"x-frontier-country"`
-	ClientCity    string `yaml:"client_city" mapstructure:"client_city" default:"x-frontier-city"`
-}
-
 type ConnectConfig struct {
 	// port to listen buf connect requests on
 	Port int `yaml:"port" mapstructure:"port" default:"8002"`
-	// headers to extract from http headers
-	Headers ConnectHeader `yaml:"headers" mapstructure:"headers"`
 }
 
 type Config struct {
