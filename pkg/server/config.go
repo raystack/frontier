@@ -35,9 +35,9 @@ type UIConfig struct {
 }
 
 type ConnectHeader struct {
-	ViewerAddress string `yaml:"viewer_address" mapstructure:"viewer_address" default:"CloudFront-Viewer-Address"`
-	ViewerCountry string `yaml:"viewer_country" mapstructure:"viewer_country" default:"CloudFront-Viewer-Country"`
-	ViewerCity    string `yaml:"viewer_city" mapstructure:"viewer_city" default:"CloudFront-Viewer-City"`
+	ClientIP      string `yaml:"client_ip" mapstructure:"client_ip" default:"x-frontier-ip"`
+	ClientCountry string `yaml:"client_country" mapstructure:"client_country" default:"x-frontier-country"`
+	ClientCity    string `yaml:"client_city" mapstructure:"client_city" default:"x-frontier-city"`
 }
 
 type ConnectConfig struct {

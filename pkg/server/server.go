@@ -188,9 +188,9 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	}
 
 	metadataConfig := connectinterceptors.MetadataConfig{
-		ViewerAddress: cfg.Connect.Headers.ViewerAddress,
-		ViewerCountry: cfg.Connect.Headers.ViewerCountry,
-		ViewerCity:    cfg.Connect.Headers.ViewerCity,
+		ClientIP:      cfg.Connect.Headers.ClientIP,
+		ClientCountry: cfg.Connect.Headers.ClientCountry,
+		ClientCity:    cfg.Connect.Headers.ClientCity,
 	}
 
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)

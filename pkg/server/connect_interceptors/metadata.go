@@ -9,9 +9,9 @@ import (
 )
 
 type MetadataConfig struct {
-	ViewerAddress string
-	ViewerCountry string
-	ViewerCity    string
+	ClientIP      string
+	ClientCountry string
+	ClientCity    string
 }
 
 type SessionMetadataInterceptor struct {
@@ -37,18 +37,18 @@ func (s *SessionMetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.U
 		metadata := make(map[string]any)
 
 		// IP Address
-		if viewerAddress := req.Header().Get(s.config.ViewerAddress); viewerAddress != "" {
-			if parts := strings.Split(viewerAddress, ":"); len(parts) > 0 {
+		if clientIP := req.Header().Get(s.config.ClientIP); clientIP != "" {
+			if parts := strings.Split(clientIP, ":"); len(parts) > 0 {
 				metadata["ip"] = parts[0]
 			}
 		}
 
 		// Location
 		location := make(map[string]string)
-		if country := req.Header().Get(s.config.ViewerCountry); country != "" {
+		if country := req.Header().Get(s.config.ClientCountry); country != "" {
 			location["country"] = country
 		}
-		if city := req.Header().Get(s.config.ViewerCity); city != "" {
+		if city := req.Header().Get(s.config.ClientCity); city != "" {
 			location["city"] = city
 		}
 		if len(location) > 0 {
