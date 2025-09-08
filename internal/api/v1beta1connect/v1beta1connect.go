@@ -6,7 +6,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/api"
 	apiv1beta1 "github.com/raystack/frontier/internal/api/v1beta1"
-	"github.com/raystack/frontier/pkg/server/utils"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"go.uber.org/zap"
 )

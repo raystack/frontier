@@ -35,7 +35,7 @@ import (
 
 	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
-	"github.com/raystack/frontier/pkg/server/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"

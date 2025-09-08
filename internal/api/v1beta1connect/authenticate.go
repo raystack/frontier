@@ -17,7 +17,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server/consts"
-	"github.com/raystack/frontier/pkg/server/utils"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/raystack/frontier/pkg/errors"
