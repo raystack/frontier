@@ -123,6 +123,9 @@ const (
 	FrontierService_CheckResourcePermission_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission"
 	FrontierService_BatchCheckPermission_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission"
 	FrontierService_GetJWKs_FullMethodName                        = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
+	FrontierService_ListSessions_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListSessions"
+	FrontierService_RevokeSession_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/RevokeSession"
+	FrontierService_PingUserSession_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/PingUserSession"
 	FrontierService_ListAuthStrategies_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
 	FrontierService_Authenticate_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/Authenticate"
 	FrontierService_AuthCallback_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/AuthCallback"
@@ -186,6 +189,7 @@ const (
 	FrontierService_GetUpcomingInvoice_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
 	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
 	FrontierService_CreateProspectPublic_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic"
+	FrontierService_CreateAuditRecord_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateAuditRecord"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -310,6 +314,12 @@ type FrontierServiceClient interface {
 	BatchCheckPermission(ctx context.Context, in *BatchCheckPermissionRequest, opts ...grpc.CallOption) (*BatchCheckPermissionResponse, error)
 	// Authn
 	GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error)
+	// Ping user current active session.
+	PingUserSession(ctx context.Context, in *PingUserSessionRequest, opts ...grpc.CallOption) (*PingUserSessionResponse, error)
 	ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error)
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error)
@@ -321,9 +331,12 @@ type FrontierServiceClient interface {
 	GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error)
+	// Deprecated: Do not use.
 	// Audit logs
 	ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(ctx context.Context, in *DescribePreferencesRequest, opts ...grpc.CallOption) (*DescribePreferencesResponse, error)
@@ -386,6 +399,8 @@ type FrontierServiceClient interface {
 	BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error)
 	// Prospects
 	CreateProspectPublic(ctx context.Context, in *CreateProspectPublicRequest, opts ...grpc.CallOption) (*CreateProspectPublicResponse, error)
+	// Audit Records
+	CreateAuditRecord(ctx context.Context, in *CreateAuditRecordRequest, opts ...grpc.CallOption) (*CreateAuditRecordResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1332,6 +1347,33 @@ func (c *frontierServiceClient) GetJWKs(ctx context.Context, in *GetJWKsRequest,
 	return out, nil
 }
 
+func (c *frontierServiceClient) ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error) {
+	out := new(ListSessionsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListSessions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error) {
+	out := new(RevokeSessionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_RevokeSession_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) PingUserSession(ctx context.Context, in *PingUserSessionRequest, opts ...grpc.CallOption) (*PingUserSessionResponse, error) {
+	out := new(PingUserSessionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_PingUserSession_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error) {
 	out := new(ListAuthStrategiesResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListAuthStrategies_FullMethodName, in, out, opts...)
@@ -1422,6 +1464,7 @@ func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, in *Delete
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error) {
 	out := new(ListOrganizationAuditLogsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationAuditLogs_FullMethodName, in, out, opts...)
@@ -1431,6 +1474,7 @@ func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, i
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error) {
 	out := new(CreateOrganizationAuditLogsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_CreateOrganizationAuditLogs_FullMethodName, in, out, opts...)
@@ -1440,6 +1484,7 @@ func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context,
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error) {
 	out := new(GetOrganizationAuditLogResponse)
 	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationAuditLog_FullMethodName, in, out, opts...)
@@ -1899,6 +1944,15 @@ func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, in *Cr
 	return out, nil
 }
 
+func (c *frontierServiceClient) CreateAuditRecord(ctx context.Context, in *CreateAuditRecordRequest, opts ...grpc.CallOption) (*CreateAuditRecordResponse, error) {
+	out := new(CreateAuditRecordResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateAuditRecord_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -2021,6 +2075,12 @@ type FrontierServiceServer interface {
 	BatchCheckPermission(context.Context, *BatchCheckPermissionRequest) (*BatchCheckPermissionResponse, error)
 	// Authn
 	GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error)
+	// Ping user current active session.
+	PingUserSession(context.Context, *PingUserSessionRequest) (*PingUserSessionResponse, error)
 	ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error)
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error)
@@ -2032,9 +2092,12 @@ type FrontierServiceServer interface {
 	GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error)
+	// Deprecated: Do not use.
 	// Audit logs
 	ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(context.Context, *DescribePreferencesRequest) (*DescribePreferencesResponse, error)
@@ -2097,6 +2160,8 @@ type FrontierServiceServer interface {
 	BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error)
 	// Prospects
 	CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error)
+	// Audit Records
+	CreateAuditRecord(context.Context, *CreateAuditRecordRequest) (*CreateAuditRecordResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2416,6 +2481,15 @@ func (UnimplementedFrontierServiceServer) BatchCheckPermission(context.Context, 
 func (UnimplementedFrontierServiceServer) GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJWKs not implemented")
 }
+func (UnimplementedFrontierServiceServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSessions not implemented")
+}
+func (UnimplementedFrontierServiceServer) RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeSession not implemented")
+}
+func (UnimplementedFrontierServiceServer) PingUserSession(context.Context, *PingUserSessionRequest) (*PingUserSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PingUserSession not implemented")
+}
 func (UnimplementedFrontierServiceServer) ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthStrategies not implemented")
 }
@@ -2604,6 +2678,9 @@ func (UnimplementedFrontierServiceServer) BillingWebhookCallback(context.Context
 }
 func (UnimplementedFrontierServiceServer) CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProspectPublic not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateAuditRecord(context.Context, *CreateAuditRecordRequest) (*CreateAuditRecordResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAuditRecord not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -4490,6 +4567,60 @@ func _FrontierService_GetJWKs_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ListSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSessionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListSessions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListSessions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListSessions(ctx, req.(*ListSessionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_RevokeSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).RevokeSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_RevokeSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).RevokeSession(ctx, req.(*RevokeSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_PingUserSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingUserSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).PingUserSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_PingUserSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).PingUserSession(ctx, req.(*PingUserSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_ListAuthStrategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAuthStrategiesRequest)
 	if err := dec(in); err != nil {
@@ -5624,6 +5755,24 @@ func _FrontierService_CreateProspectPublic_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CreateAuditRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAuditRecordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateAuditRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateAuditRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateAuditRecord(ctx, req.(*CreateAuditRecordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -6048,6 +6197,18 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FrontierService_GetJWKs_Handler,
 		},
 		{
+			MethodName: "ListSessions",
+			Handler:    _FrontierService_ListSessions_Handler,
+		},
+		{
+			MethodName: "RevokeSession",
+			Handler:    _FrontierService_RevokeSession_Handler,
+		},
+		{
+			MethodName: "PingUserSession",
+			Handler:    _FrontierService_PingUserSession_Handler,
+		},
+		{
 			MethodName: "ListAuthStrategies",
 			Handler:    _FrontierService_ListAuthStrategies_Handler,
 		},
@@ -6298,6 +6459,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateProspectPublic",
 			Handler:    _FrontierService_CreateProspectPublic_Handler,
+		},
+		{
+			MethodName: "CreateAuditRecord",
+			Handler:    _FrontierService_CreateAuditRecord_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
