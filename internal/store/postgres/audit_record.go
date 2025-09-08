@@ -39,8 +39,9 @@ type AuditRecord struct {
 // transformToDomain converts AuditRecord model to domain model
 func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
 	return auditrecord.AuditRecord{
-		ID:    ar.ID.String(),
-		Event: ar.Event,
+		ID:             ar.ID.String(),
+		IdempotencyKey: ar.IdempotencyKey.String(),
+		Event:          ar.Event,
 		Actor: auditrecord.Actor{
 			ID:       ar.ActorID.String(),
 			Type:     ar.ActorType,

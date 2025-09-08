@@ -61,6 +61,10 @@ func (r AuditRecordRepository) GetByIdempotencyKey(ctx context.Context, key stri
 }
 
 func (r AuditRecordRepository) getByField(ctx context.Context, field string, value interface{}, operation string) (auditrecord.AuditRecord, error) {
+	if str, ok := value.(string); ok && str == "" {
+		return auditrecord.AuditRecord{}, auditrecord.ErrNotFound
+	}
+
 	var auditRecordModel AuditRecord
 	query, params, err := dialect.Select().From(TABLE_AUDITRECORDS).Where(goqu.Ex{field: value}).ToSQL()
 	if err != nil {

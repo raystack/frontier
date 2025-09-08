@@ -54,7 +54,7 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 
 			if existingHash == newHash {
 				// Same request - return existing (idempotent success)
-				// Return true to indicate this was an idempotent replay
+				// Return true to indicate this was an idempotency replay
 				return existingRecord, true, nil
 			} else {
 				// Different request with same key - conflict
@@ -66,7 +66,7 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 		// If err is ErrNotFound, proceed to create the record
 	}
 
-	// todo: check if services are already sending enriched data
+	// todo(later): check what enrichment is done at service's end and modify this accordingly.
 	// enrich actor info
 	switch {
 	case auditRecord.Actor.ID == uuid.Nil.String():
