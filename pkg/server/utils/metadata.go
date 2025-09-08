@@ -1,70 +1,51 @@
-package connectinterceptors
+package utils
 
 import (
 	"context"
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/raystack/frontier/pkg/server/consts"
 )
 
+// ExtractSessionMetadata extracts session metadata from HTTP headers
+func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config MetadataConfig) map[string]any {
+	metadata := make(map[string]any)
+
+	// IP Address
+	if clientIP := req.Header().Get(config.ClientIP); clientIP != "" {
+		if parts := strings.Split(clientIP, ":"); len(parts) > 0 {
+			metadata["ip"] = parts[0]
+		}
+	}
+
+	// Location
+	location := make(map[string]string)
+	if country := req.Header().Get(config.ClientCountry); country != "" {
+		location["country"] = country
+	}
+	if city := req.Header().Get(config.ClientCity); city != "" {
+		location["city"] = city
+	}
+	if len(location) > 0 {
+		metadata["location"] = location
+	}
+
+	// OS and Browser (from User-Agent)
+	userAgent := req.Header().Get("User-Agent")
+	if userAgent != "" {
+		metadata["os"] = extractOS(userAgent)
+		metadata["browser"] = extractBrowser(userAgent)
+	}
+
+	return metadata
+}
+
+
+// MetadataConfig holds configuration for header names
 type MetadataConfig struct {
 	ClientIP      string
 	ClientCountry string
 	ClientCity    string
-}
-
-type SessionMetadataInterceptor struct {
-	config MetadataConfig
-}
-
-func NewSessionMetadataInterceptor(config MetadataConfig) connect.Interceptor {
-	return &SessionMetadataInterceptor{
-		config: config,
-	}
-}
-
-func (s *SessionMetadataInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
-	return next
-}
-
-func (s *SessionMetadataInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
-	return next
-}
-
-func (s *SessionMetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
-	return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-		metadata := make(map[string]any)
-
-		// IP Address
-		if clientIP := req.Header().Get(s.config.ClientIP); clientIP != "" {
-			if parts := strings.Split(clientIP, ":"); len(parts) > 0 {
-				metadata["ip"] = parts[0]
-			}
-		}
-
-		// Location
-		location := make(map[string]string)
-		if country := req.Header().Get(s.config.ClientCountry); country != "" {
-			location["country"] = country
-		}
-		if city := req.Header().Get(s.config.ClientCity); city != "" {
-			location["city"] = city
-		}
-		if len(location) > 0 {
-			metadata["location"] = location
-		}
-
-		// OS and Browser (from User-Agent)
-		userAgent := req.Header().Get("User-Agent")
-		if userAgent != "" {
-			metadata["os"] = extractOS(userAgent)
-			metadata["browser"] = extractBrowser(userAgent)
-		}
-
-		ctx = consts.WithSessionMetadata(ctx, metadata)
-		return next(ctx, req)
-	})
 }
 
 func extractBrowser(userAgent string) string {

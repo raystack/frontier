@@ -35,6 +35,7 @@ import (
 
 	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
+	"github.com/raystack/frontier/pkg/server/utils"
 
 	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"
@@ -150,8 +151,13 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 }
 
 func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
-	// Create the server handler with both services
-	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
+	metadataConfig := utils.MetadataConfig{
+		ClientIP:      cfg.Authentication.Session.Headers.ClientIP,
+		ClientCountry: cfg.Authentication.Session.Headers.ClientCountry,
+		ClientCity:    cfg.Authentication.Session.Headers.ClientCity,
+	}
+
+	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication, metadataConfig)
 
 	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
 	// grpcZapLogger := zap.Must(zap.NewProduction())
@@ -187,21 +193,13 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		return err
 	}
 
-	metadataConfig := connectinterceptors.MetadataConfig{
-		ClientIP:      cfg.Authentication.Session.Headers.ClientIP,
-		ClientCountry: cfg.Authentication.Session.Headers.ClientCountry,
-		ClientCity:    cfg.Authentication.Session.Headers.ClientCity,
-	}
-
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)
 	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
 	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
-	sessionMetadataInterceptor := connectinterceptors.NewSessionMetadataInterceptor(metadataConfig)
 
 	interceptors := connect.WithInterceptors(
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
 		otelInterceptor,
-		sessionMetadataInterceptor,
 		sessionInterceptor,
 		authNInterceptor,
 		authZInterceptor,

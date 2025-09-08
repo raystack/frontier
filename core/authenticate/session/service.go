@@ -50,9 +50,8 @@ func NewService(logger log.Logger, repo Repository, validity time.Duration) *Ser
 	}
 }
 
-func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
+func (s Service) Create(ctx context.Context, userID string, metadata map[string]any) (*Session, error) {
 	now := s.Now()
-	metadata, _ := consts.GetSessionMetadata(ctx)
 
 	sess := &Session{
 		ID:              uuid.New(),
@@ -64,7 +63,12 @@ func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 		DeletedAt:       nil,
 		Metadata:        metadata,
 	}
-	return sess, s.repo.Set(ctx, sess)
+	err := s.repo.Set(ctx, sess)
+	if err != nil {
+		s.log.Warn("failed to create session", "err", err)
+		return nil, err
+	}
+	return sess, nil
 }
 
 // Refresh extends validity of session

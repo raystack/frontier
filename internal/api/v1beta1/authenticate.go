@@ -49,7 +49,7 @@ type AuthnService interface {
 
 type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
-	Create(ctx context.Context, userID string) (*frontiersession.Session, error)
+	Create(ctx context.Context, userID string, metadata map[string]any) (*frontiersession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
 	ListSessions(ctx context.Context, userID string) ([]*frontiersession.Session, error)
@@ -149,7 +149,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.Auth
 	}
 
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(ctx, response.User.ID)
+	session, err := h.sessionService.Create(ctx, response.User.ID, nil)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/raystack/frontier/pkg/errors"
@@ -112,8 +113,11 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	// Extract session metadata from request headers
+	metadata := utils.ExtractSessionMetadata(ctx, request, h.metadataConfig)
+
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(ctx, response.User.ID)
+	session, err := h.sessionService.Create(ctx, response.User.ID, metadata)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
