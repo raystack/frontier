@@ -26,9 +26,9 @@ func (_m *SessionService) EXPECT() *SessionService_Expecter {
 	return &SessionService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, userID
-func (_m *SessionService) Create(ctx context.Context, userID string) (*session.Session, error) {
-	ret := _m.Called(ctx, userID)
+// Create provides a mock function with given fields: ctx, userID, metadata
+func (_m *SessionService) Create(ctx context.Context, userID string, metadata session.SessionMetadata) (*session.Session, error) {
+	ret := _m.Called(ctx, userID, metadata)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -36,19 +36,19 @@ func (_m *SessionService) Create(ctx context.Context, userID string) (*session.S
 
 	var r0 *session.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*session.Session, error)); ok {
-		return rf(ctx, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, session.SessionMetadata) (*session.Session, error)); ok {
+		return rf(ctx, userID, metadata)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *session.Session); ok {
-		r0 = rf(ctx, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, session.SessionMetadata) *session.Session); ok {
+		r0 = rf(ctx, userID, metadata)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*session.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, session.SessionMetadata) error); ok {
+		r1 = rf(ctx, userID, metadata)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -64,13 +64,14 @@ type SessionService_Create_Call struct {
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
-func (_e *SessionService_Expecter) Create(ctx interface{}, userID interface{}) *SessionService_Create_Call {
-	return &SessionService_Create_Call{Call: _e.mock.On("Create", ctx, userID)}
+//   - metadata session.SessionMetadata
+func (_e *SessionService_Expecter) Create(ctx interface{}, userID interface{}, metadata interface{}) *SessionService_Create_Call {
+	return &SessionService_Create_Call{Call: _e.mock.On("Create", ctx, userID, metadata)}
 }
 
-func (_c *SessionService_Create_Call) Run(run func(ctx context.Context, userID string)) *SessionService_Create_Call {
+func (_c *SessionService_Create_Call) Run(run func(ctx context.Context, userID string, metadata session.SessionMetadata)) *SessionService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(session.SessionMetadata))
 	})
 	return _c
 }
@@ -80,7 +81,7 @@ func (_c *SessionService_Create_Call) Return(_a0 *session.Session, _a1 error) *S
 	return _c
 }
 
-func (_c *SessionService_Create_Call) RunAndReturn(run func(context.Context, string) (*session.Session, error)) *SessionService_Create_Call {
+func (_c *SessionService_Create_Call) RunAndReturn(run func(context.Context, string, session.SessionMetadata) (*session.Session, error)) *SessionService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }

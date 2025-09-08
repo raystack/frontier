@@ -149,7 +149,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.Auth
 	}
 
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(ctx, response.User.ID, nil)
+	session, err := h.sessionService.Create(ctx, response.User.ID, frontiersession.SessionMetadata{})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

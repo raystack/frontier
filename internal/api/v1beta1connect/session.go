@@ -45,20 +45,11 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 
 // transformSessionToPB converts a domain Session to a protobuf
 func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*frontierv1beta1.Session, error) {
-	metadata := &frontierv1beta1.Session_Meta{}
-	if s.Metadata != nil {
-		if os, ok := s.Metadata["operating_system"].(string); ok {
-			metadata.OperatingSystem = os
-		}
-		if browser, ok := s.Metadata["browser"].(string); ok {
-			metadata.Browser = browser
-		}
-		if ip, ok := s.Metadata["ip_address"].(string); ok {
-			metadata.IpAddress = ip
-		}
-		if location, ok := s.Metadata["location"].(string); ok {
-			metadata.Location = location
-		}
+	metadata := &frontierv1beta1.Session_Meta{
+		OperatingSystem: s.Metadata.OS,
+		Browser:         s.Metadata.Browser,
+		IpAddress:       s.Metadata.IP,
+		Location:        s.Metadata.Location.Country + ", " + s.Metadata.Location.City,
 	}
 
 	return &frontierv1beta1.Session{

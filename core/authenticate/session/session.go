@@ -7,7 +7,7 @@ import (
 )
 
 type SessionMetadata struct {
-	IP      string
+	IP       string
 	Location struct {
 		Country string
 		City    string

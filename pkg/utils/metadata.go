@@ -32,7 +32,6 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config 
 	if city := req.Header().Get(config.ClientCity); city != "" {
 		metadata.Location.City = city
 	}
-	
 
 	// OS and Browser (from User-Agent)
 	userAgent := req.Header().Get("User-Agent")
@@ -43,7 +42,6 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config 
 
 	return metadata
 }
-
 
 func extractBrowser(userAgent string) string {
 	userAgent = strings.ToLower(userAgent)
