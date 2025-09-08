@@ -50,7 +50,7 @@ func NewService(logger log.Logger, repo Repository, validity time.Duration) *Ser
 	}
 }
 
-func (s Service) Create(ctx context.Context, userID string, metadata map[string]any) (*Session, error) {
+func (s Service) Create(ctx context.Context, userID string, metadata SessionMetadata) (*Session, error) {
 	now := s.Now()
 
 	sess := &Session{

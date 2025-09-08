@@ -49,7 +49,7 @@ type AuthnService interface {
 
 type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
-	Create(ctx context.Context, userID string, metadata map[string]any) (*frontiersession.Session, error)
+	Create(ctx context.Context, userID string, metadata frontiersession.SessionMetadata) (*frontiersession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
 	ListSessions(ctx context.Context, userID string) ([]*frontiersession.Session, error)

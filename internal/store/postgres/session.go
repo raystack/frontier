@@ -22,7 +22,7 @@ type Session struct {
 }
 
 func (s *Session) transformToSession() (*session.Session, error) {
-	var unmarshalledMetadata map[string]any
+	var unmarshalledMetadata session.SessionMetadata
 	if err := json.Unmarshal(s.Metadata, &unmarshalledMetadata); err != nil {
 		return nil, fmt.Errorf("error marshaling session: %w", err)
 	}

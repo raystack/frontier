@@ -5,41 +5,8 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/authenticate/session"
 )
-
-// ExtractSessionMetadata extracts session metadata from HTTP headers
-func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config MetadataConfig) map[string]any {
-	metadata := make(map[string]any)
-
-	// IP Address
-	if clientIP := req.Header().Get(config.ClientIP); clientIP != "" {
-		if parts := strings.Split(clientIP, ":"); len(parts) > 0 {
-			metadata["ip"] = parts[0]
-		}
-	}
-
-	// Location
-	location := make(map[string]string)
-	if country := req.Header().Get(config.ClientCountry); country != "" {
-		location["country"] = country
-	}
-	if city := req.Header().Get(config.ClientCity); city != "" {
-		location["city"] = city
-	}
-	if len(location) > 0 {
-		metadata["location"] = location
-	}
-
-	// OS and Browser (from User-Agent)
-	userAgent := req.Header().Get("User-Agent")
-	if userAgent != "" {
-		metadata["os"] = extractOS(userAgent)
-		metadata["browser"] = extractBrowser(userAgent)
-	}
-
-	return metadata
-}
-
 
 // MetadataConfig holds configuration for header names
 type MetadataConfig struct {
@@ -47,6 +14,36 @@ type MetadataConfig struct {
 	ClientCountry string
 	ClientCity    string
 }
+
+// ExtractSessionMetadata extracts session metadata from HTTP headers
+func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config MetadataConfig) session.SessionMetadata {
+	metadata := session.SessionMetadata{}
+
+	// IP Address
+	if clientIP := req.Header().Get(config.ClientIP); clientIP != "" {
+		if parts := strings.Split(clientIP, ":"); len(parts) > 0 {
+			metadata.IP = parts[0]
+		}
+	}
+
+	if country := req.Header().Get(config.ClientCountry); country != "" {
+		metadata.Location.Country = country
+	}
+	if city := req.Header().Get(config.ClientCity); city != "" {
+		metadata.Location.City = city
+	}
+	
+
+	// OS and Browser (from User-Agent)
+	userAgent := req.Header().Get("User-Agent")
+	if userAgent != "" {
+		metadata.OS = extractOS(userAgent)
+		metadata.Browser = extractBrowser(userAgent)
+	}
+
+	return metadata
+}
+
 
 func extractBrowser(userAgent string) string {
 	userAgent = strings.ToLower(userAgent)
