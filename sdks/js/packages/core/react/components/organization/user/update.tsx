@@ -38,7 +38,7 @@ export const UpdateProfile = () => {
   });
 
   useEffect(() => {
-    reset(user);
+    reset(user, { keepDirtyValues: true });
   }, [user, reset]);
 
   async function onSubmit(data: FormData) {
