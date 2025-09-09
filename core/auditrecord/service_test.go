@@ -414,7 +414,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 					// Verify super user metadata was added
-					isSudo, exists := ar.Actor.Metadata[auditrecord.SuperUserActorMetadatKey]
+					isSudo, exists := ar.Actor.Metadata[auditrecord.SuperUserActorMetadataKey]
 					return ar.Actor.Name == "Super Admin" && exists && isSudo == true
 				})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 			},
@@ -433,7 +433,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 				Type: schema.UserPrincipal,
 				Name: "Super Admin",
 				Metadata: metadata.Metadata{
-					auditrecord.SuperUserActorMetadatKey: true,
+					auditrecord.SuperUserActorMetadataKey: true,
 				},
 			},
 			expectError: nil,
@@ -580,7 +580,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 			// Verify both original and sudo metadata exist
 			originalValue, hasOriginal := ar.Actor.Metadata["existing_key"]
-			sudoValue, hasSudo := ar.Actor.Metadata[auditrecord.SuperUserActorMetadatKey]
+			sudoValue, hasSudo := ar.Actor.Metadata[auditrecord.SuperUserActorMetadataKey]
 			return hasOriginal && originalValue == "existing_value" && hasSudo && sudoValue == true
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 
@@ -615,7 +615,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 
 		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 			// Verify metadata map was created and sudo flag added
-			sudoValue, hasSudo := ar.Actor.Metadata[auditrecord.SuperUserActorMetadatKey]
+			sudoValue, hasSudo := ar.Actor.Metadata[auditrecord.SuperUserActorMetadataKey]
 			return hasSudo && sudoValue == true && ar.Actor.Metadata != nil
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 

@@ -14,7 +14,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
-var SuperUserActorMetadatKey = "is_super_user"
+var SuperUserActorMetadataKey = "is_super_user"
 
 type Repository interface {
 	Create(ctx context.Context, auditRecord AuditRecord) (AuditRecord, error)
@@ -87,7 +87,7 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 			if auditRecord.Actor.Metadata == nil {
 				auditRecord.Actor.Metadata = make(map[string]any)
 			}
-			auditRecord.Actor.Metadata[SuperUserActorMetadatKey] = true
+			auditRecord.Actor.Metadata[SuperUserActorMetadataKey] = true
 		}
 
 	case auditRecord.Actor.Type == schema.ServiceUserPrincipal:

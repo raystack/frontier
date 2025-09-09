@@ -47,3 +47,21 @@ func toNullString(s string) sql.NullString {
 		Valid:  s != "",
 	}
 }
+
+// nullStringToPtr converts a sql.NullString to *string.
+// invalid strings will be converted to nil.
+func nullStringToPtr(ns sql.NullString) *string {
+	if ns.Valid {
+		return &ns.String
+	}
+	return nil
+}
+
+// nullStringToString converts a sql.NullString to string.
+// invalid strings will be converted to empty string "".
+func nullStringToString(ns sql.NullString) string {
+	if ns.Valid {
+		return ns.String
+	}
+	return ""
+}

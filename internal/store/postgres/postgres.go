@@ -11,6 +11,8 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
+const pgUserDefinedImmutabilityError = "45000"
+
 var (
 	parseErr    = errors.New("parsing error")
 	queryErr    = errors.New("error while creating the query")
@@ -67,7 +69,7 @@ func checkPostgresError(err error) error {
 			return fmt.Errorf("%w [%s]", ErrForeignKeyViolation, pgErr.Detail)
 		case pgerrcode.InvalidTextRepresentation:
 			return fmt.Errorf("%w: [%s %s]", ErrInvalidTextRepresentation, pgErr.Detail, pgErr.Message)
-		case "45000": // User-defined error from audit_records immutability trigger
+		case pgUserDefinedImmutabilityError: // User-defined error from audit_records immutability trigger
 			return fmt.Errorf("%w: %s", ErrImmutableRecord, pgErr.Message)
 		}
 	}

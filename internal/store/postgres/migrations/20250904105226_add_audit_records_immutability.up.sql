@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION prevent_audit_record_updates()
   RETURNS TRIGGER AS $$
 BEGIN
       RAISE EXCEPTION 'audit_records cannot be updated to maintain audit integrity'
-          USING ERRCODE = '45000',  -- User-defined error
+          USING ERRCODE = '45000',  -- User-defined error (Postgres convention: user-defined error codes are in the 45000-45999 range)
               DETAIL = 'Audit records are immutable once created';
 END;
   $$ LANGUAGE plpgsql;

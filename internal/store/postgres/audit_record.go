@@ -36,6 +36,20 @@ type AuditRecord struct {
 	Metadata         types.NullJSONText `db:"metadata"`
 }
 
+func nullStringToTargetPtr(targetID, targetType, targetName sql.NullString, targetMetadata types.NullJSONText) *auditrecord.Target {
+	// Only create Target if at least one field is valid
+	if !targetID.Valid && !targetType.Valid && !targetName.Valid && !targetMetadata.Valid {
+		return nil
+	}
+
+	return &auditrecord.Target{
+		ID:       nullStringToString(targetID),
+		Type:     nullStringToString(targetType),
+		Name:     nullStringToString(targetName),
+		Metadata: nullJSONTextToMetadata(targetMetadata),
+	}
+}
+
 // transformToDomain converts AuditRecord model to domain model
 func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
 	return auditrecord.AuditRecord{
@@ -54,15 +68,10 @@ func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
 			Name:     ar.ResourceName,
 			Metadata: nullJSONTextToMetadata(ar.ResourceMetadata),
 		},
-		Target: &auditrecord.Target{
-			ID:       ar.TargetID.String,
-			Type:     ar.TargetType.String,
-			Name:     ar.TargetName.String,
-			Metadata: nullJSONTextToMetadata(ar.TargetMetadata),
-		},
+		Target:     nullStringToTargetPtr(ar.TargetID, ar.TargetType, ar.TargetName, ar.TargetMetadata),
 		OccurredAt: ar.OccurredAt,
 		OrgID:      ar.OrganizationID.String(),
-		RequestID:  &ar.RequestID.String,
+		RequestID:  nullStringToPtr(ar.RequestID),
 		CreatedAt:  ar.CreatedAt,
 		Metadata:   nullJSONTextToMetadata(ar.Metadata),
 	}, nil
