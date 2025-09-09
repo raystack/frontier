@@ -181,11 +181,9 @@ func (s *AuditRecordRepositoryTestSuite) TestCreate_Success() {
 			}
 
 			if record.Target == nil {
-				s.NotNil(created.Target)
-				s.Empty(created.Target.ID)
-				s.Empty(created.Target.Type)
-				s.Empty(created.Target.Name)
+				s.Nil(created.Target)
 			} else {
+				s.NotNil(created.Target)
 				s.Equal(record.Target.ID, created.Target.ID)
 				s.Equal(record.Target.Type, created.Target.Type)
 				s.Equal(record.Target.Name, created.Target.Name)
@@ -407,11 +405,8 @@ func (s *AuditRecordRepositoryTestSuite) TestEdgeCases() {
 		retrieved, err := s.repository.GetByID(s.ctx, created.ID)
 		s.NoError(err)
 
-		// Target should exist but with empty fields
-		s.NotNil(retrieved.Target)
-		s.Empty(retrieved.Target.ID)
-		s.Empty(retrieved.Target.Type)
-		s.Empty(retrieved.Target.Name)
+		// Target should be nil when originally nil
+		s.Nil(retrieved.Target)
 	})
 
 	s.Run("very long strings handled", func() {
