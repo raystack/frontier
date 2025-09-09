@@ -42,7 +42,7 @@ const (
 func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
 	opts := &dockertest.RunOptions{
 		Repository: "postgres",
-		Tag:        "12",
+		Tag:        "13", // Upgraded from 12 to 13 for gen_random_uuid() support
 		Env: []string{
 			"POSTGRES_PASSWORD=" + pg_passwd,
 			"POSTGRES_USER=" + pg_uname,

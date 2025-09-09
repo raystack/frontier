@@ -17,4 +17,5 @@ var (
 	ErrInvalidNamesapceOrID   = errors.New("namespace and ID cannot be empty")
 	ErrConflictRequest        = errors.New("already exist")
 	ErrBadBodyMetaSchemaError = errors.New(ErrBadRequest.Error() + " : " + ErrInvalidMetadata.Error())
+	ErrInvalidActorType       = errors.New("invalid actor type")
 )
