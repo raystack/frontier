@@ -14,7 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type {
   V1Beta1CreatePolicyForProjectBody,
   V1Beta1Policy,
-  V1Beta1Project
+  Frontierv1Beta1Project
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
@@ -29,7 +29,7 @@ const getColumns = ({
 }: {
   permMap: ProjectAccessMap;
   onChange: (projectId: string, value: boolean) => void;
-}): DataTableColumnDef<V1Beta1Project, unknown>[] => {
+}): DataTableColumnDef<Frontierv1Beta1Project, unknown>[] => {
   return [
     {
       header: '',
@@ -75,7 +75,7 @@ const getColumns = ({
       enableSorting: false,
       cell: () => (
         <Flex>
-          <Text>Viewer</Text>
+          <Text>Member</Text>
         </Flex>
       )
     }
@@ -89,7 +89,7 @@ export default function ManageServiceUserProjects() {
     from: '/api-keys/$id/projects'
   });
 
-  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
+  const [projects, setProjects] = useState<Frontierv1Beta1Project[]>([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const [isAddedProjectsLoading, setIsAddedProjectsLoading] = useState(false);
   const [addedProjectsMap, setAddedProjectsMap] = useState<ProjectAccessMap>(
@@ -164,7 +164,7 @@ export default function ManageServiceUserProjects() {
         if (value) {
           const principal = `${PERMISSIONS.ServiceUserPrincipal}:${id}`;
           const policy: V1Beta1CreatePolicyForProjectBody = {
-            role_id: PERMISSIONS.RoleProjectViewer,
+            role_id: PERMISSIONS.RoleProjectOwner,
             principal
           };
           await client?.frontierServiceCreatePolicyForProject(
