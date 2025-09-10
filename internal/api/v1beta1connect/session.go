@@ -100,8 +100,8 @@ func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Re
 // Admin APIs
 // Returns a list of all sessions for a specific user.
 func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
-	if request.Msg.GetUserId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "user_id is required")
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	sessions, err := h.sessionService.ListSessions(ctx, request.Msg.GetUserId())
