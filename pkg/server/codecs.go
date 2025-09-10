@@ -16,16 +16,16 @@ var (
 	ErrNotProto = fmt.Errorf("error not proto")
 )
 
-// conectCodec implements https://pkg.go.dev/github.com/bufbuild/connect-go#Codec
+// connectCodec implements https://pkg.go.dev/github.com/bufbuild/connect-go#Codec
 // by overriding the default implementation with extra option: protojson.MarshalOptions{UseProtoNames: true}
-type conectCodec struct {
+type connectCodec struct {
 }
 
-func (c conectCodec) Name() string {
+func (c connectCodec) Name() string {
 	return jsonCodec
 }
 
-func (c conectCodec) Marshal(message any) ([]byte, error) {
+func (c connectCodec) Marshal(message any) ([]byte, error) {
 	protoMessage, ok := message.(proto.Message)
 	if !ok {
 		return nil, ErrNotProto
@@ -33,7 +33,7 @@ func (c conectCodec) Marshal(message any) ([]byte, error) {
 	return protojson.MarshalOptions{UseProtoNames: true}.Marshal(protoMessage)
 }
 
-func (c conectCodec) Unmarshal(binary []byte, message any) error {
+func (c connectCodec) Unmarshal(binary []byte, message any) error {
 	protoMessage, ok := message.(proto.Message)
 	if !ok {
 		return ErrNotProto
