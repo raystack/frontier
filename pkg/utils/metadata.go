@@ -51,7 +51,7 @@ func extractBrowser(userAgent string) string {
 	case strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "edg/") && !strings.Contains(userAgent, "opr/") && !strings.Contains(userAgent, "crios/") && !strings.Contains(userAgent, "whale/"):
 		return "Chrome"
 	// Safari
-	case strings.Contains(userAgent, "safari/") && !strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "crios/") && !strings.Contains(userAgent, "version/"):
+	case strings.Contains(userAgent, "safari/") && strings.Contains(userAgent, "version/") && !strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "crios/"):
 		return "Safari"
 	// Edge
 	case strings.Contains(userAgent, "edg/"):
