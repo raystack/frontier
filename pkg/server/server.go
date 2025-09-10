@@ -71,11 +71,6 @@ const (
 	// keeping it in sync with https://github.com/raystack/salt/blob/v0.3.8/mux/mux.go#L15
 	// which is being used in GRPC server shutdown
 	connectServerGracePeriod = 10 * time.Second
-	jsonCodec                = "json"
-)
-
-var (
-	ErrNotProto = fmt.Errorf("error not proto")
 )
 
 type UIConfigApiResponse struct {

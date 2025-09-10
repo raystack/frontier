@@ -2,9 +2,18 @@ package server
 
 import (
 	"errors"
+	"fmt"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+)
+
+const (
+	jsonCodec = "json"
+)
+
+var (
+	ErrNotProto = fmt.Errorf("error not proto")
 )
 
 // conectCodec implements https://pkg.go.dev/github.com/bufbuild/connect-go#Codec
