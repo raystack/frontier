@@ -18,6 +18,8 @@ import {
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 
 const NoOrganizations = () => {
   return (
@@ -47,6 +49,18 @@ export const OrganizationList = () => {
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
+  // Transform the DataTableQuery to RQLRequest format
+  const query = transformDataTableQueryToRQLRequest(tableQuery, {
+    fieldNameMapping: {
+      "createdBy": "created_by",
+      "planName": "plan_name",
+      "subscriptionCycleEndAt": "subscription_cycle_end_at",
+      "paymentMode": "payment_mode",
+      "subscriptionState": "subscription_state",
+      "createdAt": "created_at"
+    }
+  });
+
   const {
     data: infiniteData,
     isLoading,
@@ -56,24 +70,26 @@ export const OrganizationList = () => {
     isError,
   } = useInfiniteQuery(
     AdminServiceQueries.searchOrganizations,
-    { query: tableQuery },
+    { query: query },
     {
       pageParamKey: "query",
       getNextPageParam: (lastPage) =>
-        getConnectNextPageParam(
-          lastPage,
-          { query: tableQuery },
-          "organizations",
-        ),
+        getConnectNextPageParam(lastPage, { query: query }, "organizations"),
       staleTime: 0,
       refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
     },
   );
 
-  const data =
-    infiniteData?.pages.flatMap((page) => page.organizations || []) || [];
+  console.log(infiniteData);
 
-  const groupCountMap = getGroupCountMapFromFirstPage(infiniteData);
+  const data =
+    infiniteData?.pages?.flatMap((page) => page?.organizations || []) || [];
+
+  const groupCountMap = infiniteData
+    ? getGroupCountMapFromFirstPage(infiniteData)
+    : {};
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery({
@@ -84,7 +100,11 @@ export const OrganizationList = () => {
   };
 
   const handleLoadMore = async () => {
-    await fetchNextPage();
+    try {
+      await fetchNextPage();
+    } catch (error) {
+      console.error("Error loading more organizations:", error);
+    }
   };
 
   const naviagte = useNavigate();
