@@ -114,10 +114,10 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	}
 
 	// Extract session metadata from request headers
-	metadata := utils.ExtractSessionMetadata(ctx, request, h.metadataConfig)
+	sessionMetadata := utils.ExtractSessionMetadata(ctx, request, h.metadataConfig)
 
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(ctx, response.User.ID, metadata)
+	session, err := h.sessionService.Create(ctx, response.User.ID, sessionMetadata)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

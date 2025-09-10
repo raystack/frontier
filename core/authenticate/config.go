@@ -55,10 +55,10 @@ type SessionConfig struct {
 	Validity time.Duration `mapstructure:"validity" yaml:"validity" default:"720h"`
 	Secure   bool          `mapstructure:"secure" yaml:"secure" default:"false"`
 	// Headers configuration for session metadata collection
-	Headers ConnectHeader `yaml:"headers" mapstructure:"headers"`
+	Headers SessionMetadataHeaders `yaml:"headers" mapstructure:"headers"`
 }
 
-type ConnectHeader struct {
+type SessionMetadataHeaders struct {
 	ClientIP      string `yaml:"client_ip" mapstructure:"client_ip" default:"x-frontier-ip"`
 	ClientCountry string `yaml:"client_country" mapstructure:"client_country" default:"x-frontier-country"`
 	ClientCity    string `yaml:"client_city" mapstructure:"client_city" default:"x-frontier-city"`

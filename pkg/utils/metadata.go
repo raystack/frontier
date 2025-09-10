@@ -8,15 +8,15 @@ import (
 	"github.com/raystack/frontier/core/authenticate/session"
 )
 
-// MetadataConfig holds configuration for header names
-type MetadataConfig struct {
+// SessionMetadataConfig holds configuration for header names
+type SessionMetadataConfig struct {
 	ClientIP      string
 	ClientCountry string
 	ClientCity    string
 }
 
 // ExtractSessionMetadata extracts session metadata from HTTP headers
-func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config MetadataConfig) session.SessionMetadata {
+func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config SessionMetadataConfig) session.SessionMetadata {
 	metadata := session.SessionMetadata{}
 
 	// IP Address
