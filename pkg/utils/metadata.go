@@ -77,15 +77,15 @@ func extractBrowser(userAgent string) string {
 	// Whale Browser
 	case strings.Contains(userAgent, "whale/"):
 		return "Whale Browser"
-	// Mozilla Compatible Agent
+	// Mozilla Compatible Agent / Mozilla
 	case strings.Contains(userAgent, "mozilla/") && !strings.Contains(userAgent, "firefox/") && !strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "safari/"):
+		if strings.Contains(userAgent, "edg/") {
+			return "Mozilla"
+		}
 		return "Mozilla Compatible Agent"
 	// Android Browser
 	case strings.Contains(userAgent, "android") && !strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "firefox/") && !strings.Contains(userAgent, "samsungbrowser/"):
 		return "Android Browser"
-	// Mozilla
-	case strings.Contains(userAgent, "mozilla/") && !strings.Contains(userAgent, "firefox/") && !strings.Contains(userAgent, "chrome/") && !strings.Contains(userAgent, "safari/") && !strings.Contains(userAgent, "edg/"):
-		return "Mozilla"
 	// Brave
 	case strings.Contains(userAgent, "brave/"):
 		return "Brave"
