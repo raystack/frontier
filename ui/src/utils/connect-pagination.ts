@@ -7,10 +7,10 @@ import type {
 
 export const DEFAULT_PAGE_SIZE = 50;
 
-export interface ConnectRPCPaginatedResponse<T = unknown> {
+export type ConnectRPCPaginatedResponse = {
   pagination?: RQLQueryPaginationResponse;
   group?: RQLQueryGroupResponse;
-  [key: string]: T[] | RQLQueryPaginationResponse | RQLQueryGroupResponse | undefined;
+  [key: string]: unknown;
 }
 
 export function getConnectNextPageParam<T extends ConnectRPCPaginatedResponse>(
@@ -24,7 +24,7 @@ export function getConnectNextPageParam<T extends ConnectRPCPaginatedResponse>(
   const limit = pagination?.limit || DEFAULT_PAGE_SIZE;
 
   // Check if there are more pages based on returned results
-  const items = lastPage[itemsKey] as unknown[];
+  const items = Array.isArray(lastPage[itemsKey]) ? lastPage[itemsKey] : [];
   const hasMorePages = items && items.length !== 0 && items.length === limit;
   if (!hasMorePages) {
     return undefined; // No more pages

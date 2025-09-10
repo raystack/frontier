@@ -1,5 +1,7 @@
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import type { RQLRequest, RQLFilter, RQLSort } from "@raystack/proton/frontier";
+import { RQLRequestSchema, RQLFilterSchema, RQLSortSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 // Extract DataTableFilter type from DataTableQuery since it's not exported
 type DataTableFilter = NonNullable<DataTableQuery["filters"]>[number];
@@ -61,11 +63,11 @@ function transformFilter(
 
   const fieldName = fieldNameMapping?.[filter.name] ?? filter.name;
 
-  return {
+  return create(RQLFilterSchema, {
     name: fieldName,
     operator,
     value,
-  };
+  });
 }
 
 /**
@@ -79,10 +81,10 @@ function transformSort(
     return undefined;
   }
 
-  return sort.map((s) => ({
+  return sort.map((s) => create(RQLSortSchema, {
     ...s,
     name: fieldNameMapping?.[s.name] ?? s.name,
-  })) as RQLSort[];
+  }));
 }
 
 export function transformDataTableQueryToRQLRequest(
@@ -97,14 +99,14 @@ export function transformDataTableQueryToRQLRequest(
     : [];
 
   // Build the RQLRequest with snake_case properties
-  const rqlRequest: RQLRequest = {
+  const rqlRequest = create(RQLRequestSchema, {
     filters,
-    group_by: query.group_by || [],
+    groupBy: query.group_by || [],
     offset: query.offset || 0,
     limit: query.limit || defaultLimit,
     sort: transformSort(query.sort || [], fieldNameMapping) || [],
     search: query.search || "",
-  };
+  });
 
   return rqlRequest;
 }
