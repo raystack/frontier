@@ -71,6 +71,11 @@ const (
 	// keeping it in sync with https://github.com/raystack/salt/blob/v0.3.8/mux/mux.go#L15
 	// which is being used in GRPC server shutdown
 	connectServerGracePeriod = 10 * time.Second
+	jsonCodec                = "json"
+)
+
+var (
+	ErrNotProto = fmt.Errorf("error not proto")
 )
 
 type UIConfigApiResponse struct {
@@ -199,9 +204,8 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		authZInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 
-	// Initialize connect handlers
-	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors)
-	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors)
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors, connect.WithCodec(conectCodec{}))
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors, connect.WithCodec(conectCodec{}))
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()
