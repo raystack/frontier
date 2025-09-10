@@ -100,23 +100,19 @@ func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Re
 // Admin APIs
 // Returns a list of all sessions for a specific user.
 func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
-	// Check if current user is admin
 	if err := h.IsSuperUser(ctx); err != nil {
 		return nil, status.Error(codes.PermissionDenied, "admin access required")
 	}
 
-	// Validate required user_id
 	if request.Msg.GetUserId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
 	}
 
-	// Fetch all active sessions for the specified user
 	sessions, err := h.sessionService.ListSessions(ctx, request.Msg.GetUserId())
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	// Transform domain sessions to protobuf sessions
 	var pbSessions []*frontierv1beta1.Session
 	for _, session := range sessions {
 		pbSession, err := transformSessionToPB(session, "")
