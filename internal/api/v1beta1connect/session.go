@@ -105,5 +105,18 @@ func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.R
 
 // Revoke a specific session for a specific user (admin only).
 func (h ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeUserSessionRequest]) (*connect.Response[frontierv1beta1.RevokeUserSessionResponse], error) {
-	return nil, nil
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	sessionID, err := uuid.Parse(request.Msg.GetSessionId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
+	}
+
+	if err := h.sessionService.SoftDelete(ctx, sessionID, time.Now()); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return connect.NewResponse(&frontierv1beta1.RevokeUserSessionResponse{}), nil
 }
