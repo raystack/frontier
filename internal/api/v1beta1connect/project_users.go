@@ -11,8 +11,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type ProjectUsersService interface {
@@ -47,9 +45,9 @@ func (h *ConnectHandler) SearchProjectUsers(ctx context.Context, request *connec
 	projectUsersData, err := h.projectUsersService.Search(ctx, request.Msg.GetId(), rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	for _, v := range projectUsersData.Users {
