@@ -13,6 +13,8 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -636,5 +638,334 @@ func TestService_Create_EdgeCases(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, result)
 		assert.False(t, isIdempotent)
+	})
+}
+
+func TestService_List(t *testing.T) {
+	tests := []struct {
+		name           string
+		setupMocks     func(*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService)
+		query          *rql.Query
+		expectedResult auditrecord.AuditRecordsList
+		expectError    error
+	}{
+		{
+			name: "successful list with nil query",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+				expectedList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{
+						{
+							ID:    "record-1",
+							Event: "user.created",
+							Actor: auditrecord.Actor{
+								ID:   "user-1",
+								Type: schema.UserPrincipal,
+								Name: "User One",
+							},
+							Resource: auditrecord.Resource{
+								ID:   "res-1",
+								Type: "project",
+							},
+							OrgID: "org-1",
+						},
+						{
+							ID:    "record-2",
+							Event: "user.deleted",
+							Actor: auditrecord.Actor{
+								ID:   "user-2",
+								Type: schema.UserPrincipal,
+								Name: "User Two",
+							},
+							Resource: auditrecord.Resource{
+								ID:   "res-2",
+								Type: "project",
+							},
+							OrgID: "org-1",
+						},
+					},
+					Page: utils.Page{TotalCount: 2},
+				}
+				repo.EXPECT().List(mock.Anything, (*rql.Query)(nil)).Return(expectedList, nil)
+			},
+			query: nil,
+			expectedResult: auditrecord.AuditRecordsList{
+				AuditRecords: []auditrecord.AuditRecord{
+					{
+						ID:    "record-1",
+						Event: "user.created",
+						Actor: auditrecord.Actor{
+							ID:   "user-1",
+							Type: schema.UserPrincipal,
+							Name: "User One",
+						},
+						Resource: auditrecord.Resource{
+							ID:   "res-1",
+							Type: "project",
+						},
+						OrgID: "org-1",
+					},
+					{
+						ID:    "record-2",
+						Event: "user.deleted",
+						Actor: auditrecord.Actor{
+							ID:   "user-2",
+							Type: schema.UserPrincipal,
+							Name: "User Two",
+						},
+						Resource: auditrecord.Resource{
+							ID:   "res-2",
+							Type: "project",
+						},
+						OrgID: "org-1",
+					},
+				},
+				Page: utils.Page{TotalCount: 2},
+			},
+			expectError: nil,
+		},
+		{
+			name: "successful list with query",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+				query := &rql.Query{
+					Limit:  10,
+					Offset: 0,
+				}
+				expectedList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{
+						{
+							ID:    "record-3",
+							Event: "project.created",
+							Actor: auditrecord.Actor{
+								ID:   "user-3",
+								Type: schema.UserPrincipal,
+								Name: "User Three",
+							},
+							Resource: auditrecord.Resource{
+								ID:   "project-1",
+								Type: "project",
+								Name: "New Project",
+							},
+							OrgID:      "org-2",
+							OccurredAt: time.Now(),
+						},
+					},
+					Page: utils.Page{TotalCount: 1},
+				}
+				repo.EXPECT().List(mock.Anything, query).Return(expectedList, nil)
+			},
+			query: &rql.Query{
+				Limit:  10,
+				Offset: 0,
+			},
+			expectedResult: auditrecord.AuditRecordsList{
+				AuditRecords: []auditrecord.AuditRecord{
+					{
+						ID:    "record-3",
+						Event: "project.created",
+						Actor: auditrecord.Actor{
+							ID:   "user-3",
+							Type: schema.UserPrincipal,
+							Name: "User Three",
+						},
+						Resource: auditrecord.Resource{
+							ID:   "project-1",
+							Type: "project",
+							Name: "New Project",
+						},
+						OrgID:      "org-2",
+						OccurredAt: time.Now(),
+					},
+				},
+				Page: utils.Page{TotalCount: 1},
+			},
+			expectError: nil,
+		},
+		{
+			name: "empty result set",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+				query := &rql.Query{
+					Limit:  10,
+					Offset: 100, // High offset for empty result
+				}
+				expectedList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{},
+					Page:         utils.Page{TotalCount: 0},
+				}
+				repo.EXPECT().List(mock.Anything, query).Return(expectedList, nil)
+			},
+			query: &rql.Query{
+				Limit:  10,
+				Offset: 100,
+			},
+			expectedResult: auditrecord.AuditRecordsList{
+				AuditRecords: []auditrecord.AuditRecord{},
+				Page:         utils.Page{TotalCount: 0},
+			},
+			expectError: nil,
+		},
+		{
+			name: "repository bad input error - translated to invalid query",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+				query := &rql.Query{
+					Limit: -1, // Invalid limit
+				}
+				repo.EXPECT().List(mock.Anything, query).Return(auditrecord.AuditRecordsList{}, auditrecord.ErrRepositoryBadInput)
+			},
+			query: &rql.Query{
+				Limit: -1,
+			},
+			expectedResult: auditrecord.AuditRecordsList{},
+			expectError:    auditrecord.ErrRepositoryBadInput,
+		},
+		{
+			name: "repository generic error - passed through",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+				repo.EXPECT().List(mock.Anything, (*rql.Query)(nil)).Return(auditrecord.AuditRecordsList{}, errors.New("database connection failed"))
+			},
+			query:          nil,
+			expectedResult: auditrecord.AuditRecordsList{},
+			expectError:    errors.New("database connection failed"),
+		},
+		{
+			name: "list with pagination",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+				query := &rql.Query{
+					Limit:  5,
+					Offset: 10,
+				}
+				expectedList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{
+						{
+							ID:    "record-11",
+							Event: "user.login",
+							Actor: auditrecord.Actor{
+								ID:   "user-11",
+								Type: schema.UserPrincipal,
+							},
+							Resource: auditrecord.Resource{
+								ID:   "session-11",
+								Type: "session",
+							},
+							OrgID: "org-3",
+						},
+						{
+							ID:    "record-12",
+							Event: "user.logout",
+							Actor: auditrecord.Actor{
+								ID:   "user-12",
+								Type: schema.UserPrincipal,
+							},
+							Resource: auditrecord.Resource{
+								ID:   "session-12",
+								Type: "session",
+							},
+							OrgID: "org-3",
+						},
+					},
+					Page: utils.Page{TotalCount: 50}, // Total records available
+				}
+				repo.EXPECT().List(mock.Anything, query).Return(expectedList, nil)
+			},
+			query: &rql.Query{
+				Limit:  5,
+				Offset: 10,
+			},
+			expectedResult: auditrecord.AuditRecordsList{
+				AuditRecords: []auditrecord.AuditRecord{
+					{
+						ID:    "record-11",
+						Event: "user.login",
+						Actor: auditrecord.Actor{
+							ID:   "user-11",
+							Type: schema.UserPrincipal,
+						},
+						Resource: auditrecord.Resource{
+							ID:   "session-11",
+							Type: "session",
+						},
+						OrgID: "org-3",
+					},
+					{
+						ID:    "record-12",
+						Event: "user.logout",
+						Actor: auditrecord.Actor{
+							ID:   "user-12",
+							Type: schema.UserPrincipal,
+						},
+						Resource: auditrecord.Resource{
+							ID:   "session-12",
+							Type: "session",
+						},
+						OrgID: "org-3",
+					},
+				},
+				Page: utils.Page{TotalCount: 50},
+			},
+			expectError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, userSvc, serviceuserSvc := createMockServices(t)
+			tt.setupMocks(repo, userSvc, serviceuserSvc)
+
+			service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+			result, err := service.List(context.Background(), tt.query)
+
+			if tt.expectError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectError.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedResult.Page.TotalCount, result.Page.TotalCount)
+				assert.Equal(t, len(tt.expectedResult.AuditRecords), len(result.AuditRecords))
+
+				// Compare individual records
+				for i, expectedRecord := range tt.expectedResult.AuditRecords {
+					assert.Equal(t, expectedRecord.ID, result.AuditRecords[i].ID)
+					assert.Equal(t, expectedRecord.Event, result.AuditRecords[i].Event)
+					assert.Equal(t, expectedRecord.Actor.ID, result.AuditRecords[i].Actor.ID)
+					assert.Equal(t, expectedRecord.Actor.Type, result.AuditRecords[i].Actor.Type)
+					assert.Equal(t, expectedRecord.Resource.ID, result.AuditRecords[i].Resource.ID)
+					assert.Equal(t, expectedRecord.OrgID, result.AuditRecords[i].OrgID)
+				}
+			}
+		})
+	}
+}
+
+func TestService_List_EdgeCases(t *testing.T) {
+	t.Run("nil query parameter", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc := createMockServices(t)
+
+		expectedList := auditrecord.AuditRecordsList{
+			AuditRecords: []auditrecord.AuditRecord{},
+			Page:         utils.Page{TotalCount: 0},
+		}
+		repo.EXPECT().List(mock.Anything, (*rql.Query)(nil)).Return(expectedList, nil)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+		result, err := service.List(context.Background(), nil)
+
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), result.Page.TotalCount)
+		assert.Empty(t, result.AuditRecords)
+	})
+
+	t.Run("context cancellation", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc := createMockServices(t)
+
+		// Create a canceled context
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		repo.EXPECT().List(ctx, (*rql.Query)(nil)).Return(auditrecord.AuditRecordsList{}, context.Canceled)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+		_, err := service.List(ctx, nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, context.Canceled, err)
 	})
 }

@@ -1,0 +1,455 @@
+[
+  {
+    "event": "user.created",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "type": "app/user",
+      "name": "Alice Smith",
+      "metadata": {
+        "role": "admin"
+      }
+    },
+    "resource": {
+      "id": "res-001",
+      "type": "project", 
+      "name": "Project Alpha",
+      "metadata": {
+        "env": "production"
+      }
+    },
+    "target": {
+      "id": "target-001",
+      "type": "organization",
+      "name": "Org Alpha",
+      "metadata": {
+        "plan": "enterprise"
+      }
+    },
+    "occurred_at": "2024-01-01T10:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222222",
+    "request_id": "req-001",
+    "metadata": {
+      "ip": "192.168.1.1"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333333"
+  },
+  {
+    "event": "user.updated",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111112",
+      "type": "app/user",
+      "name": "Bob Jones",
+      "metadata": {
+        "role": "user"
+      }
+    },
+    "resource": {
+      "id": "res-002",
+      "type": "project",
+      "name": "Project Beta", 
+      "metadata": {
+        "env": "staging"
+      }
+    },
+    "target": {
+      "id": "target-002",
+      "type": "organization",
+      "name": "Org Beta",
+      "metadata": {
+        "plan": "basic"
+      }
+    },
+    "occurred_at": "2024-01-01T11:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222222",
+    "request_id": "req-002",
+    "metadata": {
+      "ip": "192.168.1.2"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333334"
+  },
+  {
+    "event": "user.deleted",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111113", 
+      "type": "app/user",
+      "name": "Charlie Brown",
+      "metadata": {
+        "role": "user"
+      }
+    },
+    "resource": {
+      "id": "res-003",
+      "type": "user",
+      "name": "User Charlie",
+      "metadata": {
+        "status": "inactive"
+      }
+    },
+    "target": null,
+    "occurred_at": "2024-01-01T12:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222223",
+    "request_id": "req-003",
+    "metadata": {
+      "ip": "192.168.1.3"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333335"
+  },
+  {
+    "event": "api.call",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111114",
+      "type": "app/serviceuser",
+      "name": "API Service",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    "resource": {
+      "id": "res-004",
+      "type": "api",
+      "name": "User API",
+      "metadata": {
+        "method": "POST"
+      }
+    },
+    "target": {
+      "id": "target-004",
+      "type": "endpoint",
+      "name": "/users",
+      "metadata": {
+        "path": "/users"
+      }
+    },
+    "occurred_at": "2024-01-01T13:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222224",
+    "request_id": "req-004",
+    "metadata": {
+      "client": "mobile"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333336"
+  },
+  {
+    "event": "system.cleanup",
+    "actor": {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "type": "system",
+      "name": "system",
+      "metadata": {}
+    },
+    "resource": {
+      "id": "res-005",
+      "type": "system",
+      "name": "Cleanup Job",
+      "metadata": {
+        "type": "scheduled"
+      }
+    },
+    "occurred_at": "2024-01-01T14:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222225",
+    "request_id": "req-005",
+    "metadata": {
+      "job_id": "cleanup-001"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333337"
+  },
+  {
+    "event": "project.created",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111115",
+      "type": "app/user",
+      "name": "David Wilson",
+      "metadata": {
+        "role": "admin"
+      }
+    },
+    "resource": {
+      "id": "res-006",
+      "type": "project",
+      "name": "Project Gamma",
+      "metadata": {
+        "env": "production"
+      }
+    },
+    "target": {
+      "id": "target-006",
+      "type": "organization",
+      "name": "Org Gamma",
+      "metadata": {
+        "plan": "enterprise"
+      }
+    },
+    "occurred_at": "2024-01-01T15:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222226",
+    "request_id": "req-006",
+    "metadata": {
+      "ip": "10.0.0.1"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333338"
+  },
+  {
+    "event": "user.login",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111116",
+      "type": "app/user",
+      "name": "Eve Davis",
+      "metadata": {
+        "role": "user"
+      }
+    },
+    "resource": {
+      "id": "res-007",
+      "type": "session",
+      "name": "Session 001",
+      "metadata": {
+        "duration": "30m"
+      }
+    },
+    "target": null,
+    "occurred_at": "2024-01-02T09:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222222",
+    "request_id": "req-007",
+    "metadata": {
+      "device": "desktop"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333339"
+  },
+  {
+    "event": "user.logout",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111116",
+      "type": "app/user",
+      "name": "Eve Davis",
+      "metadata": {
+        "role": "user"
+      }
+    },
+    "resource": {
+      "id": "res-008",
+      "type": "session",
+      "name": "Session 001",
+      "metadata": {
+        "duration": "30m"
+      }
+    },
+    "target": null,
+    "occurred_at": "2024-01-02T09:30:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222222",
+    "request_id": "req-008",
+    "metadata": {
+      "device": "desktop"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-33333333333a"
+  },
+  {
+    "event": "permission.granted",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111117",
+      "type": "app/user",
+      "name": "Frank Miller",
+      "metadata": {
+        "role": "admin"
+      }
+    },
+    "resource": {
+      "id": "res-009",
+      "type": "role",
+      "name": "Editor Role",
+      "metadata": {
+        "permissions": "[\"read\", \"write\"]"
+      }
+    },
+    "target": {
+      "id": "target-009",
+      "type": "user",
+      "name": "Grace Lee",
+      "metadata": {
+        "status": "active"
+      }
+    },
+    "occurred_at": "2024-01-02T10:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222227",
+    "request_id": "req-009",
+    "metadata": {
+      "reason": "promotion"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-33333333333b"
+  },
+  {
+    "event": "permission.revoked",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111117",
+      "type": "app/user",
+      "name": "Frank Miller",
+      "metadata": {
+        "role": "admin"
+      }
+    },
+    "resource": {
+      "id": "res-010",
+      "type": "role",
+      "name": "Admin Role",
+      "metadata": {
+        "permissions": "[\"read\", \"write\", \"admin\"]"
+      }
+    },
+    "target": {
+      "id": "target-010",
+      "type": "user",
+      "name": "Henry Kim",
+      "metadata": {
+        "status": "suspended"
+      }
+    },
+    "occurred_at": "2024-01-02T11:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222227",
+    "request_id": "req-010",
+    "metadata": {
+      "reason": "violation"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-33333333333c"
+  },
+  {
+    "event": "data.export",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111118",
+      "type": "app/user",
+      "name": "Isabella García",
+      "metadata": {
+        "role": "analyst"
+      }
+    },
+    "resource": {
+      "id": "res-011",
+      "type": "report",
+      "name": "Monthly Report",
+      "metadata": {
+        "format": "csv"
+      }
+    },
+    "target": {
+      "id": "target-011",
+      "type": "database",
+      "name": "Analytics DB",
+      "metadata": {
+        "size": "1GB"
+      }
+    },
+    "occurred_at": "2024-01-03T08:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222228",
+    "request_id": "req-011",
+    "metadata": {
+      "export_type": "monthly"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-33333333333d"
+  },
+  {
+    "event": "user.created",
+    "actor": {
+      "id": "11111111-1111-1111-1111-111111111119",
+      "type": "app/user",
+      "name": "Jack Thompson",
+      "metadata": {
+        "role": "user"
+      }
+    },
+    "resource": {
+      "id": "res-012",
+      "type": "user",
+      "name": "User Jack",
+      "metadata": {
+        "status": "pending"
+      }
+    },
+    "target": null,
+    "occurred_at": "2024-01-03T09:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222229",
+    "request_id": "req-012",
+    "metadata": {
+      "source": "signup"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-33333333333e"
+  },
+  {
+    "event": "user.created", 
+    "actor": {
+      "id": "11111111-1111-1111-1111-11111111111a",
+      "type": "app/user",
+      "name": "Kelly Rodriguez",
+      "metadata": {
+        "role": "user"
+      }
+    },
+    "resource": {
+      "id": "res-013",
+      "type": "user", 
+      "name": "User Kelly",
+      "metadata": {
+        "status": "pending"
+      }
+    },
+    "target": null,
+    "occurred_at": "2024-01-03T10:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-222222222229",
+    "request_id": "req-013",
+    "metadata": {
+      "source": "signup"
+    },
+    "idempotency_key": "33333333-3333-3333-3333-33333333333f"
+  },
+  {
+    "event": "special.event",
+    "actor": {
+      "id": "11111111-1111-1111-1111-11111111111b",
+      "type": "app/user",
+      "name": "Léon François",
+      "metadata": {
+        "role": "user",
+        "locale": "fr"
+      }
+    },
+    "resource": {
+      "id": "res-014",
+      "type": "document",
+      "name": "Ümlauts & Spëcial",
+      "metadata": {
+        "encoding": "utf-8"
+      }
+    },
+    "target": {
+      "id": "target-014",
+      "type": "file",
+      "name": "München Büro",
+      "metadata": {
+        "location": "DE"
+      }
+    },
+    "occurred_at": "2024-01-03T11:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-22222222222a",
+    "request_id": "req-014",
+    "metadata": {
+      "special": "chars: 'quotes' and \"double\""
+    },
+    "idempotency_key": "33333333-3333-3333-3333-333333333340"
+  },
+  {
+    "event": "minimal.event",
+    "actor": {
+      "id": "11111111-1111-1111-1111-11111111111c",
+      "type": "app/user",
+      "name": "Michael Chen",
+      "metadata": {}
+    },
+    "resource": {
+      "id": "res-015",
+      "type": "resource",
+      "name": "Basic Resource",
+      "metadata": {}
+    },
+    "target": null,
+    "occurred_at": "2024-01-03T12:00:00Z",
+    "organization_id": "22222222-2222-2222-2222-22222222222b",
+    "request_id": null,
+    "metadata": {},
+    "idempotency_key": "33333333-3333-3333-3333-333333333341"
+  }
+]

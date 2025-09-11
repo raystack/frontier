@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/salt/rql"
 )
 
 var SuperUserActorMetadataKey = "is_super_user"
@@ -19,6 +20,7 @@ var SuperUserActorMetadataKey = "is_super_user"
 type Repository interface {
 	Create(ctx context.Context, auditRecord AuditRecord) (AuditRecord, error)
 	GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (AuditRecord, error)
+	List(ctx context.Context, query *rql.Query) (AuditRecordsList, error)
 }
 
 type UserService interface {
@@ -100,6 +102,10 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 
 	createdRecord, err := s.repository.Create(ctx, auditRecord)
 	return createdRecord, false, err
+}
+
+func (s *Service) List(ctx context.Context, query *rql.Query) (AuditRecordsList, error) {
+	return s.repository.List(ctx, query)
 }
 
 func computeHash(auditRecord AuditRecord) string {

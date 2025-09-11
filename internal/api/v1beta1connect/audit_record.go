@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 
 	"connectrpc.com/connect"
@@ -10,7 +11,9 @@ import (
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -21,6 +24,7 @@ const (
 
 type AuditRecordService interface {
 	Create(ctx context.Context, record auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error)
+	List(ctx context.Context, query *rql.Query) (auditrecord.AuditRecordsList, error)
 }
 
 func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect.Request[frontierv1beta1.CreateAuditRecordRequest]) (*connect.Response[frontierv1beta1.CreateAuditRecordResponse], error) {
@@ -93,6 +97,60 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 		response.Header().Set(IdempotencyReplyHeader, "true")
 	}
 	return response, nil
+}
+
+func (h *ConnectHandler) ListAuditRecords(ctx context.Context, request *connect.Request[frontierv1beta1.ListAuditRecordsRequest]) (*connect.Response[frontierv1beta1.ListAuditRecordsResponse], error) {
+	requestQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), auditrecord.AuditRecordRQLSchema{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to transform rql query: %v", err))
+	}
+	err = rql.ValidateQuery(requestQuery, auditrecord.AuditRecordRQLSchema{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
+	}
+	records, err := h.auditRecordService.List(ctx, requestQuery)
+	if err != nil {
+		switch {
+		case errors.Is(err, auditrecord.ErrInvalidUUID) || errors.Is(err, auditrecord.ErrRepositoryBadInput):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, auditrecord.ErrNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	pbRecords := make([]*frontierv1beta1.AuditRecord, 0)
+	for _, auditRecord := range records.AuditRecords {
+		pbRecord, err := TransformAuditRecordToPB(auditRecord)
+		if err != nil {
+			return nil, err
+		}
+		pbRecords = append(pbRecords, pbRecord.GetAuditRecord())
+	}
+
+	var pbGroups *frontierv1beta1.RQLQueryGroupResponse
+
+	if records.Group != nil && len(records.Group.Data) > 0 {
+		groupResponse := make([]*frontierv1beta1.RQLQueryGroupData, 0)
+		for _, groupItem := range records.Group.Data {
+			groupResponse = append(groupResponse, &frontierv1beta1.RQLQueryGroupData{
+				Name:  groupItem.Name,
+				Count: uint32(groupItem.Count),
+			})
+		}
+		pbGroups = &frontierv1beta1.RQLQueryGroupResponse{
+			Name: records.Group.Name,
+			Data: groupResponse,
+		}
+	}
+
+	pagination := &frontierv1beta1.RQLQueryPaginationResponse{
+		Offset:     uint32(records.Page.Offset),
+		Limit:      uint32(records.Page.Limit),
+		TotalCount: uint32(records.Page.TotalCount),
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListAuditRecordsResponse{AuditRecords: pbRecords, Group: pbGroups, Pagination: pagination}), nil
 }
 
 func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.CreateAuditRecordResponse, error) {
