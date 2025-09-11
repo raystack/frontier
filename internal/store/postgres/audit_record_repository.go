@@ -43,14 +43,14 @@ func NewAuditRecordRepository(dbc *db.Client) *AuditRecordRepository {
 var (
 	auditRecordRQLFilterSupportedColumns = []string{
 		"event", "actor_id", "actor_type", "actor_name", "resource_id", "resource_type", "resource_name",
-		"target_id", "target_type", "target_name", "occurred_at", "organization_id", "request_id", "created_at", "idempotency_key",
+		"target_id", "target_type", "target_name", "occurred_at", "org_id", "req_id", "created_at", "idempotency_key",
 	}
 	auditRecordRQLSearchSupportedColumns = []string{
 		"id", "event", "actor_id", "actor_type", "actor_name", "resource_id", "resource_type", "resource_name",
-		"target_id", "target_type", "target_name", "organization_id", "request_id", "idempotency_key",
+		"target_id", "target_type", "target_name", "org_id", "req_id", "idempotency_key",
 	}
 	auditRecordRQLGroupSupportedColumns = []string{
-		"event", "actor_type", "resource_type", "target_type", "organization_id",
+		"event", "actor_type", "resource_type", "target_type", "org_id",
 	}
 )
 

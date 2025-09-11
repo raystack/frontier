@@ -711,7 +711,7 @@ func (s *AuditRecordRepositoryTestSuite) TestList_Filtering() {
 			Setup: func(t *testing.T) *rql.Query {
 				t.Helper()
 				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
-					Name:     "organization_id",
+					Name:     "org_id",
 					Operator: "eq",
 					Value:    "22222222-2222-2222-2222-222222222222",
 				}}, []rql.Sort{}, []string{})
@@ -778,7 +778,7 @@ func (s *AuditRecordRepositoryTestSuite) TestList_Filtering() {
 						Value:    "user.created",
 					},
 					{
-						Name:     "organization_id",
+						Name:     "org_id",
 						Operator: "eq",
 						Value:    "22222222-2222-2222-2222-222222222229",
 					},
@@ -955,14 +955,14 @@ func (s *AuditRecordRepositoryTestSuite) TestList_Grouping() {
 			},
 		},
 		{
-			Description: "should group by organization_id",
+			Description: "should group by org_id",
 			Setup: func(t *testing.T) *rql.Query {
 				t.Helper()
-				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{"organization_id"})
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{"org_id"})
 			},
 			ExpectedGroups: 7, // Different organizations in test data
 			ValidateFunc: func(group *utils.Group) bool {
-				return group.Name == "organization_id" && len(group.Data) > 0
+				return group.Name == "org_id" && len(group.Data) > 0
 			},
 		},
 	}
