@@ -18,7 +18,7 @@ type ConnectHandler struct {
 	frontierv1beta1connect.UnimplementedFrontierServiceHandler
 
 	authConfig                       authenticate.Config
-	metadataConfig                   utils.MetadataConfig
+	metadataConfig                   utils.SessionMetadataConfig
 	orgService                       apiv1beta1.OrganizationService
 	orgKycService                    apiv1beta1.KycService
 	projectService                   apiv1beta1.ProjectService
@@ -64,7 +64,7 @@ type ConnectHandler struct {
 	userProjectsService              apiv1beta1.UserProjectsService
 }
 
-func NewConnectHandler(deps api.Deps, authConf authenticate.Config, metadataConfig utils.MetadataConfig) *ConnectHandler {
+func NewConnectHandler(deps api.Deps, authConf authenticate.Config, metadataConfig utils.SessionMetadataConfig) *ConnectHandler {
 	return &ConnectHandler{
 		authConfig:                       authConf,
 		metadataConfig:                   metadataConfig,
