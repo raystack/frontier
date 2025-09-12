@@ -393,7 +393,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 				},
 				OccurredAt:     timestamppb.New(testTime),
 				OrgId:          testOrgID,
-				ReqId:          testRequestID,
+				RequestId:      testRequestID,
 				IdempotencyKey: uuid.Nil.String(),
 			}),
 			want: connect.NewResponse(&frontierv1beta1.CreateAuditRecordResponse{
@@ -414,7 +414,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 					},
 					OccurredAt: timestamppb.New(testTime),
 					OrgId:      testOrgID,
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					CreatedAt:  timestamppb.New(testTime),
 					Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
 				},
@@ -696,7 +696,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 				},
 				OccurredAt: timestamppb.New(testTime),
 				OrgId:      testOrgID,
-				ReqId:      testRequestID,
+				RequestId:  testRequestID,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"action": {Kind: &structpb.Value_StringValue{StringValue: "grant"}},
@@ -743,7 +743,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 					},
 					OccurredAt: timestamppb.New(testTime),
 					OrgId:      testOrgID,
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					CreatedAt:  timestamppb.New(testTime),
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -933,7 +933,7 @@ func TestTransformAuditRecordToPB(t *testing.T) {
 					OccurredAt: timestamppb.New(testTime),
 					CreatedAt:  timestamppb.New(testTime),
 					OrgId:      "org-123",
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
 				},
 			},
@@ -1013,7 +1013,7 @@ func TestTransformAuditRecordToPB(t *testing.T) {
 					OccurredAt: timestamppb.New(testTime),
 					CreatedAt:  timestamppb.New(testTime),
 					OrgId:      "org-123",
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"action": {Kind: &structpb.Value_StringValue{StringValue: "grant"}},
@@ -1550,7 +1550,7 @@ func TestHandler_ListAuditRecords(t *testing.T) {
 						OccurredAt: timestamppb.New(testTime),
 						CreatedAt:  timestamppb.New(testTime),
 						OrgId:      testOrgID,
-						ReqId:      "req-123",
+						RequestId:  "req-123",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{
 								"action": {Kind: &structpb.Value_StringValue{StringValue: "grant"}},

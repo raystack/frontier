@@ -54,8 +54,8 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 	}
 
 	var requestID *string
-	if request.Msg.GetReqId() != "" {
-		reqID := request.Msg.GetReqId()
+	if request.Msg.GetRequestId() != "" {
+		reqID := request.Msg.GetRequestId()
 		requestID = &reqID
 	}
 
@@ -179,9 +179,9 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 		}
 	}
 
-	var reqId string
+	var requestID string
 	if record.RequestID != nil {
-		reqId = *record.RequestID
+		requestID = *record.RequestID
 	}
 
 	metaData, err := record.Metadata.ToStructPB()
@@ -208,7 +208,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 			Target:     target,
 			OccurredAt: timestamppb.New(record.OccurredAt),
 			OrgId:      record.OrgID,
-			ReqId:      reqId,
+			RequestId:  requestID,
 			CreatedAt:  timestamppb.New(record.CreatedAt),
 			Metadata:   metaData,
 		},

@@ -46721,7 +46721,7 @@ func (m *CreateAuditRecordRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for ReqId
+	// no validation rules for RequestId
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
