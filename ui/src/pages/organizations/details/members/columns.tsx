@@ -6,14 +6,18 @@ import {
   Text,
   DropdownMenu,
 } from "@raystack/apsara";
-import {
-  SearchOrganizationUsersResponseOrganizationUser,
-  V1Beta1Role,
-} from "~/api/frontier";
+import type {
+  SearchOrganizationUsersResponse_OrganizationUser,
+} from "@raystack/proton/frontier";
+import type { V1Beta1Role } from "~/api/frontier";
 import styles from "./members.module.css";
 import dayjs from "dayjs";
-import { NULL_DATE } from "~/utils/constants";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import {
+  isNullTimestamp,
+  TimeStamp,
+  timestampToDate,
+} from "~/utils/connect-timestamp";
 
 const MemberStates = {
   enabled: "Active",
@@ -23,10 +27,10 @@ const MemberStates = {
 interface getColumnsOptions {
   roles: V1Beta1Role[];
   handleAssignRoleAction: (
-    user: SearchOrganizationUsersResponseOrganizationUser,
+    user: SearchOrganizationUsersResponse_OrganizationUser,
   ) => void;
   handleRemoveMemberAction: (
-    user: SearchOrganizationUsersResponseOrganizationUser,
+    user: SearchOrganizationUsersResponse_OrganizationUser,
   ) => void;
 }
 
@@ -35,7 +39,7 @@ export const getColumns = ({
   handleAssignRoleAction,
   handleRemoveMemberAction,
 }: getColumnsOptions): DataTableColumnDef<
-  SearchOrganizationUsersResponseOrganizationUser,
+  SearchOrganizationUsersResponse_OrganizationUser,
   unknown
 >[] => {
   const roleMap = roles.reduce(
@@ -82,10 +86,11 @@ export const getColumns = ({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "role_ids",
+      accessorKey: "roleIds",
       header: "Role",
       cell: ({ getValue }) => {
-        return roleMap[getValue() as string] || "-";
+        const roleIds = getValue() as string[];
+        return roleIds.map((id) => roleMap[id] || "-").join(", ");
       },
       enableColumnFilter: true,
       filterType: "select",
@@ -109,11 +114,14 @@ export const getColumns = ({
       enableHiding: true,
     },
     {
-      accessorKey: "org_joined_at",
+      accessorKey: "orgJoinedAt",
       header: "Joined On",
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return <Text>{date}</Text>;
       },
       enableSorting: true,
       enableHiding: true,

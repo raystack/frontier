@@ -1,19 +1,25 @@
-import {
-  DataTable,
-  DataTableQuery,
-  DataTableSort,
-  EmptyState,
-  Flex,
-} from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./tokens.module.css";
 import { CoinIcon } from "@raystack/apsara/icons";
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
-import { api } from "~/api";
-import { SearchOrganizationTokensResponseOrganizationToken } from "~/api/frontier";
-import { useRQL } from "~/hooks/useRQL";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { useInfiniteQuery } from "@connectrpc/connect-query";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import {
+  getConnectNextPageParam,
+  DEFAULT_PAGE_SIZE,
+} from "~/utils/connect-pagination";
 import { getColumns } from "./columns";
+
+const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE,
+};
 
 const NoTokens = () => {
   return (
@@ -23,13 +29,25 @@ const NoTokens = () => {
         subHeading: styles["empty-state-subheading"],
       }}
       heading="No tokens present"
-      subHeading="We couldn’t find any matches for that keyword or filter. Try alternative terms or check for typos."
+      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
       icon={<CoinIcon />}
     />
   );
 };
 
-const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const ErrorState = () => {
+  return (
+    <EmptyState
+      classNames={{
+        container: styles["empty-state"],
+        subHeading: styles["empty-state-subheading"],
+      }}
+      heading="Error Loading Tokens"
+      subHeading="Something went wrong while loading organization tokens. Please try refreshing the page."
+      icon={<ExclamationTriangleIcon />}
+    />
+  );
+};
 
 export function OrganizationTokensPage() {
   const { organization, search } = useContext(OrganizationContext);
@@ -40,29 +58,67 @@ export function OrganizationTokensPage() {
     query: searchQuery,
   } = search;
 
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+
   const title = `Tokens | ${organization?.title} | Organizations`;
 
-  const apiCallback = useCallback(
-    async (apiQuery: DataTableQuery = {}) => {
-      const response = await api?.adminServiceSearchOrganizationTokens(
-        organizationId,
-        { ...apiQuery, search: searchQuery || "" },
-      );
-      return response?.data;
+  // Transform the DataTableQuery to RQLRequest format
+  const query = transformDataTableQueryToRQLRequest(tableQuery, {
+    fieldNameMapping: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      expiresAt: "expires_at",
+      transactionId: "transaction_id",
+      userId: "user_id",
+      userTitle: "user_title",
+      userAvatar: "user_avatar",
     },
-    [organizationId, searchQuery],
+  });
+
+  // Add search to the query if present
+  if (searchQuery) {
+    query.search = searchQuery;
+  }
+
+  const {
+    data: infiniteData,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+  } = useInfiniteQuery(
+    AdminServiceQueries.searchOrganizationTokens,
+    { id: organizationId, query: query },
+    {
+      enabled: !!organizationId,
+      pageParamKey: "query",
+      getNextPageParam: (lastPage) =>
+        getConnectNextPageParam(
+          lastPage,
+          { query: query },
+          "organizationTokens",
+        ),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+    },
   );
 
-  const { data, loading, query, onTableQueryChange, fetchMore } =
-    useRQL<SearchOrganizationTokensResponseOrganizationToken>({
-      initialQuery: { offset: 0 },
-      key: organizationId,
-      dataKey: "organization_tokens",
-      fn: apiCallback,
-      searchParam: searchQuery || "",
-      onError: (error: Error | unknown) =>
-        console.error("Failed to fetch tokens:", error),
-    });
+  const data =
+    infiniteData?.pages?.flatMap((page) => page.organizationTokens) || [];
+  const loading = (isLoading || isFetchingNextPage) && !isError;
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery(newQuery);
+  };
+
+  const fetchMore = async () => {
+    if (hasNextPage && !isFetchingNextPage && !isError) {
+      await fetchNextPage();
+    }
+  };
 
   useEffect(() => {
     setSearchVisibility(true);
@@ -72,8 +128,6 @@ export function OrganizationTokensPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  const isLoading = loading;
-
   const columns = useMemo(() => getColumns(), []);
 
   return (
@@ -82,17 +136,17 @@ export function OrganizationTokensPage() {
       <DataTable
         columns={columns}
         data={data}
-        isLoading={isLoading}
+        isLoading={loading}
         defaultSort={DEFAULT_SORT}
         mode="server"
         onTableQueryChange={onTableQueryChange}
         onLoadMore={fetchMore}
-        query={{ ...query, search: searchQuery }}
+        query={tableQuery}
       >
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content
-            emptyState={<NoTokens />}
+            emptyState={isError ? <ErrorState /> : <NoTokens />}
             classNames={{
               table: styles["table"],
               root: styles["table-wrapper"],

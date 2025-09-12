@@ -3,10 +3,10 @@ import styles from "./side-panel.module.css";
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";
-import {
-  SearchUserOrganizationsResponseUserOrganization,
-  V1Beta1Role,
-} from "~/api/frontier";
+import { SearchUserOrganizationsResponseUserOrganization } from "~/api/frontier";
+import { create } from "@bufbuild/protobuf";
+import { SearchOrganizationUsersResponse_OrganizationUserSchema } from "@raystack/proton/frontier";
+import type { V1Beta1Role } from "~/api/frontier";
 import { SCOPES } from "~/utils/constants";
 import { AssignRole } from "~/components/assign-role";
 import { useUser } from "../user-context";
@@ -81,12 +81,12 @@ export const MembershipDropdown = ({
       {isAssignRoleDialogOpen && data?.org_id && (
         <AssignRole
           roles={roles}
-          user={{
+          user={create(SearchOrganizationUsersResponse_OrganizationUserSchema, {
             ...user,
-            role_ids: data?.role_ids,
-            role_titles: data?.role_titles,
-            role_names: data?.role_names,
-          }}
+            roleNames: data?.role_names || [],
+            roleTitles: data?.role_titles || [],
+            roleIds: data?.role_ids || [],
+          })}
           organizationId={data.org_id}
           onRoleUpdate={onRoleUpdate}
           onClose={toggleAssignRoleDialog}
