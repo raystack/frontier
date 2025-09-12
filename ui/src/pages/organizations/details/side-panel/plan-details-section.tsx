@@ -49,7 +49,7 @@ export const PlanDetailsSection = () => {
   const isLoading = isSubscriptionLoading;
 
   return (
-    <List.Root>
+    <List>
       <List.Header>Plan details</List.Header>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
@@ -101,6 +101,6 @@ export const PlanDetailsSection = () => {
           )}
         </List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

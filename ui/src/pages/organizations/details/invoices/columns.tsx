@@ -2,7 +2,14 @@ import { NULL_DATE } from "~/utils/constants";
 import styles from "./invoices.module.css";
 import dayjs from "dayjs";
 import { DataTableColumnDef, Link, Amount } from "@raystack/apsara";
-import { SearchOrganizationInvoicesResponseOrganizationInvoice } from "~/api/frontier";
+import type {
+  SearchOrganizationInvoicesResponse_OrganizationInvoice,
+} from "@raystack/proton/frontier";
+import {
+  isNullTimestamp,
+  TimeStamp,
+  timestampToDate,
+} from "~/utils/connect-timestamp";
 
 // https://docs.stripe.com/invoicing/overview#invoice-statuses
 const InvoiceStatusesMap = {
@@ -22,19 +29,22 @@ interface getColumnsOptions {
 export const getColumns = ({
   groupCountMap,
 }: getColumnsOptions): DataTableColumnDef<
-  SearchOrganizationInvoicesResponseOrganizationInvoice,
+  SearchOrganizationInvoicesResponse_OrganizationInvoice,
   unknown
 >[] => [
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Billed on",
     classNames: {
       cell: styles["first-column"],
       header: styles["first-column"],
     },
     cell: ({ getValue }) => {
-      const value = getValue() as string;
-      return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+      const value = getValue() as TimeStamp;
+      const date = isNullTimestamp(value)
+        ? "-"
+        : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+      return date;
     },
     enableSorting: true,
     enableColumnFilter: true,
@@ -72,7 +82,7 @@ export const getColumns = ({
     filterType: "number",
   },
   {
-    accessorKey: "invoice_link",
+    accessorKey: "invoiceLink",
     header: "",
     cell: ({ getValue }) => {
       const value = getValue() as string;

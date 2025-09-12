@@ -18,7 +18,7 @@ export const OrganizationDetailsSection = ({
   const { config } = useContext(AppContext);
 
   return (
-    <List.Root>
+    <List>
       <List.Header>Organization Details</List.Header>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
@@ -103,6 +103,6 @@ export const OrganizationDetailsSection = ({
         </List.Label>
         <List.Value>{organization?.state}</List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

@@ -9,7 +9,7 @@ export const SidePanelDetails = () => {
   const { user } = useUser();
 
   return (
-    <List.Root>
+    <List>
       <List.Header>User Details</List.Header>
       <List.Item>
         <List.Label minWidth="120px">ID</List.Label>
@@ -43,6 +43,6 @@ export const SidePanelDetails = () => {
           {user?.state ? USER_STATES?.[user.state as UserState] : "-"}
         </List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

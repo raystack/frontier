@@ -2,17 +2,32 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import styles from "./members.module.css";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { api } from "~/api";
+import { useContext, useEffect, useState } from "react";
 import { getColumns } from "./columns";
-import type { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier";
+import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
+import {
+  useInfiniteQuery,
+  createConnectQueryKey,
+  useTransport,
+} from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
 import UserIcon from "~/assets/icons/users.svg?react";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { OrganizationContext } from "../contexts/organization-context";
 import { AssignRole } from "~/components/assign-role";
 import { RemoveMember } from "./remove-member";
-import { useRQL } from "~/hooks/useRQL";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import {
+  getConnectNextPageParam,
+  DEFAULT_PAGE_SIZE,
+} from "~/utils/connect-pagination";
 
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE,
+};
 
 const NoMembers = () => {
   return (
@@ -22,8 +37,22 @@ const NoMembers = () => {
         subHeading: styles["empty-state-subheading"],
       }}
       heading="No Member found"
-      subHeading="We couldn’t find any matches for that keyword or filter. Try alternative terms or check for typos."
+      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
       icon={<UserIcon />}
+    />
+  );
+};
+
+const ErrorState = () => {
+  return (
+    <EmptyState
+      classNames={{
+        container: styles["empty-state"],
+        subHeading: styles["empty-state-subheading"],
+      }}
+      heading="Error Loading Members"
+      subHeading="Something went wrong while loading organization members. Please try refreshing the page."
+      icon={<ExclamationTriangleIcon />}
     />
   );
 };
@@ -35,41 +64,73 @@ export function OrganizationMembersPage() {
     setVisibility: setSearchVisibility,
     query: searchQuery,
   } = search;
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const organizationId = organization?.id || "";
 
   const [assignRoleConfig, setAssignRoleConfig] = useState<{
     isOpen: boolean;
-    user: SearchOrganizationUsersResponseOrganizationUser | null;
+    user: SearchOrganizationUsersResponse_OrganizationUser | null;
   }>({ isOpen: false, user: null });
   const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
-    user: SearchOrganizationUsersResponseOrganizationUser | null;
+    user: SearchOrganizationUsersResponse_OrganizationUser | null;
   }>({ isOpen: false, user: null });
 
   const title = `Members | ${organization?.title} | Organizations`;
 
-  const apiCallback = useCallback(
-    async (apiQuery: DataTableQuery = {}) => {
-      const response = await api?.adminServiceSearchOrganizationUsers(
-        organizationId,
-        { ...apiQuery, search: searchQuery || "" },
-      );
-      return response?.data;
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+
+  // Transform the DataTableQuery to RQLRequest format
+  const query = transformDataTableQueryToRQLRequest(tableQuery, {
+    fieldNameMapping: {
+      orgJoinedAt: "org_joined_at",
+      roleIds: "role_ids",
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     },
-    [organizationId, searchQuery],
+  });
+
+  // Add search to the query if present
+  if (searchQuery) {
+    query.search = searchQuery;
+  }
+
+  const {
+    data: infiniteData,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+  } = useInfiniteQuery(
+    AdminServiceQueries.searchOrganizationUsers,
+    { id: organizationId, query: query },
+    {
+      enabled: !!organizationId,
+      pageParamKey: "query",
+      getNextPageParam: (lastPage) =>
+        getConnectNextPageParam(lastPage, { query: query }, "orgUsers"),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+    },
   );
 
-  const { data, setData, loading, query, onTableQueryChange, fetchMore } =
-    useRQL<SearchOrganizationUsersResponseOrganizationUser>({
-      initialQuery: { offset: 0 },
-      key: organizationId,
-      dataKey: "org_users",
-      fn: apiCallback,
-      searchParam: searchQuery || "",
-      onError: (error: Error | unknown) =>
-        console.error("Failed to fetch tokens:", error),
-    });
+  const data = infiniteData?.pages?.flatMap((page) => page.orgUsers) || [];
+  const loading = (isLoading || isFetchingNextPage) && !isError;
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery(newQuery);
+  };
+
+  const fetchMore = async () => {
+    if (hasNextPage && !isFetchingNextPage && !isError) {
+      await fetchNextPage();
+    }
+  };
 
   useEffect(() => {
     setSearchVisibility(true);
@@ -80,7 +141,7 @@ export function OrganizationMembersPage() {
   }, [setSearchVisibility, onSearchChange]);
 
   function openAssignRoleDialog(
-    user: SearchOrganizationUsersResponseOrganizationUser,
+    user: SearchOrganizationUsersResponse_OrganizationUser,
   ) {
     setAssignRoleConfig({ isOpen: true, user });
   }
@@ -90,7 +151,7 @@ export function OrganizationMembersPage() {
   }
 
   function openRemoveMemberDialog(
-    user: SearchOrganizationUsersResponseOrganizationUser,
+    user: SearchOrganizationUsersResponse_OrganizationUser,
   ) {
     setRemoveMemberConfig({ isOpen: true, user });
   }
@@ -105,25 +166,29 @@ export function OrganizationMembersPage() {
     handleRemoveMemberAction: openRemoveMemberDialog,
   });
 
-  async function updateMember(
-    user: SearchOrganizationUsersResponseOrganizationUser,
-  ) {
-    setData((prevMembers) => {
-      const updatedMembers = prevMembers.map((member) =>
-        member.id === user.id ? user : member,
-      );
-      return updatedMembers;
+  async function invalidateMembersQuery() {
+    await queryClient.invalidateQueries({
+      queryKey: createConnectQueryKey({
+        schema: AdminServiceQueries.searchOrganizationUsers,
+        transport,
+        input: {},
+        cardinality: "infinite",
+      }),
     });
+  }
+
+  async function updateMember() {
     setAssignRoleConfig({ isOpen: false, user: null });
+    // Invalidate and refetch the query
+    await invalidateMembersQuery();
   }
 
   async function removeMember(
-    user: SearchOrganizationUsersResponseOrganizationUser,
+    userToRemove: SearchOrganizationUsersResponse_OrganizationUser,
   ) {
-    setData((prevMembers) => {
-      return prevMembers.filter((member) => member.id !== user.id);
-    });
     setRemoveMemberConfig({ isOpen: false, user: null });
+    // Invalidate and refetch the query
+    await invalidateMembersQuery();
   }
 
   return (
@@ -156,12 +221,12 @@ export function OrganizationMembersPage() {
           mode="server"
           onTableQueryChange={onTableQueryChange}
           onLoadMore={fetchMore}
-          query={{ ...query, search: searchQuery }}
+          query={tableQuery}
         >
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content
-              emptyState={<NoMembers />}
+              emptyState={isError ? <ErrorState /> : <NoMembers />}
               classNames={{
                 table: styles["table"],
                 root: styles["table-wrapper"],

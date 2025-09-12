@@ -1,6 +1,8 @@
 import { Button, Dialog, Flex, InputField, toast } from "@raystack/apsara";
 import { api } from "~/api";
-import { SearchOrganizationProjectsResponseOrganizationProject } from "~/api/frontier";
+import type {
+  SearchOrganizationProjectsResponse_OrganizationProject,
+} from "@raystack/proton/frontier";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,9 +19,9 @@ type ProjectRenameSchema = z.infer<typeof projectRenameSchema>;
 
 interface RenameProjectDialogProps {
   onClose: () => void;
-  project: SearchOrganizationProjectsResponseOrganizationProject;
+  project: SearchOrganizationProjectsResponse_OrganizationProject;
   onRename: (
-    project: SearchOrganizationProjectsResponseOrganizationProject,
+    project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
 }
 
@@ -40,7 +42,7 @@ export function RenameProjectDialog({
     defaultValues: {
       title: project?.title,
       name: project?.name,
-      org_id: project?.organization_id,
+      org_id: project?.organizationId,
     },
     resolver: zodResolver(projectRenameSchema),
   });

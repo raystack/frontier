@@ -2,19 +2,32 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import styles from "./projects.module.css";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { api } from "~/api";
+import { useContext, useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import type {
-  SearchOrganizationProjectsResponseOrganizationProject,
-  Frontierv1Beta1Project,
-} from "~/api/frontier";
+  SearchOrganizationProjectsResponse_OrganizationProject,
+} from "@raystack/proton/frontier";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
+import {
+  useInfiniteQuery,
+  createConnectQueryKey,
+  useTransport,
+} from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { OrganizationContext } from "../contexts/organization-context";
-import { FileIcon } from "@radix-ui/react-icons";
+import { FileIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProjectMembersDialog } from "./members";
-import { useRQL } from "~/hooks/useRQL";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import {
+  getConnectNextPageParam,
+  DEFAULT_PAGE_SIZE,
+} from "~/utils/connect-pagination";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE,
+};
 
 const NoProjects = () => {
   return (
@@ -24,8 +37,22 @@ const NoProjects = () => {
         subHeading: styles["empty-state-subheading"],
       }}
       heading="No Projects found"
-      subHeading="We couldn’t find any matches for that keyword or filter. Try alternative terms or check for typos."
+      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
       icon={<FileIcon />}
+    />
+  );
+};
+
+const ErrorState = () => {
+  return (
+    <EmptyState
+      classNames={{
+        container: styles["empty-state"],
+        subHeading: styles["empty-state-subheading"],
+      }}
+      heading="Error Loading Projects"
+      subHeading="Something went wrong while loading organization projects. Please try refreshing the page."
+      icon={<ExclamationTriangleIcon />}
     />
   );
 };
@@ -38,6 +65,8 @@ export function OrganizationProjectssPage() {
     setVisibility: setSearchVisibility,
     query: searchQuery,
   } = search;
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const organizationId = organization?.id || "";
 
@@ -46,34 +75,71 @@ export function OrganizationProjectssPage() {
     projectId: "",
   });
 
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+
   const title = `Projects | ${organization?.title} | Organizations`;
 
-  const apiCallback = useCallback(
-    async (apiQuery: DataTableQuery = {}) => {
-      const response = await api?.adminServiceSearchOrganizationProjects(
-        organizationId,
-        { ...apiQuery, search: searchQuery || "" },
-      );
-      return response?.data;
+  // Transform the DataTableQuery to RQLRequest format
+  const query = transformDataTableQueryToRQLRequest(tableQuery, {
+    fieldNameMapping: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      userIds: "user_ids",
     },
-    [organizationId, searchQuery],
+  });
+
+  // Add search to the query if present
+  if (searchQuery) {
+    query.search = searchQuery;
+  }
+
+  const {
+    data: infiniteData,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+  } = useInfiniteQuery(
+    AdminServiceQueries.searchOrganizationProjects,
+    { id: organizationId, query: query },
+    {
+      enabled: !!organizationId,
+      pageParamKey: "query",
+      getNextPageParam: (lastPage) =>
+        getConnectNextPageParam(lastPage, { query: query }, "orgProjects"),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+    },
   );
 
-  const { data, setData, loading, query, onTableQueryChange, fetchMore } =
-    useRQL<SearchOrganizationProjectsResponseOrganizationProject>({
-      initialQuery: { offset: 0 },
-      key: organizationId,
-      dataKey: "org_projects",
-      fn: apiCallback,
-      searchParam: searchQuery || "",
-      onError: (error: Error | unknown) =>
-        console.error("Failed to fetch tokens:", error),
-    });
+  const data = infiniteData?.pages?.flatMap((page) => page.orgProjects) || [];
+  const loading = (isLoading || isFetchingNextPage || isOrgMembersMapLoading) && !isError;
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery(newQuery);
+  };
+
+  const fetchMore = async () => {
+    if (hasNextPage && !isFetchingNextPage && !isError) {
+      await fetchNextPage();
+    }
+  };
 
   function handleProjectUpdate(
-    project: SearchOrganizationProjectsResponseOrganizationProject,
+    project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) {
-    setData((prev) => prev.map((p) => (p.id === project.id ? project : p)));
+    // Invalidate and refetch the query instead of manually updating
+    queryClient.invalidateQueries({
+      queryKey: createConnectQueryKey({
+        schema: AdminServiceQueries.searchOrganizationProjects,
+        transport,
+        input: {},
+        cardinality: "infinite",
+      }),
+    });
   }
 
   useEffect(() => {
@@ -84,7 +150,7 @@ export function OrganizationProjectssPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  function handleMemberDialogOpen(project: Frontierv1Beta1Project) {
+  function handleMemberDialogOpen(project: SearchOrganizationProjectsResponse_OrganizationProject) {
     setMemberDialogConfig({
       projectId: project.id || "",
       open: true,
@@ -100,8 +166,6 @@ export function OrganizationProjectssPage() {
 
   const columns = getColumns({ orgMembersMap, handleProjectUpdate });
 
-  const isLoading = isOrgMembersMapLoading || loading;
-
   return (
     <>
       {memberDialogConfig.open && memberDialogConfig.projectId ? (
@@ -115,18 +179,18 @@ export function OrganizationProjectssPage() {
         <DataTable
           columns={columns}
           data={data}
-          isLoading={isLoading}
+          isLoading={loading}
           defaultSort={DEFAULT_SORT}
           mode="server"
           onTableQueryChange={onTableQueryChange}
           onLoadMore={fetchMore}
-          query={{ ...query, search: searchQuery }}
+          query={tableQuery}
           onRowClick={handleMemberDialogOpen}
         >
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content
-              emptyState={<NoProjects />}
+              emptyState={isError ? <ErrorState /> : <NoProjects />}
               classNames={{
                 table: styles["table"],
                 root: styles["table-wrapper"],
