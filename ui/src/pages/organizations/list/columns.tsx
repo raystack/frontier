@@ -6,7 +6,7 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
-import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
+import { V1Beta1Plan } from "@raystack/frontier";
 import type { SearchOrganizationsResponse_OrganizationResult } from "@raystack/proton/frontier";
 import {
   isNullTimestamp,
@@ -15,7 +15,6 @@ import {
 } from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
-import { NULL_DATE } from "~/utils/constants";
 
 export const SUBSCRIPTION_STATES = {
   active: "Active",

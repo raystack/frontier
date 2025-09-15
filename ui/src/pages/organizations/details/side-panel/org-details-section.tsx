@@ -1,13 +1,14 @@
-import { V1Beta1Organization } from "@raystack/frontier";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
 import { useContext } from "react";
 import { AppContext } from "~/contexts/App";
+import type { Organization } from "@raystack/proton/frontier";
+import { timestampToDate } from "~/utils/connect-timestamp";
 
 interface OrganizationDetailsSectionProps {
-  organization: V1Beta1Organization;
+  organization: Organization;
 }
 
 type Metadata = Record<string, any>;
@@ -55,7 +56,11 @@ export const OrganizationDetailsSection = ({
         <List.Value>
           <Flex gap={3}>
             <CalendarIcon />
-            <Text>{dayjs(organization?.created_at).format("DD MMM YYYY")}</Text>
+            <Text>
+              {dayjs(timestampToDate(organization.createdAt)).format(
+                "DD MMM YYYY",
+              )}
+            </Text>
           </Flex>
         </List.Value>
       </List.Item>

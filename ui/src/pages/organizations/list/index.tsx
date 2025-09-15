@@ -7,12 +7,15 @@ import styles from "./list.module.css";
 import { getColumns } from "./columns";
 import { api } from "~/api";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import {
+  AdminServiceQueries,
+  SearchOrganizationsResponse_OrganizationResult,
+} from "@raystack/proton/frontier";
 
 import { useNavigate } from "react-router-dom";
 import PageTitle from "~/components/page-title";
 import { CreateOrganizationPanel } from "./create";
-import type { V1Beta1Organization, V1Beta1Plan } from "~/api/frontier";
+import type { V1Beta1Plan } from "~/api/frontier";
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
@@ -52,13 +55,13 @@ export const OrganizationList = () => {
   // Transform the DataTableQuery to RQLRequest format
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
     fieldNameMapping: {
-      "createdBy": "created_by",
-      "planName": "plan_name",
-      "subscriptionCycleEndAt": "subscription_cycle_end_at",
-      "paymentMode": "payment_mode",
-      "subscriptionState": "subscription_state",
-      "createdAt": "created_at"
-    }
+      createdBy: "created_by",
+      planName: "plan_name",
+      subscriptionCycleEndAt: "subscription_cycle_end_at",
+      paymentMode: "payment_mode",
+      subscriptionState: "subscription_state",
+      createdAt: "created_at",
+    },
   });
 
   const {
@@ -81,8 +84,6 @@ export const OrganizationList = () => {
       retryDelay: 1000,
     },
   );
-
-  console.log(infiniteData);
 
   const data =
     infiniteData?.pages?.flatMap((page) => page?.organizations || []) || [];
@@ -158,7 +159,7 @@ export const OrganizationList = () => {
   const tableClassName =
     data.length || loading ? styles["table"] : styles["table-empty"];
 
-  function onRowClick(row: V1Beta1Organization) {
+  function onRowClick(row: SearchOrganizationsResponse_OrganizationResult) {
     naviagte(`/organizations/${row.id}`);
   }
   return (
