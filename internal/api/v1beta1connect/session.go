@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -85,7 +86,22 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 
 // Ping user current active session.
 func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.PingUserSessionRequest]) (*connect.Response[frontierv1beta1.PingUserSessionResponse], error) {
-	return nil, nil
+	session, err := h.sessionService.ExtractFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "no active session found")
+	}
+
+	if !session.IsValid(time.Now().UTC()) {
+		return nil, status.Error(codes.Unauthenticated, "session has expired")
+	}
+
+	sessionMetadata := utils.ExtractSessionMetadata(ctx, request, h.metadataConfig)
+
+	if err := h.sessionService.PingSession(ctx, session.ID, sessionMetadata); err != nil {
+		return nil, status.Error(codes.Internal, "failed to update session")
+	}
+
+	return connect.NewResponse(&frontierv1beta1.PingUserSessionResponse{}), nil
 }
 
 // Admin APIs

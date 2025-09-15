@@ -28,6 +28,7 @@ type Repository interface {
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
 	List(ctx context.Context, userID string) ([]*Session, error)
 	UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error
+	UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata SessionMetadata, updatedAt time.Time) error
 }
 
 type Service struct {
@@ -144,4 +145,10 @@ func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, e
 // Heartbeat updates last active timestamp without extending expiry
 func (s Service) Heartbeat(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.UpdateLastActive(ctx, sessionID, s.Now())
+}
+
+func (s Service) PingSession(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
+	now := s.Now()
+	
+	return s.repo.UpdateSessionMetadata(ctx, sessionID, metadata, now)
 }

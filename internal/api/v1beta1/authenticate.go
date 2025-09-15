@@ -55,6 +55,7 @@ type SessionService interface {
 	ListSessions(ctx context.Context, userID string) ([]*frontiersession.Session, error)
 	Heartbeat(ctx context.Context, sessionID uuid.UUID) error
 	SoftDelete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error
+	PingSession(ctx context.Context, sessionID uuid.UUID, metadata frontiersession.SessionMetadata) error
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
