@@ -19,7 +19,6 @@ var (
 	ErrBadBodyMetaSchemaError = errors.New(ErrBadRequest.Error() + " : " + ErrInvalidMetadata.Error())
 	ErrInvalidActorType       = errors.New("invalid actor type")
 	ErrActivityRequired       = errors.New("activity is required")
-	ErrEmailInvalid           = errors.New("email is invalid")
 	ErrStatusRequired         = errors.New("status is required")
 	ErrProspectIdRequired     = errors.New("prospect ID is required")
 	ErrProspectNotFound       = errors.New("record not found for the given input")

@@ -34,7 +34,7 @@ func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *conn
 	}
 	metaDataMap, err := buildAndValidateMetadata(request.Msg.GetMetadata().AsMap(), h)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
 	}
 
 	_, err = h.prospectService.Create(ctx, prospect.Prospect{
@@ -52,7 +52,7 @@ func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *conn
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return connect.NewResponse(&frontierv1beta1.CreateProspectPublicResponse{}), nil
 		default:
-			return nil, ErrInternalServerError
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateProspectPublicResponse{}), nil
@@ -74,7 +74,7 @@ func (h *ConnectHandler) CreateProspect(ctx context.Context, request *connect.Re
 	subsStatus := frontierv1beta1.Prospect_Status_name[int32(reqStatus)] // convert using proto methods
 	metaDataMap, err := buildAndValidateMetadata(request.Msg.GetMetadata().AsMap(), h)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
 	}
 
 	newProspect, err := h.prospectService.Create(ctx, prospect.Prospect{
@@ -90,7 +90,7 @@ func (h *ConnectHandler) CreateProspect(ctx context.Context, request *connect.Re
 	if err != nil {
 		switch {
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrConflictRequest)
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -116,7 +116,7 @@ func (h *ConnectHandler) ListProspects(ctx context.Context, request *connect.Req
 
 	prospects, err := h.prospectService.List(ctx, requestQuery)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	var transformedProspects []*frontierv1beta1.Prospect
@@ -164,14 +164,14 @@ func (h *ConnectHandler) GetProspect(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrProspectNotFound)
+			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	transformedProspect, err := transformProspectToPB(prspct)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.GetProspectResponse{Prospect: transformedProspect}), nil
 }
@@ -183,7 +183,7 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 	}
 	email := request.Msg.GetEmail()
 	if !isValidEmail(email) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrEmailInvalid)
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidEmail)
 	}
 	activity := strings.TrimSpace(request.Msg.GetActivity())
 	if activity == "" {
@@ -212,7 +212,7 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 	if err != nil {
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrProspectNotFound)
+			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrConflictRequest)
 		default:
@@ -235,7 +235,7 @@ func (h *ConnectHandler) DeleteProspect(ctx context.Context, request *connect.Re
 	if err != nil {
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrProspectNotFound)
+			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
