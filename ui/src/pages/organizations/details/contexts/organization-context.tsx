@@ -1,7 +1,8 @@
+import { Organization, OrganizationSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 import { createContext } from "react";
 import type {
   V1Beta1Role,
-  V1Beta1Organization,
   V1Beta1BillingAccount,
   V1Beta1User,
   V1Beta1OrganizationKyc,
@@ -17,8 +18,8 @@ export interface SearchConfig {
 
 interface OrganizationContextType {
   roles: V1Beta1Role[];
-  organization?: V1Beta1Organization;
-  updateOrganization: (organization: V1Beta1Organization) => Promise<void>;
+  organization?: Organization;
+  updateOrganization: (organization: Organization) => Promise<void>;
   search: SearchConfig;
   billingAccount?: V1Beta1BillingAccount;
   billingAccountDetails?: V1Beta1BillingAccountDetails;
@@ -37,7 +38,7 @@ interface OrganizationContextType {
 
 export const OrganizationContext = createContext<OrganizationContextType>({
   roles: [],
-  organization: {},
+  organization: create(OrganizationSchema),
   updateOrganization: async () => {},
   setBillingAccountDetails: async () => {},
   billingAccount: {},
