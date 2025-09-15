@@ -21,7 +21,6 @@ import (
 
 func TestHandler_CreateProspectPublic(t *testing.T) {
 	now := time.Now()
-	// // fixedTime := timestamppb.New(now)
 	args := connect.NewRequest(&frontierv1beta1.CreateProspectPublicRequest{
 		Email:    "test@example.com",
 		Activity: "newsletter",
