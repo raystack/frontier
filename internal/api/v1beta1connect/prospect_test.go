@@ -1,11 +1,12 @@
 package v1beta1connect
 
 import (
-	"connectrpc.com/connect"
 	"context"
 	"errors"
 	"testing"
 	"time"
+
+	"connectrpc.com/connect"
 
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
@@ -382,7 +383,7 @@ func TestHandler_GetProspect(t *testing.T) {
 			},
 			req:  connect.NewRequest(&frontierv1beta1.GetProspectRequest{}),
 			want: nil,
-			err:   connect.NewError(connect.CodeInvalidArgument, ErrProspectIdRequired),
+			err:  connect.NewError(connect.CodeInvalidArgument, ErrProspectIdRequired),
 		},
 		{
 			title: "should return success if service returns nil error",
