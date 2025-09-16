@@ -2,8 +2,11 @@ package postgres_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,17 +16,25 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/suite"
+)
+
+const (
+	defaultListLimit  = 50
+	defaultListOffset = 0
 )
 
 type AuditRecordRepositoryTestSuite struct {
 	suite.Suite
-	ctx        context.Context
-	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
-	repository *postgres.AuditRecordRepository
+	ctx          context.Context
+	client       *db.Client
+	pool         *dockertest.Pool
+	resource     *dockertest.Resource
+	repository   *postgres.AuditRecordRepository
+	auditRecords []auditrecord.AuditRecord
 }
 
 func (s *AuditRecordRepositoryTestSuite) SetupSuite() {
@@ -40,8 +51,49 @@ func (s *AuditRecordRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *AuditRecordRepositoryTestSuite) SetupTest() {
-	// For audit records, we typically don't need shared test data
-	// Each test will create its own records
+	// Only bootstrap data for List tests
+	testName := s.T().Name()
+	if strings.Contains(testName, "TestList_") {
+		var err error
+		s.auditRecords, err = s.bootstrapAuditRecords()
+		if err != nil {
+			s.T().Fatal(err)
+		}
+	}
+}
+
+func (s *AuditRecordRepositoryTestSuite) bootstrapAuditRecords() ([]auditrecord.AuditRecord, error) {
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-audit-records.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var fixtureData []auditrecord.AuditRecord
+	if err = json.Unmarshal(testFixtureJSON, &fixtureData); err != nil {
+		return nil, err
+	}
+
+	var insertedData []auditrecord.AuditRecord
+	for _, d := range fixtureData {
+		created, err := s.repository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+		insertedData = append(insertedData, created)
+	}
+
+	return insertedData, nil
+}
+
+// setupListTestData ensures test data is available for List tests
+func (s *AuditRecordRepositoryTestSuite) setupListTestData() {
+	if len(s.auditRecords) == 0 {
+		var err error
+		s.auditRecords, err = s.bootstrapAuditRecords()
+		if err != nil {
+			s.T().Fatal(err)
+		}
+	}
 }
 
 func (s *AuditRecordRepositoryTestSuite) TearDownSuite() {
@@ -519,6 +571,576 @@ func (s *AuditRecordRepositoryTestSuite) TestConcurrency() {
 		// Exactly one should succeed, others should get conflict
 		s.Equal(1, successes, "Exactly one create should succeed")
 		s.Equal(numGoroutines-1, conflicts, "Others should get conflict error")
+	})
+}
+
+// TEST 7: List functionality - Basic operations
+func (s *AuditRecordRepositoryTestSuite) TestList_BasicOperations() {
+	s.setupListTestData()
+
+	type testCase struct {
+		Description string
+		Setup       func(t *testing.T) *rql.Query
+		Expected    auditrecord.AuditRecordsList
+		Err         error
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should list all audit records with default pagination",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			Expected: auditrecord.AuditRecordsList{
+				AuditRecords: s.auditRecords,
+				Page: utils.Page{
+					Limit:      defaultListLimit,
+					Offset:     defaultListOffset,
+					TotalCount: int64(len(s.auditRecords)),
+				},
+			},
+		},
+		{
+			Description: "should return paginated results",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", 1, 2, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			Expected: auditrecord.AuditRecordsList{
+				AuditRecords: s.auditRecords[1:3],
+				Page: utils.Page{
+					Limit:      2,
+					Offset:     1,
+					TotalCount: int64(len(s.auditRecords)),
+				},
+			},
+		},
+		{
+			Description: "should handle high offset returning empty results",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", 100, 10, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			Expected: auditrecord.AuditRecordsList{
+				AuditRecords: []auditrecord.AuditRecord{},
+				Page: utils.Page{
+					Limit:      10,
+					Offset:     100,
+					TotalCount: int64(len(s.auditRecords)),
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			query := tc.Setup(s.T())
+			result, err := s.repository.List(s.ctx, query)
+
+			if tc.Err != nil {
+				s.Error(err)
+				s.ErrorIs(err, tc.Err)
+				return
+			}
+
+			s.NoError(err)
+			s.Equal(tc.Expected.Page.TotalCount, result.Page.TotalCount)
+			s.Equal(tc.Expected.Page.Limit, result.Page.Limit)
+			s.Equal(tc.Expected.Page.Offset, result.Page.Offset)
+			s.Len(result.AuditRecords, len(tc.Expected.AuditRecords))
+		})
+	}
+}
+
+// TEST 8: List functionality - Filtering
+func (s *AuditRecordRepositoryTestSuite) TestList_Filtering() {
+	s.setupListTestData()
+
+	type testCase struct {
+		Description   string
+		Setup         func(t *testing.T) *rql.Query
+		ExpectedCount int
+		ValidateFunc  func([]auditrecord.AuditRecord) bool
+		Err           error
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should filter by event type",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+					Name:     "event",
+					Operator: "eq",
+					Value:    "user.created",
+				}}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 3, // Alice, Jack, Kelly
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				for _, r := range records {
+					if r.Event != "user.created" {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Description: "should filter by actor type",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+					Name:     "actor_type",
+					Operator: "eq",
+					Value:    "system",
+				}}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 1, // System cleanup record
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				for _, r := range records {
+					if r.Actor.Type != "system" {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Description: "should filter by organization ID",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+					Name:     "org_id",
+					Operator: "eq",
+					Value:    "22222222-2222-2222-2222-222222222222",
+				}}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 4, // Alice, Bob, Eve login, Eve logout
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				for _, r := range records {
+					if r.OrgID != "22222222-2222-2222-2222-222222222222" {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Description: "should filter by resource type",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+					Name:     "resource_type",
+					Operator: "eq",
+					Value:    "project",
+				}}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 3, // Alpha, Beta, Gamma projects
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				for _, r := range records {
+					if r.Resource.Type != "project" {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Description: "should filter by date range",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+					Name:     "occurred_at",
+					Operator: "gte",
+					Value:    "2024-01-02T00:00:00Z",
+				}}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 9, // Records from Jan 2nd and 3rd
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				cutoff := time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
+				for _, r := range records {
+					if r.OccurredAt.Before(cutoff) {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Description: "should handle complex AND filtering",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{
+					{
+						Name:     "event",
+						Operator: "eq",
+						Value:    "user.created",
+					},
+					{
+						Name:     "org_id",
+						Operator: "eq",
+						Value:    "22222222-2222-2222-2222-222222222229",
+					},
+				}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 2, // Jack and Kelly
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				for _, r := range records {
+					if r.Event != "user.created" || r.OrgID != "22222222-2222-2222-2222-222222222229" {
+						return false
+					}
+				}
+				return true
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			query := tc.Setup(s.T())
+			result, err := s.repository.List(s.ctx, query)
+
+			if tc.Err != nil {
+				s.Error(err)
+				s.ErrorIs(err, tc.Err)
+				return
+			}
+
+			s.NoError(err)
+			s.Len(result.AuditRecords, tc.ExpectedCount)
+
+			if tc.ValidateFunc != nil {
+				s.True(tc.ValidateFunc(result.AuditRecords), "Validation function should pass")
+			}
+		})
+	}
+}
+
+// TEST 9: List functionality - Search
+func (s *AuditRecordRepositoryTestSuite) TestList_Search() {
+	s.setupListTestData()
+
+	type testCase struct {
+		Description   string
+		Setup         func(t *testing.T) *rql.Query
+		ExpectedCount int
+		ValidateFunc  func([]auditrecord.AuditRecord) bool
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should search by actor name",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("Alice", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 1,
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				return len(records) > 0 && strings.Contains(strings.ToLower(records[0].Actor.Name), "alice")
+			},
+		},
+		{
+			Description: "should search by event name",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("permission", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 2, // permission.granted and permission.revoked
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				for _, r := range records {
+					if !strings.Contains(strings.ToLower(r.Event), "permission") {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Description: "should search by resource name",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("Project", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 3, // Project Alpha, Beta, Gamma
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				for _, r := range records {
+					if !strings.Contains(r.Resource.Name, "Project") {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Description: "should handle unicode search",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("García", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 1,
+			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
+				return len(records) > 0 && strings.Contains(records[0].Actor.Name, "García")
+			},
+		},
+		{
+			Description: "should return empty for no matches",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("NonExistentTerm", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{})
+			},
+			ExpectedCount: 0,
+			ValidateFunc:  nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			query := tc.Setup(s.T())
+			result, err := s.repository.List(s.ctx, query)
+
+			s.NoError(err)
+			s.Len(result.AuditRecords, tc.ExpectedCount)
+
+			if tc.ValidateFunc != nil {
+				s.True(tc.ValidateFunc(result.AuditRecords), "Validation function should pass")
+			}
+		})
+	}
+}
+
+// TEST 10: List functionality - Grouping
+func (s *AuditRecordRepositoryTestSuite) TestList_Grouping() {
+	s.setupListTestData()
+
+	type testCase struct {
+		Description    string
+		Setup          func(t *testing.T) *rql.Query
+		ExpectedGroups int
+		ValidateFunc   func(*utils.Group) bool
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should group by event",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{"event"})
+			},
+			ExpectedGroups: 12, // Unique events in test data
+			ValidateFunc: func(group *utils.Group) bool {
+				return group.Name == "event" && len(group.Data) > 0
+			},
+		},
+		{
+			Description: "should group by actor_type",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{"actor_type"})
+			},
+			ExpectedGroups: 3, // app/user, app/serviceuser, system
+			ValidateFunc: func(group *utils.Group) bool {
+				return group.Name == "actor_type" && len(group.Data) == 3
+			},
+		},
+		{
+			Description: "should group by resource_type",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{"resource_type"})
+			},
+			ExpectedGroups: 8, // Different resource types in test data
+			ValidateFunc: func(group *utils.Group) bool {
+				return group.Name == "resource_type" && len(group.Data) > 0
+			},
+		},
+		{
+			Description: "should group by org_id",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{"org_id"})
+			},
+			ExpectedGroups: 7, // Different organizations in test data
+			ValidateFunc: func(group *utils.Group) bool {
+				return group.Name == "org_id" && len(group.Data) > 0
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			query := tc.Setup(s.T())
+			result, err := s.repository.List(s.ctx, query)
+
+			s.NoError(err)
+			s.NotNil(result.Group, "Group should not be nil")
+
+			if tc.ValidateFunc != nil {
+				s.True(tc.ValidateFunc(result.Group), "Group validation should pass")
+			}
+
+			// Verify group data structure
+			s.NotEmpty(result.Group.Data, "Group data should not be empty")
+			for _, groupItem := range result.Group.Data {
+				s.NotEmpty(groupItem.Name, "Group item name should not be empty")
+				s.Greater(groupItem.Count, 0, "Group item count should be positive")
+			}
+		})
+	}
+}
+
+// TEST 11: List functionality - Complex scenarios
+func (s *AuditRecordRepositoryTestSuite) TestList_ComplexScenarios() {
+	s.setupListTestData()
+
+	s.Run("combined filter, search, sort, and pagination", func() {
+		query := utils.NewRQLQuery("user", 0, 3, []rql.Filter{{
+			Name:     "actor_type",
+			Operator: "eq",
+			Value:    "app/user",
+		}}, []rql.Sort{
+			{Name: "occurred_at", Order: "desc"},
+		}, []string{})
+
+		result, err := s.repository.List(s.ctx, query)
+		s.NoError(err)
+		s.LessOrEqual(len(result.AuditRecords), 3)
+		s.Equal(3, result.Page.Limit)
+		s.Equal(0, result.Page.Offset)
+
+		// Verify sorting
+		if len(result.AuditRecords) > 1 {
+			for i := 1; i < len(result.AuditRecords); i++ {
+				s.False(result.AuditRecords[i].OccurredAt.After(result.AuditRecords[i-1].OccurredAt),
+					"Records should be sorted by occurred_at descending")
+			}
+		}
+	})
+
+	s.Run("filter with grouping", func() {
+		query := utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+			Name:     "resource_type",
+			Operator: "eq",
+			Value:    "project",
+		}}, []rql.Sort{}, []string{"event"})
+
+		result, err := s.repository.List(s.ctx, query)
+		s.NoError(err)
+		s.NotNil(result.Group)
+		s.Equal("event", result.Group.Name)
+
+		// Verify all returned records are projects
+		for _, record := range result.AuditRecords {
+			s.Equal("project", record.Resource.Type)
+		}
+	})
+
+	s.Run("empty result set with grouping", func() {
+		query := utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+			Name:     "event",
+			Operator: "eq",
+			Value:    "nonexistent.event",
+		}}, []rql.Sort{}, []string{"actor_type"})
+
+		result, err := s.repository.List(s.ctx, query)
+
+		// This might return ErrNotFound or empty results depending on implementation
+		if err == nil {
+			s.Empty(result.AuditRecords)
+			if result.Group != nil {
+				s.Empty(result.Group.Data)
+			}
+		} else {
+			s.ErrorIs(err, auditrecord.ErrNotFound)
+		}
+	})
+}
+
+// TEST 12: List functionality - Error cases
+func (s *AuditRecordRepositoryTestSuite) TestList_ErrorCases() {
+	s.setupListTestData()
+
+	type testCase struct {
+		Description string
+		Setup       func(t *testing.T) *rql.Query
+		ExpectedErr error
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should return error for invalid filter column",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{{
+					Name:     "invalid_column",
+					Operator: "eq",
+					Value:    "value",
+				}}, []rql.Sort{}, []string{})
+			},
+			ExpectedErr: auditrecord.ErrRepositoryBadInput,
+		},
+		{
+			Description: "should return error for invalid group column",
+			Setup: func(t *testing.T) *rql.Query {
+				t.Helper()
+				return utils.NewRQLQuery("", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{"invalid_column"})
+			},
+			ExpectedErr: auditrecord.ErrRepositoryBadInput,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			query := tc.Setup(s.T())
+			result, err := s.repository.List(s.ctx, query)
+
+			if tc.ExpectedErr != nil {
+				s.Error(err)
+				s.ErrorIs(err, tc.ExpectedErr)
+				s.Empty(result.AuditRecords)
+			} else {
+				s.NoError(err)
+			}
+		})
+	}
+}
+
+// TEST 13: List functionality - Edge cases
+func (s *AuditRecordRepositoryTestSuite) TestList_EdgeCases() {
+	s.setupListTestData()
+
+	s.Run("very high limit", func() {
+		query := utils.NewRQLQuery("", defaultListOffset, 10000, []rql.Filter{}, []rql.Sort{}, []string{})
+
+		result, err := s.repository.List(s.ctx, query)
+		s.NoError(err)
+		s.LessOrEqual(len(result.AuditRecords), len(s.auditRecords)) // Should not exceed actual data
+		s.GreaterOrEqual(result.Page.TotalCount, int64(len(s.auditRecords)))
+	})
+
+	s.Run("unicode search", func() {
+		query := utils.NewRQLQuery("Léon", defaultListOffset, defaultListLimit, []rql.Filter{}, []rql.Sort{}, []string{})
+
+		result, err := s.repository.List(s.ctx, query)
+		s.NoError(err)
+		// Should find the record with unicode characters
+		if len(result.AuditRecords) > 0 {
+			found := false
+			for _, record := range result.AuditRecords {
+				if strings.Contains(record.Actor.Name, "Léon") {
+					found = true
+					break
+				}
+			}
+			s.True(found, "Should find record with unicode characters")
+		}
+	})
+
+	s.Run("nil query parameter", func() {
+		result, err := s.repository.List(s.ctx, nil)
+		s.NoError(err)
+		s.GreaterOrEqual(len(result.AuditRecords), 0)
+		s.GreaterOrEqual(result.Page.TotalCount, int64(0))
 	})
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -392,7 +393,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 				},
 				OccurredAt:     timestamppb.New(testTime),
 				OrgId:          testOrgID,
-				ReqId:          testRequestID,
+				RequestId:      testRequestID,
 				IdempotencyKey: uuid.Nil.String(),
 			}),
 			want: connect.NewResponse(&frontierv1beta1.CreateAuditRecordResponse{
@@ -413,7 +414,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 					},
 					OccurredAt: timestamppb.New(testTime),
 					OrgId:      testOrgID,
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					CreatedAt:  timestamppb.New(testTime),
 					Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
 				},
@@ -695,7 +696,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 				},
 				OccurredAt: timestamppb.New(testTime),
 				OrgId:      testOrgID,
-				ReqId:      testRequestID,
+				RequestId:  testRequestID,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"action": {Kind: &structpb.Value_StringValue{StringValue: "grant"}},
@@ -742,7 +743,7 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 					},
 					OccurredAt: timestamppb.New(testTime),
 					OrgId:      testOrgID,
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					CreatedAt:  timestamppb.New(testTime),
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -932,7 +933,7 @@ func TestTransformAuditRecordToPB(t *testing.T) {
 					OccurredAt: timestamppb.New(testTime),
 					CreatedAt:  timestamppb.New(testTime),
 					OrgId:      "org-123",
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
 				},
 			},
@@ -1012,7 +1013,7 @@ func TestTransformAuditRecordToPB(t *testing.T) {
 					OccurredAt: timestamppb.New(testTime),
 					CreatedAt:  timestamppb.New(testTime),
 					OrgId:      "org-123",
-					ReqId:      testRequestID,
+					RequestId:  testRequestID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"action": {Kind: &structpb.Value_StringValue{StringValue: "grant"}},
@@ -1032,6 +1033,568 @@ func TestTransformAuditRecordToPB(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestHandler_ListAuditRecords(t *testing.T) {
+	testTime := time.Now()
+	testUUID1 := uuid.New().String()
+	testUUID2 := uuid.New().String()
+	testOrgID := uuid.New().String()
+
+	tests := []struct {
+		name    string
+		setup   func(ars *mocks.AuditRecordService)
+		request *connect.Request[frontierv1beta1.ListAuditRecordsRequest]
+		want    *connect.Response[frontierv1beta1.ListAuditRecordsResponse]
+		wantErr error
+	}{
+		{
+			name:  "should return invalid argument error for invalid RQL query",
+			setup: func(ars *mocks.AuditRecordService) {},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:     "invalid_field",
+							Operator: "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{
+								StringValue: "value",
+							},
+						},
+					},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, errors.New("failed to read rql query")),
+		},
+		{
+			name: "should list audit records successfully with basic query",
+			setup: func(ars *mocks.AuditRecordService) {
+				auditRecordsList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{
+						{
+							ID:    testUUID1,
+							Event: "user.created",
+							Actor: auditrecord.Actor{
+								ID:       "actor-123",
+								Type:     "user",
+								Name:     "test-user",
+								Metadata: metadata.Metadata{},
+							},
+							Resource: auditrecord.Resource{
+								ID:       "resource-123",
+								Type:     "project",
+								Name:     "test-project",
+								Metadata: metadata.Metadata{},
+							},
+							OccurredAt: testTime,
+							CreatedAt:  testTime,
+							OrgID:      testOrgID,
+							Metadata:   metadata.Metadata{},
+						},
+					},
+					Page: utils.Page{
+						Offset:     0,
+						Limit:      10,
+						TotalCount: 1,
+					},
+					Group: nil,
+				}
+
+				ars.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("*rql.Query")).
+					Return(auditRecordsList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:     "event",
+							Operator: "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{
+								StringValue: "user.created",
+							},
+						},
+					},
+					Limit:  10,
+					Offset: 0,
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListAuditRecordsResponse{
+				AuditRecords: []*frontierv1beta1.AuditRecord{
+					{
+						Id:    testUUID1,
+						Event: "user.created",
+						Actor: &frontierv1beta1.AuditRecordActor{
+							Id:       "actor-123",
+							Type:     "user",
+							Name:     "test-user",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						Resource: &frontierv1beta1.AuditRecordResource{
+							Id:       "resource-123",
+							Type:     "project",
+							Name:     "test-project",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						OccurredAt: timestamppb.New(testTime),
+						CreatedAt:  timestamppb.New(testTime),
+						OrgId:      testOrgID,
+						Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
+					},
+				},
+				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+					Offset:     0,
+					Limit:      10,
+					TotalCount: 1,
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should list multiple audit records successfully",
+			setup: func(ars *mocks.AuditRecordService) {
+				auditRecordsList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{
+						{
+							ID:    testUUID1,
+							Event: "user.created",
+							Actor: auditrecord.Actor{
+								ID:       "actor-123",
+								Type:     "user",
+								Name:     "test-user-1",
+								Metadata: metadata.Metadata{},
+							},
+							Resource: auditrecord.Resource{
+								ID:       "resource-123",
+								Type:     "project",
+								Name:     "test-project-1",
+								Metadata: metadata.Metadata{},
+							},
+							OccurredAt: testTime,
+							CreatedAt:  testTime,
+							OrgID:      testOrgID,
+							Metadata:   metadata.Metadata{},
+						},
+						{
+							ID:    testUUID2,
+							Event: "user.updated",
+							Actor: auditrecord.Actor{
+								ID:       "actor-456",
+								Type:     "service",
+								Name:     "test-service",
+								Metadata: metadata.Metadata{},
+							},
+							Resource: auditrecord.Resource{
+								ID:       "resource-456",
+								Type:     "user",
+								Name:     "updated-user",
+								Metadata: metadata.Metadata{},
+							},
+							OccurredAt: testTime.Add(time.Hour),
+							CreatedAt:  testTime.Add(time.Hour),
+							OrgID:      testOrgID,
+							Metadata:   metadata.Metadata{},
+						},
+					},
+					Page: utils.Page{
+						Offset:     0,
+						Limit:      10,
+						TotalCount: 2,
+					},
+					Group: nil,
+				}
+
+				ars.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("*rql.Query")).
+					Return(auditRecordsList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Limit:  10,
+					Offset: 0,
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListAuditRecordsResponse{
+				AuditRecords: []*frontierv1beta1.AuditRecord{
+					{
+						Id:    testUUID1,
+						Event: "user.created",
+						Actor: &frontierv1beta1.AuditRecordActor{
+							Id:       "actor-123",
+							Type:     "user",
+							Name:     "test-user-1",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						Resource: &frontierv1beta1.AuditRecordResource{
+							Id:       "resource-123",
+							Type:     "project",
+							Name:     "test-project-1",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						OccurredAt: timestamppb.New(testTime),
+						CreatedAt:  timestamppb.New(testTime),
+						OrgId:      testOrgID,
+						Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
+					},
+					{
+						Id:    testUUID2,
+						Event: "user.updated",
+						Actor: &frontierv1beta1.AuditRecordActor{
+							Id:       "actor-456",
+							Type:     "service",
+							Name:     "test-service",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						Resource: &frontierv1beta1.AuditRecordResource{
+							Id:       "resource-456",
+							Type:     "user",
+							Name:     "updated-user",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						OccurredAt: timestamppb.New(testTime.Add(time.Hour)),
+						CreatedAt:  timestamppb.New(testTime.Add(time.Hour)),
+						OrgId:      testOrgID,
+						Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
+					},
+				},
+				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+					Offset:     0,
+					Limit:      10,
+					TotalCount: 2,
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should list audit records with group data",
+			setup: func(ars *mocks.AuditRecordService) {
+				auditRecordsList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{
+						{
+							ID:    testUUID1,
+							Event: "user.created",
+							Actor: auditrecord.Actor{
+								ID:       "actor-123",
+								Type:     "user",
+								Name:     "test-user",
+								Metadata: metadata.Metadata{},
+							},
+							Resource: auditrecord.Resource{
+								ID:       "resource-123",
+								Type:     "project",
+								Name:     "test-project",
+								Metadata: metadata.Metadata{},
+							},
+							OccurredAt: testTime,
+							CreatedAt:  testTime,
+							OrgID:      testOrgID,
+							Metadata:   metadata.Metadata{},
+						},
+					},
+					Page: utils.Page{
+						Offset:     0,
+						Limit:      10,
+						TotalCount: 1,
+					},
+					Group: &utils.Group{
+						Name: "event",
+						Data: []utils.GroupData{
+							{Name: "user.created", Count: 5},
+							{Name: "user.updated", Count: 3},
+						},
+					},
+				}
+
+				ars.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("*rql.Query")).
+					Return(auditRecordsList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					GroupBy: []string{"event"},
+					Limit:   10,
+					Offset:  0,
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListAuditRecordsResponse{
+				AuditRecords: []*frontierv1beta1.AuditRecord{
+					{
+						Id:    testUUID1,
+						Event: "user.created",
+						Actor: &frontierv1beta1.AuditRecordActor{
+							Id:       "actor-123",
+							Type:     "user",
+							Name:     "test-user",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						Resource: &frontierv1beta1.AuditRecordResource{
+							Id:       "resource-123",
+							Type:     "project",
+							Name:     "test-project",
+							Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						},
+						OccurredAt: timestamppb.New(testTime),
+						CreatedAt:  timestamppb.New(testTime),
+						OrgId:      testOrgID,
+						Metadata:   &structpb.Struct{Fields: map[string]*structpb.Value{}},
+					},
+				},
+				Group: &frontierv1beta1.RQLQueryGroupResponse{
+					Name: "event",
+					Data: []*frontierv1beta1.RQLQueryGroupData{
+						{Name: "user.created", Count: 5},
+						{Name: "user.updated", Count: 3},
+					},
+				},
+				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+					Offset:     0,
+					Limit:      10,
+					TotalCount: 1,
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return empty list when no records found",
+			setup: func(ars *mocks.AuditRecordService) {
+				auditRecordsList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{},
+					Page: utils.Page{
+						Offset:     0,
+						Limit:      10,
+						TotalCount: 0,
+					},
+					Group: nil,
+				}
+
+				ars.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("*rql.Query")).
+					Return(auditRecordsList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:     "event",
+							Operator: "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{
+								StringValue: "nonexistent.event",
+							},
+						},
+					},
+					Limit:  10,
+					Offset: 0,
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListAuditRecordsResponse{
+				AuditRecords: []*frontierv1beta1.AuditRecord{},
+				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+					Offset:     0,
+					Limit:      10,
+					TotalCount: 0,
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error for database failure",
+			setup: func(ars *mocks.AuditRecordService) {
+				ars.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("*rql.Query")).
+					Return(auditrecord.AuditRecordsList{}, errors.New("database connection failed"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:     "event",
+							Operator: "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{
+								StringValue: "user.created",
+							},
+						},
+					},
+					Limit:  10,
+					Offset: 0,
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return invalid argument error for bad input",
+			setup: func(ars *mocks.AuditRecordService) {
+				ars.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("*rql.Query")).
+					Return(auditrecord.AuditRecordsList{}, auditrecord.ErrRepositoryBadInput)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:     "invalid_field",
+							Operator: "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{
+								StringValue: "value",
+							},
+						},
+					},
+					Limit:  10,
+					Offset: 0,
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, auditrecord.ErrRepositoryBadInput),
+		},
+		{
+			name: "should handle audit record with target and request ID",
+			setup: func(ars *mocks.AuditRecordService) {
+				testRequestID := "req-123"
+				auditRecordsList := auditrecord.AuditRecordsList{
+					AuditRecords: []auditrecord.AuditRecord{
+						{
+							ID:    testUUID1,
+							Event: "permission.granted",
+							Actor: auditrecord.Actor{
+								ID:   "actor-123",
+								Type: "user",
+								Name: "test-user",
+								Metadata: metadata.Metadata{
+									"role": "admin",
+								},
+							},
+							Resource: auditrecord.Resource{
+								ID:   "resource-123",
+								Type: "role",
+								Name: "admin-role",
+								Metadata: metadata.Metadata{
+									"permissions": "read,write",
+								},
+							},
+							Target: &auditrecord.Target{
+								ID:   "target-123",
+								Type: "user",
+								Name: "target-user",
+								Metadata: metadata.Metadata{
+									"email": "target@example.com",
+								},
+							},
+							OccurredAt: testTime,
+							CreatedAt:  testTime,
+							OrgID:      testOrgID,
+							RequestID:  &testRequestID,
+							Metadata: metadata.Metadata{
+								"action": "grant",
+							},
+						},
+					},
+					Page: utils.Page{
+						Offset:     0,
+						Limit:      10,
+						TotalCount: 1,
+					},
+					Group: nil,
+				}
+
+				ars.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("*rql.Query")).
+					Return(auditRecordsList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:     "event",
+							Operator: "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{
+								StringValue: "permission.granted",
+							},
+						},
+					},
+					Limit:  10,
+					Offset: 0,
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListAuditRecordsResponse{
+				AuditRecords: []*frontierv1beta1.AuditRecord{
+					{
+						Id:    testUUID1,
+						Event: "permission.granted",
+						Actor: &frontierv1beta1.AuditRecordActor{
+							Id:   "actor-123",
+							Type: "user",
+							Name: "test-user",
+							Metadata: &structpb.Struct{
+								Fields: map[string]*structpb.Value{
+									"role": {Kind: &structpb.Value_StringValue{StringValue: "admin"}},
+								},
+							},
+						},
+						Resource: &frontierv1beta1.AuditRecordResource{
+							Id:   "resource-123",
+							Type: "role",
+							Name: "admin-role",
+							Metadata: &structpb.Struct{
+								Fields: map[string]*structpb.Value{
+									"permissions": {Kind: &structpb.Value_StringValue{StringValue: "read,write"}},
+								},
+							},
+						},
+						Target: &frontierv1beta1.AuditRecordTarget{
+							Id:   "target-123",
+							Type: "user",
+							Name: "target-user",
+							Metadata: &structpb.Struct{
+								Fields: map[string]*structpb.Value{
+									"email": {Kind: &structpb.Value_StringValue{StringValue: "target@example.com"}},
+								},
+							},
+						},
+						OccurredAt: timestamppb.New(testTime),
+						CreatedAt:  timestamppb.New(testTime),
+						OrgId:      testOrgID,
+						RequestId:  "req-123",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"action": {Kind: &structpb.Value_StringValue{StringValue: "grant"}},
+							},
+						},
+					},
+				},
+				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+					Offset:     0,
+					Limit:      10,
+					TotalCount: 1,
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockAuditRecordSrv := new(mocks.AuditRecordService)
+			if tt.setup != nil {
+				tt.setup(mockAuditRecordSrv)
+			}
+			handler := &ConnectHandler{auditRecordService: mockAuditRecordSrv}
+			resp, err := handler.ListAuditRecords(context.Background(), tt.request)
+
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				// Check error codes match for 'connect' errors
+				var connectErr *connect.Error
+				if errors.As(tt.wantErr, &connectErr) {
+					var respErr *connect.Error
+					if errors.As(err, &respErr) {
+						assert.Equal(t, connectErr.Code(), respErr.Code())
+					}
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+
+			if tt.want != nil {
+				assert.Equal(t, tt.want.Msg, resp.Msg)
+			} else {
+				assert.Nil(t, resp)
 			}
 		})
 	}

@@ -10710,7 +10710,7 @@ func (m *AuditRecord) validate(all bool) error {
 
 	// no validation rules for OrgId
 
-	// no validation rules for ReqId
+	// no validation rules for RequestId
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {

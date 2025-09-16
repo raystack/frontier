@@ -28,7 +28,7 @@ type AuditRecord struct {
 	TargetType       sql.NullString     `db:"target_type"`
 	TargetName       sql.NullString     `db:"target_name"`
 	TargetMetadata   types.NullJSONText `db:"target_metadata"`
-	OrganizationID   uuid.UUID          `db:"organization_id"`
+	OrganizationID   uuid.UUID          `db:"org_id"`
 	RequestID        sql.NullString     `db:"request_id"`
 	OccurredAt       time.Time          `db:"occurred_at"`
 	CreatedAt        time.Time          `db:"created_at" goqu:"skipinsert"`
