@@ -149,6 +149,6 @@ func (s Service) Heartbeat(ctx context.Context, sessionID uuid.UUID) error {
 
 func (s Service) PingSession(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
 	now := s.Now()
-	
+
 	return s.repo.UpdateSessionMetadata(ctx, sessionID, metadata, now)
 }

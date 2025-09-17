@@ -39,11 +39,10 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config 
 	if userAgent != "" {
 		parser := uaparser.NewFromSaved()
 		client := parser.Parse(userAgent)
-		
+
 		metadata.OS = client.Os.Family
 		metadata.Browser = client.UserAgent.Family
 	}
 
 	return metadata
 }
-
