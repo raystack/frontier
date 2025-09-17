@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
@@ -9,8 +10,6 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,13 +18,13 @@ import (
 func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSessionsRequest]) (*connect.Response[frontierv1beta1.ListSessionsResponse], error) {
 	principal, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion)
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, err.Error())
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
 	// Fetch all active sessions for the authenticated user
 	sessions, err := h.sessionService.ListSessions(ctx, principal.ID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	// Transform domain sessions to protobuf sessions
@@ -33,7 +32,7 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 	for _, session := range sessions {
 		pbSession, err := transformSessionToPB(session, principal.ID)
 		if err != nil {
-			return nil, status.Error(codes.Internal, "error transforming session data")
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		pbSessions = append(pbSessions, pbSession)
 	}
@@ -73,20 +72,20 @@ func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*fr
 // Revoke a specific session for the current authenticated user.
 func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeSessionRequest]) (*connect.Response[frontierv1beta1.RevokeSessionResponse], error) {
 	if _, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion); err != nil {
-		return nil, status.Error(codes.Unauthenticated, err.Error())
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
 	if request.Msg.GetSessionId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "session_id is required")
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("session_id is required"))
 	}
 
 	id, err := uuid.Parse(request.Msg.GetSessionId())
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	if err := h.sessionService.SoftDelete(ctx, id, time.Now()); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.RevokeSessionResponse{}), nil
@@ -106,14 +105,14 @@ func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.R
 
 	sessions, err := h.sessionService.ListSessions(ctx, request.Msg.GetUserId())
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	var pbSessions []*frontierv1beta1.Session
 	for _, session := range sessions {
 		pbSession, err := transformSessionToPB(session, "")
 		if err != nil {
-			return nil, status.Error(codes.Internal, "error transforming session data")
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		pbSessions = append(pbSessions, pbSession)
 	}
