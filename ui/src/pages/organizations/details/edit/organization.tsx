@@ -19,10 +19,12 @@ import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "~/api";
+import type { Frontierv1Beta1OrganizationRequestBody } from "~/api/frontier";
 import {
-  Frontierv1Beta1OrganizationRequestBody,
-  V1Beta1Organization,
-} from "~/api/frontier";
+  type Organization,
+  OrganizationSchema,
+} from "@raystack/proton/frontier";
+import { create, type JsonObject } from "@bufbuild/protobuf";
 
 const orgUpdateSchema = z
   .object({
@@ -50,10 +52,10 @@ async function loadCountries() {
   return data.default;
 }
 
-interface MetaData {
-  size: number;
-  type: string;
-  country: string;
+interface MetaData extends Record<string, unknown> {
+  size?: number;
+  type?: string;
+  country?: string;
 }
 
 const otherTypePrefix = "Other - ";
@@ -65,10 +67,7 @@ function removeOtherPrefix(text: string) {
   return text;
 }
 
-function getDefaultValue(
-  organization: V1Beta1Organization,
-  industries: string[],
-) {
+function getDefaultValue(organization: Organization, industries: string[]) {
   const metadata = organization?.metadata as MetaData;
   const type =
     metadata?.type && industries.includes(metadata?.type)
@@ -135,7 +134,11 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
       );
       const organization = orgResp?.data?.organization;
       if (organization) {
-        updateOrganization(organization);
+        const protoOrg = create(OrganizationSchema, {
+          ...organization,
+          metadata: organization.metadata as JsonObject,
+        });
+        updateOrganization(protoOrg);
       }
     } catch (err: unknown) {
       if (err instanceof Response && err?.status === 409) {

@@ -14,8 +14,7 @@ import {
 } from "@raystack/apsara";
 
 import styles from "./layout.module.css";
-import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
-import type { V1Beta1Organization } from "~/api/frontier";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";
 import { AddTokensDialog } from "./add-tokens-dialog";
@@ -24,6 +23,7 @@ import { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { CollapsableSearch } from "~/components/collapsable-search";
 import { api } from "~/api";
+import type { Organization } from "@raystack/proton/frontier";
 
 const downloadFile = (data: File, filename: string) => {
   const link = document.createElement("a");
@@ -281,7 +281,7 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
 };
 
 interface OrganizationDetailsNavbarProps {
-  organization: V1Beta1Organization;
+  organization: Organization;
   toggleSidePanel: () => void;
   openKYCPanel: () => void;
   openEditOrgPanel: () => void;

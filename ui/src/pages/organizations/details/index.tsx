@@ -1,7 +1,6 @@
 import type {
   V1Beta1BillingAccount,
   V1Beta1BillingAccountDetails,
-  V1Beta1Organization,
   V1Beta1OrganizationKyc,
   V1Beta1Role,
   V1Beta1User,
@@ -15,7 +14,10 @@ import { OrganizationDetailsLayout } from "./layout";
 import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
 import { AxiosError } from "axios";
-import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import {
+  FrontierServiceQueries,
+  type Organization,
+} from "@raystack/proton/frontier";
 import { queryClient } from "~/contexts/ConnectProvider";
 
 export const OrganizationDetails = () => {
@@ -68,7 +70,7 @@ export const OrganizationDetails = () => {
     await refetch();
   }
 
-  async function updateOrganization(org: V1Beta1Organization) {
+  async function updateOrganization(org: Organization) {
     queryClient.setQueryData(getOrganizationQueryKey, { organization: org });
   }
 
@@ -199,7 +201,7 @@ export const OrganizationDetails = () => {
   return (
     <OrganizationContext.Provider
       value={{
-        organization,
+        organization: organization,
         updateOrganization,
         roles: orgRoles,
         billingAccount,

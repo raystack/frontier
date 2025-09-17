@@ -37,3 +37,12 @@ func FromString(m map[string]string) Metadata {
 	}
 	return newMap
 }
+
+// BuildFromProto safely builds Metadata from a protobuf Struct.
+// Returns an empty Metadata if the input is nil.
+func BuildFromProto(pb *structpb.Struct) Metadata {
+	if pb == nil {
+		return make(Metadata)
+	}
+	return Build(pb.AsMap())
+}
