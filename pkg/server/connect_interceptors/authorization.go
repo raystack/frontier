@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
 
@@ -706,6 +707,16 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.GetOrganizationAuditLogRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.UpdatePermission)
+	},
+
+	// audit records
+	frontierv1beta1connect.FrontierServiceCreateAuditRecordProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.CreateAuditRecordRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission)
+	},
+
+	frontierv1beta1connect.AdminServiceListAuditRecordsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx)
 	},
 
 	// preferences

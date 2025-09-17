@@ -199,9 +199,8 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		authZInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 
-	// Initialize connect handlers
-	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors)
-	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors)
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors, connect.WithCodec(connectCodec{}))
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors, connect.WithCodec(connectCodec{}))
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()

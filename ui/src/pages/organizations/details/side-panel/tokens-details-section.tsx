@@ -46,7 +46,7 @@ export const TokensDetailsSection = () => {
   const isLoading = isTokensLoading;
 
   return (
-    <List.Root>
+    <List>
       <List.Header>Tokens</List.Header>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
@@ -120,6 +120,6 @@ export const TokensDetailsSection = () => {
           )}
         </List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

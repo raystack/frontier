@@ -12,7 +12,7 @@ import { OrganizationContext } from "../contexts/organization-context";
 export const KYCDetailsSection = () => {
   const { isKYCLoading, kycDetails } = useContext(OrganizationContext);
   return (
-    <List.Root>
+    <List>
       <List.Header>KYC Details</List.Header>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
@@ -70,6 +70,6 @@ export const KYCDetailsSection = () => {
           )}
         </List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

@@ -46560,6 +46560,429 @@ var _ interface {
 	ErrorName() string
 } = PingUserSessionResponseValidationError{}
 
+// Validate checks the field values on CreateAuditRecordRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateAuditRecordRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateAuditRecordRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateAuditRecordRequestMultiError, or nil if none found.
+func (m *CreateAuditRecordRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateAuditRecordRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetActor()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Actor",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Actor",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetActor()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAuditRecordRequestValidationError{
+				field:  "Actor",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetEvent()) < 3 {
+		err := CreateAuditRecordRequestValidationError{
+			field:  "Event",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetResource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Resource",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Resource",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAuditRecordRequestValidationError{
+				field:  "Resource",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetTarget()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Target",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Target",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTarget()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAuditRecordRequestValidationError{
+				field:  "Target",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetOccurredAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "OccurredAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "OccurredAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOccurredAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAuditRecordRequestValidationError{
+				field:  "OccurredAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if err := m._validateUuid(m.GetOrgId()); err != nil {
+		err = CreateAuditRecordRequestValidationError{
+			field:  "OrgId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for RequestId
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAuditRecordRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAuditRecordRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if err := m._validateUuid(m.GetIdempotencyKey()); err != nil {
+		err = CreateAuditRecordRequestValidationError{
+			field:  "IdempotencyKey",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return CreateAuditRecordRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CreateAuditRecordRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// CreateAuditRecordRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateAuditRecordRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateAuditRecordRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateAuditRecordRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateAuditRecordRequestMultiError) AllErrors() []error { return m }
+
+// CreateAuditRecordRequestValidationError is the validation error returned by
+// CreateAuditRecordRequest.Validate if the designated constraints aren't met.
+type CreateAuditRecordRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateAuditRecordRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateAuditRecordRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateAuditRecordRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateAuditRecordRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateAuditRecordRequestValidationError) ErrorName() string {
+	return "CreateAuditRecordRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateAuditRecordRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateAuditRecordRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateAuditRecordRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateAuditRecordRequestValidationError{}
+
+// Validate checks the field values on CreateAuditRecordResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateAuditRecordResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateAuditRecordResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateAuditRecordResponseMultiError, or nil if none found.
+func (m *CreateAuditRecordResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateAuditRecordResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetAuditRecord()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAuditRecordResponseValidationError{
+					field:  "AuditRecord",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAuditRecordResponseValidationError{
+					field:  "AuditRecord",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuditRecord()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAuditRecordResponseValidationError{
+				field:  "AuditRecord",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateAuditRecordResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateAuditRecordResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateAuditRecordResponse.ValidateAll() if the
+// designated constraints aren't met.
+type CreateAuditRecordResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateAuditRecordResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateAuditRecordResponseMultiError) AllErrors() []error { return m }
+
+// CreateAuditRecordResponseValidationError is the validation error returned by
+// CreateAuditRecordResponse.Validate if the designated constraints aren't met.
+type CreateAuditRecordResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateAuditRecordResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateAuditRecordResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateAuditRecordResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateAuditRecordResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateAuditRecordResponseValidationError) ErrorName() string {
+	return "CreateAuditRecordResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateAuditRecordResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateAuditRecordResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateAuditRecordResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateAuditRecordResponseValidationError{}
+
 // Validate checks the field values on ChangeSubscriptionRequest_PlanChange
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if

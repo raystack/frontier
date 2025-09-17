@@ -16,7 +16,10 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback, useEffect, useState } from 'react';
-import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
+import {
+  V1Beta1CreatePolicyForProjectBody,
+  Frontierv1Beta1Project
+} from '~/src';
 import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import styles from './styles.module.css';
@@ -38,7 +41,7 @@ export const AddServiceAccount = () => {
   const navigate = useNavigate({ from: '/api-keys/add' });
   const { client, activeOrganization: organization } = useFrontier();
   const t = useTerminology();
-  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
+  const [projects, setProjects] = useState<Frontierv1Beta1Project[]>([]);
 
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
 
@@ -69,7 +72,7 @@ export const AddServiceAccount = () => {
           const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceuser?.id}`;
 
           const policy: V1Beta1CreatePolicyForProjectBody = {
-            role_id: PERMISSIONS.RoleProjectViewer,
+            role_id: PERMISSIONS.RoleProjectOwner,
             principal
           };
           await client?.frontierServiceCreatePolicyForProject(

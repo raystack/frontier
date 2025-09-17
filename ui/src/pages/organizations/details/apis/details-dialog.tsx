@@ -74,7 +74,7 @@ export const ServiceUserDetailsDialog = ({
           <Dialog.CloseButton />
         </Dialog.Header>
         <Dialog.Body className={styles["dialog-body"]}>
-          <Tabs.Root defaultValue="keys" className={styles["tab-root"]}>
+          <Tabs defaultValue="keys" className={styles["tab-root"]}>
             <Tabs.List>
               <Tabs.Trigger value="keys">
                 API keys{" "}
@@ -136,7 +136,7 @@ export const ServiceUserDetailsDialog = ({
                 </Flex>
               )}
             </Tabs.Content>
-          </Tabs.Root>
+          </Tabs>
         </Dialog.Body>
       </Dialog.Content>
     </Dialog>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier";
+import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
 
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { api } from "~/api";
@@ -7,8 +7,8 @@ import { AxiosError } from "axios";
 
 interface RemoveMemberProps {
   organizationId: string;
-  user?: SearchOrganizationUsersResponseOrganizationUser;
-  onRemove: (user: SearchOrganizationUsersResponseOrganizationUser) => void;
+  user?: SearchOrganizationUsersResponse_OrganizationUser;
+  onRemove: (user: SearchOrganizationUsersResponse_OrganizationUser) => void;
   onClose: () => void;
 }
 
