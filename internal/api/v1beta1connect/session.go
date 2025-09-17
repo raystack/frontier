@@ -2,7 +2,6 @@ package v1beta1connect
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
