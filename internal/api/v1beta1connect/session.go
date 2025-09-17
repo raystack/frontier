@@ -111,11 +111,11 @@ func (h ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.
 
 	sessionID, err := uuid.Parse(request.Msg.GetSessionId())
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	if err := h.sessionService.SoftDelete(ctx, sessionID, time.Now()); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.RevokeUserSessionResponse{}), nil
