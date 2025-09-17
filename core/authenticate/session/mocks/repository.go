@@ -428,6 +428,55 @@ func (_c *Repository_UpdateValidity_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
+// UpdateSessionMetadata provides a mock function with given fields: ctx, id, metadata, updatedAt
+func (_m *Repository) UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata session.SessionMetadata, updatedAt time.Time) error {
+	ret := _m.Called(ctx, id, metadata, updatedAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateSessionMetadata")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, session.SessionMetadata, time.Time) error); ok {
+		r0 = rf(ctx, id, metadata, updatedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_UpdateSessionMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSessionMetadata'
+type Repository_UpdateSessionMetadata_Call struct {
+	*mock.Call
+}
+
+// UpdateSessionMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+//   - metadata session.SessionMetadata
+//   - updatedAt time.Time
+func (_e *Repository_Expecter) UpdateSessionMetadata(ctx interface{}, id interface{}, metadata interface{}, updatedAt interface{}) *Repository_UpdateSessionMetadata_Call {
+	return &Repository_UpdateSessionMetadata_Call{Call: _e.mock.On("UpdateSessionMetadata", ctx, id, metadata, updatedAt)}
+}
+
+func (_c *Repository_UpdateSessionMetadata_Call) Run(run func(ctx context.Context, id uuid.UUID, metadata session.SessionMetadata, updatedAt time.Time)) *Repository_UpdateSessionMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(session.SessionMetadata), args[3].(time.Time))
+	})
+	return _c
+}
+
+func (_c *Repository_UpdateSessionMetadata_Call) Return(_a0 error) *Repository_UpdateSessionMetadata_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_UpdateSessionMetadata_Call) RunAndReturn(run func(context.Context, uuid.UUID, session.SessionMetadata, time.Time) error) *Repository_UpdateSessionMetadata_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRepository(t interface {
