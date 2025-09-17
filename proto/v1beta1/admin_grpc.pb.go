@@ -79,6 +79,7 @@ const (
 	AdminService_GetCurrentAdminUser_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/GetCurrentAdminUser"
 	AdminService_ListUserSessions_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/ListUserSessions"
 	AdminService_RevokeUserSession_FullMethodName                        = "/raystack.frontier.v1beta1.AdminService/RevokeUserSession"
+	AdminService_ListAuditRecords_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/ListAuditRecords"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -175,6 +176,8 @@ type AdminServiceClient interface {
 	ListUserSessions(ctx context.Context, in *ListUserSessionsRequest, opts ...grpc.CallOption) (*ListUserSessionsResponse, error)
 	// Revoke a specific session for a specific user (admin only).
 	RevokeUserSession(ctx context.Context, in *RevokeUserSessionRequest, opts ...grpc.CallOption) (*RevokeUserSessionResponse, error)
+	// Audit Records (Admin Only)
+	ListAuditRecords(ctx context.Context, in *ListAuditRecordsRequest, opts ...grpc.CallOption) (*ListAuditRecordsResponse, error)
 }
 
 type adminServiceClient struct {
@@ -832,6 +835,15 @@ func (c *adminServiceClient) RevokeUserSession(ctx context.Context, in *RevokeUs
 	return out, nil
 }
 
+func (c *adminServiceClient) ListAuditRecords(ctx context.Context, in *ListAuditRecordsRequest, opts ...grpc.CallOption) (*ListAuditRecordsResponse, error) {
+	out := new(ListAuditRecordsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListAuditRecords_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -926,6 +938,8 @@ type AdminServiceServer interface {
 	ListUserSessions(context.Context, *ListUserSessionsRequest) (*ListUserSessionsResponse, error)
 	// Revoke a specific session for a specific user (admin only).
 	RevokeUserSession(context.Context, *RevokeUserSessionRequest) (*RevokeUserSessionResponse, error)
+	// Audit Records (Admin Only)
+	ListAuditRecords(context.Context, *ListAuditRecordsRequest) (*ListAuditRecordsResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -1109,6 +1123,9 @@ func (UnimplementedAdminServiceServer) ListUserSessions(context.Context, *ListUs
 }
 func (UnimplementedAdminServiceServer) RevokeUserSession(context.Context, *RevokeUserSessionRequest) (*RevokeUserSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeUserSession not implemented")
+}
+func (UnimplementedAdminServiceServer) ListAuditRecords(context.Context, *ListAuditRecordsRequest) (*ListAuditRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAuditRecords not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -2200,6 +2217,24 @@ func _AdminService_RevokeUserSession_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ListAuditRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuditRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListAuditRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListAuditRecords_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListAuditRecords(ctx, req.(*ListAuditRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2422,6 +2457,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeUserSession",
 			Handler:    _AdminService_RevokeUserSession_Handler,
+		},
+		{
+			MethodName: "ListAuditRecords",
+			Handler:    _AdminService_ListAuditRecords_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

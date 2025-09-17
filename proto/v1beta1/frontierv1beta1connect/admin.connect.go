@@ -207,6 +207,9 @@ const (
 	// AdminServiceRevokeUserSessionProcedure is the fully-qualified name of the AdminService's
 	// RevokeUserSession RPC.
 	AdminServiceRevokeUserSessionProcedure = "/raystack.frontier.v1beta1.AdminService/RevokeUserSession"
+	// AdminServiceListAuditRecordsProcedure is the fully-qualified name of the AdminService's
+	// ListAuditRecords RPC.
+	AdminServiceListAuditRecordsProcedure = "/raystack.frontier.v1beta1.AdminService/ListAuditRecords"
 )
 
 // AdminServiceClient is a client for the raystack.frontier.v1beta1.AdminService service.
@@ -302,6 +305,8 @@ type AdminServiceClient interface {
 	ListUserSessions(context.Context, *connect.Request[v1beta1.ListUserSessionsRequest]) (*connect.Response[v1beta1.ListUserSessionsResponse], error)
 	// Revoke a specific session for a specific user (admin only).
 	RevokeUserSession(context.Context, *connect.Request[v1beta1.RevokeUserSessionRequest]) (*connect.Response[v1beta1.RevokeUserSessionResponse], error)
+	// Audit Records (Admin Only)
+	ListAuditRecords(context.Context, *connect.Request[v1beta1.ListAuditRecordsRequest]) (*connect.Response[v1beta1.ListAuditRecordsResponse], error)
 }
 
 // NewAdminServiceClient constructs a client for the raystack.frontier.v1beta1.AdminService service.
@@ -669,6 +674,12 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(adminServiceMethods.ByName("RevokeUserSession")),
 			connect.WithClientOptions(opts...),
 		),
+		listAuditRecords: connect.NewClient[v1beta1.ListAuditRecordsRequest, v1beta1.ListAuditRecordsResponse](
+			httpClient,
+			baseURL+AdminServiceListAuditRecordsProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("ListAuditRecords")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -733,6 +744,7 @@ type adminServiceClient struct {
 	getCurrentAdminUser                      *connect.Client[v1beta1.GetCurrentAdminUserRequest, v1beta1.GetCurrentAdminUserResponse]
 	listUserSessions                         *connect.Client[v1beta1.ListUserSessionsRequest, v1beta1.ListUserSessionsResponse]
 	revokeUserSession                        *connect.Client[v1beta1.RevokeUserSessionRequest, v1beta1.RevokeUserSessionResponse]
+	listAuditRecords                         *connect.Client[v1beta1.ListAuditRecordsRequest, v1beta1.ListAuditRecordsResponse]
 }
 
 // ListAllUsers calls raystack.frontier.v1beta1.AdminService.ListAllUsers.
@@ -1040,6 +1052,11 @@ func (c *adminServiceClient) RevokeUserSession(ctx context.Context, req *connect
 	return c.revokeUserSession.CallUnary(ctx, req)
 }
 
+// ListAuditRecords calls raystack.frontier.v1beta1.AdminService.ListAuditRecords.
+func (c *adminServiceClient) ListAuditRecords(ctx context.Context, req *connect.Request[v1beta1.ListAuditRecordsRequest]) (*connect.Response[v1beta1.ListAuditRecordsResponse], error) {
+	return c.listAuditRecords.CallUnary(ctx, req)
+}
+
 // AdminServiceHandler is an implementation of the raystack.frontier.v1beta1.AdminService service.
 type AdminServiceHandler interface {
 	// Users
@@ -1133,6 +1150,8 @@ type AdminServiceHandler interface {
 	ListUserSessions(context.Context, *connect.Request[v1beta1.ListUserSessionsRequest]) (*connect.Response[v1beta1.ListUserSessionsResponse], error)
 	// Revoke a specific session for a specific user (admin only).
 	RevokeUserSession(context.Context, *connect.Request[v1beta1.RevokeUserSessionRequest]) (*connect.Response[v1beta1.RevokeUserSessionResponse], error)
+	// Audit Records (Admin Only)
+	ListAuditRecords(context.Context, *connect.Request[v1beta1.ListAuditRecordsRequest]) (*connect.Response[v1beta1.ListAuditRecordsResponse], error)
 }
 
 // NewAdminServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -1496,6 +1515,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(adminServiceMethods.ByName("RevokeUserSession")),
 		connect.WithHandlerOptions(opts...),
 	)
+	adminServiceListAuditRecordsHandler := connect.NewUnaryHandler(
+		AdminServiceListAuditRecordsProcedure,
+		svc.ListAuditRecords,
+		connect.WithSchema(adminServiceMethods.ByName("ListAuditRecords")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/raystack.frontier.v1beta1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AdminServiceListAllUsersProcedure:
@@ -1616,6 +1641,8 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceListUserSessionsHandler.ServeHTTP(w, r)
 		case AdminServiceRevokeUserSessionProcedure:
 			adminServiceRevokeUserSessionHandler.ServeHTTP(w, r)
+		case AdminServiceListAuditRecordsProcedure:
+			adminServiceListAuditRecordsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1859,4 +1886,8 @@ func (UnimplementedAdminServiceHandler) ListUserSessions(context.Context, *conne
 
 func (UnimplementedAdminServiceHandler) RevokeUserSession(context.Context, *connect.Request[v1beta1.RevokeUserSessionRequest]) (*connect.Response[v1beta1.RevokeUserSessionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.RevokeUserSession is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) ListAuditRecords(context.Context, *connect.Request[v1beta1.ListAuditRecordsRequest]) (*connect.Response[v1beta1.ListAuditRecordsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAuditRecords is not implemented"))
 }

@@ -1,10 +1,10 @@
 import { Avatar, getAvatarColor, SidePanel } from "@raystack/apsara";
-import { V1Beta1Organization } from "~/api/frontier";
 import { OrganizationDetailsSection } from "./org-details-section";
 import { KYCDetailsSection } from "./kyc-section";
 import { PlanDetailsSection } from "./plan-details-section";
 import { TokensDetailsSection } from "./tokens-details-section";
 import { BillingDetailsSection } from "./billing-details-section";
+import type { Organization } from "@raystack/proton/frontier";
 
 export const SUBSCRIPTION_STATES = {
   active: "Active",
@@ -15,7 +15,7 @@ export const SUBSCRIPTION_STATES = {
 } as const;
 
 interface SidePanelProps {
-  organization: V1Beta1Organization;
+  organization: Organization;
 }
 
 export function OrgSidePanel({ organization }: SidePanelProps) {

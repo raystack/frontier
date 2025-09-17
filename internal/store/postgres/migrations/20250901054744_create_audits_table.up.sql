@@ -22,7 +22,7 @@ $$ LANGUAGE plpgsql VOLATILE;
 
 CREATE TABLE audit_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    idempotency_key UUID, -- Same key for bulk requests
+    idempotency_key UUID UNIQUE, -- nullable for Frontier's internal calls.
     event VARCHAR(255) NOT NULL,
     actor_id UUID NOT NULL,
     actor_type VARCHAR(50) NOT NULL,

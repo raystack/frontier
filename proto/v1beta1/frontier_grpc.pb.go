@@ -189,6 +189,7 @@ const (
 	FrontierService_GetUpcomingInvoice_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
 	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
 	FrontierService_CreateProspectPublic_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic"
+	FrontierService_CreateAuditRecord_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateAuditRecord"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -330,9 +331,12 @@ type FrontierServiceClient interface {
 	GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error)
+	// Deprecated: Do not use.
 	// Audit logs
 	ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(ctx context.Context, in *DescribePreferencesRequest, opts ...grpc.CallOption) (*DescribePreferencesResponse, error)
@@ -395,6 +399,8 @@ type FrontierServiceClient interface {
 	BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error)
 	// Prospects
 	CreateProspectPublic(ctx context.Context, in *CreateProspectPublicRequest, opts ...grpc.CallOption) (*CreateProspectPublicResponse, error)
+	// Audit Records
+	CreateAuditRecord(ctx context.Context, in *CreateAuditRecordRequest, opts ...grpc.CallOption) (*CreateAuditRecordResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1458,6 +1464,7 @@ func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, in *Delete
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error) {
 	out := new(ListOrganizationAuditLogsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationAuditLogs_FullMethodName, in, out, opts...)
@@ -1467,6 +1474,7 @@ func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, i
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error) {
 	out := new(CreateOrganizationAuditLogsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_CreateOrganizationAuditLogs_FullMethodName, in, out, opts...)
@@ -1476,6 +1484,7 @@ func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context,
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error) {
 	out := new(GetOrganizationAuditLogResponse)
 	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationAuditLog_FullMethodName, in, out, opts...)
@@ -1935,6 +1944,15 @@ func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, in *Cr
 	return out, nil
 }
 
+func (c *frontierServiceClient) CreateAuditRecord(ctx context.Context, in *CreateAuditRecordRequest, opts ...grpc.CallOption) (*CreateAuditRecordResponse, error) {
+	out := new(CreateAuditRecordResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateAuditRecord_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -2074,9 +2092,12 @@ type FrontierServiceServer interface {
 	GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error)
+	// Deprecated: Do not use.
 	// Audit logs
 	ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error)
+	// Deprecated: Do not use.
 	GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(context.Context, *DescribePreferencesRequest) (*DescribePreferencesResponse, error)
@@ -2139,6 +2160,8 @@ type FrontierServiceServer interface {
 	BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error)
 	// Prospects
 	CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error)
+	// Audit Records
+	CreateAuditRecord(context.Context, *CreateAuditRecordRequest) (*CreateAuditRecordResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2655,6 +2678,9 @@ func (UnimplementedFrontierServiceServer) BillingWebhookCallback(context.Context
 }
 func (UnimplementedFrontierServiceServer) CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProspectPublic not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateAuditRecord(context.Context, *CreateAuditRecordRequest) (*CreateAuditRecordResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAuditRecord not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -5729,6 +5755,24 @@ func _FrontierService_CreateProspectPublic_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CreateAuditRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAuditRecordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateAuditRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateAuditRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateAuditRecord(ctx, req.(*CreateAuditRecordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -6415,6 +6459,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateProspectPublic",
 			Handler:    _FrontierService_CreateProspectPublic_Handler,
+		},
+		{
+			MethodName: "CreateAuditRecord",
+			Handler:    _FrontierService_CreateAuditRecord_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

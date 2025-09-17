@@ -23,7 +23,7 @@ export const SidePanelMembership = ({
 
   if (isLoading) {
     return (
-      <List.Root>
+      <List>
         <Flex className={styles["loader-header"]}>
           <Skeleton />
         </Flex>
@@ -34,14 +34,14 @@ export const SidePanelMembership = ({
             </List.Value>
           </List.Item>
         ))}
-      </List.Root>
+      </List>
     );
   }
 
   if (!data) return null;
 
   return (
-    <List.Root>
+    <List>
       {showTitle && <List.Header>Membership</List.Header>}
       <List.Item>
         <List.Label minWidth="120px">Name</List.Label>
@@ -80,6 +80,6 @@ export const SidePanelMembership = ({
         <List.Label minWidth="120px">Projects</List.Label>
         <List.Value>{data?.project_count ?? "-"}</List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

@@ -52,7 +52,7 @@ export const BillingDetailsSection = () => {
     : "";
 
   return (
-    <List.Root>
+    <List>
       <List.Header>Billing</List.Header>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
@@ -164,6 +164,6 @@ export const BillingDetailsSection = () => {
           )}
         </List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

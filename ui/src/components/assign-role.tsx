@@ -8,10 +8,10 @@ import {
   toast,
 } from "@raystack/apsara";
 import { useCallback } from "react";
-import {
-  SearchOrganizationUsersResponseOrganizationUser,
-  V1Beta1Role,
-} from "~/api/frontier";
+import type {
+  SearchOrganizationUsersResponse_OrganizationUser,
+} from "@raystack/proton/frontier";
+import type { V1Beta1Role } from "~/api/frontier";
 import { api } from "~/api";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,8 +20,8 @@ import { z } from "zod";
 interface AssignRoleProps {
   organizationId: string;
   roles: V1Beta1Role[];
-  user?: SearchOrganizationUsersResponseOrganizationUser;
-  onRoleUpdate: (user: SearchOrganizationUsersResponseOrganizationUser) => void;
+  user?: SearchOrganizationUsersResponse_OrganizationUser;
+  onRoleUpdate: () => void;
   onClose: () => void;
 }
 
@@ -47,7 +47,7 @@ export const AssignRole = ({
     formState: { isSubmitting, errors },
   } = useForm<FormData>({
     defaultValues: {
-      roleIds: new Set(user?.role_ids || []),
+      roleIds: new Set(user?.roleIds || []),
     },
     resolver: zodResolver(formSchema),
   });
@@ -107,10 +107,7 @@ export const AssignRole = ({
       );
 
       if (onRoleUpdate) {
-        onRoleUpdate({
-          ...user,
-          role_ids: assignedRolesArr,
-        });
+        onRoleUpdate();
       }
 
       toast.success("Role assigned successfully");
