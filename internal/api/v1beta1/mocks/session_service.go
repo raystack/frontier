@@ -392,6 +392,54 @@ func (_c *SessionService_SoftDelete_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
+// PingSession provides a mock function with given fields: ctx, sessionID, metadata
+func (_m *SessionService) PingSession(ctx context.Context, sessionID uuid.UUID, metadata session.SessionMetadata) error {
+	ret := _m.Called(ctx, sessionID, metadata)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PingSession")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, session.SessionMetadata) error); ok {
+		r0 = rf(ctx, sessionID, metadata)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SessionService_PingSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PingSession'
+type SessionService_PingSession_Call struct {
+	*mock.Call
+}
+
+// PingSession is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sessionID uuid.UUID
+//   - metadata session.SessionMetadata
+func (_e *SessionService_Expecter) PingSession(ctx interface{}, sessionID interface{}, metadata interface{}) *SessionService_PingSession_Call {
+	return &SessionService_PingSession_Call{Call: _e.mock.On("PingSession", ctx, sessionID, metadata)}
+}
+
+func (_c *SessionService_PingSession_Call) Run(run func(ctx context.Context, sessionID uuid.UUID, metadata session.SessionMetadata)) *SessionService_PingSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(session.SessionMetadata))
+	})
+	return _c
+}
+
+func (_c *SessionService_PingSession_Call) Return(_a0 error) *SessionService_PingSession_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SessionService_PingSession_Call) RunAndReturn(run func(context.Context, uuid.UUID, session.SessionMetadata) error) *SessionService_PingSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewSessionService creates a new instance of SessionService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewSessionService(t interface {
