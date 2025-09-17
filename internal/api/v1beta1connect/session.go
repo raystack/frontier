@@ -76,8 +76,8 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
 
-	if request.Msg.GetSessionId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "session_id is required")
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	id, err := uuid.Parse(request.Msg.GetSessionId())
