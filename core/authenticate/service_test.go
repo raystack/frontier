@@ -102,7 +102,7 @@ func TestService_GetPrincipal(t *testing.T) {
 					AuthenticatedAt: time.Now().Add(-time.Hour),
 					ExpiresAt:       time.Now().Add(time.Hour),
 					CreatedAt:       time.Time{},
-					Metadata:        nil,
+					Metadata:        frontiersession.SessionMetadata{},
 				}
 				mockSessionService.EXPECT().ExtractFromContext(mock.Anything).Return(mockSess, nil)
 
@@ -130,7 +130,7 @@ func TestService_GetPrincipal(t *testing.T) {
 					AuthenticatedAt: time.Now().Add(-time.Hour),
 					ExpiresAt:       time.Now().Add(-time.Hour),
 					CreatedAt:       time.Time{},
-					Metadata:        nil,
+					Metadata:        frontiersession.SessionMetadata{},
 				}
 				mockSessionService.EXPECT().ExtractFromContext(mock.Anything).Return(mockSess, nil)
 

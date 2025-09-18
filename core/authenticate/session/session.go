@@ -3,10 +3,18 @@ package session
 import (
 	"time"
 
-	"github.com/raystack/frontier/pkg/metadata"
-
 	"github.com/google/uuid"
 )
+
+type SessionMetadata struct {
+	IP       string
+	Location struct {
+		Country string
+		City    string
+	}
+	OS      string
+	Browser string
+}
 
 // Session is created on successful authentication of users
 type Session struct {
@@ -24,7 +32,7 @@ type Session struct {
 	UpdatedAt time.Time
 	DeletedAt *time.Time // Soft delete timestamp (nil = not deleted)
 
-	Metadata metadata.Metadata
+	Metadata SessionMetadata
 }
 
 func (s Session) IsValid(now time.Time) bool {

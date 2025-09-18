@@ -35,6 +35,7 @@ import (
 
 	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"
@@ -150,8 +151,13 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 }
 
 func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
-	// Create the server handler with both services
-	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
+	sessionMetadataConfig := utils.SessionMetadataConfig{
+		ClientIP:      cfg.Authentication.Session.Headers.ClientIP,
+		ClientCountry: cfg.Authentication.Session.Headers.ClientCountry,
+		ClientCity:    cfg.Authentication.Session.Headers.ClientCity,
+	}
+
+	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication, sessionMetadataConfig)
 
 	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
 	// grpcZapLogger := zap.Must(zap.NewProduction())

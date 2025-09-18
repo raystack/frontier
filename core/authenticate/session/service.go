@@ -28,6 +28,7 @@ type Repository interface {
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
 	List(ctx context.Context, userID string) ([]*Session, error)
 	UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error
+	UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata SessionMetadata, updatedAt time.Time) error
 }
 
 type Service struct {
@@ -50,8 +51,9 @@ func NewService(logger log.Logger, repo Repository, validity time.Duration) *Ser
 	}
 }
 
-func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
+func (s Service) Create(ctx context.Context, userID string, metadata SessionMetadata) (*Session, error) {
 	now := s.Now()
+
 	sess := &Session{
 		ID:              uuid.New(),
 		UserID:          userID,
@@ -60,9 +62,14 @@ func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 		CreatedAt:       now,
 		UpdatedAt:       now,
 		DeletedAt:       nil,
-		Metadata:        nil,
+		Metadata:        metadata,
 	}
-	return sess, s.repo.Set(ctx, sess)
+	err := s.repo.Set(ctx, sess)
+	if err != nil {
+		s.log.Warn("failed to create session", "err", err)
+		return nil, err
+	}
+	return sess, nil
 }
 
 // Refresh extends validity of session
@@ -138,4 +145,10 @@ func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, e
 // Heartbeat updates last active timestamp without extending expiry
 func (s Service) Heartbeat(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.UpdateLastActive(ctx, sessionID, s.Now())
+}
+
+func (s Service) PingSession(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
+	now := s.Now()
+
+	return s.repo.UpdateSessionMetadata(ctx, sessionID, metadata, now)
 }

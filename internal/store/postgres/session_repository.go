@@ -222,6 +222,33 @@ func (s *SessionRepository) UpdateLastActive(ctx context.Context, id uuid.UUID, 
 	})
 }
 
+func (s *SessionRepository) UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata frontiersession.SessionMetadata, updatedAt time.Time) error {
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("error marshaling session metadata: %w", err)
+	}
+
+	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
+		goqu.Record{
+			"metadata":   metadataBytes,
+			"updated_at": updatedAt,
+		},
+	).Where(goqu.Ex{"id": id}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "UpdateSessionMetadata", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+		if count, _ := result.RowsAffected(); count == 0 {
+			return sql.ErrNoRows
+		}
+		return nil
+	})
+}
+
 func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontiersession.Session, error) {
 	uid, err := uuid.Parse(userID)
 	if err != nil {
