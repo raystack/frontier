@@ -50,7 +50,7 @@ export default function WebhooksList() {
       data={webhooks}
       columns={columns}
       isLoading={isLoading}
-      defaultSort={{ name: "created_at", order: "desc" }}
+      defaultSort={{ name: "createdAt", order: "desc" }}
       mode="client"
     >
       <Flex direction="column" className={styles.tableWrapper}>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { Button, Flex, Sheet } from "@raystack/apsara";
 import { useNavigate, useParams } from "react-router-dom";
 import { SheetHeader } from "~/components/sheet/header";
@@ -9,9 +9,14 @@ import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "~/components/CustomField";
 import events from "~/utils/webhook_events";
 import { SheetFooter } from "~/components/sheet/footer";
-import { V1Beta1Webhook, V1Beta1WebhookRequestBody } from "@raystack/frontier";
 import { toast } from "sonner";
-import { api } from "~/api";
+import { useQuery, useMutation } from "@connectrpc/connect-query";
+import {
+  AdminServiceQueries,
+  type WebhookRequestBody,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { WebhookRequestBodySchema } from "@raystack/proton/frontier";
 
 const UpdateWebhookSchema = z.object({
   url: z.string().trim().url(),
@@ -28,11 +33,6 @@ export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;
 export default function UpdateWebhooks() {
   const navigate = useNavigate();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [isWebhookLoading, setIsWebhookLoading] = useState(false);
-  const [webhook, setWebhook] = useState<V1Beta1Webhook>();
-
   const { webhookId = "" } = useParams();
 
   const onClose = useCallback(() => {
@@ -44,50 +44,58 @@ export default function UpdateWebhooks() {
     defaultValues: {},
   });
 
+  const { data: webhooksResponse, isLoading: isWebhookLoading } = useQuery(
+    AdminServiceQueries.listWebhooks,
+    {},
+    {
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const webhook = webhooksResponse?.webhooks?.find(
+    (wb) => wb?.id === webhookId,
+  );
+
+  const { mutateAsync: updateWebhook, isPending: isSubmitting } = useMutation(
+    AdminServiceQueries.updateWebhook,
+  );
+
   const onSubmit = async (data: UpdateWebhook) => {
     try {
-      setIsSubmitting(true);
-      const body: V1Beta1WebhookRequestBody = {
-        ...data,
+      const body: WebhookRequestBody = create(WebhookRequestBodySchema, {
+        url: data.url,
+        description: data.description,
         state: data.state ? "enabled" : "disabled",
-      };
-      const resp = await api?.adminServiceUpdateWebhook(webhookId, {
+        subscribedEvents: data.subscribed_events || [],
+        headers: {},
+      });
+
+      const resp = await updateWebhook({
+        id: webhookId,
         body,
       });
 
-      if (resp?.data?.webhook) {
+      if (resp?.webhook) {
         toast.success("Webhook updated");
+        onClose();
       }
     } catch (err) {
+      console.error("Failed to update webhook:", err);
       toast.error("Something went wrong");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   useEffect(() => {
-    async function getWebhookDetails(id: string) {
-      try {
-        setIsWebhookLoading(true);
-        const resp = await api?.adminServiceListWebhooks();
-        const webhooks = resp?.data?.webhooks || [];
-        const webhookData = webhooks?.find((wb) => wb?.id === id);
-        setWebhook(webhookData);
-        methods?.reset({
-          ...webhookData,
-          state: webhookData?.state === "enabled",
-        });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsWebhookLoading(false);
-      }
+    if (webhook) {
+      methods.reset({
+        url: webhook.url,
+        description: webhook.description,
+        subscribed_events: webhook.subscribedEvents || [],
+        state: webhook.state === "enabled",
+      });
     }
-
-    if (webhookId) {
-      getWebhookDetails(webhookId);
-    }
-  }, [methods, webhookId]);
+  }, [webhook, methods.reset]);
 
   return (
     <Sheet open={true}>
@@ -108,7 +116,12 @@ export default function UpdateWebhooks() {
               onClick={onClose}
               data-test-id="admin-ui-update-webhook-close-btn"
             />
-            <Flex direction="column" gap={9} style={styles.main}>
+            <Flex
+              direction="column"
+              gap={9}
+              style={styles.main}
+              key={webhook?.id}
+            >
               <CustomFieldName
                 name="url"
                 defaultValue={webhook?.url}
@@ -129,7 +142,7 @@ export default function UpdateWebhooks() {
               />
               <CustomFieldName
                 name="subscribed_events"
-                defaultValue={webhook?.subscribed_events}
+                defaultValue={webhook?.subscribedEvents}
                 register={methods.register}
                 control={methods.control}
                 variant="multiselect"
