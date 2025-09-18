@@ -1,35 +1,47 @@
-import { Flex, DataTable } from "@raystack/apsara";
-import type { V1Beta1Webhook } from "@raystack/frontier";
-import { useEffect, useState } from "react";
+import { Flex, DataTable, EmptyState } from "@raystack/apsara";
 import { getColumns } from "./columns";
 import { WebhooksHeader } from "./header";
 import { Outlet, useNavigate } from "react-router-dom";
-import { api } from "~/api";
 import styles from "./webhooks.module.css";
+import { useQuery } from "@connectrpc/connect-query";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function WebhooksList() {
   const navigate = useNavigate();
-  const [webhooks, setWebhooks] = useState<V1Beta1Webhook[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchWebhooks() {
-      try {
-        setIsLoading(true);
-        const resp = await api?.adminServiceListWebhooks();
-        const data = resp?.data?.webhooks || [];
-        setWebhooks(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchWebhooks();
-  }, []);
+  const {
+    data: webhooksResponse,
+    isLoading,
+    error,
+    isError,
+  } = useQuery(
+    AdminServiceQueries.listWebhooks,
+    {},
+    {
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const webhooks = webhooksResponse?.webhooks || [];
 
   function openEditPage(id: string) {
     navigate(`/webhooks/${id}`);
+  }
+
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Webhooks"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading webhooks. Please try again."
+        }
+      />
+    );
   }
 
   const columns = getColumns({ openEditPage });
