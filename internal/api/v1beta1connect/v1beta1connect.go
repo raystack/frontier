@@ -60,6 +60,7 @@ type ConnectHandler struct {
 	orgServiceUserService            apiv1beta1.OrgServiceUserService
 	userOrgsService                  apiv1beta1.UserOrgsService
 	userProjectsService              apiv1beta1.UserProjectsService
+	auditRecordService               AuditRecordService
 }
 
 func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHandler {
@@ -108,6 +109,7 @@ func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHand
 		orgServiceUserService:            deps.OrgServiceUserService,
 		userOrgsService:                  deps.UserOrgsService,
 		userProjectsService:              deps.UserProjectsService,
+		auditRecordService:               deps.AuditRecordService,
 	}
 }
 

@@ -2,12 +2,13 @@ import { Flex, List, Text, Avatar } from "@raystack/apsara";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";
-import { SearchUserOrganizationsResponseUserOrganization } from "~/api/frontier";
+import { type SearchUserOrganizationsResponse_UserOrganization } from "@raystack/proton/frontier";
 import styles from "./side-panel.module.css";
 import { MembershipDropdown } from "./membership-dropdown";
+import { timestampToDate, isNullTimestamp } from "~/utils/connect-timestamp";
 
 interface SidePanelMembershipProps {
-  data?: SearchUserOrganizationsResponseUserOrganization;
+  data?: SearchUserOrganizationsResponse_UserOrganization;
   showTitle?: boolean;
   isLoading?: boolean;
   onReset?: () => void;
@@ -19,11 +20,10 @@ export const SidePanelMembership = ({
   isLoading = false,
   onReset,
 }: SidePanelMembershipProps) => {
-  const orgName = data?.org_title ?? data?.org_name ?? "";
-
+  const orgName = data?.orgTitle ?? data?.orgName ?? "";
   if (isLoading) {
     return (
-      <List.Root>
+      <List>
         <Flex className={styles["loader-header"]}>
           <Skeleton />
         </Flex>
@@ -34,21 +34,21 @@ export const SidePanelMembership = ({
             </List.Value>
           </List.Item>
         ))}
-      </List.Root>
+      </List>
     );
   }
 
   if (!data) return null;
 
   return (
-    <List.Root>
+    <List>
       {showTitle && <List.Header>Membership</List.Header>}
       <List.Item>
         <List.Label minWidth="120px">Name</List.Label>
         <List.Value>
           <Flex gap={3} align="center">
             <Avatar
-              src={data?.org_avatar}
+              src={data?.orgAvatar}
               fallback={orgName?.[0]?.toUpperCase()}
               size={1}
               radius="full"
@@ -69,8 +69,8 @@ export const SidePanelMembership = ({
           <Flex gap={3}>
             <CalendarIcon />
             <Text>
-              {data?.org_joined_on
-                ? dayjs(data.org_joined_on).format("DD MMM YYYY")
+              {data?.orgJoinedOn && !isNullTimestamp(data.orgJoinedOn)
+                ? dayjs(timestampToDate(data.orgJoinedOn)).format("DD MMM YYYY")
                 : "-"}
             </Text>
           </Flex>
@@ -78,8 +78,10 @@ export const SidePanelMembership = ({
       </List.Item>
       <List.Item>
         <List.Label minWidth="120px">Projects</List.Label>
-        <List.Value>{data?.project_count ?? "-"}</List.Value>
+        <List.Value>
+          {data?.projectCount ? Number(data.projectCount) : "-"}
+        </List.Value>
       </List.Item>
-    </List.Root>
+    </List>
   );
 };

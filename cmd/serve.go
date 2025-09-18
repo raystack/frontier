@@ -22,6 +22,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/projectusers"
 	"github.com/raystack/frontier/core/aggregates/userorgs"
 	"github.com/raystack/frontier/core/aggregates/userprojects"
+	"github.com/raystack/frontier/core/auditrecord"
 
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"
@@ -561,6 +562,9 @@ func buildAPIDependencies(
 		audit.WithIgnoreList(cfg.Log.IgnoredAuditEvents),
 	)
 
+	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
+	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService)
+
 	dependencies := api.Deps{
 		OrgService:                       organizationService,
 		OrgKycService:                    orgKycService,
@@ -606,6 +610,7 @@ func buildAPIDependencies(
 		ProjectUsersService:              projectUserService,
 		UserOrgsService:                  userOrgsService,
 		UserProjectsService:              userProjectsService,
+		AuditRecordService:               auditRecordService,
 	}
 	return dependencies, nil
 }

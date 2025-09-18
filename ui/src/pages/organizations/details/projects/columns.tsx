@@ -8,13 +8,17 @@ import {
 } from "@raystack/apsara";
 import type { DataTableColumnDef } from "@raystack/apsara";
 import type {
-  SearchOrganizationProjectsResponseOrganizationProject,
-  V1Beta1User,
-} from "~/api/frontier";
+  SearchOrganizationProjectsResponse_OrganizationProject,
+} from "@raystack/proton/frontier";
+import type { V1Beta1User } from "~/api/frontier";
 import styles from "./projects.module.css";
 
 import dayjs from "dayjs";
-import { NULL_DATE } from "~/utils/constants";
+import {
+  isNullTimestamp,
+  TimeStamp,
+  timestampToDate,
+} from "~/utils/connect-timestamp";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { RenameProjectDialog } from "./rename-project";
 import { useState } from "react";
@@ -96,9 +100,9 @@ function ProjectActionsContent({
   handleProjectUpdate,
   handleRenameOptionOpen,
 }: {
-  project: SearchOrganizationProjectsResponseOrganizationProject;
+  project: SearchOrganizationProjectsResponse_OrganizationProject;
   handleProjectUpdate: (
-    project: SearchOrganizationProjectsResponseOrganizationProject,
+    project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
   handleRenameOptionOpen: () => void;
 }) {
@@ -117,7 +121,7 @@ function ProjectActionsContent({
       e.stopPropagation();
       const members = await addMember(userId);
       const userIds = members?.map((user) => user.id || "");
-      handleProjectUpdate({ ...project, user_ids: userIds });
+      handleProjectUpdate({ ...project, userIds: userIds || [] });
     };
   }
 
@@ -143,9 +147,9 @@ function ProjectActions({
   project,
   handleProjectUpdate,
 }: {
-  project: SearchOrganizationProjectsResponseOrganizationProject;
+  project: SearchOrganizationProjectsResponse_OrganizationProject;
   handleProjectUpdate: (
-    project: SearchOrganizationProjectsResponseOrganizationProject,
+    project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -205,10 +209,10 @@ export const getColumns = ({
 }: {
   orgMembersMap: Record<string, V1Beta1User>;
   handleProjectUpdate: (
-    project: SearchOrganizationProjectsResponseOrganizationProject,
+    project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
 }): DataTableColumnDef<
-  SearchOrganizationProjectsResponseOrganizationProject,
+  SearchOrganizationProjectsResponse_OrganizationProject,
   unknown
 >[] => {
   return [
@@ -238,7 +242,7 @@ export const getColumns = ({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "user_ids",
+      accessorKey: "userIds",
       header: "Members",
       enableHiding: true,
       cell: ({ getValue }) => {
@@ -264,11 +268,14 @@ export const getColumns = ({
       },
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Created On",
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return date;
       },
       enableSorting: true,
       enableHiding: true,

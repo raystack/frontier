@@ -8,23 +8,33 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
-import { SearchOrganizationTokensResponseOrganizationToken } from "~/api/frontier";
+import type {
+  SearchOrganizationTokensResponse_OrganizationToken,
+} from "@raystack/proton/frontier";
+import {
+  isNullTimestamp,
+  TimeStamp,
+  timestampToDate,
+} from "~/utils/connect-timestamp";
 
 export const getColumns = (): DataTableColumnDef<
-  SearchOrganizationTokensResponseOrganizationToken,
+  SearchOrganizationTokensResponse_OrganizationToken,
   unknown
 >[] => {
   return [
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Date",
       classNames: {
         cell: styles["first-column"],
         header: styles["first-column"],
       },
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return date;
       },
       enableSorting: true,
       enableColumnFilter: true,
@@ -51,16 +61,16 @@ export const getColumns = (): DataTableColumnDef<
       enableHiding: true,
     },
     {
-      accessorKey: "user_id",
+      accessorKey: "userId",
       header: "Member",
       cell: ({ row, getValue }) => {
-        const user_id = (getValue() as string) || "";
-        const title = row.original.user_title || user_id;
-        const avatarColor = getAvatarColor(user_id);
+        const userId = (getValue() as string) || "";
+        const title = row.original.userTitle || userId;
+        const avatarColor = getAvatarColor(userId);
         return (
           <Flex gap={4} align="center">
             <Avatar
-              src={row.original.user_avatar}
+              src={row.original.userAvatar}
               fallback={title?.[0]}
               color={avatarColor}
             />

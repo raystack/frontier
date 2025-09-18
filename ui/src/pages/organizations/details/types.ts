@@ -1,8 +1,9 @@
-import { V1Beta1Organization, V1Beta1Role } from "~/api/frontier";
+import { type Organization } from "@raystack/proton/frontier";
+import { type V1Beta1Role } from "~/api/frontier";
 
 export interface OutletContext {
   organizationId: string;
-  organization: V1Beta1Organization;
+  organization: Organization;
   fetchOrganization: (id: string) => Promise<void>;
   roles: V1Beta1Role[];
 }

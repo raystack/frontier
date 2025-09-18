@@ -2,7 +2,6 @@ import { OrganizationsDetailsNavabar } from "./navbar";
 import styles from "./layout.module.css";
 import { EmptyState, Flex } from "@raystack/apsara";
 import { OrgSidePanel } from "../side-panel/";
-import { V1Beta1Organization } from "~/api/frontier";
 import React, { useState } from "react";
 import LoadingState from "~/components/states/Loading";
 import { OrganizationIcon } from "@raystack/apsara/icons";
@@ -10,10 +9,11 @@ import PageTitle from "~/components/page-title";
 import { EditKYCPanel } from "../edit/kyc";
 import { EditOrganizationPanel } from "../edit/organization";
 import { EditBillingPanel } from "../edit/billing";
+import type { Organization } from "@raystack/proton/frontier";
 
 interface OrganizationDetailsLayoutProps {
   isLoading: boolean;
-  organization?: V1Beta1Organization;
+  organization?: Organization;
   children: React.ReactNode;
 }
 
