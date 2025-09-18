@@ -1121,8 +1121,8 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/RevokeUserSession": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-    return handler.IsSuperUser(ctx)
-  },
+		return handler.IsSuperUser(ctx)
+	},
 	"/raystack.frontier.v1beta1.AdminService/ListUserSessions": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx)
 	},
