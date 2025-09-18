@@ -1135,7 +1135,6 @@ func (s *AuditRecordRepositoryTestSuite) TestList_EdgeCases() {
 			s.True(found, "Should find record with unicode characters")
 		}
 	})
-
 }
 
 // TestAuditRecordRepositoryTestSuite is the entry point for the test suite
