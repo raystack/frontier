@@ -235,26 +235,26 @@ func (r AuditRecordRepository) Export(ctx context.Context, rqlQuery *rql.Query) 
 	}
 
 	csvQuery := baseStmt.Select(
-		goqu.L(`id AS "Record ID"`),
-		goqu.L(`COALESCE(idempotency_key::text, '') AS "Idempotency Key"`),
-		goqu.L(`event AS "Event"`),
-		goqu.L(`actor_id AS "Actor ID"`),
-		goqu.L(`actor_type AS "Actor Type"`),
-		goqu.L(`actor_name AS "Actor Name"`),
-		goqu.L(`COALESCE(actor_metadata::text, '{}') AS "Actor Metadata"`),
-		goqu.L(`resource_id AS "Resource ID"`),
-		goqu.L(`resource_type AS "Resource Type"`),
-		goqu.L(`resource_name AS "Resource Name"`),
-		goqu.L(`COALESCE(resource_metadata::text, '{}') AS "Resource Metadata"`),
-		goqu.L(`COALESCE(target_id, '') AS "Target ID"`),
-		goqu.L(`COALESCE(target_type, '') AS "Target Type"`),
-		goqu.L(`COALESCE(target_name, '') AS "Target Name"`),
-		goqu.L(`COALESCE(target_metadata::text, '{}') AS "Target Metadata"`),
-		goqu.L(`COALESCE(org_id::text, '') AS "Organization ID"`),
-		goqu.L(`COALESCE(request_id, '') AS "Request ID"`),
-		goqu.L(`to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.MS TZ') AS "Occurred At"`),
-		goqu.L(`to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.MS TZ') AS "Created At"`),
-		goqu.L(`COALESCE(metadata::text, '{}') AS "Metadata"`),
+		goqu.L(`id`),
+		goqu.L(`COALESCE(idempotency_key::text, '')`),
+		goqu.L(`event`),
+		goqu.L(`actor_id`),
+		goqu.L(`actor_type`),
+		goqu.L(`actor_name`),
+		goqu.L(`COALESCE(actor_metadata::text, '{}')`),
+		goqu.L(`resource_id`),
+		goqu.L(`resource_type`),
+		goqu.L(`resource_name`),
+		goqu.L(`COALESCE(resource_metadata::text, '{}')`),
+		goqu.L(`COALESCE(target_id, '')`),
+		goqu.L(`COALESCE(target_type, '')`),
+		goqu.L(`COALESCE(target_name, '')`),
+		goqu.L(`COALESCE(target_metadata::text, '{}')`),
+		goqu.L(`COALESCE(org_id::text, '')`),
+		goqu.L(`COALESCE(request_id, '')`),
+		goqu.L(`to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.MS TZ')`),
+		goqu.L(`to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.MS TZ')`),
+		goqu.L(`COALESCE(metadata::text, '{}')`),
 	)
 
 	csvQuery, err = utils.AddRQLSortInQuery(csvQuery, rqlQuery)
@@ -399,7 +399,7 @@ func (r AuditRecordRepository) streamCursorToCSV(ctx context.Context, tx *sql.Tx
 			for i := range values {
 				valuePtrs[i] = &values[i]
 			}
-
+			// scan values positionally
 			if err := rows.Scan(valuePtrs...); err != nil {
 				rows.Close()
 				return fmt.Errorf("failed to scan row: %w", err)
