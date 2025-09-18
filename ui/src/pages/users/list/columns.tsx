@@ -6,11 +6,15 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
-import { V1Beta1User } from "@raystack/frontier";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
-import { NULL_DATE } from "~/utils/constants";
 import { getUserName, USER_STATES, UserState } from "../util";
+import { User } from "@raystack/proton/frontier";
+import {
+  isNullTimestamp,
+  TimeStamp,
+  timestampToDate,
+} from "~/utils/connect-timestamp";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
@@ -18,7 +22,7 @@ interface getColumnsOptions {
 
 export const getColumns = ({
   groupCountMap,
-}: getColumnsOptions): DataTableColumnDef<V1Beta1User, unknown>[] => {
+}: getColumnsOptions): DataTableColumnDef<User, unknown>[] => {
   return [
     {
       accessorKey: "title",
@@ -53,12 +57,15 @@ export const getColumns = ({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Joined on",
       filterType: "date",
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return <Text>{date}</Text>;
       },
       enableHiding: true,
       enableSorting: true,

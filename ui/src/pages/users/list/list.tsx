@@ -1,15 +1,21 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
-import type { V1Beta1User } from "@raystack/frontier";
-import { useCallback } from "react";
+import { useState } from "react";
 import Navbar from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
-import { api } from "~/api";
 import { useNavigate } from "react-router-dom";
 import PageTitle from "~/components/page-title";
 import UserIcon from "~/assets/icons/users.svg?react";
-import { useRQL } from "~/hooks/useRQL";
+import { useInfiniteQuery } from "@connectrpc/connect-query";
+import { AdminServiceQueries, type User } from "@raystack/proton/frontier";
+import {
+  getConnectNextPageParam,
+  getGroupCountMapFromFirstPage,
+  DEFAULT_PAGE_SIZE,
+} from "~/utils/connect-pagination";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 
 const NoUsers = () => {
   return (
@@ -26,64 +32,115 @@ const NoUsers = () => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE,
+};
 
 export const UsersList = () => {
   const navigate = useNavigate();
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
-  const apiCallback = useCallback(
-    async (apiQuery: DataTableQuery = {}) =>
-      await api.adminServiceSearchUsers(apiQuery).then((res) => res.data),
-    [],
-  );
+  // Transform the DataTableQuery to RQLRequest format
+  const query = transformDataTableQueryToRQLRequest(tableQuery, {
+    fieldNameMapping: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    },
+  });
 
   const {
-    data,
-    loading: isLoading,
-    query,
-    onTableQueryChange,
-    fetchMore,
-    groupCountMap,
-  } = useRQL<V1Beta1User>({
-    initialQuery: { offset: 0, sort: [DEFAULT_SORT] },
-    dataKey: "users",
-    key: "users",
-    fn: apiCallback,
-    onError: (error: Error | unknown) =>
-      console.error("Failed to fetch users:", error),
-  });
+    data: infiniteData,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    error,
+    isError,
+  } = useInfiniteQuery(
+    AdminServiceQueries.searchUsers,
+    { query: query },
+    {
+      pageParamKey: "query",
+      getNextPageParam: (lastPage) =>
+        getConnectNextPageParam(lastPage, { query: query }, "users"),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+    },
+  );
+
+  const data = infiniteData?.pages?.flatMap((page) => page?.users || []) || [];
+
+  const groupCountMap = infiniteData
+    ? getGroupCountMapFromFirstPage(infiniteData)
+    : {};
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery({
+      ...newQuery,
+      offset: 0,
+      limit: newQuery.limit || DEFAULT_PAGE_SIZE,
+    });
+  };
+
+  const handleLoadMore = async () => {
+    try {
+      await fetchNextPage();
+    } catch (error) {
+      console.error("Error loading more users:", error);
+    }
+  };
 
   const columns = getColumns({ groupCountMap });
 
-  const onRowClick = useCallback(
-    (row: V1Beta1User) => {
-      navigate(`/users/${row.id}`);
-    },
-    [navigate],
-  );
+  const loading = isLoading || isFetchingNextPage;
+
+  const onRowClick = (row: User) => {
+    navigate(`/users/${row.id}`);
+  };
+
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <>
+        <PageTitle title="Users" />
+        <EmptyState
+          icon={<ExclamationTriangleIcon />}
+          heading="Error Loading Users"
+          subHeading={
+            error?.message ||
+            "Something went wrong while loading users. Please try again."
+          }
+        />
+      </>
+    );
+  }
+
+  const tableClassName =
+    data.length || loading ? styles["table"] : styles["table-empty"];
 
   return (
     <>
       <PageTitle title="Users" />
       <DataTable
+        query={tableQuery}
         columns={columns}
         data={data}
-        isLoading={isLoading}
+        isLoading={loading}
         defaultSort={DEFAULT_SORT}
         onTableQueryChange={onTableQueryChange}
         mode="server"
-        onLoadMore={fetchMore}
+        onLoadMore={handleLoadMore}
         onRowClick={onRowClick}
       >
         <Flex direction="column" style={{ width: "100%" }}>
-          <Navbar searchQuery={query.search} />
+          <Navbar searchQuery={tableQuery.search} />
           <DataTable.Toolbar />
           <DataTable.Content
             classNames={{
               root: styles["table-wrapper"],
-              table:
-                data.length || isLoading
-                  ? styles["table"]
-                  : styles["table-empty"],
+              table: tableClassName,
               header: styles["table-header"],
             }}
             emptyState={<NoUsers />}
