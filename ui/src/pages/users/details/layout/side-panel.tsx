@@ -14,7 +14,7 @@ export const UserDetailsSidePanel = () => {
   const {
     data: userOrganizationsResponse,
     isLoading,
-    refetch,
+    refetch: onReset,
     error,
   } = useQuery(
     AdminServiceQueries.searchUserOrganizations,
@@ -30,10 +30,6 @@ export const UserDetailsSidePanel = () => {
   );
 
   const userOrganizations = userOrganizationsResponse?.userOrganizations || [];
-
-  const onReset = useCallback(() => {
-    refetch();
-  }, [refetch]);
 
   return (
     <SidePanel
