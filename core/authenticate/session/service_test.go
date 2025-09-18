@@ -28,7 +28,8 @@ func TestService_Create(t *testing.T) {
 		}).Return(nil)
 
 		userID := "1"
-		sess, err := svc.Create(context.Background(), userID)
+		metadata := session.SessionMetadata{}
+		sess, err := svc.Create(context.Background(), userID, metadata)
 
 		assert.Nil(t, err)
 		assert.Equal(t, sess.UserID, "1")
@@ -45,7 +46,8 @@ func TestService_Create(t *testing.T) {
 		}).Return(errors.New("internal-error"))
 
 		userID := "1"
-		_, err := svc.Create(context.Background(), userID)
+		metadata := session.SessionMetadata{}
+		_, err := svc.Create(context.Background(), userID, metadata)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "internal-error")

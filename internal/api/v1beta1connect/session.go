@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -43,20 +44,11 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 
 // transformSessionToPB converts a domain Session to a protobuf
 func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*frontierv1beta1.Session, error) {
-	metadata := &frontierv1beta1.Session_Meta{}
-	if s.Metadata != nil {
-		if os, ok := s.Metadata["operating_system"].(string); ok {
-			metadata.OperatingSystem = os
-		}
-		if browser, ok := s.Metadata["browser"].(string); ok {
-			metadata.Browser = browser
-		}
-		if ip, ok := s.Metadata["ip_address"].(string); ok {
-			metadata.IpAddress = ip
-		}
-		if location, ok := s.Metadata["location"].(string); ok {
-			metadata.Location = location
-		}
+	metadata := &frontierv1beta1.Session_Meta{
+		OperatingSystem: s.Metadata.OS,
+		Browser:         s.Metadata.Browser,
+		IpAddress:       s.Metadata.IP,
+		Location:        s.Metadata.Location.Country + ", " + s.Metadata.Location.City,
 	}
 
 	return &frontierv1beta1.Session{
@@ -92,13 +84,48 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 
 // Ping user current active session.
 func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.PingUserSessionRequest]) (*connect.Response[frontierv1beta1.PingUserSessionResponse], error) {
-	return nil, nil
+	session, err := h.sessionService.ExtractFromContext(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	if !session.IsValid(time.Now().UTC()) {
+		return nil, connect.NewError(connect.CodeUnauthenticated, err)
+	}
+
+	sessionMetadata := utils.ExtractSessionMetadata(ctx, request, h.metadataConfig)
+
+	if err := h.sessionService.PingSession(ctx, session.ID, sessionMetadata); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.PingUserSessionResponse{}), nil
 }
 
 // Admin APIs
 // Returns a list of all sessions for a specific user.
 func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
-	return nil, nil
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	sessions, err := h.sessionService.ListSessions(ctx, request.Msg.GetUserId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	var pbSessions []*frontierv1beta1.Session
+	for _, session := range sessions {
+		pbSession, err := transformSessionToPB(session, "")
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+		pbSessions = append(pbSessions, pbSession)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListUserSessionsResponse{
+		Sessions: pbSessions,
+	}), nil
 }
 
 // Revoke a specific session for a specific user (admin only).
