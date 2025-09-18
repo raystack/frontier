@@ -1,11 +1,13 @@
 import { Text, DropdownMenu } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";
-import { SearchUserOrganizationsResponseUserOrganization } from "~/api/frontier";
+import {
+  type SearchUserOrganizationsResponse_UserOrganization,
+  SearchOrganizationUsersResponse_OrganizationUserSchema
+} from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { SearchOrganizationUsersResponse_OrganizationUserSchema } from "@raystack/proton/frontier";
 import type { V1Beta1Role } from "~/api/frontier";
 import { SCOPES } from "~/utils/constants";
 import { AssignRole } from "~/components/assign-role";
@@ -13,7 +15,7 @@ import { useUser } from "../user-context";
 import { SuspendUser } from "./suspend-user";
 
 interface MembershipDropdownProps {
-  data?: SearchUserOrganizationsResponseUserOrganization;
+  data?: SearchUserOrganizationsResponse_UserOrganization;
   onReset?: () => void;
 }
 
@@ -51,8 +53,8 @@ export const MembershipDropdown = ({
   }, []);
 
   useEffect(() => {
-    if (data?.org_id) fetchRoles(data.org_id);
-  }, [data?.org_id, fetchRoles]);
+    if (data?.orgId) fetchRoles(data.orgId);
+  }, [data?.orgId, fetchRoles]);
 
   const toggleAssignRoleDialog = () => {
     setIsAssignRoleDialogOpen((value) => !value);
@@ -72,22 +74,27 @@ export const MembershipDropdown = ({
     onReset?.();
   };
 
+  const memoizedUser = useMemo(
+    () => create(SearchOrganizationUsersResponse_OrganizationUserSchema, {
+      ...user,
+      roleNames: data?.roleNames || [],
+      roleTitles: data?.roleTitles || [],
+      roleIds: data?.roleIds || [],
+    }),
+    [user, data?.roleNames, data?.roleTitles, data?.roleIds]
+  );
+
   if (isLoading) {
     return <Skeleton height={30} />;
   }
 
   return (
     <>
-      {isAssignRoleDialogOpen && data?.org_id && (
+      {isAssignRoleDialogOpen && data?.orgId && (
         <AssignRole
           roles={roles}
-          user={create(SearchOrganizationUsersResponse_OrganizationUserSchema, {
-            ...user,
-            roleNames: data?.role_names || [],
-            roleTitles: data?.role_titles || [],
-            roleIds: data?.role_ids || [],
-          })}
-          organizationId={data.org_id}
+          user={memoizedUser}
+          organizationId={data.orgId}
           onRoleUpdate={onRoleUpdate}
           onClose={toggleAssignRoleDialog}
         />
@@ -102,7 +109,7 @@ export const MembershipDropdown = ({
       <DropdownMenu>
         <DropdownMenu.Trigger className={styles["dropdown-menu-trigger"]}>
           <Text className={styles["text-overflow"]} as="p">
-            {data?.role_titles?.join(", ") ?? "-"}
+            {data?.roleTitles?.join(", ") ?? "-"}
           </Text>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
