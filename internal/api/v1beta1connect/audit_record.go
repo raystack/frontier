@@ -22,7 +22,7 @@ import (
 
 const (
 	IdempotencyReplyHeader = "X-Idempotency-Replayed"
-	HttpChunkSize          = 200 * 1024 // 200KB
+	HttpChunkSize          = 204800 // 200KB
 )
 
 type AuditRecordService interface {

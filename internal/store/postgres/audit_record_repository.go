@@ -257,7 +257,6 @@ func (r AuditRecordRepository) Export(ctx context.Context, rqlQuery *rql.Query) 
 		goqu.L(`COALESCE(metadata::text, '{}') AS "Metadata"`),
 	)
 
-	// Apply sorting after selecting columns for export
 	csvQuery, err = utils.AddRQLSortInQuery(csvQuery, rqlQuery)
 	if err != nil {
 		return nil, "", wrapValidationError(err)
@@ -288,7 +287,7 @@ func (r AuditRecordRepository) executeCursorQuery(ctx context.Context, selectQue
 			if err != nil {
 				return fmt.Errorf("failed to begin transaction: %w", err)
 			}
-			defer tx.Rollback() // Always rollback
+			defer tx.Rollback()
 
 			// Generate unique cursor name
 			cursorName, err := r.generateCursorName()
