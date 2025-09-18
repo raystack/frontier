@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/google/uuid"
@@ -21,6 +22,7 @@ type Repository interface {
 	Create(ctx context.Context, auditRecord AuditRecord) (AuditRecord, error)
 	GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (AuditRecord, error)
 	List(ctx context.Context, query *rql.Query) (AuditRecordsList, error)
+	Export(ctx context.Context, query *rql.Query) (io.Reader, string, error)
 }
 
 type UserService interface {
@@ -106,6 +108,10 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 
 func (s *Service) List(ctx context.Context, query *rql.Query) (AuditRecordsList, error) {
 	return s.repository.List(ctx, query)
+}
+
+func (s *Service) Export(ctx context.Context, query *rql.Query) (io.Reader, string, error) {
+	return s.repository.Export(ctx, query)
 }
 
 func computeHash(auditRecord AuditRecord) string {
