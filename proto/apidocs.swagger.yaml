@@ -12321,7 +12321,7 @@ definitions:
         format: date-time
       org_id:
         type: string
-      req_id:
+      request_id:
         type: string
       metadata:
         type: object
@@ -14750,6 +14750,21 @@ definitions:
       - STATUS_SUBSCRIBED
     default: STATUS_UNSPECIFIED
     title: subscription status
+  v1beta1RQLExportRequest:
+    type: object
+    properties:
+      filters:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLFilter'
+      search:
+        type: string
+      sort:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLSort'
   v1beta1RQLFilter:
     type: object
     properties:

@@ -9236,6 +9236,176 @@ var _ interface {
 	ErrorName() string
 } = RQLRequestValidationError{}
 
+// Validate checks the field values on RQLExportRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RQLExportRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RQLExportRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RQLExportRequestMultiError, or nil if none found.
+func (m *RQLExportRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RQLExportRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetFilters() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RQLExportRequestValidationError{
+						field:  fmt.Sprintf("Filters[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RQLExportRequestValidationError{
+						field:  fmt.Sprintf("Filters[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RQLExportRequestValidationError{
+					field:  fmt.Sprintf("Filters[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Search
+
+	for idx, item := range m.GetSort() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RQLExportRequestValidationError{
+						field:  fmt.Sprintf("Sort[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RQLExportRequestValidationError{
+						field:  fmt.Sprintf("Sort[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RQLExportRequestValidationError{
+					field:  fmt.Sprintf("Sort[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return RQLExportRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RQLExportRequestMultiError is an error wrapping multiple validation errors
+// returned by RQLExportRequest.ValidateAll() if the designated constraints
+// aren't met.
+type RQLExportRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RQLExportRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RQLExportRequestMultiError) AllErrors() []error { return m }
+
+// RQLExportRequestValidationError is the validation error returned by
+// RQLExportRequest.Validate if the designated constraints aren't met.
+type RQLExportRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RQLExportRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RQLExportRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RQLExportRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RQLExportRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RQLExportRequestValidationError) ErrorName() string { return "RQLExportRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RQLExportRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRQLExportRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RQLExportRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RQLExportRequestValidationError{}
+
 // Validate checks the field values on RQLFilter with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -10710,7 +10880,7 @@ func (m *AuditRecord) validate(all bool) error {
 
 	// no validation rules for OrgId
 
-	// no validation rules for ReqId
+	// no validation rules for RequestId
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
