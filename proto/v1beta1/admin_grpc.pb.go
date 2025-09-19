@@ -80,6 +80,7 @@ const (
 	AdminService_ListUserSessions_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/ListUserSessions"
 	AdminService_RevokeUserSession_FullMethodName                        = "/raystack.frontier.v1beta1.AdminService/RevokeUserSession"
 	AdminService_ListAuditRecords_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/ListAuditRecords"
+	AdminService_ExportAuditRecords_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/ExportAuditRecords"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -178,6 +179,9 @@ type AdminServiceClient interface {
 	RevokeUserSession(ctx context.Context, in *RevokeUserSessionRequest, opts ...grpc.CallOption) (*RevokeUserSessionResponse, error)
 	// Audit Records (Admin Only)
 	ListAuditRecords(ctx context.Context, in *ListAuditRecordsRequest, opts ...grpc.CallOption) (*ListAuditRecordsResponse, error)
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportAuditRecords(ctx context.Context, in *ExportAuditRecordsRequest, opts ...grpc.CallOption) (AdminService_ExportAuditRecordsClient, error)
 }
 
 type adminServiceClient struct {
@@ -844,6 +848,38 @@ func (c *adminServiceClient) ListAuditRecords(ctx context.Context, in *ListAudit
 	return out, nil
 }
 
+func (c *adminServiceClient) ExportAuditRecords(ctx context.Context, in *ExportAuditRecordsRequest, opts ...grpc.CallOption) (AdminService_ExportAuditRecordsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AdminService_ServiceDesc.Streams[5], AdminService_ExportAuditRecords_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &adminServiceExportAuditRecordsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AdminService_ExportAuditRecordsClient interface {
+	Recv() (*httpbody.HttpBody, error)
+	grpc.ClientStream
+}
+
+type adminServiceExportAuditRecordsClient struct {
+	grpc.ClientStream
+}
+
+func (x *adminServiceExportAuditRecordsClient) Recv() (*httpbody.HttpBody, error) {
+	m := new(httpbody.HttpBody)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -940,6 +976,9 @@ type AdminServiceServer interface {
 	RevokeUserSession(context.Context, *RevokeUserSessionRequest) (*RevokeUserSessionResponse, error)
 	// Audit Records (Admin Only)
 	ListAuditRecords(context.Context, *ListAuditRecordsRequest) (*ListAuditRecordsResponse, error)
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportAuditRecords(*ExportAuditRecordsRequest, AdminService_ExportAuditRecordsServer) error
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -1126,6 +1165,9 @@ func (UnimplementedAdminServiceServer) RevokeUserSession(context.Context, *Revok
 }
 func (UnimplementedAdminServiceServer) ListAuditRecords(context.Context, *ListAuditRecordsRequest) (*ListAuditRecordsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuditRecords not implemented")
+}
+func (UnimplementedAdminServiceServer) ExportAuditRecords(*ExportAuditRecordsRequest, AdminService_ExportAuditRecordsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportAuditRecords not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -2235,6 +2277,27 @@ func _AdminService_ListAuditRecords_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ExportAuditRecords_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportAuditRecordsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AdminServiceServer).ExportAuditRecords(m, &adminServiceExportAuditRecordsServer{stream})
+}
+
+type AdminService_ExportAuditRecordsServer interface {
+	Send(*httpbody.HttpBody) error
+	grpc.ServerStream
+}
+
+type adminServiceExportAuditRecordsServer struct {
+	grpc.ServerStream
+}
+
+func (x *adminServiceExportAuditRecordsServer) Send(m *httpbody.HttpBody) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2487,6 +2550,11 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ExportUsers",
 			Handler:       _AdminService_ExportUsers_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ExportAuditRecords",
+			Handler:       _AdminService_ExportAuditRecords_Handler,
 			ServerStreams: true,
 		},
 	},
