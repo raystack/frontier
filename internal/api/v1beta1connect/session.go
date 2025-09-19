@@ -55,7 +55,7 @@ func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*fr
 	return &frontierv1beta1.Session{
 		Id:               s.ID.String(),
 		Metadata:         metadata,
-		IsCurrentSession: s.ID.String() == currentUserID,
+		IsCurrentSession: s.ID.String() == currentUserID, // TODO: check if this is correct.
 		CreatedAt:        timestamppb.New(s.CreatedAt),
 		UpdatedAt:        timestamppb.New(s.UpdatedAt),
 	}, nil
@@ -63,7 +63,8 @@ func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*fr
 
 // Revoke a specific session for the current authenticated user.
 func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeSessionRequest]) (*connect.Response[frontierv1beta1.RevokeSessionResponse], error) {
-	if _, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion); err != nil {
+	principal, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
@@ -71,12 +72,21 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	id, err := uuid.Parse(request.Msg.GetSessionId())
+	sessionID, err := uuid.Parse(request.Msg.GetSessionId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	if err := h.sessionService.SoftDelete(ctx, id, time.Now()); err != nil {
+	session, err := h.sessionService.GetSession(ctx, sessionID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, err)
+	}
+
+	if session.UserID != principal.ID {
+		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("you can only revoke your own sessions"))
+	}
+
+	if err := h.sessionService.SoftDelete(ctx, sessionID, time.Now()); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 

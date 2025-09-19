@@ -152,3 +152,8 @@ func (s Service) PingSession(ctx context.Context, sessionID uuid.UUID, metadata 
 
 	return s.repo.UpdateSessionMetadata(ctx, sessionID, metadata, now)
 }
+
+// GetSession retrieves a session by its ID
+func (s Service) GetSession(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
+	return s.repo.Get(ctx, sessionID)
+}

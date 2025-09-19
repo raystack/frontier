@@ -132,6 +132,9 @@ var authorizationSkipEndpoints = map[string]bool{
 	// request to this endpoint.
 	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement": true,
 	"/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic":    true,
+
+	"/raystack.frontier.v1beta1.FrontierService/ListSessions": true,
+	"/raystack.frontier.v1beta1.FrontierService/PingUserSession": true,
 }
 
 // authorizationValidationMap stores path to validation function
