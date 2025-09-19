@@ -12321,7 +12321,7 @@ definitions:
         format: date-time
       org_id:
         type: string
-      request_id:
+      req_id:
         type: string
       metadata:
         type: object

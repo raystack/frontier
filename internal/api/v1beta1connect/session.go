@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"connectrpc.com/connect"
@@ -109,7 +110,18 @@ func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.R
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	sessions, err := h.sessionService.ListSessions(ctx, request.Msg.GetUserId())
+	// Manual validation for user_id since protobuf validation is not working
+	userID := request.Msg.GetUserId()
+	if userID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("user_id is required"))
+	}
+
+	// Validate UUID format
+	if _, err := uuid.Parse(userID); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid user_id format: must be a valid UUID"))
+	}
+
+	sessions, err := h.sessionService.ListSessions(ctx, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
