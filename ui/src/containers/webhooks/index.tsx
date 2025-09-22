@@ -3,26 +3,19 @@ import { getColumns } from "./columns";
 import { WebhooksHeader } from "./header";
 import { Outlet, useNavigate } from "react-router-dom";
 import styles from "./webhooks.module.css";
-import { useQuery } from "@connectrpc/connect-query";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { useWebhookQueries } from "./hooks/useWebhookQueries";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function WebhooksList() {
   const navigate = useNavigate();
-
   const {
-    data: webhooksResponse,
-    isLoading,
-    error,
-    isError,
-  } = useQuery(
-    AdminServiceQueries.listWebhooks,
-    {},
-    {
-      staleTime: 0,
-      refetchOnWindowFocus: false,
+    listWebhooks: {
+      data: webhooksResponse,
+      isLoading,
+      error,
+      isError,
     },
-  );
+  } = useWebhookQueries();
 
   const webhooks = webhooksResponse?.webhooks || [];
 

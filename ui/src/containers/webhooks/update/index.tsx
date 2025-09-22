@@ -10,13 +10,14 @@ import { CustomFieldName } from "~/components/CustomField";
 import events from "~/utils/webhook_events";
 import { SheetFooter } from "~/components/sheet/footer";
 import { toast } from "sonner";
-import { useQuery, useMutation } from "@connectrpc/connect-query";
+import { useMutation } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
   type WebhookRequestBody,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { WebhookRequestBodySchema } from "@raystack/proton/frontier";
+import { useWebhookQueries } from "../hooks/useWebhookQueries";
 
 const UpdateWebhookSchema = z.object({
   url: z.string().trim().url(),
@@ -32,6 +33,13 @@ export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;
 
 export default function UpdateWebhooks() {
   const navigate = useNavigate();
+  const {
+    listWebhooks: {
+      data: webhooksResponse,
+      isLoading: isWebhookLoading,
+    },
+    invalidateWebhooksList,
+  } = useWebhookQueries();
 
   const { webhookId = "" } = useParams();
 
@@ -43,15 +51,6 @@ export default function UpdateWebhooks() {
     resolver: zodResolver(UpdateWebhookSchema),
     defaultValues: {},
   });
-
-  const { data: webhooksResponse, isLoading: isWebhookLoading } = useQuery(
-    AdminServiceQueries.listWebhooks,
-    {},
-    {
-      staleTime: 0,
-      refetchOnWindowFocus: false,
-    },
-  );
 
   const webhook = webhooksResponse?.webhooks?.find(
     (wb) => wb?.id === webhookId,
@@ -78,6 +77,7 @@ export default function UpdateWebhooks() {
 
       if (resp?.webhook) {
         toast.success("Webhook updated");
+        await invalidateWebhooksList();
         onClose();
       }
     } catch (err) {

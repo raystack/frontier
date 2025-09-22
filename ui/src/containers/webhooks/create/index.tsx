@@ -17,6 +17,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { WebhookRequestBodySchema } from "@raystack/proton/frontier";
+import { useWebhookQueries } from "../hooks/useWebhookQueries";
 
 const NewWebookSchema = z.object({
   url: z.string().trim().url(),
@@ -32,6 +33,7 @@ export type NewWebhook = z.infer<typeof NewWebookSchema>;
 
 export default function CreateWebhooks() {
   const navigate = useNavigate();
+  const { invalidateWebhooksList } = useWebhookQueries();
 
   const onOpenChange = useCallback(() => {
     navigate("/webhooks");
@@ -60,6 +62,7 @@ export default function CreateWebhooks() {
 
       if (resp?.webhook) {
         toast.success("Webhook created");
+        await invalidateWebhooksList();
         onOpenChange();
       }
     } catch (err) {
