@@ -191,53 +191,6 @@ func (_c *SessionService_ExtractFromContext_Call) RunAndReturn(run func(context.
 	return _c
 }
 
-// Heartbeat provides a mock function with given fields: ctx, sessionID
-func (_m *SessionService) Heartbeat(ctx context.Context, sessionID uuid.UUID) error {
-	ret := _m.Called(ctx, sessionID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Heartbeat")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
-		r0 = rf(ctx, sessionID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SessionService_Heartbeat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Heartbeat'
-type SessionService_Heartbeat_Call struct {
-	*mock.Call
-}
-
-// Heartbeat is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sessionID uuid.UUID
-func (_e *SessionService_Expecter) Heartbeat(ctx interface{}, sessionID interface{}) *SessionService_Heartbeat_Call {
-	return &SessionService_Heartbeat_Call{Call: _e.mock.On("Heartbeat", ctx, sessionID)}
-}
-
-func (_c *SessionService_Heartbeat_Call) Run(run func(ctx context.Context, sessionID uuid.UUID)) *SessionService_Heartbeat_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID))
-	})
-	return _c
-}
-
-func (_c *SessionService_Heartbeat_Call) Return(_a0 error) *SessionService_Heartbeat_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *SessionService_Heartbeat_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *SessionService_Heartbeat_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListSessions provides a mock function with given fields: ctx, userID
 func (_m *SessionService) ListSessions(ctx context.Context, userID string) ([]*session.Session, error) {
 	ret := _m.Called(ctx, userID)

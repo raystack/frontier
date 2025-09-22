@@ -142,11 +142,6 @@ func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, e
 	return activeSessions, nil
 }
 
-// Heartbeat updates last active timestamp without extending expiry
-func (s Service) Heartbeat(ctx context.Context, sessionID uuid.UUID) error {
-	return s.repo.UpdateLastActive(ctx, sessionID, s.Now())
-}
-
 func (s Service) PingSession(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
 	now := s.Now()
 

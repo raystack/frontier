@@ -54,7 +54,6 @@ type SessionService interface {
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
 	ListSessions(ctx context.Context, userID string) ([]*frontiersession.Session, error)
-	Heartbeat(ctx context.Context, sessionID uuid.UUID) error
 	SoftDelete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error
 	PingSession(ctx context.Context, sessionID uuid.UUID, metadata frontiersession.SessionMetadata) error
 }
