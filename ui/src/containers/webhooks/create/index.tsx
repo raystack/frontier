@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { Button, Flex, Sheet } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 import { SheetHeader } from "~/components/sheet/header";
@@ -9,9 +9,14 @@ import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "~/components/CustomField";
 import events from "~/utils/webhook_events";
 import { SheetFooter } from "~/components/sheet/footer";
-import { V1Beta1WebhookRequestBody } from "@raystack/frontier";
 import { toast } from "sonner";
-import { api } from "~/api";
+import { useMutation } from "@connectrpc/connect-query";
+import {
+  AdminServiceQueries,
+  type WebhookRequestBody,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { WebhookRequestBodySchema } from "@raystack/proton/frontier";
 
 const NewWebookSchema = z.object({
   url: z.string().trim().url(),
@@ -27,11 +32,14 @@ export type NewWebhook = z.infer<typeof NewWebookSchema>;
 
 export default function CreateWebhooks() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onOpenChange = useCallback(() => {
     navigate("/webhooks");
   }, [navigate]);
+
+  const { mutateAsync: createWebhook, isPending: isSubmitting } = useMutation(
+    AdminServiceQueries.createWebhook,
+  );
 
   const methods = useForm<NewWebhook>({
     resolver: zodResolver(NewWebookSchema),
@@ -40,23 +48,23 @@ export default function CreateWebhooks() {
 
   const onSubmit = async (data: NewWebhook) => {
     try {
-      setIsSubmitting(true);
-      const body: V1Beta1WebhookRequestBody = {
-        ...data,
+      const body: WebhookRequestBody = create(WebhookRequestBodySchema, {
+        url: data.url,
+        description: data.description,
         state: data.state ? "enabled" : "disabled",
-      };
-      const resp = await api?.adminServiceCreateWebhook({
-        body,
+        subscribedEvents: data.subscribed_events || [],
+        headers: {},
       });
 
-      if (resp?.data?.webhook) {
+      const resp = await createWebhook({ body });
+
+      if (resp?.webhook) {
         toast.success("Webhook created");
         onOpenChange();
       }
     } catch (err) {
+      console.error("Failed to create webhook:", err);
       toast.error("Something went wrong");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
