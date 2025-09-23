@@ -389,6 +389,26 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 	}), nil
 }
 
+func (h *ConnectHandler) AddOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.AddOrganizationUsersRequest]) (*connect.Response[frontierv1beta1.AddOrganizationUsersResponse], error) {
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	if err := h.orgService.AddUsers(ctx, orgResp.ID, request.Msg.GetUserIds()); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.AddOrganizationUsersResponse{}), nil
+}
+
 func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {
 	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {

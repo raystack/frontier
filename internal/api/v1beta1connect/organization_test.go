@@ -916,3 +916,88 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_AddOrganizationUsers(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.AddOrganizationUsersRequest]
+		want    *connect.Response[frontierv1beta1.AddOrganizationUsersResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
+				Id:      testOrgID,
+				UserIds: []string{"some-user-id"},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return not found error if org does not exist",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
+				Id:      testOrgID,
+				UserIds: []string{"some-user-id"},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return not found error if org is disabled",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
+				Id:      testOrgID,
+				UserIds: []string{"some-user-id"},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return internal error if AddUsers fails",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				os.EXPECT().AddUsers(mock.AnythingOfType("context.backgroundCtx"), testOrgID, []string{"some-user-id"}).Return(errors.New("add users error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
+				Id:      testOrgID,
+				UserIds: []string{"some-user-id"},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should add user to org successfully",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				os.EXPECT().AddUsers(mock.AnythingOfType("context.backgroundCtx"), testOrgID, []string{"some-user-id"}).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
+				Id:      testOrgID,
+				UserIds: []string{"some-user-id"},
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.AddOrganizationUsersResponse{}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgService := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockOrgService)
+			}
+			mockDep := &ConnectHandler{orgService: mockOrgService}
+			resp, err := mockDep.AddOrganizationUsers(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
