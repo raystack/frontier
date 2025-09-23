@@ -700,3 +700,219 @@ func TestHandler_ListOrganizationProjects(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_ListOrganizationAdmins(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(us *mocks.UserService, os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.ListOrganizationAdminsRequest]
+		want    *connect.Response[frontierv1beta1.ListOrganizationAdminsResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if user service return some error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return error if org id does not exist",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return error if org is disabled",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return(testUserList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
+				Id: testOrgID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationAdminsResponse{
+				Users: []*frontierv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "User 1",
+						Name:  "user1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUserService := new(mocks.UserService)
+			mockOrgService := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockUserService, mockOrgService)
+			}
+			mockDep := &ConnectHandler{userService: mockUserService, orgService: mockOrgService}
+			resp, err := mockDep.ListOrganizationAdmins(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListOrganizationUsers(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(us *mocks.UserService, os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.ListOrganizationUsersRequest]
+		want    *connect.Response[frontierv1beta1.ListOrganizationUsersResponse]
+		wantErr error
+	}{
+		{
+			name: "should return invalid argument error if role filters and with_roles are both provided",
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
+				Id:          testOrgID,
+				RoleFilters: []string{"admin"},
+				WithRoles:   true,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
+				Id: "some-org-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return not found error if org id does not exist",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
+				Id: "some-org-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return not found error if org is disabled",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return internal error if user service return some error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "").Return([]user.User{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "").Return(testUserList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
+				Id: testOrgID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationUsersResponse{
+				Users: []*frontierv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "User 1",
+						Name:  "user1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUserService := new(mocks.UserService)
+			mockOrgService := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockUserService, mockOrgService)
+			}
+			mockDep := &ConnectHandler{userService: mockUserService, orgService: mockOrgService}
+			resp, err := mockDep.ListOrganizationUsers(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}

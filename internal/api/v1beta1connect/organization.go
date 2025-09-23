@@ -4,15 +4,20 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -255,6 +260,133 @@ func (h *ConnectHandler) ListOrganizationProjects(ctx context.Context, request *
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}), nil
+}
+
+func (h *ConnectHandler) ListOrganizationAdmins(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationAdminsRequest]) (*connect.Response[frontierv1beta1.ListOrganizationAdminsResponse], error) {
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var adminsPB []*frontierv1beta1.User
+	for _, user := range admins {
+		u, err := transformUserToPB(user)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+
+		adminsPB = append(adminsPB, u)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationAdminsResponse{Users: adminsPB}), nil
+}
+
+func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationUsersRequest]) (*connect.Response[frontierv1beta1.ListOrganizationUsersResponse], error) {
+	if len(request.Msg.GetRoleFilters()) > 0 && request.Msg.GetWithRoles() {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrRoleFilter)
+	}
+
+	logger := grpczap.Extract(ctx)
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	var users []user.User
+	var rolePairPBs []*frontierv1beta1.ListOrganizationUsersResponse_RolePair
+
+	if len(request.Msg.GetRoleFilters()) > 0 {
+		// convert role names to ids if needed
+		roleIDs := request.Msg.GetRoleFilters()
+		for i, roleFilter := range request.Msg.GetRoleFilters() {
+			if !utils.IsValidUUID(roleFilter) {
+				role, err := h.roleService.Get(ctx, roleFilter)
+				if err != nil {
+					return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				}
+				roleIDs[i] = role.ID
+			}
+		}
+
+		// need to fetch users with roles assigned to them
+		policies, err := h.policyService.List(ctx, policy.Filter{
+			OrgID:         request.Msg.GetId(),
+			PrincipalType: schema.UserPrincipal,
+			ResourceType:  schema.OrganizationNamespace,
+			RoleIDs:       roleIDs,
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		users = utils.Filter(utils.Map(policies, func(pol policy.Policy) user.User {
+			u, _ := h.userService.GetByID(ctx, pol.PrincipalID)
+			return u
+		}), func(u user.User) bool {
+			return u.ID != ""
+		})
+	} else {
+		// list all users
+		users, err = h.userService.ListByOrg(ctx, orgResp.ID, request.Msg.GetPermissionFilter())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		if request.Msg.GetWithRoles() {
+			for _, user := range users {
+				roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.OrganizationNamespace, request.Msg.GetId())
+				if err != nil {
+					return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				}
+
+				rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
+					pb, err := transformRoleToPB(role)
+					if err != nil {
+						logger.Error("failed to transform role for user", zap.Error(err))
+						return nil
+					}
+					return &pb
+				}), func(role *frontierv1beta1.Role) bool {
+					return role != nil
+				})
+				rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListOrganizationUsersResponse_RolePair{
+					UserId: user.ID,
+					Roles:  rolesPb,
+				})
+			}
+		}
+	}
+
+	var usersPB []*frontierv1beta1.User
+	for _, rel := range users {
+		u, err := transformUserToPB(rel)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		usersPB = append(usersPB, u)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationUsersResponse{
+		Users:     usersPB,
+		RolePairs: rolePairPBs,
+	}), nil
 }
 
 func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {
