@@ -5,7 +5,7 @@ import {
   Dialog,
   Flex,
   List
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import styles from './sessions.module.css';
 
 interface RevokeSessionConfirmProps {
