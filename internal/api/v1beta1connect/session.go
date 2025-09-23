@@ -96,7 +96,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 	}
 
 	if session.UserID != principal.ID {
-		return nil, connect.NewError(connect.CodeNotFound, frontiererrors.ErrSessionNotFound)
+		return nil, connect.NewError(connect.CodeNotFound, frontiererrors.ErrNotFound)
 	}
 
 	if err := h.sessionService.SoftDelete(ctx, sessionID, time.Now()); err != nil {
