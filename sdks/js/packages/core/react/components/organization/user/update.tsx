@@ -32,13 +32,13 @@ export const UpdateProfile = () => {
     control,
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting, isDirty }
   } = useForm({
     resolver: yupResolver(generalSchema)
   });
 
   useEffect(() => {
-    reset(user);
+    reset(user, { keepDirtyValues: true });
   }, [user, reset]);
 
   async function onSubmit(data: FormData) {
@@ -122,7 +122,7 @@ export const UpdateProfile = () => {
             size="medium"
             type="submit"
             style={{ width: 'fit-content' }}
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting || !isDirty}
             data-test-id="frontier-sdk-update-user-btn"
           >
             {isSubmitting ? 'Updating...' : 'Update'}

@@ -77,6 +77,10 @@ const (
 	AdminService_DeleteProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/DeleteProspect"
 	AdminService_SearchInvoices_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/SearchInvoices"
 	AdminService_GetCurrentAdminUser_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/GetCurrentAdminUser"
+	AdminService_ListUserSessions_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/ListUserSessions"
+	AdminService_RevokeUserSession_FullMethodName                        = "/raystack.frontier.v1beta1.AdminService/RevokeUserSession"
+	AdminService_ListAuditRecords_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/ListAuditRecords"
+	AdminService_ExportAuditRecords_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/ExportAuditRecords"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -169,6 +173,15 @@ type AdminServiceClient interface {
 	SearchInvoices(ctx context.Context, in *SearchInvoicesRequest, opts ...grpc.CallOption) (*SearchInvoicesResponse, error)
 	// Admin Self
 	GetCurrentAdminUser(ctx context.Context, in *GetCurrentAdminUserRequest, opts ...grpc.CallOption) (*GetCurrentAdminUserResponse, error)
+	// Returns a list of all sessions for a specific user. Admin access required.
+	ListUserSessions(ctx context.Context, in *ListUserSessionsRequest, opts ...grpc.CallOption) (*ListUserSessionsResponse, error)
+	// Revoke a specific session for a specific user (admin only).
+	RevokeUserSession(ctx context.Context, in *RevokeUserSessionRequest, opts ...grpc.CallOption) (*RevokeUserSessionResponse, error)
+	// Audit Records (Admin Only)
+	ListAuditRecords(ctx context.Context, in *ListAuditRecordsRequest, opts ...grpc.CallOption) (*ListAuditRecordsResponse, error)
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportAuditRecords(ctx context.Context, in *ExportAuditRecordsRequest, opts ...grpc.CallOption) (AdminService_ExportAuditRecordsClient, error)
 }
 
 type adminServiceClient struct {
@@ -808,6 +821,65 @@ func (c *adminServiceClient) GetCurrentAdminUser(ctx context.Context, in *GetCur
 	return out, nil
 }
 
+func (c *adminServiceClient) ListUserSessions(ctx context.Context, in *ListUserSessionsRequest, opts ...grpc.CallOption) (*ListUserSessionsResponse, error) {
+	out := new(ListUserSessionsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListUserSessions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) RevokeUserSession(ctx context.Context, in *RevokeUserSessionRequest, opts ...grpc.CallOption) (*RevokeUserSessionResponse, error) {
+	out := new(RevokeUserSessionResponse)
+	err := c.cc.Invoke(ctx, AdminService_RevokeUserSession_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListAuditRecords(ctx context.Context, in *ListAuditRecordsRequest, opts ...grpc.CallOption) (*ListAuditRecordsResponse, error) {
+	out := new(ListAuditRecordsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListAuditRecords_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ExportAuditRecords(ctx context.Context, in *ExportAuditRecordsRequest, opts ...grpc.CallOption) (AdminService_ExportAuditRecordsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AdminService_ServiceDesc.Streams[5], AdminService_ExportAuditRecords_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &adminServiceExportAuditRecordsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AdminService_ExportAuditRecordsClient interface {
+	Recv() (*httpbody.HttpBody, error)
+	grpc.ClientStream
+}
+
+type adminServiceExportAuditRecordsClient struct {
+	grpc.ClientStream
+}
+
+func (x *adminServiceExportAuditRecordsClient) Recv() (*httpbody.HttpBody, error) {
+	m := new(httpbody.HttpBody)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -898,6 +970,15 @@ type AdminServiceServer interface {
 	SearchInvoices(context.Context, *SearchInvoicesRequest) (*SearchInvoicesResponse, error)
 	// Admin Self
 	GetCurrentAdminUser(context.Context, *GetCurrentAdminUserRequest) (*GetCurrentAdminUserResponse, error)
+	// Returns a list of all sessions for a specific user. Admin access required.
+	ListUserSessions(context.Context, *ListUserSessionsRequest) (*ListUserSessionsResponse, error)
+	// Revoke a specific session for a specific user (admin only).
+	RevokeUserSession(context.Context, *RevokeUserSessionRequest) (*RevokeUserSessionResponse, error)
+	// Audit Records (Admin Only)
+	ListAuditRecords(context.Context, *ListAuditRecordsRequest) (*ListAuditRecordsResponse, error)
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportAuditRecords(*ExportAuditRecordsRequest, AdminService_ExportAuditRecordsServer) error
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -1075,6 +1156,18 @@ func (UnimplementedAdminServiceServer) SearchInvoices(context.Context, *SearchIn
 }
 func (UnimplementedAdminServiceServer) GetCurrentAdminUser(context.Context, *GetCurrentAdminUserRequest) (*GetCurrentAdminUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentAdminUser not implemented")
+}
+func (UnimplementedAdminServiceServer) ListUserSessions(context.Context, *ListUserSessionsRequest) (*ListUserSessionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUserSessions not implemented")
+}
+func (UnimplementedAdminServiceServer) RevokeUserSession(context.Context, *RevokeUserSessionRequest) (*RevokeUserSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeUserSession not implemented")
+}
+func (UnimplementedAdminServiceServer) ListAuditRecords(context.Context, *ListAuditRecordsRequest) (*ListAuditRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAuditRecords not implemented")
+}
+func (UnimplementedAdminServiceServer) ExportAuditRecords(*ExportAuditRecordsRequest, AdminService_ExportAuditRecordsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportAuditRecords not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -2130,6 +2223,81 @@ func _AdminService_GetCurrentAdminUser_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ListUserSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserSessionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListUserSessions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListUserSessions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListUserSessions(ctx, req.(*ListUserSessionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_RevokeUserSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeUserSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).RevokeUserSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_RevokeUserSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).RevokeUserSession(ctx, req.(*RevokeUserSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListAuditRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuditRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListAuditRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListAuditRecords_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListAuditRecords(ctx, req.(*ListAuditRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ExportAuditRecords_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportAuditRecordsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AdminServiceServer).ExportAuditRecords(m, &adminServiceExportAuditRecordsServer{stream})
+}
+
+type AdminService_ExportAuditRecordsServer interface {
+	Send(*httpbody.HttpBody) error
+	grpc.ServerStream
+}
+
+type adminServiceExportAuditRecordsServer struct {
+	grpc.ServerStream
+}
+
+func (x *adminServiceExportAuditRecordsServer) Send(m *httpbody.HttpBody) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2345,6 +2513,18 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetCurrentAdminUser",
 			Handler:    _AdminService_GetCurrentAdminUser_Handler,
 		},
+		{
+			MethodName: "ListUserSessions",
+			Handler:    _AdminService_ListUserSessions_Handler,
+		},
+		{
+			MethodName: "RevokeUserSession",
+			Handler:    _AdminService_RevokeUserSession_Handler,
+		},
+		{
+			MethodName: "ListAuditRecords",
+			Handler:    _AdminService_ListAuditRecords_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -2370,6 +2550,11 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ExportUsers",
 			Handler:       _AdminService_ExportUsers_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ExportAuditRecords",
+			Handler:       _AdminService_ExportAuditRecords_Handler,
 			ServerStreams: true,
 		},
 	},

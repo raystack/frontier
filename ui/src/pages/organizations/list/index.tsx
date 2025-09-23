@@ -6,15 +6,23 @@ import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
 import { api } from "~/api";
+import { useInfiniteQuery } from "@connectrpc/connect-query";
+import {
+  AdminServiceQueries,
+  SearchOrganizationsResponse_OrganizationResult,
+} from "@raystack/proton/frontier";
+
 import { useNavigate } from "react-router-dom";
 import PageTitle from "~/components/page-title";
 import { CreateOrganizationPanel } from "./create";
-import { useRQL } from "~/hooks/useRQL";
-import type {
-  SearchOrganizationsResponseOrganizationResult,
-  V1Beta1Organization,
-  V1Beta1Plan,
-} from "~/api/frontier";
+import type { V1Beta1Plan } from "~/api/frontier";
+import {
+  getConnectNextPageParam,
+  getGroupCountMapFromFirstPage,
+  DEFAULT_PAGE_SIZE,
+} from "~/utils/connect-pagination";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 
 const NoOrganizations = () => {
   return (
@@ -31,6 +39,10 @@ const NoOrganizations = () => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE,
+};
 
 export const OrganizationList = () => {
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
@@ -38,20 +50,63 @@ export const OrganizationList = () => {
 
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
-  const apiCallback = useCallback(async (apiQuery: DataTableQuery = {}) => {
-    const response = await api.adminServiceSearchOrganizations({ ...apiQuery });
-    return response?.data;
-  }, []);
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
-  const { data, loading, query, onTableQueryChange, fetchMore, groupCountMap } =
-    useRQL<SearchOrganizationsResponseOrganizationResult>({
-      key: "organizations",
-      initialQuery: { offset: 0 },
-      dataKey: "organizations",
-      fn: apiCallback,
-      onError: (error: Error | unknown) =>
-        console.error("Failed to fetch orgs:", error),
+  // Transform the DataTableQuery to RQLRequest format
+  const query = transformDataTableQueryToRQLRequest(tableQuery, {
+    fieldNameMapping: {
+      createdBy: "created_by",
+      planName: "plan_name",
+      subscriptionCycleEndAt: "subscription_cycle_end_at",
+      paymentMode: "payment_mode",
+      subscriptionState: "subscription_state",
+      createdAt: "created_at",
+    },
+  });
+
+  const {
+    data: infiniteData,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    error,
+    isError,
+  } = useInfiniteQuery(
+    AdminServiceQueries.searchOrganizations,
+    { query: query },
+    {
+      pageParamKey: "query",
+      getNextPageParam: (lastPage) =>
+        getConnectNextPageParam(lastPage, { query: query }, "organizations"),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+    },
+  );
+
+  const data =
+    infiniteData?.pages?.flatMap((page) => page?.organizations || []) || [];
+
+  const groupCountMap = infiniteData
+    ? getGroupCountMapFromFirstPage(infiniteData)
+    : {};
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery({
+      ...newQuery,
+      offset: 0,
+      limit: newQuery.limit || DEFAULT_PAGE_SIZE,
     });
+  };
+
+  const handleLoadMore = async () => {
+    try {
+      await fetchNextPage();
+    } catch (error) {
+      console.error("Error loading more organizations:", error);
+    }
+  };
 
   const naviagte = useNavigate();
 
@@ -82,12 +137,29 @@ export const OrganizationList = () => {
 
   const columns = getColumns({ plans, groupCountMap: groupCountMap });
 
-  const isLoading = loading || isPlansLoading;
+  const loading = isLoading || isPlansLoading || isFetchingNextPage;
+
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <>
+        <PageTitle title="Organizations" />
+        <EmptyState
+          icon={<ExclamationTriangleIcon />}
+          heading="Error Loading Organizations"
+          subHeading={
+            error?.message ||
+            "Something went wrong while loading organizations. Please try again."
+          }
+        />
+      </>
+    );
+  }
 
   const tableClassName =
-    data.length || isLoading ? styles["table"] : styles["table-empty"];
+    data.length || loading ? styles["table"] : styles["table-empty"];
 
-  function onRowClick(row: V1Beta1Organization) {
+  function onRowClick(row: SearchOrganizationsResponse_OrganizationResult) {
     naviagte(`/organizations/${row.id}`);
   }
   return (
@@ -97,18 +169,19 @@ export const OrganizationList = () => {
       ) : null}
       <PageTitle title="Organizations" />
       <DataTable
+        query={tableQuery}
         columns={columns}
         data={data}
-        isLoading={isLoading}
+        isLoading={loading}
         defaultSort={DEFAULT_SORT}
         onTableQueryChange={onTableQueryChange}
         mode="server"
-        onLoadMore={fetchMore}
+        onLoadMore={handleLoadMore}
         onRowClick={onRowClick}
       >
         <Flex direction="column" style={{ width: "100%" }}>
           <OrganizationsNavabar
-            searchQuery={query.search}
+            searchQuery={tableQuery.search}
             openCreatePanel={openCreateOrgPanel}
           />
           <DataTable.Toolbar />

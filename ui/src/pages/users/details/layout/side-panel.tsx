@@ -1,37 +1,35 @@
-import { useEffect, useCallback, useState } from "react";
-import { Avatar, getAvatarColor, SidePanel } from "@raystack/apsara";
+import { useCallback } from "react";
+import { Avatar, getAvatarColor, SidePanel, Text } from "@raystack/apsara";
 import { SidePanelDetails } from "./side-panel-details";
 import { SidePanelMembership } from "./side-panel-membership";
 import styles from "./side-panel.module.css";
 import { getUserName } from "../../util";
 import { useUser } from "../user-context";
-import { SearchUserOrganizationsResponseUserOrganization } from "~/api/frontier";
-import { api } from "~/api";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { useQuery } from "@connectrpc/connect-query";
 
 export const UserDetailsSidePanel = () => {
   const { user } = useUser();
 
-  const [userOrganizations, setUserOrganizations] =
-    useState<SearchUserOrganizationsResponseUserOrganization[]>();
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    data: userOrganizationsResponse,
+    isLoading,
+    refetch: onReset,
+    error,
+  } = useQuery(
+    AdminServiceQueries.searchUserOrganizations,
+    {
+      id: user?.id || "",
+      query: {},
+    },
+    {
+      enabled: !!user?.id,
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+    },
+  );
 
-  const fetchUserOrgs = useCallback(async (id: string) => {
-    try {
-      setIsLoading(true);
-      const response = await api?.adminServiceSearchUserOrganizations(id, {});
-      setUserOrganizations(response.data?.user_organizations);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const onReset = () => {
-    if (user?.id) fetchUserOrgs(user.id);
-  };
-
-  useEffect(onReset, [user, fetchUserOrgs]);
+  const userOrganizations = userOrganizationsResponse?.userOrganizations || [];
 
   return (
     <SidePanel
@@ -51,13 +49,17 @@ export const UserDetailsSidePanel = () => {
       <SidePanel.Section>
         <SidePanelDetails />
       </SidePanel.Section>
-      {isLoading ? (
+      {error ? (
+        <SidePanel.Section>
+          <Text variant="danger">Failed to load user organizations</Text>
+        </SidePanel.Section>
+      ) : isLoading ? (
         <SidePanel.Section>
           <SidePanelMembership showTitle isLoading />
         </SidePanel.Section>
       ) : (
         userOrganizations?.map((org, index) => (
-          <SidePanel.Section key={org.org_id}>
+          <SidePanel.Section key={org.orgId}>
             <SidePanelMembership
               data={org}
               showTitle={index === 0}

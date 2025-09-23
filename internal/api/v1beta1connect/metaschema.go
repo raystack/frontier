@@ -1,5 +1,6 @@
 package v1beta1connect
 
 var (
-	roleMetaSchema = "role"
+	roleMetaSchema     = "role"
+	prospectMetaSchema = "prospect"
 )

@@ -21,6 +21,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/userorgs"
 	"github.com/raystack/frontier/core/aggregates/userprojects"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/deleter"
@@ -94,4 +95,6 @@ type Deps struct {
 	LogListener *event.ChanListener
 
 	ProspectService *prospect.Service
+
+	AuditRecordService *auditrecord.Service
 }

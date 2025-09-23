@@ -1,0 +1,1 @@
+ALTER TABLE audit_records RENAME COLUMN organization_id TO org_id;

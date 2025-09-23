@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
 
@@ -708,6 +709,19 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.UpdatePermission)
 	},
 
+	// audit records
+	frontierv1beta1connect.FrontierServiceCreateAuditRecordProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.CreateAuditRecordRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission)
+	},
+
+	frontierv1beta1connect.AdminServiceListAuditRecordsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx)
+	},
+	frontierv1beta1connect.AdminServiceExportAuditRecordsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx)
+	},
+
 	// preferences
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.CreateOrganizationPreferencesRequest])
@@ -964,6 +978,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUsers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUserCredentials": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {

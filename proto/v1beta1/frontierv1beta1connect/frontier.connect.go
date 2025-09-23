@@ -343,6 +343,15 @@ const (
 	FrontierServiceBatchCheckPermissionProcedure = "/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission"
 	// FrontierServiceGetJWKsProcedure is the fully-qualified name of the FrontierService's GetJWKs RPC.
 	FrontierServiceGetJWKsProcedure = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
+	// FrontierServiceListSessionsProcedure is the fully-qualified name of the FrontierService's
+	// ListSessions RPC.
+	FrontierServiceListSessionsProcedure = "/raystack.frontier.v1beta1.FrontierService/ListSessions"
+	// FrontierServiceRevokeSessionProcedure is the fully-qualified name of the FrontierService's
+	// RevokeSession RPC.
+	FrontierServiceRevokeSessionProcedure = "/raystack.frontier.v1beta1.FrontierService/RevokeSession"
+	// FrontierServicePingUserSessionProcedure is the fully-qualified name of the FrontierService's
+	// PingUserSession RPC.
+	FrontierServicePingUserSessionProcedure = "/raystack.frontier.v1beta1.FrontierService/PingUserSession"
 	// FrontierServiceListAuthStrategiesProcedure is the fully-qualified name of the FrontierService's
 	// ListAuthStrategies RPC.
 	FrontierServiceListAuthStrategiesProcedure = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
@@ -531,6 +540,9 @@ const (
 	// FrontierServiceCreateProspectPublicProcedure is the fully-qualified name of the FrontierService's
 	// CreateProspectPublic RPC.
 	FrontierServiceCreateProspectPublicProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic"
+	// FrontierServiceCreateAuditRecordProcedure is the fully-qualified name of the FrontierService's
+	// CreateAuditRecord RPC.
+	FrontierServiceCreateAuditRecordProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateAuditRecord"
 )
 
 // FrontierServiceClient is a client for the raystack.frontier.v1beta1.FrontierService service.
@@ -653,6 +665,12 @@ type FrontierServiceClient interface {
 	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
 	// Authn
 	GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(context.Context, *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(context.Context, *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error)
+	// Ping user current active session.
+	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
@@ -665,8 +683,12 @@ type FrontierServiceClient interface {
 	UpdateMetaSchema(context.Context, *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error)
 	DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error)
 	// Audit logs
+	//
+	// Deprecated: do not use.
 	ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
+	// Deprecated: do not use.
 	CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
+	// Deprecated: do not use.
 	GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error)
@@ -729,6 +751,8 @@ type FrontierServiceClient interface {
 	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
 	// Prospects
 	CreateProspectPublic(context.Context, *connect.Request[v1beta1.CreateProspectPublicRequest]) (*connect.Response[v1beta1.CreateProspectPublicResponse], error)
+	// Audit Records
+	CreateAuditRecord(context.Context, *connect.Request[v1beta1.CreateAuditRecordRequest]) (*connect.Response[v1beta1.CreateAuditRecordResponse], error)
 }
 
 // NewFrontierServiceClient constructs a client for the raystack.frontier.v1beta1.FrontierService
@@ -1366,6 +1390,24 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("GetJWKs")),
 			connect.WithClientOptions(opts...),
 		),
+		listSessions: connect.NewClient[v1beta1.ListSessionsRequest, v1beta1.ListSessionsResponse](
+			httpClient,
+			baseURL+FrontierServiceListSessionsProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("ListSessions")),
+			connect.WithClientOptions(opts...),
+		),
+		revokeSession: connect.NewClient[v1beta1.RevokeSessionRequest, v1beta1.RevokeSessionResponse](
+			httpClient,
+			baseURL+FrontierServiceRevokeSessionProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("RevokeSession")),
+			connect.WithClientOptions(opts...),
+		),
+		pingUserSession: connect.NewClient[v1beta1.PingUserSessionRequest, v1beta1.PingUserSessionResponse](
+			httpClient,
+			baseURL+FrontierServicePingUserSessionProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("PingUserSession")),
+			connect.WithClientOptions(opts...),
+		),
 		listAuthStrategies: connect.NewClient[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse](
 			httpClient,
 			baseURL+FrontierServiceListAuthStrategiesProcedure,
@@ -1744,6 +1786,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("CreateProspectPublic")),
 			connect.WithClientOptions(opts...),
 		),
+		createAuditRecord: connect.NewClient[v1beta1.CreateAuditRecordRequest, v1beta1.CreateAuditRecordResponse](
+			httpClient,
+			baseURL+FrontierServiceCreateAuditRecordProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateAuditRecord")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -1853,6 +1901,9 @@ type frontierServiceClient struct {
 	checkResourcePermission        *connect.Client[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse]
 	batchCheckPermission           *connect.Client[v1beta1.BatchCheckPermissionRequest, v1beta1.BatchCheckPermissionResponse]
 	getJWKs                        *connect.Client[v1beta1.GetJWKsRequest, v1beta1.GetJWKsResponse]
+	listSessions                   *connect.Client[v1beta1.ListSessionsRequest, v1beta1.ListSessionsResponse]
+	revokeSession                  *connect.Client[v1beta1.RevokeSessionRequest, v1beta1.RevokeSessionResponse]
+	pingUserSession                *connect.Client[v1beta1.PingUserSessionRequest, v1beta1.PingUserSessionResponse]
 	listAuthStrategies             *connect.Client[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse]
 	authenticate                   *connect.Client[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse]
 	authCallback                   *connect.Client[v1beta1.AuthCallbackRequest, v1beta1.AuthCallbackResponse]
@@ -1916,6 +1967,7 @@ type frontierServiceClient struct {
 	getUpcomingInvoice             *connect.Client[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse]
 	billingWebhookCallback         *connect.Client[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse]
 	createProspectPublic           *connect.Client[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse]
+	createAuditRecord              *connect.Client[v1beta1.CreateAuditRecordRequest, v1beta1.CreateAuditRecordResponse]
 }
 
 // ListUsers calls raystack.frontier.v1beta1.FrontierService.ListUsers.
@@ -2454,6 +2506,21 @@ func (c *frontierServiceClient) GetJWKs(ctx context.Context, req *connect.Reques
 	return c.getJWKs.CallUnary(ctx, req)
 }
 
+// ListSessions calls raystack.frontier.v1beta1.FrontierService.ListSessions.
+func (c *frontierServiceClient) ListSessions(ctx context.Context, req *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error) {
+	return c.listSessions.CallUnary(ctx, req)
+}
+
+// RevokeSession calls raystack.frontier.v1beta1.FrontierService.RevokeSession.
+func (c *frontierServiceClient) RevokeSession(ctx context.Context, req *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error) {
+	return c.revokeSession.CallUnary(ctx, req)
+}
+
+// PingUserSession calls raystack.frontier.v1beta1.FrontierService.PingUserSession.
+func (c *frontierServiceClient) PingUserSession(ctx context.Context, req *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error) {
+	return c.pingUserSession.CallUnary(ctx, req)
+}
+
 // ListAuthStrategies calls raystack.frontier.v1beta1.FrontierService.ListAuthStrategies.
 func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, req *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error) {
 	return c.listAuthStrategies.CallUnary(ctx, req)
@@ -2506,17 +2573,23 @@ func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, req *conne
 
 // ListOrganizationAuditLogs calls
 // raystack.frontier.v1beta1.FrontierService.ListOrganizationAuditLogs.
+//
+// Deprecated: do not use.
 func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error) {
 	return c.listOrganizationAuditLogs.CallUnary(ctx, req)
 }
 
 // CreateOrganizationAuditLogs calls
 // raystack.frontier.v1beta1.FrontierService.CreateOrganizationAuditLogs.
+//
+// Deprecated: do not use.
 func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error) {
 	return c.createOrganizationAuditLogs.CallUnary(ctx, req)
 }
 
 // GetOrganizationAuditLog calls raystack.frontier.v1beta1.FrontierService.GetOrganizationAuditLog.
+//
+// Deprecated: do not use.
 func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error) {
 	return c.getOrganizationAuditLog.CallUnary(ctx, req)
 }
@@ -2777,6 +2850,11 @@ func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, req *c
 	return c.createProspectPublic.CallUnary(ctx, req)
 }
 
+// CreateAuditRecord calls raystack.frontier.v1beta1.FrontierService.CreateAuditRecord.
+func (c *frontierServiceClient) CreateAuditRecord(ctx context.Context, req *connect.Request[v1beta1.CreateAuditRecordRequest]) (*connect.Response[v1beta1.CreateAuditRecordResponse], error) {
+	return c.createAuditRecord.CallUnary(ctx, req)
+}
+
 // FrontierServiceHandler is an implementation of the raystack.frontier.v1beta1.FrontierService
 // service.
 type FrontierServiceHandler interface {
@@ -2898,6 +2976,12 @@ type FrontierServiceHandler interface {
 	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
 	// Authn
 	GetJWKs(context.Context, *connect.Request[v1beta1.GetJWKsRequest]) (*connect.Response[v1beta1.GetJWKsResponse], error)
+	// Returns a list of all active sessions for the current authenticated user.
+	ListSessions(context.Context, *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error)
+	// Revoke a specific session for the current authenticated user.
+	RevokeSession(context.Context, *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error)
+	// Ping user current active session.
+	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
@@ -2910,8 +2994,12 @@ type FrontierServiceHandler interface {
 	UpdateMetaSchema(context.Context, *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error)
 	DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error)
 	// Audit logs
+	//
+	// Deprecated: do not use.
 	ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
+	// Deprecated: do not use.
 	CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
+	// Deprecated: do not use.
 	GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error)
@@ -2974,6 +3062,8 @@ type FrontierServiceHandler interface {
 	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
 	// Prospects
 	CreateProspectPublic(context.Context, *connect.Request[v1beta1.CreateProspectPublicRequest]) (*connect.Response[v1beta1.CreateProspectPublicResponse], error)
+	// Audit Records
+	CreateAuditRecord(context.Context, *connect.Request[v1beta1.CreateAuditRecordRequest]) (*connect.Response[v1beta1.CreateAuditRecordResponse], error)
 }
 
 // NewFrontierServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -3607,6 +3697,24 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("GetJWKs")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceListSessionsHandler := connect.NewUnaryHandler(
+		FrontierServiceListSessionsProcedure,
+		svc.ListSessions,
+		connect.WithSchema(frontierServiceMethods.ByName("ListSessions")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceRevokeSessionHandler := connect.NewUnaryHandler(
+		FrontierServiceRevokeSessionProcedure,
+		svc.RevokeSession,
+		connect.WithSchema(frontierServiceMethods.ByName("RevokeSession")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServicePingUserSessionHandler := connect.NewUnaryHandler(
+		FrontierServicePingUserSessionProcedure,
+		svc.PingUserSession,
+		connect.WithSchema(frontierServiceMethods.ByName("PingUserSession")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceListAuthStrategiesHandler := connect.NewUnaryHandler(
 		FrontierServiceListAuthStrategiesProcedure,
 		svc.ListAuthStrategies,
@@ -3985,6 +4093,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("CreateProspectPublic")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceCreateAuditRecordHandler := connect.NewUnaryHandler(
+		FrontierServiceCreateAuditRecordProcedure,
+		svc.CreateAuditRecord,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateAuditRecord")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/raystack.frontier.v1beta1.FrontierService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FrontierServiceListUsersProcedure:
@@ -4195,6 +4309,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceBatchCheckPermissionHandler.ServeHTTP(w, r)
 		case FrontierServiceGetJWKsProcedure:
 			frontierServiceGetJWKsHandler.ServeHTTP(w, r)
+		case FrontierServiceListSessionsProcedure:
+			frontierServiceListSessionsHandler.ServeHTTP(w, r)
+		case FrontierServiceRevokeSessionProcedure:
+			frontierServiceRevokeSessionHandler.ServeHTTP(w, r)
+		case FrontierServicePingUserSessionProcedure:
+			frontierServicePingUserSessionHandler.ServeHTTP(w, r)
 		case FrontierServiceListAuthStrategiesProcedure:
 			frontierServiceListAuthStrategiesHandler.ServeHTTP(w, r)
 		case FrontierServiceAuthenticateProcedure:
@@ -4321,6 +4441,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceBillingWebhookCallbackHandler.ServeHTTP(w, r)
 		case FrontierServiceCreateProspectPublicProcedure:
 			frontierServiceCreateProspectPublicHandler.ServeHTTP(w, r)
+		case FrontierServiceCreateAuditRecordProcedure:
+			frontierServiceCreateAuditRecordHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -4746,6 +4868,18 @@ func (UnimplementedFrontierServiceHandler) GetJWKs(context.Context, *connect.Req
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetJWKs is not implemented"))
 }
 
+func (UnimplementedFrontierServiceHandler) ListSessions(context.Context, *connect.Request[v1beta1.ListSessionsRequest]) (*connect.Response[v1beta1.ListSessionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListSessions is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) RevokeSession(context.Context, *connect.Request[v1beta1.RevokeSessionRequest]) (*connect.Response[v1beta1.RevokeSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RevokeSession is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.PingUserSession is not implemented"))
+}
+
 func (UnimplementedFrontierServiceHandler) ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListAuthStrategies is not implemented"))
 }
@@ -4996,4 +5130,8 @@ func (UnimplementedFrontierServiceHandler) BillingWebhookCallback(context.Contex
 
 func (UnimplementedFrontierServiceHandler) CreateProspectPublic(context.Context, *connect.Request[v1beta1.CreateProspectPublicRequest]) (*connect.Response[v1beta1.CreateProspectPublicResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateProspectPublic is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) CreateAuditRecord(context.Context, *connect.Request[v1beta1.CreateAuditRecordRequest]) (*connect.Response[v1beta1.CreateAuditRecordResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateAuditRecord is not implemented"))
 }
