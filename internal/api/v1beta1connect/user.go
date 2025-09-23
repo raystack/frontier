@@ -7,6 +7,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/pkg/errors"
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
@@ -71,8 +72,35 @@ func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *conne
 	}), nil
 }
 
-func (h *ConnectHandler) ListUsers(context.Context, *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, nil)
+func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
+	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
+
+	var users []*frontierv1beta1.User
+	usersList, err := h.userService.List(ctx, user.Filter{
+		Limit:   request.Msg.GetPageSize(),
+		Page:    request.Msg.GetPageNum(),
+		Keyword: request.Msg.GetKeyword(),
+		OrgID:   request.Msg.GetOrgId(),
+		GroupID: request.Msg.GetGroupId(),
+		State:   user.State(request.Msg.GetState()),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, user := range usersList {
+		userPB, err := transformUserToPB(user)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		users = append(users, userPB)
+	}
+
+	auditor.Log(audit.UserListedEvent, audit.OrgTarget(request.Msg.GetOrgId()))
+	return connect.NewResponse(&frontierv1beta1.ListUsersResponse{
+		Count: int32(len(users)),
+		Users: users,
+	}), nil
 }
 
 func isValidEmail(str string) bool {
