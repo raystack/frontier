@@ -409,6 +409,35 @@ func (h *ConnectHandler) AddOrganizationUsers(ctx context.Context, request *conn
 	return connect.NewResponse(&frontierv1beta1.AddOrganizationUsersResponse{}), nil
 }
 
+func (h *ConnectHandler) RemoveOrganizationUser(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveOrganizationUserRequest]) (*connect.Response[frontierv1beta1.RemoveOrganizationUserResponse], error) {
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	if len(admins) == 1 && admins[0].ID == request.Msg.GetUserId() {
+		return nil, connect.NewError(connect.CodePermissionDenied, ErrMinAdminCount)
+	}
+
+	if err := h.deleterService.RemoveUsersFromOrg(ctx, orgResp.ID, []string{request.Msg.GetUserId()}); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.RemoveOrganizationUserResponse{}), nil
+}
+
 func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {
 	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {

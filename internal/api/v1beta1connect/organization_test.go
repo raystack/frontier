@@ -1001,3 +1001,148 @@ func TestHandler_AddOrganizationUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_RemoveOrganizationUser(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter)
+		request *connect.Request[frontierv1beta1.RemoveOrganizationUserRequest]
+		want    *connect.Response[frontierv1beta1.RemoveOrganizationUserResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
+				Id:     testOrgID,
+				UserId: "some-user-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return not found error if org does not exist",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
+				Id:     testOrgID,
+				UserId: "some-user-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return not found error if org is disabled",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
+				Id:     testOrgID,
+				UserId: "some-user-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return internal error if user service return some error",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
+				Id:     testOrgID,
+				UserId: "some-user-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return permission denied error and not remove user if it is the last admin user",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
+					testUserMap[testUserID],
+				}, nil)
+				// Note: deleterService should NOT be called when it's the last admin
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
+				Id:     testOrgID,
+				UserId: testUserID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodePermissionDenied, ErrMinAdminCount),
+		},
+		{
+			name: "should return internal error if deleter service fails",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
+					testUserMap[testUserID],
+					{
+						ID:        "some-user-id",
+						Title:     "User 1",
+						Name:      "user1",
+						Email:     "test@raystack.org",
+						Metadata:  map[string]interface{}{},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					},
+				}, nil)
+				ds.EXPECT().RemoveUsersFromOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, []string{"some-user-id"}).Return(errors.New("deleter error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
+				Id:     testOrgID,
+				UserId: "some-user-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should remove user from org successfully",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
+					testUserMap[testUserID],
+					{
+						ID:        "some-user-id",
+						Title:     "User 1",
+						Name:      "user1",
+						Email:     "test@raystack.org",
+						Metadata:  map[string]interface{}{},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					},
+				}, nil)
+				ds.EXPECT().RemoveUsersFromOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, []string{"some-user-id"}).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
+				Id:     testOrgID,
+				UserId: "some-user-id",
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.RemoveOrganizationUserResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgService := new(mocks.OrganizationService)
+			mockUserService := new(mocks.UserService)
+			mockDeleterService := new(mocks.CascadeDeleter)
+			if tt.setup != nil {
+				tt.setup(mockOrgService, mockUserService, mockDeleterService)
+			}
+			mockDep := &ConnectHandler{
+				orgService:     mockOrgService,
+				userService:    mockUserService,
+				deleterService: mockDeleterService,
+			}
+			resp, err := mockDep.RemoveOrganizationUser(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
