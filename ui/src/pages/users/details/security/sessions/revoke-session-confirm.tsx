@@ -65,7 +65,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo }: Revo
                 <List.Label minWidth="120px">Last Active</List.Label>
                 <List.Value>{sessionInfo?.lastActive || "10 minutes ago"}</List.Value>
               </List.Item>
-            </List.Root>
+            </List>
         </Dialog.Body>
 
         <Dialog.Footer>
