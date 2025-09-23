@@ -48,7 +48,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo }: Revo
         </Dialog.Header>
 
         <Dialog.Body className={styles.revokeSessionConfirmBody}>
-            <List.Root className={styles.listRoot}>
+            <List className={styles.listRoot}>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Device</List.Label>
                 <List.Value>{sessionInfo?.device || "Chrome on Mac OS x"}</List.Value>
