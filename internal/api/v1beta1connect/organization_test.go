@@ -820,7 +820,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 				WithRoles:   true,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrRoleFilter),
 		},
 		{
 			name: "should return internal error if org service return some error",
@@ -1141,6 +1141,96 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 				deleterService: mockDeleterService,
 			}
 			resp, err := mockDep.RemoveOrganizationUser(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_EnableOrganization(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.EnableOrganizationRequest]
+		want    *connect.Response[frontierv1beta1.EnableOrganizationResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.EnableOrganizationRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should enable org successfully",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.EnableOrganizationRequest{
+				Id: testOrgID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.EnableOrganizationResponse{}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgService := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockOrgService)
+			}
+			mockDep := &ConnectHandler{orgService: mockOrgService}
+			resp, err := mockDep.EnableOrganization(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_DisableOrganization(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.DisableOrganizationRequest]
+		want    *connect.Response[frontierv1beta1.DisableOrganizationResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{
+				Id: "some-org-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should disable org successfully",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{
+				Id: "some-org-id",
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DisableOrganizationResponse{}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgService := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockOrgService)
+			}
+			mockDep := &ConnectHandler{orgService: mockOrgService}
+			resp, err := mockDep.DisableOrganization(context.Background(), tt.request)
 			assert.Equal(t, tt.want, resp)
 			assert.Equal(t, tt.wantErr, err)
 		})

@@ -438,6 +438,20 @@ func (h *ConnectHandler) RemoveOrganizationUser(ctx context.Context, request *co
 	return connect.NewResponse(&frontierv1beta1.RemoveOrganizationUserResponse{}), nil
 }
 
+func (h *ConnectHandler) EnableOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.EnableOrganizationRequest]) (*connect.Response[frontierv1beta1.EnableOrganizationResponse], error) {
+	if err := h.orgService.Enable(ctx, request.Msg.GetId()); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.EnableOrganizationResponse{}), nil
+}
+
+func (h *ConnectHandler) DisableOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.DisableOrganizationRequest]) (*connect.Response[frontierv1beta1.DisableOrganizationResponse], error) {
+	if err := h.orgService.Disable(ctx, request.Msg.GetId()); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.DisableOrganizationResponse{}), nil
+}
+
 func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {
 	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {
