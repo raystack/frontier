@@ -99,7 +99,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 		return nil, connect.NewError(connect.CodeNotFound, frontiererrors.ErrNotFound)
 	}
 
-	if err := h.sessionService.Delete(ctx, sessionID, time.Now()); err != nil {
+	if err := h.sessionService.Delete(ctx, sessionID); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -174,7 +174,7 @@ func (h ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	if err := h.sessionService.Delete(ctx, sessionID, time.Now()); err != nil {
+	if err := h.sessionService.Delete(ctx, sessionID); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 

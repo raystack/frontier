@@ -95,17 +95,17 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 
 
 // Delete marks a session as deleted by setting deleted_at timestamp
-func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
+func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
 		goqu.Record{
-			"deleted_at": deletedAt,
+			"deleted_at": time.Now().UTC(),
 		},
 	).Where(goqu.Ex{"id": id}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "SoftDelete", func(ctx context.Context) error {
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Delete", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			return fmt.Errorf("%w: %s", dbErr, err)

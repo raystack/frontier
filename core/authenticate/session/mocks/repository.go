@@ -238,17 +238,17 @@ func (_c *Repository_Set_Call) RunAndReturn(run func(context.Context, *session.S
 	return _c
 }
 
-// Delete provides a mock function with given fields: ctx, id, deletedAt
-func (_m *Repository) Delete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
-	ret := _m.Called(ctx, id, deletedAt)
+// Delete provides a mock function with given fields: ctx, id
+func (_m *Repository) Delete(ctx context.Context, id uuid.UUID) error {
+	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, time.Time) error); ok {
-		r0 = rf(ctx, id, deletedAt)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -264,14 +264,13 @@ type Repository_Delete_Call struct {
 // Delete is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id uuid.UUID
-//   - deletedAt time.Time
-func (_e *Repository_Expecter) Delete(ctx interface{}, id interface{}, deletedAt interface{}) *Repository_Delete_Call {
-	return &Repository_Delete_Call{Call: _e.mock.On("Delete", ctx, id, deletedAt)}
+func (_e *Repository_Expecter) Delete(ctx interface{}, id interface{}) *Repository_Delete_Call {
+	return &Repository_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
 }
 
-func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID, deletedAt time.Time)) *Repository_Delete_Call {
+func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID)) *Repository_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(time.Time))
+		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
@@ -281,7 +280,7 @@ func (_c *Repository_Delete_Call) Return(_a0 error) *Repository_Delete_Call {
 	return _c
 }
 
-func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID, time.Time) error) *Repository_Delete_Call {
+func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *Repository_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
