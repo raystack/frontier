@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	frontiererrors "github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -95,7 +96,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 	}
 
 	if session.UserID != principal.ID {
-		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("you can only revoke your own sessions"))
+		return nil, connect.NewError(connect.CodeNotFound, frontiererrors.ErrSessionNotFound)
 	}
 
 	if err := h.sessionService.SoftDelete(ctx, sessionID, time.Now()); err != nil {

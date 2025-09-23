@@ -14,4 +14,5 @@ var (
 	ErrUnauthenticated = errors.New("not authenticated")
 	ErrForbidden       = errors.New("not authorized")
 	ErrInvalidUUID     = errors.New("invalid syntax of uuid")
+	ErrSessionNotFound = errors.New("not found")
 )
