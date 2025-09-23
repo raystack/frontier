@@ -23,4 +23,5 @@ var (
 	ErrProspectIdRequired     = errors.New("prospect ID is required")
 	ErrProspectNotFound       = errors.New("record not found for the given input")
 	ErrRQLParse               = errors.New("error parsing RQL query")
+	ErrOrgDisabled            = errors.New("org is disabled. Please contact your administrator to enable it")
 )

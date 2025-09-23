@@ -6,6 +6,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -220,6 +221,40 @@ func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connec
 
 	audit.GetAuditor(ctx, updatedOrg.ID).Log(audit.OrgUpdatedEvent, audit.OrgTarget(updatedOrg.ID))
 	return connect.NewResponse(&frontierv1beta1.UpdateOrganizationResponse{Organization: orgPB}), nil
+}
+
+func (h *ConnectHandler) ListOrganizationProjects(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationProjectsRequest]) (*connect.Response[frontierv1beta1.ListOrganizationProjectsResponse], error) {
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	projects, err := h.projectService.List(ctx, project.Filter{
+		OrgID:           orgResp.ID,
+		WithMemberCount: request.Msg.GetWithMemberCount(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var projectPB []*frontierv1beta1.Project
+	for _, rel := range projects {
+		u, err := transformProjectToPB(rel)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+
+		projectPB = append(projectPB, u)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}), nil
 }
 
 func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {

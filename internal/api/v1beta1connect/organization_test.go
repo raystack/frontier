@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/pkg/errors"
@@ -22,6 +23,7 @@ import (
 )
 
 var (
+	testOrgID  = "9f256f86-31a3-11ec-8d3d-0242ac130003"
 	testOrgMap = map[string]organization.Organization{
 		"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 			ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -523,6 +525,176 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			}
 			mockDep := &ConnectHandler{orgService: mockOrgSrv, metaSchemaService: mockMetaSchemaSvc}
 			resp, err := mockDep.UpdateOrganization(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListOrganizationProjects(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.ProjectService, os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.ListOrganizationProjectsRequest]
+		want    *connect.Response[frontierv1beta1.ListOrganizationProjectsResponse]
+		wantErr error
+	}{
+		{
+			name: "should return error if organization does not exist",
+			setup: func(ps *mocks.ProjectService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+				Id: "some-org-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return error if organization is disabled",
+			setup: func(ps *mocks.ProjectService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(ps *mocks.ProjectService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return internal error if project service return some error",
+			setup: func(ps *mocks.ProjectService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ps.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), project.Filter{
+					OrgID:           testOrgID,
+					WithMemberCount: false,
+				}).Return([]project.Project{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return list of projects successfully",
+			setup: func(ps *mocks.ProjectService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgMap[testOrgID].Name).Return(testOrgMap[testOrgID], nil)
+				ps.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), project.Filter{
+					OrgID:           testOrgID,
+					WithMemberCount: false,
+				}).Return([]project.Project{
+					{
+						ID:   "some-project-id",
+						Name: "some-project-name",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						Organization: organization.Organization{
+							ID: testOrgID,
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+				Id: testOrgMap[testOrgID].Name,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationProjectsResponse{
+				Projects: []*frontierv1beta1.Project{
+					{
+						Id:    "some-project-id",
+						Name:  "some-project-name",
+						OrgId: testOrgID,
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo": {
+									Kind: &structpb.Value_StringValue{
+										StringValue: "bar",
+									},
+								},
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return list of projects with member count successfully",
+			setup: func(ps *mocks.ProjectService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ps.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), project.Filter{
+					OrgID:           testOrgID,
+					WithMemberCount: true,
+				}).Return([]project.Project{
+					{
+						ID:          "some-project-id",
+						Name:        "some-project-name",
+						MemberCount: 5,
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						Organization: organization.Organization{
+							ID: testOrgID,
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+				Id:              testOrgID,
+				WithMemberCount: true,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationProjectsResponse{
+				Projects: []*frontierv1beta1.Project{
+					{
+						Id:           "some-project-id",
+						Name:         "some-project-name",
+						OrgId:        testOrgID,
+						MembersCount: 5,
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo": {
+									Kind: &structpb.Value_StringValue{
+										StringValue: "bar",
+									},
+								},
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProjectService := new(mocks.ProjectService)
+			mockOrgService := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockProjectService, mockOrgService)
+			}
+			mockDep := &ConnectHandler{projectService: mockProjectService, orgService: mockOrgService}
+			resp, err := mockDep.ListOrganizationProjects(context.Background(), tt.request)
 			assert.Equal(t, tt.want, resp)
 			assert.Equal(t, tt.wantErr, err)
 		})
