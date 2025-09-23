@@ -90,6 +90,16 @@ func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{})
 		q.GetGroupBy()), nil
 }
 
+func TransformExportProtoToRQL(q *frontierv1beta1.RQLExportRequest, checkStruct interface{}) (*rql.Query, error) {
+	// use TransformProtoToRQL by constructing an RQLRequest
+	rqlReq := &frontierv1beta1.RQLRequest{
+		Filters: q.GetFilters(),
+		Search:  q.GetSearch(),
+		Sort:    q.GetSort(),
+	}
+	return TransformProtoToRQL(rqlReq, checkStruct)
+}
+
 func AddRQLSortInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
 	// If there is a group by parameter added then sort the result
 	// by group_by first key in asc order by default before any other sort column

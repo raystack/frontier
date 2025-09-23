@@ -1,7 +1,18 @@
 import { DotsVerticalIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
-import type { V1Beta1Webhook } from "@raystack/frontier";
-import { DropdownMenu, Flex, type DataTableColumnDef } from "@raystack/apsara";
+import {
+  DropdownMenu,
+  Flex,
+  Text,
+  type DataTableColumnDef,
+} from "@raystack/apsara";
 import styles from "./webhooks.module.css";
+import { type Webhook } from "@raystack/proton/frontier";
+import {
+  timestampToDate,
+  isNullTimestamp,
+  TimeStamp,
+} from "~/utils/connect-timestamp";
+import dayjs from "dayjs";
 
 interface getColumnsOptions {
   openEditPage: (id: string) => void;
@@ -9,7 +20,7 @@ interface getColumnsOptions {
 
 export const getColumns: (
   opt: getColumnsOptions,
-) => DataTableColumnDef<V1Beta1Webhook, unknown>[] = ({ openEditPage }) => {
+) => DataTableColumnDef<Webhook, unknown>[] = ({ openEditPage }) => {
   return [
     {
       header: "Description",
@@ -31,14 +42,15 @@ export const getColumns: (
     },
     {
       header: "Created at",
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       classNames: { cell: styles.dateColumn, header: styles.dateColumn },
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
+      cell: ({ getValue }) => {
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return <Text>{date}</Text>;
+      },
     },
     {
       header: "Action",
