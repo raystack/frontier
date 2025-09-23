@@ -54,9 +54,9 @@ func transformSessionToPB(s *frontiersession.Session, currentSessionID string) (
 	city, country := strings.TrimSpace(s.Metadata.Location.City), strings.TrimSpace(s.Metadata.Location.Country)
 	
 	metadata := &frontierv1beta1.Session_Meta{
-		OperatingSystem: s.Metadata.OS,
+		OperatingSystem: s.Metadata.OperatingSystem,
 		Browser:         s.Metadata.Browser,
-		IpAddress:       s.Metadata.IP,
+		IpAddress:       s.Metadata.IpAddress,
 		Location:        func() string {
 			if city == "" && country == "" { return "" }
 			if city != "" && country != "" { return city + ", " + country }

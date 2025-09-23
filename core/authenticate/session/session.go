@@ -7,13 +7,13 @@ import (
 )
 
 type SessionMetadata struct {
-	IP       string
-	Location struct {
+	IpAddress string
+	Location  struct {
 		Country string
 		City    string
 	}
-	OS      string
-	Browser string
+	OperatingSystem string
+	Browser         string
 }
 
 // Session is created on successful authentication of users

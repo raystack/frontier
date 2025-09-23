@@ -23,7 +23,7 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config 
 	// IP Address
 	if clientIP := req.Header().Get(config.ClientIP); clientIP != "" {
 		if parts := strings.Split(clientIP, ":"); len(parts) > 0 {
-			metadata.IP = parts[0]
+			metadata.IpAddress = parts[0]
 		}
 	}
 
@@ -40,7 +40,7 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, config 
 		parser := uaparser.NewFromSaved()
 		client := parser.Parse(userAgent)
 
-		metadata.OS = client.Os.Family
+		metadata.OperatingSystem = client.Os.Family
 		metadata.Browser = client.UserAgent.Family
 	}
 
