@@ -231,7 +231,7 @@ func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Reques
 	// delete user session if exists
 	sessionID, err := h.getLoggedInSessionID(ctx)
 	if err == nil {
-		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
+		if err = h.sessionService.Delete(ctx, sessionID, time.Now()); err != nil {
 			logger.Error(err.Error())
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}

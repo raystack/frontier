@@ -26,52 +26,6 @@ func (_m *Repository) EXPECT() *Repository_Expecter {
 	return &Repository_Expecter{mock: &_m.Mock}
 }
 
-// Delete provides a mock function with given fields: ctx, id
-func (_m *Repository) Delete(ctx context.Context, id uuid.UUID) error {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Delete")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Repository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
-type Repository_Delete_Call struct {
-	*mock.Call
-}
-
-// Delete is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id uuid.UUID
-func (_e *Repository_Expecter) Delete(ctx interface{}, id interface{}) *Repository_Delete_Call {
-	return &Repository_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
-}
-
-func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID)) *Repository_Delete_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID))
-	})
-	return _c
-}
-
-func (_c *Repository_Delete_Call) Return(_a0 error) *Repository_Delete_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *Repository_Delete_Call {
-	_c.Call.Return(run)
-	return _c
-}
 
 // DeleteExpiredSessions provides a mock function with given fields: ctx
 func (_m *Repository) DeleteExpiredSessions(ctx context.Context) error {
@@ -284,12 +238,12 @@ func (_c *Repository_Set_Call) RunAndReturn(run func(context.Context, *session.S
 	return _c
 }
 
-// SoftDelete provides a mock function with given fields: ctx, id, deletedAt
-func (_m *Repository) SoftDelete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
+// Delete provides a mock function with given fields: ctx, id, deletedAt
+func (_m *Repository) Delete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
 	ret := _m.Called(ctx, id, deletedAt)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SoftDelete")
+		panic("no return value specified for Delete")
 	}
 
 	var r0 error
@@ -302,32 +256,32 @@ func (_m *Repository) SoftDelete(ctx context.Context, id uuid.UUID, deletedAt ti
 	return r0
 }
 
-// Repository_SoftDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SoftDelete'
-type Repository_SoftDelete_Call struct {
+// Repository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type Repository_Delete_Call struct {
 	*mock.Call
 }
 
-// SoftDelete is a helper method to define mock.On call
+// Delete is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id uuid.UUID
 //   - deletedAt time.Time
-func (_e *Repository_Expecter) SoftDelete(ctx interface{}, id interface{}, deletedAt interface{}) *Repository_SoftDelete_Call {
-	return &Repository_SoftDelete_Call{Call: _e.mock.On("SoftDelete", ctx, id, deletedAt)}
+func (_e *Repository_Expecter) Delete(ctx interface{}, id interface{}, deletedAt interface{}) *Repository_Delete_Call {
+	return &Repository_Delete_Call{Call: _e.mock.On("Delete", ctx, id, deletedAt)}
 }
 
-func (_c *Repository_SoftDelete_Call) Run(run func(ctx context.Context, id uuid.UUID, deletedAt time.Time)) *Repository_SoftDelete_Call {
+func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID, deletedAt time.Time)) *Repository_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(time.Time))
 	})
 	return _c
 }
 
-func (_c *Repository_SoftDelete_Call) Return(_a0 error) *Repository_SoftDelete_Call {
+func (_c *Repository_Delete_Call) Return(_a0 error) *Repository_Delete_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Repository_SoftDelete_Call) RunAndReturn(run func(context.Context, uuid.UUID, time.Time) error) *Repository_SoftDelete_Call {
+func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID, time.Time) error) *Repository_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -51,10 +51,9 @@ type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
 	Create(ctx context.Context, userID string, metadata frontiersession.SessionMetadata) (*frontiersession.Session, error)
 	GetSession(ctx context.Context, sessionID uuid.UUID) (*frontiersession.Session, error)
-	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
 	ListSessions(ctx context.Context, userID string) ([]*frontiersession.Session, error)
-	SoftDelete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error
+	Delete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error
 	PingSession(ctx context.Context, sessionID uuid.UUID, metadata frontiersession.SessionMetadata) error
 }
 
@@ -176,7 +175,7 @@ func (h Handler) AuthLogout(ctx context.Context, request *frontierv1beta1.AuthLo
 	// delete user session if exists
 	sessionID, err := h.getLoggedInSessionID(ctx)
 	if err == nil {
-		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
+		if err = h.sessionService.Delete(ctx, sessionID, time.Now()); err != nil {
 			logger.Error(err.Error())
 			return nil, status.Error(codes.Internal, err.Error())
 		}

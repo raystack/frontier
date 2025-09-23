@@ -87,9 +87,9 @@ func TestService_Delete(t *testing.T) {
 		mockSessionID := uuid.New()
 		svc := session.NewService(log.NewLogrus(), mockRepository, 24*time.Hour)
 
-		mockRepository.On("Delete", mock.Anything, mockSessionID).Return(nil)
+		mockRepository.On("Delete", mock.Anything, mockSessionID, mock.Anything).Return(nil)
 
-		err := svc.Delete(context.Background(), mockSessionID)
+		err := svc.Delete(context.Background(), mockSessionID, time.Now())
 
 		assert.Nil(t, err)
 	})
@@ -99,9 +99,9 @@ func TestService_Delete(t *testing.T) {
 		mockSessionID := uuid.New()
 		svc := session.NewService(log.NewLogrus(), mockRepository, 24*time.Hour)
 
-		mockRepository.On("Delete", mock.Anything, mockSessionID).Return(errors.New("internal-error"))
+		mockRepository.On("Delete", mock.Anything, mockSessionID, mock.Anything).Return(errors.New("internal-error"))
 
-		err := svc.Delete(context.Background(), mockSessionID)
+		err := svc.Delete(context.Background(), mockSessionID, time.Now())
 
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "internal-error")

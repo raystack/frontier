@@ -22,8 +22,7 @@ var (
 type Repository interface {
 	Set(ctx context.Context, session *Session) error
 	Get(ctx context.Context, id uuid.UUID) (*Session, error)
-	Delete(ctx context.Context, id uuid.UUID) error
-	SoftDelete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error
+	Delete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error
 	DeleteExpiredSessions(ctx context.Context) error
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
 	List(ctx context.Context, userID string) ([]*Session, error)
@@ -77,13 +76,9 @@ func (s Service) Refresh(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.UpdateValidity(ctx, sessionID, s.validity)
 }
 
-func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
-	return s.repo.Delete(ctx, sessionID)
-}
-
-// SoftDelete marks a session as deleted without removing it from the database
-func (s Service) SoftDelete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error {
-	return s.repo.SoftDelete(ctx, sessionID, deletedAt)
+// Delete marks a session as deleted without removing it from the database
+func (s Service) Delete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error {
+	return s.repo.Delete(ctx, sessionID, deletedAt)
 }
 
 func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {

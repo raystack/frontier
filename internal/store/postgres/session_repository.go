@@ -93,39 +93,9 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 	return session.transformToSession()
 }
 
-func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	query, params, err := dialect.Delete(TABLE_SESSIONS).
-		Where(
-			goqu.Ex{
-				"id": id,
-			},
-		).ToSQL()
-	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
-	}
 
-	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Delete", func(ctx context.Context) error {
-		result, err := s.dbc.ExecContext(ctx, query, params...)
-		if err != nil {
-			err = checkPostgresError(err)
-			switch {
-			case errors.Is(err, sql.ErrNoRows):
-				return fmt.Errorf("%w: %s", dbErr, frontiersession.ErrNoSession)
-			default:
-				return fmt.Errorf("%w: %s", dbErr, err)
-			}
-		}
-
-		if count, _ := result.RowsAffected(); count > 0 {
-			return nil
-		}
-
-		return frontiersession.ErrDeletingSession
-	})
-}
-
-// SoftDelete marks a session as deleted by setting deleted_at timestamp
-func (s *SessionRepository) SoftDelete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
+// Delete marks a session as deleted by setting deleted_at timestamp
+func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID, deletedAt time.Time) error {
 	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
 		goqu.Record{
 			"deleted_at": deletedAt,
