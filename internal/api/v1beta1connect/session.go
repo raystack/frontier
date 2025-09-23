@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -22,6 +23,11 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
+	var currentSessionID string
+	if currentSession, err := h.sessionService.ExtractFromContext(ctx); err == nil {
+		currentSessionID = currentSession.ID.String()
+	}
+
 	// Fetch all active sessions for the authenticated user
 	sessions, err := h.sessionService.ListSessions(ctx, principal.ID)
 	if err != nil {
@@ -31,7 +37,7 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 	// Transform domain sessions to protobuf sessions
 	var pbSessions []*frontierv1beta1.Session
 	for _, session := range sessions {
-		pbSession, err := transformSessionToPB(session, principal.ID)
+		pbSession, err := transformSessionToPB(session, currentSessionID)
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
@@ -44,18 +50,24 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 }
 
 // transformSessionToPB converts a domain Session to a protobuf
-func transformSessionToPB(s *frontiersession.Session, currentUserID string) (*frontierv1beta1.Session, error) {
+func transformSessionToPB(s *frontiersession.Session, currentSessionID string) (*frontierv1beta1.Session, error) {
+	city, country := strings.TrimSpace(s.Metadata.Location.City), strings.TrimSpace(s.Metadata.Location.Country)
+	
 	metadata := &frontierv1beta1.Session_Meta{
 		OperatingSystem: s.Metadata.OS,
 		Browser:         s.Metadata.Browser,
 		IpAddress:       s.Metadata.IP,
-		Location:        s.Metadata.Location.Country + ", " + s.Metadata.Location.City,
+		Location:        func() string {
+			if city == "" && country == "" { return "" }
+			if city != "" && country != "" { return city + ", " + country }
+			return city + country
+		}(),
 	}
 
 	return &frontierv1beta1.Session{
 		Id:               s.ID.String(),
 		Metadata:         metadata,
-		IsCurrentSession: s.ID.String() == currentUserID, // TODO: check if this is correct.
+		IsCurrentSession: s.ID.String() == currentSessionID,
 		CreatedAt:        timestamppb.New(s.CreatedAt),
 		UpdatedAt:        timestamppb.New(s.UpdatedAt),
 	}, nil
@@ -138,7 +150,7 @@ func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.R
 
 	var pbSessions []*frontierv1beta1.Session
 	for _, session := range sessions {
-		pbSession, err := transformSessionToPB(session, "")
+		pbSession, err := transformSessionToPB(session, "") 
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}

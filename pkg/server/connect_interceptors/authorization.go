@@ -135,6 +135,7 @@ var authorizationSkipEndpoints = map[string]bool{
 
 	"/raystack.frontier.v1beta1.FrontierService/ListSessions": true,
 	"/raystack.frontier.v1beta1.FrontierService/PingUserSession": true,
+	"/raystack.frontier.v1beta1.FrontierService/RevokeSession": true,
 }
 
 // authorizationValidationMap stores path to validation function
