@@ -8,8 +8,6 @@ import (
 	session "github.com/raystack/frontier/core/authenticate/session"
 	mock "github.com/stretchr/testify/mock"
 
-	time "time"
-
 	uuid "github.com/google/uuid"
 )
 
@@ -95,14 +93,13 @@ type SessionService_Delete_Call struct {
 // Delete is a helper method to define mock.On call
 //   - ctx context.Context
 //   - sessionID uuid.UUID
-//   - deletedAt time.Time
-func (_e *SessionService_Expecter) Delete(ctx interface{}, sessionID interface{}, deletedAt interface{}) *SessionService_Delete_Call {
-	return &SessionService_Delete_Call{Call: _e.mock.On("Delete", ctx, sessionID, deletedAt)}
+func (_e *SessionService_Expecter) Delete(ctx interface{}, sessionID interface{}) *SessionService_Delete_Call {
+	return &SessionService_Delete_Call{Call: _e.mock.On("Delete", ctx, sessionID)}
 }
 
-func (_c *SessionService_Delete_Call) Run(run func(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time)) *SessionService_Delete_Call {
+func (_c *SessionService_Delete_Call) Run(run func(ctx context.Context, sessionID uuid.UUID)) *SessionService_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(time.Time))
+		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
@@ -112,7 +109,7 @@ func (_c *SessionService_Delete_Call) Return(_a0 error) *SessionService_Delete_C
 	return _c
 }
 
-func (_c *SessionService_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID, time.Time) error) *SessionService_Delete_Call {
+func (_c *SessionService_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *SessionService_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -281,17 +278,17 @@ func (_c *SessionService_Refresh_Call) RunAndReturn(run func(context.Context, uu
 	return _c
 }
 
-// Delete provides a mock function with given fields: ctx, sessionID, deletedAt
-func (_m *SessionService) Delete(ctx context.Context, sessionID uuid.UUID, deletedAt time.Time) error {
-	ret := _m.Called(ctx, sessionID, deletedAt)
+// Delete provides a mock function with given fields: ctx, sessionID
+func (_m *SessionService) Delete(ctx context.Context, sessionID uuid.UUID) error {
+	ret := _m.Called(ctx, sessionID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, time.Time) error); ok {
-		r0 = rf(ctx, sessionID, deletedAt)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, sessionID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -299,6 +296,64 @@ func (_m *SessionService) Delete(ctx context.Context, sessionID uuid.UUID, delet
 	return r0
 }
 
+// GetSession provides a mock function with given fields: ctx, sessionID
+func (_m *SessionService) GetSession(ctx context.Context, sessionID uuid.UUID) (*session.Session, error) {
+	ret := _m.Called(ctx, sessionID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSession")
+	}
+
+	var r0 *session.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*session.Session, error)); ok {
+		return rf(ctx, sessionID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *session.Session); ok {
+		r0 = rf(ctx, sessionID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*session.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, sessionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SessionService_GetSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSession'
+type SessionService_GetSession_Call struct {
+	*mock.Call
+}
+
+// GetSession is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sessionID uuid.UUID
+func (_e *SessionService_Expecter) GetSession(ctx interface{}, sessionID interface{}) *SessionService_GetSession_Call {
+	return &SessionService_GetSession_Call{Call: _e.mock.On("GetSession", ctx, sessionID)}
+}
+
+func (_c *SessionService_GetSession_Call) Run(run func(ctx context.Context, sessionID uuid.UUID)) *SessionService_GetSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *SessionService_GetSession_Call) Return(_a0 *session.Session, _a1 error) *SessionService_GetSession_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SessionService_GetSession_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*session.Session, error)) *SessionService_GetSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
 
 // PingSession provides a mock function with given fields: ctx, sessionID, metadata
 func (_m *SessionService) PingSession(ctx context.Context, sessionID uuid.UUID, metadata session.SessionMetadata) error {

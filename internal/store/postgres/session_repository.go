@@ -93,7 +93,6 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 	return session.transformToSession()
 }
 
-
 // Delete marks a session as deleted by setting deleted_at timestamp
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
