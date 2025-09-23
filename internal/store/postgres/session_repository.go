@@ -120,7 +120,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			return nil
 		}
 
-		return fmt.Errorf("error deleting session")
+		return frontiersession.ErrDeletingSession
 	})
 }
 
