@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -684,5 +685,32 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationsByCurrentUserResponse{
 		Organizations:     orgs,
 		JoinableViaDomain: joinableOrgs,
+	}), nil
+}
+
+func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectsByUserRequest]) (*connect.Response[frontierv1beta1.ListProjectsByUserResponse], error) {
+	projList, err := h.projectService.ListByUser(ctx, request.Msg.GetId(), schema.UserPrincipal, project.Filter{})
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, user.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	var projects []*frontierv1beta1.Project
+	for _, v := range projList {
+		projPB, err := transformProjectToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		projects = append(projects, projPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListProjectsByUserResponse{
+		Projects: projects,
 	}), nil
 }

@@ -1512,3 +1512,139 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListProjectsByUser(t *testing.T) {
+	tests := []struct {
+		title string
+		setup func(*mocks.ProjectService, *mocks.AuthnService)
+		req   *frontierv1beta1.ListProjectsByUserRequest
+		want  *frontierv1beta1.ListProjectsByUserResponse
+		err   connect.Code
+	}{
+		{
+			title: "should list user projects successfully",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				ps.EXPECT().ListByUser(mock.Anything, "user-1", schema.UserPrincipal, project.Filter{}).Return([]project.Project{
+					{
+						ID:    "project-1",
+						Name:  "test-project-1",
+						Title: "Test Project 1",
+						Organization: organization.Organization{
+							ID: "org-1",
+						},
+						Metadata:    metadata.Metadata{},
+						MemberCount: 5,
+					},
+					{
+						ID:    "project-2",
+						Name:  "test-project-2",
+						Title: "Test Project 2",
+						Organization: organization.Organization{
+							ID: "org-2",
+						},
+						Metadata:    metadata.Metadata{},
+						MemberCount: 3,
+					},
+				}, nil)
+			},
+			req: &frontierv1beta1.ListProjectsByUserRequest{Id: "user-1"},
+			want: &frontierv1beta1.ListProjectsByUserResponse{
+				Projects: []*frontierv1beta1.Project{
+					{
+						Id:           "project-1",
+						Name:         "test-project-1",
+						Title:        "Test Project 1",
+						OrgId:        "org-1",
+						MembersCount: 5,
+					},
+					{
+						Id:           "project-2",
+						Name:         "test-project-2",
+						Title:        "Test Project 2",
+						OrgId:        "org-2",
+						MembersCount: 3,
+					},
+				},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return empty list when user has no projects",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				ps.EXPECT().ListByUser(mock.Anything, "user-1", schema.UserPrincipal, project.Filter{}).Return([]project.Project{}, nil)
+			},
+			req: &frontierv1beta1.ListProjectsByUserRequest{Id: "user-1"},
+			want: &frontierv1beta1.ListProjectsByUserResponse{
+				Projects: []*frontierv1beta1.Project{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return not found error when user does not exist",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				ps.EXPECT().ListByUser(mock.Anything, "non-existent-user", schema.UserPrincipal, project.Filter{}).Return(nil, user.ErrNotExist)
+			},
+			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "non-existent-user"},
+			want: nil,
+			err:  connect.CodeNotFound,
+		},
+		{
+			title: "should return bad request error for invalid user ID",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				ps.EXPECT().ListByUser(mock.Anything, "invalid-id", schema.UserPrincipal, project.Filter{}).Return(nil, user.ErrInvalidUUID)
+			},
+			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "invalid-id"},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
+		},
+		{
+			title: "should return internal error for project service failure",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				ps.EXPECT().ListByUser(mock.Anything, "user-1", schema.UserPrincipal, project.Filter{}).Return(nil, errors.New("database error"))
+			},
+			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "user-1"},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockProjectSrv := new(mocks.ProjectService)
+			mockAuthnSrv := new(mocks.AuthnService)
+
+			handler := &ConnectHandler{
+				projectService: mockProjectSrv,
+				authnService:   mockAuthnSrv,
+			}
+
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv, mockAuthnSrv)
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.ListProjectsByUser(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Msg.GetProjects(), len(tt.want.GetProjects()))
+
+				for i, expectedProject := range tt.want.GetProjects() {
+					actualProject := resp.Msg.GetProjects()[i]
+					assert.Equal(t, expectedProject.GetId(), actualProject.GetId())
+					assert.Equal(t, expectedProject.GetName(), actualProject.GetName())
+					assert.Equal(t, expectedProject.GetTitle(), actualProject.GetTitle())
+					assert.Equal(t, expectedProject.GetOrgId(), actualProject.GetOrgId())
+					assert.Equal(t, expectedProject.GetMembersCount(), actualProject.GetMembersCount())
+				}
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockProjectSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+		})
+	}
+}
