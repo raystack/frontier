@@ -34,4 +34,5 @@ var (
 	ErrInvitationNotFound     = errors.New("invitation not found")
 	ErrInvitationExpired      = errors.New("invitation expired")
 	ErrAlreadyMember          = errors.New("user is already a member of the organization")
+	ErrEmptyEmailID           = errors.New("email id is empty")
 )

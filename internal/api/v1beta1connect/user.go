@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/pkg/errors"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/user"
@@ -77,6 +78,7 @@ func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *conne
 }
 
 func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Request[frontierv1beta1.CreateUserRequest]) (*connect.Response[frontierv1beta1.CreateUserResponse], error) {
+	logger := grpczap.Extract(ctx)
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -88,6 +90,7 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 		}
 		currentUserEmail = strings.TrimSpace(currentUserEmail)
 		if currentUserEmail == "" {
+			logger.Error(ErrEmptyEmailID.Error())
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		email = currentUserEmail
