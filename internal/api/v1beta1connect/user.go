@@ -349,6 +349,22 @@ func (h *ConnectHandler) DisableUser(ctx context.Context, request *connect.Reque
 	return connect.NewResponse(&frontierv1beta1.DisableUserResponse{}), nil
 }
 
+func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteUserRequest]) (*connect.Response[frontierv1beta1.DeleteUserResponse], error) {
+	if err := h.deleterService.DeleteUser(ctx, request.Msg.GetId()); err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.Msg.GetId()))
+	return connect.NewResponse(&frontierv1beta1.DeleteUserResponse{}), nil
+}
+
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 

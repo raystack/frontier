@@ -814,3 +814,87 @@ func TestConnectHandler_DisableUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_DeleteUser(t *testing.T) {
+	userID := uuid.New().String()
+
+	tests := []struct {
+		title string
+		setup func(*mocks.CascadeDeleter)
+		req   *frontierv1beta1.DeleteUserRequest
+		want  *frontierv1beta1.DeleteUserResponse
+		err   connect.Code
+	}{
+		{
+			title: "should delete user successfully",
+			setup: func(cd *mocks.CascadeDeleter) {
+				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(nil)
+			},
+			req: &frontierv1beta1.DeleteUserRequest{
+				Id: userID,
+			},
+			want: &frontierv1beta1.DeleteUserResponse{},
+			err:  connect.Code(0),
+		},
+		{
+			title: "should return not found error if user doesn't exist",
+			setup: func(cd *mocks.CascadeDeleter) {
+				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(user.ErrNotExist)
+			},
+			req: &frontierv1beta1.DeleteUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeNotFound,
+		},
+		{
+			title: "should return invalid argument error for invalid user ID",
+			setup: func(cd *mocks.CascadeDeleter) {
+				cd.EXPECT().DeleteUser(mock.Anything, "").Return(user.ErrInvalidID)
+			},
+			req: &frontierv1beta1.DeleteUserRequest{
+				Id: "",
+			},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
+		},
+		{
+			title: "should return internal error if deleter service returns unexpected error",
+			setup: func(cd *mocks.CascadeDeleter) {
+				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(errors.New("unexpected error"))
+			},
+			req: &frontierv1beta1.DeleteUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockDeleterSrv := new(mocks.CascadeDeleter)
+
+			if tt.setup != nil {
+				tt.setup(mockDeleterSrv)
+			}
+
+			handler := &ConnectHandler{
+				deleterService: mockDeleterSrv,
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.DeleteUser(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp.Msg)
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockDeleterSrv.AssertExpectations(t)
+		})
+	}
+}
