@@ -11,7 +11,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	frontiererrors "github.com/raystack/frontier/pkg/errors"
-	"github.com/raystack/frontier/pkg/utils"
+	sessionutils "github.com/raystack/frontier/pkg/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -121,7 +121,7 @@ func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Re
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	sessionMetadata := utils.ExtractSessionMetadata(ctx, request, h.metadataConfig)
+	sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, request, h.authConfig.Session.Headers)
 
 	if err := h.sessionService.PingSession(ctx, session.ID, sessionMetadata); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)

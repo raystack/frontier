@@ -6,7 +6,6 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/api"
 	apiv1beta1 "github.com/raystack/frontier/internal/api/v1beta1"
-	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"go.uber.org/zap"
 )
@@ -18,7 +17,6 @@ type ConnectHandler struct {
 	frontierv1beta1connect.UnimplementedFrontierServiceHandler
 
 	authConfig                       authenticate.Config
-	metadataConfig                   utils.SessionMetadataConfig
 	orgService                       apiv1beta1.OrganizationService
 	orgKycService                    apiv1beta1.KycService
 	projectService                   apiv1beta1.ProjectService
@@ -65,10 +63,9 @@ type ConnectHandler struct {
 	auditRecordService               AuditRecordService
 }
 
-func NewConnectHandler(deps api.Deps, authConf authenticate.Config, metadataConfig utils.SessionMetadataConfig) *ConnectHandler {
+func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHandler {
 	return &ConnectHandler{
 		authConfig:                       authConf,
-		metadataConfig:                   metadataConfig,
 		orgService:                       deps.OrgService,
 		orgKycService:                    deps.OrgKycService,
 		projectService:                   deps.ProjectService,
