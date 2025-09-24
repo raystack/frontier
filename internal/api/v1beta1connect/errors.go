@@ -31,4 +31,7 @@ var (
 	ErrInvalidHost            = errors.New("invalid domain, no such host found")
 	ErrTXTRecordNotFound      = errors.New("required TXT record not found for domain verification")
 	ErrDomainMismatch         = errors.New("user and org's whitelisted domains doesn't match")
+	ErrInvitationNotFound     = errors.New("invitation not found")
+	ErrInvitationExpired      = errors.New("invitation expired")
+	ErrAlreadyMember          = errors.New("user is already a member of the organization")
 )
