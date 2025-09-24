@@ -11,7 +11,6 @@ import (
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
-	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
