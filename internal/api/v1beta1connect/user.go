@@ -185,6 +185,86 @@ func (h *ConnectHandler) GetCurrentUser(ctx context.Context, request *connect.Re
 	}), nil
 }
 
+func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateUserRequest]) (*connect.Response[frontierv1beta1.UpdateUserResponse], error) {
+	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
+	var updatedUser user.User
+
+	if strings.TrimSpace(request.Msg.GetId()) == "" {
+		return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+	}
+
+	if request.Msg.GetBody() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	email := strings.TrimSpace(request.Msg.GetBody().GetEmail())
+	if email == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	}
+
+	var err error
+	id := request.Msg.GetId()
+	// upsert by email
+	if isValidEmail(id) {
+		_, err = h.userService.GetByEmail(ctx, id)
+		if err != nil {
+			if errors.Is(err, user.ErrNotExist) {
+				createUserResponse, err := h.CreateUser(ctx, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: request.Msg.GetBody()}))
+				if err != nil {
+					return nil, err
+				}
+				return connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: createUserResponse.Msg.GetUser()}), nil
+			} else {
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			}
+		}
+		// if email in request body is different from that of user getting updated
+		if email != id {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrEmailConflict)
+		}
+	}
+
+	updatedUser, err = h.userService.Update(ctx, user.User{
+		ID:       request.Msg.GetId(),
+		Title:    request.Msg.GetBody().GetTitle(),
+		Email:    request.Msg.GetBody().GetEmail(),
+		Avatar:   request.Msg.GetBody().GetAvatar(),
+		Name:     request.Msg.GetBody().GetName(),
+		Metadata: metaDataMap,
+	})
+
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrInvalidDetails):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, user.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	userPB, err := transformUserToPB(updatedUser)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
+		"email":  updatedUser.Email,
+		"name":   updatedUser.Name,
+		"title":  updatedUser.Title,
+		"avatar": updatedUser.Avatar,
+	})
+	return connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: userPB}), nil
+}
+
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 

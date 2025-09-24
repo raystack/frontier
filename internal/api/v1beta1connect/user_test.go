@@ -358,3 +358,143 @@ func TestConnectHandler_GetUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_UpdateUser(t *testing.T) {
+	randomID := utils.NewString()
+	table := []struct {
+		title string
+		setup func(us *mocks.UserService, ms *mocks.MetaSchemaService)
+		req   *connect.Request[frontierv1beta1.UpdateUserRequest]
+		want  *connect.Response[frontierv1beta1.UpdateUserResponse]
+		err   error
+	}{
+		{
+			title: "should return bad request error if id is empty",
+			req: connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: "",
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "some user",
+					Email: "test@test.com",
+				},
+			}),
+			want: nil,
+			err:  connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			title: "should return bad request error if body is nil",
+			req: connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id:   randomID,
+				Body: nil,
+			}),
+			want: nil,
+			err:  connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			title: "should return bad request error if email is empty",
+			req: connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: randomID,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "some user",
+					Email: "",
+				},
+			}),
+			want: nil,
+			err:  connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			title: "should return not found error if user does not exist",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
+					ID:       randomID,
+					Title:    "some user",
+					Email:    "test@test.com",
+					Name:     "",
+					Avatar:   "",
+					Metadata: metadata.Metadata{"foo": "bar"},
+				}).Return(user.User{}, user.ErrNotExist)
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: randomID,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "some user",
+					Email: "test@test.com",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			}),
+			want: nil,
+			err:  connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			title: "should return success if user service returns updated user",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
+					ID:       randomID,
+					Title:    "updated user",
+					Email:    "test@test.com",
+					Name:     "updated-name",
+					Avatar:   "new-avatar.jpg",
+					Metadata: metadata.Metadata{"foo": "updated"},
+				}).Return(
+					user.User{
+						ID:        randomID,
+						Title:     "updated user",
+						Email:     "test@test.com",
+						Name:      "updated-name",
+						Avatar:    "new-avatar.jpg",
+						Metadata:  metadata.Metadata{"foo": "updated"},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: randomID,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title:  "updated user",
+					Email:  "test@test.com",
+					Name:   "updated-name",
+					Avatar: "new-avatar.jpg",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("updated"),
+						},
+					},
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: &frontierv1beta1.User{
+				Id:     randomID,
+				Title:  "updated user",
+				Email:  "test@test.com",
+				Name:   "updated-name",
+				Avatar: "new-avatar.jpg",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("updated"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}}),
+			err: nil,
+		},
+	}
+
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			mockUserSrv := new(mocks.UserService)
+			mockMetaSrv := new(mocks.MetaSchemaService)
+			if tt.setup != nil {
+				tt.setup(mockUserSrv, mockMetaSrv)
+			}
+			mockDep := &ConnectHandler{userService: mockUserSrv, metaSchemaService: mockMetaSrv}
+			resp, err := mockDep.UpdateUser(context.Background(), tt.req)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, err, tt.err)
+		})
+	}
+}
