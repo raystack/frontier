@@ -1357,3 +1357,158 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
+	tests := []struct {
+		title string
+		setup func(*mocks.OrganizationService, *mocks.AuthnService, *mocks.DomainService)
+		req   *frontierv1beta1.ListOrganizationsByCurrentUserRequest
+		want  *frontierv1beta1.ListOrganizationsByCurrentUserResponse
+		err   connect.Code
+	}{
+		{
+			title: "should list current user organizations successfully",
+			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return([]organization.Organization{
+					{
+						ID:       "org-1",
+						Name:     "test-org-1",
+						Title:    "Test Organization 1",
+						State:    organization.Enabled,
+						Metadata: metadata.Metadata{},
+					},
+				}, nil)
+
+				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{"org-2"}, nil)
+
+				os.EXPECT().Get(mock.Anything, "org-2").Return(organization.Organization{
+					ID:       "org-2",
+					Name:     "joinable-org",
+					Title:    "Joinable Organization",
+					State:    organization.Enabled,
+					Metadata: metadata.Metadata{},
+				}, nil)
+			},
+			req: &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
+			want: &frontierv1beta1.ListOrganizationsByCurrentUserResponse{
+				Organizations: []*frontierv1beta1.Organization{
+					{
+						Id:    "org-1",
+						Name:  "test-org-1",
+						Title: "Test Organization 1",
+					},
+				},
+				JoinableViaDomain: []*frontierv1beta1.Organization{
+					{
+						Id:    "org-2",
+						Name:  "joinable-org",
+						Title: "Joinable Organization",
+					},
+				},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return empty list when current user has no organizations",
+			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return([]organization.Organization{}, nil)
+
+				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{}, nil)
+			},
+			req: &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
+			want: &frontierv1beta1.ListOrganizationsByCurrentUserResponse{
+				Organizations:     []*frontierv1beta1.Organization{},
+				JoinableViaDomain: []*frontierv1beta1.Organization{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return unauthenticated error when GetLoggedInPrincipal fails",
+			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			req:  &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
+			want: nil,
+			err:  connect.CodeUnauthenticated,
+		},
+		{
+			title: "should return internal error for organization service failure",
+			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return(nil, errors.New("database error"))
+			},
+			req:  &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			mockAuthnSrv := new(mocks.AuthnService)
+			mockDomainSrv := new(mocks.DomainService)
+
+			handler := &ConnectHandler{
+				orgService:    mockOrgSrv,
+				authnService:  mockAuthnSrv,
+				domainService: mockDomainSrv,
+			}
+
+			if tt.setup != nil {
+				tt.setup(mockOrgSrv, mockAuthnSrv, mockDomainSrv)
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.ListOrganizationsByCurrentUser(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Msg.GetOrganizations(), len(tt.want.GetOrganizations()))
+				assert.Len(t, resp.Msg.GetJoinableViaDomain(), len(tt.want.GetJoinableViaDomain()))
+
+				for i, expectedOrg := range tt.want.GetOrganizations() {
+					actualOrg := resp.Msg.GetOrganizations()[i]
+					assert.Equal(t, expectedOrg.GetId(), actualOrg.GetId())
+					assert.Equal(t, expectedOrg.GetName(), actualOrg.GetName())
+					assert.Equal(t, expectedOrg.GetTitle(), actualOrg.GetTitle())
+				}
+
+				for i, expectedOrg := range tt.want.GetJoinableViaDomain() {
+					actualOrg := resp.Msg.GetJoinableViaDomain()[i]
+					assert.Equal(t, expectedOrg.GetId(), actualOrg.GetId())
+					assert.Equal(t, expectedOrg.GetName(), actualOrg.GetName())
+					assert.Equal(t, expectedOrg.GetTitle(), actualOrg.GetTitle())
+				}
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockOrgSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+			mockDomainSrv.AssertExpectations(t)
+		})
+	}
+}

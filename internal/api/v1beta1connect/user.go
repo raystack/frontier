@@ -637,3 +637,52 @@ func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *c
 		JoinableViaDomain: joinableOrgs,
 	}), nil
 }
+
+func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationsByCurrentUserRequest]) (*connect.Response[frontierv1beta1.ListOrganizationsByCurrentUserResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	orgFilter := organization.Filter{}
+	if request.Msg.GetState() != "" {
+		orgFilter.State = organization.State(request.Msg.GetState())
+	}
+
+	orgList, err := h.orgService.ListByUser(ctx, principal, orgFilter)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var orgs []*frontierv1beta1.Organization
+	for _, v := range orgList {
+		orgPB, err := transformOrgToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		orgs = append(orgs, orgPB)
+	}
+
+	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var joinableOrgs []*frontierv1beta1.Organization
+	for _, joinableOrg := range joinableOrgIDs {
+		org, err := h.orgService.Get(ctx, joinableOrg)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		orgPB, err := transformOrgToPB(org)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		joinableOrgs = append(joinableOrgs, orgPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationsByCurrentUserResponse{
+		Organizations:     orgs,
+		JoinableViaDomain: joinableOrgs,
+	}), nil
+}
