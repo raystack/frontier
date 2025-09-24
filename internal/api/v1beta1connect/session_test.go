@@ -470,3 +470,241 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListUserSessions(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(*mocks.SessionService, *mocks.AuthnService)
+		request     *connect.Request[frontierv1beta1.ListUserSessionsRequest]
+		wantErr     bool
+		wantErrCode connect.Code
+		wantCount   int
+	}{
+		{
+			name: "should successfully return user sessions for admin",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				userID := uuid.New().String()
+				now := time.Now().UTC()
+				
+				// Mock sessions list
+				sessions := []*frontiersession.Session{
+					{
+						ID:              uuid.New(),
+						UserID:          userID,
+						AuthenticatedAt: now.Add(-2 * time.Hour),
+						ExpiresAt:       now.Add(2 * time.Hour),
+						CreatedAt:       now.Add(-2 * time.Hour),
+						UpdatedAt:       now.Add(-1 * time.Hour),
+						Metadata: frontiersession.SessionMetadata{
+							OperatingSystem: "Mac OS X",
+							Browser:         "Chrome",
+							IpAddress:       "192.168.1.1",
+							Location: struct {
+								Country string
+								City    string
+							}{
+								Country: "US",
+								City:    "San Francisco",
+							},
+						},
+					},
+					{
+						ID:              uuid.New(),
+						UserID:          userID,
+						AuthenticatedAt: now.Add(-1 * time.Hour),
+						ExpiresAt:       now.Add(1 * time.Hour),
+						CreatedAt:       now.Add(-1 * time.Hour),
+						UpdatedAt:       now.Add(-30 * time.Minute),
+						Metadata: frontiersession.SessionMetadata{
+							OperatingSystem: "Windows",
+							Browser:         "Firefox",
+							IpAddress:       "192.168.1.2",
+							Location: struct {
+								Country string
+								City    string
+							}{
+								Country: "US",
+								City:    "New York",
+							},
+						},
+					},
+				}
+				
+				sessionSvc.On("ListSessions", mock.Anything, mock.AnythingOfType("string")).Return(sessions, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListUserSessionsRequest{
+				UserId: uuid.New().String(),
+			}),
+			wantErr: false,
+			wantCount: 2,
+		},
+		{
+			name: "should return invalid argument error when user_id is empty",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				// No setup needed for this test
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListUserSessionsRequest{
+				UserId: "",
+			}),
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument error when user_id is not a valid UUID",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				// No setup needed for this test
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListUserSessionsRequest{
+				UserId: "invalid-uuid",
+			}),
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return internal error when session service fails",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				sessionSvc.On("ListSessions", mock.Anything, mock.AnythingOfType("string")).Return(nil, errors.New("database error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListUserSessionsRequest{
+				UserId: uuid.New().String(),
+			}),
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+		},
+		{
+			name: "should return empty list when user has no sessions",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				sessionSvc.On("ListSessions", mock.Anything, mock.AnythingOfType("string")).Return([]*frontiersession.Session{}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListUserSessionsRequest{
+				UserId: uuid.New().String(),
+			}),
+			wantErr: false,
+			wantCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockSessionSvc := new(mocks.SessionService)
+			mockAuthnSvc := new(mocks.AuthnService)
+			
+			if tt.setup != nil {
+				tt.setup(mockSessionSvc, mockAuthnSvc)
+			}
+			
+			handler := &ConnectHandler{
+				sessionService: mockSessionSvc,
+				authnService:   mockAuthnSvc,
+			}
+			
+			resp, err := handler.ListUserSessions(context.Background(), tt.request)
+			
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.wantErrCode != 0 {
+					var connectErr *connect.Error
+					if assert.True(t, errors.As(err, &connectErr)) {
+						assert.Equal(t, tt.wantErrCode, connectErr.Code())
+					}
+				}
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.IsType(t, &frontierv1beta1.ListUserSessionsResponse{}, resp.Msg)
+				assert.Len(t, resp.Msg.Sessions, tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestConnectHandler_RevokeUserSession(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(*mocks.SessionService, *mocks.AuthnService)
+		request     *connect.Request[frontierv1beta1.RevokeUserSessionRequest]
+		wantErr     bool
+		wantErrCode connect.Code
+	}{
+		{
+			name: "should successfully revoke user session for admin",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				// Mock session deletion
+				sessionSvc.On("Delete", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RevokeUserSessionRequest{
+				SessionId: uuid.New().String(),
+			}),
+			wantErr: false,
+		},
+		{
+			name: "should return invalid argument error when session_id is invalid",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				// No setup needed for this test
+			},
+			request: connect.NewRequest(&frontierv1beta1.RevokeUserSessionRequest{
+				SessionId: "invalid-uuid",
+			}),
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return internal error when session deletion fails",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				// Mock session deletion failure
+				sessionSvc.On("Delete", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(errors.New("database error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.RevokeUserSessionRequest{
+				SessionId: uuid.New().String(),
+			}),
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+		},
+		{
+			name: "should handle session not found gracefully",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				// Mock session not found error
+				sessionSvc.On("Delete", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(frontiersession.ErrNoSession)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RevokeUserSessionRequest{
+				SessionId: uuid.New().String(),
+			}),
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockSessionSvc := new(mocks.SessionService)
+			mockAuthnSvc := new(mocks.AuthnService)
+			
+			if tt.setup != nil {
+				tt.setup(mockSessionSvc, mockAuthnSvc)
+			}
+			
+			handler := &ConnectHandler{
+				sessionService: mockSessionSvc,
+				authnService:   mockAuthnSvc,
+			}
+			
+			resp, err := handler.RevokeUserSession(context.Background(), tt.request)
+			
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.wantErrCode != 0 {
+					var connectErr *connect.Error
+					if assert.True(t, errors.As(err, &connectErr)) {
+						assert.Equal(t, tt.wantErrCode, connectErr.Code())
+					}
+				}
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.IsType(t, &frontierv1beta1.RevokeUserSessionResponse{}, resp.Msg)
+			}
+		})
+	}
+}
