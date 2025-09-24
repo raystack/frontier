@@ -1040,3 +1040,150 @@ func TestConnectHandler_ListUserGroups(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
+	orgID := uuid.New().String()
+
+	tests := []struct {
+		title string
+		setup func(*mocks.GroupService, *mocks.AuthnService, *mocks.ResourceService)
+		req   *frontierv1beta1.ListCurrentUserGroupsRequest
+		want  *frontierv1beta1.ListCurrentUserGroupsResponse
+		err   connect.Code
+	}{
+		{
+			title: "should list current user groups successfully",
+			setup: func(gs *mocks.GroupService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				gs.EXPECT().ListByUser(mock.Anything, "user-1", "app/user", group.Filter{OrganizationID: orgID}).Return([]group.Group{
+					{
+						ID:             "group-1",
+						Name:           "test-group-1",
+						Title:          "Test Group 1",
+						OrganizationID: orgID,
+						Metadata:       metadata.Metadata{},
+						CreatedAt:      time.Now(),
+						UpdatedAt:      time.Now(),
+						MemberCount:    5,
+					},
+				}, nil)
+				// No permission checking expected since no WithPermissions specified
+			},
+			req: &frontierv1beta1.ListCurrentUserGroupsRequest{
+				OrgId: orgID,
+			},
+			want: &frontierv1beta1.ListCurrentUserGroupsResponse{
+				Groups: []*frontierv1beta1.Group{
+					{
+						Id:           "group-1",
+						Name:         "test-group-1",
+						Title:        "Test Group 1",
+						OrgId:        orgID,
+						Metadata:     &structpb.Struct{Fields: map[string]*structpb.Value{}},
+						MembersCount: 5,
+					},
+				},
+				AccessPairs: []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return empty list when user has no groups",
+			setup: func(gs *mocks.GroupService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+				gs.EXPECT().ListByUser(mock.Anything, "user-1", "app/user", group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+			},
+			req: &frontierv1beta1.ListCurrentUserGroupsRequest{
+				OrgId: orgID,
+			},
+			want: &frontierv1beta1.ListCurrentUserGroupsResponse{
+				Groups:      []*frontierv1beta1.Group{},
+				AccessPairs: []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return unauthenticated error when GetLoggedInPrincipal fails",
+			setup: func(gs *mocks.GroupService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			req: &frontierv1beta1.ListCurrentUserGroupsRequest{
+				OrgId: orgID,
+			},
+			want: nil,
+			err:  connect.CodeUnauthenticated,
+		},
+		{
+			title: "should return internal error for service failure",
+			setup: func(gs *mocks.GroupService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+				gs.EXPECT().ListByUser(mock.Anything, "user-1", "app/user", group.Filter{OrganizationID: orgID}).Return(nil, errors.New("database error"))
+			},
+			req: &frontierv1beta1.ListCurrentUserGroupsRequest{
+				OrgId: orgID,
+			},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockGroupSrv := new(mocks.GroupService)
+			mockAuthnSrv := new(mocks.AuthnService)
+			mockResourceSrv := new(mocks.ResourceService)
+
+			handler := &ConnectHandler{
+				groupService:    mockGroupSrv,
+				authnService:    mockAuthnSrv,
+				resourceService: mockResourceSrv,
+			}
+
+			if tt.setup != nil {
+				tt.setup(mockGroupSrv, mockAuthnSrv, mockResourceSrv)
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.ListCurrentUserGroups(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Msg.Groups, len(tt.want.Groups))
+				assert.Len(t, resp.Msg.AccessPairs, len(tt.want.AccessPairs))
+
+				for i, expectedGroup := range tt.want.Groups {
+					actualGroup := resp.Msg.Groups[i]
+					assert.Equal(t, expectedGroup.Id, actualGroup.Id)
+					assert.Equal(t, expectedGroup.Name, actualGroup.Name)
+					assert.Equal(t, expectedGroup.Title, actualGroup.Title)
+					assert.Equal(t, expectedGroup.OrgId, actualGroup.OrgId)
+					assert.Equal(t, expectedGroup.MembersCount, actualGroup.MembersCount)
+				}
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockGroupSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+			mockResourceSrv.AssertExpectations(t)
+		})
+	}
+}

@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
@@ -391,6 +392,69 @@ func (h *ConnectHandler) ListUserGroups(ctx context.Context, request *connect.Re
 
 	return connect.NewResponse(&frontierv1beta1.ListUserGroupsResponse{
 		Groups: groups,
+	}), nil
+}
+
+func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *connect.Request[frontierv1beta1.ListCurrentUserGroupsRequest]) (*connect.Response[frontierv1beta1.ListCurrentUserGroupsResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var groupsPb []*frontierv1beta1.Group
+	var accessPairsPb []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair
+
+	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, principal.Type,
+		group.Filter{
+			OrganizationID:  request.Msg.GetOrgId(),
+			WithMemberCount: request.Msg.GetWithMemberCount(),
+		},
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	for _, group := range groupsList {
+		groupPB, err := transformGroupToPB(group)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+
+		groupsPb = append(groupsPb, &groupPB)
+	}
+
+	if len(request.Msg.GetWithPermissions()) > 0 {
+		resourceIds := utils.Map(groupsList, func(res group.Group) string {
+			return res.ID
+		})
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.GroupNamespace, resourceIds, request.Msg.GetWithPermissions())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		for _, successCheck := range successCheckPairs {
+			resID := successCheck.Relation.Object.ID
+
+			// find all permission checks on same resource
+			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
+				return pair.Relation.Object.ID == resID
+			})
+			// fetch permissions
+			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
+				return pair.Relation.RelationName
+			})
+			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair{
+				GroupId:     resID,
+				Permissions: permissions,
+			})
+		}
+	}
+	return connect.NewResponse(&frontierv1beta1.ListCurrentUserGroupsResponse{
+		Groups:      groupsPb,
+		AccessPairs: accessPairsPb,
 	}), nil
 }
 
