@@ -139,6 +139,27 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.CreateUserResponse{User: transformedUser}), nil
 }
 
+func (h *ConnectHandler) GetUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetUserRequest]) (*connect.Response[frontierv1beta1.GetUserResponse], error) {
+	fetchedUser, err := h.userService.GetByID(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	userPB, err := transformUserToPB(fetchedUser)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetUserResponse{
+		User: userPB,
+	}), nil
+}
+
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 

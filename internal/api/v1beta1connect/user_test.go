@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -266,6 +267,94 @@ func TestConnectHandler_CreateUser(t *testing.T) {
 			resp, err = mockDep.CreateUser(ctx, tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
+		})
+	}
+}
+
+func TestConnectHandler_GetUser(t *testing.T) {
+	randomID := utils.NewString()
+	table := []struct {
+		title string
+		req   *connect.Request[frontierv1beta1.GetUserRequest]
+		setup func(us *mocks.UserService)
+		want  *connect.Response[frontierv1beta1.GetUserResponse]
+		err   error
+	}{
+		{
+			title: "should return not found error if user does not exist",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), randomID).Return(user.User{}, user.ErrNotExist)
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetUserRequest{
+				Id: randomID,
+			}),
+			want: nil,
+			err:  connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			title: "should return not found error if user id is not uuid",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetUserRequest{
+				Id: "some-id",
+			}),
+			want: nil,
+			err:  connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			title: "should return not found error if user id is invalid",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), "").Return(user.User{}, user.ErrInvalidID)
+			},
+			req:  connect.NewRequest(&frontierv1beta1.GetUserRequest{}),
+			want: nil,
+			err:  connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			title: "should return user if user service return nil error",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), randomID).Return(
+					user.User{
+						ID:    randomID,
+						Title: "some user",
+						Email: "someuser@test.com",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetUserRequest{
+				Id: randomID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetUserResponse{User: &frontierv1beta1.User{
+				Id:    randomID,
+				Title: "some user",
+				Email: "someuser@test.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}}),
+			err: nil,
+		},
+	}
+
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			mockUserSrv := new(mocks.UserService)
+			if tt.setup != nil {
+				tt.setup(mockUserSrv)
+			}
+			mockDep := &ConnectHandler{userService: mockUserSrv}
+			resp, err := mockDep.GetUser(context.Background(), tt.req)
+			assert.EqualValues(t, resp, tt.want)
+			assert.EqualValues(t, err, tt.err)
 		})
 	}
 }
