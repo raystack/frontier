@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Flex, Text, Button } from "@raystack/apsara/v1";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
+import { useQuery } from "@connectrpc/connect-query";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
 import styles from "./sessions.module.css";
 
 export const UserSessions = () => {
@@ -13,6 +15,18 @@ export const UserSessions = () => {
     location: string;
     lastActive: string;
   } | null>(null);
+
+  const { data: sessionsData } = useQuery(
+    AdminServiceQueries.listUserSessions,
+    { userId: user?.id || "" },
+    {
+      enabled: !!user?.id,
+    }
+  );
+
+  useEffect(() => {
+    console.log("ListUserSessions response:", sessionsData);
+  }, [sessionsData]);
 
   const handleRevoke = (sessionId: string, sessionInfo: any) => {
     setSelectedSession(sessionInfo);

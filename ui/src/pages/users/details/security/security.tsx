@@ -1,8 +1,9 @@
-import { Flex, Text } from "@raystack/apsara";
+import { Flex, Separator, Text } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import { useUser } from "../user-context";
 import styles from "./security.module.css";
 import { BlockUserDialog } from "./block-user";
+import { UserSessions } from "./sessions";
 
 export const UserDetailsSecurityPage = () => {
   const { user } = useUser();
@@ -12,7 +13,10 @@ export const UserDetailsSecurityPage = () => {
   return (
     <Flex justify="center" className={styles["container"]}>
       <PageTitle title={title} />
+      
       <Flex className={styles["content"]} direction="column" gap={9}>
+      <UserSessions />
+        <Separator />
         <Flex gap={5} justify="between">
           <Flex direction="column" gap={3}>
             <Text size={5}>Block user</Text>
@@ -21,6 +25,7 @@ export const UserDetailsSecurityPage = () => {
               unauthorized activities.
             </Text>
           </Flex>
+
           <BlockUserDialog />
         </Flex>
       </Flex>
