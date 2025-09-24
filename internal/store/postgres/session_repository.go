@@ -170,26 +170,6 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 	})
 }
 
-func (s *SessionRepository) UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error {
-	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
-		goqu.Record{
-			"updated_at": lastActive,
-		},
-	).Where(goqu.Ex{"id": id}).ToSQL()
-	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
-	}
-	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "UpdateLastActive", func(ctx context.Context) error {
-		result, err := s.dbc.ExecContext(ctx, query, params...)
-		if err != nil {
-			return fmt.Errorf("%w: %s", dbErr, err)
-		}
-		if count, _ := result.RowsAffected(); count == 0 {
-			return sql.ErrNoRows
-		}
-		return nil
-	})
-}
 
 func (s *SessionRepository) UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata frontiersession.SessionMetadata, updatedAt time.Time) error {
 	metadataBytes, err := json.Marshal(metadata)

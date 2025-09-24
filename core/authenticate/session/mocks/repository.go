@@ -285,53 +285,6 @@ func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UU
 	return _c
 }
 
-// UpdateLastActive provides a mock function with given fields: ctx, id, lastActive
-func (_m *Repository) UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error {
-	ret := _m.Called(ctx, id, lastActive)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateLastActive")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, time.Time) error); ok {
-		r0 = rf(ctx, id, lastActive)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Repository_UpdateLastActive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateLastActive'
-type Repository_UpdateLastActive_Call struct {
-	*mock.Call
-}
-
-// UpdateLastActive is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id uuid.UUID
-//   - lastActive time.Time
-func (_e *Repository_Expecter) UpdateLastActive(ctx interface{}, id interface{}, lastActive interface{}) *Repository_UpdateLastActive_Call {
-	return &Repository_UpdateLastActive_Call{Call: _e.mock.On("UpdateLastActive", ctx, id, lastActive)}
-}
-
-func (_c *Repository_UpdateLastActive_Call) Run(run func(ctx context.Context, id uuid.UUID, lastActive time.Time)) *Repository_UpdateLastActive_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(time.Time))
-	})
-	return _c
-}
-
-func (_c *Repository_UpdateLastActive_Call) Return(_a0 error) *Repository_UpdateLastActive_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Repository_UpdateLastActive_Call) RunAndReturn(run func(context.Context, uuid.UUID, time.Time) error) *Repository_UpdateLastActive_Call {
-	_c.Call.Return(run)
-	return _c
-}
 
 // UpdateValidity provides a mock function with given fields: ctx, id, validity
 func (_m *Repository) UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error {

@@ -26,7 +26,6 @@ type Repository interface {
 	DeleteExpiredSessions(ctx context.Context) error
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
 	List(ctx context.Context, userID string) ([]*Session, error)
-	UpdateLastActive(ctx context.Context, id uuid.UUID, lastActive time.Time) error
 	UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata SessionMetadata, updatedAt time.Time) error
 }
 
