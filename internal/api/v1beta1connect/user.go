@@ -335,6 +335,20 @@ func (h *ConnectHandler) EnableUser(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.EnableUserResponse{}), nil
 }
 
+func (h *ConnectHandler) DisableUser(ctx context.Context, request *connect.Request[frontierv1beta1.DisableUserRequest]) (*connect.Response[frontierv1beta1.DisableUserResponse], error) {
+	if err := h.userService.Disable(ctx, request.Msg.GetId()); err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	return connect.NewResponse(&frontierv1beta1.DisableUserResponse{}), nil
+}
+
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 
