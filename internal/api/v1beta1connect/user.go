@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 	"net/mail"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
@@ -70,6 +74,66 @@ func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *conne
 	return connect.NewResponse(&frontierv1beta1.GetCurrentAdminUserResponse{
 		User: userPB,
 	}), nil
+}
+
+func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Request[frontierv1beta1.CreateUserRequest]) (*connect.Response[frontierv1beta1.CreateUserResponse], error) {
+	if request.Msg.GetBody() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+	email := strings.TrimSpace(request.Msg.GetBody().GetEmail())
+	if email == "" {
+		currentUserEmail, ok := authenticate.GetEmailFromContext(ctx)
+		if !ok {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		currentUserEmail = strings.TrimSpace(currentUserEmail)
+		if currentUserEmail == "" {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		email = currentUserEmail
+	}
+	title := request.Msg.GetBody().GetTitle()
+	name := strings.TrimSpace(request.Msg.GetBody().GetName())
+	if name == "" {
+		name = str.GenerateUserSlug(email)
+	}
+	var metaDataMap metadata.Metadata
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+		if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+		}
+	}
+	// TODO might need to check the valid email form
+	newUser, err := h.userService.Create(ctx, user.User{
+		Title:    title,
+		Email:    email,
+		Name:     name,
+		Avatar:   request.Msg.GetBody().GetAvatar(),
+		Metadata: metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(errors.Unwrap(err), user.ErrKeyDoesNotExists):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	transformedUser, err := transformUserToPB(newUser)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+		LogWithAttrs(audit.UserCreatedEvent, audit.UserTarget(newUser.ID), map[string]string{
+			"email":  newUser.Email,
+			"name":   newUser.Name,
+			"title":  newUser.Title,
+			"avatar": newUser.Avatar,
+		})
+	return connect.NewResponse(&frontierv1beta1.CreateUserResponse{User: transformedUser}), nil
 }
 
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {

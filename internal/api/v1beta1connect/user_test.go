@@ -115,3 +115,157 @@ func TestConnectHandler_ListUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_CreateUser(t *testing.T) {
+	email := "user@raystack.org"
+	_ = email
+	table := []struct {
+		title string
+		setup func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
+		req   *connect.Request[frontierv1beta1.CreateUserRequest]
+		want  *connect.Response[frontierv1beta1.CreateUserResponse]
+		err   error
+	}{
+		{
+			title: "should return bad request error if email is empty",
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Title: "some user",
+				}).Return(user.User{}, user.ErrInvalidEmail)
+				return authenticate.SetContextWithEmail(ctx, "")
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+				Title: "some user",
+				Email: "",
+			}}),
+			want: nil,
+			err:  connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			title: "should return already exist error if user service return error conflict",
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Title:    "some user",
+					Email:    "abc@test.com",
+					Name:     "user-slug",
+					Metadata: metadata.Metadata{},
+				}).Return(user.User{}, user.ErrConflict)
+				return authenticate.SetContextWithEmail(ctx, email)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+				Title:    "some user",
+				Email:    "abc@test.com",
+				Name:     "user-slug",
+				Metadata: &structpb.Struct{},
+			}}),
+			want: nil,
+			err:  connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest),
+		},
+		{
+			title: "should return success if user email contain whitespace but still valid service return nil error",
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Title:    "some user",
+					Email:    "abc@test.com",
+					Name:     "user-slug",
+					Metadata: metadata.Metadata{"foo": "bar"},
+				}).Return(
+					user.User{
+						ID:       "new-abc",
+						Title:    "some user",
+						Email:    "abc@test.com",
+						Name:     "user-slug",
+						Metadata: metadata.Metadata{"foo": "bar"},
+					}, nil)
+				return authenticate.SetContextWithEmail(ctx, email)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+				Title: "some user",
+				Email: "  abc@test.com  ",
+				Name:  "user-slug",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}}),
+			want: connect.NewResponse(&frontierv1beta1.CreateUserResponse{User: &frontierv1beta1.User{
+				Id:    "new-abc",
+				Title: "some user",
+				Email: "abc@test.com",
+				Name:  "user-slug",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}}),
+			err: nil,
+		},
+		{
+			title: "should return success if user service return nil error",
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Title:    "some user",
+					Email:    "abc@test.com",
+					Name:     "user-slug",
+					Metadata: metadata.Metadata{"foo": "bar"},
+				}).Return(
+					user.User{
+						ID:       "new-abc",
+						Title:    "some user",
+						Email:    "abc@test.com",
+						Name:     "user-slug",
+						Metadata: metadata.Metadata{"foo": "bar"},
+					}, nil)
+				return authenticate.SetContextWithEmail(ctx, email)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+				Title: "some user",
+				Email: "abc@test.com",
+				Name:  "user-slug",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}}),
+			want: connect.NewResponse(&frontierv1beta1.CreateUserResponse{User: &frontierv1beta1.User{
+				Id:    "new-abc",
+				Title: "some user",
+				Email: "abc@test.com",
+				Name:  "user-slug",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}}),
+			err: nil,
+		},
+	}
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			var resp *connect.Response[frontierv1beta1.CreateUserResponse]
+			var err error
+			ctx := context.Background()
+			mockUserSrv := new(mocks.UserService)
+			mockMetaSrv := new(mocks.MetaSchemaService)
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockUserSrv, mockMetaSrv)
+			}
+			mockDep := &ConnectHandler{userService: mockUserSrv, metaSchemaService: mockMetaSrv}
+			resp, err = mockDep.CreateUser(ctx, tt.req)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.err, err)
+		})
+	}
+}
