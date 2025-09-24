@@ -1021,15 +1021,15 @@ func TestConnectHandler_ListUserGroups(t *testing.T) {
 			if tt.err == connect.Code(0) {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
-				assert.Len(t, resp.Msg.Groups, len(tt.want.Groups))
+				assert.Len(t, resp.Msg.GetGroups(), len(tt.want.GetGroups()))
 
-				for i, expectedGroup := range tt.want.Groups {
-					actualGroup := resp.Msg.Groups[i]
-					assert.Equal(t, expectedGroup.Id, actualGroup.Id)
-					assert.Equal(t, expectedGroup.Name, actualGroup.Name)
-					assert.Equal(t, expectedGroup.Title, actualGroup.Title)
-					assert.Equal(t, expectedGroup.OrgId, actualGroup.OrgId)
-					assert.Equal(t, expectedGroup.MembersCount, actualGroup.MembersCount)
+				for i, expectedGroup := range tt.want.GetGroups() {
+					actualGroup := resp.Msg.GetGroups()[i]
+					assert.Equal(t, expectedGroup.GetId(), actualGroup.GetId())
+					assert.Equal(t, expectedGroup.GetName(), actualGroup.GetName())
+					assert.Equal(t, expectedGroup.GetTitle(), actualGroup.GetTitle())
+					assert.Equal(t, expectedGroup.GetOrgId(), actualGroup.GetOrgId())
+					assert.Equal(t, expectedGroup.GetMembersCount(), actualGroup.GetMembersCount())
 				}
 			} else {
 				assert.Nil(t, resp)
@@ -1165,16 +1165,16 @@ func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
 			if tt.err == connect.Code(0) {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
-				assert.Len(t, resp.Msg.Groups, len(tt.want.Groups))
-				assert.Len(t, resp.Msg.AccessPairs, len(tt.want.AccessPairs))
+				assert.Len(t, resp.Msg.GetGroups(), len(tt.want.GetGroups()))
+				assert.Len(t, resp.Msg.GetAccessPairs(), len(tt.want.GetAccessPairs()))
 
-				for i, expectedGroup := range tt.want.Groups {
-					actualGroup := resp.Msg.Groups[i]
-					assert.Equal(t, expectedGroup.Id, actualGroup.Id)
-					assert.Equal(t, expectedGroup.Name, actualGroup.Name)
-					assert.Equal(t, expectedGroup.Title, actualGroup.Title)
-					assert.Equal(t, expectedGroup.OrgId, actualGroup.OrgId)
-					assert.Equal(t, expectedGroup.MembersCount, actualGroup.MembersCount)
+				for i, expectedGroup := range tt.want.GetGroups() {
+					actualGroup := resp.Msg.GetGroups()[i]
+					assert.Equal(t, expectedGroup.GetId(), actualGroup.GetId())
+					assert.Equal(t, expectedGroup.GetName(), actualGroup.GetName())
+					assert.Equal(t, expectedGroup.GetTitle(), actualGroup.GetTitle())
+					assert.Equal(t, expectedGroup.GetOrgId(), actualGroup.GetOrgId())
+					assert.Equal(t, expectedGroup.GetMembersCount(), actualGroup.GetMembersCount())
 				}
 			} else {
 				assert.Nil(t, resp)
@@ -1184,6 +1184,176 @@ func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
 			mockGroupSrv.AssertExpectations(t)
 			mockAuthnSrv.AssertExpectations(t)
 			mockResourceSrv.AssertExpectations(t)
+		})
+	}
+}
+
+func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
+	userID := uuid.New().String()
+
+	tests := []struct {
+		title string
+		setup func(*mocks.OrganizationService, *mocks.UserService, *mocks.DomainService)
+		req   *frontierv1beta1.ListOrganizationsByUserRequest
+		want  *frontierv1beta1.ListOrganizationsByUserResponse
+		err   connect.Code
+	}{
+		{
+			title: "should list user organizations successfully",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
+				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
+					ID:   userID,
+					Type: schema.UserPrincipal,
+				}, organization.Filter{}).Return([]organization.Organization{
+					{
+						ID:       "org-1",
+						Name:     "test-org-1",
+						Title:    "Test Organization 1",
+						State:    organization.Enabled,
+						Metadata: metadata.Metadata{},
+					},
+				}, nil)
+
+				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{
+					ID:    userID,
+					Email: "test@example.com",
+					Name:  "Test User",
+				}, nil)
+
+				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{"org-2"}, nil)
+
+				os.EXPECT().Get(mock.Anything, "org-2").Return(organization.Organization{
+					ID:       "org-2",
+					Name:     "joinable-org",
+					Title:    "Joinable Organization",
+					State:    organization.Enabled,
+					Metadata: metadata.Metadata{},
+				}, nil)
+			},
+			req: &frontierv1beta1.ListOrganizationsByUserRequest{
+				Id: userID,
+			},
+			want: &frontierv1beta1.ListOrganizationsByUserResponse{
+				Organizations: []*frontierv1beta1.Organization{
+					{
+						Id:    "org-1",
+						Name:  "test-org-1",
+						Title: "Test Organization 1",
+					},
+				},
+				JoinableViaDomain: []*frontierv1beta1.Organization{
+					{
+						Id:    "org-2",
+						Name:  "joinable-org",
+						Title: "Joinable Organization",
+					},
+				},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return empty list when user has no organizations",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
+				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
+					ID:   userID,
+					Type: schema.UserPrincipal,
+				}, organization.Filter{}).Return([]organization.Organization{}, nil)
+
+				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{
+					ID:    userID,
+					Email: "test@example.com",
+					Name:  "Test User",
+				}, nil)
+
+				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{}, nil)
+			},
+			req: &frontierv1beta1.ListOrganizationsByUserRequest{
+				Id: userID,
+			},
+			want: &frontierv1beta1.ListOrganizationsByUserResponse{
+				Organizations:     []*frontierv1beta1.Organization{},
+				JoinableViaDomain: []*frontierv1beta1.Organization{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return not found error for invalid user ID",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
+				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
+					ID:   userID,
+					Type: schema.UserPrincipal,
+				}, organization.Filter{}).Return([]organization.Organization{}, nil)
+
+				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{}, user.ErrNotExist)
+			},
+			req: &frontierv1beta1.ListOrganizationsByUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeNotFound,
+		},
+		{
+			title: "should return internal error for service failure",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
+				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
+					ID:   userID,
+					Type: schema.UserPrincipal,
+				}, organization.Filter{}).Return(nil, errors.New("database error"))
+			},
+			req: &frontierv1beta1.ListOrganizationsByUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			mockUserSrv := new(mocks.UserService)
+			mockDomainSrv := new(mocks.DomainService)
+
+			handler := &ConnectHandler{
+				orgService:    mockOrgSrv,
+				userService:   mockUserSrv,
+				domainService: mockDomainSrv,
+			}
+
+			if tt.setup != nil {
+				tt.setup(mockOrgSrv, mockUserSrv, mockDomainSrv)
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.ListOrganizationsByUser(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Msg.GetOrganizations(), len(tt.want.GetOrganizations()))
+				assert.Len(t, resp.Msg.GetJoinableViaDomain(), len(tt.want.GetJoinableViaDomain()))
+
+				for i, expectedOrg := range tt.want.GetOrganizations() {
+					actualOrg := resp.Msg.GetOrganizations()[i]
+					assert.Equal(t, expectedOrg.GetId(), actualOrg.GetId())
+					assert.Equal(t, expectedOrg.GetName(), actualOrg.GetName())
+					assert.Equal(t, expectedOrg.GetTitle(), actualOrg.GetTitle())
+				}
+
+				for i, expectedOrg := range tt.want.GetJoinableViaDomain() {
+					actualOrg := resp.Msg.GetJoinableViaDomain()[i]
+					assert.Equal(t, expectedOrg.GetId(), actualOrg.GetId())
+					assert.Equal(t, expectedOrg.GetName(), actualOrg.GetName())
+					assert.Equal(t, expectedOrg.GetTitle(), actualOrg.GetTitle())
+				}
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockOrgSrv.AssertExpectations(t)
+			mockUserSrv.AssertExpectations(t)
+			mockDomainSrv.AssertExpectations(t)
 		})
 	}
 }

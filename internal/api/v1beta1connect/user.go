@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -576,5 +577,63 @@ func (h *ConnectHandler) SearchUsers(ctx context.Context, request *connect.Reque
 			Name: userData.Group.Name,
 			Data: groupResponse,
 		},
+	}), nil
+}
+
+func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationsByUserRequest]) (*connect.Response[frontierv1beta1.ListOrganizationsByUserResponse], error) {
+	orgFilter := organization.Filter{}
+	if request.Msg.GetState() != "" {
+		orgFilter.State = organization.State(request.Msg.GetState())
+	}
+
+	orgList, err := h.orgService.ListByUser(ctx, authenticate.Principal{
+		ID:   request.Msg.GetId(),
+		Type: schema.UserPrincipal,
+	}, orgFilter)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var orgs []*frontierv1beta1.Organization
+	for _, v := range orgList {
+		orgPB, err := transformOrgToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		orgs = append(orgs, orgPB)
+	}
+
+	// Get user details to find joinable organizations by domain
+	userData, err := h.userService.GetByID(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, userData.Email)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var joinableOrgs []*frontierv1beta1.Organization
+	for _, joinableOrg := range joinableOrgIDs {
+		org, err := h.orgService.Get(ctx, joinableOrg)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		orgPB, err := transformOrgToPB(org)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		joinableOrgs = append(joinableOrgs, orgPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationsByUserResponse{
+		Organizations:     orgs,
+		JoinableViaDomain: joinableOrgs,
 	}), nil
 }
