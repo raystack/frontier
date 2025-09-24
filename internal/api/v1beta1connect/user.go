@@ -160,6 +160,31 @@ func (h *ConnectHandler) GetUser(ctx context.Context, request *connect.Request[f
 	}), nil
 }
 
+func (h *ConnectHandler) GetCurrentUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetCurrentUserRequest]) (*connect.Response[frontierv1beta1.GetCurrentUserResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	if principal.Type == schema.ServiceUserPrincipal {
+		serviceUserPB, err := transformServiceUserToPB(*principal.ServiceUser)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		return connect.NewResponse(&frontierv1beta1.GetCurrentUserResponse{
+			Serviceuser: serviceUserPB,
+		}), nil
+	}
+
+	userPB, err := transformUserToPB(*principal.User)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.GetCurrentUserResponse{
+		User: userPB,
+	}), nil
+}
+
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 
