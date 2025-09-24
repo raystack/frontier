@@ -646,3 +646,87 @@ func TestConnectHandler_UpdateCurrentUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_EnableUser(t *testing.T) {
+	userID := uuid.New().String()
+
+	tests := []struct {
+		title string
+		setup func(us *mocks.UserService)
+		req   *frontierv1beta1.EnableUserRequest
+		want  *frontierv1beta1.EnableUserResponse
+		err   connect.Code
+	}{
+		{
+			title: "should return success if user service enables user successfully",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().Enable(mock.Anything, userID).Return(nil)
+			},
+			req: &frontierv1beta1.EnableUserRequest{
+				Id: userID,
+			},
+			want: &frontierv1beta1.EnableUserResponse{},
+			err:  connect.Code(0), // Success case - no error
+		},
+		{
+			title: "should return not found error if user does not exist",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().Enable(mock.Anything, userID).Return(user.ErrNotExist)
+			},
+			req: &frontierv1beta1.EnableUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeNotFound,
+		},
+		{
+			title: "should return bad request error if user id is invalid",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().Enable(mock.Anything, "invalid-id").Return(user.ErrInvalidID)
+			},
+			req: &frontierv1beta1.EnableUserRequest{
+				Id: "invalid-id",
+			},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
+		},
+		{
+			title: "should return internal error if user service returns unexpected error",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().Enable(mock.Anything, userID).Return(errors.New("unexpected error"))
+			},
+			req: &frontierv1beta1.EnableUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockUserSrv := new(mocks.UserService)
+
+			if tt.setup != nil {
+				tt.setup(mockUserSrv)
+			}
+
+			handler := &ConnectHandler{
+				userService: mockUserSrv,
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.EnableUser(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp.Msg)
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockUserSrv.AssertExpectations(t)
+		})
+	}
+}
