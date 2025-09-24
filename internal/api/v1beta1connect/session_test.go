@@ -298,3 +298,175 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_PingUserSession(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(*mocks.SessionService, *mocks.AuthnService)
+		request     *connect.Request[frontierv1beta1.PingUserSessionRequest]
+		wantErr     bool
+		wantErrCode connect.Code
+	}{
+		{
+			name: "should successfully ping user session and update metadata",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				userID := "user-123"
+				sessionID := uuid.New()
+				now := time.Now().UTC()
+				
+				// Mock session extraction from context
+				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
+					ID:              sessionID,
+					UserID:          userID,
+					AuthenticatedAt: now.Add(-1 * time.Hour),
+					ExpiresAt:       now.Add(1 * time.Hour), // Valid session
+					CreatedAt:       now.Add(-1 * time.Hour),
+					UpdatedAt:       now.Add(-30 * time.Minute),
+					Metadata: frontiersession.SessionMetadata{
+						OperatingSystem: "Mac OS X",
+						Browser:         "Chrome",
+						IpAddress:       "192.168.1.1",
+					},
+				}, nil)
+				
+				// Mock session metadata update
+				sessionSvc.On("PingSession", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			wantErr: false,
+		},
+		{
+			name: "should return unauthenticated error when no session in context",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				sessionSvc.On("ExtractFromContext", mock.Anything).Return(nil, errors.New("no session"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			wantErr:     true,
+			wantErrCode: connect.CodeUnauthenticated,
+		},
+		{
+			name: "should return unauthenticated error when session is expired",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				userID := "user-123"
+				sessionID := uuid.New()
+				now := time.Now().UTC()
+				
+				// Mock expired session
+				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
+					ID:              sessionID,
+					UserID:          userID,
+					AuthenticatedAt: now.Add(-3 * time.Hour),
+					ExpiresAt:       now.Add(-1 * time.Hour), // Expired session
+					CreatedAt:       now.Add(-3 * time.Hour),
+					UpdatedAt:       now.Add(-2 * time.Hour),
+					Metadata: frontiersession.SessionMetadata{},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			wantErr:     true,
+			wantErrCode: connect.CodeUnauthenticated,
+		},
+		{
+			name: "should return internal error when ping session fails",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				userID := "user-123"
+				sessionID := uuid.New()
+				now := time.Now().UTC()
+				
+				// Mock valid session
+				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
+					ID:              sessionID,
+					UserID:          userID,
+					AuthenticatedAt: now.Add(-1 * time.Hour),
+					ExpiresAt:       now.Add(1 * time.Hour), // Valid session
+					CreatedAt:       now.Add(-1 * time.Hour),
+					UpdatedAt:       now.Add(-30 * time.Minute),
+					Metadata: frontiersession.SessionMetadata{},
+				}, nil)
+				
+				// Mock ping session failure
+				sessionSvc.On("PingSession", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(errors.New("database error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+		},
+		{
+			name: "should handle session with valid metadata extraction",
+			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
+				userID := "user-123"
+				sessionID := uuid.New()
+				now := time.Now().UTC()
+				
+				// Mock session with existing metadata
+				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
+					ID:              sessionID,
+					UserID:          userID,
+					AuthenticatedAt: now.Add(-1 * time.Hour),
+					ExpiresAt:       now.Add(1 * time.Hour),
+					CreatedAt:       now.Add(-1 * time.Hour),
+					UpdatedAt:       now.Add(-30 * time.Minute),
+					Metadata: frontiersession.SessionMetadata{
+						OperatingSystem: "Windows",
+						Browser:         "Firefox",
+						IpAddress:       "10.0.0.1",
+						Location: struct {
+							Country string
+							City    string
+						}{
+							Country: "US",
+							City:    "New York",
+						},
+					},
+				}, nil)
+				
+				// Mock successful ping with metadata update
+				sessionSvc.On("PingSession", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockSessionSvc := new(mocks.SessionService)
+			mockAuthnSvc := new(mocks.AuthnService)
+			
+			if tt.setup != nil {
+				tt.setup(mockSessionSvc, mockAuthnSvc)
+			}
+			
+			handler := &ConnectHandler{
+				sessionService: mockSessionSvc,
+				authnService:   mockAuthnSvc,
+				authConfig: authenticate.Config{
+					Session: authenticate.SessionConfig{
+						Headers: authenticate.SessionMetadataHeaders{
+							ClientIP:     "X-Forwarded-For",
+							ClientCountry: "X-Country",
+							ClientCity:   "X-City",
+						},
+					},
+				},
+			}
+			
+			resp, err := handler.PingUserSession(context.Background(), tt.request)
+			
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.wantErrCode != 0 {
+					var connectErr *connect.Error
+					if assert.True(t, errors.As(err, &connectErr)) {
+						assert.Equal(t, tt.wantErrCode, connectErr.Code())
+					}
+				}
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.IsType(t, &frontierv1beta1.PingUserSessionResponse{}, resp.Msg)
+			}
+		})
+	}
+}
