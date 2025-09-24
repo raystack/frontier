@@ -170,7 +170,6 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 	})
 }
 
-
 func (s *SessionRepository) UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata frontiersession.SessionMetadata, updatedAt time.Time) error {
 	metadataBytes, err := json.Marshal(metadata)
 	if err != nil {
