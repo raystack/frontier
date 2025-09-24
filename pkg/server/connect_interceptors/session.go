@@ -2,7 +2,6 @@ package connectinterceptors
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -144,12 +143,18 @@ func (s *SessionInterceptor) UnaryConnectResponseInterceptor() connect.UnaryInte
 				}
 
 				// set cookie in response with all required attributes
-				cookie := fmt.Sprintf("%s=%s; Path=/; Domain=%s; HttpOnly; SameSite=%v; Secure",
-					consts.SessionRequestKey,
-					encodedSession,
-					s.conf.Domain,
-					CookieSameSite(s.conf.SameSite))
-				resp.Header().Set("Set-Cookie", cookie)
+				cookie := http.Cookie{
+					Domain:   s.conf.Domain,
+					Name:     consts.SessionRequestKey,
+					Value:    encodedSession,
+					Path:     "/",
+					Expires:  time.Now().UTC().Add(s.conf.Validity),
+					MaxAge:   int(s.conf.Validity.Seconds()),
+					HttpOnly: true,
+					SameSite: CookieSameSite(s.conf.SameSite),
+					Secure:   s.conf.Secure,
+				}
+				resp.Header().Set("Set-Cookie", cookie.String())
 
 				// delete the gateway headers to not expose any grpc-metadata in http response
 				resp.Header().Del(consts.SessionIDGatewayKey)
@@ -162,12 +167,18 @@ func (s *SessionInterceptor) UnaryConnectResponseInterceptor() connect.UnaryInte
 				resp.Header().Del(consts.SessionDeleteGatewayKey)
 
 				// Set an expired cookie to clear it
-				cookie := fmt.Sprintf("%s=; Path=/; Domain=%s; Expires=%s; MaxAge=-1; HttpOnly; SameSite=%v; Secure",
-					consts.SessionRequestKey,
-					s.conf.Domain,
-					time.Now().UTC().Format(time.RFC1123),
-					CookieSameSite(s.conf.SameSite))
-				resp.Header().Set("Set-Cookie", cookie)
+				cookie := http.Cookie{
+					Domain:   s.conf.Domain,
+					Name:     consts.SessionRequestKey,
+					Value:    "",
+					Path:     "/",
+					Expires:  time.Now().UTC(),
+					MaxAge:   -1,
+					HttpOnly: true,
+					SameSite: CookieSameSite(s.conf.SameSite),
+					Secure:   s.conf.Secure,
+				}
+				resp.Header().Set("Set-Cookie", cookie.String())
 			}
 
 			// did the gRPC method set location redirect key in metadata?
