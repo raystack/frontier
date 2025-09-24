@@ -265,6 +265,62 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: userPB}), nil
 }
 
+func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateCurrentUserRequest]) (*connect.Response[frontierv1beta1.UpdateCurrentUserResponse], error) {
+	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
+	if request.Msg.GetBody() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// if email in request body is different from the email in the header
+	if principal.User != nil && principal.User.Email != request.Msg.GetBody().GetEmail() {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	var metaDataMap metadata.Metadata
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+		if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+		}
+	}
+
+	updatedUser, err := h.userService.Update(ctx, user.User{
+		ID:       principal.ID,
+		Title:    request.Msg.GetBody().GetTitle(),
+		Avatar:   request.Msg.GetBody().GetAvatar(),
+		Name:     request.Msg.GetBody().GetName(),
+		Metadata: metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrInvalidDetails):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	userPB, err := transformUserToPB(updatedUser)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
+		"email":  updatedUser.Email,
+		"name":   updatedUser.Name,
+		"title":  updatedUser.Title,
+		"avatar": updatedUser.Avatar,
+	})
+	return connect.NewResponse(&frontierv1beta1.UpdateCurrentUserResponse{User: userPB}), nil
+}
+
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 

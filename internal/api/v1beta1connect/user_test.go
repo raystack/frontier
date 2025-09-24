@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
@@ -495,6 +496,153 @@ func TestConnectHandler_UpdateUser(t *testing.T) {
 			resp, err := mockDep.UpdateUser(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, err, tt.err)
+		})
+	}
+}
+
+func TestConnectHandler_UpdateCurrentUser(t *testing.T) {
+	userID := uuid.New().String()
+
+	tests := []struct {
+		title string
+		setup func(us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService)
+		req   *frontierv1beta1.UpdateCurrentUserRequest
+		want  *frontierv1beta1.UpdateCurrentUserResponse
+		err   connect.Code
+	}{
+		{
+			title: "should return unauthenticated error if GetPrincipal fails",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			req: &frontierv1beta1.UpdateCurrentUserRequest{
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "abc user",
+					Email: "abcuser123@test.com",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			},
+			want: nil,
+			err:  connect.CodeUnauthenticated,
+		},
+		{
+			title: "should return internal error if user service returns error",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{ID: userID}, nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Update(mock.Anything, user.User{
+					ID:    userID,
+					Title: "abc user",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, errors.New("test error"))
+			},
+			req: &frontierv1beta1.UpdateCurrentUserRequest{
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "abc user",
+					Email: "user@raystack.org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+		{
+			title: "should return bad request error if empty request body",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) {
+				// No mocks needed - the function returns early when body is nil
+			},
+			req: &frontierv1beta1.UpdateCurrentUserRequest{
+				Body: nil,
+			},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
+		},
+		{
+			title: "should return success if user service returns nil error",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{ID: userID}, nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
+				us.EXPECT().Update(mock.Anything, mock.Anything).Return(
+					user.User{
+						ID:    "user-id-1",
+						Title: "abc user",
+						Email: "user@raystack.org",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+			},
+			req: &frontierv1beta1.UpdateCurrentUserRequest{
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "abc user",
+					Email: "user@raystack.org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			},
+			want: &frontierv1beta1.UpdateCurrentUserResponse{
+				User: &frontierv1beta1.User{
+					Id:    "user-id-1",
+					Title: "abc user",
+					Email: "user@raystack.org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			},
+			err: connect.Code(0), // Success case - no error
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockUserSrv := new(mocks.UserService)
+			mockMetaSrv := new(mocks.MetaSchemaService)
+			mockAuthSrv := new(mocks.AuthnService)
+
+			if tt.setup != nil {
+				tt.setup(mockUserSrv, mockMetaSrv, mockAuthSrv)
+			}
+
+			handler := &ConnectHandler{
+				userService:       mockUserSrv,
+				metaSchemaService: mockMetaSrv,
+				authnService:      mockAuthSrv,
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.UpdateCurrentUser(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp.Msg)
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockUserSrv.AssertExpectations(t)
+			mockMetaSrv.AssertExpectations(t)
+			mockAuthSrv.AssertExpectations(t)
 		})
 	}
 }
