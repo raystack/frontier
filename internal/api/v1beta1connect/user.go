@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
@@ -363,6 +364,34 @@ func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Reques
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.Msg.GetId()))
 	return connect.NewResponse(&frontierv1beta1.DeleteUserResponse{}), nil
+}
+
+func (h *ConnectHandler) ListUserGroups(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserGroupsRequest]) (*connect.Response[frontierv1beta1.ListUserGroupsResponse], error) {
+	var groups []*frontierv1beta1.Group
+
+	groupsList, err := h.groupService.ListByUser(ctx, request.Msg.GetId(), schema.UserPrincipal,
+		group.Filter{OrganizationID: request.Msg.GetOrgId()})
+	if err != nil {
+		switch {
+		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	for _, group := range groupsList {
+		groupPB, err := transformGroupToPB(group)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+
+		groups = append(groups, &groupPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListUserGroupsResponse{
+		Groups: groups,
+	}), nil
 }
 
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
