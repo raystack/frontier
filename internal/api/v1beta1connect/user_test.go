@@ -1648,3 +1648,203 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListProjectsByCurrentUser(t *testing.T) {
+	tests := []struct {
+		title string
+		setup func(*mocks.ProjectService, *mocks.AuthnService, *mocks.ResourceService)
+		req   *frontierv1beta1.ListProjectsByCurrentUserRequest
+		want  *frontierv1beta1.ListProjectsByCurrentUserResponse
+		err   connect.Code
+	}{
+		{
+			title: "should list current user projects successfully",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				ps.EXPECT().ListByUser(mock.Anything, "user-1", "app/user", mock.MatchedBy(func(filter project.Filter) bool {
+					return filter.OrgID == ""
+				})).Return([]project.Project{
+					{
+						ID:    "project-1",
+						Name:  "test-project-1",
+						Title: "Test Project 1",
+						Organization: organization.Organization{
+							ID: "org-1",
+						},
+						Metadata:    metadata.Metadata{},
+						MemberCount: 5,
+					},
+					{
+						ID:    "project-2",
+						Name:  "test-project-2",
+						Title: "Test Project 2",
+						Organization: organization.Organization{
+							ID: "org-2",
+						},
+						Metadata:    metadata.Metadata{},
+						MemberCount: 3,
+					},
+				}, nil)
+			},
+			req: &frontierv1beta1.ListProjectsByCurrentUserRequest{},
+			want: &frontierv1beta1.ListProjectsByCurrentUserResponse{
+				Projects: []*frontierv1beta1.Project{
+					{
+						Id:           "project-1",
+						Name:         "test-project-1",
+						Title:        "Test Project 1",
+						OrgId:        "org-1",
+						MembersCount: 5,
+					},
+					{
+						Id:           "project-2",
+						Name:         "test-project-2",
+						Title:        "Test Project 2",
+						OrgId:        "org-2",
+						MembersCount: 3,
+					},
+				},
+				AccessPairs: []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should list current user projects with organization filter",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				ps.EXPECT().ListByUser(mock.Anything, "user-1", "app/user", mock.MatchedBy(func(filter project.Filter) bool {
+					return filter.OrgID == "org-1"
+				})).Return([]project.Project{
+					{
+						ID:    "project-1",
+						Name:  "test-project-1",
+						Title: "Test Project 1",
+						Organization: organization.Organization{
+							ID: "org-1",
+						},
+						Metadata:    metadata.Metadata{},
+						MemberCount: 5,
+					},
+				}, nil)
+			},
+			req: &frontierv1beta1.ListProjectsByCurrentUserRequest{OrgId: "org-1"},
+			want: &frontierv1beta1.ListProjectsByCurrentUserResponse{
+				Projects: []*frontierv1beta1.Project{
+					{
+						Id:           "project-1",
+						Name:         "test-project-1",
+						Title:        "Test Project 1",
+						OrgId:        "org-1",
+						MembersCount: 5,
+					},
+				},
+				AccessPairs: []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return empty list when current user has no projects",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				ps.EXPECT().ListByUser(mock.Anything, "user-1", "app/user", mock.MatchedBy(func(filter project.Filter) bool {
+					return filter.OrgID == ""
+				})).Return([]project.Project{}, nil)
+			},
+			req: &frontierv1beta1.ListProjectsByCurrentUserRequest{},
+			want: &frontierv1beta1.ListProjectsByCurrentUserResponse{
+				Projects:    []*frontierv1beta1.Project{},
+				AccessPairs: []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return unauthenticated error when GetLoggedInPrincipal fails",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			req:  &frontierv1beta1.ListProjectsByCurrentUserRequest{},
+			want: nil,
+			err:  connect.CodeUnauthenticated,
+		},
+		{
+			title: "should return internal error for project service failure",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService, rs *mocks.ResourceService) {
+				mockPrincipal := authenticate.Principal{
+					ID:   "user-1",
+					Type: "app/user",
+					User: &user.User{ID: "user-1", Email: "test@example.com"},
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				ps.EXPECT().ListByUser(mock.Anything, "user-1", "app/user", mock.MatchedBy(func(filter project.Filter) bool {
+					return filter.OrgID == ""
+				})).Return(nil, errors.New("database error"))
+			},
+			req:  &frontierv1beta1.ListProjectsByCurrentUserRequest{},
+			want: nil,
+			err:  connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockProjectSrv := new(mocks.ProjectService)
+			mockAuthnSrv := new(mocks.AuthnService)
+			mockResourceSrv := new(mocks.ResourceService)
+
+			handler := &ConnectHandler{
+				projectService:  mockProjectSrv,
+				authnService:    mockAuthnSrv,
+				resourceService: mockResourceSrv,
+			}
+
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv, mockAuthnSrv, mockResourceSrv)
+			}
+
+			req := connect.NewRequest(tt.req)
+			resp, err := handler.ListProjectsByCurrentUser(context.Background(), req)
+
+			if tt.err == connect.Code(0) {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Msg.GetProjects(), len(tt.want.GetProjects()))
+				assert.Len(t, resp.Msg.GetAccessPairs(), len(tt.want.GetAccessPairs()))
+
+				for i, expectedProject := range tt.want.GetProjects() {
+					actualProject := resp.Msg.GetProjects()[i]
+					assert.Equal(t, expectedProject.GetId(), actualProject.GetId())
+					assert.Equal(t, expectedProject.GetName(), actualProject.GetName())
+					assert.Equal(t, expectedProject.GetTitle(), actualProject.GetTitle())
+					assert.Equal(t, expectedProject.GetOrgId(), actualProject.GetOrgId())
+					assert.Equal(t, expectedProject.GetMembersCount(), actualProject.GetMembersCount())
+				}
+			} else {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+			}
+
+			mockProjectSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+			mockResourceSrv.AssertExpectations(t)
+		})
+	}
+}

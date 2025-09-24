@@ -19,6 +19,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -712,5 +713,65 @@ func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connec
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectsByUserResponse{
 		Projects: projects,
+	}), nil
+}
+
+func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectsByCurrentUserRequest]) (*connect.Response[frontierv1beta1.ListProjectsByCurrentUserResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	paginate := pagination.NewPagination(request.Msg.GetPageNum(), request.Msg.GetPageSize())
+	projList, err := h.projectService.ListByUser(ctx, principal.ID, principal.Type, project.Filter{
+		OrgID:           request.Msg.GetOrgId(),
+		NonInherited:    request.Msg.GetNonInherited(),
+		WithMemberCount: request.Msg.GetWithMemberCount(),
+		Pagination:      paginate,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var projects []*frontierv1beta1.Project
+	var accessPairsPb []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair
+	for _, v := range projList {
+		projPB, err := transformProjectToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		projects = append(projects, projPB)
+	}
+
+	if len(request.Msg.GetWithPermissions()) > 0 {
+		resourceIds := utils.Map(projList, func(res project.Project) string {
+			return res.ID
+		})
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		for _, successCheck := range successCheckPairs {
+			resID := successCheck.Relation.Object.ID
+
+			// find all permission checks on same resource
+			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
+				return pair.Relation.Object.ID == resID
+			})
+			// fetch permissions
+			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
+				return pair.Relation.RelationName
+			})
+			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{
+				ProjectId:   resID,
+				Permissions: permissions,
+			})
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListProjectsByCurrentUserResponse{
+		Projects:    projects,
+		AccessPairs: accessPairsPb,
+		Count:       paginate.Count,
 	}), nil
 }
