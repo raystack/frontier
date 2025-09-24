@@ -23,6 +23,7 @@ const (
 	OrgIDsClaimKey      = "org_ids"
 	SubTypeClaimsKey    = "sub_type"
 	SubEmailClaimsKey   = "email"
+	SessionIDClaimKey   = "sid"
 )
 
 type Service struct {
