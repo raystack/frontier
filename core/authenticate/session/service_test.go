@@ -140,10 +140,10 @@ func TestService_ListSessions(t *testing.T) {
 	t.Run("should return active sessions only", func(t *testing.T) {
 		mockRepository := mocks.NewRepository(t)
 		svc := session.NewService(log.NewLogrus(), mockRepository, 24*time.Hour)
-		
+
 		userID := "user-123"
 		now := time.Now().UTC()
-		
+
 		// Create mock sessions - mix of active and expired
 		mockSessions := []*session.Session{
 			{
@@ -177,27 +177,27 @@ func TestService_ListSessions(t *testing.T) {
 				Metadata:        session.SessionMetadata{},
 			},
 		}
-		
+
 		mockRepository.On("List", mock.Anything, userID).Return(mockSessions, nil)
-		
+
 		activeSessions, err := svc.ListSessions(context.Background(), userID)
-		
+
 		assert.Nil(t, err)
 		assert.Len(t, activeSessions, 2) // Only active sessions
-		
+
 		// Verify all returned sessions are active
 		for _, sess := range activeSessions {
 			assert.True(t, sess.IsValid(now))
 		}
 	})
-	
+
 	t.Run("should return empty list when no active sessions", func(t *testing.T) {
 		mockRepository := mocks.NewRepository(t)
 		svc := session.NewService(log.NewLogrus(), mockRepository, 24*time.Hour)
-		
+
 		userID := "user-123"
 		now := time.Now().UTC()
-		
+
 		// Create mock sessions - all expired
 		mockSessions := []*session.Session{
 			{
@@ -211,41 +211,41 @@ func TestService_ListSessions(t *testing.T) {
 				Metadata:        session.SessionMetadata{},
 			},
 		}
-		
+
 		mockRepository.On("List", mock.Anything, userID).Return(mockSessions, nil)
-		
+
 		activeSessions, err := svc.ListSessions(context.Background(), userID)
-		
+
 		assert.Nil(t, err)
 		assert.Len(t, activeSessions, 0) // No active sessions
 	})
-	
+
 	t.Run("should return error when repository fails", func(t *testing.T) {
 		mockRepository := mocks.NewRepository(t)
 		svc := session.NewService(log.NewLogrus(), mockRepository, 24*time.Hour)
-		
+
 		userID := "user-123"
 		expectedError := errors.New("database error")
-		
+
 		mockRepository.On("List", mock.Anything, userID).Return(nil, expectedError)
-		
+
 		sessions, err := svc.ListSessions(context.Background(), userID)
-		
+
 		assert.NotNil(t, err)
 		assert.Equal(t, expectedError, err)
 		assert.Nil(t, sessions)
 	})
-	
+
 	t.Run("should return empty list when no sessions exist", func(t *testing.T) {
 		mockRepository := mocks.NewRepository(t)
 		svc := session.NewService(log.NewLogrus(), mockRepository, 24*time.Hour)
-		
+
 		userID := "user-123"
-		
+
 		mockRepository.On("List", mock.Anything, userID).Return([]*session.Session{}, nil)
-		
+
 		activeSessions, err := svc.ListSessions(context.Background(), userID)
-		
+
 		assert.Nil(t, err)
 		assert.Len(t, activeSessions, 0)
 	})

@@ -29,16 +29,16 @@ func TestConnectHandler_RevokeSession(t *testing.T) {
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				userID := "user-123"
 				sessionID := uuid.New()
-				
+
 				// Mock authentication
 				authnSvc.On("GetPrincipal", mock.Anything, authenticate.SessionClientAssertion).Return(authenticate.Principal{ID: userID}, nil)
-				
+
 				// Mock session retrieval - use mock.Anything for sessionID to match any UUID
 				sessionSvc.On("GetSession", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(&frontiersession.Session{
 					ID:     sessionID,
 					UserID: userID,
 				}, nil)
-				
+
 				// Mock session deletion
 				sessionSvc.On("Delete", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(nil)
 			},
@@ -74,7 +74,7 @@ func TestConnectHandler_RevokeSession(t *testing.T) {
 			name: "should return not found error when session does not exist",
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				userID := "user-123"
-				
+
 				authnSvc.On("GetPrincipal", mock.Anything, authenticate.SessionClientAssertion).Return(authenticate.Principal{ID: userID}, nil)
 				sessionSvc.On("GetSession", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(nil, errors.New("session not found"))
 			},
@@ -89,7 +89,7 @@ func TestConnectHandler_RevokeSession(t *testing.T) {
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				userID := "user-123"
 				otherUserID := "other-user-456"
-				
+
 				authnSvc.On("GetPrincipal", mock.Anything, authenticate.SessionClientAssertion).Return(authenticate.Principal{ID: userID}, nil)
 				sessionSvc.On("GetSession", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(&frontiersession.Session{
 					ID:     uuid.New(),
@@ -106,7 +106,7 @@ func TestConnectHandler_RevokeSession(t *testing.T) {
 			name: "should return internal error when session deletion fails",
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				userID := "user-123"
-				
+
 				authnSvc.On("GetPrincipal", mock.Anything, authenticate.SessionClientAssertion).Return(authenticate.Principal{ID: userID}, nil)
 				sessionSvc.On("GetSession", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(&frontiersession.Session{
 					ID:     uuid.New(),
@@ -126,18 +126,18 @@ func TestConnectHandler_RevokeSession(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockSessionSvc := new(mocks.SessionService)
 			mockAuthnSvc := new(mocks.AuthnService)
-			
+
 			if tt.setup != nil {
 				tt.setup(mockSessionSvc, mockAuthnSvc)
 			}
-			
+
 			handler := &ConnectHandler{
 				sessionService: mockSessionSvc,
 				authnService:   mockAuthnSvc,
 			}
-			
+
 			resp, err := handler.RevokeSession(context.Background(), tt.request)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.wantErrCode != 0 {
@@ -170,15 +170,15 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				userID := "user-123"
 				now := time.Now().UTC()
-				
+
 				authnSvc.On("GetPrincipal", mock.Anything, authenticate.SessionClientAssertion).Return(authenticate.Principal{ID: userID}, nil)
-				
+
 				// Mock current session extraction
 				currentSessionID := uuid.New()
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
 					ID: currentSessionID,
 				}, nil)
-				
+
 				// Mock sessions list
 				sessions := []*frontiersession.Session{
 					{
@@ -222,11 +222,11 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 						},
 					},
 				}
-				
+
 				sessionSvc.On("ListSessions", mock.Anything, userID).Return(sessions, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
-			wantErr: false,
+			request:   connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
+			wantErr:   false,
 			wantCount: 2,
 		},
 		{
@@ -234,7 +234,7 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				authnSvc.On("GetPrincipal", mock.Anything, authenticate.SessionClientAssertion).Return(authenticate.Principal{}, errors.New("not authenticated"))
 			},
-			request: connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
+			request:     connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
 			wantErr:     true,
 			wantErrCode: connect.CodeUnauthenticated,
 		},
@@ -246,7 +246,7 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(nil, errors.New("no session"))
 				sessionSvc.On("ListSessions", mock.Anything, userID).Return(nil, errors.New("database error"))
 			},
-			request: connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
+			request:     connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
 		},
@@ -258,8 +258,8 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(nil, errors.New("no session"))
 				sessionSvc.On("ListSessions", mock.Anything, userID).Return([]*frontiersession.Session{}, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
-			wantErr: false,
+			request:   connect.NewRequest(&frontierv1beta1.ListSessionsRequest{}),
+			wantErr:   false,
 			wantCount: 0,
 		},
 	}
@@ -268,18 +268,18 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockSessionSvc := new(mocks.SessionService)
 			mockAuthnSvc := new(mocks.AuthnService)
-			
+
 			if tt.setup != nil {
 				tt.setup(mockSessionSvc, mockAuthnSvc)
 			}
-			
+
 			handler := &ConnectHandler{
 				sessionService: mockSessionSvc,
 				authnService:   mockAuthnSvc,
 			}
-			
+
 			resp, err := handler.ListSessions(context.Background(), tt.request)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.wantErrCode != 0 {
@@ -293,7 +293,7 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.ListSessionsResponse{}, resp.Msg)
-				assert.Len(t, resp.Msg.Sessions, tt.wantCount)
+				assert.Len(t, resp.Msg.GetSessions(), tt.wantCount)
 			}
 		})
 	}
@@ -313,7 +313,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 				userID := "user-123"
 				sessionID := uuid.New()
 				now := time.Now().UTC()
-				
+
 				// Mock session extraction from context
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
 					ID:              sessionID,
@@ -328,7 +328,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 						IpAddress:       "192.168.1.1",
 					},
 				}, nil)
-				
+
 				// Mock session metadata update
 				sessionSvc.On("PingSession", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
 			},
@@ -340,7 +340,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(nil, errors.New("no session"))
 			},
-			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			request:     connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
 			wantErr:     true,
 			wantErrCode: connect.CodeUnauthenticated,
 		},
@@ -350,7 +350,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 				userID := "user-123"
 				sessionID := uuid.New()
 				now := time.Now().UTC()
-				
+
 				// Mock expired session
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
 					ID:              sessionID,
@@ -359,10 +359,10 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 					ExpiresAt:       now.Add(-1 * time.Hour), // Expired session
 					CreatedAt:       now.Add(-3 * time.Hour),
 					UpdatedAt:       now.Add(-2 * time.Hour),
-					Metadata: frontiersession.SessionMetadata{},
+					Metadata:        frontiersession.SessionMetadata{},
 				}, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			request:     connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
 			wantErr:     true,
 			wantErrCode: connect.CodeUnauthenticated,
 		},
@@ -372,7 +372,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 				userID := "user-123"
 				sessionID := uuid.New()
 				now := time.Now().UTC()
-				
+
 				// Mock valid session
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
 					ID:              sessionID,
@@ -381,13 +381,13 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 					ExpiresAt:       now.Add(1 * time.Hour), // Valid session
 					CreatedAt:       now.Add(-1 * time.Hour),
 					UpdatedAt:       now.Add(-30 * time.Minute),
-					Metadata: frontiersession.SessionMetadata{},
+					Metadata:        frontiersession.SessionMetadata{},
 				}, nil)
-				
+
 				// Mock ping session failure
 				sessionSvc.On("PingSession", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(errors.New("database error"))
 			},
-			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
+			request:     connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
 		},
@@ -397,7 +397,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 				userID := "user-123"
 				sessionID := uuid.New()
 				now := time.Now().UTC()
-				
+
 				// Mock session with existing metadata
 				sessionSvc.On("ExtractFromContext", mock.Anything).Return(&frontiersession.Session{
 					ID:              sessionID,
@@ -419,7 +419,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 						},
 					},
 				}, nil)
-				
+
 				// Mock successful ping with metadata update
 				sessionSvc.On("PingSession", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
 			},
@@ -432,27 +432,27 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockSessionSvc := new(mocks.SessionService)
 			mockAuthnSvc := new(mocks.AuthnService)
-			
+
 			if tt.setup != nil {
 				tt.setup(mockSessionSvc, mockAuthnSvc)
 			}
-			
+
 			handler := &ConnectHandler{
 				sessionService: mockSessionSvc,
 				authnService:   mockAuthnSvc,
 				authConfig: authenticate.Config{
 					Session: authenticate.SessionConfig{
 						Headers: authenticate.SessionMetadataHeaders{
-							ClientIP:     "X-Forwarded-For",
+							ClientIP:      "X-Forwarded-For",
 							ClientCountry: "X-Country",
-							ClientCity:   "X-City",
+							ClientCity:    "X-City",
 						},
 					},
 				},
 			}
-			
+
 			resp, err := handler.PingUserSession(context.Background(), tt.request)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.wantErrCode != 0 {
@@ -485,7 +485,7 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 			setup: func(sessionSvc *mocks.SessionService, authnSvc *mocks.AuthnService) {
 				userID := uuid.New().String()
 				now := time.Now().UTC()
-				
+
 				// Mock sessions list
 				sessions := []*frontiersession.Session{
 					{
@@ -529,13 +529,13 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 						},
 					},
 				}
-				
+
 				sessionSvc.On("ListSessions", mock.Anything, mock.AnythingOfType("string")).Return(sessions, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListUserSessionsRequest{
 				UserId: uuid.New().String(),
 			}),
-			wantErr: false,
+			wantErr:   false,
 			wantCount: 2,
 		},
 		{
@@ -579,7 +579,7 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.ListUserSessionsRequest{
 				UserId: uuid.New().String(),
 			}),
-			wantErr: false,
+			wantErr:   false,
 			wantCount: 0,
 		},
 	}
@@ -588,18 +588,18 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockSessionSvc := new(mocks.SessionService)
 			mockAuthnSvc := new(mocks.AuthnService)
-			
+
 			if tt.setup != nil {
 				tt.setup(mockSessionSvc, mockAuthnSvc)
 			}
-			
+
 			handler := &ConnectHandler{
 				sessionService: mockSessionSvc,
 				authnService:   mockAuthnSvc,
 			}
-			
+
 			resp, err := handler.ListUserSessions(context.Background(), tt.request)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.wantErrCode != 0 {
@@ -613,7 +613,7 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.ListUserSessionsResponse{}, resp.Msg)
-				assert.Len(t, resp.Msg.Sessions, tt.wantCount)
+				assert.Len(t, resp.Msg.GetSessions(), tt.wantCount)
 			}
 		})
 	}
@@ -679,18 +679,18 @@ func TestConnectHandler_RevokeUserSession(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockSessionSvc := new(mocks.SessionService)
 			mockAuthnSvc := new(mocks.AuthnService)
-			
+
 			if tt.setup != nil {
 				tt.setup(mockSessionSvc, mockAuthnSvc)
 			}
-			
+
 			handler := &ConnectHandler{
 				sessionService: mockSessionSvc,
 				authnService:   mockAuthnSvc,
 			}
-			
+
 			resp, err := handler.RevokeUserSession(context.Background(), tt.request)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.wantErrCode != 0 {
