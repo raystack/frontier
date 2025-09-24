@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/auditrecord/mocks"
+	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -19,9 +20,9 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func createMockServices(t *testing.T) (*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService) {
+func createMockServices(t *testing.T) (*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService, *mocks.SessionService) {
 	t.Helper() // This marks the function as a test helper
-	return mocks.NewRepository(t), mocks.NewUserService(t), mocks.NewServiceUserService(t)
+	return mocks.NewRepository(t), mocks.NewUserService(t), mocks.NewServiceUserService(t), mocks.NewSessionService(t)
 }
 
 // Helper function to create base audit record for testing
@@ -46,7 +47,7 @@ func createBaseAuditRecord() auditrecord.AuditRecord {
 func TestService_Create_Idempotency(t *testing.T) {
 	tests := []struct {
 		name                   string
-		setupMocks             func(*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService)
+		setupMocks             func(*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService, *mocks.SessionService)
 		auditRecord            auditrecord.AuditRecord
 		expectIdempotent       bool
 		expectError            error
@@ -54,13 +55,19 @@ func TestService_Create_Idempotency(t *testing.T) {
 	}{
 		{
 			name: "no idempotency key - creates new record",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				// Since no idempotency key, should skip GetByIdempotencyKey
 				// Should enrich the actor and create a new record
-				userSvc.EXPECT().GetByID(mock.Anything, mock.Anything).Return(user.User{
+				mockSession := &session.Session{
+					ID:     uuid.New(),
+					UserID: "user-123",
+				}
+				sessionSvc.EXPECT().Get(mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(mockSession, nil)
+
+				userSvc.EXPECT().GetByID(mock.Anything, "user-123").Return(user.User{
 					ID: "user-123", Title: "Test User",
 				}, nil)
-				userSvc.EXPECT().IsSudo(mock.Anything, mock.Anything, schema.PlatformSudoPermission).Return(false, nil)
+				userSvc.EXPECT().IsSudo(mock.Anything, "user-123", schema.PlatformSudoPermission).Return(false, nil)
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 					return ar.Actor.Name == "Test User" // Check enrichment happened
 				})).Return(auditrecord.AuditRecord{ID: "new-id"}, nil)
@@ -76,13 +83,19 @@ func TestService_Create_Idempotency(t *testing.T) {
 		},
 		{
 			name: "idempotency key - record doesn't exist - creates new",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				repo.EXPECT().GetByIdempotencyKey(mock.Anything, "unique-key").Return(auditrecord.AuditRecord{}, auditrecord.ErrNotFound)
 
-				userSvc.EXPECT().GetByID(mock.Anything, mock.Anything).Return(user.User{
+				mockSession := &session.Session{
+					ID:     uuid.New(),
+					UserID: "user-123",
+				}
+				sessionSvc.EXPECT().Get(mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(mockSession, nil)
+
+				userSvc.EXPECT().GetByID(mock.Anything, "user-123").Return(user.User{
 					ID: "user-123", Title: "Test User",
 				}, nil)
-				userSvc.EXPECT().IsSudo(mock.Anything, mock.Anything, schema.PlatformSudoPermission).Return(false, nil)
+				userSvc.EXPECT().IsSudo(mock.Anything, "user-123", schema.PlatformSudoPermission).Return(false, nil)
 				repo.EXPECT().Create(mock.Anything, mock.Anything).Return(auditrecord.AuditRecord{ID: "new-id"}, nil)
 			},
 			auditRecord: func() auditrecord.AuditRecord {
@@ -96,7 +109,7 @@ func TestService_Create_Idempotency(t *testing.T) {
 		},
 		{
 			name: "idempotency key - same record exists - returns existing (idempotent)",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				// Existing record with the same content hash
 				// The hash is computed from: Event, Actor.ID, Resource.ID, OrgID, Target.ID
 				existingRecord := auditrecord.AuditRecord{
@@ -139,7 +152,7 @@ func TestService_Create_Idempotency(t *testing.T) {
 		},
 		{
 			name: "idempotency key - different record exists - conflict error",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				existingRecord := createBaseAuditRecord()
 				existingRecord.Event = "user.deleted"
 				existingRecord.IdempotencyKey = "conflict-key"
@@ -159,7 +172,7 @@ func TestService_Create_Idempotency(t *testing.T) {
 		},
 		{
 			name: "idempotency key - repository error on lookup",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				// Repository fails with unexpected error (not ErrNotFound)
 				repo.EXPECT().GetByIdempotencyKey(mock.Anything, "error-key").Return(auditrecord.AuditRecord{}, errors.New("database error"))
 				// No Create call expected since we return error early
@@ -175,7 +188,7 @@ func TestService_Create_Idempotency(t *testing.T) {
 		},
 		{
 			name: "hash computation - case insensitive and whitespace trimmed",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				// Existing record with uppercase and spaces
 				existingRecord := auditrecord.AuditRecord{
 					ID:    "existing-123",
@@ -217,7 +230,7 @@ func TestService_Create_Idempotency(t *testing.T) {
 		},
 		{
 			name: "hash computation - fields not in hash don't affect idempotency",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				// Existing record with different non-hash fields
 				existingRecord := auditrecord.AuditRecord{
 					ID:    "existing-456",
@@ -275,7 +288,7 @@ func TestService_Create_Idempotency(t *testing.T) {
 		},
 		{
 			name: "hash computation - with target affects hash",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				// Existing record WITHOUT target
 				existingRecord := auditrecord.AuditRecord{
 					ID:    "existing-789",
@@ -322,11 +335,11 @@ func TestService_Create_Idempotency(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, userSvc, serviceuserSvc := createMockServices(t)
+			repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
 
-			tt.setupMocks(repo, userSvc, serviceuserSvc)
+			tt.setupMocks(repo, userSvc, serviceuserSvc, sessionSvc)
 
-			service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 
 			result, isIdempotent, err := service.Create(context.Background(), tt.auditRecord)
 
@@ -347,14 +360,14 @@ func TestService_Create_Idempotency(t *testing.T) {
 func TestService_Create_ActorEnrichment(t *testing.T) {
 	tests := []struct {
 		name          string
-		setupMocks    func(*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService)
+		setupMocks    func(*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService, *mocks.SessionService)
 		inputRecord   auditrecord.AuditRecord
 		expectedActor auditrecord.Actor
 		expectError   error
 	}{
 		{
 			name: "system actor - nil UUID gets enriched",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				// System actors don't need external service calls
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 					return ar.Actor.Type == "system" && ar.Actor.Name == "system"
@@ -379,7 +392,16 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 		},
 		{
 			name: "user actor - gets enriched with user details",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
+				// Mock session.Get call since the service looks up session by actor ID
+				mockSession := &session.Session{
+					ID:     uuid.New(),
+					UserID: "user-456",
+				}
+				// Generate a valid UUID for the user
+				userUUID := uuid.MustParse("12345678-1234-5678-9012-123456789abc")
+				sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
+
 				userSvc.EXPECT().GetByID(mock.Anything, "user-456").Return(user.User{
 					ID: "user-456", Title: "John Doe",
 				}, nil)
@@ -392,7 +414,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 			inputRecord: auditrecord.AuditRecord{
 				Event: "user.login",
 				Actor: auditrecord.Actor{
-					ID:   "user-456",
+					ID:   "12345678-1234-5678-9012-123456789abc", // Use the same UUID
 					Type: schema.UserPrincipal,
 				},
 				Resource:   auditrecord.Resource{ID: "res-123", Type: "session"},
@@ -408,7 +430,15 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 		},
 		{
 			name: "super user - gets enriched with sudo metadata",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
+				// Mock session.Get since this is a user principal
+				mockSession := &session.Session{
+					ID:     uuid.New(),
+					UserID: "admin-789",
+				}
+				adminUUID := uuid.MustParse("87654321-4321-8765-4321-876543210987")
+				sessionSvc.EXPECT().Get(mock.Anything, adminUUID).Return(mockSession, nil)
+
 				userSvc.EXPECT().GetByID(mock.Anything, "admin-789").Return(user.User{
 					ID: "admin-789", Title: "Super Admin",
 				}, nil)
@@ -423,7 +453,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 			inputRecord: auditrecord.AuditRecord{
 				Event: "admin.delete_org",
 				Actor: auditrecord.Actor{
-					ID:   "admin-789",
+					ID:   "87654321-4321-8765-4321-876543210987",
 					Type: schema.UserPrincipal,
 				},
 				Resource:   auditrecord.Resource{ID: "org-999", Type: "organization"},
@@ -442,7 +472,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 		},
 		{
 			name: "service user - gets enriched with service user details",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				serviceuserSvc.EXPECT().Get(mock.Anything, "service-999").Return(serviceuser.ServiceUser{
 					ID: "service-999", Title: "API Service",
 				}, nil)
@@ -470,14 +500,22 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 		},
 		{
 			name: "user service error - should return error",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
+				// Mock session.Get even though user service will fail
+				mockSession := &session.Session{
+					ID:     uuid.New(),
+					UserID: "missing-user",
+				}
+				userUUID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+				sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
+
 				userSvc.EXPECT().GetByID(mock.Anything, "missing-user").Return(user.User{}, errors.New("user not found"))
 				// No repo.Create call expected due to error
 			},
 			inputRecord: auditrecord.AuditRecord{
 				Event: "user.action",
 				Actor: auditrecord.Actor{
-					ID:   "missing-user",
+					ID:   "00000000-0000-0000-0000-000000000001",
 					Type: schema.UserPrincipal,
 				},
 				Resource:   auditrecord.Resource{ID: "res-123", Type: "project"},
@@ -488,7 +526,14 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 		},
 		{
 			name: "sudo check error - should return error",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
+				mockSession := &session.Session{
+					ID:     uuid.New(),
+					UserID: "user-123",
+				}
+				userUUID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+				sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
+
 				userSvc.EXPECT().GetByID(mock.Anything, "user-123").Return(user.User{
 					ID: "user-123", Title: "Test User",
 				}, nil)
@@ -498,7 +543,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 			inputRecord: auditrecord.AuditRecord{
 				Event: "user.action",
 				Actor: auditrecord.Actor{
-					ID:   "user-123",
+					ID:   "00000000-0000-0000-0000-000000000002",
 					Type: schema.UserPrincipal,
 				},
 				Resource:   auditrecord.Resource{ID: "res-123", Type: "project"},
@@ -509,7 +554,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 		},
 		{
 			name: "service user error - should return error",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				serviceuserSvc.EXPECT().Get(mock.Anything, "missing-service").Return(serviceuser.ServiceUser{}, errors.New("service user not found"))
 				// No repo.Create call expected due to error
 			},
@@ -525,14 +570,54 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 			},
 			expectError: errors.New("service user not found"),
 		},
+		{
+			name: "session not found - returns actor not found error",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
+				// Mock session.Get to return ErrNoSession
+				actorUUID := uuid.MustParse("00000000-0000-0000-0000-000000000005")
+				sessionSvc.EXPECT().Get(mock.Anything, actorUUID).Return(nil, session.ErrNoSession)
+				// No user service calls expected since session lookup fails
+			},
+			inputRecord: auditrecord.AuditRecord{
+				Event: "user.action",
+				Actor: auditrecord.Actor{
+					ID:   "00000000-0000-0000-0000-000000000005",
+					Type: schema.UserPrincipal,
+				},
+				Resource:   auditrecord.Resource{ID: "res-123", Type: "session"},
+				OccurredAt: time.Now(),
+				OrgID:      "org-123",
+			},
+			expectError: auditrecord.ErrActorNotFound,
+		},
+		{
+			name: "session service database error - returns error",
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
+				// Mock session.Get to return database error
+				actorUUID := uuid.MustParse("00000000-0000-0000-0000-000000000006")
+				sessionSvc.EXPECT().Get(mock.Anything, actorUUID).Return(nil, errors.New("database connection failed"))
+				// No user service calls expected since session lookup fails
+			},
+			inputRecord: auditrecord.AuditRecord{
+				Event: "user.action",
+				Actor: auditrecord.Actor{
+					ID:   "00000000-0000-0000-0000-000000000006",
+					Type: schema.UserPrincipal,
+				},
+				Resource:   auditrecord.Resource{ID: "res-123", Type: "session"},
+				OccurredAt: time.Now(),
+				OrgID:      "org-123",
+			},
+			expectError: errors.New("database connection failed"),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, userSvc, serviceuserSvc := createMockServices(t)
-			tt.setupMocks(repo, userSvc, serviceuserSvc)
+			repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
+			tt.setupMocks(repo, userSvc, serviceuserSvc, sessionSvc)
 
-			service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 			result, isIdempotent, err := service.Create(context.Background(), tt.inputRecord)
 
 			if tt.expectError != nil {
@@ -549,15 +634,21 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 
 // TEST 3: Testing repository errors
 func TestService_Create_RepositoryErrors(t *testing.T) {
-	repo, userSvc, serviceuserSvc := createMockServices(t)
+	repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
 
-	userSvc.EXPECT().GetByID(mock.Anything, mock.Anything).Return(user.User{
+	mockSession := &session.Session{
+		ID:     uuid.New(),
+		UserID: "user-123",
+	}
+	sessionSvc.EXPECT().Get(mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(mockSession, nil)
+
+	userSvc.EXPECT().GetByID(mock.Anything, "user-123").Return(user.User{
 		ID: "user-123", Title: "Test User",
 	}, nil)
-	userSvc.EXPECT().IsSudo(mock.Anything, mock.Anything, schema.PlatformSudoPermission).Return(false, nil)
+	userSvc.EXPECT().IsSudo(mock.Anything, "user-123", schema.PlatformSudoPermission).Return(false, nil)
 	repo.EXPECT().Create(mock.Anything, mock.Anything).Return(auditrecord.AuditRecord{}, errors.New("database connection failed"))
 
-	service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+	service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 	record := createBaseAuditRecord()
 	record.IdempotencyKey = ""
 
@@ -572,7 +663,15 @@ func TestService_Create_RepositoryErrors(t *testing.T) {
 // TEST 4: Testing edge cases and boundary conditions
 func TestService_Create_EdgeCases(t *testing.T) {
 	t.Run("actor with existing metadata gets sudo metadata added", func(t *testing.T) {
-		repo, userSvc, serviceuserSvc := createMockServices(t)
+		repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
+
+		// Mock session.Get for user principals
+		mockSession := &session.Session{
+			ID:     uuid.New(),
+			UserID: "user-123",
+		}
+		userUUID := uuid.MustParse("00000000-0000-0000-0000-000000000003")
+		sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
 
 		userSvc.EXPECT().GetByID(mock.Anything, "user-123").Return(user.User{
 			ID: "user-123", Title: "Super User",
@@ -586,11 +685,11 @@ func TestService_Create_EdgeCases(t *testing.T) {
 			return hasOriginal && originalValue == "existing_value" && hasSudo && sudoValue == true
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 		record := auditrecord.AuditRecord{
 			Event: "admin.action",
 			Actor: auditrecord.Actor{
-				ID:   "user-123",
+				ID:   "00000000-0000-0000-0000-000000000003",
 				Type: schema.UserPrincipal,
 				Metadata: metadata.Metadata{
 					"existing_key": "existing_value",
@@ -608,7 +707,14 @@ func TestService_Create_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("actor with nil metadata gets sudo metadata map created", func(t *testing.T) {
-		repo, userSvc, serviceuserSvc := createMockServices(t)
+		repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
+
+		mockSession := &session.Session{
+			ID:     uuid.New(),
+			UserID: "user-456",
+		}
+		userUUID := uuid.MustParse("00000000-0000-0000-0000-000000000004")
+		sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
 
 		userSvc.EXPECT().GetByID(mock.Anything, "user-456").Return(user.User{
 			ID: "user-456", Title: "Super User",
@@ -621,11 +727,11 @@ func TestService_Create_EdgeCases(t *testing.T) {
 			return hasSudo && sudoValue == true && ar.Actor.Metadata != nil
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 		record := auditrecord.AuditRecord{
 			Event: "admin.action",
 			Actor: auditrecord.Actor{
-				ID:       "user-456",
+				ID:       "00000000-0000-0000-0000-000000000004",
 				Type:     schema.UserPrincipal,
 				Metadata: nil,
 			},
@@ -644,14 +750,14 @@ func TestService_Create_EdgeCases(t *testing.T) {
 func TestService_List(t *testing.T) {
 	tests := []struct {
 		name           string
-		setupMocks     func(*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService)
+		setupMocks     func(*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService, *mocks.SessionService)
 		query          *rql.Query
 		expectedResult auditrecord.AuditRecordsList
 		expectError    error
 	}{
 		{
 			name: "successful list with nil query",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				expectedList := auditrecord.AuditRecordsList{
 					AuditRecords: []auditrecord.AuditRecord{
 						{
@@ -725,7 +831,7 @@ func TestService_List(t *testing.T) {
 		},
 		{
 			name: "successful list with query",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				query := &rql.Query{
 					Limit:  10,
 					Offset: 0,
@@ -782,7 +888,7 @@ func TestService_List(t *testing.T) {
 		},
 		{
 			name: "empty result set",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				query := &rql.Query{
 					Limit:  10,
 					Offset: 100, // High offset for empty result
@@ -805,7 +911,7 @@ func TestService_List(t *testing.T) {
 		},
 		{
 			name: "repository bad input error - translated to invalid query",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				query := &rql.Query{
 					Limit: -1, // Invalid limit
 				}
@@ -819,7 +925,7 @@ func TestService_List(t *testing.T) {
 		},
 		{
 			name: "repository generic error - passed through",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				repo.EXPECT().List(mock.Anything, (*rql.Query)(nil)).Return(auditrecord.AuditRecordsList{}, errors.New("database connection failed"))
 			},
 			query:          nil,
@@ -828,7 +934,7 @@ func TestService_List(t *testing.T) {
 		},
 		{
 			name: "list with pagination",
-			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService) {
+			setupMocks: func(repo *mocks.Repository, userSvc *mocks.UserService, serviceuserSvc *mocks.ServiceUserService, sessionSvc *mocks.SessionService) {
 				query := &rql.Query{
 					Limit:  5,
 					Offset: 10,
@@ -907,10 +1013,10 @@ func TestService_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo, userSvc, serviceuserSvc := createMockServices(t)
-			tt.setupMocks(repo, userSvc, serviceuserSvc)
+			repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
+			tt.setupMocks(repo, userSvc, serviceuserSvc, sessionSvc)
 
-			service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 			result, err := service.List(context.Background(), tt.query)
 
 			if tt.expectError != nil {
@@ -937,7 +1043,7 @@ func TestService_List(t *testing.T) {
 
 func TestService_List_EdgeCases(t *testing.T) {
 	t.Run("nil query parameter", func(t *testing.T) {
-		repo, userSvc, serviceuserSvc := createMockServices(t)
+		repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
 
 		expectedList := auditrecord.AuditRecordsList{
 			AuditRecords: []auditrecord.AuditRecord{},
@@ -945,7 +1051,7 @@ func TestService_List_EdgeCases(t *testing.T) {
 		}
 		repo.EXPECT().List(mock.Anything, (*rql.Query)(nil)).Return(expectedList, nil)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 		result, err := service.List(context.Background(), nil)
 
 		assert.NoError(t, err)
@@ -954,7 +1060,7 @@ func TestService_List_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("context cancellation", func(t *testing.T) {
-		repo, userSvc, serviceuserSvc := createMockServices(t)
+		repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
 
 		// Create a canceled context
 		ctx, cancel := context.WithCancel(context.Background())
@@ -962,7 +1068,7 @@ func TestService_List_EdgeCases(t *testing.T) {
 
 		repo.EXPECT().List(ctx, (*rql.Query)(nil)).Return(auditrecord.AuditRecordsList{}, context.Canceled)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
 		_, err := service.List(ctx, nil)
 
 		assert.Error(t, err)
