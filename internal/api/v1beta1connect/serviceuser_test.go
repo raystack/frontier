@@ -829,3 +829,83 @@ func TestHandler_DeleteServiceUserJWK(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_CreateServiceUserCredential(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.CreateServiceUserCredentialRequest]
+		want    *connect.Response[frontierv1beta1.CreateServiceUserCredentialResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when create service user secret service returns error",
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("CreateSecret", mock.Anything, serviceuser.Credential{
+					Title:         "title",
+					ServiceUserID: "1",
+				}).Return(serviceuser.Secret{
+					ID:        "1",
+					Value:     "value",
+					CreatedAt: time.Now(),
+				}, errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should return service user secret successfully",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("CreateSecret", mock.Anything, serviceuser.Credential{
+					Title:         "title",
+					ServiceUserID: "1",
+				}).Return(serviceuser.Secret{
+					ID:        "1",
+					Title:     "title",
+					Value:     "value",
+					CreatedAt: time.Time{},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.CreateServiceUserCredentialResponse{
+				Secret: &frontierv1beta1.SecretCredential{
+					Id:        "1",
+					Title:     "title",
+					Secret:    "value",
+					CreatedAt: timestamppb.New(time.Time{}),
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.CreateServiceUserCredential(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

@@ -247,3 +247,22 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserJWKResponse{}), nil
 }
+
+func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserCredentialRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserCredentialResponse], error) {
+	secret, err := h.serviceUserService.CreateSecret(ctx, serviceuser.Credential{
+		ServiceUserID: request.Msg.GetId(),
+		Title:         request.Msg.GetTitle(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.CreateServiceUserCredentialResponse{
+		Secret: &frontierv1beta1.SecretCredential{
+			Id:        secret.ID,
+			Title:     secret.Title,
+			Secret:    secret.Value,
+			CreatedAt: timestamppb.New(secret.CreatedAt),
+		},
+	}), nil
+}
