@@ -126,7 +126,6 @@ func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, e
 
 	// Filter for active sessions only
 	var activeSessions []*Session
-	now := s.Now()
 	for _, session := range sessions {
 		if session.IsValid(s.Now()) {
 			activeSessions = append(activeSessions, session)
