@@ -7,4 +7,5 @@ var (
 	ErrInvalidUUID            = errors.New("invalid syntax of uuid")
 	ErrNotFound               = errors.New("audit record not found")
 	ErrRepositoryBadInput     = errors.New("invalid repository input")
+	ErrActorNotFound          = errors.New("actor not found")
 )

@@ -67,6 +67,10 @@ func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.Delete(ctx, sessionID)
 }
 
+func (s Service) Get(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
+	return s.repo.Get(ctx, sessionID)
+}
+
 func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
