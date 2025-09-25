@@ -758,3 +758,74 @@ func TestHandler_GetServiceUserJWK(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_DeleteServiceUserJWK(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.DeleteServiceUserJWKRequest]
+		want    *connect.Response[frontierv1beta1.DeleteServiceUserJWKResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when delete service user key service returns error",
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserJWKRequest{
+				Id:    "1",
+				KeyId: "1",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteKey", mock.Anything, "1").Return(errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should return not found error when service user credential is not found",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteKey", mock.Anything, "1").Return(serviceuser.ErrCredNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserJWKRequest{
+				Id:    "1",
+				KeyId: "1",
+			}),
+			want:    nil,
+			wantErr: serviceuser.ErrCredNotExist,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should delete service user key successfully",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteKey", mock.Anything, "1").Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserJWKRequest{
+				Id:    "1",
+				KeyId: "1",
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteServiceUserJWKResponse{}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.DeleteServiceUserJWK(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

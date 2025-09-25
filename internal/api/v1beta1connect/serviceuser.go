@@ -233,3 +233,17 @@ func (h *ConnectHandler) GetServiceUserJWK(ctx context.Context, request *connect
 		Keys: jwks.Keys,
 	}), nil
 }
+
+func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserJWKRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserJWKResponse], error) {
+	err := h.serviceUserService.DeleteKey(ctx, request.Msg.GetKeyId())
+	if err != nil {
+		switch {
+		case err == serviceuser.ErrCredNotExist:
+			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrCredNotExist)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserJWKResponse{}), nil
+}
