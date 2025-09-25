@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"connectrpc.com/connect"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -12,6 +13,24 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+type JsonWebKeySet struct {
+	Keys []*frontierv1beta1.JSONWebKey `json:"keys"`
+}
+
+func toJSONWebKey(keySet jwk.Set) (*JsonWebKeySet, error) {
+	jwks := &JsonWebKeySet{
+		Keys: []*frontierv1beta1.JSONWebKey{},
+	}
+	keySetJson, err := json.Marshal(keySet)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(keySetJson, &jwks); err != nil {
+		return nil, err
+	}
+	return jwks, nil
+}
 
 func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListServiceUsersResponse], error) {
 	var users []*frontierv1beta1.ServiceUser
@@ -192,5 +211,25 @@ func (h *ConnectHandler) ListServiceUserJWKs(ctx context.Context, request *conne
 	}
 	return connect.NewResponse(&frontierv1beta1.ListServiceUserJWKsResponse{
 		Keys: keys,
+	}), nil
+}
+
+func (h *ConnectHandler) GetServiceUserJWK(ctx context.Context, request *connect.Request[frontierv1beta1.GetServiceUserJWKRequest]) (*connect.Response[frontierv1beta1.GetServiceUserJWKResponse], error) {
+	svCred, err := h.serviceUserService.GetKey(ctx, request.Msg.GetKeyId())
+	if err != nil {
+		switch {
+		case err == serviceuser.ErrCredNotExist:
+			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrCredNotExist)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	jwks, err := toJSONWebKey(svCred.PublicKey)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.GetServiceUserJWKResponse{
+		Keys: jwks.Keys,
 	}), nil
 }
