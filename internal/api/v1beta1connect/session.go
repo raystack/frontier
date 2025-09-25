@@ -30,7 +30,7 @@ func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Reque
 	}
 
 	// Fetch all active sessions for the authenticated user
-	sessions, err := h.sessionService.ListSessions(ctx, principal.ID)
+	sessions, err := h.sessionService.List(ctx, principal.ID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -94,7 +94,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	session, err := h.sessionService.GetSession(ctx, sessionID)
+	session, err := h.sessionService.GetByID(ctx, sessionID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, err)
 	}
@@ -123,7 +123,7 @@ func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Re
 
 	sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, request, h.authConfig.Session.Headers)
 
-	if err := h.sessionService.PingSession(ctx, session.ID, sessionMetadata); err != nil {
+	if err := h.sessionService.Ping(ctx, session.ID, sessionMetadata); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -148,7 +148,7 @@ func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.R
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid user_id format: must be a valid UUID"))
 	}
 
-	sessions, err := h.sessionService.ListSessions(ctx, userID)
+	sessions, err := h.sessionService.List(ctx, userID)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

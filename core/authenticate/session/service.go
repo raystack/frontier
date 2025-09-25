@@ -117,7 +117,7 @@ func (s Service) Close() error {
 }
 
 // ListSessions returns all active sessions for a user
-func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, error) {
+func (s Service) List(ctx context.Context, userID string) ([]*Session, error) {
 	// Fetch all sessions for the user from repository
 	sessions, err := s.repo.List(ctx, userID)
 	if err != nil {
@@ -135,12 +135,12 @@ func (s Service) ListSessions(ctx context.Context, userID string) ([]*Session, e
 	return activeSessions, nil
 }
 
-func (s Service) PingSession(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
+func (s Service) Ping(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
 
 	return s.repo.UpdateSessionMetadata(ctx, sessionID, metadata,s.Now())
 }
 
 // GetSession retrieves a session by its ID
-func (s Service) GetSession(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
+func (s Service) GetByID(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
 	return s.repo.Get(ctx, sessionID)
 }

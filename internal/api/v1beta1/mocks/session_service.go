@@ -84,7 +84,6 @@ func (_c *SessionService_Create_Call) RunAndReturn(run func(context.Context, str
 	return _c
 }
 
-
 // SessionService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
 type SessionService_Delete_Call struct {
 	*mock.Call
@@ -173,11 +172,11 @@ func (_c *SessionService_ExtractFromContext_Call) RunAndReturn(run func(context.
 }
 
 // ListSessions provides a mock function with given fields: ctx, userID
-func (_m *SessionService) ListSessions(ctx context.Context, userID string) ([]*session.Session, error) {
+func (_m *SessionService) List(ctx context.Context, userID string) ([]*session.Session, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListSessions")
+		panic("no return value specified for List")
 	}
 
 	var r0 []*session.Session
@@ -203,30 +202,30 @@ func (_m *SessionService) ListSessions(ctx context.Context, userID string) ([]*s
 }
 
 // SessionService_ListSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSessions'
-type SessionService_ListSessions_Call struct {
+type SessionService_List_Call struct {
 	*mock.Call
 }
 
 // ListSessions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
-func (_e *SessionService_Expecter) ListSessions(ctx interface{}, userID interface{}) *SessionService_ListSessions_Call {
-	return &SessionService_ListSessions_Call{Call: _e.mock.On("ListSessions", ctx, userID)}
+func (_e *SessionService_Expecter) List(ctx interface{}, userID interface{}) *SessionService_List_Call {
+	return &SessionService_List_Call{Call: _e.mock.On("List", ctx, userID)}
 }
 
-func (_c *SessionService_ListSessions_Call) Run(run func(ctx context.Context, userID string)) *SessionService_ListSessions_Call {
+func (_c *SessionService_List_Call) Run(run func(ctx context.Context, userID string)) *SessionService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *SessionService_ListSessions_Call) Return(_a0 []*session.Session, _a1 error) *SessionService_ListSessions_Call {
+func (_c *SessionService_List_Call) Return(_a0 []*session.Session, _a1 error) *SessionService_List_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *SessionService_ListSessions_Call) RunAndReturn(run func(context.Context, string) ([]*session.Session, error)) *SessionService_ListSessions_Call {
+func (_c *SessionService_List_Call) RunAndReturn(run func(context.Context, string) ([]*session.Session, error)) *SessionService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -297,11 +296,11 @@ func (_m *SessionService) Delete(ctx context.Context, sessionID uuid.UUID) error
 }
 
 // GetSession provides a mock function with given fields: ctx, sessionID
-func (_m *SessionService) GetSession(ctx context.Context, sessionID uuid.UUID) (*session.Session, error) {
+func (_m *SessionService) GetByID(ctx context.Context, sessionID uuid.UUID) (*session.Session, error) {
 	ret := _m.Called(ctx, sessionID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSession")
+		panic("no return value specified for GetByID")
 	}
 
 	var r0 *session.Session
@@ -327,40 +326,40 @@ func (_m *SessionService) GetSession(ctx context.Context, sessionID uuid.UUID) (
 }
 
 // SessionService_GetSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSession'
-type SessionService_GetSession_Call struct {
+type SessionService_GetByID_Call struct {
 	*mock.Call
 }
 
 // GetSession is a helper method to define mock.On call
 //   - ctx context.Context
 //   - sessionID uuid.UUID
-func (_e *SessionService_Expecter) GetSession(ctx interface{}, sessionID interface{}) *SessionService_GetSession_Call {
-	return &SessionService_GetSession_Call{Call: _e.mock.On("GetSession", ctx, sessionID)}
+func (_e *SessionService_Expecter) GetByID(ctx interface{}, sessionID interface{}) *SessionService_GetByID_Call {
+	return &SessionService_GetByID_Call{Call: _e.mock.On("GetByID", ctx, sessionID)}
 }
 
-func (_c *SessionService_GetSession_Call) Run(run func(ctx context.Context, sessionID uuid.UUID)) *SessionService_GetSession_Call {
+func (_c *SessionService_GetByID_Call) Run(run func(ctx context.Context, sessionID uuid.UUID)) *SessionService_GetByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *SessionService_GetSession_Call) Return(_a0 *session.Session, _a1 error) *SessionService_GetSession_Call {
+func (_c *SessionService_GetByID_Call) Return(_a0 *session.Session, _a1 error) *SessionService_GetByID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *SessionService_GetSession_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*session.Session, error)) *SessionService_GetSession_Call {
+func (_c *SessionService_GetByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*session.Session, error)) *SessionService_GetByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // PingSession provides a mock function with given fields: ctx, sessionID, metadata
-func (_m *SessionService) PingSession(ctx context.Context, sessionID uuid.UUID, metadata session.SessionMetadata) error {
+func (_m *SessionService) Ping(ctx context.Context, sessionID uuid.UUID, metadata session.SessionMetadata) error {
 	ret := _m.Called(ctx, sessionID, metadata)
 
 	if len(ret) == 0 {
-		panic("no return value specified for PingSession")
+		panic("no return value specified for Ping")
 	}
 
 	var r0 error
@@ -374,7 +373,7 @@ func (_m *SessionService) PingSession(ctx context.Context, sessionID uuid.UUID, 
 }
 
 // SessionService_PingSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PingSession'
-type SessionService_PingSession_Call struct {
+type SessionService_Ping_Call struct {
 	*mock.Call
 }
 
@@ -382,23 +381,23 @@ type SessionService_PingSession_Call struct {
 //   - ctx context.Context
 //   - sessionID uuid.UUID
 //   - metadata session.SessionMetadata
-func (_e *SessionService_Expecter) PingSession(ctx interface{}, sessionID interface{}, metadata interface{}) *SessionService_PingSession_Call {
-	return &SessionService_PingSession_Call{Call: _e.mock.On("PingSession", ctx, sessionID, metadata)}
+func (_e *SessionService_Expecter) Ping(ctx interface{}, sessionID interface{}, metadata interface{}) *SessionService_Ping_Call {
+	return &SessionService_Ping_Call{Call: _e.mock.On("Ping", ctx, sessionID, metadata)}
 }
 
-func (_c *SessionService_PingSession_Call) Run(run func(ctx context.Context, sessionID uuid.UUID, metadata session.SessionMetadata)) *SessionService_PingSession_Call {
+func (_c *SessionService_Ping_Call) Run(run func(ctx context.Context, sessionID uuid.UUID, metadata session.SessionMetadata)) *SessionService_Ping_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(session.SessionMetadata))
 	})
 	return _c
 }
 
-func (_c *SessionService_PingSession_Call) Return(_a0 error) *SessionService_PingSession_Call {
+func (_c *SessionService_Ping_Call) Return(_a0 error) *SessionService_Ping_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *SessionService_PingSession_Call) RunAndReturn(run func(context.Context, uuid.UUID, session.SessionMetadata) error) *SessionService_PingSession_Call {
+func (_c *SessionService_Ping_Call) RunAndReturn(run func(context.Context, uuid.UUID, session.SessionMetadata) error) *SessionService_Ping_Call {
 	_c.Call.Return(run)
 	return _c
 }

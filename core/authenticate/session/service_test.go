@@ -136,7 +136,7 @@ func TestService_ExtractFromContext(t *testing.T) {
 	})
 }
 
-func TestService_ListSessions(t *testing.T) {
+func TestService_List(t *testing.T) {
 	t.Run("should return active sessions only", func(t *testing.T) {
 		mockRepository := mocks.NewRepository(t)
 		svc := session.NewService(log.NewLogrus(), mockRepository, 24*time.Hour)
@@ -180,7 +180,7 @@ func TestService_ListSessions(t *testing.T) {
 
 		mockRepository.On("List", mock.Anything, userID).Return(mockSessions, nil)
 
-		activeSessions, err := svc.ListSessions(context.Background(), userID)
+		activeSessions, err := svc.List(context.Background(), userID)
 
 		assert.Nil(t, err)
 		assert.Len(t, activeSessions, 2) // Only active sessions
@@ -214,7 +214,7 @@ func TestService_ListSessions(t *testing.T) {
 
 		mockRepository.On("List", mock.Anything, userID).Return(mockSessions, nil)
 
-		activeSessions, err := svc.ListSessions(context.Background(), userID)
+		activeSessions, err := svc.List(context.Background(), userID)
 
 		assert.Nil(t, err)
 		assert.Len(t, activeSessions, 0) // No active sessions
@@ -229,7 +229,7 @@ func TestService_ListSessions(t *testing.T) {
 
 		mockRepository.On("List", mock.Anything, userID).Return(nil, expectedError)
 
-		sessions, err := svc.ListSessions(context.Background(), userID)
+		sessions, err := svc.List(context.Background(), userID)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, expectedError, err)
@@ -244,7 +244,7 @@ func TestService_ListSessions(t *testing.T) {
 
 		mockRepository.On("List", mock.Anything, userID).Return([]*session.Session{}, nil)
 
-		activeSessions, err := svc.ListSessions(context.Background(), userID)
+		activeSessions, err := svc.List(context.Background(), userID)
 
 		assert.Nil(t, err)
 		assert.Len(t, activeSessions, 0)

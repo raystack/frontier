@@ -81,11 +81,11 @@ func (_c *SessionService_ExtractFromContext_Call) RunAndReturn(run func(context.
 }
 
 // ListSessions provides a mock function with given fields: ctx, userID
-func (_m *SessionService) ListSessions(ctx context.Context, userID string) ([]*session.Session, error) {
+func (_m *SessionService) List(ctx context.Context, userID string) ([]*session.Session, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListSessions")
+		panic("no return value specified for List")
 	}
 
 	var r0 []*session.Session
@@ -111,30 +111,30 @@ func (_m *SessionService) ListSessions(ctx context.Context, userID string) ([]*s
 }
 
 // SessionService_ListSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSessions'
-type SessionService_ListSessions_Call struct {
+type SessionService_List_Call struct {
 	*mock.Call
 }
 
 // ListSessions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
-func (_e *SessionService_Expecter) ListSessions(ctx interface{}, userID interface{}) *SessionService_ListSessions_Call {
-	return &SessionService_ListSessions_Call{Call: _e.mock.On("ListSessions", ctx, userID)}
+func (_e *SessionService_Expecter) List(ctx interface{}, userID interface{}) *SessionService_List_Call {
+	return &SessionService_List_Call{Call: _e.mock.On("List", ctx, userID)}
 }
 
-func (_c *SessionService_ListSessions_Call) Run(run func(ctx context.Context, userID string)) *SessionService_ListSessions_Call {
+func (_c *SessionService_List_Call) Run(run func(ctx context.Context, userID string)) *SessionService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *SessionService_ListSessions_Call) Return(_a0 []*session.Session, _a1 error) *SessionService_ListSessions_Call {
+func (_c *SessionService_List_Call) Return(_a0 []*session.Session, _a1 error) *SessionService_List_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *SessionService_ListSessions_Call) RunAndReturn(run func(context.Context, string) ([]*session.Session, error)) *SessionService_ListSessions_Call {
+func (_c *SessionService_List_Call) RunAndReturn(run func(context.Context, string) ([]*session.Session, error)) *SessionService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

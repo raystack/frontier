@@ -26,7 +26,6 @@ func (_m *Repository) EXPECT() *Repository_Expecter {
 	return &Repository_Expecter{mock: &_m.Mock}
 }
 
-
 // DeleteExpiredSessions provides a mock function with given fields: ctx
 func (_m *Repository) DeleteExpiredSessions(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -284,7 +283,6 @@ func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UU
 	_c.Call.Return(run)
 	return _c
 }
-
 
 // UpdateValidity provides a mock function with given fields: ctx, id, validity
 func (_m *Repository) UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error {
