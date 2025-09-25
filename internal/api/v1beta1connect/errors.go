@@ -36,4 +36,5 @@ var (
 	ErrAlreadyMember          = errors.New("user is already a member of the organization")
 	ErrEmptyEmailID           = errors.New("email id is empty")
 	ErrEmailConflict          = errors.New("user email can't be updated")
+	ErrCustomerNotFound       = errors.New("customer doesn't exist")
 )
