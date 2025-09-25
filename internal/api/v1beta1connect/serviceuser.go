@@ -328,3 +328,11 @@ func (h *ConnectHandler) ListServiceUserTokens(ctx context.Context, request *con
 		Tokens: secretsPB,
 	}), nil
 }
+
+func (h *ConnectHandler) DeleteServiceUserToken(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserTokenRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserTokenResponse], error) {
+	err := h.serviceUserService.DeleteToken(ctx, request.Msg.GetTokenId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserTokenResponse{}), nil
+}

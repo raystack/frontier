@@ -1231,3 +1231,59 @@ func TestHandler_ListServiceUserTokens(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_DeleteServiceUserToken(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.DeleteServiceUserTokenRequest]
+		want    *connect.Response[frontierv1beta1.DeleteServiceUserTokenResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when delete service user token service returns error",
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserTokenRequest{
+				TokenId: "token-id",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteToken", mock.Anything, "token-id").Return(errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should delete service user token successfully",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteToken", mock.Anything, "token-id").Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserTokenRequest{
+				TokenId: "token-id",
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteServiceUserTokenResponse{}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.DeleteServiceUserToken(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
