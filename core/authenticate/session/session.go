@@ -3,10 +3,18 @@ package session
 import (
 	"time"
 
-	"github.com/raystack/frontier/pkg/metadata"
-
 	"github.com/google/uuid"
 )
+
+type SessionMetadata struct {
+	IpAddress string
+	Location  struct {
+		Country string
+		City    string
+	}
+	OperatingSystem string
+	Browser         string
+}
 
 // Session is created on successful authentication of users
 type Session struct {
@@ -21,12 +29,14 @@ type Session struct {
 	// ExpiresAt is ideally now() + lifespan of session, e.g. 7 days
 	ExpiresAt time.Time
 	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time // Soft delete timestamp (nil = not deleted)
 
-	Metadata metadata.Metadata
+	Metadata SessionMetadata
 }
 
 func (s Session) IsValid(now time.Time) bool {
-	if s.ExpiresAt.After(now) && !s.AuthenticatedAt.IsZero() {
+	if s.ExpiresAt.After(now) && !s.AuthenticatedAt.IsZero() && s.DeletedAt == nil {
 		return true
 	}
 	return false

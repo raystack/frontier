@@ -49,9 +49,12 @@ type AuthnService interface {
 
 type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
-	Create(ctx context.Context, userID string) (*frontiersession.Session, error)
-	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Create(ctx context.Context, userID string, metadata frontiersession.SessionMetadata) (*frontiersession.Session, error)
+	GetByID(ctx context.Context, sessionID uuid.UUID) (*frontiersession.Session, error)
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
+	List(ctx context.Context, userID string) ([]*frontiersession.Session, error)
+	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Ping(ctx context.Context, sessionID uuid.UUID, metadata frontiersession.SessionMetadata) error
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
@@ -146,7 +149,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.Auth
 	}
 
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(ctx, response.User.ID)
+	session, err := h.sessionService.Create(ctx, response.User.ID, frontiersession.SessionMetadata{})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
