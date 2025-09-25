@@ -554,6 +554,58 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeAlreadyExists, auditrecord.ErrIdempotencyKeyConflict),
 		},
 		{
+			name: "should return not found error when actor not found",
+			setup: func(ars *mocks.AuditRecordService) {
+				expectedRecord := auditrecord.AuditRecord{
+					Event: "user.created",
+					Actor: auditrecord.Actor{
+						ID:       testUUID,
+						Type:     schema.UserPrincipal,
+						Name:     "test-user",
+						Metadata: metadata.Metadata{},
+					},
+					Resource: auditrecord.Resource{
+						ID:       "resource-123",
+						Type:     "project",
+						Name:     "test-project",
+						Metadata: metadata.Metadata{},
+					},
+					OccurredAt:     testTime,
+					OrgID:          testOrgID,
+					Metadata:       metadata.Metadata{},
+					IdempotencyKey: uuid.Nil.String(),
+				}
+
+				ars.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), mock.MatchedBy(func(r auditrecord.AuditRecord) bool {
+					return r.Event == expectedRecord.Event &&
+						reflect.DeepEqual(r.Actor, expectedRecord.Actor) &&
+						reflect.DeepEqual(r.Resource, expectedRecord.Resource) &&
+						reflect.DeepEqual(r.Target, expectedRecord.Target) &&
+						r.OrgID == expectedRecord.OrgID &&
+						r.IdempotencyKey == expectedRecord.IdempotencyKey &&
+						r.OccurredAt.Unix() == expectedRecord.OccurredAt.Unix()
+				})).Return(auditrecord.AuditRecord{}, false, auditrecord.ErrActorNotFound)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateAuditRecordRequest{
+				Event: "user.created",
+				Actor: &frontierv1beta1.AuditRecordActor{
+					Id:   testUUID,
+					Type: schema.UserPrincipal,
+					Name: "test-user",
+				},
+				Resource: &frontierv1beta1.AuditRecordResource{
+					Id:   "resource-123",
+					Type: "project",
+					Name: "test-project",
+				},
+				OccurredAt:     timestamppb.New(testTime),
+				OrgId:          testOrgID,
+				IdempotencyKey: uuid.Nil.String(),
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, auditrecord.ErrActorNotFound),
+		},
+		{
 			name: "should return error for service failure",
 			setup: func(ars *mocks.AuditRecordService) {
 				expectedRecord := auditrecord.AuditRecord{

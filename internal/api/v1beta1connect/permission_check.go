@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -82,4 +83,31 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 		return connect.NewResponse(&frontierv1beta1.CheckFederatedResourcePermissionResponse{Status: false}), nil
 	}
 	return connect.NewResponse(&frontierv1beta1.CheckFederatedResourcePermissionResponse{Status: true}), nil
+}
+
+func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace string, ids, permissions []string) ([]relation.CheckPair, error) {
+	checks := make([]resource.Check, 0, len(ids)*len(permissions))
+	for _, id := range ids {
+		for _, permission := range permissions {
+			permissionName, err := h.getPermissionName(ctx, objectNamespace, permission)
+			if err != nil {
+				return nil, err
+			}
+			checks = append(checks, resource.Check{
+				Object: relation.Object{
+					ID:        id,
+					Namespace: objectNamespace,
+				},
+				Permission: permissionName,
+			})
+		}
+	}
+	checkPairs, err := h.resourceService.BatchCheck(ctx, checks)
+	if err != nil {
+		return nil, err
+	}
+	// remove all the failed checks
+	return utils.Filter(checkPairs, func(pair relation.CheckPair) bool {
+		return pair.Status
+	}), nil
 }
