@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -88,4 +90,34 @@ func transformServiceUserToPB(usr serviceuser.ServiceUser) (*frontierv1beta1.Ser
 		CreatedAt: timestamppb.New(usr.CreatedAt),
 		UpdatedAt: timestamppb.New(usr.UpdatedAt),
 	}, nil
+}
+
+func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserResponse], error) {
+	var metaDataMap metadata.Metadata
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	}
+
+	svUser, err := h.serviceUserService.Create(ctx, serviceuser.ServiceUser{
+		Title:    request.Msg.GetBody().GetTitle(),
+		OrgID:    request.Msg.GetOrgId(),
+		Metadata: metaDataMap,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	svUserPb, err := transformServiceUserToPB(svUser)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, request.Msg.GetOrgId()).
+		LogWithAttrs(audit.ServiceUserCreatedEvent, audit.ServiceUserTarget(svUser.ID), map[string]string{
+			"title": svUser.Title,
+		})
+
+	return connect.NewResponse(&frontierv1beta1.CreateServiceUserResponse{
+		Serviceuser: svUserPb,
+	}), nil
 }

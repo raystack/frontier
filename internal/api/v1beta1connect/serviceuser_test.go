@@ -18,6 +18,8 @@ import (
 )
 
 var (
+	testServiceUserID = "su-9f256f86-31a3-11ec-8d3d-0242ac130003"
+
 	testServiceUserMap = map[string]serviceuser.ServiceUser{
 		"su-9f256f86-31a3-11ec-8d3d-0242ac130003": {
 			ID:    "su-9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -263,6 +265,147 @@ func TestHandler_ListAllServiceUsers(t *testing.T) {
 						assert.Equal(t, expectedSU.GetOrgId(), actualSU.GetOrgId())
 						assert.Equal(t, expectedSU.GetState(), actualSU.GetState())
 					}
+				}
+			}
+
+			serviceUserService.AssertExpectations(t)
+		})
+	}
+}
+
+func TestConnectHandler_CreateServiceUser(t *testing.T) {
+	type args struct {
+		request *connect.Request[frontierv1beta1.CreateServiceUserRequest]
+	}
+	tests := []struct {
+		name               string
+		args               args
+		want               *connect.Response[frontierv1beta1.CreateServiceUserResponse]
+		wantErr            bool
+		serviceUserService func() *mocks.ServiceUserService
+	}{
+		{
+			name: "should create service user successfully",
+			args: args{
+				request: &connect.Request[frontierv1beta1.CreateServiceUserRequest]{
+					Msg: &frontierv1beta1.CreateServiceUserRequest{
+						OrgId: testOrgID,
+						Body: &frontierv1beta1.ServiceUserRequestBody{
+							Title: "test-service-user",
+							Metadata: &structpb.Struct{
+								Fields: map[string]*structpb.Value{
+									"key": structpb.NewStringValue("value"),
+								},
+							},
+						},
+					},
+				},
+			},
+			want: &connect.Response[frontierv1beta1.CreateServiceUserResponse]{
+				Msg: &frontierv1beta1.CreateServiceUserResponse{
+					Serviceuser: &frontierv1beta1.ServiceUser{
+						Id:       testServiceUserID,
+						OrgId:    testOrgID,
+						Title:    "test-service-user",
+						State:    "enabled",
+						Metadata: &structpb.Struct{},
+					},
+				},
+			},
+			wantErr: false,
+			serviceUserService: func() *mocks.ServiceUserService {
+				mockSvc := &mocks.ServiceUserService{}
+				mockSvc.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), mock.MatchedBy(func(su serviceuser.ServiceUser) bool {
+					return su.Title == "test-service-user" && su.OrgID == testOrgID
+				})).Return(serviceuser.ServiceUser{
+					ID:       testServiceUserID,
+					OrgID:    testOrgID,
+					Title:    "test-service-user",
+					State:    "enabled",
+					Metadata: metadata.Metadata{},
+				}, nil)
+				return mockSvc
+			},
+		},
+		{
+			name: "should return error when service user creation fails",
+			args: args{
+				request: &connect.Request[frontierv1beta1.CreateServiceUserRequest]{
+					Msg: &frontierv1beta1.CreateServiceUserRequest{
+						OrgId: testOrgID,
+						Body: &frontierv1beta1.ServiceUserRequestBody{
+							Title: "test-service-user",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			serviceUserService: func() *mocks.ServiceUserService {
+				mockSvc := &mocks.ServiceUserService{}
+				mockSvc.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("serviceuser.ServiceUser")).Return(serviceuser.ServiceUser{}, errors.New("creation failed"))
+				return mockSvc
+			},
+		},
+		{
+			name: "should create service user without metadata",
+			args: args{
+				request: &connect.Request[frontierv1beta1.CreateServiceUserRequest]{
+					Msg: &frontierv1beta1.CreateServiceUserRequest{
+						OrgId: testOrgID,
+						Body: &frontierv1beta1.ServiceUserRequestBody{
+							Title: "simple-service-user",
+						},
+					},
+				},
+			},
+			want: &connect.Response[frontierv1beta1.CreateServiceUserResponse]{
+				Msg: &frontierv1beta1.CreateServiceUserResponse{
+					Serviceuser: &frontierv1beta1.ServiceUser{
+						Id:       testServiceUserID,
+						OrgId:    testOrgID,
+						Title:    "simple-service-user",
+						State:    "enabled",
+						Metadata: &structpb.Struct{},
+					},
+				},
+			},
+			wantErr: false,
+			serviceUserService: func() *mocks.ServiceUserService {
+				mockSvc := &mocks.ServiceUserService{}
+				mockSvc.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), mock.MatchedBy(func(su serviceuser.ServiceUser) bool {
+					return su.Title == "simple-service-user" && su.OrgID == testOrgID
+				})).Return(serviceuser.ServiceUser{
+					ID:       testServiceUserID,
+					OrgID:    testOrgID,
+					Title:    "simple-service-user",
+					State:    "enabled",
+					Metadata: metadata.Metadata{},
+				}, nil)
+				return mockSvc
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			serviceUserService := tt.serviceUserService()
+
+			h := ConnectHandler{
+				serviceUserService: serviceUserService,
+			}
+
+			got, err := h.CreateServiceUser(context.Background(), tt.args.request)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, got)
+				if tt.want != nil {
+					assert.Equal(t, tt.want.Msg.GetServiceuser().GetId(), got.Msg.GetServiceuser().GetId())
+					assert.Equal(t, tt.want.Msg.GetServiceuser().GetTitle(), got.Msg.GetServiceuser().GetTitle())
+					assert.Equal(t, tt.want.Msg.GetServiceuser().GetOrgId(), got.Msg.GetServiceuser().GetOrgId())
+					assert.Equal(t, tt.want.Msg.GetServiceuser().GetState(), got.Msg.GetServiceuser().GetState())
 				}
 			}
 
