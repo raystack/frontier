@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"encoding/json"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -161,5 +162,35 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateServiceUserJWKResponse{
 		Key: svKey,
+	}), nil
+}
+
+func (h *ConnectHandler) ListServiceUserJWKs(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUserJWKsRequest]) (*connect.Response[frontierv1beta1.ListServiceUserJWKsResponse], error) {
+	var keys []*frontierv1beta1.ServiceUserJWK
+	credList, err := h.serviceUserService.ListKeys(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	for _, svCred := range credList {
+		jwkJson, err := json.Marshal(svCred.PublicKey)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		keys = append(keys, &frontierv1beta1.ServiceUserJWK{
+			Id:          svCred.ID,
+			Title:       svCred.Title,
+			PrincipalId: svCred.ServiceUserID,
+			PublicKey:   string(jwkJson),
+			CreatedAt:   timestamppb.New(svCred.CreatedAt),
+		})
+	}
+	return connect.NewResponse(&frontierv1beta1.ListServiceUserJWKsResponse{
+		Keys: keys,
 	}), nil
 }

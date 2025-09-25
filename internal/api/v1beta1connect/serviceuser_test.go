@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -577,6 +578,94 @@ func TestConnectHandler_CreateServiceUserJWK(t *testing.T) {
 				serviceUserService: mockServiceUserSvc,
 			}
 			got, err := h.CreateServiceUserJWK(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestConnectHandler_ListServiceUserJWKs(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.ListServiceUserJWKsRequest]
+		want    *connect.Response[frontierv1beta1.ListServiceUserJWKsResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when list service user keys service returns error",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserJWKsRequest{
+				Id: "1",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().ListKeys(mock.Anything, "1").Return(nil, errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should return not found error when service user is not found",
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().ListKeys(mock.Anything, "1").Return(nil, serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserJWKsRequest{
+				Id: "1",
+			}),
+			want:    nil,
+			wantErr: serviceuser.ErrNotExist,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return service user keys",
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().ListKeys(mock.Anything, "1").Return([]serviceuser.Credential{
+					{
+						ID:            "1",
+						ServiceUserID: "1",
+						Title:         "title",
+						SecretHash:    "hash",
+						PublicKey:     jwk.NewSet(),
+						PrivateKey:    []byte("private"),
+						CreatedAt:     time.Time{},
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserJWKsRequest{
+				Id: "1",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListServiceUserJWKsResponse{
+				Keys: []*frontierv1beta1.ServiceUserJWK{
+					{
+						Id:          "1",
+						Title:       "title",
+						PrincipalId: "1",
+						PublicKey:   "{\"keys\":[]}",
+						CreatedAt:   timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.ListServiceUserJWKs(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
