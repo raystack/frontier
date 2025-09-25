@@ -1137,3 +1137,97 @@ func TestHandler_CreateServiceUserToken(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_ListServiceUserTokens(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.ListServiceUserTokensRequest]
+		want    *connect.Response[frontierv1beta1.ListServiceUserTokensResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when list service user tokens service returns error",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserTokensRequest{
+				Id: "service-user-id",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListToken", mock.Anything, "service-user-id").Return(nil, errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should list service user tokens successfully with empty list",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListToken", mock.Anything, "service-user-id").Return([]serviceuser.Credential{}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserTokensRequest{
+				Id: "service-user-id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListServiceUserTokensResponse{
+				Tokens: []*frontierv1beta1.ServiceUserToken{},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
+			name: "should list service user tokens successfully with multiple tokens",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListToken", mock.Anything, "service-user-id").Return([]serviceuser.Credential{
+					{
+						ID:        "token-1",
+						Title:     "Token 1",
+						CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+					},
+					{
+						ID:        "token-2",
+						Title:     "Token 2",
+						CreatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserTokensRequest{
+				Id: "service-user-id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListServiceUserTokensResponse{
+				Tokens: []*frontierv1beta1.ServiceUserToken{
+					{
+						Id:        "token-1",
+						Title:     "Token 1",
+						CreatedAt: timestamppb.New(time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)),
+					},
+					{
+						Id:        "token-2",
+						Title:     "Token 2",
+						CreatedAt: timestamppb.New(time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC)),
+					},
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.ListServiceUserTokens(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

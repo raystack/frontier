@@ -310,3 +310,21 @@ func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *co
 		},
 	}), nil
 }
+
+func (h *ConnectHandler) ListServiceUserTokens(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUserTokensRequest]) (*connect.Response[frontierv1beta1.ListServiceUserTokensResponse], error) {
+	credentials, err := h.serviceUserService.ListToken(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	secretsPB := make([]*frontierv1beta1.ServiceUserToken, 0, len(credentials))
+	for _, sec := range credentials {
+		secretsPB = append(secretsPB, &frontierv1beta1.ServiceUserToken{
+			Id:        sec.ID,
+			Title:     sec.Title,
+			CreatedAt: timestamppb.New(sec.CreatedAt),
+		})
+	}
+	return connect.NewResponse(&frontierv1beta1.ListServiceUserTokensResponse{
+		Tokens: secretsPB,
+	}), nil
+}
