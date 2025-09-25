@@ -136,7 +136,6 @@ func (s Service) List(ctx context.Context, userID string) ([]*Session, error) {
 }
 
 func (s Service) Ping(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
-
 	return s.repo.UpdateSessionMetadata(ctx, sessionID, metadata,s.Now())
 }
 
