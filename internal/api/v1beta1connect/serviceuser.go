@@ -292,3 +292,21 @@ func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, reques
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}), nil
 }
+
+func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserTokenRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserTokenResponse], error) {
+	secret, err := h.serviceUserService.CreateToken(ctx, serviceuser.Credential{
+		ServiceUserID: request.Msg.GetId(),
+		Title:         request.Msg.GetTitle(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.CreateServiceUserTokenResponse{
+		Token: &frontierv1beta1.ServiceUserToken{
+			Id:        secret.ID,
+			Title:     secret.Title,
+			Token:     secret.Value,
+			CreatedAt: timestamppb.New(secret.CreatedAt),
+		},
+	}), nil
+}
