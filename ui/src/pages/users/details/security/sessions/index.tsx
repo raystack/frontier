@@ -1,22 +1,50 @@
 import { useState, useEffect } from "react";
-import { Flex, Text, Button } from "@raystack/apsara/v1";
+import { Flex, Text, Button, Spinner } from "@raystack/apsara/v1";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
-import { useQuery } from "@connectrpc/connect-query";
+import { useQuery, useMutation } from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { createConnectQueryKey } from "@connectrpc/connect-query";
+import { useTransport } from "@connectrpc/connect-query";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import styles from "./sessions.module.css";
+
+// Extend dayjs with relativeTime plugin
+dayjs.extend(relativeTime);
+
+interface SessionData {
+  id?: string;
+  metadata?: {
+    operatingSystem?: string;
+    browser?: string;
+    ipAddress?: string;
+    location?: string;
+  };
+  updatedAt?: {
+    seconds: bigint;
+  };
+}
 
 export const UserSessions = () => {
   const { user } = useUser();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
   const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<{
     device: string;
     ipAddress: string;
     location: string;
     lastActive: string;
+    sessionId: string;
   } | null>(null);
 
-  const { data: sessionsData } = useQuery(
+  const { 
+    data: sessionsData, 
+    isLoading, 
+    error 
+  } = useQuery(
     AdminServiceQueries.listUserSessions,
     { userId: user?.id || "" },
     {
@@ -24,14 +52,91 @@ export const UserSessions = () => {
     }
   );
 
+  const {
+    mutate: revokeUserSession,
+    isPending: isRevokingSession,
+  } = useMutation(AdminServiceQueries.revokeUserSession, {
+    onSuccess: () => {
+      // Invalidate and refetch the sessions list
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: AdminServiceQueries.listUserSessions,
+          transport,
+          input: { userId: user?.id || "" },
+          cardinality: "finite",
+        }),
+      });
+    },
+  });
+
   useEffect(() => {
     console.log("ListUserSessions response:", sessionsData);
   }, [sessionsData]);
 
-  const handleRevoke = (sessionId: string, sessionInfo: any) => {
-    setSelectedSession(sessionInfo);
+  const handleRevoke = (session: SessionData) => {
+    setSelectedSession({
+      device: getDeviceInfo(session),
+      ipAddress: session.metadata?.ipAddress || "Unknown",
+      location: session.metadata?.location || "Unknown location",
+      lastActive: formatLastActive(session.updatedAt),
+      sessionId: session.id || ""
+    });
     setIsRevokeDialogOpen(true);
   };
+
+  const handleRevokeConfirm = () => {
+    if (selectedSession?.sessionId) {
+      revokeUserSession({ sessionId: selectedSession.sessionId });
+    }
+  };
+
+  const getDeviceInfo = (session: SessionData) => {
+    const os = session.metadata?.operatingSystem || "Unknown OS";
+    const browser = session.metadata?.browser || "Unknown Browser";
+    return `${browser} on ${os}`;
+  };
+
+  const formatLastActive = (updatedAt?: any) => {
+    if (!updatedAt) return "Unknown";
+    
+    const seconds = typeof updatedAt.seconds === 'bigint' ? Number(updatedAt.seconds) : updatedAt.seconds;
+    const date = new Date(seconds * 1000);
+    return dayjs(date).fromNow();
+  };
+
+  if (isLoading) {
+    return (
+      <Flex direction="column" gap={9}>
+        <Flex direction="column" gap={3}>
+          <Text size='large' weight='medium'>Sessions</Text>
+          <Text size='regular' variant="secondary">
+            Devices logged into this account.
+          </Text>
+        </Flex>
+        <Flex justify="center" align="center" style={{ padding: "2rem" }}>
+          <Spinner />
+        </Flex>
+      </Flex>
+    );
+  }
+
+  if (error) {
+    return (
+      <Flex direction="column" gap={9}>
+        <Flex direction="column" gap={3}>
+          <Text size='large' weight='medium'>Sessions</Text>
+          <Text size='regular' variant="secondary">
+            Devices logged into this account.
+          </Text>
+        </Flex>
+        <Flex justify="center" align="center" style={{ padding: "2rem" }}>
+          <Text color="danger">Failed to load sessions</Text>
+        </Flex>
+      </Flex>
+    );
+  }
+
+  const sessions = sessionsData?.sessions || [];
 
   return (
     <Flex direction="column" gap={9}>
@@ -43,49 +148,43 @@ export const UserSessions = () => {
       </Flex>
 
       <Flex direction="column" className={styles.sessionsContainer}>
-        <Flex justify="between" align="center" className={styles.sessionItem}>
-          <Flex direction="column" gap={3}>
-            <Text size="regular">Chrome on Mac OS x</Text>
-            <Flex gap={2} align="center">
-              <Text variant="tertiary" size="small">Bangalore</Text>
-              <Text variant="tertiary" size="small">•</Text>
-              <Text variant="tertiary" size="small">Last active 10 minutes ago</Text>
-            </Flex>
+        {sessions.length === 0 ? (
+          <Flex justify="center" align="center" style={{ padding: "2rem" }}>
+            <Text variant="secondary">No active sessions found</Text>
           </Flex>
-          <Button variant="text" color="neutral" data-test-id="frontier-ui-revoke-session-1" onClick={() => handleRevoke("session1", {
-            device: "Chrome on Mac OS x",
-            ipAddress: "203.0.113.25",
-            location: "Bangalore, India",
-            lastActive: "10 minutes ago"
-          })}>
-            Revoke
-          </Button>
-        </Flex>
-
-        <Flex justify="between" align="center" className={styles.sessionItem}>
-          <Flex direction="column" gap={3}>
-            <Text size="regular">Safari on iPhone</Text>
-            <Flex gap={2} align="center">
-              <Text variant="tertiary" size="small">Mumbai</Text>
-              <Text variant="tertiary" size="small">•</Text>
-              <Text variant="tertiary" size="small">Last active 2 hours ago</Text>
+        ) : (
+          sessions.map((session, index) => (
+            <Flex key={session.id} justify="between" align="center" className={styles.sessionItem}>
+              <Flex direction="column" gap={3}>
+                <Text size="regular">{getDeviceInfo(session)}</Text>
+                <Flex gap={2} align="center">
+                  <Text variant="tertiary" size="small">
+                    {session.metadata?.location || "Unknown location"}
+                  </Text>
+                  <Text variant="tertiary" size="small">•</Text>
+                  <Text variant="tertiary" size="small">
+                    Last active {formatLastActive(session.updatedAt)}
+                  </Text>
+                </Flex>
+              </Flex>
+              <Button 
+                variant="text" 
+                color="neutral" 
+                data-test-id={`frontier-ui-revoke-session-${index + 1}`}
+                onClick={() => handleRevoke(session)}
+              >
+                Revoke
+              </Button>
             </Flex>
-          </Flex>
-          <Button variant="text" color="neutral" data-test-id="frontier-ui-revoke-session-2" onClick={() => handleRevoke("session2", {
-            device: "Safari on iPhone",
-            ipAddress: "198.51.100.42",
-            location: "Mumbai, India",
-            lastActive: "2 hours ago"
-          })}>
-            Revoke
-          </Button>
-        </Flex>
+          ))
+        )}
       </Flex>
 
       <RevokeSessionConfirm
         isOpen={isRevokeDialogOpen}
         onOpenChange={setIsRevokeDialogOpen}
         sessionInfo={selectedSession || undefined}
+        onRevokeConfirm={handleRevokeConfirm}
       />
     </Flex>
   );

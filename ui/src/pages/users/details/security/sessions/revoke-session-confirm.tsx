@@ -6,6 +6,7 @@ import {
   Flex,
   List
 } from '@raystack/apsara';
+import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import styles from './sessions.module.css';
 
 interface RevokeSessionConfirmProps {
@@ -17,27 +18,30 @@ interface RevokeSessionConfirmProps {
     location: string;
     lastActive: string;
   };
+  onRevokeConfirm: () => void;
 }
 
-export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo }: RevokeSessionConfirmProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevokeConfirm }: RevokeSessionConfirmProps) => {
+  const [isFinalConfirmOpen, setIsFinalConfirmOpen] = useState(false);
 
-  const handleRevoke = async () => {
-    setIsLoading(true);
+  const handleRevoke = () => {
+    setIsFinalConfirmOpen(true);
+  };
+
+  const handleFinalConfirm = async () => {
     try {
-      // TODO: Add API call to revoke session
-      toast.success('Session revoked');
+      onRevokeConfirm();
       onOpenChange(false);
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
+      toast.success('Session revoked successfully');
+    } catch (error: any) {
+      toast.error('Failed to revoke session', {
+        description: error.message || 'Something went wrong'
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Content
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
@@ -75,7 +79,6 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo }: Revo
               color="neutral"
               onClick={() => onOpenChange(false)}
               data-test-id="frontier-ui-cancel-revoke-session-dialog"
-              disabled={isLoading}
             >
               Cancel
             </Button>
@@ -84,9 +87,6 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo }: Revo
               color="danger"
               onClick={handleRevoke}
               data-test-id="frontier-ui-confirm-revoke-session-dialog"
-              disabled={isLoading}
-              loading={isLoading}
-              loaderText="Revoking..."
             >
               Revoke
             </Button>
@@ -94,5 +94,12 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo }: Revo
         </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
+
+    <RevokeSessionFinalConfirm
+      isOpen={isFinalConfirmOpen}
+      onOpenChange={setIsFinalConfirmOpen}
+      onConfirm={handleFinalConfirm}
+    />
+    </>
   );
 }; 
