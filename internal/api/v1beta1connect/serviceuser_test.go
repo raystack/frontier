@@ -175,3 +175,98 @@ func TestHandler_ListServiceUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_ListAllServiceUsers(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(sus *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.ListAllServiceUsersRequest]
+		want    *connect.Response[frontierv1beta1.ListAllServiceUsersResponse]
+		wantErr bool
+	}{
+		{
+			name: "should list all service users successfully",
+			setup: func(sus *mocks.ServiceUserService) {
+				sus.On("ListAll", mock.Anything).Return([]serviceuser.ServiceUser{
+					testServiceUserMap["su-9f256f86-31a3-11ec-8d3d-0242ac130003"],
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAllServiceUsersRequest{}),
+			want: connect.NewResponse(&frontierv1beta1.ListAllServiceUsersResponse{
+				ServiceUsers: []*frontierv1beta1.ServiceUser{
+					{
+						Id:    "su-9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "Test Service User",
+						OrgId: "org-9f256f86-31a3-11ec-8d3d-0242ac130003",
+						State: "enabled",
+						Metadata: func() *structpb.Struct {
+							md, _ := metadata.Metadata{
+								"purpose": "testing",
+								"team":    "backend",
+							}.ToStructPB()
+							return md
+						}(),
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: false,
+		},
+		{
+			name: "should return empty list when no service users found",
+			setup: func(sus *mocks.ServiceUserService) {
+				sus.On("ListAll", mock.Anything).Return([]serviceuser.ServiceUser{}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAllServiceUsersRequest{}),
+			want: connect.NewResponse(&frontierv1beta1.ListAllServiceUsersResponse{
+				ServiceUsers: []*frontierv1beta1.ServiceUser{},
+			}),
+			wantErr: false,
+		},
+		{
+			name: "should return internal error when service fails",
+			setup: func(sus *mocks.ServiceUserService) {
+				sus.On("ListAll", mock.Anything).Return(nil, errors.New("service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListAllServiceUsersRequest{}),
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			serviceUserService := &mocks.ServiceUserService{}
+			if tt.setup != nil {
+				tt.setup(serviceUserService)
+			}
+
+			h := ConnectHandler{
+				serviceUserService: serviceUserService,
+			}
+
+			got, err := h.ListAllServiceUsers(context.Background(), tt.request)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, got)
+				if tt.want != nil {
+					assert.Equal(t, len(tt.want.Msg.GetServiceUsers()), len(got.Msg.GetServiceUsers()))
+					for i, expectedSU := range tt.want.Msg.GetServiceUsers() {
+						actualSU := got.Msg.GetServiceUsers()[i]
+						assert.Equal(t, expectedSU.GetId(), actualSU.GetId())
+						assert.Equal(t, expectedSU.GetTitle(), actualSU.GetTitle())
+						assert.Equal(t, expectedSU.GetOrgId(), actualSU.GetOrgId())
+						assert.Equal(t, expectedSU.GetState(), actualSU.GetState())
+					}
+				}
+			}
+
+			serviceUserService.AssertExpectations(t)
+		})
+	}
+}

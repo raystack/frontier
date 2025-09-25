@@ -33,6 +33,26 @@ func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.
 	}), nil
 }
 
+func (h *ConnectHandler) ListAllServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListAllServiceUsersResponse], error) {
+	var serviceUsers []*frontierv1beta1.ServiceUser
+	serviceUsersList, err := h.serviceUserService.ListAll(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, su := range serviceUsersList {
+		serviceUserPB, err := transformServiceUserToPB(su)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		serviceUsers = append(serviceUsers, serviceUserPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListAllServiceUsersResponse{
+		ServiceUsers: serviceUsers,
+	}), nil
+}
+
 func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetServiceUserRequest]) (*connect.Response[frontierv1beta1.GetServiceUserResponse], error) {
 	svUser, err := h.serviceUserService.Get(ctx, request.Msg.GetId())
 	if err != nil {
