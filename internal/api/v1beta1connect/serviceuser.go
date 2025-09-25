@@ -10,6 +10,29 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListServiceUsersResponse], error) {
+	var users []*frontierv1beta1.ServiceUser
+	usersList, err := h.serviceUserService.List(ctx, serviceuser.Filter{
+		OrgID: request.Msg.GetOrgId(),
+		State: serviceuser.State(request.Msg.GetState()),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, user := range usersList {
+		userPB, err := transformServiceUserToPB(user)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		users = append(users, userPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListServiceUsersResponse{
+		Serviceusers: users,
+	}), nil
+}
+
 func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetServiceUserRequest]) (*connect.Response[frontierv1beta1.GetServiceUserResponse], error) {
 	svUser, err := h.serviceUserService.Get(ctx, request.Msg.GetId())
 	if err != nil {
