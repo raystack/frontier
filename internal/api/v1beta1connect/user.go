@@ -665,22 +665,25 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 		orgs = append(orgs, orgPB)
 	}
 
-	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-
 	var joinableOrgs []*frontierv1beta1.Organization
-	for _, joinableOrg := range joinableOrgIDs {
-		org, err := h.orgService.Get(ctx, joinableOrg)
+	// Only regular users can join organizations by domain, service users cannot
+	if principal.Type == schema.UserPrincipal && principal.User != nil {
+		joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
-		orgPB, err := transformOrgToPB(org)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+
+		for _, joinableOrg := range joinableOrgIDs {
+			org, err := h.orgService.Get(ctx, joinableOrg)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			}
+			orgPB, err := transformOrgToPB(org)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			}
+			joinableOrgs = append(joinableOrgs, orgPB)
 		}
-		joinableOrgs = append(joinableOrgs, orgPB)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationsByCurrentUserResponse{

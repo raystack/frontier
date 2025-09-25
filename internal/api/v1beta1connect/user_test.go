@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -1432,6 +1433,41 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 			want: &frontierv1beta1.ListOrganizationsByCurrentUserResponse{
 				Organizations:     []*frontierv1beta1.Organization{},
 				JoinableViaDomain: []*frontierv1beta1.Organization{},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should handle service user without accessing user email",
+			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
+				mockPrincipal := authenticate.Principal{
+					ID:          "serviceuser-1",
+					Type:        schema.ServiceUserPrincipal,
+					ServiceUser: &serviceuser.ServiceUser{ID: "serviceuser-1", OrgID: "org-1"},
+					User:        nil, // Service users don't have a User object
+				}
+				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+
+				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return([]organization.Organization{
+					{
+						ID:       "org-1",
+						Name:     "service-org",
+						Title:    "Service Organization",
+						State:    organization.Enabled,
+						Metadata: metadata.Metadata{},
+					},
+				}, nil)
+				// No domain service call expected since service users can't join by domain
+			},
+			req: &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
+			want: &frontierv1beta1.ListOrganizationsByCurrentUserResponse{
+				Organizations: []*frontierv1beta1.Organization{
+					{
+						Id:    "org-1",
+						Name:  "service-org",
+						Title: "Service Organization",
+					},
+				},
+				JoinableViaDomain: []*frontierv1beta1.Organization{}, // Empty for service users
 			},
 			err: connect.Code(0),
 		},
