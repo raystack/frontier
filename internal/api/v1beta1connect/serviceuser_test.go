@@ -413,3 +413,85 @@ func TestConnectHandler_CreateServiceUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_DeleteServiceUser(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(sus *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.DeleteServiceUserRequest]
+		want    *connect.Response[frontierv1beta1.DeleteServiceUserResponse]
+		wantErr bool
+	}{
+		{
+			name: "should delete service user successfully",
+			setup: func(sus *mocks.ServiceUserService) {
+				sus.On("Delete", mock.Anything, testServiceUserID).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+				Id:    testServiceUserID,
+				OrgId: testOrgID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteServiceUserResponse{}),
+			wantErr: false,
+		},
+		{
+			name: "should return not found error when service user does not exist",
+			setup: func(sus *mocks.ServiceUserService) {
+				sus.On("Delete", mock.Anything, "non-existent-id").Return(serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+				Id:    "non-existent-id",
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "should return internal error when delete service fails",
+			setup: func(sus *mocks.ServiceUserService) {
+				sus.On("Delete", mock.Anything, testServiceUserID).Return(errors.New("service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+				Id:    testServiceUserID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			serviceUserService := &mocks.ServiceUserService{}
+			if tt.setup != nil {
+				tt.setup(serviceUserService)
+			}
+
+			h := ConnectHandler{
+				serviceUserService: serviceUserService,
+			}
+
+			got, err := h.DeleteServiceUser(context.Background(), tt.request)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+				if err != nil {
+					connectErr := err.(*connect.Error)
+					switch {
+					case tt.request.Msg.GetId() == "non-existent-id":
+						assert.Equal(t, connect.CodeNotFound, connectErr.Code())
+					default:
+						assert.Equal(t, connect.CodeInternal, connectErr.Code())
+					}
+				}
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, got)
+				assert.Equal(t, tt.want.Msg, got.Msg)
+			}
+
+			serviceUserService.AssertExpectations(t)
+		})
+	}
+}

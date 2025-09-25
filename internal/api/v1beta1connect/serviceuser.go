@@ -121,3 +121,20 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 		Serviceuser: svUserPb,
 	}), nil
 }
+
+func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserResponse], error) {
+	err := h.serviceUserService.Delete(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	audit.GetAuditor(ctx, request.Msg.GetOrgId()).
+		Log(audit.ServiceUserDeletedEvent, audit.ServiceUserTarget(request.Msg.GetId()))
+
+	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserResponse{}), nil
+}
