@@ -133,6 +133,8 @@ app:
         add_org_ids: true
         # if set to true, the jwt will contain the user email in the claim
         add_user_email: true
+        # if set to true, the jwt will contain session id in the claim
+        add_session_id: true
     # oidc auth server configs
     oidc_config:
       google:

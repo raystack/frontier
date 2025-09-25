@@ -43,6 +43,7 @@ type TokenConfig struct {
 type TokenClaimConfig struct {
 	AddOrgIDsClaim    bool `yaml:"add_org_ids" mapstructure:"add_org_ids" default:"true"`
 	AddUserEmailClaim bool `yaml:"add_user_email" mapstructure:"add_user_email" default:"true"`
+	AddSessionIDClaim bool `yaml:"add_session_id" mapstructure:"add_session_id" default:"true"`
 }
 
 type SessionConfig struct {
