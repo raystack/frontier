@@ -495,3 +495,96 @@ func TestConnectHandler_DeleteServiceUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_CreateServiceUserJWK(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.CreateServiceUserJWKRequest]
+		want    *connect.Response[frontierv1beta1.CreateServiceUserJWKResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when create service user key service returns error",
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().CreateKey(mock.Anything, serviceuser.Credential{
+					Title:         "title",
+					ServiceUserID: "1",
+				}).Return(serviceuser.Credential{}, errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should return service user not found error when service user does not exist",
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().CreateKey(mock.Anything, serviceuser.Credential{
+					Title:         "title",
+					ServiceUserID: "1",
+				}).Return(serviceuser.Credential{}, serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			want:    nil,
+			wantErr: serviceuser.ErrNotExist,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return service user key",
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().CreateKey(mock.Anything, serviceuser.Credential{
+					ServiceUserID: "1",
+					Title:         "title",
+				}).Return(serviceuser.Credential{
+					ID:            "1",
+					ServiceUserID: "1",
+					Title:         "title",
+					SecretHash:    "hash",
+					PrivateKey:    []byte("private"),
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.CreateServiceUserJWKResponse{
+				Key: &frontierv1beta1.KeyCredential{
+					Type:        serviceuser.DefaultKeyType,
+					Kid:         "1",
+					PrincipalId: "1",
+					PrivateKey:  "private",
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.CreateServiceUserJWK(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

@@ -138,3 +138,28 @@ func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect
 
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserResponse{}), nil
 }
+
+func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserJWKRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserJWKResponse], error) {
+	svCred, err := h.serviceUserService.CreateKey(ctx, serviceuser.Credential{
+		ServiceUserID: request.Msg.GetId(),
+		Title:         request.Msg.GetTitle(),
+	})
+	if err != nil {
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	svKey := &frontierv1beta1.KeyCredential{
+		Type:        serviceuser.DefaultKeyType,
+		Kid:         svCred.ID,
+		PrincipalId: svCred.ServiceUserID,
+		PrivateKey:  string(svCred.PrivateKey),
+	}
+	return connect.NewResponse(&frontierv1beta1.CreateServiceUserJWKResponse{
+		Key: svKey,
+	}), nil
+}
