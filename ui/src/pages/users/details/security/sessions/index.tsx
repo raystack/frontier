@@ -11,7 +11,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import styles from "./sessions.module.css";
 
-// Extend dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
 
 interface SessionData {
@@ -69,10 +68,6 @@ export const UserSessions = () => {
     },
   });
 
-  useEffect(() => {
-    console.log("ListUserSessions response:", sessionsData);
-  }, [sessionsData]);
-
   const handleRevoke = (session: SessionData) => {
     setSelectedSession({
       device: getDeviceInfo(session),
@@ -104,15 +99,19 @@ export const UserSessions = () => {
     return dayjs(date).fromNow();
   };
 
+  const renderSessionsHeader = () => (
+    <Flex direction="column" gap={3}>
+      <Text size='large' weight='medium'>Sessions</Text>
+      <Text size='regular' variant="secondary">
+        Devices logged into this account.
+      </Text>
+    </Flex>
+  );
+
   if (isLoading) {
     return (
       <Flex direction="column" gap={9}>
-        <Flex direction="column" gap={3}>
-          <Text size='large' weight='medium'>Sessions</Text>
-          <Text size='regular' variant="secondary">
-            Devices logged into this account.
-          </Text>
-        </Flex>
+        {renderSessionsHeader()}
         <Flex justify="center" align="center" style={{ padding: "2rem" }}>
           <Spinner />
         </Flex>
@@ -123,12 +122,7 @@ export const UserSessions = () => {
   if (error) {
     return (
       <Flex direction="column" gap={9}>
-        <Flex direction="column" gap={3}>
-          <Text size='large' weight='medium'>Sessions</Text>
-          <Text size='regular' variant="secondary">
-            Devices logged into this account.
-          </Text>
-        </Flex>
+        {renderSessionsHeader()}
         <Flex justify="center" align="center" style={{ padding: "2rem" }}>
           <Text color="danger">Failed to load sessions</Text>
         </Flex>
@@ -140,12 +134,7 @@ export const UserSessions = () => {
 
   return (
     <Flex direction="column" gap={9}>
-      <Flex direction="column" gap={3}>
-        <Text size='large' weight='medium'>Sessions</Text>
-        <Text size='regular' variant="secondary">
-            Devices logged into this account.
-        </Text>
-      </Flex>
+      {renderSessionsHeader()}
 
       <Flex direction="column" className={styles.sessionsContainer}>
         {sessions.length === 0 ? (

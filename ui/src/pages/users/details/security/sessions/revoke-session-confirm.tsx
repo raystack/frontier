@@ -47,7 +47,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
         <Dialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Dialog.Title>Safari on Mac OS x</Dialog.Title>
+          <Dialog.Title>{sessionInfo?.device || "Unknown Device"}</Dialog.Title>
           <Dialog.CloseButton data-test-id="frontier-ui-close-revoke-session-dialog" />
         </Dialog.Header>
 
@@ -55,19 +55,19 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
             <List className={styles.listRoot}>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Device</List.Label>
-                <List.Value>{sessionInfo?.device || "Chrome on Mac OS x"}</List.Value>
+                <List.Value>{sessionInfo?.device || "Unknown"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">IP Address</List.Label>
-                <List.Value>{sessionInfo?.ipAddress || "203.0.113.25"}</List.Value>
+                <List.Value>{sessionInfo?.ipAddress || "Unknown"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Last Location</List.Label>
-                <List.Value>{sessionInfo?.location || "Bangalore, India"}</List.Value>
+                <List.Value>{sessionInfo?.location || "Unknown"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Last Active</List.Label>
-                <List.Value>{sessionInfo?.lastActive || "10 minutes ago"}</List.Value>
+                <List.Value>{sessionInfo?.lastActive || "Unknown"}</List.Value>
               </List.Item>
             </List>
         </Dialog.Body>
