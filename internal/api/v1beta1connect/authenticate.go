@@ -199,6 +199,13 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 		customClaims[token.OrgIDsClaimKey] = strings.Join(orgIds, ",")
 	}
 
+	// add session ID as claims for upstream
+	if h.authConfig.Token.Claims.AddSessionIDClaim && principal.Type == schema.UserPrincipal {
+		if sessionID, err := h.getLoggedInSessionID(ctx); err == nil {
+			customClaims[token.SessionIDClaimKey] = sessionID.String()
+		}
+	}
+
 	// find selected project id
 	if len(projectKey) > 0 && projectKey[0] != "" {
 		// check if project exists and user has access to it
