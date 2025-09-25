@@ -909,3 +909,97 @@ func TestHandler_CreateServiceUserCredential(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_ListServiceUserCredentials(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.ListServiceUserCredentialsRequest]
+		want    *connect.Response[frontierv1beta1.ListServiceUserCredentialsResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when list service user credentials service returns error",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+				Id: "service-user-id",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListSecret", mock.Anything, "service-user-id").Return(nil, errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should return empty list when service user has no credentials",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListSecret", mock.Anything, "service-user-id").Return([]serviceuser.Credential{}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+				Id: "service-user-id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListServiceUserCredentialsResponse{
+				Secrets: []*frontierv1beta1.SecretCredential{},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
+			name: "should return service user credentials successfully",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListSecret", mock.Anything, "service-user-id").Return([]serviceuser.Credential{
+					{
+						ID:        "cred-1",
+						Title:     "Test Credential 1",
+						CreatedAt: time.Time{},
+					},
+					{
+						ID:        "cred-2",
+						Title:     "Test Credential 2",
+						CreatedAt: time.Time{},
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+				Id: "service-user-id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListServiceUserCredentialsResponse{
+				Secrets: []*frontierv1beta1.SecretCredential{
+					{
+						Id:        "cred-1",
+						Title:     "Test Credential 1",
+						CreatedAt: timestamppb.New(time.Time{}),
+					},
+					{
+						Id:        "cred-2",
+						Title:     "Test Credential 2",
+						CreatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.ListServiceUserCredentials(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

@@ -266,3 +266,21 @@ func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, reques
 		},
 	}), nil
 }
+
+func (h *ConnectHandler) ListServiceUserCredentials(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUserCredentialsRequest]) (*connect.Response[frontierv1beta1.ListServiceUserCredentialsResponse], error) {
+	credentials, err := h.serviceUserService.ListSecret(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	secretsPB := make([]*frontierv1beta1.SecretCredential, 0, len(credentials))
+	for _, sec := range credentials {
+		secretsPB = append(secretsPB, &frontierv1beta1.SecretCredential{
+			Id:        sec.ID,
+			Title:     sec.Title,
+			CreatedAt: timestamppb.New(sec.CreatedAt),
+		})
+	}
+	return connect.NewResponse(&frontierv1beta1.ListServiceUserCredentialsResponse{
+		Secrets: secretsPB,
+	}), nil
+}
