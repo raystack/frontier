@@ -284,3 +284,11 @@ func (h *ConnectHandler) ListServiceUserCredentials(ctx context.Context, request
 		Secrets: secretsPB,
 	}), nil
 }
+
+func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserCredentialRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserCredentialResponse], error) {
+	err := h.serviceUserService.DeleteSecret(ctx, request.Msg.GetSecretId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}), nil
+}

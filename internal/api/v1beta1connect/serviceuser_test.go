@@ -1003,3 +1003,61 @@ func TestHandler_ListServiceUserCredentials(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_DeleteServiceUserCredential(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(su *mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.DeleteServiceUserCredentialRequest]
+		want    *connect.Response[frontierv1beta1.DeleteServiceUserCredentialResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when delete service user credential service returns error",
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserCredentialRequest{
+				Id:       "service-user-id",
+				SecretId: "credential-id",
+			}),
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteSecret", mock.Anything, "credential-id").Return(errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should delete service user credential successfully",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteSecret", mock.Anything, "credential-id").Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserCredentialRequest{
+				Id:       "service-user-id",
+				SecretId: "credential-id",
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceUserSvc := new(mocks.ServiceUserService)
+			if tt.setup != nil {
+				tt.setup(mockServiceUserSvc)
+			}
+			h := &ConnectHandler{
+				serviceUserService: mockServiceUserSvc,
+			}
+			got, err := h.DeleteServiceUserCredential(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
