@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Flex, Text, Button, Spinner } from "@raystack/apsara/v1";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
@@ -32,7 +32,8 @@ export const UserSessions = () => {
   const transport = useTransport();
   const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<{
-    device: string;
+    browser: string;
+    operatingSystem: string;
     ipAddress: string;
     location: string;
     lastActive: string;
@@ -53,7 +54,6 @@ export const UserSessions = () => {
 
   const {
     mutate: revokeUserSession,
-    isPending: isRevokingSession,
   } = useMutation(AdminServiceQueries.revokeUserSession, {
     onSuccess: () => {
       // Invalidate and refetch the sessions list
@@ -70,7 +70,8 @@ export const UserSessions = () => {
 
   const handleRevoke = (session: SessionData) => {
     setSelectedSession({
-      device: getDeviceInfo(session),
+      browser: session.metadata?.browser || "Unknown Browser",
+      operatingSystem: session.metadata?.operatingSystem || "Unknown OS",
       ipAddress: session.metadata?.ipAddress || "Unknown",
       location: session.metadata?.location || "Unknown location",
       lastActive: formatLastActive(session.updatedAt),
@@ -85,11 +86,6 @@ export const UserSessions = () => {
     }
   };
 
-  const getDeviceInfo = (session: SessionData) => {
-    const os = session.metadata?.operatingSystem || "Unknown OS";
-    const browser = session.metadata?.browser || "Unknown Browser";
-    return `${browser} on ${os}`;
-  };
 
   const formatLastActive = (updatedAt?: any) => {
     if (!updatedAt) return "Unknown";
@@ -145,7 +141,7 @@ export const UserSessions = () => {
           sessions.map((session, index) => (
             <Flex key={session.id} justify="between" align="center" className={styles.sessionItem}>
               <Flex direction="column" gap={3}>
-                <Text size="regular">{getDeviceInfo(session)}</Text>
+                <Text size="regular">{`${session.metadata?.browser || "Unknown Browser"} on ${session.metadata?.operatingSystem || "Unknown OS"}`}</Text>
                 <Flex gap={2} align="center">
                   <Text variant="tertiary" size="small">
                     {session.metadata?.location || "Unknown location"}

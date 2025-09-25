@@ -13,7 +13,8 @@ interface RevokeSessionConfirmProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   sessionInfo?: {
-    device: string;
+    browser: string;
+    operatingSystem: string;
     ipAddress: string;
     location: string;
     lastActive: string;
@@ -47,7 +48,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
         <Dialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Dialog.Title>{sessionInfo?.device || "Unknown Device"}</Dialog.Title>
+          <Dialog.Title>{sessionInfo ? `${sessionInfo.browser} on ${sessionInfo.operatingSystem}` : "Unknown Device"}</Dialog.Title>
           <Dialog.CloseButton data-test-id="frontier-ui-close-revoke-session-dialog" />
         </Dialog.Header>
 
@@ -55,7 +56,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
             <List className={styles.listRoot}>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Device</List.Label>
-                <List.Value>{sessionInfo?.device || "Unknown"}</List.Value>
+                <List.Value>{sessionInfo ? `${sessionInfo.browser} on ${sessionInfo.operatingSystem}` : "Unknown Device"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">IP Address</List.Label>
