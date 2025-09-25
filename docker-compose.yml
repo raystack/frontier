@@ -116,11 +116,3 @@ services:
         condition: service_healthy
       spicedb-repair:
         condition: service_completed_successfully
-
-  sdk:
-    build:
-      context: ./sdks/js/packages/sdk-demo
-    ports:
-      - "3000:3000"
-    environment:
-      - FRONTIER_ENDPOINT=http://frontier:8080
