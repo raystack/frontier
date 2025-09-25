@@ -18,7 +18,7 @@ import (
 
 // SDK APIs
 // Returns a list of all sessions for the current authenticated user.
-func (h ConnectHandler) ListSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSessionsRequest]) (*connect.Response[frontierv1beta1.ListSessionsResponse], error) {
+func (h *ConnectHandler) ListSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSessionsRequest]) (*connect.Response[frontierv1beta1.ListSessionsResponse], error) {
 	principal, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
@@ -79,7 +79,7 @@ func transformSessionToPB(s *frontiersession.Session, currentSessionID string) (
 }
 
 // Revoke a specific session for the current authenticated user.
-func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeSessionRequest]) (*connect.Response[frontierv1beta1.RevokeSessionResponse], error) {
+func (h *ConnectHandler) RevokeSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeSessionRequest]) (*connect.Response[frontierv1beta1.RevokeSessionResponse], error) {
 	principal, err := h.authnService.GetPrincipal(ctx, authenticate.SessionClientAssertion)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
@@ -111,7 +111,7 @@ func (h ConnectHandler) RevokeSession(ctx context.Context, request *connect.Requ
 }
 
 // Ping user current active session.
-func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.PingUserSessionRequest]) (*connect.Response[frontierv1beta1.PingUserSessionResponse], error) {
+func (h *ConnectHandler) PingUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.PingUserSessionRequest]) (*connect.Response[frontierv1beta1.PingUserSessionResponse], error) {
 	session, err := h.sessionService.ExtractFromContext(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
@@ -132,7 +132,7 @@ func (h ConnectHandler) PingUserSession(ctx context.Context, request *connect.Re
 
 // Admin APIs
 // Returns a list of all sessions for a specific user.
-func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
+func (h *ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
 	if err := request.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -168,7 +168,7 @@ func (h ConnectHandler) ListUserSessions(ctx context.Context, request *connect.R
 }
 
 // Revoke a specific session for a specific user (admin only).
-func (h ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeUserSessionRequest]) (*connect.Response[frontierv1beta1.RevokeUserSessionResponse], error) {
+func (h *ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeUserSessionRequest]) (*connect.Response[frontierv1beta1.RevokeUserSessionResponse], error) {
 	if err := request.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
