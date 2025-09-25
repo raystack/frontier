@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 )
 
 var (
-	testServiceUserID = "su-9f256f86-31a3-11ec-8d3d-0242ac130003"
 	testServiceUserMap = map[string]serviceuser.ServiceUser{
 		"su-9f256f86-31a3-11ec-8d3d-0242ac130003": {
 			ID:    "su-9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -147,7 +147,7 @@ func TestHandler_ListServiceUsers(t *testing.T) {
 				tt.setup(serviceUserService)
 			}
 
-			h := &ConnectHandler{
+			h := ConnectHandler{
 				serviceUserService: serviceUserService,
 			}
 
@@ -160,13 +160,13 @@ func TestHandler_ListServiceUsers(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotNil(t, got)
 				if tt.want != nil {
-					assert.Equal(t, len(tt.want.Msg.Serviceusers), len(got.Msg.Serviceusers))
-					for i, expectedSU := range tt.want.Msg.Serviceusers {
-						actualSU := got.Msg.Serviceusers[i]
-						assert.Equal(t, expectedSU.Id, actualSU.Id)
-						assert.Equal(t, expectedSU.Title, actualSU.Title)
-						assert.Equal(t, expectedSU.OrgId, actualSU.OrgId)
-						assert.Equal(t, expectedSU.State, actualSU.State)
+					assert.Equal(t, len(tt.want.Msg.GetServiceusers()), len(got.Msg.GetServiceusers()))
+					for i, expectedSU := range tt.want.Msg.GetServiceusers() {
+						actualSU := got.Msg.GetServiceusers()[i]
+						assert.Equal(t, expectedSU.GetId(), actualSU.GetId())
+						assert.Equal(t, expectedSU.GetTitle(), actualSU.GetTitle())
+						assert.Equal(t, expectedSU.GetOrgId(), actualSU.GetOrgId())
+						assert.Equal(t, expectedSU.GetState(), actualSU.GetState())
 					}
 				}
 			}
