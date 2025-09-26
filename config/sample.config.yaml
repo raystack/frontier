@@ -111,6 +111,9 @@ app:
       validity: "720h"
       # secure flag for cookies
       secure: false
+      client_ip: "x-frontier-ip"
+      client_country: "x-frontier-country"
+      client_city: "x-frontier-city"
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
@@ -130,6 +133,8 @@ app:
         add_org_ids: true
         # if set to true, the jwt will contain the user email in the claim
         add_user_email: true
+        # if set to true, the jwt will contain session id in the claim
+        add_session_id: true
     # oidc auth server configs
     oidc_config:
       google:

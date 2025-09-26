@@ -7,6 +7,8 @@ import (
 
 	auditrecord "github.com/raystack/frontier/core/auditrecord"
 
+	io "io"
+
 	mock "github.com/stretchr/testify/mock"
 
 	rql "github.com/raystack/salt/rql"
@@ -78,6 +80,72 @@ func (_c *Repository_Create_Call) Return(_a0 auditrecord.AuditRecord, _a1 error)
 }
 
 func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, auditrecord.AuditRecord) (auditrecord.AuditRecord, error)) *Repository_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Export provides a mock function with given fields: ctx, query
+func (_m *Repository) Export(ctx context.Context, query *rql.Query) (io.Reader, string, error) {
+	ret := _m.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Export")
+	}
+
+	var r0 io.Reader
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, *rql.Query) (io.Reader, string, error)); ok {
+		return rf(ctx, query)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *rql.Query) io.Reader); ok {
+		r0 = rf(ctx, query)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(io.Reader)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *rql.Query) string); ok {
+		r1 = rf(ctx, query)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, *rql.Query) error); ok {
+		r2 = rf(ctx, query)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// Repository_Export_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Export'
+type Repository_Export_Call struct {
+	*mock.Call
+}
+
+// Export is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query *rql.Query
+func (_e *Repository_Expecter) Export(ctx interface{}, query interface{}) *Repository_Export_Call {
+	return &Repository_Export_Call{Call: _e.mock.On("Export", ctx, query)}
+}
+
+func (_c *Repository_Export_Call) Run(run func(ctx context.Context, query *rql.Query)) *Repository_Export_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*rql.Query))
+	})
+	return _c
+}
+
+func (_c *Repository_Export_Call) Return(_a0 io.Reader, _a1 string, _a2 error) *Repository_Export_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *Repository_Export_Call) RunAndReturn(run func(context.Context, *rql.Query) (io.Reader, string, error)) *Repository_Export_Call {
 	_c.Call.Return(run)
 	return _c
 }

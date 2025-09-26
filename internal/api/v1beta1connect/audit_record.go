@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"slices"
 
 	"connectrpc.com/connect"
@@ -14,17 +15,20 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
 	IdempotencyReplyHeader = "X-Idempotency-Replayed"
+	HttpChunkSize          = 204800 // 200KB
 )
 
 type AuditRecordService interface {
 	Create(ctx context.Context, record auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error)
 	List(ctx context.Context, query *rql.Query) (auditrecord.AuditRecordsList, error)
+	Export(ctx context.Context, query *rql.Query) (io.Reader, string, error)
 }
 
 func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect.Request[frontierv1beta1.CreateAuditRecordRequest]) (*connect.Response[frontierv1beta1.CreateAuditRecordResponse], error) {
@@ -84,6 +88,8 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 		switch {
 		case errors.Is(err, auditrecord.ErrIdempotencyKeyConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, err)
+		case errors.Is(err, auditrecord.ErrActorNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, err)
 		default:
 			return nil, err
 		}
@@ -153,6 +159,30 @@ func (h *ConnectHandler) ListAuditRecords(ctx context.Context, request *connect.
 	return connect.NewResponse(&frontierv1beta1.ListAuditRecordsResponse{AuditRecords: pbRecords, Group: pbGroups, Pagination: pagination}), nil
 }
 
+func (h *ConnectHandler) ExportAuditRecords(ctx context.Context, request *connect.Request[frontierv1beta1.ExportAuditRecordsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	requestQuery, err := utils.TransformExportProtoToRQL(request.Msg.GetQuery(), auditrecord.AuditRecordRQLSchema{})
+	if err != nil {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to transform rql query: %v", err))
+	}
+	err = rql.ValidateQuery(requestQuery, auditrecord.AuditRecordRQLSchema{})
+	if err != nil {
+		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
+	}
+	reader, contentType, err := h.auditRecordService.Export(ctx, requestQuery)
+	if err != nil {
+		switch {
+		case errors.Is(err, auditrecord.ErrInvalidUUID) || errors.Is(err, auditrecord.ErrRepositoryBadInput):
+			return connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, auditrecord.ErrNotFound):
+			return connect.NewError(connect.CodeNotFound, err)
+		default:
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	// Stream the data using io.Reader
+	return streamReaderInChunks(reader, contentType, stream)
+}
+
 func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.CreateAuditRecordResponse, error) {
 	actorMetaData, err := record.Actor.Metadata.ToStructPB()
 	if err != nil {
@@ -213,4 +243,30 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 			Metadata:   metaData,
 		},
 	}, nil
+}
+
+// streamReaderInChunks reads from io.Reader and streams data in HTTP-friendly chunks
+func streamReaderInChunks(reader io.Reader, contentType string, stream *connect.ServerStream[httpbody.HttpBody]) error {
+	buffer := make([]byte, HttpChunkSize)
+
+	for {
+		n, err := reader.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		if n > 0 {
+			msg := &httpbody.HttpBody{
+				ContentType: contentType,
+				Data:        buffer[:n],
+			}
+			if sendErr := stream.Send(msg); sendErr != nil {
+				return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			}
+		}
+	}
+
+	return nil
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server/consts"
+	sessionutils "github.com/raystack/frontier/pkg/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/raystack/frontier/pkg/errors"
@@ -112,8 +113,11 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	// Extract session metadata from request headers
+	sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, request, h.authConfig.Session.Headers)
+
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(ctx, response.User.ID)
+	session, err := h.sessionService.Create(ctx, response.User.ID, sessionMetadata)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -197,6 +201,13 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 			orgIds = append(orgIds, o.ID)
 		}
 		customClaims[token.OrgIDsClaimKey] = strings.Join(orgIds, ",")
+	}
+
+	// add session ID as claims for upstream
+	if h.authConfig.Token.Claims.AddSessionIDClaim && principal.Type == schema.UserPrincipal {
+		if sessionID, err := h.getLoggedInSessionID(ctx); err == nil {
+			customClaims[token.SessionIDClaimKey] = sessionID.String()
+		}
 	}
 
 	// find selected project id

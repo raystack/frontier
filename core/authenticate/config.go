@@ -43,6 +43,7 @@ type TokenConfig struct {
 type TokenClaimConfig struct {
 	AddOrgIDsClaim    bool `yaml:"add_org_ids" mapstructure:"add_org_ids" default:"true"`
 	AddUserEmailClaim bool `yaml:"add_user_email" mapstructure:"add_user_email" default:"true"`
+	AddSessionIDClaim bool `yaml:"add_session_id" mapstructure:"add_session_id" default:"true"`
 }
 
 type SessionConfig struct {
@@ -54,6 +55,14 @@ type SessionConfig struct {
 	// Validity is the duration for which the session is valid
 	Validity time.Duration `mapstructure:"validity" yaml:"validity" default:"720h"`
 	Secure   bool          `mapstructure:"secure" yaml:"secure" default:"false"`
+	// Headers configuration for session metadata collection
+	Headers SessionMetadataHeaders `yaml:"headers" mapstructure:"headers"`
+}
+
+type SessionMetadataHeaders struct {
+	ClientIP      string `yaml:"client_ip" mapstructure:"client_ip" default:"x-frontier-ip"`
+	ClientCountry string `yaml:"client_country" mapstructure:"client_country" default:"x-frontier-country"`
+	ClientCity    string `yaml:"client_city" mapstructure:"client_city" default:"x-frontier-city"`
 }
 
 type OIDCConfig struct {
