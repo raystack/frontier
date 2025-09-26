@@ -39,4 +39,8 @@ var (
 	ErrCustomerNotFound        = errors.New("customer doesn't exist")
 	ErrServiceUserNotFound     = errors.New("service user not found")
 	ErrServiceUserCredNotFound = errors.New("service user credentials not found")
+	ErrConflictingPlanChange   = errors.New("cannot change plan and cancel upcoming changes at the same time")
+	ErrNoChangeRequested       = errors.New("no change requested")
+	ErrPerSeatLimitReached     = errors.New("per seat limit reached")
+	ErrAlreadyOnSamePlan       = errors.New("already on same plan")
 )
