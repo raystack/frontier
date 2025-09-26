@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/pkg/errors"
@@ -1231,6 +1232,116 @@ func TestHandler_DisableOrganization(t *testing.T) {
 			}
 			mockDep := &ConnectHandler{orgService: mockOrgService}
 			resp, err := mockDep.DisableOrganization(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(us *mocks.ServiceUserService, os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.ListOrganizationServiceUsersRequest]
+		want    *connect.Response[frontierv1beta1.ListOrganizationServiceUsersResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(us *mocks.ServiceUserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationServiceUsersRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return org not found error if org doesnt exist",
+			setup: func(us *mocks.ServiceUserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationServiceUsersRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return org disabled error if org is disabled",
+			setup: func(us *mocks.ServiceUserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationServiceUsersRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return internal error if service user service returns error",
+			setup: func(us *mocks.ServiceUserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().List(mock.Anything, serviceuser.Filter{
+					OrgID: testOrgID,
+				}).Return([]serviceuser.ServiceUser{}, errors.New("service user error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationServiceUsersRequest{
+				Id: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(us *mocks.ServiceUserService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().List(mock.Anything, serviceuser.Filter{
+					OrgID: testOrgID,
+				}).Return([]serviceuser.ServiceUser{
+					{
+						ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "Sample Service User",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListOrganizationServiceUsersRequest{
+				Id: testOrgID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationServiceUsersResponse{
+				Serviceusers: []*frontierv1beta1.ServiceUser{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "Sample Service User",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo": structpb.NewStringValue("bar"),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockSvcUserService := new(mocks.ServiceUserService)
+			mockOrgService := new(mocks.OrganizationService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				tt.setup(mockSvcUserService, mockOrgService)
+			}
+			mockDep := &ConnectHandler{serviceUserService: mockSvcUserService, orgService: mockOrgService}
+			resp, err := mockDep.ListOrganizationServiceUsers(ctx, tt.request)
 			assert.Equal(t, tt.want, resp)
 			assert.Equal(t, tt.wantErr, err)
 		})
