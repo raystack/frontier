@@ -88,6 +88,8 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 		switch {
 		case errors.Is(err, auditrecord.ErrIdempotencyKeyConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, err)
+		case errors.Is(err, auditrecord.ErrActorNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, err)
 		default:
 			return nil, err
 		}

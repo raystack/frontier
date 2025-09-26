@@ -80,6 +80,7 @@ type FlowRepository interface {
 
 type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
+	List(ctx context.Context, userID string) ([]*frontiersession.Session, error)
 }
 
 type TokenService interface {

@@ -25,6 +25,8 @@ type Repository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	DeleteExpiredSessions(ctx context.Context) error
 	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
+	List(ctx context.Context, userID string) ([]*Session, error)
+	UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata SessionMetadata, updatedAt time.Time) error
 }
 
 type Service struct {
@@ -47,15 +49,25 @@ func NewService(logger log.Logger, repo Repository, validity time.Duration) *Ser
 	}
 }
 
-func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
+func (s Service) Create(ctx context.Context, userID string, metadata SessionMetadata) (*Session, error) {
+	now := s.Now()
+
 	sess := &Session{
 		ID:              uuid.New(),
 		UserID:          userID,
-		AuthenticatedAt: s.Now(),
-		ExpiresAt:       s.Now().Add(s.validity),
-		CreatedAt:       s.Now(),
+		AuthenticatedAt: now,
+		ExpiresAt:       now.Add(s.validity),
+		CreatedAt:       now,
+		UpdatedAt:       now,
+		DeletedAt:       nil,
+		Metadata:        metadata,
 	}
-	return sess, s.repo.Set(ctx, sess)
+	err := s.repo.Set(ctx, sess)
+	if err != nil {
+		s.log.Warn("failed to create session", "err", err)
+		return nil, err
+	}
+	return sess, nil
 }
 
 // Refresh extends validity of session
@@ -63,8 +75,13 @@ func (s Service) Refresh(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.UpdateValidity(ctx, sessionID, s.validity)
 }
 
+// Delete marks a session as deleted without removing it from the database
 func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.Delete(ctx, sessionID)
+}
+
+func (s Service) Get(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
+	return s.repo.Get(ctx, sessionID)
 }
 
 func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
@@ -101,4 +118,32 @@ func (s Service) InitSessions(ctx context.Context) error {
 
 func (s Service) Close() error {
 	return s.cron.Stop().Err()
+}
+
+// ListSessions returns all active sessions for a user
+func (s Service) List(ctx context.Context, userID string) ([]*Session, error) {
+	// Fetch all sessions for the user from repository
+	sessions, err := s.repo.List(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter for active sessions only
+	var activeSessions []*Session
+	for _, session := range sessions {
+		if session.IsValid(s.Now()) {
+			activeSessions = append(activeSessions, session)
+		}
+	}
+
+	return activeSessions, nil
+}
+
+func (s Service) Ping(ctx context.Context, sessionID uuid.UUID, metadata SessionMetadata) error {
+	return s.repo.UpdateSessionMetadata(ctx, sessionID, metadata, s.Now())
+}
+
+// GetSession retrieves a session by its ID
+func (s Service) GetByID(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
+	return s.repo.Get(ctx, sessionID)
 }

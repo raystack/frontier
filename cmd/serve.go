@@ -563,7 +563,7 @@ func buildAPIDependencies(
 	)
 
 	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
-	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService)
+	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
 	dependencies := api.Deps{
 		OrgService:                       organizationService,

@@ -50,6 +50,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *frontiersession.Se
 			"authenticated_at": session.CreatedAt,
 			"expires_at":       session.ExpiresAt,
 			"created_at":       session.CreatedAt,
+			"updated_at":       session.CreatedAt,
 			"metadata":         marshaledMetadata,
 		}).Returning(&Session{}).ToSQL()
 	if err != nil {
@@ -92,13 +93,13 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 	return session.transformToSession()
 }
 
+// Delete marks a session as deleted by setting deleted_at timestamp
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	query, params, err := dialect.Delete(TABLE_SESSIONS).
-		Where(
-			goqu.Ex{
-				"id": id,
-			},
-		).ToSQL()
+	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
+		goqu.Record{
+			"deleted_at": time.Now().UTC(),
+		},
+	).Where(goqu.Ex{"id": id}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -106,20 +107,14 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Delete", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
-			err = checkPostgresError(err)
-			switch {
-			case errors.Is(err, sql.ErrNoRows):
-				return fmt.Errorf("%w: %s", dbErr, frontiersession.ErrNoSession)
-			default:
-				return fmt.Errorf("%w: %s", dbErr, err)
-			}
+			return fmt.Errorf("%w: %s", dbErr, err)
 		}
 
-		if count, _ := result.RowsAffected(); count > 0 {
-			return nil
+		if count, _ := result.RowsAffected(); count == 0 {
+			return frontiersession.ErrNoSession
 		}
 
-		return frontiersession.ErrDeletingSession
+		return nil
 	})
 }
 
@@ -173,4 +168,65 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 
 		return fmt.Errorf("error updating session validity")
 	})
+}
+
+func (s *SessionRepository) UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata frontiersession.SessionMetadata, updatedAt time.Time) error {
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("error marshaling session metadata: %w", err)
+	}
+
+	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
+		goqu.Record{
+			"metadata":   metadataBytes,
+			"updated_at": updatedAt,
+		},
+	).Where(goqu.Ex{"id": id}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "UpdateSessionMetadata", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+		if count, _ := result.RowsAffected(); count == 0 {
+			return sql.ErrNoRows
+		}
+		return nil
+	})
+}
+
+func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontiersession.Session, error) {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing user id: %w", err)
+	}
+
+	query, params, err := dialect.From(TABLE_SESSIONS).Where(
+		goqu.Ex{
+			"user_id":    uid,
+			"deleted_at": nil,
+		}).Order(goqu.I("created_at").Desc()).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var sessions []*Session
+	if err := s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "List", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &sessions, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var domainSessions []*frontiersession.Session
+	for _, session := range sessions {
+		domainSession, err := session.transformToSession()
+		if err != nil {
+			return nil, fmt.Errorf("error transforming session: %w", err)
+		}
+		domainSessions = append(domainSessions, domainSession)
+	}
+
+	return domainSessions, nil
 }

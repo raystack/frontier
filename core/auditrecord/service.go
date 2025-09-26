@@ -10,13 +10,17 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/salt/rql"
 )
 
-var SuperUserActorMetadataKey = "is_super_user"
+var (
+	SuperUserActorMetadataKey = "is_super_user"
+	ContextMetadataKey        = "context"
+)
 
 type Repository interface {
 	Create(ctx context.Context, auditRecord AuditRecord) (AuditRecord, error)
@@ -30,21 +34,27 @@ type UserService interface {
 	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
 }
 
+type SessionService interface {
+	Get(ctx context.Context, id uuid.UUID) (*frontiersession.Session, error)
+}
+
 type ServiceUserService interface {
 	Get(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 }
 
 type Service struct {
-	repository  Repository
-	userService UserService
-	serviceUser ServiceUserService
+	repository     Repository
+	userService    UserService
+	serviceUser    ServiceUserService
+	sessionService SessionService
 }
 
-func NewService(repository Repository, userService UserService, serviceUserService ServiceUserService) *Service {
+func NewService(repository Repository, userService UserService, serviceUserService ServiceUserService, sessionService SessionService) *Service {
 	return &Service{
-		repository:  repository,
-		userService: userService,
-		serviceUser: serviceUserService,
+		repository:     repository,
+		userService:    userService,
+		serviceUser:    serviceUserService,
+		sessionService: sessionService,
 	}
 }
 
@@ -70,7 +80,6 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 		// If err is ErrNotFound, proceed to create the record
 	}
 
-	// todo(later): check what enrichment is done at service's end and modify this accordingly.
 	// enrich actor info
 	switch {
 	case auditRecord.Actor.ID == uuid.Nil.String():
@@ -78,8 +87,22 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 		auditRecord.Actor.Name = systemActor
 
 	case auditRecord.Actor.Type == schema.UserPrincipal:
-		user, err := s.userService.GetByID(ctx, auditRecord.Actor.ID)
+		actorUUID, err := uuid.Parse(auditRecord.Actor.ID)
 		if err != nil {
+			return AuditRecord{}, false, ErrActorNotFound
+		}
+		session, err := s.sessionService.Get(ctx, actorUUID)
+		if err != nil {
+			if errors.Is(err, frontiersession.ErrNoSession) {
+				return AuditRecord{}, false, ErrActorNotFound
+			}
+			return AuditRecord{}, false, err
+		}
+		user, err := s.userService.GetByID(ctx, session.UserID)
+		if err != nil {
+			if errors.Is(err, userpkg.ErrNoUsersFound) {
+				return AuditRecord{}, false, ErrActorNotFound
+			}
 			return AuditRecord{}, false, err
 		}
 		auditRecord.Actor.Name = user.Title
@@ -92,6 +115,7 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 				auditRecord.Actor.Metadata = make(map[string]any)
 			}
 			auditRecord.Actor.Metadata[SuperUserActorMetadataKey] = true
+			auditRecord.Actor.Metadata[ContextMetadataKey] = session.Metadata
 		}
 
 	case auditRecord.Actor.Type == schema.ServiceUserPrincipal:
