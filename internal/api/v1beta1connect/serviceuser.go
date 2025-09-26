@@ -84,7 +84,7 @@ func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Re
 	if err != nil {
 		switch {
 		case err == serviceuser.ErrNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
@@ -151,7 +151,7 @@ func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect
 	if err != nil {
 		switch {
 		case err == serviceuser.ErrNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -171,7 +171,7 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 	if err != nil {
 		switch {
 		case err == serviceuser.ErrNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -194,7 +194,7 @@ func (h *ConnectHandler) ListServiceUserJWKs(ctx context.Context, request *conne
 	if err != nil {
 		switch {
 		case err == serviceuser.ErrNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrNotExist)
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -223,7 +223,7 @@ func (h *ConnectHandler) GetServiceUserJWK(ctx context.Context, request *connect
 	if err != nil {
 		switch {
 		case err == serviceuser.ErrCredNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrCredNotExist)
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -243,7 +243,7 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 	if err != nil {
 		switch {
 		case err == serviceuser.ErrCredNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, serviceuser.ErrCredNotExist)
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
