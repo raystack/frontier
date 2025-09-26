@@ -359,7 +359,10 @@ const sessionsRoute = createRoute({
 const revokeSessionRoute = createRoute({
   getParentRoute: () => sessionsRoute,
   path: '/revoke',
-  component: RevokeSessionConfirm
+  component: RevokeSessionConfirm,
+  validateSearch: (search: Record<string, unknown>) => ({
+    sessionId: search.sessionId as string | undefined,
+  }),
 });
 
 interface getRootTreeOptions {

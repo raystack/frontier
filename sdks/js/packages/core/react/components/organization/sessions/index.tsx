@@ -1,2 +1,3 @@
-export { SessionsPage } from './SessionsPage';
-export { RevokeSessionConfirm } from './RevokeSessionConfirm';
+export { SessionsPage } from './sessions-page';
+export { RevokeSessionConfirm } from './revoke-session-confirm';
+export { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
