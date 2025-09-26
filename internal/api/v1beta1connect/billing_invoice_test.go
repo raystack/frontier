@@ -286,3 +286,195 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
+	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	emptyStruct, _ := structpb.NewStruct(map[string]interface{}{})
+
+	tests := []struct {
+		name    string
+		setup   func(is *mocks.InvoiceService)
+		request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]
+		want    *connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when invoice service returns error",
+			setup: func(is *mocks.InvoiceService) {
+				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{}, errors.New("service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
+				BillingId: "customer-id",
+			}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should successfully get upcoming invoice with basic data",
+			setup: func(is *mocks.InvoiceService) {
+				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{
+					ID:         "upcoming-invoice-1",
+					CustomerID: "customer-id",
+					ProviderID: "provider-1",
+					State:      invoice.DraftState,
+					Currency:   "USD",
+					Amount:     1500,
+					HostedURL:  "https://example.com/invoice/upcoming-1",
+					Metadata:   nil,
+					CreatedAt:  fixedTime,
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
+				BillingId: "customer-id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
+				Invoice: &frontierv1beta1.Invoice{
+					Id:         "upcoming-invoice-1",
+					CustomerId: "customer-id",
+					ProviderId: "provider-1",
+					State:      "draft",
+					Currency:   "USD",
+					Amount:     1500,
+					HostedUrl:  "https://example.com/invoice/upcoming-1",
+					Metadata:   emptyStruct,
+					CreatedAt:  timestamppb.New(fixedTime),
+				},
+			}),
+		},
+		{
+			name: "should successfully get upcoming invoice with all timestamp fields",
+			setup: func(is *mocks.InvoiceService) {
+				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{
+					ID:            "upcoming-invoice-2",
+					CustomerID:    "customer-id",
+					ProviderID:    "provider-1",
+					State:         invoice.OpenState,
+					Currency:      "USD",
+					Amount:        2500,
+					HostedURL:     "https://example.com/invoice/upcoming-2",
+					Metadata:      nil,
+					DueAt:         fixedTime.Add(30 * 24 * time.Hour),
+					EffectiveAt:   fixedTime.Add(24 * time.Hour),
+					CreatedAt:     fixedTime,
+					PeriodStartAt: fixedTime,
+					PeriodEndAt:   fixedTime.Add(30 * 24 * time.Hour),
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
+				BillingId: "customer-id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
+				Invoice: &frontierv1beta1.Invoice{
+					Id:            "upcoming-invoice-2",
+					CustomerId:    "customer-id",
+					ProviderId:    "provider-1",
+					State:         "open",
+					Currency:      "USD",
+					Amount:        2500,
+					HostedUrl:     "https://example.com/invoice/upcoming-2",
+					Metadata:      emptyStruct,
+					DueDate:       timestamppb.New(fixedTime.Add(30 * 24 * time.Hour)),
+					EffectiveAt:   timestamppb.New(fixedTime.Add(24 * time.Hour)),
+					CreatedAt:     timestamppb.New(fixedTime),
+					PeriodStartAt: timestamppb.New(fixedTime),
+					PeriodEndAt:   timestamppb.New(fixedTime.Add(30 * 24 * time.Hour)),
+				},
+			}),
+		},
+		{
+			name: "should handle empty billing_id gracefully",
+			setup: func(is *mocks.InvoiceService) {
+				is.On("GetUpcoming", mock.Anything, "").Return(invoice.Invoice{}, errors.New("billing id required"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
+				BillingId: "",
+			}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should successfully get zero amount upcoming invoice",
+			setup: func(is *mocks.InvoiceService) {
+				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{
+					ID:         "upcoming-invoice-3",
+					CustomerID: "customer-id",
+					ProviderID: "provider-1",
+					State:      invoice.State("void"),
+					Currency:   "USD",
+					Amount:     0,
+					HostedURL:  "https://example.com/invoice/upcoming-3",
+					Metadata:   nil,
+					CreatedAt:  fixedTime,
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
+				BillingId: "customer-id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
+				Invoice: &frontierv1beta1.Invoice{
+					Id:         "upcoming-invoice-3",
+					CustomerId: "customer-id",
+					ProviderId: "provider-1",
+					State:      "void",
+					Currency:   "USD",
+					Amount:     0,
+					HostedUrl:  "https://example.com/invoice/upcoming-3",
+					Metadata:   emptyStruct,
+					CreatedAt:  timestamppb.New(fixedTime),
+				},
+			}),
+		},
+		{
+			name: "should return internal error when transformInvoiceToPB fails due to metadata error",
+			setup: func(is *mocks.InvoiceService) {
+				// Create invoice with metadata that will fail ToStructPB conversion
+				invalidMetadata := metadata.Metadata{"invalid": make(chan int)} // channels can't be converted to protobuf
+				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{
+					ID:         "upcoming-invoice-4",
+					CustomerID: "customer-id",
+					ProviderID: "provider-1",
+					State:      invoice.DraftState,
+					Currency:   "USD",
+					Amount:     1000,
+					HostedURL:  "https://example.com/invoice/upcoming-4",
+					Metadata:   invalidMetadata,
+					CreatedAt:  fixedTime,
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
+				BillingId: "customer-id",
+			}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockInvoiceService := &mocks.InvoiceService{}
+			if tt.setup != nil {
+				tt.setup(mockInvoiceService)
+			}
+
+			handler := &ConnectHandler{
+				invoiceService: mockInvoiceService,
+			}
+
+			got, err := handler.GetUpcomingInvoice(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errCode, connect.CodeOf(err))
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+
+			mockInvoiceService.AssertExpectations(t)
+		})
+	}
+}

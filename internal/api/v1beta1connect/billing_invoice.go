@@ -68,6 +68,21 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 	}), nil
 }
 
+func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse], error) {
+	invoice, err := h.invoiceService.GetUpcoming(ctx, request.Msg.GetBillingId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	invoicePB, err := transformInvoiceToPB(invoice)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
+		Invoice: invoicePB,
+	}), nil
+}
+
 func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 	metaData, err := i.Metadata.ToStructPB()
 	if err != nil {
