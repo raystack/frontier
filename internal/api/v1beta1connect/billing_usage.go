@@ -89,6 +89,24 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 	}), nil
 }
 
+func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[frontierv1beta1.TotalDebitedTransactionsResponse], error) {
+	if request.Msg.GetBillingId() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, request.Msg.GetBillingId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.TotalDebitedTransactionsResponse{
+		Debited: &frontierv1beta1.BillingAccount_Balance{
+			Amount:   debitAmount,
+			Currency: "VC",
+		},
+	}), nil
+}
+
 func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTransaction, error) {
 	metaData, err := t.Metadata.ToStructPB()
 	if err != nil {

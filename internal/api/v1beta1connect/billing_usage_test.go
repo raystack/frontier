@@ -592,3 +592,108 @@ func TestConnectHandler_ListBillingTransactions(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_TotalDebitedTransactions(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(cs *mocks.CreditService)
+		request *connect.Request[frontierv1beta1.TotalDebitedTransactionsRequest]
+		want    *connect.Response[frontierv1beta1.TotalDebitedTransactionsResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return invalid argument error when billing_id is empty",
+			request: connect.NewRequest(&frontierv1beta1.TotalDebitedTransactionsRequest{
+				BillingId: "",
+			}),
+			setup:   func(cs *mocks.CreditService) {},
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return internal server error when credit service returns error",
+			request: connect.NewRequest(&frontierv1beta1.TotalDebitedTransactionsRequest{
+				BillingId: "billing-123",
+			}),
+			setup: func(cs *mocks.CreditService) {
+				cs.EXPECT().GetTotalDebitedAmount(mock.Anything, "billing-123").Return(int64(0), errors.New("service error"))
+			},
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should successfully get total debited amount",
+			request: connect.NewRequest(&frontierv1beta1.TotalDebitedTransactionsRequest{
+				BillingId: "billing-123",
+			}),
+			setup: func(cs *mocks.CreditService) {
+				cs.EXPECT().GetTotalDebitedAmount(mock.Anything, "billing-123").Return(int64(500), nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.TotalDebitedTransactionsResponse{
+				Debited: &frontierv1beta1.BillingAccount_Balance{
+					Amount:   500,
+					Currency: "VC",
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
+			name: "should successfully get zero debited amount",
+			request: connect.NewRequest(&frontierv1beta1.TotalDebitedTransactionsRequest{
+				BillingId: "billing-456",
+			}),
+			setup: func(cs *mocks.CreditService) {
+				cs.EXPECT().GetTotalDebitedAmount(mock.Anything, "billing-456").Return(int64(0), nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.TotalDebitedTransactionsResponse{
+				Debited: &frontierv1beta1.BillingAccount_Balance{
+					Amount:   0,
+					Currency: "VC",
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
+			name: "should successfully get large debited amount",
+			request: connect.NewRequest(&frontierv1beta1.TotalDebitedTransactionsRequest{
+				BillingId: "billing-789",
+			}),
+			setup: func(cs *mocks.CreditService) {
+				cs.EXPECT().GetTotalDebitedAmount(mock.Anything, "billing-789").Return(int64(999999), nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.TotalDebitedTransactionsResponse{
+				Debited: &frontierv1beta1.BillingAccount_Balance{
+					Amount:   999999,
+					Currency: "VC",
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCreditSvc := new(mocks.CreditService)
+			if tt.setup != nil {
+				tt.setup(mockCreditSvc)
+			}
+			h := &ConnectHandler{
+				creditService: mockCreditSvc,
+			}
+			got, err := h.TotalDebitedTransactions(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.EqualValues(t, tt.errCode, connect.CodeOf(err))
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
