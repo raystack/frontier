@@ -542,7 +542,7 @@ func TestConnectHandler_CreateServiceUserJWK(t *testing.T) {
 				Title: "title",
 			}),
 			want:    nil,
-			wantErr: serviceuser.ErrNotExist,
+			wantErr: ErrServiceUserCredNotFound,
 			errCode: connect.CodeNotFound,
 		},
 		{
@@ -627,7 +627,7 @@ func TestConnectHandler_ListServiceUserJWKs(t *testing.T) {
 				Id: "1",
 			}),
 			want:    nil,
-			wantErr: serviceuser.ErrNotExist,
+			wantErr: ErrServiceUserCredNotFound,
 			errCode: connect.CodeNotFound,
 		},
 		{
@@ -717,7 +717,7 @@ func TestHandler_GetServiceUserJWK(t *testing.T) {
 				KeyId: "1",
 			}),
 			want:    nil,
-			wantErr: serviceuser.ErrCredNotExist,
+			wantErr: ErrServiceUserCredNotFound,
 			errCode: connect.CodeNotFound,
 		},
 		{
@@ -798,7 +798,7 @@ func TestHandler_DeleteServiceUserJWK(t *testing.T) {
 				KeyId: "1",
 			}),
 			want:    nil,
-			wantErr: serviceuser.ErrCredNotExist,
+			wantErr: ErrServiceUserCredNotFound,
 			errCode: connect.CodeNotFound,
 		},
 		{
