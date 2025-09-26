@@ -208,6 +208,16 @@ func (h *ConnectHandler) GetBillingBalance(ctx context.Context, request *connect
 	}), nil
 }
 
+func (h *ConnectHandler) HasTrialed(ctx context.Context, request *connect.Request[frontierv1beta1.HasTrialedRequest]) (*connect.Response[frontierv1beta1.HasTrialedResponse], error) {
+	hasTrialed, err := h.subscriptionService.HasUserSubscribedBefore(ctx, request.Msg.GetId(), request.Msg.GetPlanId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.HasTrialedResponse{
+		Trialed: hasTrialed,
+	}), nil
+}
+
 func (h *ConnectHandler) ListAllBillingAccounts(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllBillingAccountsRequest]) (*connect.Response[frontierv1beta1.ListAllBillingAccountsResponse], error) {
 	var customers []*frontierv1beta1.BillingAccount
 	customerList, err := h.customerService.List(ctx, customer.Filter{
