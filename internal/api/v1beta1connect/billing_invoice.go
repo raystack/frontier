@@ -46,6 +46,28 @@ func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.R
 	}), nil
 }
 
+func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.ListInvoicesRequest]) (*connect.Response[frontierv1beta1.ListInvoicesResponse], error) {
+	invoices, err := h.invoiceService.List(ctx, invoice.Filter{
+		CustomerID:  request.Msg.GetBillingId(),
+		NonZeroOnly: request.Msg.GetNonzeroAmountOnly(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	var invoicePBs []*frontierv1beta1.Invoice
+	for _, v := range invoices {
+		invoicePB, err := transformInvoiceToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		invoicePBs = append(invoicePBs, invoicePB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
+		Invoices: invoicePBs,
+	}), nil
+}
+
 func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 	metaData, err := i.Metadata.ToStructPB()
 	if err != nil {
