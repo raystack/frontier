@@ -215,13 +215,6 @@ export interface SearchUserProjectsResponseUserProject {
   user_id?: string;
 }
 
-export interface SessionMeta {
-  operating_system?: string;
-  browser?: string;
-  ip_address?: string;
-  location?: string;
-}
-
 export interface SubscriptionPhase {
   /** @format date-time */
   effective_at?: string;
@@ -570,43 +563,6 @@ export interface V1Beta1AuditLogTarget {
   name?: string;
 }
 
-export interface V1Beta1AuditRecord {
-  id?: string;
-  actor?: V1Beta1AuditRecordActor;
-  event?: string;
-  resource?: V1Beta1AuditRecordResource;
-  target?: V1Beta1AuditRecordTarget;
-  /** @format date-time */
-  occurred_at?: string;
-  org_id?: string;
-  request_id?: string;
-  metadata?: object;
-  /** @format date-time */
-  created_at?: string;
-}
-
-export interface V1Beta1AuditRecordActor {
-  id: string;
-  /** not mandatory if id is zeroUUID */
-  type?: string;
-  name?: string;
-  metadata?: object;
-}
-
-export interface V1Beta1AuditRecordResource {
-  id: string;
-  type: string;
-  name?: string;
-  metadata?: object;
-}
-
-export interface V1Beta1AuditRecordTarget {
-  id?: string;
-  type?: string;
-  name?: string;
-  metadata?: object;
-}
-
 export interface V1Beta1AuthCallbackRequest {
   /** strategy_name will not be set for oidc but can be utilized for methods like email magic links */
   strategy_name?: string;
@@ -845,10 +801,6 @@ export interface V1Beta1CheckoutSubscriptionBody {
    * managed by the platform
    */
   provider_coupon_id?: string;
-}
-
-export interface V1Beta1CreateAuditRecordResponse {
-  audit_record?: V1Beta1AuditRecord;
 }
 
 export interface V1Beta1CreateBillingAccountResponse {
@@ -1245,11 +1197,6 @@ export interface V1Beta1GetCheckoutResponse {
   checkout_session?: V1Beta1CheckoutSession;
 }
 
-export interface V1Beta1GetCurrentAdminUserResponse {
-  user?: V1Beta1User;
-  service_user?: V1Beta1ServiceUser;
-}
-
 export interface V1Beta1GetCurrentUserResponse {
   user?: V1Beta1User;
   serviceuser?: V1Beta1ServiceUser;
@@ -1504,12 +1451,6 @@ export interface V1Beta1ListAllUsersResponse {
   /** @format int32 */
   count?: number;
   users?: V1Beta1User[];
-}
-
-export interface V1Beta1ListAuditRecordsResponse {
-  audit_records?: V1Beta1AuditRecord[];
-  pagination?: V1Beta1RQLQueryPaginationResponse;
-  group?: V1Beta1RQLQueryGroupResponse;
 }
 
 export interface V1Beta1ListAuthStrategiesResponse {
@@ -1783,10 +1724,6 @@ export interface V1Beta1ListServiceUsersResponse {
   serviceusers?: V1Beta1ServiceUser[];
 }
 
-export interface V1Beta1ListSessionsResponse {
-  sessions?: V1Beta1Session[];
-}
-
 export interface V1Beta1ListSubscriptionsResponse {
   /** List of subscriptions */
   subscriptions?: V1Beta1Subscription[];
@@ -1802,10 +1739,6 @@ export interface V1Beta1ListUserInvitationsResponse {
 
 export interface V1Beta1ListUserPreferencesResponse {
   preferences?: V1Beta1Preference[];
-}
-
-export interface V1Beta1ListUserSessionsResponse {
-  sessions?: V1Beta1Session[];
 }
 
 export interface V1Beta1ListUsersResponse {
@@ -1975,8 +1908,6 @@ export interface V1Beta1PermissionRequestBody {
    */
   key?: string;
 }
-
-export type V1Beta1PingUserSessionResponse = object;
 
 export interface V1Beta1Plan {
   id?: string;
@@ -2182,12 +2113,6 @@ export interface V1Beta1Prospect {
   metadata?: object;
 }
 
-export interface V1Beta1RQLExportRequest {
-  filters?: V1Beta1RQLFilter[];
-  search?: string;
-  sort?: V1Beta1RQLSort[];
-}
-
 export interface V1Beta1RQLFilter {
   name?: string;
   operator?: string;
@@ -2337,10 +2262,6 @@ export interface V1Beta1RevertBillingUsageRequest {
 }
 
 export type V1Beta1RevertBillingUsageResponse = object;
-
-export type V1Beta1RevokeSessionResponse = object;
-
-export type V1Beta1RevokeUserSessionResponse = object;
 
 export interface V1Beta1Role {
   id?: string;
@@ -2541,16 +2462,6 @@ export interface V1Beta1ServiceUserToken {
    * @example "2023-06-07T05:39:56.961Z"
    */
   created_at?: string;
-}
-
-export interface V1Beta1Session {
-  id?: string;
-  metadata?: SessionMeta;
-  is_current_session?: boolean;
-  /** @format date-time */
-  created_at?: string;
-  /** @format date-time */
-  updated_at?: string;
 }
 
 export interface V1Beta1SetOrganizationKycResponse {

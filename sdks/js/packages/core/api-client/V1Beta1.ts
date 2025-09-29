@@ -130,7 +130,6 @@ import {
   V1Beta1GetBillingAccountResponse,
   V1Beta1GetBillingBalanceResponse,
   V1Beta1GetCheckoutResponse,
-  V1Beta1GetCurrentAdminUserResponse,
   V1Beta1GetCurrentUserResponse,
   V1Beta1GetFeatureResponse,
   V1Beta1GetGroupResponse,
@@ -1388,23 +1387,6 @@ export class V1Beta1<
       ...params,
     });
   /**
-   * @description Returns the current authenticated admin user profile. Returns 403 Forbidden if the user is not an admin.
-   *
-   * @tags User
-   * @name AdminServiceGetCurrentAdminUser
-   * @summary Get current admin user
-   * @request GET:/v1beta1/admin/users/self
-   * @secure
-   */
-  adminServiceGetCurrentAdminUser = (params: RequestParams = {}) =>
-    this.request<V1Beta1GetCurrentAdminUserResponse, GooglerpcStatus>({
-      path: `/v1beta1/admin/users/self`,
-      method: "GET",
-      secure: true,
-      format: "json",
-      ...params,
-    });
-  /**
    * @description List all webhooks.
    *
    * @tags Webhook
@@ -2599,13 +2581,12 @@ export class V1Beta1<
       ...params,
     });
   /**
-   * @description Returns a list of audit logs of an organization in Frontier. DEPRECATED: Use admin ListAuditRecords API instead.
+   * @description Returns a list of audit logs of an organization in Frontier.
    *
    * @tags AuditLog
    * @name FrontierServiceListOrganizationAuditLogs
    * @summary List audit logs
    * @request GET:/v1beta1/organizations/{org_id}/auditlogs
-   * @deprecated
    * @secure
    */
   frontierServiceListOrganizationAuditLogs = (
@@ -2633,13 +2614,12 @@ export class V1Beta1<
       ...params,
     });
   /**
-   * @description Create new audit logs in a batch. DEPRECATED: Use ListAuditRecords API instead with filters.
+   * @description Create new audit logs in a batch.
    *
    * @tags AuditLog
    * @name FrontierServiceCreateOrganizationAuditLogs
    * @summary Create audit log
    * @request POST:/v1beta1/organizations/{org_id}/auditlogs
-   * @deprecated
    * @secure
    */
   frontierServiceCreateOrganizationAuditLogs = (
@@ -2659,13 +2639,12 @@ export class V1Beta1<
       ...params,
     });
   /**
-   * @description Get an audit log by ID. DEPRECATED: Use admin GetAuditRecord API instead.
+   * @description Get an audit log by ID.
    *
    * @tags AuditLog
    * @name FrontierServiceGetOrganizationAuditLog
    * @summary Get audit log
    * @request GET:/v1beta1/organizations/{org_id}/auditlogs/{id}
-   * @deprecated
    * @secure
    */
   frontierServiceGetOrganizationAuditLog = (
