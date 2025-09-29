@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flex, Text, Button, Spinner } from "@raystack/apsara/v1";
+import { Flex, Text, Button, Skeleton } from "@raystack/apsara/v1";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
@@ -56,7 +56,6 @@ export const UserSessions = () => {
     mutate: revokeUserSession,
   } = useMutation(AdminServiceQueries.revokeUserSession, {
     onSuccess: () => {
-      // Invalidate and refetch the sessions list
       queryClient.invalidateQueries({
         queryKey: createConnectQueryKey({
           schema: AdminServiceQueries.listUserSessions,
@@ -70,10 +69,10 @@ export const UserSessions = () => {
 
   const handleRevoke = (session: SessionData) => {
     setSelectedSession({
-      browser: session.metadata?.browser || "Unknown Browser",
-      operatingSystem: session.metadata?.operatingSystem || "Unknown OS",
+      browser: session.metadata?.browser || "Unknown",
+      operatingSystem: session.metadata?.operatingSystem || "Unknown",
       ipAddress: session.metadata?.ipAddress || "Unknown",
-      location: session.metadata?.location || "Unknown location",
+      location: session.metadata?.location || "Unknown",
       lastActive: formatLastActive(session.updatedAt),
       sessionId: session.id || ""
     });
@@ -108,8 +107,12 @@ export const UserSessions = () => {
     return (
       <Flex direction="column" gap={9}>
         {renderSessionsHeader()}
-        <Flex justify="center" align="center" style={{ padding: "2rem" }}>
-          <Spinner />
+        <Flex direction="column" className={styles.sessionsContainer}>
+          <Skeleton 
+            height="60px" 
+            containerStyle={{ padding: '1rem 0' }}
+            count={3}
+          />
         </Flex>
       </Flex>
     );
@@ -141,10 +144,10 @@ export const UserSessions = () => {
           sessions.map((session, index) => (
             <Flex key={session.id} justify="between" align="center" className={styles.sessionItem}>
               <Flex direction="column" gap={3}>
-                <Text size="regular">{`${session.metadata?.browser || "Unknown Browser"} on ${session.metadata?.operatingSystem || "Unknown OS"}`}</Text>
+                <Text size="regular">{`${session.metadata?.browser || "Unknown"} on ${session.metadata?.operatingSystem || "Unknown"}`}</Text>
                 <Flex gap={2} align="center">
                   <Text variant="tertiary" size="small">
-                    {session.metadata?.location || "Unknown location"}
+                    {session.metadata?.location || "Unknown"}
                   </Text>
                   <Text variant="tertiary" size="small">•</Text>
                   <Text variant="tertiary" size="small">
