@@ -1,5 +1,6 @@
 import { useFrontier } from '../contexts/FrontierContext';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 
 export interface SessionData {
@@ -14,8 +15,7 @@ export interface SessionData {
 
 export const useSessions = () => {
   const { client } = useFrontier();
-
-  console.log('Using ListSessions API with FrontierServiceQueries...');
+  const queryClient = useQueryClient();
 
   const { 
     data: sessionsData, 
@@ -29,32 +29,25 @@ export const useSessions = () => {
     }
   );
 
-  console.log('Raw API response:', sessionsData);
-  console.log('Loading state:', isLoading);
-  console.log('Error state:', error);
-
-  // Map the API response to our SessionData interface
   const sessions: SessionData[] = (sessionsData?.sessions || []).map((session: any) => ({
     id: session.id || '',
-    browser: session.metadata?.browser || 'Unknown Browser',
-    operatingSystem: session.metadata?.operatingSystem || 'Unknown OS',
+    browser: session.metadata?.browser || 'Unknown',
+    operatingSystem: session.metadata?.operatingSystem || 'Unknown',
     ipAddress: session.metadata?.ipAddress || 'Unknown',
-    location: session.metadata?.location || 'Unknown location',
-    lastActive: session.updatedAt ? new Date(session.updatedAt.seconds * 1000).toLocaleString() : 'Unknown',
+    location: session.metadata?.location || 'Unknown',
+    lastActive: session.updatedAt?.seconds ? new Date(Number(session.updatedAt.seconds) * 1000).toLocaleString() : 'Unknown',
     isCurrent: session.isCurrent || false,
   }));
 
-  console.log('Mapped sessions data:', sessions);
-
-  // RevokeSession mutation
   const {
     mutate: revokeSession,
     isPending: isRevokingSession,
   } = useMutation(FrontierServiceQueries.revokeSession, {
     onSuccess: () => {
-      console.log('Session revoked successfully');
-      // Refetch sessions after successful revocation
-      // Note: useQuery will automatically refetch when the component re-renders
+      // Invalidate and refetch the sessions list
+      queryClient.invalidateQueries({
+        queryKey: [FrontierServiceQueries.listSessions],
+      });
     },
     onError: (error) => {
       console.error('Failed to revoke session:', error);
@@ -62,7 +55,6 @@ export const useSessions = () => {
   });
 
   const handleRevokeSession = (sessionId: string) => {
-    console.log('Revoking session:', sessionId);
     revokeSession({ sessionId });
   };
 
@@ -70,7 +62,7 @@ export const useSessions = () => {
     sessions,
     isLoading,
     error: error?.message || null,
-    refetch: () => {}, // useQuery handles refetching automatically
+    refetch: () => {},
     revokeSession: handleRevokeSession,
     isRevokingSession,
   };

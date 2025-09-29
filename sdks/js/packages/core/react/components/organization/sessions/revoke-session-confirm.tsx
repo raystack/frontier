@@ -9,7 +9,6 @@ import {
   List,
   Skeleton
 } from '@raystack/apsara/v1';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useSessions, SessionData } from '../../../hooks/useSessions';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import styles from './sessions.module.css';
@@ -115,12 +114,11 @@ export const RevokeSessionConfirm = () => {
       ) : (
         <Dialog open={true} onOpenChange={() => navigate({ to: '/sessions' })}>
           <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%' }}>
-            <Flex direction="column" gap={3} style={{ padding: '2rem' }}>
-              <Skeleton height="20px" />
-              <Skeleton height="60px" />
-              <Skeleton height="60px" />
-              <Skeleton height="60px" />
-            </Flex>
+            <Skeleton 
+              height="20px" 
+              containerStyle={{ padding: '2rem' }}
+              count={4}
+            />
           </Dialog.Content>
         </Dialog>
       )}

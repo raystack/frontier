@@ -15,14 +15,11 @@ export const SessionsPage = () => {
   const navigate = useNavigate({ from: '/sessions' });
   const { sessions, isLoading, error } = useSessions();
 
-  // Console.log the sessions data for debugging
-  console.log('Sessions data:', { sessions, isLoading, error });
 
   const handleRevoke = (sessionId: string) => {
     navigate({ to: '/sessions/revoke', search: { sessionId } });
   };
 
-  // Common header JSX
   const renderSessionsHeader = () => (
     <Flex direction="column" gap={2}>
       <Headline size="t1">Sessions</Headline>
@@ -39,10 +36,12 @@ export const SessionsPage = () => {
           <Flex direction="row" justify="between" align="center" className={styles.header}>
             {renderSessionsHeader()}
           </Flex>
-          <Flex direction="column" gap={3} style={{ padding: '1rem 0' }}>
-            <Skeleton height="60px" />
-            <Skeleton height="60px" />
-            <Skeleton height="60px" />
+          <Flex direction="column" className={styles.sessionsList}>
+            <Skeleton 
+              height="20px" 
+              containerStyle={{ padding: '1rem 0' }}
+              count={3}
+            />
           </Flex>
         </Flex>
       </Flex>
@@ -73,7 +72,7 @@ export const SessionsPage = () => {
           {renderSessionsHeader()}
         </Flex>
         
-        <Flex direction="column">
+        <Flex direction="column" className={styles.sessionsList}>
           {sessions.length === 0 ? (
             <Flex justify="center" align="center" style={{ padding: '2rem' }}>
               <Text variant="tertiary" size="regular">
