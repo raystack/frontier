@@ -516,10 +516,6 @@ func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {
 	}, nil
 }
 
-func (h *ConnectHandler) ListAllServiceUsers(context.Context, *connect.Request[frontierv1beta1.ListAllServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListAllServiceUsersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, nil)
-}
-
 func (h *ConnectHandler) ExportUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ExportUsersRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
 	userDataBytes, contentType, err := h.userService.Export(ctx)
 	if err != nil {
