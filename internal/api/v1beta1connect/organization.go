@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
@@ -450,6 +451,39 @@ func (h *ConnectHandler) DisableOrganization(ctx context.Context, request *conne
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableOrganizationResponse{}), nil
+}
+
+func (h *ConnectHandler) ListOrganizationServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListOrganizationServiceUsersResponse], error) {
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	usersList, err := h.serviceUserService.List(ctx, serviceuser.Filter{
+		OrgID: orgResp.ID,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var usersPB []*frontierv1beta1.ServiceUser
+	for _, rel := range usersList {
+		u, err := transformServiceUserToPB(rel)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+
+		usersPB = append(usersPB, u)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationServiceUsersResponse{Serviceusers: usersPB}), nil
 }
 
 func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {

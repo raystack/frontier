@@ -104,7 +104,7 @@ func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectN
 	}
 	checkPairs, err := h.resourceService.BatchCheck(ctx, checks)
 	if err != nil {
-		return nil, err
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	// remove all the failed checks
 	return utils.Filter(checkPairs, func(pair relation.CheckPair) bool {
