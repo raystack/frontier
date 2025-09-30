@@ -597,3 +597,31 @@ func TestConnectHandler_ListPolicies(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_UpdatePolicy(t *testing.T) {
+	tests := []struct {
+		name    string
+		request *connect.Request[frontierv1beta1.UpdatePolicyRequest]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name:    "should return unimplemented error",
+			request: connect.NewRequest(&frontierv1beta1.UpdatePolicyRequest{Id: "test-id"}),
+			wantErr: errors.New("unsupported at the moment"),
+			errCode: connect.CodeUnimplemented,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := &ConnectHandler{}
+
+			got, err := handler.UpdatePolicy(context.Background(), tt.request)
+			assert.Error(t, err)
+			assert.Equal(t, tt.errCode, connect.CodeOf(err))
+			assert.Contains(t, err.Error(), tt.wantErr.Error())
+			assert.Nil(t, got)
+		})
+	}
+}
