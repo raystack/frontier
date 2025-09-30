@@ -40,10 +40,10 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 
 	if err := h.usageService.Report(ctx, createRequests); err != nil {
 		if errors.Is(err, credit.ErrInsufficientCredits) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInsufficientCredits)
 		}
 		if errors.Is(err, credit.ErrAlreadyApplied) {
-			return nil, connect.NewError(connect.CodeAlreadyExists, err)
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrAlreadyApplied)
 		}
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}

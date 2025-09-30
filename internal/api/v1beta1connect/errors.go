@@ -44,4 +44,6 @@ var (
 	ErrPerSeatLimitReached         = errors.New("per seat limit reached")
 	ErrAlreadyOnSamePlan           = errors.New("already on same plan")
 	ErrBillingProviderNotSupported = errors.New("provider not supported")
+	ErrInsufficientCredits         = errors.New("insufficient credits")
+	ErrAlreadyApplied              = errors.New("credits already applied")
 )
