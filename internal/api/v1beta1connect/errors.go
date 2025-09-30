@@ -49,4 +49,5 @@ var (
 	ErrInvalidRoleID               = errors.New("role id is invalid")
 	ErrNamespaceSplitNotation      = errors.New("subject/object should be provided as 'namespace:uuid'")
 	ErrPolicyNotFound              = errors.New("policy doesn't exist")
+	ErrProjectNotFound             = errors.New("project doesn't exist")
 )

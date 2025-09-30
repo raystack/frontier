@@ -9,7 +9,9 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/role"
+	projectMocks "github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
@@ -757,6 +759,264 @@ func TestConnectHandler_DeletePolicy(t *testing.T) {
 			}
 
 			mockPolicyService.AssertExpectations(t)
+		})
+	}
+}
+
+func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
+	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	testPolicyID := utils.NewString()
+	testUserID := utils.NewString()
+	testProjectID := utils.NewString()
+	testRoleID := "admin"
+
+	testProject := project.Project{
+		ID:        testProjectID,
+		Name:      "test-project",
+		CreatedAt: fixedTime,
+		UpdatedAt: fixedTime,
+	}
+
+	tests := []struct {
+		name         string
+		setupPolicy  func(ps *mocks.PolicyService)
+		setupProject func(ps *projectMocks.ProjectService)
+		request      *connect.Request[frontierv1beta1.CreatePolicyForProjectRequest]
+		want         *connect.Response[frontierv1beta1.CreatePolicyForProjectResponse]
+		wantErr      error
+		errCode      connect.Code
+	}{
+		{
+			name: "should return invalid argument error when body is nil",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				// No expectations as we return early
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				// No expectations as we return early
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body:      nil,
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument error when role ID is empty",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				// No expectations as we return early
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				// No expectations as we return early
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    "",
+					Principal: "user:" + testUserID,
+				},
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument error when principal is empty",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				// No expectations as we return early
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				// No expectations as we return early
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    testRoleID,
+					Principal: "",
+				},
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument error when principal namespace splitting fails",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				// No expectations as we return early
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				// No expectations as we return early
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    testRoleID,
+					Principal: "invalid-principal-format",
+				},
+			}),
+			want:    nil,
+			wantErr: ErrNamespaceSplitNotation,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return not found error when project doesn't exist",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				// No expectations as we return early
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				ps.On("Get", mock.Anything, testProjectID).Return(project.Project{}, errors.New("project not found"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    testRoleID,
+					Principal: "user:" + testUserID,
+				},
+			}),
+			want:    nil,
+			wantErr: ErrProjectNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return invalid argument error when role ID is invalid",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				ps.On("Create", mock.Anything, policy.Policy{
+					RoleID:        testRoleID,
+					PrincipalType: "app/user",
+					PrincipalID:   testUserID,
+					ResourceID:    testProjectID,
+					ResourceType:  "app/project",
+				}).Return(policy.Policy{}, role.ErrInvalidID)
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    testRoleID,
+					Principal: "user:" + testUserID,
+				},
+			}),
+			want:    nil,
+			wantErr: ErrInvalidRoleID,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument error when policy details are invalid",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				ps.On("Create", mock.Anything, policy.Policy{
+					RoleID:        testRoleID,
+					PrincipalType: "app/user",
+					PrincipalID:   testUserID,
+					ResourceID:    testProjectID,
+					ResourceType:  "app/project",
+				}).Return(policy.Policy{}, policy.ErrInvalidDetail)
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    testRoleID,
+					Principal: "user:" + testUserID,
+				},
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return internal server error when policy service returns unknown error",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				ps.On("Create", mock.Anything, policy.Policy{
+					RoleID:        testRoleID,
+					PrincipalType: "app/user",
+					PrincipalID:   testUserID,
+					ResourceID:    testProjectID,
+					ResourceType:  "app/project",
+				}).Return(policy.Policy{}, errors.New("service error"))
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    testRoleID,
+					Principal: "user:" + testUserID,
+				},
+			}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should successfully create policy for project",
+			setupPolicy: func(ps *mocks.PolicyService) {
+				ps.On("Create", mock.Anything, policy.Policy{
+					RoleID:        testRoleID,
+					PrincipalType: "app/user",
+					PrincipalID:   testUserID,
+					ResourceID:    testProjectID,
+					ResourceType:  "app/project",
+				}).Return(policy.Policy{
+					ID:            testPolicyID,
+					RoleID:        testRoleID,
+					PrincipalType: "app/user",
+					PrincipalID:   testUserID,
+					ResourceID:    testProjectID,
+					ResourceType:  "app/project",
+					CreatedAt:     fixedTime,
+					UpdatedAt:     fixedTime,
+				}, nil)
+			},
+			setupProject: func(ps *projectMocks.ProjectService) {
+				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.CreatePolicyForProjectBody{
+					RoleId:    testRoleID,
+					Principal: "user:" + testUserID,
+				},
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.CreatePolicyForProjectResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicyService := &mocks.PolicyService{}
+			mockProjectService := &projectMocks.ProjectService{}
+
+			if tt.setupPolicy != nil {
+				tt.setupPolicy(mockPolicyService)
+			}
+			if tt.setupProject != nil {
+				tt.setupProject(mockProjectService)
+			}
+
+			handler := &ConnectHandler{
+				policyService:  mockPolicyService,
+				projectService: mockProjectService,
+			}
+
+			got, err := handler.CreatePolicyForProject(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errCode, connect.CodeOf(err))
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+
+			mockPolicyService.AssertExpectations(t)
+			mockProjectService.AssertExpectations(t)
 		})
 	}
 }
