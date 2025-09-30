@@ -28,7 +28,8 @@ import {
   V1Beta1User,
   V1Beta1BillingAccountDetails
 } from '../../api-client/data-contracts';
-import { User, Group, Organization } from '@raystack/proton/frontier';
+import { User, Group, Organization, OrganizationKyc, GetOrganizationKycRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import {
   getActiveSubscription,
   getDefaultPaymentMethod,
@@ -40,7 +41,6 @@ import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_DATE_SHORT_FORMAT
 } from '../utils/constants';
-import { AxiosError } from 'axios';
 
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
@@ -97,13 +97,9 @@ interface FrontierContextProviderProps {
 
   basePlan?: V1Beta1Plan;
 
-  organizationKyc: V1Beta1OrganizationKyc | undefined;
-  setOrganizationKyc: Dispatch<
-    SetStateAction<V1Beta1OrganizationKyc | undefined>
-  >;
+  organizationKyc: OrganizationKyc | undefined;
 
   isOrganizationKycLoading: boolean;
-  setIsOrganizationKycLoading: Dispatch<SetStateAction<boolean>>;
 
   billingDetails: V1Beta1BillingAccountDetails | undefined;
   setBillingDetails: Dispatch<
@@ -177,10 +173,8 @@ const initialValues: FrontierContextProviderProps = {
   basePlan: undefined,
 
   organizationKyc: undefined,
-  setOrganizationKyc: () => undefined,
 
   isOrganizationKycLoading: false,
-  setIsOrganizationKycLoading: () => false,
 
   billingDetails: undefined,
   setBillingDetails: () => undefined
@@ -240,11 +234,6 @@ export const FrontierContextProvider = ({
 
   const [basePlan, setBasePlan] = useState<V1Beta1Plan>();
 
-  const [organizationKyc, setOrganizationKyc] =
-    useState<V1Beta1OrganizationKyc>();
-  const [isOrganizationKycLoading, setIsOrganizationKycLoading] =
-    useState(false);
-
   const { data: currentUserData, isLoading: isUserLoading } = useConnectQuery(
     FrontierServiceQueries.getCurrentUser
   );
@@ -265,6 +254,19 @@ export const FrontierContextProvider = ({
 
   const groups = groupsData?.groups || [];
   const organizations = organizationsData?.organizations || [];
+
+  const {
+    data: organizationKycData,
+    isLoading: isOrganizationKycLoading
+  } = useConnectQuery(
+    FrontierServiceQueries.getOrganizationKyc,
+    create(GetOrganizationKycRequestSchema, {
+      orgId: activeOrganization?.id ?? ''
+    }),
+    { enabled: !!activeOrganization?.id }
+  );
+
+  const organizationKyc = organizationKycData?.organizationKyc;
 
   const getPlan = useCallback(
     async (planId?: string) => {
@@ -405,36 +407,6 @@ export const FrontierContextProvider = ({
     }
   }, [config?.billing?.basePlan]);
 
-  const fetchOrganizationKyc = useCallback(
-    async (orgId: string) => {
-      try {
-        setIsOrganizationKycLoading(true);
-        const resp = await frontierClient.frontierServiceGetOrganizationKyc(
-          orgId
-        );
-        setOrganizationKyc(resp?.data?.organization_kyc);
-      } catch (err: unknown) {
-        if (err instanceof AxiosError && err.response?.status === 404) {
-          console.warn('frontier:sdk:: org kyc details not found');
-          setOrganizationKyc({ org_id: orgId, status: false, link: '' });
-        } else {
-          console.error(
-            'frontier:sdk:: There is problem with fetching org kyc'
-          );
-          console.error(err);
-        }
-      } finally {
-        setIsOrganizationKycLoading(false);
-      }
-    },
-    [frontierClient, activeOrganization?.id]
-  );
-
-  useEffect(() => {
-    if (activeOrganization?.id) {
-      fetchOrganizationKyc(activeOrganization?.id);
-    }
-  }, [activeOrganization?.id, fetchOrganizationKyc]);
 
   return (
     <FrontierContext.Provider
@@ -474,9 +446,7 @@ export const FrontierContextProvider = ({
         isAllPlansLoading,
         basePlan,
         organizationKyc,
-        setOrganizationKyc,
         isOrganizationKycLoading,
-        setIsOrganizationKycLoading,
         billingDetails,
         setBillingDetails
       }}
