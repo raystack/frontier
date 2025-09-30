@@ -22,6 +22,9 @@ type SubscriptionService interface {
 
 type PlanService interface {
 	GetByID(ctx context.Context, id string) (plan.Plan, error)
+	Create(ctx context.Context, plan plan.Plan) (plan.Plan, error)
+	List(ctx context.Context, filter plan.Filter) ([]plan.Plan, error)
+	UpsertPlans(ctx context.Context, planFile plan.File) error
 }
 
 func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSubscriptionsRequest]) (*connect.Response[frontierv1beta1.ListSubscriptionsResponse], error) {
