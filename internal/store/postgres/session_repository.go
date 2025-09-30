@@ -120,7 +120,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 	now := s.Now()
-	
+
 	// Delete sessions that have been expired OR soft-deleted for 24+ hours
 	query, params, err := dialect.Delete(TABLE_SESSIONS).
 		Where(
