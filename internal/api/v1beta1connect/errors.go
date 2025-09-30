@@ -46,4 +46,6 @@ var (
 	ErrBillingProviderNotSupported = errors.New("provider not supported")
 	ErrInsufficientCredits         = errors.New("insufficient credits")
 	ErrAlreadyApplied              = errors.New("credits already applied")
+	ErrInvalidRoleID               = errors.New("role id is invalid")
+	ErrNamespaceSplitNotation      = errors.New("subject/object should be provided as 'namespace:uuid'")
 )
