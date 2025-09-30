@@ -225,7 +225,7 @@ importers:
         specifier: ^8.3.0
         version: 8.10.2(eslint@7.32.0)
       eslint-config-turbo:
-        specifier: 1.9.3
+        specifier: ^1.9.3
         version: 1.9.3(eslint@7.32.0)
       eslint-plugin-react:
         specifier: 7.28.0
