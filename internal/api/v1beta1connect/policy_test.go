@@ -467,3 +467,133 @@ func TestConnectHandler_GetPolicy(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListPolicies(t *testing.T) {
+	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	testPolicyID1 := utils.NewString()
+	testPolicyID2 := utils.NewString()
+	testUserID := utils.NewString()
+	testResourceID1 := utils.NewString()
+	testResourceID2 := utils.NewString()
+
+	testPolicies := []policy.Policy{
+		{
+			ID:            testPolicyID1,
+			PrincipalType: "app/user",
+			PrincipalID:   testUserID,
+			ResourceID:    testResourceID1,
+			ResourceType:  "app/project",
+			RoleID:        "admin",
+			CreatedAt:     fixedTime,
+			UpdatedAt:     fixedTime,
+		},
+		{
+			ID:            testPolicyID2,
+			PrincipalType: "app/user",
+			PrincipalID:   testUserID,
+			ResourceID:    testResourceID2,
+			ResourceType:  "app/organization",
+			RoleID:        "viewer",
+			CreatedAt:     fixedTime,
+			UpdatedAt:     fixedTime,
+		},
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.PolicyService)
+		request *connect.Request[frontierv1beta1.ListPoliciesRequest]
+		want    *connect.Response[frontierv1beta1.ListPoliciesResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when policy service returns error",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("List", mock.Anything, policy.Filter{}).Return([]policy.Policy{}, errors.New("service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should successfully list policies with empty filter",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("List", mock.Anything, policy.Filter{}).Return(testPolicies, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{}),
+			want: connect.NewResponse(&frontierv1beta1.ListPoliciesResponse{
+				Policies: []*frontierv1beta1.Policy{
+					{
+						Id:        testPolicyID1,
+						RoleId:    "admin",
+						Resource:  "app/project:" + testResourceID1,
+						Principal: "app/user:" + testUserID,
+						Metadata:  nil,
+						CreatedAt: timestamppb.New(fixedTime),
+						UpdatedAt: timestamppb.New(fixedTime),
+					},
+					{
+						Id:        testPolicyID2,
+						RoleId:    "viewer",
+						Resource:  "app/organization:" + testResourceID2,
+						Principal: "app/user:" + testUserID,
+						Metadata:  nil,
+						CreatedAt: timestamppb.New(fixedTime),
+						UpdatedAt: timestamppb.New(fixedTime),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should successfully list empty policies",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("List", mock.Anything, policy.Filter{}).Return([]policy.Policy{}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{}),
+			want: connect.NewResponse(&frontierv1beta1.ListPoliciesResponse{
+				Policies: nil,
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error when transformPolicyToPB fails due to metadata error",
+			setup: func(ps *mocks.PolicyService) {
+				invalidPolicy := testPolicies[0]
+				invalidPolicy.Metadata = metadata.Metadata{"invalid": make(chan int)} // channels can't be converted to protobuf
+				ps.On("List", mock.Anything, policy.Filter{}).Return([]policy.Policy{invalidPolicy}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicyService := &mocks.PolicyService{}
+			if tt.setup != nil {
+				tt.setup(mockPolicyService)
+			}
+
+			handler := &ConnectHandler{
+				policyService: mockPolicyService,
+			}
+
+			got, err := handler.ListPolicies(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errCode, connect.CodeOf(err))
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+
+			mockPolicyService.AssertExpectations(t)
+		})
+	}
+}
