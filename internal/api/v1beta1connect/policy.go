@@ -65,6 +65,27 @@ func (h *ConnectHandler) CreatePolicy(ctx context.Context, request *connect.Requ
 	return connect.NewResponse(&frontierv1beta1.CreatePolicyResponse{Policy: policyPB}), nil
 }
 
+func (h *ConnectHandler) GetPolicy(ctx context.Context, request *connect.Request[frontierv1beta1.GetPolicyRequest]) (*connect.Response[frontierv1beta1.GetPolicyResponse], error) {
+	fetchedPolicy, err := h.policyService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, policy.ErrNotExist),
+			errors.Is(err, policy.ErrInvalidUUID),
+			errors.Is(err, policy.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrPolicyNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	policyPB, err := transformPolicyToPB(fetchedPolicy)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetPolicyResponse{Policy: policyPB}), nil
+}
+
 func transformPolicyToPB(policy policy.Policy) (*frontierv1beta1.Policy, error) {
 	var metadata *structpb.Struct
 	var err error
