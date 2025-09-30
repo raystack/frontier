@@ -38,7 +38,7 @@ jobs:
           version: 8.6.9
 
       - name: Setup Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
         with:
           node-version: '20.19.0'
 
