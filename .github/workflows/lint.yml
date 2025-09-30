@@ -43,9 +43,7 @@ jobs:
           node-version: '20.19.0'
 
       - name: Install Dependencies 🔧
-        run: |
-          pnpm store prune
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Check Lint 🔧
         run: pnpm run lint
