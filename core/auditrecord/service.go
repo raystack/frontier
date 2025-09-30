@@ -10,10 +10,12 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/salt/rql"
 )
 
@@ -163,4 +165,43 @@ func computeHash(auditRecord AuditRecord) string {
 
 	// Convert to hex string
 	return hex.EncodeToString(hashBytes)
+}
+
+type auditContextToSet struct {
+	Actor           Actor
+	IsSuperUser     bool
+	SessionMetadata frontiersession.SessionMetadata
+}
+
+type AuditContext struct {
+	Principal       *authenticate.Principal
+	IsSuperUser     bool
+	SessionMetadata frontiersession.SessionMetadata
+}
+
+func SetAuditContext(ctx context.Context, auditContext AuditContext) context.Context {
+	actor := Actor{
+		ID:   auditContext.Principal.ID,
+		Type: auditContext.Principal.Type,
+		Name: getActorName(auditContext.Principal),
+	}
+	contextVal := auditContextToSet{
+		Actor:           actor,
+		IsSuperUser:     auditContext.IsSuperUser,
+		SessionMetadata: auditContext.SessionMetadata,
+	}
+	return context.WithValue(ctx, consts.AuditContextKey, contextVal)
+}
+
+func getActorName(principal *authenticate.Principal) string {
+	if principal == nil {
+		return systemActor
+	}
+	if principal.User != nil {
+		return principal.User.Title
+	}
+	if principal.ServiceUser != nil {
+		return principal.ServiceUser.Title
+	}
+	return systemActor
 }

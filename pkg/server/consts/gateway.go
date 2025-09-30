@@ -15,6 +15,7 @@ var (
 	AuthenticatedPrincipalContextKey = contextKey{name: "auth-principal"}
 
 	AuditActorContextKey    = contextKey{name: "audit-actor"}
+	AuditContextKey         = contextKey{name: "audit-context"}
 	AuditMetadataContextKey = contextKey{name: "audit-metadata"}
 	AuditServiceContextKey  = contextKey{name: "audit-service"}
 
