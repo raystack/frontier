@@ -119,17 +119,21 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
+	now := s.Now()
+	
+	// Delete sessions that have been expired OR soft-deleted for 24+ hours
 	query, params, err := dialect.Delete(TABLE_SESSIONS).
 		Where(
-			goqu.Ex{
-				"expires_at": goqu.Op{"lte": s.Now()},
-			},
+			goqu.Or(
+				goqu.Ex{"expires_at": goqu.Op{"lte": now.Add(-24 * time.Hour)}},
+				goqu.Ex{"deleted_at": goqu.Op{"lte": now.Add(-24 * time.Hour)}},
+			),
 		).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "DeleteAllExpired", func(ctx context.Context) error {
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "DeleteExpiredSessions", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
@@ -137,7 +141,7 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 		}
 
 		count, _ := result.RowsAffected()
-		s.log.Debug("deleted expired sessions", "expired_session_count", count)
+		s.log.Debug("deleted expired and old soft-deleted sessions", "deleted_count", count)
 
 		return nil
 	})
