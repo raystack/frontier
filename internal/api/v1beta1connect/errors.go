@@ -46,4 +46,5 @@ var (
 	ErrBillingProviderNotSupported = errors.New("provider not supported")
 	ErrInsufficientCredits         = errors.New("insufficient credits")
 	ErrAlreadyApplied              = errors.New("credits already applied")
+	ErrPortalChangesKycCompleted   = errors.New("customer portal changes not allowed: organization kyc completed")
 )
