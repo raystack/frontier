@@ -179,17 +179,17 @@ export const UpcomingBillingCycle = ({
 
     if (
       billingAccount?.id &&
-      billingAccount?.org_id &&
-      billingAccount?.provider_id
+      billingAccount?.orgId &&
+      billingAccount?.providerId
     ) {
-      getUpcomingInvoice(billingAccount?.org_id, billingAccount?.id);
-      getMemberCount(billingAccount?.org_id);
+      getUpcomingInvoice(billingAccount?.orgId, billingAccount?.id);
+      getMemberCount(billingAccount?.orgId);
     }
   }, [
     client,
-    billingAccount?.org_id,
+    billingAccount?.orgId,
     billingAccount?.id,
-    billingAccount?.provider_id
+    billingAccount?.providerId
   ]);
 
   const planName = activeSubscription

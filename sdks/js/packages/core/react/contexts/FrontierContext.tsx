@@ -18,17 +18,22 @@ import {
 
 import { V1Beta1 } from '../../api-client/V1Beta1';
 import {
-  V1Beta1BillingAccount,
-  V1Beta1Group,
   V1Beta1Organization,
-  V1Beta1OrganizationKyc,
-  V1Beta1PaymentMethod,
   V1Beta1Plan,
-  V1Beta1Subscription,
-  V1Beta1User,
-  V1Beta1BillingAccountDetails
+  V1Beta1Subscription
 } from '../../api-client/data-contracts';
-import { User, Group, Organization, OrganizationKyc, GetOrganizationKycRequestSchema } from '@raystack/proton/frontier';
+import {
+  User,
+  Group,
+  Organization,
+  OrganizationKyc,
+  GetOrganizationKycRequestSchema,
+  GetBillingAccountRequestSchema,
+  ListBillingAccountsRequestSchema,
+  BillingAccount,
+  BillingAccountDetails,
+  PaymentMethod
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import {
   getActiveSubscription,
@@ -62,13 +67,9 @@ interface FrontierContextProviderProps {
 
   isUserLoading: boolean;
 
-  billingAccount: V1Beta1BillingAccount | undefined;
-  setBillingAccount: Dispatch<
-    SetStateAction<V1Beta1BillingAccount | undefined>
-  >;
+  billingAccount: BillingAccount | undefined;
 
   isBillingAccountLoading: boolean;
-  setIsBillingAccountLoading: Dispatch<SetStateAction<boolean>>;
 
   trialSubscription: V1Beta1Subscription | undefined;
   activeSubscription: V1Beta1Subscription | undefined;
@@ -93,7 +94,7 @@ interface FrontierContextProviderProps {
 
   fetchActiveSubsciption: () => Promise<V1Beta1Subscription | undefined>;
 
-  paymentMethod: V1Beta1PaymentMethod | undefined;
+  paymentMethod: PaymentMethod | undefined;
 
   basePlan?: V1Beta1Plan;
 
@@ -101,10 +102,7 @@ interface FrontierContextProviderProps {
 
   isOrganizationKycLoading: boolean;
 
-  billingDetails: V1Beta1BillingAccountDetails | undefined;
-  setBillingDetails: Dispatch<
-    SetStateAction<V1Beta1BillingAccountDetails | undefined>
-  >;
+  billingDetails: BillingAccountDetails | undefined;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -142,10 +140,8 @@ const initialValues: FrontierContextProviderProps = {
   setIsActiveOrganizationLoading: () => undefined,
 
   billingAccount: undefined,
-  setBillingAccount: () => undefined,
 
   isBillingAccountLoading: false,
-  setIsBillingAccountLoading: () => false,
 
   trialSubscription: undefined,
   activeSubscription: undefined,
@@ -176,8 +172,7 @@ const initialValues: FrontierContextProviderProps = {
 
   isOrganizationKycLoading: false,
 
-  billingDetails: undefined,
-  setBillingDetails: () => undefined
+  billingDetails: undefined
 };
 
 export const FrontierContext =
@@ -208,12 +203,6 @@ export const FrontierContextProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeOrganization?.id, config.endpoint]
   );
-
-  const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
-  const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
-  const [billingDetails, setBillingDetails] =
-    useState<V1Beta1BillingAccountDetails>();
-  const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(false);
 
   const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
     useState(false);
@@ -255,18 +244,46 @@ export const FrontierContextProvider = ({
   const groups = groupsData?.groups || [];
   const organizations = organizationsData?.organizations || [];
 
-  const {
-    data: organizationKycData,
-    isLoading: isOrganizationKycLoading
-  } = useConnectQuery(
-    FrontierServiceQueries.getOrganizationKyc,
-    create(GetOrganizationKycRequestSchema, {
+  const { data: organizationKycData, isLoading: isOrganizationKycLoading } =
+    useConnectQuery(
+      FrontierServiceQueries.getOrganizationKyc,
+      create(GetOrganizationKycRequestSchema, {
+        orgId: activeOrganization?.id ?? ''
+      }),
+      { enabled: !!activeOrganization?.id }
+    );
+
+  const organizationKyc = organizationKycData?.organizationKyc;
+
+  const { data: billingAccountsData } = useConnectQuery(
+    FrontierServiceQueries.listBillingAccounts,
+    create(ListBillingAccountsRequestSchema, {
       orgId: activeOrganization?.id ?? ''
     }),
     { enabled: !!activeOrganization?.id }
   );
 
-  const organizationKyc = organizationKycData?.organizationKyc;
+  const billingAccountId = billingAccountsData?.billingAccounts?.[0]?.id || '';
+
+  const { data: billingAccountData } = useConnectQuery(
+    FrontierServiceQueries.getBillingAccount,
+    create(GetBillingAccountRequestSchema, {
+      id: billingAccountId,
+      orgId: activeOrganization?.id ?? '',
+      withPaymentMethods: true,
+      withBillingDetails: true
+    }),
+    { enabled: !!activeOrganization?.id && !!billingAccountId }
+  );
+
+  const billingAccount = billingAccountData?.billingAccount;
+  const billingDetails = billingAccountData?.billingDetails;
+  const paymentMethod = useMemo(() => {
+    if (billingAccountData?.paymentMethods) {
+      return getDefaultPaymentMethod(billingAccountData.paymentMethods);
+    }
+    return undefined;
+  }, [billingAccountData?.paymentMethods]);
 
   const getPlan = useCallback(
     async (planId?: string) => {
@@ -331,49 +348,6 @@ export const FrontierContextProvider = ({
     [frontierClient, setActiveAndTrialSubscriptions]
   );
 
-  const getBillingAccount = useCallback(
-    async (orgId: string) => {
-      setIsBillingAccountLoading(true);
-      try {
-        const {
-          data: { billing_accounts = [] }
-        } = await frontierClient.frontierServiceListBillingAccounts(orgId);
-        const billingAccountId = billing_accounts[0]?.id || '';
-        if (billingAccountId) {
-          const [resp] = await Promise.all([
-            frontierClient?.frontierServiceGetBillingAccount(
-              orgId,
-              billingAccountId,
-              { with_payment_methods: true, with_billing_details: true }
-            ),
-            getSubscription(orgId, billingAccountId)
-          ]);
-
-          if (resp?.data) {
-            const paymentMethods = resp?.data?.payment_methods || [];
-            setBillingAccount(resp.data.billing_account);
-            setBillingDetails(resp.data.billing_details);
-            const defaultPaymentMethod =
-              getDefaultPaymentMethod(paymentMethods);
-            setPaymentMethod(defaultPaymentMethod);
-          }
-        } else {
-          setBillingAccount(undefined);
-          setBillingDetails(undefined);
-          setActiveSubscription(undefined);
-        }
-      } catch (error) {
-        console.error(
-          'frontier:sdk:: There is problem with fetching org billing accounts'
-        );
-        console.error(error);
-      } finally {
-        setIsBillingAccountLoading(false);
-      }
-    },
-    [frontierClient, getSubscription]
-  );
-
   const fetchActiveSubsciption = useCallback(async () => {
     if (activeOrganization?.id && billingAccount?.id) {
       return getSubscription(activeOrganization?.id, billingAccount?.id);
@@ -396,17 +370,32 @@ export const FrontierContextProvider = ({
 
   useEffect(() => {
     if (activeOrganization?.id) {
-      getBillingAccount(activeOrganization.id);
       fetchAllPlans();
     }
-  }, [activeOrganization?.id, getBillingAccount, fetchAllPlans]);
+  }, [activeOrganization?.id, fetchAllPlans]);
+
+  useEffect(() => {
+    // Fetch subscriptions when billing account is available
+    if (activeOrganization?.id && billingAccount?.id) {
+      getSubscription(activeOrganization.id, billingAccount.id);
+    } else if (
+      billingAccountsData &&
+      billingAccountsData.billingAccounts?.length === 0
+    ) {
+      setActiveSubscription(undefined);
+    }
+  }, [
+    activeOrganization?.id,
+    billingAccount?.id,
+    billingAccountsData,
+    getSubscription
+  ]);
 
   useEffect(() => {
     if (config?.billing?.basePlan) {
       setBasePlan(enrichBasePlan(config.billing.basePlan));
     }
   }, [config?.billing?.basePlan]);
-
 
   return (
     <FrontierContext.Provider
@@ -426,10 +415,8 @@ export const FrontierContextProvider = ({
         setIsActiveOrganizationLoading,
         isUserLoading,
         billingAccount,
-        setBillingAccount,
         paymentMethod,
-        isBillingAccountLoading,
-        setIsBillingAccountLoading,
+        isBillingAccountLoading: false,
         isActiveSubscriptionLoading,
         setIsActiveSubscriptionLoading,
         trialSubscription,
@@ -447,8 +434,7 @@ export const FrontierContextProvider = ({
         basePlan,
         organizationKyc,
         isOrganizationKycLoading,
-        billingDetails,
-        setBillingDetails
+        billingDetails
       }}
     >
       {children}

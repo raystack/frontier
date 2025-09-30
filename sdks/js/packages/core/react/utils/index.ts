@@ -2,8 +2,7 @@ import dayjs from 'dayjs';
 import {
   V1Beta1Subscription,
   BillingAccountAddress,
-  V1Beta1Plan,
-  V1Beta1PaymentMethod
+  V1Beta1Plan
 } from '~/src';
 import {
   BasePlan,
@@ -16,6 +15,7 @@ import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
 import { NIL as NIL_UUID } from 'uuid';
 import type { RpcStatus } from '~/src';
+import { PaymentMethod } from '@raystack/proton/frontier';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -168,7 +168,7 @@ export function getPlanPrice(plan: V1Beta1Plan) {
 }
 
 export function getDefaultPaymentMethod(
-  paymentMethods: V1Beta1PaymentMethod[] = []
+  paymentMethods: PaymentMethod[] = []
 ) {
   const defaultMethod = paymentMethods.find(pm => {
     const metadata = pm.metadata as PaymentMethodMetadata;
