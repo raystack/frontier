@@ -28,7 +28,7 @@ import {
   V1Beta1User,
   V1Beta1BillingAccountDetails
 } from '../../api-client/data-contracts';
-import { User } from '@raystack/proton/frontier';
+import { User, Group, Organization } from '@raystack/proton/frontier';
 import {
   getActiveSubscription,
   getDefaultPaymentMethod,
@@ -46,11 +46,9 @@ interface FrontierContextProviderProps {
   config: FrontierClientOptions;
   client: V1Beta1<unknown> | undefined;
 
-  organizations: V1Beta1Organization[];
-  setOrganizations: Dispatch<SetStateAction<V1Beta1Organization[]>>;
+  organizations: Organization[];
 
-  groups: V1Beta1Group[];
-  setGroups: Dispatch<SetStateAction<V1Beta1Group[]>>;
+  groups: Group[];
 
   user: User | undefined;
 
@@ -134,10 +132,8 @@ const initialValues: FrontierContextProviderProps = {
   client: undefined,
 
   organizations: [],
-  setOrganizations: () => undefined,
 
   groups: [],
-  setGroups: () => undefined,
 
   user: undefined,
 
@@ -219,9 +215,6 @@ export const FrontierContextProvider = ({
     [activeOrganization?.id, config.endpoint]
   );
 
-  const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
-  const [groups, setGroups] = useState<V1Beta1Group[]>([]);
-
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
   const [billingDetails, setBillingDetails] =
@@ -258,38 +251,20 @@ export const FrontierContextProvider = ({
 
   const user = currentUserData?.user;
 
-  const getFrontierCurrentUserGroups = useCallback(async () => {
-    try {
-      const {
-        data: { groups = [] }
-      } = await frontierClient.frontierServiceListCurrentUserGroups();
-      setGroups(groups);
-    } catch (error) {
-      console.error(
-        'frontier:sdk:: There is problem with fetching user groups information'
-      );
-    }
-  }, [frontierClient]);
+  const { data: groupsData } = useConnectQuery(
+    FrontierServiceQueries.listCurrentUserGroups,
+    {},
+    { enabled: !!user?.id }
+  );
 
-  const getFrontierCurrentUserOrganizations = useCallback(async () => {
-    try {
-      const {
-        data: { organizations = [] }
-      } = await frontierClient.frontierServiceListOrganizationsByCurrentUser();
-      setOrganizations(organizations);
-    } catch (error) {
-      console.error(
-        'frontier:sdk:: There is problem with fetching user current organizations'
-      );
-    }
-  }, [frontierClient]);
+  const { data: organizationsData } = useConnectQuery(
+    FrontierServiceQueries.listOrganizationsByCurrentUser,
+    {},
+    { enabled: !!user?.id }
+  );
 
-  useEffect(() => {
-    if (user?.id) {
-      getFrontierCurrentUserGroups();
-      getFrontierCurrentUserOrganizations();
-    }
-  }, [getFrontierCurrentUserGroups, getFrontierCurrentUserOrganizations, user]);
+  const groups = groupsData?.groups || [];
+  const organizations = organizationsData?.organizations || [];
 
   const getPlan = useCallback(
     async (planId?: string) => {
@@ -471,9 +446,7 @@ export const FrontierContextProvider = ({
         },
         client: frontierClient,
         organizations,
-        setOrganizations,
         groups,
-        setGroups,
         user,
         activeOrganization,
         setActiveOrganization,
