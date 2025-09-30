@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -86,6 +87,30 @@ func (h *ConnectHandler) GetPolicy(ctx context.Context, request *connect.Request
 	return connect.NewResponse(&frontierv1beta1.GetPolicyResponse{Policy: policyPB}), nil
 }
 
+func (h *ConnectHandler) ListPolicies(ctx context.Context, request *connect.Request[frontierv1beta1.ListPoliciesRequest]) (*connect.Response[frontierv1beta1.ListPoliciesResponse], error) {
+	var policies []*frontierv1beta1.Policy
+
+	filter, err := h.resolveFilter(ctx, request.Msg)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	policyList, err := h.policyService.List(ctx, filter)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, p := range policyList {
+		policyPB, err := transformPolicyToPB(p)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		policies = append(policies, policyPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListPoliciesResponse{Policies: policies}), nil
+}
+
 func transformPolicyToPB(policy policy.Policy) (*frontierv1beta1.Policy, error) {
 	var metadata *structpb.Struct
 	var err error
@@ -122,4 +147,49 @@ func auditPolicyCreationEvent(ctx context.Context, policyCreated policy.Policy) 
 			"principal_id":   policyCreated.PrincipalID,
 			"principal_type": policyCreated.PrincipalType,
 		})
+}
+
+// resolveFilter resolves the filter from the request and returns a policy filter
+// if the filter fields are not valid UUIDs, it will try to resolve them to their names and then return the filter. Note the group id is not resolved to name as it is not unique
+func (h *ConnectHandler) resolveFilter(ctx context.Context, request *frontierv1beta1.ListPoliciesRequest) (policy.Filter, error) {
+	var filter policy.Filter
+	orgID := request.GetOrgId()
+	if orgID != "" && !utils.IsValidUUID(orgID) {
+		org, err := h.orgService.Get(ctx, orgID)
+		if err != nil {
+			return filter, err
+		}
+		orgID = org.ID
+	}
+	roleId := request.GetRoleId()
+	if roleId != "" && !utils.IsValidUUID(roleId) {
+		role, err := h.roleService.Get(ctx, roleId)
+		if err != nil {
+			return filter, err
+		}
+		roleId = role.ID
+	}
+	projectId := request.GetProjectId()
+	if projectId != "" && !utils.IsValidUUID(projectId) {
+		project, err := h.projectService.Get(ctx, projectId)
+		if err != nil {
+			return filter, err
+		}
+		projectId = project.ID
+	}
+	userId := request.GetUserId()
+	if userId != "" && !utils.IsValidUUID(userId) {
+		user, err := h.userService.GetByID(ctx, userId)
+		if err != nil {
+			return filter, err
+		}
+		userId = user.ID
+	}
+	return policy.Filter{
+		PrincipalID: userId,
+		OrgID:       orgID,
+		ProjectID:   projectId,
+		GroupID:     request.GetGroupId(),
+		RoleID:      roleId,
+	}, nil
 }
