@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -89,6 +90,31 @@ func (h *ConnectHandler) GetPolicy(ctx context.Context, request *connect.Request
 
 func (h *ConnectHandler) UpdatePolicy(ctx context.Context, request *connect.Request[frontierv1beta1.UpdatePolicyRequest]) (*connect.Response[frontierv1beta1.UpdatePolicyResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("unsupported at the moment"))
+}
+
+func (h *ConnectHandler) DeletePolicy(ctx context.Context, request *connect.Request[frontierv1beta1.DeletePolicyRequest]) (*connect.Response[frontierv1beta1.DeletePolicyResponse], error) {
+	err := h.policyService.Delete(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, policy.ErrNotExist),
+			errors.Is(err, policy.ErrInvalidID),
+			errors.Is(err, policy.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrPolicyNotFound)
+		case errors.Is(err, policy.ErrInvalidDetail),
+			errors.Is(err, namespace.ErrNotExist):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, policy.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.PolicyDeletedEvent, audit.Target{
+		ID:   request.Msg.GetId(),
+		Type: "app/policy",
+	})
+	return connect.NewResponse(&frontierv1beta1.DeletePolicyResponse{}), nil
 }
 
 func (h *ConnectHandler) ListPolicies(ctx context.Context, request *connect.Request[frontierv1beta1.ListPoliciesRequest]) (*connect.Response[frontierv1beta1.ListPoliciesResponse], error) {

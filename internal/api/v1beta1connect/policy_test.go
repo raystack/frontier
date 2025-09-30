@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
@@ -622,6 +623,140 @@ func TestConnectHandler_UpdatePolicy(t *testing.T) {
 			assert.Equal(t, tt.errCode, connect.CodeOf(err))
 			assert.Contains(t, err.Error(), tt.wantErr.Error())
 			assert.Nil(t, got)
+		})
+	}
+}
+
+func TestConnectHandler_DeletePolicy(t *testing.T) {
+	testPolicyID := utils.NewString()
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.PolicyService)
+		request *connect.Request[frontierv1beta1.DeletePolicyRequest]
+		want    *connect.Response[frontierv1beta1.DeletePolicyResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return not found error when policy doesn't exist",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, testPolicyID).Return(policy.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrPolicyNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return not found error when policy ID is invalid",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, "invalid-id").Return(policy.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: "invalid-id",
+			}),
+			want:    nil,
+			wantErr: ErrPolicyNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return not found error when policy UUID is invalid",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, "not-a-uuid").Return(policy.ErrInvalidUUID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: "not-a-uuid",
+			}),
+			want:    nil,
+			wantErr: ErrPolicyNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return invalid argument error when policy details are invalid",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, testPolicyID).Return(policy.ErrInvalidDetail)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument error when namespace doesn't exist",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, testPolicyID).Return(namespace.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return already exists error when policy has conflicts",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, testPolicyID).Return(policy.ErrConflict)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrConflictRequest,
+			errCode: connect.CodeAlreadyExists,
+		},
+		{
+			name: "should return internal server error when policy service returns unknown error",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, testPolicyID).Return(errors.New("service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should successfully delete policy",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Delete", mock.Anything, testPolicyID).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeletePolicyResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicyService := &mocks.PolicyService{}
+			if tt.setup != nil {
+				tt.setup(mockPolicyService)
+			}
+
+			handler := &ConnectHandler{
+				policyService: mockPolicyService,
+			}
+
+			got, err := handler.DeletePolicy(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errCode, connect.CodeOf(err))
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+
+			mockPolicyService.AssertExpectations(t)
 		})
 	}
 }
