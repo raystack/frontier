@@ -117,6 +117,45 @@ func (h *ConnectHandler) DeletePolicy(ctx context.Context, request *connect.Requ
 	return connect.NewResponse(&frontierv1beta1.DeletePolicyResponse{}), nil
 }
 
+func (h *ConnectHandler) CreatePolicyForProject(ctx context.Context, request *connect.Request[frontierv1beta1.CreatePolicyForProjectRequest]) (*connect.Response[frontierv1beta1.CreatePolicyForProjectResponse], error) {
+	if request.Msg.GetBody() == nil || request.Msg.GetBody().GetRoleId() == "" || request.Msg.GetBody().GetPrincipal() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	principalType, principalID, err := schema.SplitNamespaceAndResourceID(request.Msg.GetBody().GetPrincipal())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrNamespaceSplitNotation)
+	}
+
+	project, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
+	}
+
+	p := policy.Policy{
+		RoleID:        request.Msg.GetBody().GetRoleId(),
+		PrincipalType: principalType,
+		PrincipalID:   principalID,
+		ResourceID:    project.ID,
+		ResourceType:  schema.ProjectNamespace,
+	}
+
+	newPolicy, err := h.policyService.Create(ctx, p)
+	if err != nil {
+		switch {
+		case errors.Is(err, role.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidRoleID)
+		case errors.Is(err, policy.ErrInvalidDetail):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	auditPolicyCreationEvent(ctx, newPolicy)
+	return connect.NewResponse(&frontierv1beta1.CreatePolicyForProjectResponse{}), nil
+}
+
 func (h *ConnectHandler) ListPolicies(ctx context.Context, request *connect.Request[frontierv1beta1.ListPoliciesRequest]) (*connect.Response[frontierv1beta1.ListPoliciesResponse], error) {
 	var policies []*frontierv1beta1.Policy
 
