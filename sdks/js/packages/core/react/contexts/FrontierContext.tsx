@@ -8,6 +8,8 @@ import {
   useMemo,
   useState
 } from 'react';
+import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '~hooks';
 
 import {
   FrontierClientOptions,
@@ -16,7 +18,6 @@ import {
 
 import { V1Beta1 } from '../../api-client/V1Beta1';
 import {
-  V1Beta1AuthStrategy,
   V1Beta1BillingAccount,
   V1Beta1Group,
   V1Beta1Organization,
@@ -27,6 +28,7 @@ import {
   V1Beta1User,
   V1Beta1BillingAccountDetails
 } from '../../api-client/data-contracts';
+import { User } from '@raystack/proton/frontier';
 import {
   getActiveSubscription,
   getDefaultPaymentMethod,
@@ -50,8 +52,7 @@ interface FrontierContextProviderProps {
   groups: V1Beta1Group[];
   setGroups: Dispatch<SetStateAction<V1Beta1Group[]>>;
 
-  user: V1Beta1User | undefined;
-  setUser: Dispatch<SetStateAction<V1Beta1User | undefined>>;
+  user: User | undefined;
 
   activeOrganization: V1Beta1Organization | undefined;
   setActiveOrganization: Dispatch<
@@ -62,7 +63,6 @@ interface FrontierContextProviderProps {
   setIsActiveOrganizationLoading: Dispatch<SetStateAction<boolean>>;
 
   isUserLoading: boolean;
-  setIsUserLoading: Dispatch<SetStateAction<boolean>>;
 
   billingAccount: V1Beta1BillingAccount | undefined;
   setBillingAccount: Dispatch<
@@ -140,13 +140,11 @@ const initialValues: FrontierContextProviderProps = {
   setGroups: () => undefined,
 
   user: undefined,
-  setUser: () => undefined,
 
   activeOrganization: undefined,
   setActiveOrganization: () => undefined,
 
   isUserLoading: false,
-  setIsUserLoading: () => undefined,
 
   isActiveOrganizationLoading: false,
   setIsActiveOrganizationLoading: () => undefined,
@@ -223,9 +221,6 @@ export const FrontierContextProvider = ({
 
   const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
   const [groups, setGroups] = useState<V1Beta1Group[]>([]);
-  const [user, setUser] = useState<V1Beta1User>();
-
-  const [isUserLoading, setIsUserLoading] = useState(false);
 
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
@@ -257,24 +252,11 @@ export const FrontierContextProvider = ({
   const [isOrganizationKycLoading, setIsOrganizationKycLoading] =
     useState(false);
 
-  useEffect(() => {
-    async function getFrontierCurrentUser() {
-      try {
-        setIsUserLoading(true);
-        const {
-          data: { user }
-        } = await frontierClient.frontierServiceGetCurrentUser();
-        setUser(user);
-      } catch (error) {
-        console.error(
-          'frontier:sdk:: There is problem with fetching current user information'
-        );
-      } finally {
-        setIsUserLoading(false);
-      }
-    }
-    getFrontierCurrentUser();
-  }, [frontierClient]);
+  const { data: currentUserData, isLoading: isUserLoading } = useConnectQuery(
+    FrontierServiceQueries.getCurrentUser
+  );
+
+  const user = currentUserData?.user;
 
   const getFrontierCurrentUserGroups = useCallback(async () => {
     try {
@@ -493,13 +475,11 @@ export const FrontierContextProvider = ({
         groups,
         setGroups,
         user,
-        setUser,
         activeOrganization,
         setActiveOrganization,
         isActiveOrganizationLoading,
         setIsActiveOrganizationLoading,
         isUserLoading,
-        setIsUserLoading,
         billingAccount,
         setBillingAccount,
         paymentMethod,
