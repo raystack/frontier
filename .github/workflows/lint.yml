@@ -42,6 +42,7 @@ jobs:
         with:
           node-version: 20.x
           cache: 'pnpm'
+          cache-dependency-path: 'sdks/js/pnpm-lock.yaml'
 
       - name: Install Dependencies 🔧
         run: pnpm i
