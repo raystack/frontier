@@ -145,7 +145,7 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 	}
 
 	var transformedUsers []*frontierv1beta1.User
-	var rolePairPBs []*frontierv1beta1.ListProjectUsersResponse_RolePair
+	rolePairPBs := []*frontierv1beta1.ListProjectUsersResponse_RolePair{}
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
@@ -194,7 +194,7 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	}
 
 	var transformedUsers []*frontierv1beta1.ServiceUser
-	var rolePairPBs []*frontierv1beta1.ListProjectServiceUsersResponse_RolePair
+	rolePairPBs := []*frontierv1beta1.ListProjectServiceUsersResponse_RolePair{}
 	for _, a := range users {
 		u, err := transformServiceUserToPB(a)
 		if err != nil {
@@ -243,7 +243,7 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 	}
 
 	var groupsPB []*frontierv1beta1.Group
-	var rolePairPBs []*frontierv1beta1.ListProjectGroupsResponse_RolePair
+	rolePairPBs := []*frontierv1beta1.ListProjectGroupsResponse_RolePair{}
 	for _, g := range groups {
 		u, err := transformGroupToPB(g)
 		if err != nil {
