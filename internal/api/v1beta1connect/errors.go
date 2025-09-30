@@ -48,4 +48,5 @@ var (
 	ErrAlreadyApplied              = errors.New("credits already applied")
 	ErrInvalidRoleID               = errors.New("role id is invalid")
 	ErrNamespaceSplitNotation      = errors.New("subject/object should be provided as 'namespace:uuid'")
+	ErrPolicyNotFound              = errors.New("policy doesn't exist")
 )

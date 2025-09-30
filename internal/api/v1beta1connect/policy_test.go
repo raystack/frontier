@@ -332,3 +332,138 @@ func TestConnectHandler_CreatePolicy(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_GetPolicy(t *testing.T) {
+	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	testPolicyID := utils.NewString()
+	testUserID := utils.NewString()
+	testResourceID := utils.NewString()
+	testPolicyResourceType := "app/compute"
+
+	testPolicy := policy.Policy{
+		ID:            testPolicyID,
+		PrincipalType: "app/user",
+		PrincipalID:   testUserID,
+		ResourceID:    testResourceID,
+		ResourceType:  testPolicyResourceType,
+		RoleID:        "reader",
+		CreatedAt:     fixedTime,
+		UpdatedAt:     fixedTime,
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.PolicyService)
+		request *connect.Request[frontierv1beta1.GetPolicyRequest]
+		want    *connect.Response[frontierv1beta1.GetPolicyResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when policy service returns generic error",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Get", mock.Anything, testPolicyID).Return(policy.Policy{}, errors.New("service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should return not found error when ID is empty",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Get", mock.Anything, "").Return(policy.Policy{}, policy.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPolicyRequest{}),
+			want:    nil,
+			wantErr: ErrPolicyNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return not found error when ID is not UUID",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Get", mock.Anything, "some-id").Return(policy.Policy{}, policy.ErrInvalidUUID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPolicyRequest{
+				Id: "some-id",
+			}),
+			want:    nil,
+			wantErr: ErrPolicyNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return not found error when policy doesn't exist",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Get", mock.Anything, testPolicyID).Return(policy.Policy{}, policy.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrPolicyNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should successfully get policy with basic data",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Get", mock.Anything, testPolicyID).Return(testPolicy, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPolicyRequest{
+				Id: testPolicyID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetPolicyResponse{
+				Policy: &frontierv1beta1.Policy{
+					Id:        testPolicyID,
+					RoleId:    "reader",
+					Resource:  testPolicyResourceType + ":" + testResourceID,
+					Principal: "app/user:" + testUserID,
+					Metadata:  nil,
+					CreatedAt: timestamppb.New(fixedTime),
+					UpdatedAt: timestamppb.New(fixedTime),
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error when transformPolicyToPB fails due to metadata error",
+			setup: func(ps *mocks.PolicyService) {
+				invalidPolicy := testPolicy
+				invalidPolicy.Metadata = metadata.Metadata{"invalid": make(chan int)} // channels can't be converted to protobuf
+				ps.On("Get", mock.Anything, testPolicyID).Return(invalidPolicy, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPolicyRequest{
+				Id: testPolicyID,
+			}),
+			want:    nil,
+			wantErr: ErrInternalServerError,
+			errCode: connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicyService := &mocks.PolicyService{}
+			if tt.setup != nil {
+				tt.setup(mockPolicyService)
+			}
+
+			handler := &ConnectHandler{
+				policyService: mockPolicyService,
+			}
+
+			got, err := handler.GetPolicy(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errCode, connect.CodeOf(err))
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+
+			mockPolicyService.AssertExpectations(t)
+		})
+	}
+}
