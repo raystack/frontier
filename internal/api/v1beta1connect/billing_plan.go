@@ -94,6 +94,37 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.CreatePlanResponse{Plan: planPB}), nil
 }
 
+func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListPlansRequest]) (*connect.Response[frontierv1beta1.ListPlansResponse], error) {
+	var plans []*frontierv1beta1.Plan
+	planList, err := h.planService.List(ctx, plan.Filter{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	for _, v := range planList {
+		planPB, err := transformPlanToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		plans = append(plans, planPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListPlansResponse{Plans: plans}), nil
+}
+
+func (h *ConnectHandler) GetPlan(ctx context.Context, request *connect.Request[frontierv1beta1.GetPlanRequest]) (*connect.Response[frontierv1beta1.GetPlanResponse], error) {
+	planOb, err := h.planService.GetByID(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	planPB, err := transformPlanToPB(planOb)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetPlanResponse{Plan: planPB}), nil
+}
+
 func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 	var metaData *structpb.Struct
 	var err error
