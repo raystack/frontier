@@ -36,3 +36,19 @@ func (h *ConnectHandler) ListProducts(ctx context.Context, request *connect.Requ
 		Products: products,
 	}), nil
 }
+
+func (h *ConnectHandler) GetProduct(ctx context.Context, request *connect.Request[frontierv1beta1.GetProductRequest]) (*connect.Response[frontierv1beta1.GetProductResponse], error) {
+	product, err := h.productService.GetByID(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	productPB, err := transformProductToPB(product)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetProductResponse{
+		Product: productPB,
+	}), nil
+}
