@@ -164,7 +164,7 @@ export const usePlans = () => {
       const activeSub = await fetchActiveSubsciption();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
-          phase => phase?.plan_id === planId && phase.reason === 'change'
+          phase => phase?.planId === planId && phase.reason === 'change'
         );
         if (planPhase) {
           onSuccess(planPhase);
@@ -180,7 +180,7 @@ export const usePlans = () => {
       const activeSub = await fetchActiveSubsciption();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
-          phase => phase?.plan_id === '' && phase.reason === 'cancel'
+          phase => phase?.planId === '' && phase.reason === 'cancel'
         );
         if (planPhase) {
           onSuccess(planPhase);
@@ -193,7 +193,7 @@ export const usePlans = () => {
 
   const getSubscribedPlans = useCallback(() => {
     return subscriptions
-      .map(t => (t.plan_id ? planMap[t.plan_id] : null))
+      .map(t => (t.planId ? planMap[t.planId] : null))
       .filter((plan): plan is V1Beta1Plan => !!plan);
   }, [planMap, subscriptions]);
 

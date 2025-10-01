@@ -3,7 +3,8 @@ import {
   DEFAULT_DATE_FORMAT,
   SUBSCRIPTION_STATES
 } from '~/react/utils/constants';
-import { V1Beta1Plan, V1Beta1Subscription } from '~/src';
+import { V1Beta1Plan } from '~/src';
+import { Subscription } from '@raystack/proton/frontier';
 import styles from './styles.module.css';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
@@ -15,10 +16,11 @@ import {
   getPlanIntervalName,
   getPlanNameWithInterval
 } from '~/react/utils';
+import { timestampToDayjs } from '~/utils/timestamp';
 
 interface ChangeBannerProps {
   isLoading?: boolean;
-  subscription?: V1Beta1Subscription;
+  subscription?: Subscription;
   isAllowed: boolean;
 }
 
@@ -42,7 +44,7 @@ export function UpcomingPlanChangeBanner({
 
   const phases =
     subscription?.phases?.filter(phase =>
-      dayjs(phase.effective_at).isAfter(dayjs())
+      timestampToDayjs(phase.effectiveAt)?.isAfter(dayjs())
     ) || [];
 
   const nextPhase = phases?.[0];
@@ -68,13 +70,13 @@ export function UpcomingPlanChangeBanner({
   );
 
   useEffect(() => {
-    if (nextPhase?.plan_id) {
-      fetchPlan(nextPhase?.plan_id);
+    if (nextPhase?.planId) {
+      fetchPlan(nextPhase?.planId);
     }
-  }, [fetchPlan, nextPhase?.plan_id]);
+  }, [fetchPlan, nextPhase?.planId]);
 
-  const expiryDate = nextPhase?.effective_at
-    ? dayjs(nextPhase?.effective_at).format(
+  const expiryDate = nextPhase?.effectiveAt
+    ? timestampToDayjs(nextPhase?.effectiveAt)?.format(
         config?.dateFormat || DEFAULT_DATE_FORMAT
       )
     : '';
@@ -135,7 +137,7 @@ export function UpcomingPlanChangeBanner({
     : activePlan?.title;
 
   const showBanner =
-    nextPhase?.plan_id ||
+    nextPhase?.planId ||
     (subscription?.state === SUBSCRIPTION_STATES.ACTIVE &&
       nextPhase?.reason === 'cancel');
 

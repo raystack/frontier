@@ -1,6 +1,7 @@
 import { Button, Skeleton, Image, Text, Flex } from '@raystack/apsara';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '~/react/utils/constants';
-import { V1Beta1Invoice, V1Beta1Subscription } from '~/src';
+import { V1Beta1Invoice } from '~/src';
+import { Subscription } from '@raystack/proton/frontier';
 import billingStyles from './billing.module.css';
 import exclamationTriangle from '~/react/assets/exclamation-triangle.svg';
 import dayjs from 'dayjs';
@@ -8,7 +9,7 @@ import { useCallback } from 'react';
 
 interface PaymentIssueProps {
   isLoading?: boolean;
-  subscription?: V1Beta1Subscription;
+  subscription?: Subscription;
   invoices: V1Beta1Invoice[];
 }
 

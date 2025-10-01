@@ -1,9 +1,5 @@
 import dayjs from 'dayjs';
-import {
-  V1Beta1Subscription,
-  BillingAccountAddress,
-  V1Beta1Plan
-} from '~/src';
+import { BillingAccountAddress, V1Beta1Plan } from '~/src';
 import {
   BasePlan,
   IntervalKeys,
@@ -14,8 +10,9 @@ import {
 import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
 import { NIL as NIL_UUID } from 'uuid';
-import type { RpcStatus } from '~/src';
-import { PaymentMethod } from '@raystack/proton/frontier';
+import type { GooglerpcStatus } from '~/src';
+import { PaymentMethod, Subscription } from '@raystack/proton/frontier';
+import { timestampToDayjs } from '../../utils/timestamp';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -30,24 +27,30 @@ export const converBillingAddressToString = (
     .join(', ');
 };
 
-export const getActiveSubscription = (subscriptions: V1Beta1Subscription[]) => {
+export const getActiveSubscription = (subscriptions: Subscription[]) => {
   const activeSubscriptions = subscriptions
     .filter(
       sub =>
         sub.state === SUBSCRIPTION_STATES.ACTIVE ||
         sub.state === SUBSCRIPTION_STATES.PAST_DUE
     )
-    .sort((a, b) => (dayjs(a.updated_at).isAfter(b.updated_at) ? -1 : 1));
+    .sort((a, b) =>
+      timestampToDayjs(a.updatedAt)?.isAfter(timestampToDayjs(b.updatedAt))
+        ? -1
+        : 1
+    );
 
   return activeSubscriptions[0];
 };
 
-export const getTrialingSubscription = (
-  subscriptions: V1Beta1Subscription[]
-) => {
+export const getTrialingSubscription = (subscriptions: Subscription[]) => {
   const activeSubscriptions = subscriptions
     .filter(sub => sub.state === SUBSCRIPTION_STATES.TRIALING)
-    .sort((a, b) => (dayjs(a.updated_at).isAfter(b.updated_at) ? -1 : 1));
+    .sort((a, b) =>
+      timestampToDayjs(a.updatedAt)?.isAfter(timestampToDayjs(b.updatedAt))
+        ? -1
+        : 1
+    );
 
   return activeSubscriptions[0];
 };
@@ -167,9 +170,7 @@ export function getPlanPrice(plan: V1Beta1Plan) {
   );
 }
 
-export function getDefaultPaymentMethod(
-  paymentMethods: PaymentMethod[] = []
-) {
+export function getDefaultPaymentMethod(paymentMethods: PaymentMethod[] = []) {
   const defaultMethod = paymentMethods.find(pm => {
     const metadata = pm.metadata as PaymentMethodMetadata;
     return metadata.default;
@@ -208,7 +209,7 @@ export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
 
 export interface HttpErrorResponse extends Response {
   data: unknown;
-  error: RpcStatus;
+  error: GooglerpcStatus;
 }
 
 export const handleSelectValueChange = (onChange: (value: string) => void) => {

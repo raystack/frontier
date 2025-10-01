@@ -193,7 +193,7 @@ export default function Plans() {
           <PlansList
             plans={plans}
             features={features}
-            currentPlanId={activeSubscription?.plan_id || ''}
+            currentPlanId={activeSubscription?.planId || ''}
             allowAction={canChangePlan}
           />
         )}

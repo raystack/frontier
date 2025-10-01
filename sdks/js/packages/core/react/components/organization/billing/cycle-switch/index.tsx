@@ -18,6 +18,7 @@ import dayjs from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
+import { timestampToDayjs } from '~/utils/timestamp';
 
 export function ConfirmCycleSwitch() {
   const { activePlan, client, paymentMethod, config, activeSubscription } =
@@ -101,9 +102,9 @@ export function ConfirmCycleSwitch() {
               });
               if (planPhase) {
                 closeModal();
-                const changeDate = dayjs(planPhase?.effective_at).format(
-                  dateFormat
-                );
+                const changeDate = timestampToDayjs(
+                  planPhase?.effectiveAt
+                )?.format(dateFormat);
                 toast.success(`Plan cycle switch successful`, {
                   description: `Your plan cycle will switched to ${nextPlanIntervalName} on ${changeDate}`
                 });
@@ -122,8 +123,8 @@ export function ConfirmCycleSwitch() {
     }
   }
 
-  const cycleSwitchDate = activeSubscription?.current_period_end_at
-    ? dayjs(activeSubscription?.current_period_end_at).format(
+  const cycleSwitchDate = activeSubscription?.currentPeriodEndAt
+    ? timestampToDayjs(activeSubscription?.currentPeriodEndAt)?.format(
         config?.dateFormat || DEFAULT_DATE_FORMAT
       )
     : 'the next billing cycle';

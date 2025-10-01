@@ -132,10 +132,10 @@ export const UpcomingBillingCycle = ({
         setIsPlansLoading(false);
       }
     }
-    if (activeSubscription?.plan_id) {
-      getPlans(activeSubscription?.plan_id);
+    if (activeSubscription?.planId) {
+      getPlans(activeSubscription?.planId);
     }
-  }, [client, activeSubscription?.plan_id]);
+  }, [client, activeSubscription?.planId]);
 
   useEffect(() => {
     async function getMemberCount(orgId: string) {
@@ -219,7 +219,7 @@ export const UpcomingBillingCycle = ({
   };
 
   const alreadyPhased = activeSubscription?.phases?.find(
-    phase => phase.plan_id === switchablePlan?.id
+    phase => phase.planId === switchablePlan?.id
   );
 
   const isLoading =

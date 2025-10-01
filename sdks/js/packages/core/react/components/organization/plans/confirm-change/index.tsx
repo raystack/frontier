@@ -23,6 +23,7 @@ import { usePlans } from '../hooks/usePlans';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 import { useMessages } from '~/react/hooks/useMessages';
+import { timestampToDayjs } from '~/utils/timestamp';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
@@ -83,7 +84,7 @@ export default function ConfirmPlanChange() {
       : await verifyPlanChange({ planId });
     const actionName = planAction?.btnLabel.toLowerCase();
     if (planPhase) {
-      const changeDate = dayjs(planPhase?.effective_at).format(
+      const changeDate = timestampToDayjs(planPhase?.effectiveAt)?.format(
         config?.dateFormat || DEFAULT_DATE_FORMAT
       );
       toast.success(`Plan ${actionName} successful`, {
@@ -155,8 +156,8 @@ export default function ConfirmPlanChange() {
     hyphenSeperated: true
   });
 
-  const cycleSwitchDate = activeSubscription?.current_period_end_at
-    ? dayjs(activeSubscription?.current_period_end_at).format(
+  const cycleSwitchDate = activeSubscription?.currentPeriodEndAt
+    ? timestampToDayjs(activeSubscription?.currentPeriodEndAt)?.format(
         config?.dateFormat || DEFAULT_DATE_FORMAT
       )
     : 'the next billing cycle';

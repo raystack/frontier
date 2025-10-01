@@ -19,8 +19,7 @@ import {
 import { V1Beta1 } from '../../api-client/V1Beta1';
 import {
   V1Beta1Organization,
-  V1Beta1Plan,
-  V1Beta1Subscription
+  V1Beta1Plan
 } from '../../api-client/data-contracts';
 import {
   User,
@@ -30,9 +29,11 @@ import {
   GetOrganizationKycRequestSchema,
   GetBillingAccountRequestSchema,
   ListBillingAccountsRequestSchema,
+  ListSubscriptionsRequestSchema,
   BillingAccount,
   BillingAccountDetails,
-  PaymentMethod
+  PaymentMethod,
+  Subscription
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -71,13 +72,13 @@ interface FrontierContextProviderProps {
 
   isBillingAccountLoading: boolean;
 
-  trialSubscription: V1Beta1Subscription | undefined;
-  activeSubscription: V1Beta1Subscription | undefined;
+  trialSubscription: Subscription | undefined;
+  activeSubscription: Subscription | undefined;
   setActiveSubscription: Dispatch<
-    SetStateAction<V1Beta1Subscription | undefined>
+    SetStateAction<Subscription | undefined>
   >;
 
-  subscriptions: V1Beta1Subscription[];
+  subscriptions: Subscription[];
 
   isActiveSubscriptionLoading: boolean;
   setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
@@ -92,7 +93,7 @@ interface FrontierContextProviderProps {
   isActivePlanLoading: boolean;
   setIsActivePlanLoading: Dispatch<SetStateAction<boolean>>;
 
-  fetchActiveSubsciption: () => Promise<V1Beta1Subscription | undefined>;
+  fetchActiveSubsciption: () => Promise<Subscription | undefined>;
 
   paymentMethod: PaymentMethod | undefined;
 
@@ -207,12 +208,10 @@ export const FrontierContextProvider = ({
   const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
     useState(false);
   const [activeSubscription, setActiveSubscription] =
-    useState<V1Beta1Subscription>();
+    useState<Subscription>();
 
   const [trialSubscription, setTrialSubscription] =
-    useState<V1Beta1Subscription>();
-
-  const [subscriptions, setSubscriptions] = useState<V1Beta1Subscription[]>([]);
+    useState<Subscription>();
 
   const [allPlans, setAllPlans] = useState<V1Beta1Plan[]>([]);
   const [isAllPlansLoading, setIsAllPlansLoading] = useState(false);
@@ -285,6 +284,17 @@ export const FrontierContextProvider = ({
     return undefined;
   }, [billingAccountData?.paymentMethods]);
 
+  const { data: subscriptionsData } = useConnectQuery(
+    FrontierServiceQueries.listSubscriptions,
+    create(ListSubscriptionsRequestSchema, {
+      orgId: activeOrganization?.id ?? '',
+      billingId: billingAccount?.id ?? ''
+    }),
+    { enabled: !!activeOrganization?.id && !!billingAccount?.id }
+  );
+
+  const subscriptions = (subscriptionsData?.subscriptions || []) as Subscription[];
+
   const getPlan = useCallback(
     async (planId?: string) => {
       if (!planId) return;
@@ -306,15 +316,15 @@ export const FrontierContextProvider = ({
   );
 
   const setActiveAndTrialSubscriptions = useCallback(
-    async (subscriptionsList: V1Beta1Subscription[] = []) => {
+    async (subscriptionsList: Subscription[] = []) => {
       const activeSub = getActiveSubscription(subscriptionsList);
       setActiveSubscription(activeSub);
-      const activeSubPlan = await getPlan(activeSub?.plan_id);
+      const activeSubPlan = await getPlan(activeSub?.planId);
       setActivePlan(activeSubPlan);
 
       const trialSub = getTrialingSubscription(subscriptionsList);
       setTrialSubscription(trialSub);
-      const trialSubPlan = await getPlan(trialSub?.plan_id);
+      const trialSubPlan = await getPlan(trialSub?.planId);
       setTrialPlan(trialSubPlan);
 
       return [activeSub, trialSub];
@@ -322,37 +332,31 @@ export const FrontierContextProvider = ({
     [getPlan]
   );
 
-  const getSubscription = useCallback(
-    async (orgId: string, billingId: string) => {
+  const processSubscriptions = useCallback(
+    async (subscriptionsList: Subscription[]) => {
       setIsActiveSubscriptionLoading(true);
       try {
-        const resp = await frontierClient?.frontierServiceListSubscriptions(
-          orgId,
-          billingId
-        );
-        const subscriptionsList = resp?.data?.subscriptions || [];
-        setSubscriptions(subscriptionsList);
         const [activeSub] = await setActiveAndTrialSubscriptions(
           subscriptionsList
         );
         return activeSub;
       } catch (err: any) {
         console.error(
-          'frontier:sdk:: There is problem with fetching active subscriptions'
+          'frontier:sdk:: There is problem with processing subscriptions'
         );
         console.error(err);
       } finally {
         setIsActiveSubscriptionLoading(false);
       }
     },
-    [frontierClient, setActiveAndTrialSubscriptions]
+    [setActiveAndTrialSubscriptions]
   );
 
   const fetchActiveSubsciption = useCallback(async () => {
-    if (activeOrganization?.id && billingAccount?.id) {
-      return getSubscription(activeOrganization?.id, billingAccount?.id);
+    if (subscriptions.length > 0) {
+      return processSubscriptions(subscriptions);
     }
-  }, [activeOrganization?.id, billingAccount?.id, getSubscription]);
+  }, [subscriptions, processSubscriptions]);
 
   const fetchAllPlans = useCallback(async () => {
     try {
@@ -375,21 +379,16 @@ export const FrontierContextProvider = ({
   }, [activeOrganization?.id, fetchAllPlans]);
 
   useEffect(() => {
-    // Fetch subscriptions when billing account is available
-    if (activeOrganization?.id && billingAccount?.id) {
-      getSubscription(activeOrganization.id, billingAccount.id);
+    // Process subscriptions when available
+    if (subscriptions.length > 0) {
+      processSubscriptions(subscriptions);
     } else if (
       billingAccountsData &&
       billingAccountsData.billingAccounts?.length === 0
     ) {
       setActiveSubscription(undefined);
     }
-  }, [
-    activeOrganization?.id,
-    billingAccount?.id,
-    billingAccountsData,
-    getSubscription
-  ]);
+  }, [subscriptions, billingAccountsData, processSubscriptions]);
 
   useEffect(() => {
     if (config?.billing?.basePlan) {

@@ -32,3 +32,6 @@ export type {
 } from '../shared/types';
 
 export { PREFERENCE_OPTIONS } from './utils/constants';
+
+export { timestampToDate, timestampToDayjs, isNullTimestamp } from '../utils/timestamp';
+export type { TimeStamp } from '../utils/timestamp';
