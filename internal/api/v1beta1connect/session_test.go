@@ -446,6 +446,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 							ClientIP:      "X-Forwarded-For",
 							ClientCountry: "X-Country",
 							ClientCity:    "X-City",
+							ClientUserAgent: "User-Agent",
 						},
 					},
 				},
