@@ -1044,3 +1044,131 @@ func TestConnectHandler_ListFeatures(t *testing.T) {
 		})
 	}
 }
+func TestConnectHandler_GetFeature(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(ps *mocks.ProductService)
+		req         *connect.Request[frontierv1beta1.GetFeatureRequest]
+		want        *connect.Response[frontierv1beta1.GetFeatureResponse]
+		wantErr     bool
+		wantErrCode connect.Code
+		wantErrMsg  error
+	}{
+		{
+			name: "should return error if service returns error",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().GetFeatureByID(mock.Anything, "feature-1").Return(product.Feature{}, errors.New("service error"))
+			},
+			req:         connect.NewRequest(&frontierv1beta1.GetFeatureRequest{Id: "feature-1"}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+		{
+			name: "should return feature successfully with minimal data",
+			setup: func(ps *mocks.ProductService) {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				ps.EXPECT().GetFeatureByID(mock.Anything, "feature-1").Return(product.Feature{
+					ID:         "feature-1",
+					Name:       "basic-analytics",
+					Title:      "Basic Analytics",
+					ProductIDs: []string{"product-1"},
+					Metadata:   metadata.Metadata{},
+					CreatedAt:  createdAt,
+					UpdatedAt:  updatedAt,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetFeatureRequest{Id: "feature-1"}),
+			want: func() *connect.Response[frontierv1beta1.GetFeatureResponse] {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				return connect.NewResponse(&frontierv1beta1.GetFeatureResponse{
+					Feature: &frontierv1beta1.Feature{
+						Id:         "feature-1",
+						Name:       "basic-analytics",
+						Title:      "Basic Analytics",
+						ProductIds: []string{"product-1"},
+						CreatedAt:  timestamppb.New(createdAt),
+						UpdatedAt:  timestamppb.New(updatedAt),
+					},
+				})
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "should return feature successfully with complex data",
+			setup: func(ps *mocks.ProductService) {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				ps.EXPECT().GetFeatureByID(mock.Anything, "feature-2").Return(product.Feature{
+					ID:         "feature-2",
+					Name:       "premium-reports",
+					Title:      "Premium Reports & Analytics",
+					ProductIDs: []string{"product-2", "product-3"},
+					Metadata:   metadata.Metadata{"type": "reporting", "tier": "premium", "category": "analytics"},
+					CreatedAt:  createdAt,
+					UpdatedAt:  updatedAt,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetFeatureRequest{Id: "feature-2"}),
+			want: func() *connect.Response[frontierv1beta1.GetFeatureResponse] {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				return connect.NewResponse(&frontierv1beta1.GetFeatureResponse{
+					Feature: &frontierv1beta1.Feature{
+						Id:         "feature-2",
+						Name:       "premium-reports",
+						Title:      "Premium Reports & Analytics",
+						ProductIds: []string{"product-2", "product-3"},
+						CreatedAt:  timestamppb.New(createdAt),
+						UpdatedAt:  timestamppb.New(updatedAt),
+					},
+				})
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "should handle empty feature id",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().GetFeatureByID(mock.Anything, "").Return(product.Feature{}, errors.New("not found"))
+			},
+			req:         connect.NewRequest(&frontierv1beta1.GetFeatureRequest{Id: ""}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			productService := mocks.NewProductService(t)
+			if tt.setup != nil {
+				tt.setup(productService)
+			}
+			h := &ConnectHandler{
+				productService: productService,
+			}
+			got, err := h.GetFeature(context.Background(), tt.req)
+			if tt.wantErr {
+				assert.Error(t, err)
+				connectErr := &connect.Error{}
+				assert.True(t, errors.As(err, &connectErr))
+				assert.Equal(t, tt.wantErrCode, connectErr.Code())
+				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, got)
+				wantFeature := tt.want.Msg.GetFeature()
+				gotFeature := got.Msg.GetFeature()
+				assert.Equal(t, wantFeature.GetId(), gotFeature.GetId())
+				assert.Equal(t, wantFeature.GetName(), gotFeature.GetName())
+				assert.Equal(t, wantFeature.GetTitle(), gotFeature.GetTitle())
+				assert.Equal(t, wantFeature.GetProductIds(), gotFeature.GetProductIds())
+			}
+		})
+	}
+}

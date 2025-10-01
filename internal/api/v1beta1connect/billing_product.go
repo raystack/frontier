@@ -189,3 +189,19 @@ func (h *ConnectHandler) ListFeatures(ctx context.Context, request *connect.Requ
 		Features: featuresPB,
 	}), nil
 }
+
+func (h *ConnectHandler) GetFeature(ctx context.Context, request *connect.Request[frontierv1beta1.GetFeatureRequest]) (*connect.Response[frontierv1beta1.GetFeatureResponse], error) {
+	feature, err := h.productService.GetFeatureByID(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	featurePB, err := transformFeatureToPB(feature)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetFeatureResponse{
+		Feature: featurePB,
+	}), nil
+}
