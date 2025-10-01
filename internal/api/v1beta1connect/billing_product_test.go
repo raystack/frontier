@@ -497,3 +497,156 @@ func TestConnectHandler_GetProduct(t *testing.T) {
 		})
 	}
 }
+func TestConnectHandler_CreateProduct(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(ps *mocks.ProductService)
+		req         *connect.Request[frontierv1beta1.CreateProductRequest]
+		want        *connect.Response[frontierv1beta1.CreateProductResponse]
+		wantErr     bool
+		wantErrCode connect.Code
+		wantErrMsg  error
+	}{
+		{
+			name: "should return error if service returns error",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("product.Product")).Return(product.Product{}, errors.New("service error"))
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateProductRequest{
+				Body: &frontierv1beta1.ProductRequestBody{
+					Name:        "Test Product",
+					Title:       "Test Product Title",
+					Description: "Test product description",
+					PlanId:      "plan-1",
+					Behavior:    product.BasicBehavior.String(),
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+		{
+			name: "should create product successfully with minimal data",
+			setup: func(ps *mocks.ProductService) {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("product.Product")).Return(product.Product{
+					ID:          "product-1",
+					Name:        "Basic Product",
+					Title:       "Basic Product Title",
+					Description: "Basic product description",
+					PlanIDs:     []string{"plan-1"},
+					State:       "active",
+					Prices:      []product.Price{},
+					Features:    []product.Feature{},
+					Config: product.BehaviorConfig{
+						SeatLimit:    10,
+						CreditAmount: 100,
+						MinQuantity:  1,
+						MaxQuantity:  100,
+					},
+					Behavior:  product.BasicBehavior,
+					Metadata:  metadata.Metadata{},
+					CreatedAt: createdAt,
+					UpdatedAt: updatedAt,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateProductRequest{
+				Body: &frontierv1beta1.ProductRequestBody{
+					Name:        "Basic Product",
+					Title:       "Basic Product Title",
+					Description: "Basic product description",
+					PlanId:      "plan-1",
+					Behavior:    product.BasicBehavior.String(),
+					BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+						SeatLimit:    10,
+						CreditAmount: 100,
+						MinQuantity:  1,
+						MaxQuantity:  100,
+					},
+				},
+			}),
+			want: func() *connect.Response[frontierv1beta1.CreateProductResponse] {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				return connect.NewResponse(&frontierv1beta1.CreateProductResponse{
+					Product: &frontierv1beta1.Product{
+						Id:          "product-1",
+						Name:        "Basic Product",
+						Title:       "Basic Product Title",
+						Description: "Basic product description",
+						PlanIds:     []string{"plan-1"},
+						State:       "active",
+						Prices:      []*frontierv1beta1.Price{},
+						Features:    []*frontierv1beta1.Feature{},
+						BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+							SeatLimit:    10,
+							CreditAmount: 100,
+							MinQuantity:  1,
+							MaxQuantity:  100,
+						},
+						Behavior:  product.BasicBehavior.String(),
+						CreatedAt: timestamppb.New(createdAt),
+						UpdatedAt: timestamppb.New(updatedAt),
+					},
+				})
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "should handle empty product data",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("product.Product")).Return(product.Product{}, errors.New("validation error"))
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateProductRequest{
+				Body: &frontierv1beta1.ProductRequestBody{},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			productService := mocks.NewProductService(t)
+			if tt.setup != nil {
+				tt.setup(productService)
+			}
+			h := &ConnectHandler{
+				productService: productService,
+			}
+			got, err := h.CreateProduct(context.Background(), tt.req)
+			if tt.wantErr {
+				assert.Error(t, err)
+				connectErr := &connect.Error{}
+				assert.True(t, errors.As(err, &connectErr))
+				assert.Equal(t, tt.wantErrCode, connectErr.Code())
+				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, got)
+				wantProduct := tt.want.Msg.GetProduct()
+				gotProduct := got.Msg.GetProduct()
+				assert.Equal(t, wantProduct.GetId(), gotProduct.GetId())
+				assert.Equal(t, wantProduct.GetName(), gotProduct.GetName())
+				assert.Equal(t, wantProduct.GetTitle(), gotProduct.GetTitle())
+				assert.Equal(t, wantProduct.GetDescription(), gotProduct.GetDescription())
+				assert.Equal(t, wantProduct.GetPlanIds(), gotProduct.GetPlanIds())
+				assert.Equal(t, wantProduct.GetState(), gotProduct.GetState())
+				assert.Equal(t, len(wantProduct.GetPrices()), len(gotProduct.GetPrices()))
+				assert.Equal(t, len(wantProduct.GetFeatures()), len(gotProduct.GetFeatures()))
+				assert.Equal(t, wantProduct.GetBehavior(), gotProduct.GetBehavior())
+				if wantProduct.GetBehaviorConfig() != nil {
+					assert.Equal(t, wantProduct.GetBehaviorConfig().GetSeatLimit(), gotProduct.GetBehaviorConfig().GetSeatLimit())
+					assert.Equal(t, wantProduct.GetBehaviorConfig().GetCreditAmount(), gotProduct.GetBehaviorConfig().GetCreditAmount())
+					assert.Equal(t, wantProduct.GetBehaviorConfig().GetMinQuantity(), gotProduct.GetBehaviorConfig().GetMinQuantity())
+					assert.Equal(t, wantProduct.GetBehaviorConfig().GetMaxQuantity(), gotProduct.GetBehaviorConfig().GetMaxQuantity())
+				}
+			}
+		})
+	}
+}

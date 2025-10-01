@@ -5,6 +5,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/product"
+	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -49,6 +50,67 @@ func (h *ConnectHandler) GetProduct(ctx context.Context, request *connect.Reques
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetProductResponse{
+		Product: productPB,
+	}), nil
+}
+
+func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Request[frontierv1beta1.CreateProductRequest]) (*connect.Response[frontierv1beta1.CreateProductResponse], error) {
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	// parse price
+	var productPrices []product.Price
+	for _, v := range request.Msg.GetBody().GetPrices() {
+		productPrices = append(productPrices, product.Price{
+			Name:             v.GetName(),
+			Amount:           v.GetAmount(),
+			Currency:         v.GetCurrency(),
+			UsageType:        product.BuildPriceUsageType(v.GetUsageType()),
+			BillingScheme:    product.BuildBillingScheme(v.GetBillingScheme()),
+			MeteredAggregate: v.GetMeteredAggregate(),
+			Interval:         v.GetInterval(),
+			Metadata:         metadata.Build(v.GetMetadata().AsMap()),
+		})
+	}
+	// parse features
+	var productFeatures []product.Feature
+	for _, v := range request.Msg.GetBody().GetFeatures() {
+		productFeatures = append(productFeatures, product.Feature{
+			Name:       v.GetName(),
+			Title:      v.GetTitle(),
+			ProductIDs: v.GetProductIds(),
+			Metadata:   metadata.Build(v.GetMetadata().AsMap()),
+		})
+	}
+
+	behaviorConfig := product.BehaviorConfig{}
+	if request.Msg.GetBody().GetBehaviorConfig() != nil {
+		behaviorConfig = product.BehaviorConfig{
+			CreditAmount: request.Msg.GetBody().GetBehaviorConfig().GetCreditAmount(),
+			SeatLimit:    request.Msg.GetBody().GetBehaviorConfig().GetSeatLimit(),
+			MinQuantity:  request.Msg.GetBody().GetBehaviorConfig().GetMinQuantity(),
+			MaxQuantity:  request.Msg.GetBody().GetBehaviorConfig().GetMaxQuantity(),
+		}
+	}
+	newProduct, err := h.productService.Create(ctx, product.Product{
+		PlanIDs:     []string{request.Msg.GetBody().GetPlanId()},
+		Name:        request.Msg.GetBody().GetName(),
+		Title:       request.Msg.GetBody().GetTitle(),
+		Description: request.Msg.GetBody().GetDescription(),
+		Prices:      productPrices,
+		Config:      behaviorConfig,
+		Behavior:    product.Behavior(request.Msg.GetBody().GetBehavior()),
+		Features:    productFeatures,
+		Metadata:    metaDataMap,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	productPB, err := transformProductToPB(newProduct)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.CreateProductResponse{
 		Product: productPB,
 	}), nil
 }
