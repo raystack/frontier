@@ -147,6 +147,27 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 	}), nil
 }
 
+func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Request[frontierv1beta1.ListCheckoutsRequest]) (*connect.Response[frontierv1beta1.ListCheckoutsResponse], error) {
+	if request.Msg.GetOrgId() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	var checkouts []*frontierv1beta1.CheckoutSession
+	checkoutList, err := h.checkoutService.List(ctx, checkout.Filter{
+		CustomerID: request.Msg.GetBillingId(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	for _, v := range checkoutList {
+		checkouts = append(checkouts, transformCheckoutToPB(v))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListCheckoutsResponse{
+		CheckoutSessions: checkouts,
+	}), nil
+}
+
 func transformCheckoutToPB(ch checkout.Checkout) *frontierv1beta1.CheckoutSession {
 	return &frontierv1beta1.CheckoutSession{
 		Id:          ch.ID,
