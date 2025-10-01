@@ -169,3 +169,23 @@ func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Req
 		Product: productPb,
 	}), nil
 }
+
+func (h *ConnectHandler) ListFeatures(ctx context.Context, request *connect.Request[frontierv1beta1.ListFeaturesRequest]) (*connect.Response[frontierv1beta1.ListFeaturesResponse], error) {
+	features, err := h.productService.ListFeatures(ctx, product.Filter{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var featuresPB []*frontierv1beta1.Feature
+	for _, v := range features {
+		f, err := transformFeatureToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		featuresPB = append(featuresPB, f)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListFeaturesResponse{
+		Features: featuresPB,
+	}), nil
+}

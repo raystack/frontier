@@ -923,3 +923,124 @@ func TestConnectHandler_UpdateProduct(t *testing.T) {
 		})
 	}
 }
+func TestConnectHandler_ListFeatures(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(ps *mocks.ProductService)
+		req         *connect.Request[frontierv1beta1.ListFeaturesRequest]
+		want        *connect.Response[frontierv1beta1.ListFeaturesResponse]
+		wantErr     bool
+		wantErrCode connect.Code
+		wantErrMsg  error
+	}{
+		{
+			name: "should return error if service returns error",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().ListFeatures(mock.Anything, product.Filter{}).Return(nil, errors.New("service error"))
+			},
+			req:         connect.NewRequest(&frontierv1beta1.ListFeaturesRequest{}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+		{
+			name: "should return empty list when no features exist",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().ListFeatures(mock.Anything, product.Filter{}).Return([]product.Feature{}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListFeaturesRequest{}),
+			want: connect.NewResponse(&frontierv1beta1.ListFeaturesResponse{
+				Features: []*frontierv1beta1.Feature{},
+			}),
+			wantErr: false,
+		},
+		{
+			name: "should return features list successfully",
+			setup: func(ps *mocks.ProductService) {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				ps.EXPECT().ListFeatures(mock.Anything, product.Filter{}).Return([]product.Feature{
+					{
+						ID:         "feature-1",
+						Name:       "basic-analytics",
+						Title:      "Basic Analytics",
+						ProductIDs: []string{"product-1"},
+						Metadata:   metadata.Metadata{"type": "analytics"},
+						CreatedAt:  createdAt,
+						UpdatedAt:  updatedAt,
+					},
+					{
+						ID:         "feature-2",
+						Name:       "premium-reports",
+						Title:      "Premium Reports",
+						ProductIDs: []string{"product-2", "product-3"},
+						Metadata:   metadata.Metadata{"type": "reporting", "tier": "premium"},
+						CreatedAt:  createdAt,
+						UpdatedAt:  updatedAt,
+					},
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListFeaturesRequest{}),
+			want: func() *connect.Response[frontierv1beta1.ListFeaturesResponse] {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				return connect.NewResponse(&frontierv1beta1.ListFeaturesResponse{
+					Features: []*frontierv1beta1.Feature{
+						{
+							Id:         "feature-1",
+							Name:       "basic-analytics",
+							Title:      "Basic Analytics",
+							ProductIds: []string{"product-1"},
+							CreatedAt:  timestamppb.New(createdAt),
+							UpdatedAt:  timestamppb.New(updatedAt),
+						},
+						{
+							Id:         "feature-2",
+							Name:       "premium-reports",
+							Title:      "Premium Reports",
+							ProductIds: []string{"product-2", "product-3"},
+							CreatedAt:  timestamppb.New(createdAt),
+							UpdatedAt:  timestamppb.New(updatedAt),
+						},
+					},
+				})
+			}(),
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			productService := mocks.NewProductService(t)
+			if tt.setup != nil {
+				tt.setup(productService)
+			}
+			h := &ConnectHandler{
+				productService: productService,
+			}
+			got, err := h.ListFeatures(context.Background(), tt.req)
+			if tt.wantErr {
+				assert.Error(t, err)
+				connectErr := &connect.Error{}
+				assert.True(t, errors.As(err, &connectErr))
+				assert.Equal(t, tt.wantErrCode, connectErr.Code())
+				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, got)
+				assert.Equal(t, len(tt.want.Msg.GetFeatures()), len(got.Msg.GetFeatures()))
+				for i, wantFeature := range tt.want.Msg.GetFeatures() {
+					if i < len(got.Msg.GetFeatures()) {
+						gotFeature := got.Msg.GetFeatures()[i]
+						assert.Equal(t, wantFeature.GetId(), gotFeature.GetId())
+						assert.Equal(t, wantFeature.GetName(), gotFeature.GetName())
+						assert.Equal(t, wantFeature.GetTitle(), gotFeature.GetTitle())
+						assert.Equal(t, wantFeature.GetProductIds(), gotFeature.GetProductIds())
+					}
+				}
+			}
+		})
+	}
+}
