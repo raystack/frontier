@@ -443,9 +443,9 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 				authConfig: authenticate.Config{
 					Session: authenticate.SessionConfig{
 						Headers: authenticate.SessionMetadataHeaders{
-							ClientIP:      "X-Forwarded-For",
-							ClientCountry: "X-Country",
-							ClientCity:    "X-City",
+							ClientIP:        "X-Forwarded-For",
+							ClientCountry:   "X-Country",
+							ClientCity:      "X-City",
 							ClientUserAgent: "User-Agent",
 						},
 					},
