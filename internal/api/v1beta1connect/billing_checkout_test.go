@@ -633,3 +633,190 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_GetCheckout(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(cs *mocks.CheckoutService)
+		req         *connect.Request[frontierv1beta1.GetCheckoutRequest]
+		want        *connect.Response[frontierv1beta1.GetCheckoutResponse]
+		wantErr     bool
+		wantErrCode connect.Code
+		wantErrMsg  error
+	}{
+		{
+			name: "should return error if org_id is empty",
+			setup: func(cs *mocks.CheckoutService) {
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
+				OrgId: "",
+				Id:    "test-checkout-id",
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+			wantErrMsg:  ErrBadRequest,
+		},
+		{
+			name: "should return error if id is empty",
+			setup: func(cs *mocks.CheckoutService) {
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
+				OrgId: "test-org-id",
+				Id:    "",
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+			wantErrMsg:  ErrBadRequest,
+		},
+		{
+			name: "should return error if both org_id and id are empty",
+			setup: func(cs *mocks.CheckoutService) {
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
+				OrgId: "",
+				Id:    "",
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+			wantErrMsg:  ErrBadRequest,
+		},
+		{
+			name: "should return error if service returns error",
+			setup: func(cs *mocks.CheckoutService) {
+				cs.EXPECT().GetByID(mock.Anything, "test-checkout-id").Return(checkout.Checkout{}, errors.New("service error"))
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
+				OrgId: "test-org-id",
+				Id:    "test-checkout-id",
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+		{
+			name: "should return checkout successfully",
+			setup: func(cs *mocks.CheckoutService) {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				expireAt := time.Now()
+				cs.EXPECT().GetByID(mock.Anything, "test-checkout-id").Return(checkout.Checkout{
+					ID:          "test-checkout-id",
+					CheckoutUrl: "https://checkout.stripe.com/session-1",
+					SuccessUrl:  "https://example.com/success",
+					CancelUrl:   "https://example.com/cancel",
+					State:       "active",
+					PlanID:      "plan-1",
+					ProductID:   "",
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+					ExpireAt:    expireAt,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
+				OrgId: "test-org-id",
+				Id:    "test-checkout-id",
+			}),
+			want: func() *connect.Response[frontierv1beta1.GetCheckoutResponse] {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				expireAt := time.Now()
+				return connect.NewResponse(&frontierv1beta1.GetCheckoutResponse{
+					CheckoutSession: &frontierv1beta1.CheckoutSession{
+						Id:          "test-checkout-id",
+						CheckoutUrl: "https://checkout.stripe.com/session-1",
+						SuccessUrl:  "https://example.com/success",
+						CancelUrl:   "https://example.com/cancel",
+						State:       "active",
+						Plan:        "plan-1",
+						Product:     "",
+						CreatedAt:   timestamppb.New(createdAt),
+						UpdatedAt:   timestamppb.New(updatedAt),
+						ExpireAt:    timestamppb.New(expireAt),
+					},
+				})
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "should return checkout with product successfully",
+			setup: func(cs *mocks.CheckoutService) {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				expireAt := time.Now()
+				cs.EXPECT().GetByID(mock.Anything, "test-checkout-id-2").Return(checkout.Checkout{
+					ID:          "test-checkout-id-2",
+					CheckoutUrl: "https://checkout.stripe.com/session-2",
+					SuccessUrl:  "https://example.com/success",
+					CancelUrl:   "https://example.com/cancel",
+					State:       "expired",
+					PlanID:      "",
+					ProductID:   "product-1",
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+					ExpireAt:    expireAt,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
+				OrgId: "test-org-id",
+				Id:    "test-checkout-id-2",
+			}),
+			want: func() *connect.Response[frontierv1beta1.GetCheckoutResponse] {
+				createdAt := time.Now()
+				updatedAt := time.Now()
+				expireAt := time.Now()
+				return connect.NewResponse(&frontierv1beta1.GetCheckoutResponse{
+					CheckoutSession: &frontierv1beta1.CheckoutSession{
+						Id:          "test-checkout-id-2",
+						CheckoutUrl: "https://checkout.stripe.com/session-2",
+						SuccessUrl:  "https://example.com/success",
+						CancelUrl:   "https://example.com/cancel",
+						State:       "expired",
+						Plan:        "",
+						Product:     "product-1",
+						CreatedAt:   timestamppb.New(createdAt),
+						UpdatedAt:   timestamppb.New(updatedAt),
+						ExpireAt:    timestamppb.New(expireAt),
+					},
+				})
+			}(),
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			checkoutService := mocks.NewCheckoutService(t)
+			if tt.setup != nil {
+				tt.setup(checkoutService)
+			}
+			h := &ConnectHandler{
+				checkoutService: checkoutService,
+			}
+			got, err := h.GetCheckout(context.Background(), tt.req)
+			if tt.wantErr {
+				assert.Error(t, err)
+				connectErr := &connect.Error{}
+				assert.True(t, errors.As(err, &connectErr))
+				assert.Equal(t, tt.wantErrCode, connectErr.Code())
+				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, got)
+				wantSession := tt.want.Msg.GetCheckoutSession()
+				gotSession := got.Msg.GetCheckoutSession()
+				assert.Equal(t, wantSession.GetId(), gotSession.GetId())
+				assert.Equal(t, wantSession.GetCheckoutUrl(), gotSession.GetCheckoutUrl())
+				assert.Equal(t, wantSession.GetSuccessUrl(), gotSession.GetSuccessUrl())
+				assert.Equal(t, wantSession.GetCancelUrl(), gotSession.GetCancelUrl())
+				assert.Equal(t, wantSession.GetState(), gotSession.GetState())
+				assert.Equal(t, wantSession.GetPlan(), gotSession.GetPlan())
+				assert.Equal(t, wantSession.GetProduct(), gotSession.GetProduct())
+			}
+		})
+	}
+}

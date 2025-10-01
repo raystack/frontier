@@ -168,6 +168,21 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 	}), nil
 }
 
+func (h *ConnectHandler) GetCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.GetCheckoutRequest]) (*connect.Response[frontierv1beta1.GetCheckoutResponse], error) {
+	if request.Msg.GetOrgId() == "" || request.Msg.GetId() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	ch, err := h.checkoutService.GetByID(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetCheckoutResponse{
+		CheckoutSession: transformCheckoutToPB(ch),
+	}), nil
+}
+
 func transformCheckoutToPB(ch checkout.Checkout) *frontierv1beta1.CheckoutSession {
 	return &frontierv1beta1.CheckoutSession{
 		Id:          ch.ID,
