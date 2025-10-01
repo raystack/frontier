@@ -60,7 +60,7 @@ type SessionConfig struct {
 }
 
 type SessionMetadataHeaders struct {
-	ClientIP      string `yaml:"client_ip" mapstructure:"client_ip" default:"x-frontier-ip"`
+	ClientIP      string `yaml:"client_ip" mapstructure:"client_ip" default:"x-forwarded-for"`
 	ClientCountry string `yaml:"client_country" mapstructure:"client_country" default:"x-frontier-country"`
 	ClientCity    string `yaml:"client_city" mapstructure:"client_city" default:"x-frontier-city"`
 }
