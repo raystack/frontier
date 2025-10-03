@@ -124,6 +124,29 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 	}), nil
 }
 
+func (h *ConnectHandler) GetProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.GetProjectResourceRequest]) (*connect.Response[frontierv1beta1.GetProjectResourceResponse], error) {
+	fetchedResource, err := h.resourceService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, resource.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidUUID),
+			errors.Is(err, resource.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	resourcePB, err := transformResourceToPB(fetchedResource)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetProjectResourceResponse{
+		Resource: resourcePB,
+	}), nil
+}
+
 func transformResourceToPB(from resource.Resource) (*frontierv1beta1.Resource, error) {
 	var metadata *structpb.Struct
 	var err error

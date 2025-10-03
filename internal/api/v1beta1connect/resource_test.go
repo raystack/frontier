@@ -368,3 +368,103 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_GetProjectResource(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		request *connect.Request[frontierv1beta1.GetProjectResourceRequest]
+		want    *connect.Response[frontierv1beta1.GetProjectResourceResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if resource service returns error",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(resource.Resource{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return not found error if id is empty",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(resource.Resource{}, resource.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return not found error if id is not uuid",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-id").Return(resource.Resource{}, resource.ErrInvalidUUID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+				Id: "some-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return not found error if resource not exist",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(resource.Resource{}, resource.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return success if resource service returns resource",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(testResource, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetProjectResourceResponse{
+				Resource: testResourcePB,
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error if transform fails",
+			setup: func(rs *mocks.ResourceService) {
+				invalidResource := testResource
+				invalidResource.Metadata = map[string]interface{}{
+					"invalid": func() {}, // functions can't be marshaled
+				}
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(invalidResource, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+			h := ConnectHandler{resourceService: mockResourceSrv}
+			resp, err := h.GetProjectResource(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp)
+			}
+		})
+	}
+}
