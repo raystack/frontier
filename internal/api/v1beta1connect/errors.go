@@ -46,4 +46,6 @@ var (
 	ErrBillingProviderNotSupported = errors.New("provider not supported")
 	ErrInsufficientCredits         = errors.New("insufficient credits")
 	ErrAlreadyApplied              = errors.New("credits already applied")
+	ErrGroupNotFound               = errors.New("group doesn't exist")
+	ErrOrgNotFound                 = errors.New("org doesn't exist")
 )
