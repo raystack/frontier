@@ -209,6 +209,36 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 	}), nil
 }
 
+func (h *ConnectHandler) DeleteProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteProjectResourceRequest]) (*connect.Response[frontierv1beta1.DeleteProjectResourceResponse], error) {
+	resourceToDel, err := h.resourceService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, resource.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidID),
+			errors.Is(err, resource.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	parentProject, err := h.projectService.Get(ctx, resourceToDel.ProjectID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	err = h.resourceService.Delete(ctx, resourceToDel.NamespaceID, resourceToDel.ID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{
+		ID:   request.Msg.GetId(),
+		Type: resourceToDel.NamespaceID,
+	})
+	return connect.NewResponse(&frontierv1beta1.DeleteProjectResourceResponse{}), nil
+}
+
 func transformResourceToPB(from resource.Resource) (*frontierv1beta1.Resource, error) {
 	var metadata *structpb.Struct
 	var err error
