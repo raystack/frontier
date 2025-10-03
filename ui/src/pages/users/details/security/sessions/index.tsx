@@ -13,6 +13,12 @@ import styles from "./sessions.module.css";
 
 dayjs.extend(relativeTime);
 
+export const formatDeviceDisplay = (browser?: string, operatingSystem?: string): string => {
+  const browserName = browser || "Unknown";
+  const osName = operatingSystem || "Unknown";
+  return browserName === "Unknown" && osName === "Unknown" ? "Unknown browser and OS" : `${browserName} on ${osName}`;
+};
+
 interface SessionData {
   id?: string;
   metadata?: {
@@ -144,10 +150,12 @@ export const UserSessions = () => {
           sessions.map((session, index) => (
             <Flex key={session.id} justify="between" align="center" className={styles.sessionItem}>
               <Flex direction="column" gap={3}>
-                <Text size="regular">{`${session.metadata?.browser || "Unknown"} on ${session.metadata?.operatingSystem || "Unknown"}`}</Text>
+                <Text size="regular">
+                  {formatDeviceDisplay(session.metadata?.browser, session.metadata?.operatingSystem)}
+                </Text>
                 <Flex gap={2} align="center">
                   <Text variant="tertiary" size="small">
-                    {session.metadata?.location || "Unknown"}
+                    {session.metadata?.location || "Unknown location"}
                   </Text>
                   <Text variant="tertiary" size="small">•</Text>
                   <Text variant="tertiary" size="small">

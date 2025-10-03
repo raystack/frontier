@@ -7,6 +7,7 @@ import {
   List
 } from '@raystack/apsara';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
+import { formatDeviceDisplay } from './index';
 import styles from './sessions.module.css';
 
 interface RevokeSessionConfirmProps {
@@ -48,7 +49,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
         <Dialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Dialog.Title>{sessionInfo ? `${sessionInfo.browser} on ${sessionInfo.operatingSystem}` : "Unknown Device"}</Dialog.Title>
+          <Dialog.Title>{sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown browser and OS"}</Dialog.Title>
           <Dialog.CloseButton data-test-id="frontier-ui-close-revoke-session-dialog" />
         </Dialog.Header>
 
@@ -56,7 +57,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
             <List className={styles.listRoot}>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Device</List.Label>
-                <List.Value>{sessionInfo ? `${sessionInfo.browser} on ${sessionInfo.operatingSystem}` : "Unknown Device"}</List.Value>
+                <List.Value>{sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">IP Address</List.Label>
