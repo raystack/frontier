@@ -29,7 +29,7 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, headers
 	}
 
 	// OS and Browser (from User-Agent) using uap-go library
-	userAgent := req.Header().Get("User-Agent")
+	userAgent := req.Header().Get(headers.ClientUserAgent)
 	if userAgent != "" {
 		parser := uaparser.NewFromSaved()
 		client := parser.Parse(userAgent)
