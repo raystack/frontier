@@ -19,10 +19,12 @@ var (
 	// SessionContextKey is context key that contains session metadata
 	SessionContextKey = contextKey{name: "session-context"}
 
-	AuditActorContextKey       = contextKey{name: "audit-actor"}
+	// AuditRecordActorContextKey is context key that contains the audit record actor
 	AuditRecordActorContextKey = contextKey{name: "audit-record-actor"}
-	AuditMetadataContextKey    = contextKey{name: "audit-metadata"}
-	AuditServiceContextKey     = contextKey{name: "audit-service"}
+
+	AuditActorContextKey    = contextKey{name: "audit-actor"}
+	AuditMetadataContextKey = contextKey{name: "audit-metadata"}
+	AuditServiceContextKey  = contextKey{name: "audit-service"}
 
 	// BillingStripeTestClockContextKey is context key that contains the stripe test clock id
 	BillingStripeTestClockContextKey = contextKey{name: "billing-stripe-test-clock"}
