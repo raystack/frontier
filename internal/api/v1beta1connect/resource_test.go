@@ -724,3 +724,144 @@ func TestConnectHandler_UpdateProjectResource(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_DeleteProjectResource(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService, ps *mocks.ProjectService)
+		request *connect.Request[frontierv1beta1.DeleteProjectResourceRequest]
+		want    *connect.Response[frontierv1beta1.DeleteProjectResourceResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if resource service Get returns error",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(resource.Resource{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return not found error if resource not exist",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(resource.Resource{}, resource.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrResourceNotFound),
+		},
+		{
+			name: "should return not found error if id is invalid",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-id").Return(resource.Resource{}, resource.ErrInvalidUUID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: "some-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrResourceNotFound),
+		},
+		{
+			name: "should return not found error if id is empty",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(resource.Resource{}, resource.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrResourceNotFound),
+		},
+		{
+			name: "should return internal error if project service returns error",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(testResource, nil)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return internal error if resource service Delete returns error",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(testResource, nil)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+					Organization: organization.Organization{
+						ID: "test-org-id",
+					},
+				}, nil)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testResource.NamespaceID, testResource.ID).Return(errors.New("delete error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success if resource is deleted successfully",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(testResource, nil)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+					Organization: organization.Organization{
+						ID: "test-org-id",
+					},
+				}, nil)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testResource.NamespaceID, testResource.ID).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteProjectResourceResponse{}),
+			wantErr: nil,
+		},
+		{
+			name: "should handle deletion with different namespace correctly",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				resourceWithDiffNS := testResource
+				resourceWithDiffNS.NamespaceID = "different-namespace"
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(resourceWithDiffNS, nil)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+					Organization: organization.Organization{
+						ID: "test-org-id",
+					},
+				}, nil)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "different-namespace", testResource.ID).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteProjectResourceResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv, mockProjectSrv)
+			}
+			h := ConnectHandler{resourceService: mockResourceSrv, projectService: mockProjectSrv}
+			resp, err := h.DeleteProjectResource(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp)
+			}
+		})
+	}
+}
