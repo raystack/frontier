@@ -5,14 +5,18 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -256,6 +260,65 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 
 	audit.GetAuditor(ctx, orgResp.ID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
 	return connect.NewResponse(&frontierv1beta1.UpdateGroupResponse{Group: &groupPB}), nil
+}
+
+func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListGroupUsersRequest]) (*connect.Response[frontierv1beta1.ListGroupUsersResponse], error) {
+	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	var userPBs []*frontierv1beta1.User
+	var rolePairPBs []*frontierv1beta1.ListGroupUsersResponse_RolePair
+	users, err := h.userService.ListByGroup(ctx, request.Msg.GetId(), "")
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, user := range users {
+		userPb, err := transformUserToPB(user)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		userPBs = append(userPBs, userPb)
+	}
+
+	if request.Msg.GetWithRoles() {
+		for _, user := range users {
+			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.GroupNamespace, request.Msg.GetId())
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			}
+
+			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
+				pb, err := transformRoleToPB(role)
+				if err != nil {
+					logger.Error("failed to transform role for group", zap.Error(err))
+					return nil
+				}
+				return &pb
+			}), func(role *frontierv1beta1.Role) bool {
+				return role != nil
+			})
+			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListGroupUsersResponse_RolePair{
+				UserId: user.ID,
+				Roles:  rolesPb,
+			})
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListGroupUsersResponse{
+		Users:     userPBs,
+		RolePairs: rolePairPBs,
+	}), nil
 }
 
 func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
