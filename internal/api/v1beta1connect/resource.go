@@ -36,6 +36,29 @@ func (h *ConnectHandler) ListResources(ctx context.Context, request *connect.Req
 	}), nil
 }
 
+func (h *ConnectHandler) ListProjectResources(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectResourcesRequest]) (*connect.Response[frontierv1beta1.ListProjectResourcesResponse], error) {
+	var resources []*frontierv1beta1.Resource
+	namespaceID := schema.ParseNamespaceAliasIfRequired(request.Msg.GetNamespace())
+	filters := resource.Filter{
+		NamespaceID: namespaceID,
+		ProjectID:   request.Msg.GetProjectId(),
+	}
+	resourcesList, err := h.resourceService.List(ctx, filters)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	for _, r := range resourcesList {
+		resourcePB, err := transformResourceToPB(r)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		resources = append(resources, resourcePB)
+	}
+	return connect.NewResponse(&frontierv1beta1.ListProjectResourcesResponse{
+		Resources: resources,
+	}), nil
+}
+
 func transformResourceToPB(from resource.Resource) (*frontierv1beta1.Resource, error) {
 	var metadata *structpb.Struct
 	var err error

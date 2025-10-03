@@ -88,3 +88,88 @@ func TestHandler_ListResources(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListProjectResources(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		request *connect.Request[frontierv1beta1.ListProjectResourcesRequest]
+		want    *connect.Response[frontierv1beta1.ListProjectResourcesResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if resource service returns error",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"),
+					resource.Filter{ProjectID: testProjectID}).Return(nil, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListProjectResourcesRequest{
+				ProjectId: testProjectID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return empty list if resource service returns empty slice",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), resource.Filter{ProjectID: testProjectID}).Return([]resource.Resource{}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListProjectResourcesRequest{
+				ProjectId: testProjectID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListProjectResourcesResponse{
+				Resources: nil,
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return resources if resource service returns resources",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), resource.Filter{ProjectID: testProjectID}).Return([]resource.Resource{testResource}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListProjectResourcesRequest{
+				ProjectId: testProjectID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListProjectResourcesResponse{
+				Resources: []*frontierv1beta1.Resource{testResourcePB},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should handle namespace parameter correctly",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), resource.Filter{
+					NamespaceID: "test-namespace",
+					ProjectID:   testProjectID,
+				}).Return([]resource.Resource{testResource}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListProjectResourcesRequest{
+				ProjectId: testProjectID,
+				Namespace: "test-namespace",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListProjectResourcesResponse{
+				Resources: []*frontierv1beta1.Resource{testResourcePB},
+			}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+			h := ConnectHandler{resourceService: mockResourceSrv}
+			resp, err := h.ListProjectResources(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp)
+			}
+		})
+	}
+}
