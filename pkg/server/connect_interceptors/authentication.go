@@ -7,6 +7,7 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
 	sessionutils "github.com/raystack/frontier/pkg/session"
 )
@@ -38,16 +39,23 @@ func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.Un
 			ID:   principal.ID,
 			Type: principal.Type,
 		})
+
 		isSuperUser := false
 		err = i.h.IsSuperUser(ctx)
 		if err == nil {
 			isSuperUser = true
 		}
+		ctx = authenticate.SetSuperUserInContext(ctx, isSuperUser)
+
 		sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, req, i.sessionHeaderConfig)
-		ctx = auditrecord.SetAuditContext(ctx, auditrecord.AuditContext{
-			Principal:       &principal,
-			IsSuperUser:     isSuperUser,
-			SessionMetadata: sessionMetadata,
+		ctx = frontiersession.SetSessionMetadataInContext(ctx, sessionMetadata)
+
+		// Set audit record actor context - for repositories and audit consumers
+		ctx = auditrecord.SetAuditRecordActorContext(ctx, auditrecord.Actor{
+			ID:       principal.ID,
+			Type:     principal.Type,
+			Name:     authenticate.GetPrincipalName(&principal),
+			Metadata: nil,
 		})
 		return next(ctx, req)
 	})

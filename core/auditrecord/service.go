@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
@@ -167,41 +166,13 @@ func computeHash(auditRecord AuditRecord) string {
 	return hex.EncodeToString(hashBytes)
 }
 
-type auditContextToSet struct {
-	Actor           Actor
-	IsSuperUser     bool
-	SessionMetadata frontiersession.SessionMetadata
+// SetAuditRecordActorContext sets the audit record actor in context
+func SetAuditRecordActorContext(ctx context.Context, actor Actor) context.Context {
+	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actor)
 }
 
-type AuditContext struct {
-	Principal       *authenticate.Principal
-	IsSuperUser     bool
-	SessionMetadata frontiersession.SessionMetadata
-}
-
-func SetAuditContext(ctx context.Context, auditContext AuditContext) context.Context {
-	actor := Actor{
-		ID:   auditContext.Principal.ID,
-		Type: auditContext.Principal.Type,
-		Name: getActorName(auditContext.Principal),
-	}
-	contextVal := auditContextToSet{
-		Actor:           actor,
-		IsSuperUser:     auditContext.IsSuperUser,
-		SessionMetadata: auditContext.SessionMetadata,
-	}
-	return context.WithValue(ctx, consts.AuditContextKey, contextVal)
-}
-
-func getActorName(principal *authenticate.Principal) string {
-	if principal == nil {
-		return systemActor
-	}
-	if principal.User != nil {
-		return principal.User.Title
-	}
-	if principal.ServiceUser != nil {
-		return principal.ServiceUser.Title
-	}
-	return systemActor
+// GetAuditRecordActorContext returns the audit record actor from context
+func GetAuditRecordActorContext(ctx context.Context) (Actor, bool) {
+	actor, ok := ctx.Value(consts.AuditRecordActorContextKey).(Actor)
+	return actor, ok
 }
