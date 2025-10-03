@@ -231,7 +231,7 @@ func TestConnectHandler_CreateGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeNotFound,
-			wantErrMsg:  ErrNotFound,
+			wantErrMsg:  ErrOrgNotFound,
 		},
 		{
 			name: "should return error if org is disabled",
@@ -450,7 +450,7 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeNotFound,
-			wantErrMsg:  ErrNotFound,
+			wantErrMsg:  ErrOrgNotFound,
 		},
 		{
 			name: "should return error if org is disabled",
@@ -569,6 +569,271 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 				orgService:   mockOrgSvc,
 			}
 			got, err := h.GetGroup(context.Background(), tt.request)
+			if tt.wantErr {
+				assert.Error(t, err)
+				connectErr := &connect.Error{}
+				assert.True(t, errors.As(err, &connectErr))
+				assert.Equal(t, tt.wantErrCode, connectErr.Code())
+				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want.Msg, got.Msg)
+			}
+		})
+	}
+}
+
+func TestConnectHandler_UpdateGroup(t *testing.T) {
+	someGroupID := utils.NewString()
+	tests := []struct {
+		name        string
+		setup       func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService)
+		request     *connect.Request[frontierv1beta1.UpdateGroupRequest]
+		want        *connect.Response[frontierv1beta1.UpdateGroupResponse]
+		wantErr     bool
+		wantErrCode connect.Code
+		wantErrMsg  error
+	}{
+		{
+			name: "should return bad request error if body is empty",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:   someGroupID,
+				Body: nil,
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+			wantErrMsg:  ErrBadRequest,
+		},
+		{
+			name: "should return error if org does not exist",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "new-group",
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrOrgNotFound,
+		},
+		{
+			name: "should return org is disabled",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "new-group",
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrOrgDisabled,
+		},
+		{
+			name: "should return error if error in metadata validation",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(errors.New("some-error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name:     "new-group",
+					Metadata: &structpb.Struct{},
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+			wantErrMsg:  ErrBadBodyMetaSchemaError,
+		},
+		{
+			name: "should return not found error if group id is not uuid (slug) and does not exist",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
+				gs.EXPECT().Update(mock.Anything, group.Group{
+					ID:             "some-id",
+					Name:           "some-id",
+					OrganizationID: testOrgID,
+					Metadata:       metadata.Metadata{},
+				}).Return(group.Group{}, group.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    "some-id",
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "some-id",
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrGroupNotFound,
+		},
+		{
+			name: "should return not found error if group id is uuid and does not exist",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
+				gs.EXPECT().Update(mock.Anything, group.Group{
+					ID:             someGroupID,
+					Name:           "new-group",
+					OrganizationID: testOrgID,
+					Metadata:       metadata.Metadata{},
+				}).Return(group.Group{}, group.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "new-group",
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrGroupNotFound,
+		},
+		{
+			name: "should return already exist error if group service return error conflict",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
+				gs.EXPECT().Update(mock.Anything, group.Group{
+					ID:             someGroupID,
+					Name:           "new-group",
+					OrganizationID: testOrgID,
+					Metadata:       metadata.Metadata{},
+				}).Return(group.Group{}, group.ErrConflict)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "new-group",
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeAlreadyExists,
+			wantErrMsg:  ErrConflictRequest,
+		},
+		{
+			name: "should return bad request error if name is empty",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
+				gs.EXPECT().Update(mock.Anything, group.Group{
+					ID:             someGroupID,
+					Name:           "new-group",
+					OrganizationID: testOrgID,
+					Metadata:       metadata.Metadata{},
+				}).Return(group.Group{}, group.ErrInvalidDetail)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "new-group",
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInvalidArgument,
+			wantErrMsg:  ErrBadRequest,
+		},
+		{
+			name: "should return internal error if group service return some error",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
+				gs.EXPECT().Update(mock.Anything, group.Group{
+					ID:             someGroupID,
+					Name:           "new-group",
+					OrganizationID: testOrgID,
+					Metadata:       metadata.Metadata{},
+				}).Return(group.Group{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "new-group",
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+		{
+			name: "should return success if updated by id and group service return nil error",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
+				gs.EXPECT().Update(mock.Anything, group.Group{
+					ID:             someGroupID,
+					Name:           "new-group",
+					OrganizationID: testOrgID,
+					Metadata:       metadata.Metadata{},
+				}).Return(group.Group{
+					ID:             someGroupID,
+					Name:           "new-group",
+					OrganizationID: testOrgID,
+					Metadata:       metadata.Metadata{},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name: "new-group",
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.UpdateGroupResponse{
+				Group: &frontierv1beta1.Group{
+					Id:    someGroupID,
+					Name:  "new-group",
+					OrgId: testOrgID,
+					Metadata: &structpb.Struct{
+						Fields: make(map[string]*structpb.Value),
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			}),
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGroupSvc := new(mocks.GroupService)
+			mockOrgSvc := new(mocks.OrganizationService)
+			mockMetaSchemaSvc := new(mocks.MetaSchemaService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSvc, mockMetaSchemaSvc, mockOrgSvc)
+			}
+			h := &ConnectHandler{
+				groupService:      mockGroupSvc,
+				orgService:        mockOrgSvc,
+				metaSchemaService: mockMetaSchemaSvc,
+			}
+			got, err := h.UpdateGroup(context.Background(), tt.request)
 			if tt.wantErr {
 				assert.Error(t, err)
 				connectErr := &connect.Error{}

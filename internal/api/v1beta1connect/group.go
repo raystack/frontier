@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -118,9 +119,16 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
 	}
 
+	// Auto-generate name from title if name is empty but title is provided
+	requestBody := request.Msg.GetBody()
+	name := requestBody.GetName()
+	if name == "" && requestBody.GetTitle() != "" {
+		name = str.GenerateSlug(requestBody.GetTitle())
+	}
+
 	newGroup, err := h.groupService.Create(ctx, group.Group{
-		Name:           request.Msg.GetBody().GetName(),
-		Title:          request.Msg.GetBody().GetTitle(),
+		Name:           name,
+		Title:          requestBody.GetTitle(),
 		OrganizationID: orgResp.ID,
 		Metadata:       metaDataMap,
 	})
@@ -196,6 +204,58 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetGroupResponse{Group: &groupPB}), nil
+}
+
+func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateGroupRequest]) (*connect.Response[frontierv1beta1.UpdateGroupResponse], error) {
+	if request.Msg.GetBody() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+
+	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	}
+
+	updatedGroup, err := h.groupService.Update(ctx, group.Group{
+		ID:             request.Msg.GetId(),
+		Name:           request.Msg.GetBody().GetName(),
+		Title:          request.Msg.GetBody().GetTitle(),
+		OrganizationID: orgResp.ID,
+		Metadata:       metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidUUID), errors.Is(err, group.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		case errors.Is(err, group.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(err, group.ErrInvalidDetail), errors.Is(err, organization.ErrInvalidUUID), errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	groupPB, err := transformGroupToPB(updatedGroup)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, orgResp.ID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
+	return connect.NewResponse(&frontierv1beta1.UpdateGroupResponse{Group: &groupPB}), nil
 }
 
 func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
