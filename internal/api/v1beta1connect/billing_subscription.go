@@ -1,10 +1,132 @@
 package v1beta1connect
 
 import (
+	"context"
+	"errors"
+
+	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+type SubscriptionService interface {
+	GetByID(ctx context.Context, id string) (subscription.Subscription, error)
+	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
+	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
+	ChangePlan(ctx context.Context, id string, change subscription.ChangeRequest) (subscription.Phase, error)
+	HasUserSubscribedBefore(ctx context.Context, customerID string, planID string) (bool, error)
+}
+
+type PlanService interface {
+	GetByID(ctx context.Context, id string) (plan.Plan, error)
+	Create(ctx context.Context, plan plan.Plan) (plan.Plan, error)
+	List(ctx context.Context, filter plan.Filter) ([]plan.Plan, error)
+	UpsertPlans(ctx context.Context, planFile plan.File) error
+}
+
+func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSubscriptionsRequest]) (*connect.Response[frontierv1beta1.ListSubscriptionsResponse], error) {
+	if request.Msg.GetOrgId() == "" || request.Msg.GetBillingId() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+	planID := request.Msg.GetPlan()
+	if planID != "" {
+		plan, err := h.planService.GetByID(ctx, planID)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		planID = plan.ID
+	}
+
+	var subscriptions []*frontierv1beta1.Subscription
+	subscriptionList, err := h.subscriptionService.List(ctx, subscription.Filter{
+		CustomerID: request.Msg.GetBillingId(),
+		State:      request.Msg.GetState(),
+		PlanID:     planID,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	for _, v := range subscriptionList {
+		subscriptionPB, err := transformSubscriptionToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		subscriptions = append(subscriptions, subscriptionPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListSubscriptionsResponse{
+		Subscriptions: subscriptions,
+	}), nil
+}
+
+func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.GetSubscriptionRequest]) (*connect.Response[frontierv1beta1.GetSubscriptionResponse], error) {
+	subscription, err := h.subscriptionService.GetByID(ctx, request.Msg.GetId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	subscriptionPB, err := transformSubscriptionToPB(subscription)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.GetSubscriptionResponse{
+		Subscription: subscriptionPB,
+	}), nil
+}
+
+func (h *ConnectHandler) CancelSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.CancelSubscriptionRequest]) (*connect.Response[frontierv1beta1.CancelSubscriptionResponse], error) {
+	_, err := h.subscriptionService.Cancel(ctx, request.Msg.GetId(), request.Msg.GetImmediate())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.CancelSubscriptionResponse{}), nil
+}
+
+func (h *ConnectHandler) ChangeSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.ChangeSubscriptionRequest]) (*connect.Response[frontierv1beta1.ChangeSubscriptionResponse], error) {
+	changeReq := subscription.ChangeRequest{
+		PlanID:         request.Msg.GetPlan(),
+		Immediate:      request.Msg.GetImmediate(),
+		CancelUpcoming: false,
+	}
+	if request.Msg.GetPlanChange() != nil {
+		changeReq.PlanID = request.Msg.GetPlanChange().GetPlan()
+		changeReq.Immediate = request.Msg.GetPlanChange().GetImmediate()
+	}
+	if request.Msg.GetPhaseChange() != nil {
+		changeReq.CancelUpcoming = request.Msg.GetPhaseChange().GetCancelUpcomingChanges()
+	}
+	if changeReq.PlanID != "" && changeReq.CancelUpcoming {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrConflictingPlanChange)
+	}
+	if changeReq.PlanID == "" && !changeReq.CancelUpcoming {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrNoChangeRequested)
+	}
+
+	phase, err := h.subscriptionService.ChangePlan(ctx, request.Msg.GetId(), changeReq)
+	if err != nil {
+		if errors.Is(err, product.ErrPerSeatLimitReached) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPerSeatLimitReached)
+		}
+		if errors.Is(err, subscription.ErrAlreadyOnSamePlan) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrAlreadyOnSamePlan)
+		}
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	phasePb := &frontierv1beta1.Subscription_Phase{
+		PlanId: phase.PlanID,
+		Reason: phase.Reason,
+	}
+	if !phase.EffectiveAt.IsZero() {
+		phasePb.EffectiveAt = timestamppb.New(phase.EffectiveAt)
+	}
+	return connect.NewResponse(&frontierv1beta1.ChangeSubscriptionResponse{
+		Phase: phasePb,
+	}), nil
+}
 
 func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1.Subscription, error) {
 	metaData, err := subs.Metadata.ToStructPB()
