@@ -427,6 +427,163 @@ func TestConnectHandler_CreateGroup(t *testing.T) {
 	}
 }
 
+func TestConnectHandler_GetGroup(t *testing.T) {
+	someGroupID := utils.NewString()
+	tests := []struct {
+		name        string
+		setup       func(gs *mocks.GroupService, os *mocks.OrganizationService)
+		request     *connect.Request[frontierv1beta1.GetGroupRequest]
+		want        *connect.Response[frontierv1beta1.GetGroupResponse]
+		wantErr     bool
+		wantErrCode connect.Code
+		wantErrMsg  error
+	}{
+		{
+			name: "should return error if org does not exist",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+				OrgId: testOrgID,
+				Id:    someGroupID,
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrNotFound,
+		},
+		{
+			name: "should return error if org is disabled",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+				OrgId: testOrgID,
+				Id:    someGroupID,
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrOrgDisabled,
+		},
+		{
+			name: "should return internal error if group service return some error",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+		{
+			name: "should return not found error if id is invalid",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				gs.EXPECT().Get(mock.Anything, "").Return(group.Group{}, group.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+				Id:    "",
+				OrgId: testOrgID,
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrGroupNotFound,
+		},
+		{
+			name: "should return not found error if group not exist",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{}, group.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeNotFound,
+			wantErrMsg:  ErrGroupNotFound,
+		},
+		{
+			name: "should return success if group service return nil",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				gs.EXPECT().Get(mock.Anything, testGroupID).Return(testGroupMap[testGroupID], nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+				Id:    testGroupID,
+				OrgId: testOrgID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetGroupResponse{
+				Group: &frontierv1beta1.Group{
+					Id:    testGroupID,
+					Name:  "group-1",
+					OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			}),
+			wantErr: false,
+		},
+		{
+			name: "should return internal error if group service return key as integer type",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				gs.EXPECT().Get(mock.Anything, testGroupID).Return(group.Group{
+					Metadata: metadata.Metadata{
+						"key": map[int]any{},
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+				Id:    testGroupID,
+				OrgId: testOrgID,
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgSvc := new(mocks.OrganizationService)
+			mockGroupSvc := new(mocks.GroupService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSvc, mockOrgSvc)
+			}
+			h := &ConnectHandler{
+				groupService: mockGroupSvc,
+				orgService:   mockOrgSvc,
+			}
+			got, err := h.GetGroup(context.Background(), tt.request)
+			if tt.wantErr {
+				assert.Error(t, err)
+				connectErr := &connect.Error{}
+				assert.True(t, errors.As(err, &connectErr))
+				assert.Equal(t, tt.wantErrCode, connectErr.Code())
+				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want.Msg, got.Msg)
+			}
+		})
+	}
+}
+
 func TestConnectHandler_ListOrganizationGroups(t *testing.T) {
 	var validGroupResponseWithUser = &frontierv1beta1.Group{
 		Id:    testGroupID,
