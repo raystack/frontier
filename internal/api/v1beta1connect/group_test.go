@@ -8,8 +8,10 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
@@ -978,6 +980,217 @@ func TestConnectHandler_ListOrganizationGroups(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.want.Msg, got.Msg)
+			}
+		})
+	}
+}
+
+func TestConnectHandler_ListGroupUsers(t *testing.T) {
+	someGroupID := utils.NewString()
+	tests := []struct {
+		name    string
+		setup   func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService)
+		request *connect.Request[frontierv1beta1.ListGroupUsersRequest]
+		want    *connect.Response[frontierv1beta1.ListGroupUsersResponse]
+		wantErr error
+	}{
+		{
+			name: "should return error if org does not exist",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgNotFound),
+		},
+		{
+			name: "should error if org is disabled",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return internal server error if error in listing group users",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(nil, errors.New("some error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return error if metadata transformation fails in list of group users",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				testUserList := []user.User{
+					{
+						Metadata: metadata.Metadata{
+							"key": map[int]string{},
+						},
+					},
+				}
+
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(testUserList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success if list group users and group service return nil error",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(testUserList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: testOrgID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListGroupUsersResponse{
+				Users: []*frontierv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "User 1",
+						Name:  "user1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return error if policy service fails when WithRoles is true",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(testUserList, nil)
+				ps.EXPECT().ListRoles(mock.Anything, schema.UserPrincipal, "9f256f86-31a3-11ec-8d3d-0242ac130003", schema.GroupNamespace, someGroupID).Return(nil, errors.New("policy error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
+				Id:        someGroupID,
+				OrgId:     testOrgID,
+				WithRoles: true,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success with roles when WithRoles is true",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ps *mocks.PolicyService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(testUserList, nil)
+
+				testRoles := []role.Role{
+					{
+						ID:       "test-role-id",
+						Name:     "admin",
+						Title:    "Administrator",
+						Metadata: metadata.Metadata{},
+					},
+				}
+				ps.EXPECT().ListRoles(mock.Anything, schema.UserPrincipal, "9f256f86-31a3-11ec-8d3d-0242ac130003", schema.GroupNamespace, someGroupID).Return(testRoles, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
+				Id:        someGroupID,
+				OrgId:     testOrgID,
+				WithRoles: true,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListGroupUsersResponse{
+				Users: []*frontierv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "User 1",
+						Name:  "user1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+				RolePairs: []*frontierv1beta1.ListGroupUsersResponse_RolePair{
+					{
+						UserId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Roles: []*frontierv1beta1.Role{
+							{
+								Id:        "test-role-id",
+								Name:      "admin",
+								Title:     "Administrator",
+								Metadata:  &structpb.Struct{Fields: map[string]*structpb.Value{}},
+								CreatedAt: timestamppb.New(time.Time{}),
+								UpdatedAt: timestamppb.New(time.Time{}),
+							},
+						},
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGroupSvc := new(mocks.GroupService)
+			mockUserSvc := new(mocks.UserService)
+			mockOrgSvc := new(mocks.OrganizationService)
+			mockPolicySvc := new(mocks.PolicyService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSvc, mockUserSvc, mockOrgSvc, mockPolicySvc)
+			}
+			h := ConnectHandler{
+				groupService:  mockGroupSvc,
+				userService:   mockUserSvc,
+				orgService:    mockOrgSvc,
+				policyService: mockPolicySvc,
+			}
+			got, err := h.ListGroupUsers(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, got)
 			}
 		})
 	}
