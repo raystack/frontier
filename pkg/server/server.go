@@ -186,7 +186,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		return err
 	}
 
-	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService)
+	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService, cfg.Authentication.Session.Headers)
 	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
 	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
 
