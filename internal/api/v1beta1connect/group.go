@@ -415,6 +415,29 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 	return connect.NewResponse(&frontierv1beta1.DisableGroupResponse{}), nil
 }
 
+func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteGroupRequest]) (*connect.Response[frontierv1beta1.DeleteGroupResponse], error) {
+	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	if err := h.groupService.Delete(ctx, request.Msg.GetId()); err != nil {
+		switch {
+		case errors.Is(err, group.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+	return connect.NewResponse(&frontierv1beta1.DeleteGroupResponse{}), nil
+}
+
 func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
 	metaData, err := grp.Metadata.ToStructPB()
 	if err != nil {
