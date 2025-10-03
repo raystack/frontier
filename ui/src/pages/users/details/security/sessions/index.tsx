@@ -122,7 +122,7 @@ export const UserSessions = () => {
         {renderSessionsHeader()}
         <Flex direction="column" className={styles.sessionsContainer}>
           <Skeleton 
-            height="18px"
+            height="32px"
             containerStyle={{ padding: '1rem 0' }}
             count={3}
           />
