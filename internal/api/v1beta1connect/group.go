@@ -321,6 +321,25 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 	}), nil
 }
 
+func (h *ConnectHandler) AddGroupUsers(ctx context.Context, request *connect.Request[frontierv1beta1.AddGroupUsersRequest]) (*connect.Response[frontierv1beta1.AddGroupUsersResponse], error) {
+	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	if err := h.groupService.AddUsers(ctx, request.Msg.GetId(), request.Msg.GetUserIds()); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.AddGroupUsersResponse{}), nil
+}
+
 func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
 	metaData, err := grp.Metadata.ToStructPB()
 	if err != nil {
