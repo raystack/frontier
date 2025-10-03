@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flex, Text, Button, Skeleton } from "@raystack/apsara/v1";
+import { Flex, Text, Button, Skeleton, toast } from "@raystack/apsara/v1";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
@@ -60,6 +60,7 @@ export const UserSessions = () => {
 
   const {
     mutate: revokeUserSession,
+    isPending: isRevokingSession,
   } = useMutation(AdminServiceQueries.revokeUserSession, {
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -69,6 +70,12 @@ export const UserSessions = () => {
           input: { userId: user?.id || "" },
           cardinality: "finite",
         }),
+      });
+      toast.success('Session revoked successfully');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to revoke session', {
+        description: error.message || 'Something went wrong'
       });
     },
   });
@@ -115,7 +122,7 @@ export const UserSessions = () => {
         {renderSessionsHeader()}
         <Flex direction="column" className={styles.sessionsContainer}>
           <Skeleton 
-            height="60px" 
+            height="18px"
             containerStyle={{ padding: '1rem 0' }}
             count={3}
           />
@@ -181,6 +188,7 @@ export const UserSessions = () => {
         onOpenChange={setIsRevokeDialogOpen}
         sessionInfo={selectedSession || undefined}
         onRevokeConfirm={handleRevokeConfirm}
+        isLoading={isRevokingSession}
       />
     </Flex>
   );

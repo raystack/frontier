@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   Button,
-  toast,
   Dialog,
   Flex,
   List
@@ -21,25 +20,19 @@ interface RevokeSessionConfirmProps {
     lastActive: string;
   };
   onRevokeConfirm: () => void;
+  isLoading?: boolean;
 }
 
-export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevokeConfirm }: RevokeSessionConfirmProps) => {
+export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevokeConfirm, isLoading = false }: RevokeSessionConfirmProps) => {
   const [isFinalConfirmOpen, setIsFinalConfirmOpen] = useState(false);
 
   const handleRevoke = () => {
     setIsFinalConfirmOpen(true);
   };
 
-  const handleFinalConfirm = async () => {
-    try {
-      onRevokeConfirm();
-      onOpenChange(false);
-      toast.success('Session revoked successfully');
-    } catch (error: any) {
-      toast.error('Failed to revoke session', {
-        description: error.message || 'Something went wrong'
-      });
-    }
+  const handleFinalConfirm = () => {
+    onRevokeConfirm();
+    onOpenChange(false);
   };
 
   return (
@@ -80,6 +73,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
               variant="outline"
               color="neutral"
               onClick={() => onOpenChange(false)}
+              disabled={isLoading}
               data-test-id="frontier-ui-cancel-revoke-session-dialog"
             >
               Cancel
@@ -88,6 +82,8 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
               variant="solid"
               color="danger"
               onClick={handleRevoke}
+              loading={isLoading}
+              loaderText="Revoking..."
               data-test-id="frontier-ui-confirm-revoke-session-dialog"
             >
               Revoke
@@ -101,6 +97,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
       isOpen={isFinalConfirmOpen}
       onOpenChange={setIsFinalConfirmOpen}
       onConfirm={handleFinalConfirm}
+      isLoading={isLoading}
     />
     </>
   );
