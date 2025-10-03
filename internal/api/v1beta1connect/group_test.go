@@ -895,7 +895,7 @@ func TestConnectHandler_ListOrganizationGroups(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeNotFound,
-			wantErrMsg:  ErrNotFound,
+			wantErrMsg:  ErrOrgNotFound,
 		},
 		{
 			name: "should return error if org is disabled",
@@ -1271,6 +1271,127 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 				orgService:   mockOrgSvc,
 			}
 			got, err := h.AddGroupUsers(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestConnectHandler_RemoveGroupUser(t *testing.T) {
+	randomID := utils.NewString()
+	tests := []struct {
+		name    string
+		setup   func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService)
+		request *connect.Request[frontierv1beta1.RemoveGroupUserRequest]
+		want    *connect.Response[frontierv1beta1.RemoveGroupUserResponse]
+		wantErr error
+	}{
+		{
+			name: "should return error if organization does not exist",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgNotFound),
+		},
+		{
+			name: "should return error if organization is disabled",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return error if user service fails when checking owners",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				us.EXPECT().ListByGroup(mock.Anything, randomID, group.AdminRole).Return([]user.User{}, errors.New("user service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return error if user is the only admin",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				us.EXPECT().ListByGroup(mock.Anything, randomID, group.AdminRole).Return([]user.User{{ID: randomID}}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount),
+		},
+		{
+			name: "should return error if group service fails to remove user",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				us.EXPECT().ListByGroup(mock.Anything, randomID, group.AdminRole).Return([]user.User{{ID: "other-admin"}, {ID: randomID}}, nil)
+				gs.EXPECT().RemoveUsers(mock.Anything, randomID, []string{randomID}).Return(errors.New("group service error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should remove user successfully",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				us.EXPECT().ListByGroup(mock.Anything, randomID, group.AdminRole).Return([]user.User{{ID: "other-admin"}, {ID: randomID}}, nil)
+				gs.EXPECT().RemoveUsers(mock.Anything, randomID, []string{randomID}).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.RemoveGroupUserResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGroupSvc := new(mocks.GroupService)
+			mockOrgSvc := new(mocks.OrganizationService)
+			mockUserSvc := new(mocks.UserService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSvc, mockOrgSvc, mockUserSvc)
+			}
+			h := ConnectHandler{
+				groupService: mockGroupSvc,
+				orgService:   mockOrgSvc,
+				userService:  mockUserSvc,
+			}
+			got, err := h.RemoveGroupUser(context.Background(), tt.request)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
