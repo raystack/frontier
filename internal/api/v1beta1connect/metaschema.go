@@ -4,4 +4,5 @@ var (
 	roleMetaSchema     = "role"
 	prospectMetaSchema = "prospect"
 	userMetaSchema     = "user"
+	groupMetaSchema    = "group"
 )

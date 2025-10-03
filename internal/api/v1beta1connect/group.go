@@ -5,9 +5,11 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -91,6 +93,57 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationGroupsResponse{Groups: groups}), nil
+}
+
+func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Request[frontierv1beta1.CreateGroupRequest]) (*connect.Response[frontierv1beta1.CreateGroupResponse], error) {
+	if request.Msg.GetBody() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+
+	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	}
+
+	newGroup, err := h.groupService.Create(ctx, group.Group{
+		Name:           request.Msg.GetBody().GetName(),
+		Title:          request.Msg.GetBody().GetTitle(),
+		OrganizationID: orgResp.ID,
+		Metadata:       metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, group.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(err, group.ErrInvalidDetail), errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	groupPB, err := transformGroupToPB(newGroup)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.GroupCreatedEvent, audit.GroupTarget(newGroup.ID))
+	return connect.NewResponse(&frontierv1beta1.CreateGroupResponse{Group: &groupPB}), nil
 }
 
 func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
