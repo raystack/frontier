@@ -15,6 +15,7 @@ import (
 
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -57,6 +58,21 @@ func TestHandler_ListResources(t *testing.T) {
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), resource.Filter{}).Return([]resource.Resource{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListResourcesRequest{}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return internal error if transformation fails",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), resource.Filter{}).Return([]resource.Resource{
+					{
+						Metadata: metadata.Metadata{
+							"key": map[int]any{},
+						},
+					},
+				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListResourcesRequest{}),
 			want:    nil,
