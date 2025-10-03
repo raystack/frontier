@@ -1403,3 +1403,88 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_EnableGroup(t *testing.T) {
+	randomID := utils.NewString()
+	tests := []struct {
+		name    string
+		setup   func(gs *mocks.GroupService, os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.EnableGroupRequest]
+		want    *connect.Response[frontierv1beta1.EnableGroupResponse]
+		wantErr error
+	}{
+		{
+			name: "should return error if organization does not exist",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.EnableGroupRequest{
+				Id:    randomID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgNotFound),
+		},
+		{
+			name: "should return error if organization is disabled",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.EnableGroupRequest{
+				Id:    randomID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return error if group does not exist",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{ID: testOrgID}, nil)
+				gs.EXPECT().Enable(mock.Anything, randomID).Return(group.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.EnableGroupRequest{
+				Id:    randomID,
+				OrgId: testOrgID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
+		},
+		{
+			name: "should enable group successfully",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{ID: testOrgID}, nil)
+				gs.EXPECT().Enable(mock.Anything, randomID).Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.EnableGroupRequest{
+				Id:    randomID,
+				OrgId: testOrgID,
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.EnableGroupResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGroupSvc := new(mocks.GroupService)
+			mockOrgSvc := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSvc, mockOrgSvc)
+			}
+			h := ConnectHandler{
+				groupService: mockGroupSvc,
+				orgService:   mockOrgSvc,
+			}
+			got, err := h.EnableGroup(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, got)
+			}
+		})
+	}
+}
