@@ -73,7 +73,11 @@ export const BlockUserDialog = () => {
       <Dialog.Trigger asChild>
         <Button
           color={config.btnColor}
-          size="small"
+          size="normal"
+          style={{ 
+            alignSelf: 'flex-end',
+          }}
+          width={70}
           data-test-id="admin-ui-security-block-user"
         >
           {config.btnText}
