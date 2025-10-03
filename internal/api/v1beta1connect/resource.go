@@ -147,6 +147,68 @@ func (h *ConnectHandler) GetProjectResource(ctx context.Context, request *connec
 	}), nil
 }
 
+func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateProjectResourceRequest]) (*connect.Response[frontierv1beta1.UpdateProjectResourceResponse], error) {
+	if request.Msg.GetBody() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	var metaDataMap metadata.Metadata
+	var err error
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	}
+
+	parentProject, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	principalType := schema.UserPrincipal
+	principalID := request.Msg.GetBody().GetPrincipal()
+	if ns, id, err := schema.SplitNamespaceAndResourceID(request.Msg.GetBody().GetPrincipal()); err == nil {
+		principalType = ns
+		principalID = id
+	}
+	namespaceID := schema.ParseNamespaceAliasIfRequired(request.Msg.GetBody().GetNamespace())
+	updatedResource, err := h.resourceService.Update(ctx, resource.Resource{
+		ID:            request.Msg.GetId(),
+		ProjectID:     parentProject.ID,
+		NamespaceID:   namespaceID,
+		Name:          request.Msg.GetBody().GetName(),
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		Metadata:      metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, resource.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidUUID),
+			errors.Is(err, resource.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
+		case errors.Is(err, resource.ErrInvalidDetail),
+			errors.Is(err, resource.ErrInvalidURN):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, resource.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	resourcePB, err := transformResourceToPB(updatedResource)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceUpdatedEvent, audit.Target{
+		ID:   updatedResource.ID,
+		Type: updatedResource.NamespaceID,
+	})
+	return connect.NewResponse(&frontierv1beta1.UpdateProjectResourceResponse{
+		Resource: resourcePB,
+	}), nil
+}
+
 func transformResourceToPB(from resource.Resource) (*frontierv1beta1.Resource, error) {
 	var metadata *structpb.Struct
 	var err error
