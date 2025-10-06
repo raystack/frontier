@@ -4,7 +4,7 @@ import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
 import { useQuery, useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { AdminServiceQueries, Session } from "@raystack/proton/frontier";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import styles from "./sessions.module.css";
@@ -16,19 +16,6 @@ export const formatDeviceDisplay = (browser?: string, operatingSystem?: string):
   const osName = operatingSystem || "Unknown";
   return browserName === "Unknown" && osName === "Unknown" ? "Unknown browser and OS" : `${browserName} on ${osName}`;
 };
-
-interface SessionData {
-  id?: string;
-  metadata?: {
-    operatingSystem?: string;
-    browser?: string;
-    ipAddress?: string;
-    location?: string;
-  };
-  updatedAt?: {
-    seconds: bigint;
-  };
-}
 
 export const UserSessions = () => {
   const { user } = useUser();
@@ -78,7 +65,7 @@ export const UserSessions = () => {
     },
   });
 
-  const handleRevoke = (session: SessionData) => {
+  const handleRevoke = (session: Session) => {
     setSelectedSession({
       browser: session.metadata?.browser || "Unknown",
       operatingSystem: session.metadata?.operatingSystem || "Unknown",
