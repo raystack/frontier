@@ -50,4 +50,7 @@ var (
 	ErrNamespaceSplitNotation      = errors.New("subject/object should be provided as 'namespace:uuid'")
 	ErrPolicyNotFound              = errors.New("policy doesn't exist")
 	ErrProjectNotFound             = errors.New("project doesn't exist")
+	ErrGroupNotFound               = errors.New("group doesn't exist")
+	ErrOrgNotFound                 = errors.New("org doesn't exist")
+	ErrGroupMinOwnerCount          = errors.New("group must have at least one owner, consider adding another owner before removing")
 )
