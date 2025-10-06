@@ -13,6 +13,14 @@ func (c *contextKey) String() string { return "context value " + c.name }
 var (
 	// AuthenticatedPrincipalContextKey is context key that contains the principal object
 	AuthenticatedPrincipalContextKey = contextKey{name: "auth-principal"}
+	// AuthSuperUserContextKey is context key that contains super user flag
+	AuthSuperUserContextKey = contextKey{name: "auth-superuser"}
+
+	// SessionContextKey is context key that contains session metadata
+	SessionContextKey = contextKey{name: "session-context"}
+
+	// AuditRecordActorContextKey is context key that contains the audit record actor
+	AuditRecordActorContextKey = contextKey{name: "audit-record-actor"}
 
 	AuditActorContextKey    = contextKey{name: "audit-actor"}
 	AuditMetadataContextKey = contextKey{name: "audit-metadata"}
