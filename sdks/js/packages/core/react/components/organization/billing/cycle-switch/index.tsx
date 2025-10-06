@@ -10,7 +10,6 @@ import {
 } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Plan } from '~/src';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
 import { usePlans } from '../../plans/hooks/usePlans';
@@ -19,16 +18,16 @@ import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 import { timestampToDayjs } from '~/utils/timestamp';
+import { Plan } from '@raystack/proton/frontier';
 
 export function ConfirmCycleSwitch() {
-  const { activePlan, client, paymentMethod, config, activeSubscription } =
+  const { activePlan, paymentMethod, config, activeSubscription, allPlans, isAllPlansLoading } =
     useFrontier();
   const navigate = useNavigate({ from: '/billing/cycle-switch/$planId' });
   const { planId } = useParams({ from: '/billing/cycle-switch/$planId' });
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
-  const [isPlanLoading, setIsPlanLoading] = useState(false);
-  const [nextPlan, setNextPlan] = useState<V1Beta1Plan>();
+  const [nextPlan, setNextPlan] = useState<Plan>();
   const [isCycleSwitching, setCycleSwitching] = useState(false);
 
   const closeModal = useCallback(
@@ -58,27 +57,13 @@ export function ConfirmCycleSwitch() {
     0;
 
   useEffect(() => {
-    async function getNextPlan(nextPlanId: string) {
-      setIsPlanLoading(true);
-      try {
-        const resp = await client?.frontierServiceGetPlan(nextPlanId);
-        const plan = resp?.data?.plan;
-        setNextPlan(plan);
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsPlanLoading(false);
-      }
+    if (planId && allPlans.length > 0) {
+      const plan = allPlans.find(p => p.id === planId);
+      setNextPlan(plan);
     }
-    if (planId) {
-      getNextPlan(planId);
-    }
-  }, [client, planId]);
+  }, [planId, allPlans]);
 
-  const isLoading = isPlanLoading;
+  const isLoading = isAllPlansLoading;
 
   async function onConfirm() {
     setCycleSwitching(true);

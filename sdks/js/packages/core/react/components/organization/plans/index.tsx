@@ -3,7 +3,7 @@ import { EmptyState, toast, Skeleton, Text, Flex } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Feature, V1Beta1Plan } from '~/src';
+import { V1Beta1Feature } from '~/src';
 import { groupPlansPricingByInterval } from './helpers';
 import { IntervalPricingWithPlan } from '~/src/types';
 import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';
@@ -12,6 +12,7 @@ import { PlanPricingColumn } from './pricing-column';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import plansStyles from './plans.module.css';
 import { styles } from '../styles';
+import { Plan } from '@raystack/proton/frontier';
 
 const PlansLoader = () => {
   return (
@@ -36,7 +37,7 @@ const NoPlans = () => {
 };
 
 interface PlansListProps {
-  plans: V1Beta1Plan[];
+  plans: Plan[];
   currentPlanId: string;
   allowAction: boolean;
   features: V1Beta1Feature[];
@@ -131,26 +132,19 @@ export default function Plans() {
     activeSubscription,
     isActiveSubscriptionLoading,
     isActiveOrganizationLoading,
-    basePlan
+    basePlan,
+    allPlans,
+    isAllPlansLoading
   } = useFrontier();
-  const [isPlansLoading, setIsPlansLoading] = useState(false);
-  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
   const [features, setFeatures] = useState<V1Beta1Feature[]>([]);
 
   const { isFetching: isPermissionsFetching, isAllowed: canChangePlan } =
     useBillingPermission();
 
   useEffect(() => {
-    async function getPlansAndFeatures() {
-      setIsPlansLoading(true);
+    async function getFeatures() {
       try {
-        const [planResp, featuresResp] = await Promise.all([
-          client?.frontierServiceListPlans(),
-          client?.frontierServiceListFeatures()
-        ]);
-        if (planResp?.data?.plans) {
-          setPlans([...(basePlan ? [basePlan] : []), ...planResp?.data?.plans]);
-        }
+        const featuresResp = await client?.frontierServiceListFeatures();
         if (featuresResp?.data?.features) {
           setFeatures(featuresResp?.data?.features);
         }
@@ -159,16 +153,16 @@ export default function Plans() {
           description: err.message
         });
         console.error(err);
-      } finally {
-        setIsPlansLoading(false);
       }
     }
 
-    getPlansAndFeatures();
-  }, [client, basePlan]);
+    getFeatures();
+  }, [client]);
+
+  const plans = [...(basePlan ? [basePlan] : []), ...allPlans];
 
   const isLoading =
-    isPlansLoading ||
+    isAllPlansLoading ||
     isPermissionsFetching ||
     isActiveSubscriptionLoading ||
     isActiveOrganizationLoading;

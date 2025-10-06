@@ -16,7 +16,6 @@ import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_PLAN_UPGRADE_MESSAGE
 } from '~/react/utils/constants';
-import { V1Beta1Plan } from '~/src';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
@@ -24,20 +23,21 @@ import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 import { useMessages } from '~/react/hooks/useMessages';
 import { timestampToDayjs } from '~/utils/timestamp';
+import { Plan } from '@raystack/proton/frontier';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
   const { planId } = useParams({ from: '/plans/confirm-change/$planId' });
   const {
     activePlan,
-    isActivePlanLoading,
+    isAllPlansLoading,
     config,
     client,
     activeSubscription,
     basePlan,
     allPlans
   } = useFrontier();
-  const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
+  const [newPlan, setNewPlan] = useState<Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
   const m = useMessages();
 
@@ -146,7 +146,7 @@ export default function ConfirmPlanChange() {
     }
   }, [getPlan, planId]);
 
-  const isLoading = isActivePlanLoading || isNewPlanLoading;
+  const isLoading = isAllPlansLoading || isNewPlanLoading;
 
   const currentPlanName = getPlanNameWithInterval(activePlan, {
     hyphenSeperated: true

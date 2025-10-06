@@ -1,5 +1,6 @@
 import React from 'react';
-import { V1Beta1Feature, V1Beta1Plan } from '.';
+import { V1Beta1Feature } from '.';
+import { Plan } from '@raystack/proton/frontier';
 
 export interface Strategy {
   name: string;
@@ -104,7 +105,7 @@ export interface PaymentMethodMetadata extends Record<string, any> {
   default?: boolean;
 }
 
-export interface BasePlan extends Omit<V1Beta1Plan, 'title'> {
+export interface BasePlan extends Omit<Plan, 'title'> {
   features?: Record<string, string>;
   title: string;
 }

@@ -1,12 +1,12 @@
-import { V1Beta1Plan } from '~/src';
 import {
   IntervalKeys,
   IntervalPricing,
   PlanIntervalPricing
 } from '~/src/types';
 import { getPlanPrice, makePlanSlug } from '~/react/utils';
+import { Plan } from '@raystack/proton/frontier';
 
-export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
+export function groupPlansPricingByInterval(plans: Plan[]) {
   const plansMap: Record<string, PlanIntervalPricing> = {};
   plans.forEach(plan => {
     const metaData = (plan?.metadata as Record<string, string>) || {};
