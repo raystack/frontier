@@ -29,7 +29,7 @@ export function groupPlansPricingByInterval(plans: Plan[]) {
       interval: planInterval,
       weightage: planMetadata?.weightage ? Number(planMetadata?.weightage) : 0,
       productNames: [],
-      trial_days: plan?.trial_days || '',
+      trial_days: plan?.trialDays || '',
       features: {},
       ...productPrices
     };
