@@ -73,7 +73,6 @@ interface FrontierContextProviderProps {
 
   trialSubscription: Subscription | undefined;
   activeSubscription: Subscription | undefined;
-  setActiveSubscription: Dispatch<SetStateAction<Subscription | undefined>>;
 
   subscriptions: Subscription[];
 
@@ -139,7 +138,6 @@ const initialValues: FrontierContextProviderProps = {
 
   trialSubscription: undefined,
   activeSubscription: undefined,
-  setActiveSubscription: () => undefined,
 
   subscriptions: [],
 
@@ -196,9 +194,6 @@ export const FrontierContextProvider = ({
 
   const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
     useState(false);
-  const [activeSubscription, setActiveSubscription] = useState<Subscription>();
-
-  const [trialSubscription, setTrialSubscription] = useState<Subscription>();
 
   const { data: currentUserData, isLoading: isUserLoading } = useConnectQuery(
     FrontierServiceQueries.getCurrentUser
@@ -282,25 +277,17 @@ export const FrontierContextProvider = ({
 
   const allPlans = (plansData?.plans || []) as Plan[];
 
-  useEffect(() => {
-    setIsActiveSubscriptionLoading(true);
-    try {
-      if (subscriptions.length > 0) {
-        const activeSub = getActiveSubscription(subscriptions);
-        setActiveSubscription(activeSub);
-
-        const trialSub = getTrialingSubscription(subscriptions);
-        setTrialSubscription(trialSub);
-      } else if (
-        billingAccountsData &&
-        billingAccountsData.billingAccounts?.length === 0
-      ) {
-        setActiveSubscription(undefined);
-      }
-    } finally {
-      setIsActiveSubscriptionLoading(false);
-    }
-  }, [subscriptions, billingAccountsData]);
+  const { activeSubscription, trialSubscription } = useMemo(() => {
+    const activeSubscription =
+      billingAccountId && subscriptions.length
+        ? getActiveSubscription(subscriptions)
+        : undefined;
+    const trialSubscription =
+      billingAccountId && subscriptions.length
+        ? getTrialingSubscription(subscriptions)
+        : undefined;
+    return { activeSubscription, trialSubscription };
+  }, [subscriptions, billingAccountId]);
 
   const activePlan = useMemo(() => {
     return allPlans.find(p => p.id === activeSubscription?.planId);
@@ -344,7 +331,6 @@ export const FrontierContextProvider = ({
         setIsActiveSubscriptionLoading,
         trialSubscription,
         activeSubscription,
-        setActiveSubscription,
         subscriptions,
         trialPlan,
         activePlan,
