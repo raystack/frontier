@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
@@ -446,7 +447,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 					// Verify super user metadata was added
-					isSudo, exists := ar.Actor.Metadata[auditrecord.SuperUserActorMetadataKey]
+					isSudo, exists := ar.Actor.Metadata[consts.AuditActorSuperUserKey]
 					return ar.Actor.Name == "Super Admin" && exists && isSudo == true
 				})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 			},
@@ -465,7 +466,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 				Type: schema.UserPrincipal,
 				Name: "Super Admin",
 				Metadata: metadata.Metadata{
-					auditrecord.SuperUserActorMetadataKey: true,
+					consts.AuditActorSuperUserKey: true,
 				},
 			},
 			expectError: nil,
@@ -681,7 +682,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 			// Verify both original and sudo metadata exist
 			originalValue, hasOriginal := ar.Actor.Metadata["existing_key"]
-			sudoValue, hasSudo := ar.Actor.Metadata[auditrecord.SuperUserActorMetadataKey]
+			sudoValue, hasSudo := ar.Actor.Metadata[consts.AuditActorSuperUserKey]
 			return hasOriginal && originalValue == "existing_value" && hasSudo && sudoValue == true
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 
@@ -723,7 +724,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 
 		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 			// Verify metadata map was created and sudo flag added
-			sudoValue, hasSudo := ar.Actor.Metadata[auditrecord.SuperUserActorMetadataKey]
+			sudoValue, hasSudo := ar.Actor.Metadata[consts.AuditActorSuperUserKey]
 			return hasSudo && sudoValue == true && ar.Actor.Metadata != nil
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 

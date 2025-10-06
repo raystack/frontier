@@ -18,11 +18,6 @@ import (
 	"github.com/raystack/salt/rql"
 )
 
-var (
-	SuperUserActorMetadataKey = "is_super_user"
-	ContextMetadataKey        = "context"
-)
-
 type Repository interface {
 	Create(ctx context.Context, auditRecord AuditRecord) (AuditRecord, error)
 	GetByIdempotencyKey(ctx context.Context, idempotencyKey string) (AuditRecord, error)
@@ -115,8 +110,8 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 			if auditRecord.Actor.Metadata == nil {
 				auditRecord.Actor.Metadata = make(map[string]any)
 			}
-			auditRecord.Actor.Metadata[SuperUserActorMetadataKey] = true
-			auditRecord.Actor.Metadata[ContextMetadataKey] = session.Metadata
+			auditRecord.Actor.Metadata[consts.AuditActorSuperUserKey] = true
+			auditRecord.Actor.Metadata[consts.AuditSessionMetadataKey] = session.Metadata
 		}
 
 	case auditRecord.Actor.Type == schema.ServiceUserPrincipal:
@@ -167,12 +162,13 @@ func computeHash(auditRecord AuditRecord) string {
 }
 
 // SetAuditRecordActorContext sets the audit record actor in context
+// It accepts an Actor struct but stores it as a map to avoid layer violations in repositories
 func SetAuditRecordActorContext(ctx context.Context, actor Actor) context.Context {
-	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actor)
-}
-
-// GetAuditRecordActorContext returns the audit record actor from context
-func GetAuditRecordActorContext(ctx context.Context) (Actor, bool) {
-	actor, ok := ctx.Value(consts.AuditRecordActorContextKey).(Actor)
-	return actor, ok
+	actorMap := map[string]interface{}{
+		"id":       actor.ID,
+		"type":     actor.Type,
+		"name":     actor.Name,
+		"metadata": actor.Metadata,
+	}
+	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actorMap)
 }
