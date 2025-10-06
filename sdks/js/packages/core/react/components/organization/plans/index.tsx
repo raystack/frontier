@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
-import { EmptyState, toast, Skeleton, Text, Flex } from '@raystack/apsara';
+import { EmptyState, Skeleton, Text, Flex } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Feature } from '~/src';
 import { groupPlansPricingByInterval } from './helpers';
 import { IntervalPricingWithPlan } from '~/src/types';
 import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';
@@ -12,6 +10,10 @@ import { PlanPricingColumn } from './pricing-column';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import plansStyles from './plans.module.css';
 import { styles } from '../styles';
+import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '~hooks';
+import { create } from '@bufbuild/protobuf';
+import { Feature, ListFeaturesRequestSchema } from '@raystack/proton/frontier';
 import { Plan } from '@raystack/proton/frontier';
 
 const PlansLoader = () => {
@@ -40,7 +42,7 @@ interface PlansListProps {
   plans: Plan[];
   currentPlanId: string;
   allowAction: boolean;
-  features: V1Beta1Feature[];
+  features: Feature[];
 }
 
 const PlansList = ({
@@ -128,7 +130,6 @@ const PlansList = ({
 export default function Plans() {
   const {
     config,
-    client,
     activeSubscription,
     isActiveSubscriptionLoading,
     isActiveOrganizationLoading,
@@ -136,28 +137,16 @@ export default function Plans() {
     allPlans,
     isAllPlansLoading
   } = useFrontier();
-  const [features, setFeatures] = useState<V1Beta1Feature[]>([]);
 
   const { isFetching: isPermissionsFetching, isAllowed: canChangePlan } =
     useBillingPermission();
 
-  useEffect(() => {
-    async function getFeatures() {
-      try {
-        const featuresResp = await client?.frontierServiceListFeatures();
-        if (featuresResp?.data?.features) {
-          setFeatures(featuresResp?.data?.features);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      }
-    }
+  const { data: featuresData } = useConnectQuery(
+    FrontierServiceQueries.listFeatures,
+    create(ListFeaturesRequestSchema, {})
+  );
 
-    getFeatures();
-  }, [client]);
+  const features = (featuresData?.features || []) as Feature[];
 
   const plans = [...(basePlan ? [basePlan] : []), ...allPlans];
 

@@ -1,6 +1,5 @@
 import React from 'react';
-import { V1Beta1Feature } from '.';
-import { Plan } from '@raystack/proton/frontier';
+import { Feature, Plan } from '@raystack/proton/frontier';
 
 export interface Strategy {
   name: string;
@@ -88,7 +87,7 @@ export interface IntervalPricingWithPlan extends IntervalPricing {
   planName: string;
   interval: IntervalKeys;
   weightage: number;
-  features: Record<string, V1Beta1Feature>;
+  features: Record<string, Feature>;
   trial_days: string;
   productNames: string[];
 }
