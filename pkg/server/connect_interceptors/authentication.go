@@ -5,16 +5,23 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
+	sessionutils "github.com/raystack/frontier/pkg/session"
 )
 
 type AuthenticationInterceptor struct {
-	h *v1beta1connect.ConnectHandler
+	h                   *v1beta1connect.ConnectHandler
+	sessionHeaderConfig authenticate.SessionMetadataHeaders
 }
 
-func NewAuthenticationInterceptor(h *v1beta1connect.ConnectHandler) *AuthenticationInterceptor {
-	return &AuthenticationInterceptor{h}
+func NewAuthenticationInterceptor(h *v1beta1connect.ConnectHandler, sessionHeaderConfig authenticate.SessionMetadataHeaders) *AuthenticationInterceptor {
+	return &AuthenticationInterceptor{
+		h:                   h,
+		sessionHeaderConfig: sessionHeaderConfig,
+	}
 }
 
 func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
@@ -31,6 +38,24 @@ func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.Un
 		ctx = audit.SetContextWithActor(ctx, audit.Actor{
 			ID:   principal.ID,
 			Type: principal.Type,
+		})
+
+		isSuperUser := false
+		err = i.h.IsSuperUser(ctx)
+		if err == nil {
+			isSuperUser = true
+		}
+		ctx = authenticate.SetSuperUserInContext(ctx, isSuperUser)
+
+		sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, req, i.sessionHeaderConfig)
+		ctx = frontiersession.SetSessionMetadataInContext(ctx, sessionMetadata)
+
+		// Set audit record actor context - for repositories and audit consumers
+		ctx = auditrecord.SetAuditRecordActorContext(ctx, auditrecord.Actor{
+			ID:       principal.ID,
+			Type:     principal.Type,
+			Name:     authenticate.GetPrincipalName(&principal),
+			Metadata: nil,
 		})
 		return next(ctx, req)
 	})

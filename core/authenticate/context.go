@@ -61,3 +61,28 @@ func GetSecretFromContext(ctx context.Context) (string, bool) {
 	}
 	return secretHeaders[0], true
 }
+
+// SetSuperUserInContext sets the superuser flag in context
+func SetSuperUserInContext(ctx context.Context, isSuperUser bool) context.Context {
+	return context.WithValue(ctx, consts.AuthSuperUserContextKey, isSuperUser)
+}
+
+// GetSuperUserFromContext returns the superuser flag from context
+func GetSuperUserFromContext(ctx context.Context) (bool, bool) {
+	isSuperUser, ok := ctx.Value(consts.AuthSuperUserContextKey).(bool)
+	return isSuperUser, ok
+}
+
+// GetPrincipalName returns the name/title from a principal
+func GetPrincipalName(principal *Principal) string {
+	if principal == nil {
+		return "unknown"
+	}
+	if principal.User != nil {
+		return principal.User.Title
+	}
+	if principal.ServiceUser != nil {
+		return principal.ServiceUser.Title
+	}
+	return "unknown"
+}

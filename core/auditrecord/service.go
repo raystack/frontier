@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/salt/rql"
 )
 
@@ -163,4 +164,15 @@ func computeHash(auditRecord AuditRecord) string {
 
 	// Convert to hex string
 	return hex.EncodeToString(hashBytes)
+}
+
+// SetAuditRecordActorContext sets the audit record actor in context
+func SetAuditRecordActorContext(ctx context.Context, actor Actor) context.Context {
+	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actor)
+}
+
+// GetAuditRecordActorContext returns the audit record actor from context
+func GetAuditRecordActorContext(ctx context.Context) (Actor, bool) {
+	actor, ok := ctx.Value(consts.AuditRecordActorContextKey).(Actor)
+	return actor, ok
 }

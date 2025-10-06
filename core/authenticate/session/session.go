@@ -1,9 +1,11 @@
 package session
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/pkg/server/consts"
 )
 
 type SessionMetadata struct {
@@ -40,4 +42,15 @@ func (s Session) IsValid(now time.Time) bool {
 		return true
 	}
 	return false
+}
+
+// SetSessionMetadataInContext sets session metadata in context
+func SetSessionMetadataInContext(ctx context.Context, metadata SessionMetadata) context.Context {
+	return context.WithValue(ctx, consts.SessionContextKey, metadata)
+}
+
+// GetSessionMetadataFromContext returns session metadata from context
+func GetSessionMetadataFromContext(ctx context.Context) (SessionMetadata, bool) {
+	metadata, ok := ctx.Value(consts.SessionContextKey).(SessionMetadata)
+	return metadata, ok
 }
