@@ -54,4 +54,5 @@ var (
 	ErrOrgNotFound                 = errors.New("org doesn't exist")
 	ErrGroupMinOwnerCount          = errors.New("group must have at least one owner, consider adding another owner before removing")
 	ErrPortalChangesKycCompleted   = errors.New("customer portal changes not allowed: organization kyc completed")
+	ErrResourceNotFound            = errors.New("resource doesn't exist")
 )
