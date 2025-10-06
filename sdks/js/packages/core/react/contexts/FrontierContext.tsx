@@ -77,7 +77,6 @@ interface FrontierContextProviderProps {
   subscriptions: Subscription[];
 
   isActiveSubscriptionLoading: boolean;
-  setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
 
   trialPlan: Plan | undefined;
   activePlan: Plan | undefined;
@@ -142,7 +141,6 @@ const initialValues: FrontierContextProviderProps = {
   subscriptions: [],
 
   isActiveSubscriptionLoading: false,
-  setIsActiveSubscriptionLoading: () => false,
 
   trialPlan: undefined,
   activePlan: undefined,
@@ -191,9 +189,6 @@ export const FrontierContextProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeOrganization?.id, config.endpoint]
   );
-
-  const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
-    useState(false);
 
   const { data: currentUserData, isLoading: isUserLoading } = useConnectQuery(
     FrontierServiceQueries.getCurrentUser
@@ -257,14 +252,15 @@ export const FrontierContextProvider = ({
     return undefined;
   }, [billingAccountData?.paymentMethods]);
 
-  const { data: subscriptionsData } = useConnectQuery(
-    FrontierServiceQueries.listSubscriptions,
-    create(ListSubscriptionsRequestSchema, {
-      orgId: activeOrganization?.id ?? '',
-      billingId: billingAccount?.id ?? ''
-    }),
-    { enabled: !!activeOrganization?.id && !!billingAccount?.id }
-  );
+  const { data: subscriptionsData, isLoading: isActiveSubscriptionLoading } =
+    useConnectQuery(
+      FrontierServiceQueries.listSubscriptions,
+      create(ListSubscriptionsRequestSchema, {
+        orgId: activeOrganization?.id ?? '',
+        billingId: billingAccount?.id ?? ''
+      }),
+      { enabled: !!activeOrganization?.id && !!billingAccount?.id }
+    );
 
   const subscriptions = (subscriptionsData?.subscriptions ||
     []) as Subscription[];
@@ -328,7 +324,6 @@ export const FrontierContextProvider = ({
         paymentMethod,
         isBillingAccountLoading: false,
         isActiveSubscriptionLoading,
-        setIsActiveSubscriptionLoading,
         trialSubscription,
         activeSubscription,
         subscriptions,
