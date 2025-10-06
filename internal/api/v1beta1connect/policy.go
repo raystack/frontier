@@ -88,10 +88,6 @@ func (h *ConnectHandler) GetPolicy(ctx context.Context, request *connect.Request
 	return connect.NewResponse(&frontierv1beta1.GetPolicyResponse{Policy: policyPB}), nil
 }
 
-func (h *ConnectHandler) UpdatePolicy(ctx context.Context, request *connect.Request[frontierv1beta1.UpdatePolicyRequest]) (*connect.Response[frontierv1beta1.UpdatePolicyResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("unsupported at the moment"))
-}
-
 func (h *ConnectHandler) DeletePolicy(ctx context.Context, request *connect.Request[frontierv1beta1.DeletePolicyRequest]) (*connect.Response[frontierv1beta1.DeletePolicyResponse], error) {
 	err := h.policyService.Delete(ctx, request.Msg.GetId())
 	if err != nil {
