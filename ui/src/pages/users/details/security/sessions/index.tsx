@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AdminServiceQueries, Session } from "@raystack/proton/frontier";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { timestampToDate } from "~/utils/connect-timestamp";
 import styles from "./sessions.module.css";
 
 dayjs.extend(relativeTime);
@@ -87,8 +88,9 @@ export const UserSessions = () => {
   const formatLastActive = (updatedAt?: any) => {
     if (!updatedAt) return "Unknown";
     
-    const seconds = typeof updatedAt.seconds === 'bigint' ? Number(updatedAt.seconds) : updatedAt.seconds;
-    const date = new Date(seconds * 1000);
+    const date = timestampToDate(updatedAt);
+    if (!date) return "Unknown";
+    
     return dayjs(date).fromNow();
   };
 
