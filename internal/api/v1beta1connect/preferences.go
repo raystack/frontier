@@ -57,6 +57,17 @@ func (h *ConnectHandler) CreatePreferences(ctx context.Context, req *connect.Req
 	}), nil
 }
 
+func (h *ConnectHandler) DescribePreferences(ctx context.Context, req *connect.Request[frontierv1beta1.DescribePreferencesRequest]) (*connect.Response[frontierv1beta1.DescribePreferencesResponse], error) {
+	prefTraits := h.preferenceService.Describe(ctx)
+	var pbTraits []*frontierv1beta1.PreferenceTrait
+	for _, trait := range prefTraits {
+		pbTraits = append(pbTraits, transformPreferenceTraitToPB(trait))
+	}
+	return connect.NewResponse(&frontierv1beta1.DescribePreferencesResponse{
+		Traits: pbTraits,
+	}), nil
+}
+
 func (h *ConnectHandler) ListPlatformPreferences(ctx context.Context) (map[string]string, error) {
 	return h.preferenceService.LoadPlatformPreferences(ctx)
 }
@@ -71,4 +82,36 @@ func transformPreferenceToPB(pref preference.Preference) *frontierv1beta1.Prefer
 		CreatedAt:    timestamppb.New(pref.CreatedAt),
 		UpdatedAt:    timestamppb.New(pref.UpdatedAt),
 	}
+}
+
+func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.PreferenceTrait {
+	pbTrait := &frontierv1beta1.PreferenceTrait{
+		ResourceType:    pref.ResourceType,
+		Name:            pref.Name,
+		Title:           pref.Title,
+		Description:     pref.Description,
+		LongDescription: pref.LongDescription,
+		Heading:         pref.Heading,
+		SubHeading:      pref.SubHeading,
+		Breadcrumb:      pref.Breadcrumb,
+		InputHints:      pref.InputHints,
+		Default:         pref.Default,
+	}
+	switch pref.Input {
+	case preference.TraitInputText:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Text{}
+	case preference.TraitInputTextarea:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Textarea{}
+	case preference.TraitInputSelect:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Select{}
+	case preference.TraitInputCombobox:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Combobox{}
+	case preference.TraitInputCheckbox:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Checkbox{}
+	case preference.TraitInputMultiselect:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Multiselect{}
+	case preference.TraitInputNumber:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Number{}
+	}
+	return pbTrait
 }
