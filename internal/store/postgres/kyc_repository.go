@@ -88,11 +88,11 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 	if err == nil {
 		// kyc for org exists, prepare UPDATE query with JOIN
 		query, params, err = dialect.Update(TABLE_ORGANIZATIONS_KYC).
-			From(TABLE_ORGANIZATIONS).
 			Set(goqu.Record{
 				"status": input.Status,
 				"link":   input.Link,
 			}).
+			From(TABLE_ORGANIZATIONS).
 			Where(
 				goqu.Ex{
 					TABLE_ORGANIZATIONS_KYC + ".org_id": input.OrgID,
