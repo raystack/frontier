@@ -2,7 +2,6 @@ package v1beta1connect
 
 import (
 	"context"
-	"errors"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/relation"
@@ -17,10 +16,6 @@ type RelationService interface {
 	List(ctx context.Context, f relation.Filter) ([]relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
-
-var (
-	ErrNamespaceSplitNotation = errors.New("subject/object should be provided as 'namespace:uuid'")
-)
 
 func (h *ConnectHandler) ListRelations(ctx context.Context, request *connect.Request[frontierv1beta1.ListRelationsRequest]) (*connect.Response[frontierv1beta1.ListRelationsResponse], error) {
 	var err error
