@@ -291,3 +291,136 @@ func TestConnectHandler_CreateOrganizationPreferences(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListOrganizationPreferences(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(m *mocks.PreferenceService)
+		req     *connect.Request[frontierv1beta1.ListOrganizationPreferencesRequest]
+		want    *connect.Response[frontierv1beta1.ListOrganizationPreferencesResponse]
+		wantErr error
+	}{
+		{
+			name: "should list organization preferences on success",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					OrgID: "some_id",
+				}).Return([]preference.Preference{
+					{
+						ID:           "some_id",
+						Name:         "some_name",
+						Value:        "some_value",
+						ResourceID:   "some_resource_id",
+						ResourceType: "some_resource_type",
+					},
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListOrganizationPreferencesRequest{
+				Id: "some_id",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "some_id",
+						Name:         "some_name",
+						Value:        "some_value",
+						ResourceId:   "some_resource_id",
+						ResourceType: "some_resource_type",
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return empty list when no preferences found",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					OrgID: "empty_org",
+				}).Return([]preference.Preference{}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListOrganizationPreferencesRequest{
+				Id: "empty_org",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationPreferencesResponse{
+				Preferences: nil,
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error when service fails",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					OrgID: "error_org",
+				}).Return(nil, errors.New("database error"))
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListOrganizationPreferencesRequest{
+				Id: "error_org",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should list multiple preferences successfully",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					OrgID: "multi_org",
+				}).Return([]preference.Preference{
+					{
+						ID:           "pref1",
+						Name:         "notification_email",
+						Value:        "enabled",
+						ResourceID:   "multi_org",
+						ResourceType: schema.OrganizationNamespace,
+					},
+					{
+						ID:           "pref2",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceID:   "multi_org",
+						ResourceType: schema.OrganizationNamespace,
+					},
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListOrganizationPreferencesRequest{
+				Id: "multi_org",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListOrganizationPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "pref1",
+						Name:         "notification_email",
+						Value:        "enabled",
+						ResourceId:   "multi_org",
+						ResourceType: schema.OrganizationNamespace,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+					{
+						Id:           "pref2",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceId:   "multi_org",
+						ResourceType: schema.OrganizationNamespace,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPreferenceServ := new(mocks.PreferenceService)
+			if tt.setup != nil {
+				tt.setup(mockPreferenceServ)
+			}
+			h := &ConnectHandler{preferenceService: mockPreferenceServ}
+			got, err := h.ListOrganizationPreferences(context.Background(), tt.req)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}

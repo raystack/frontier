@@ -85,6 +85,24 @@ func (h *ConnectHandler) CreateOrganizationPreferences(ctx context.Context, req 
 	}), nil
 }
 
+func (h *ConnectHandler) ListOrganizationPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListOrganizationPreferencesRequest]) (*connect.Response[frontierv1beta1.ListOrganizationPreferencesResponse], error) {
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		OrgID: req.Msg.GetId(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
 func (h *ConnectHandler) DescribePreferences(ctx context.Context, req *connect.Request[frontierv1beta1.DescribePreferencesRequest]) (*connect.Response[frontierv1beta1.DescribePreferencesResponse], error) {
 	prefTraits := h.preferenceService.Describe(ctx)
 	var pbTraits []*frontierv1beta1.PreferenceTrait
