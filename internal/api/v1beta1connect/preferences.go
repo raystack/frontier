@@ -42,10 +42,12 @@ func (h *ConnectHandler) CreatePreferences(ctx context.Context, req *connect.Req
 			ResourceType: schema.PlatformNamespace,
 		})
 		if err != nil {
-			if errors.Is(err, preference.ErrTraitNotFound) {
+			switch {
+			case errors.Is(err, preference.ErrTraitNotFound), errors.Is(err, preference.ErrInvalidValue):
 				return nil, connect.NewError(connect.CodeInvalidArgument, err)
+			default:
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -70,10 +72,12 @@ func (h *ConnectHandler) CreateOrganizationPreferences(ctx context.Context, req 
 			ResourceType: schema.OrganizationNamespace,
 		})
 		if err != nil {
-			if errors.Is(err, preference.ErrTraitNotFound) {
+			switch {
+			case errors.Is(err, preference.ErrTraitNotFound), errors.Is(err, preference.ErrInvalidValue):
 				return nil, connect.NewError(connect.CodeInvalidArgument, err)
+			default:
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -119,10 +123,12 @@ func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect
 			ResourceType: schema.UserPrincipal,
 		})
 		if err != nil {
-			if errors.Is(err, preference.ErrTraitNotFound) {
+			switch {
+			case errors.Is(err, preference.ErrTraitNotFound), errors.Is(err, preference.ErrInvalidValue):
 				return nil, connect.NewError(connect.CodeInvalidArgument, err)
+			default:
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -189,6 +195,32 @@ func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateCurrentUserPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListCurrentUserPreferencesRequest]) (*connect.Response[frontierv1beta1.ListCurrentUserPreferencesResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		UserID: principal.ID,
+	})
+	if err != nil {
+		if errors.Is(err, preference.ErrInvalidFilter) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListCurrentUserPreferencesResponse{
 		Preferences: pbPrefs,
 	}), nil
 }

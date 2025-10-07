@@ -945,3 +945,164 @@ func TestConnectHandler_CreateCurrentUserPreferences(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListCurrentUserPreferences(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(authnService *mocks.AuthnService, preferenceService *mocks.PreferenceService)
+		want    *connect.Response[frontierv1beta1.ListCurrentUserPreferencesResponse]
+		wantErr error
+	}{
+		{
+			name: "should return preferences for current user on success",
+			setup: func(authnService *mocks.AuthnService, preferenceService *mocks.PreferenceService) {
+				authnService.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "test-user-id",
+					Type: "user",
+				}, nil)
+				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+					UserID: "test-user-id",
+				}).Return([]preference.Preference{
+					{
+						ID:           "pref-1",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceID:   "test-user-id",
+						ResourceType: schema.UserPrincipal,
+						CreatedAt:    time.Time{},
+						UpdatedAt:    time.Time{},
+					},
+				}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.ListCurrentUserPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "pref-1",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceId:   "test-user-id",
+						ResourceType: schema.UserPrincipal,
+						CreatedAt:    timestamppb.New(time.Time{}),
+						UpdatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return empty list when user has no preferences",
+			setup: func(authnService *mocks.AuthnService, preferenceService *mocks.PreferenceService) {
+				authnService.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "test-user-id",
+					Type: "user",
+				}, nil)
+				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+					UserID: "test-user-id",
+				}).Return([]preference.Preference{}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.ListCurrentUserPreferencesResponse{
+				Preferences: nil,
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return error when authentication fails",
+			setup: func(authnService *mocks.AuthnService, preferenceService *mocks.PreferenceService) {
+				authnService.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{},
+					errors.ErrUnauthenticated)
+			},
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated),
+		},
+		{
+			name: "should return error when preference service fails",
+			setup: func(authnService *mocks.AuthnService, preferenceService *mocks.PreferenceService) {
+				authnService.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "test-user-id",
+					Type: "user",
+				}, nil)
+				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+					UserID: "test-user-id",
+				}).Return(nil, errors.New("database error"))
+			},
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return multiple preferences for current user",
+			setup: func(authnService *mocks.AuthnService, preferenceService *mocks.PreferenceService) {
+				authnService.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "test-user-id",
+					Type: "user",
+				}, nil)
+				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+					UserID: "test-user-id",
+				}).Return([]preference.Preference{
+					{
+						ID:           "pref-1",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceID:   "test-user-id",
+						ResourceType: schema.UserPrincipal,
+						CreatedAt:    time.Time{},
+						UpdatedAt:    time.Time{},
+					},
+					{
+						ID:           "pref-2",
+						Name:         "language",
+						Value:        "en",
+						ResourceID:   "test-user-id",
+						ResourceType: schema.UserPrincipal,
+						CreatedAt:    time.Time{},
+						UpdatedAt:    time.Time{},
+					},
+				}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.ListCurrentUserPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "pref-1",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceId:   "test-user-id",
+						ResourceType: schema.UserPrincipal,
+						CreatedAt:    timestamppb.New(time.Time{}),
+						UpdatedAt:    timestamppb.New(time.Time{}),
+					},
+					{
+						Id:           "pref-2",
+						Name:         "language",
+						Value:        "en",
+						ResourceId:   "test-user-id",
+						ResourceType: schema.UserPrincipal,
+						CreatedAt:    timestamppb.New(time.Time{}),
+						UpdatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockAuthnServ := new(mocks.AuthnService)
+			mockPreferenceServ := new(mocks.PreferenceService)
+			tt.setup(mockAuthnServ, mockPreferenceServ)
+			h := &ConnectHandler{
+				preferenceService: mockPreferenceServ,
+				authnService:      mockAuthnServ,
+			}
+			ctx := context.Background()
+			req := connect.NewRequest(&frontierv1beta1.ListCurrentUserPreferencesRequest{})
+			got, err := h.ListCurrentUserPreferences(ctx, req)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.Error(), err.Error())
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want.Msg.GetPreferences(), got.Msg.GetPreferences())
+		})
+	}
+}
