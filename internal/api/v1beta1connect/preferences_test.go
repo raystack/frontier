@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -726,6 +727,219 @@ func TestConnectHandler_ListUserPreferences(t *testing.T) {
 			}
 			h := &ConnectHandler{preferenceService: mockPreferenceServ}
 			got, err := h.ListUserPreferences(context.Background(), tt.req)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestConnectHandler_CreateCurrentUserPreferences(t *testing.T) {
+	tests := []struct {
+		name                string
+		setupPreferenceServ func(m *mocks.PreferenceService)
+		setupAuthnServ      func(m *mocks.AuthnService)
+		req                 *connect.Request[frontierv1beta1.CreateCurrentUserPreferencesRequest]
+		want                *connect.Response[frontierv1beta1.CreateCurrentUserPreferencesResponse]
+		wantErr             error
+	}{
+		{
+			name: "should create current user preferences on success",
+			setupPreferenceServ: func(m *mocks.PreferenceService) {
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
+					Name:         "theme",
+					Value:        "dark",
+					ResourceID:   "current_user_123",
+					ResourceType: schema.UserPrincipal,
+				}).Return(preference.Preference{
+					ID:           "pref_current_123",
+					Name:         "theme",
+					Value:        "dark",
+					ResourceID:   "current_user_123",
+					ResourceType: schema.UserPrincipal,
+				}, nil)
+			},
+			setupAuthnServ: func(m *mocks.AuthnService) {
+				m.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "current_user_123",
+					Type: schema.UserPrincipal,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPreferencesRequest{
+				Bodies: []*frontierv1beta1.PreferenceRequestBody{
+					{
+						Name:  "theme",
+						Value: "dark",
+					},
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.CreateCurrentUserPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "pref_current_123",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceId:   "current_user_123",
+						ResourceType: schema.UserPrincipal,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return error when GetLoggedInPrincipal fails",
+			setupPreferenceServ: func(m *mocks.PreferenceService) {
+				// No expectations since GetLoggedInPrincipal fails before service call
+			},
+			setupAuthnServ: func(m *mocks.AuthnService) {
+				m.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPreferencesRequest{
+				Bodies: []*frontierv1beta1.PreferenceRequestBody{
+					{
+						Name:  "theme",
+						Value: "dark",
+					},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated),
+		},
+		{
+			name: "should return invalid argument error for trait not found",
+			setupPreferenceServ: func(m *mocks.PreferenceService) {
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
+					Name:         "invalid_trait",
+					Value:        "some_value",
+					ResourceID:   "current_user_456",
+					ResourceType: schema.UserPrincipal,
+				}).Return(preference.Preference{}, preference.ErrTraitNotFound)
+			},
+			setupAuthnServ: func(m *mocks.AuthnService) {
+				m.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "current_user_456",
+					Type: schema.UserPrincipal,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPreferencesRequest{
+				Bodies: []*frontierv1beta1.PreferenceRequestBody{
+					{
+						Name:  "invalid_trait",
+						Value: "some_value",
+					},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, preference.ErrTraitNotFound),
+		},
+		{
+			name: "should return invalid argument error for invalid value",
+			setupPreferenceServ: func(m *mocks.PreferenceService) {
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
+					Name:         "valid_trait",
+					Value:        "invalid_value",
+					ResourceID:   "current_user_789",
+					ResourceType: schema.UserPrincipal,
+				}).Return(preference.Preference{}, preference.ErrInvalidValue)
+			},
+			setupAuthnServ: func(m *mocks.AuthnService) {
+				m.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "current_user_789",
+					Type: schema.UserPrincipal,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPreferencesRequest{
+				Bodies: []*frontierv1beta1.PreferenceRequestBody{
+					{
+						Name:  "valid_trait",
+						Value: "invalid_value",
+					},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, preference.ErrInvalidValue),
+		},
+		{
+			name: "should create multiple current user preferences successfully",
+			setupPreferenceServ: func(m *mocks.PreferenceService) {
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
+					Name:         "theme",
+					Value:        "light",
+					ResourceID:   "current_user_multi",
+					ResourceType: schema.UserPrincipal,
+				}).Return(preference.Preference{
+					ID:           "pref_theme",
+					Name:         "theme",
+					Value:        "light",
+					ResourceID:   "current_user_multi",
+					ResourceType: schema.UserPrincipal,
+				}, nil)
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
+					Name:         "language",
+					Value:        "es",
+					ResourceID:   "current_user_multi",
+					ResourceType: schema.UserPrincipal,
+				}).Return(preference.Preference{
+					ID:           "pref_lang",
+					Name:         "language",
+					Value:        "es",
+					ResourceID:   "current_user_multi",
+					ResourceType: schema.UserPrincipal,
+				}, nil)
+			},
+			setupAuthnServ: func(m *mocks.AuthnService) {
+				m.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "current_user_multi",
+					Type: schema.UserPrincipal,
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPreferencesRequest{
+				Bodies: []*frontierv1beta1.PreferenceRequestBody{
+					{Name: "theme", Value: "light"},
+					{Name: "language", Value: "es"},
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.CreateCurrentUserPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "pref_theme",
+						Name:         "theme",
+						Value:        "light",
+						ResourceId:   "current_user_multi",
+						ResourceType: schema.UserPrincipal,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+					{
+						Id:           "pref_lang",
+						Name:         "language",
+						Value:        "es",
+						ResourceId:   "current_user_multi",
+						ResourceType: schema.UserPrincipal,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPreferenceServ := new(mocks.PreferenceService)
+			mockAuthnServ := new(mocks.AuthnService)
+			if tt.setupPreferenceServ != nil {
+				tt.setupPreferenceServ(mockPreferenceServ)
+			}
+			if tt.setupAuthnServ != nil {
+				tt.setupAuthnServ(mockAuthnServ)
+			}
+			h := &ConnectHandler{
+				preferenceService: mockPreferenceServ,
+				authnService:      mockAuthnServ,
+			}
+			got, err := h.CreateCurrentUserPreferences(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
