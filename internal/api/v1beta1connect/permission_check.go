@@ -111,3 +111,75 @@ func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectN
 		return pair.Status
 	}), nil
 }
+
+func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *connect.Request[frontierv1beta1.CheckResourcePermissionRequest]) (*connect.Response[frontierv1beta1.CheckResourcePermissionResponse], error) {
+	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.Msg.GetResource())
+	if len(req.Msg.GetResource()) == 0 || err != nil {
+		objectNamespace = schema.ParseNamespaceAliasIfRequired(req.Msg.GetObjectNamespace())
+		objectID = req.Msg.GetObjectId()
+	}
+	if objectNamespace == "" || objectID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+	}
+	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
+		Object: relation.Object{
+			ID:        objectID,
+			Namespace: objectNamespace,
+		},
+		Permission: permissionName,
+	})
+	if err != nil {
+		return nil, handleAuthErr(err)
+	}
+
+	logAuditForCheck(ctx, result, objectID, objectNamespace)
+	if !result {
+		return connect.NewResponse(&frontierv1beta1.CheckResourcePermissionResponse{Status: false}), nil
+	}
+	return connect.NewResponse(&frontierv1beta1.CheckResourcePermissionResponse{Status: true}), nil
+}
+
+func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.Request[frontierv1beta1.BatchCheckPermissionRequest]) (*connect.Response[frontierv1beta1.BatchCheckPermissionResponse], error) {
+	checks := make([]resource.Check, 0, len(req.Msg.GetBodies()))
+	for _, body := range req.Msg.GetBodies() {
+		objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(body.GetResource())
+		if len(body.GetResource()) == 0 || err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+
+		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.GetPermission())
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+		}
+		checks = append(checks, resource.Check{
+			Object: relation.Object{
+				ID:        objectID,
+				Namespace: objectNamespace,
+			},
+			Permission: permissionName,
+		})
+	}
+	result, err := h.resourceService.BatchCheck(ctx, checks)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	pairs := make([]*frontierv1beta1.BatchCheckPermissionResponsePair, 0, len(result))
+	for _, r := range result {
+		pairs = append(pairs, &frontierv1beta1.BatchCheckPermissionResponsePair{
+			Body: &frontierv1beta1.BatchCheckPermissionBody{
+				Permission: r.Relation.RelationName,
+				Resource:   schema.JoinNamespaceAndResourceID(r.Relation.Object.Namespace, r.Relation.Object.ID),
+			},
+			Status: r.Status,
+		})
+	}
+	return connect.NewResponse(&frontierv1beta1.BatchCheckPermissionResponse{
+		Pairs: pairs,
+	}), nil
+}

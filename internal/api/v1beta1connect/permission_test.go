@@ -370,3 +370,152 @@ func TestHandler_UpdatePermission(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_ListPermissions(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(as *mocks.PermissionService)
+		request *connect.Request[frontierv1beta1.ListPermissionsRequest]
+		want    *connect.Response[frontierv1beta1.ListPermissionsResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if permission service return some error",
+			setup: func(as *mocks.PermissionService) {
+				as.EXPECT().List(mock.Anything, permission.Filter{}).Return([]permission.Permission{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success if permission service return nil error",
+			setup: func(as *mocks.PermissionService) {
+				var testPermissionList []permission.Permission
+				for _, act := range testPermissions {
+					testPermissionList = append(testPermissionList, act)
+				}
+				as.EXPECT().List(mock.Anything, permission.Filter{}).Return(testPermissionList, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}),
+			want: connect.NewResponse(&frontierv1beta1.ListPermissionsResponse{
+				Permissions: []*frontierv1beta1.Permission{
+					{
+						Id:        testPermissions[0].ID,
+						Name:      testPermissions[0].Name,
+						Namespace: testPermissions[0].NamespaceID,
+						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[0].NamespaceID, testPermissions[0].Name),
+						CreatedAt: timestamppb.New(testPermissions[0].CreatedAt),
+						UpdatedAt: timestamppb.New(testPermissions[0].UpdatedAt),
+					},
+					{
+						Id:        testPermissions[1].ID,
+						Name:      testPermissions[1].Name,
+						Namespace: testPermissions[1].NamespaceID,
+						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[1].NamespaceID, testPermissions[1].Name),
+						CreatedAt: timestamppb.New(testPermissions[1].CreatedAt),
+						UpdatedAt: timestamppb.New(testPermissions[1].UpdatedAt),
+					},
+					{
+						Id:        testPermissions[2].ID,
+						Name:      testPermissions[2].Name,
+						Namespace: testPermissions[2].NamespaceID,
+						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[2].NamespaceID, testPermissions[2].Name),
+						CreatedAt: timestamppb.New(testPermissions[2].CreatedAt),
+						UpdatedAt: timestamppb.New(testPermissions[2].UpdatedAt),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPermissionSrv := new(mocks.PermissionService)
+			if tt.setup != nil {
+				tt.setup(mockPermissionSrv)
+			}
+			mockDep := &ConnectHandler{permissionService: mockPermissionSrv}
+			resp, err := mockDep.ListPermissions(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_GetPermission(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(as *mocks.PermissionService)
+		request *connect.Request[frontierv1beta1.GetPermissionRequest]
+		want    *connect.Response[frontierv1beta1.GetPermissionResponse]
+		wantErr error
+	}{
+		{
+			name: "should return internal error if permission service return some error",
+			setup: func(as *mocks.PermissionService) {
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return not found error if permission id not exist",
+			setup: func(as *mocks.PermissionService) {
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, permission.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return not found error if permission id is empty",
+			setup: func(as *mocks.PermissionService) {
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(permission.Permission{}, permission.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPermissionRequest{}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return success if permission service return nil error",
+			setup: func(as *mocks.PermissionService) {
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"),
+					testPermissions[testPermissionIdx].ID).Return(testPermissions[testPermissionIdx], nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetPermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+			}),
+			want: connect.NewResponse(&frontierv1beta1.GetPermissionResponse{
+				Permission: &frontierv1beta1.Permission{
+					Id:        testPermissions[testPermissionIdx].ID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
+					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPermissionSrv := new(mocks.PermissionService)
+			if tt.setup != nil {
+				tt.setup(mockPermissionSrv)
+			}
+			mockDep := &ConnectHandler{permissionService: mockPermissionSrv}
+			resp, err := mockDep.GetPermission(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
