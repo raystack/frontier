@@ -17,6 +17,9 @@ func (h *ConnectHandler) ListPreferences(ctx context.Context, req *connect.Reque
 		ResourceType: schema.PlatformNamespace,
 	})
 	if err != nil {
+		if errors.Is(err, preference.ErrInvalidFilter) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -90,6 +93,9 @@ func (h *ConnectHandler) ListOrganizationPreferences(ctx context.Context, req *c
 		OrgID: req.Msg.GetId(),
 	})
 	if err != nil {
+		if errors.Is(err, preference.ErrInvalidFilter) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -127,6 +133,27 @@ func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateUserPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) ListUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListUserPreferencesRequest]) (*connect.Response[frontierv1beta1.ListUserPreferencesResponse], error) {
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		UserID: req.Msg.GetId(),
+	})
+	if err != nil {
+		if errors.Is(err, preference.ErrInvalidFilter) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListUserPreferencesResponse{
 		Preferences: pbPrefs,
 	}), nil
 }

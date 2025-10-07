@@ -582,3 +582,152 @@ func TestConnectHandler_CreateUserPreferences(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_ListUserPreferences(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(m *mocks.PreferenceService)
+		req     *connect.Request[frontierv1beta1.ListUserPreferencesRequest]
+		want    *connect.Response[frontierv1beta1.ListUserPreferencesResponse]
+		wantErr error
+	}{
+		{
+			name: "should list user preferences on success",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					UserID: "user_123",
+				}).Return([]preference.Preference{
+					{
+						ID:           "pref_1",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceID:   "user_123",
+						ResourceType: schema.UserPrincipal,
+					},
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListUserPreferencesRequest{
+				Id: "user_123",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListUserPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "pref_1",
+						Name:         "theme",
+						Value:        "dark",
+						ResourceId:   "user_123",
+						ResourceType: schema.UserPrincipal,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return empty list when no preferences found",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					UserID: "user_empty",
+				}).Return([]preference.Preference{}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListUserPreferencesRequest{
+				Id: "user_empty",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListUserPreferencesResponse{
+				Preferences: nil,
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error when service fails",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					UserID: "user_error",
+				}).Return(nil, errors.New("database connection failed"))
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListUserPreferencesRequest{
+				Id: "user_error",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should list multiple user preferences successfully",
+			setup: func(m *mocks.PreferenceService) {
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+					UserID: "user_multi",
+				}).Return([]preference.Preference{
+					{
+						ID:           "pref_theme",
+						Name:         "theme",
+						Value:        "light",
+						ResourceID:   "user_multi",
+						ResourceType: schema.UserPrincipal,
+					},
+					{
+						ID:           "pref_lang",
+						Name:         "language",
+						Value:        "en",
+						ResourceID:   "user_multi",
+						ResourceType: schema.UserPrincipal,
+					},
+					{
+						ID:           "pref_tz",
+						Name:         "timezone",
+						Value:        "UTC",
+						ResourceID:   "user_multi",
+						ResourceType: schema.UserPrincipal,
+					},
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.ListUserPreferencesRequest{
+				Id: "user_multi",
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListUserPreferencesResponse{
+				Preferences: []*frontierv1beta1.Preference{
+					{
+						Id:           "pref_theme",
+						Name:         "theme",
+						Value:        "light",
+						ResourceId:   "user_multi",
+						ResourceType: schema.UserPrincipal,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+					{
+						Id:           "pref_lang",
+						Name:         "language",
+						Value:        "en",
+						ResourceId:   "user_multi",
+						ResourceType: schema.UserPrincipal,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+					{
+						Id:           "pref_tz",
+						Name:         "timezone",
+						Value:        "UTC",
+						ResourceId:   "user_multi",
+						ResourceType: schema.UserPrincipal,
+						UpdatedAt:    timestamppb.New(time.Time{}),
+						CreatedAt:    timestamppb.New(time.Time{}),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPreferenceServ := new(mocks.PreferenceService)
+			if tt.setup != nil {
+				tt.setup(mockPreferenceServ)
+			}
+			h := &ConnectHandler{preferenceService: mockPreferenceServ}
+			got, err := h.ListUserPreferences(context.Background(), tt.req)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
