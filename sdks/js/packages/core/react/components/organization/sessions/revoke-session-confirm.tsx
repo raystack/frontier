@@ -26,7 +26,7 @@ export const RevokeSessionConfirm = () => {
       const session = sessions.find(s => s.id === search.sessionId);
       if (session) {
         setSessionData(session);
-        console.log('Found session for revoke:', session);
+        console.log('Found session for revoking:', session);
       } else {
         console.log('Session not found for ID:', search.sessionId);
       }
@@ -37,18 +37,11 @@ export const RevokeSessionConfirm = () => {
     setIsFinalConfirmOpen(true);
   };
 
-  const handleFinalConfirm = async () => {
+  const handleFinalConfirm = () => {
     if (!search.sessionId) return;
     
-    try {
-      await revokeSession(search.sessionId);
-      navigate({ to: '/sessions' });
-      toast.success('Session revoked successfully');
-    } catch (error: any) {
-      toast.error('Failed to revoke session', {
-        description: error.message || 'Something went wrong'
-      });
-    }
+    revokeSession(search.sessionId);
+    navigate({ to: '/sessions' });
   };
 
 

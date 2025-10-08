@@ -38,7 +38,7 @@ export const SessionsPage = () => {
           </Flex>
           <Flex direction="column" className={styles.sessionsList}>
             <Skeleton 
-              height="20px" 
+              height="60px" 
               containerStyle={{ padding: '1rem 0' }}
               count={3}
             />

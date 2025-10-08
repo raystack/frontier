@@ -67,7 +67,7 @@ export const RevokeSessionFinalConfirm = ({
               data-test-id="frontier-sdk-confirm-final-revoke-dialog"
               disabled={isLoading}
               loading={isLoading}
-              loadingText="Revoking..."
+              loaderText="Revoking..."
             >
               Revoke
             </Button>

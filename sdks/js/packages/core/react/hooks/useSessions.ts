@@ -2,6 +2,19 @@ import { useFrontier } from '../contexts/FrontierContext';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { toast } from '@raystack/apsara';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { useMemo } from 'react';
+
+dayjs.extend(relativeTime);
+
+// Utility function to format device display
+export const formatDeviceDisplay = (browser?: string, operatingSystem?: string): string => {
+  const browserName = browser || "Unknown";
+  const osName = operatingSystem || "Unknown";
+  return browserName === "Unknown" && osName === "Unknown" ? "Unknown browser and OS" : `${browserName} on ${osName}`;
+};
 
 export interface SessionData {
   id: string;
@@ -29,15 +42,25 @@ export const useSessions = () => {
     }
   );
 
-  const sessions: SessionData[] = (sessionsData?.sessions || []).map((session: any) => ({
-    id: session.id || '',
-    browser: session.metadata?.browser || 'Unknown',
-    operatingSystem: session.metadata?.operatingSystem || 'Unknown',
-    ipAddress: session.metadata?.ipAddress || 'Unknown',
-    location: session.metadata?.location || 'Unknown',
-    lastActive: session.updatedAt?.seconds ? new Date(Number(session.updatedAt.seconds) * 1000).toLocaleString() : 'Unknown',
-    isCurrent: session.isCurrent || false,
-  }));
+  const formatLastActive = (updatedAt?: any) => {
+    if (!updatedAt) return "Unknown";
+    
+    const seconds = typeof updatedAt.seconds === 'bigint' ? Number(updatedAt.seconds) : updatedAt.seconds;
+    const date = new Date(seconds * 1000);
+    return dayjs(date).fromNow();
+  };
+
+  const sessions: SessionData[] = useMemo(() => 
+    (sessionsData?.sessions || []).map((session: any) => ({
+      id: session.id || '',
+      browser: session.metadata?.browser || 'Unknown',
+      operatingSystem: session.metadata?.operatingSystem || 'Unknown',
+      ipAddress: session.metadata?.ipAddress || 'Unknown',
+      location: session.metadata?.location || 'Unknown',
+      lastActive: formatLastActive(session.updatedAt),
+      isCurrent: session.isCurrentSession || false,
+    })), [sessionsData?.sessions]
+  );
 
   const {
     mutate: revokeSession,
@@ -48,9 +71,12 @@ export const useSessions = () => {
       queryClient.invalidateQueries({
         queryKey: [FrontierServiceQueries.listSessions],
       });
+      toast.success('Session revoked successfully');
     },
-    onError: (error) => {
-      console.error('Failed to revoke session:', error);
+    onError: (error: any) => {
+      toast.error('Failed to revoke session', {
+        description: error.message || 'Something went wrong'
+      });
     },
   });
 

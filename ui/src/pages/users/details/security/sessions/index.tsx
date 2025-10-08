@@ -152,9 +152,13 @@ export const UserSessions = () => {
                     {session.metadata?.location || "Unknown location"}
                   </Text>
                   <Text variant="tertiary" size="small">•</Text>
-                  <Text variant="tertiary" size="small">
-                    Last active {formatLastActive(session.updatedAt)}
-                  </Text>
+                  {session.isCurrentSession ? (
+                    <Text variant="success" size="small">Current session</Text>
+                  ) : (
+                    <Text variant="tertiary" size="small">
+                      Last active {formatLastActive(session.updatedAt)}
+                    </Text>
+                  )}
                 </Flex>
               </Flex>
               <Button 
