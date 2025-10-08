@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/kyc"
 
 	"github.com/raystack/frontier/core/organization"
@@ -29,6 +30,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/salt/log"
 )
 
@@ -317,6 +319,17 @@ func bootstrapRelation(client *db.Client) ([]relation.Relation, error) {
 	return insertedData, nil
 }
 
+// setTestAuditActorContext sets up audit context for tests without importing service layer
+func setTestAuditActorContext(ctx context.Context) context.Context {
+	testActorID := uuid.New().String()
+	actorMap := map[string]interface{}{
+		"id":   testActorID,
+		"type": schema.UserPrincipal,
+		"name": "unit-test",
+	}
+	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actorMap)
+}
+
 func bootstrapOrganization(client *db.Client) ([]organization.Organization, error) {
 	orgRepository := postgres.NewOrganizationRepository(client)
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-organization.json")
@@ -329,9 +342,12 @@ func bootstrapOrganization(client *db.Client) ([]organization.Organization, erro
 		return nil, err
 	}
 
+	// Set up test audit context
+	ctx := setTestAuditActorContext(context.Background())
+
 	var insertedData []organization.Organization
 	for _, d := range data {
-		domain, err := orgRepository.Create(context.Background(), d)
+		domain, err := orgRepository.Create(ctx, d)
 		if err != nil {
 			return nil, err
 		}

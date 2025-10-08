@@ -1,20 +1,23 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
 
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/server/consts"
 )
 
 type AuditRecord struct {
 	ID               uuid.UUID          `db:"id" goqu:"skipinsert"`
-	IdempotencyKey   uuid.UUID          `db:"idempotency_key"`
+	IdempotencyKey   uuid.NullUUID      `db:"idempotency_key"`
 	Event            string             `db:"event"`
 	ActorID          uuid.UUID          `db:"actor_id"`
 	ActorType        string             `db:"actor_type"`
@@ -52,9 +55,14 @@ func nullStringToTargetPtr(targetID, targetType, targetName sql.NullString, targ
 
 // transformToDomain converts AuditRecord model to domain model
 func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
+	var idempotencyKey string
+	if ar.IdempotencyKey.Valid {
+		idempotencyKey = ar.IdempotencyKey.UUID.String()
+	}
+
 	return auditrecord.AuditRecord{
 		ID:             ar.ID.String(),
-		IdempotencyKey: ar.IdempotencyKey.String(),
+		IdempotencyKey: idempotencyKey,
 		Event:          ar.Event,
 		Actor: auditrecord.Actor{
 			ID:       ar.ActorID.String(),
@@ -89,9 +97,13 @@ func transformFromDomain(record auditrecord.AuditRecord) (AuditRecord, error) {
 		return AuditRecord{}, errors.Wrap(err, "invalid organization ID")
 	}
 
-	idempotencyKey, err := uuid.Parse(record.IdempotencyKey)
-	if err != nil {
-		return AuditRecord{}, errors.Wrap(err, "invalid idempotency key")
+	var idempotencyKey uuid.NullUUID
+	if record.IdempotencyKey != "" {
+		parsedKey, err := uuid.Parse(record.IdempotencyKey)
+		if err != nil {
+			return AuditRecord{}, errors.Wrap(err, "invalid idempotency key")
+		}
+		idempotencyKey = uuid.NullUUID{UUID: parsedKey, Valid: true}
 	}
 
 	var requestID string
@@ -129,4 +141,121 @@ func transformFromDomain(record auditrecord.AuditRecord) (AuditRecord, error) {
 		Metadata:         metadataToNullJSONText(record.Metadata),
 		IdempotencyKey:   idempotencyKey,
 	}, nil
+}
+
+func extractActorFromContext(ctx context.Context) (string, string, string, map[string]interface{}) {
+	var id, actorType, name string
+	var actorMetadata map[string]interface{}
+
+	if val := ctx.Value(consts.AuditRecordActorContextKey); val != nil {
+		if actorMap, ok := val.(map[string]interface{}); ok {
+			if v, ok := actorMap["id"].(string); ok {
+				id = v
+			}
+			if v, ok := actorMap["type"].(string); ok {
+				actorType = v
+			}
+			if v, ok := actorMap["name"].(string); ok {
+				name = v
+			}
+			if v, ok := actorMap["metadata"].(map[string]interface{}); ok {
+				actorMetadata = v
+			}
+		}
+	}
+	return id, actorType, name, actorMetadata
+}
+
+func extractSessionMetadataFromContext(ctx context.Context) map[string]interface{} {
+	if val := ctx.Value(consts.SessionContextKey); val != nil {
+		if sessionMetadataMap, ok := val.(map[string]interface{}); ok {
+			return sessionMetadataMap
+		}
+	}
+	return nil
+}
+
+func extractSuperUserFromContext(ctx context.Context) bool {
+	if val := ctx.Value(consts.AuthSuperUserContextKey); val != nil {
+		if isSuperUser, ok := val.(bool); ok {
+			return isSuperUser
+		}
+	}
+	return false
+}
+
+type AuditResource struct {
+	ID       string
+	Type     string
+	Name     string
+	Metadata metadata.Metadata
+}
+
+type AuditTarget struct {
+	ID       string
+	Type     string
+	Name     string
+	Metadata metadata.Metadata
+}
+
+// BuildAuditRecord creates an AuditRecord from context and event data
+func BuildAuditRecord(ctx context.Context, event string, resource AuditResource, target *AuditTarget, orgID string, eventMetadata metadata.Metadata, occurredAt time.Time) AuditRecord {
+	actorID, actorType, actorName, actorMetadata := extractActorFromContext(ctx)
+
+	if actorMetadata == nil {
+		actorMetadata = make(map[string]interface{})
+	}
+
+	if isSuperUser := extractSuperUserFromContext(ctx); isSuperUser {
+		actorMetadata[consts.AuditActorSuperUserKey] = true
+	}
+
+	if sessionMetadata := extractSessionMetadataFromContext(ctx); sessionMetadata != nil {
+		actorMetadata[consts.AuditSessionMetadataKey] = sessionMetadata
+	}
+
+	actorUUID, _ := uuid.Parse(actorID)
+	orgUUID, _ := uuid.Parse(orgID)
+
+	record := AuditRecord{
+		Event:            event,
+		ActorID:          actorUUID,
+		ActorType:        actorType,
+		ActorName:        actorName,
+		ActorMetadata:    metadataToNullJSONText(actorMetadata),
+		ResourceID:       resource.ID,
+		ResourceType:     resource.Type,
+		ResourceName:     resource.Name,
+		ResourceMetadata: metadataToNullJSONText(resource.Metadata),
+		OrganizationID:   orgUUID,
+		OccurredAt:       occurredAt,
+		Metadata:         metadataToNullJSONText(eventMetadata),
+	}
+
+	// Set target fields if provided
+	if target != nil {
+		record.TargetID = toNullString(target.ID)
+		record.TargetType = toNullString(target.Type)
+		record.TargetName = toNullString(target.Name)
+		record.TargetMetadata = metadataToNullJSONText(target.Metadata)
+	}
+
+	return record
+}
+
+// InsertAuditRecordInTx inserts an audit record within a transaction
+func InsertAuditRecordInTx(ctx context.Context, tx *sqlx.Tx, record AuditRecord) error {
+	query, params, err := dialect.Insert(TABLE_AUDITRECORDS).
+		Rows(record).
+		ToSQL()
+	if err != nil {
+		return errors.Wrap(err, "failed to build audit insert query")
+	}
+
+	_, err = tx.ExecContext(ctx, query, params...)
+	if err != nil {
+		return errors.Wrap(err, "failed to insert audit record")
+	}
+
+	return nil
 }
