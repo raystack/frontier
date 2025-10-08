@@ -55,4 +55,7 @@ var (
 	ErrGroupMinOwnerCount          = errors.New("group must have at least one owner, consider adding another owner before removing")
 	ErrPortalChangesKycCompleted   = errors.New("customer portal changes not allowed: organization kyc completed")
 	ErrResourceNotFound            = errors.New("resource doesn't exist")
+	ErrInvalidPreferenceFilter     = errors.New("invalid preference filter set")
+	ErrTraitNotFound               = errors.New("preference trait not found, preferences can only be created with valid trait")
+	ErrInvalidPreferenceValue      = errors.New("invalid value for preference")
 )
