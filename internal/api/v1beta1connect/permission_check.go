@@ -124,7 +124,7 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 
 	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+		return nil, err
 	}
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
 		Object: relation.Object{
@@ -154,7 +154,7 @@ func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.
 
 		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.GetPermission())
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+			return nil, err
 		}
 		checks = append(checks, resource.Check{
 			Object: relation.Object{
