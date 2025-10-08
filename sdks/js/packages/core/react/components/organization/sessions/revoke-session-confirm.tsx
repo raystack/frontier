@@ -98,7 +98,7 @@ export const RevokeSessionConfirm = () => {
                   onClick={handleRevokeClick}
                   data-test-id="frontier-sdk-confirm-revoke-session-dialog"
                 >
-                  Revoke
+                  {sessionData?.isCurrent ? 'Sign out' : 'Revoke'}
                 </Button>
               </Flex>
             </Dialog.Footer>
@@ -121,6 +121,7 @@ export const RevokeSessionConfirm = () => {
         onOpenChange={setIsFinalConfirmOpen}
         onConfirm={handleFinalConfirm}
         isLoading={isRevokingSession}
+        isCurrentSession={sessionData?.isCurrent}
       />
     </>
   );

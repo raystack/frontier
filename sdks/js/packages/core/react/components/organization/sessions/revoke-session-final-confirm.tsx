@@ -12,13 +12,15 @@ interface RevokeSessionFinalConfirmProps {
   onOpenChange: (isOpen: boolean) => void;
   onConfirm: () => void;
   isLoading?: boolean;
+  isCurrentSession?: boolean;
 }
 
 export const RevokeSessionFinalConfirm = ({ 
   isOpen, 
   onOpenChange, 
   onConfirm, 
-  isLoading = false 
+  isLoading = false,
+  isCurrentSession = false
 }: RevokeSessionFinalConfirmProps) => {
   const handleConfirm = async () => {
     try {
@@ -67,9 +69,9 @@ export const RevokeSessionFinalConfirm = ({
               data-test-id="frontier-sdk-confirm-final-revoke-dialog"
               disabled={isLoading}
               loading={isLoading}
-              loaderText="Revoking..."
+              loaderText={isCurrentSession ? "Signing out..." : "Revoking..."}
             >
-              Revoke
+              {isCurrentSession ? 'Sign out' : 'Revoke'}
             </Button>
           </Flex>
         </Dialog.Footer>
