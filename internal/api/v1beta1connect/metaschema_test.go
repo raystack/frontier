@@ -226,7 +226,7 @@ func TestConnectHandler_GetMetaSchema(t *testing.T) {
 			},
 			req:     connect.NewRequest(&frontierv1beta1.GetMetaSchemaRequest{Id: ""}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound),
 		},
 		{
 			name: "should return not found when metaschema doesn't exist",
@@ -235,7 +235,7 @@ func TestConnectHandler_GetMetaSchema(t *testing.T) {
 			},
 			req:     connect.NewRequest(&frontierv1beta1.GetMetaSchemaRequest{Id: "nonexistent_id"}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound),
 		},
 		{
 			name: "should return internal error when service fails",
@@ -317,7 +317,7 @@ func TestConnectHandler_UpdateMetaSchema(t *testing.T) {
 				Body: &frontierv1beta1.MetaSchemaRequestBody{Name: "test", Schema: "test"},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound),
 		},
 		{
 			name: "should return bad request when body is nil",
@@ -344,7 +344,7 @@ func TestConnectHandler_UpdateMetaSchema(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound),
 		},
 	}
 
@@ -391,7 +391,7 @@ func TestConnectHandler_DeleteMetaSchema(t *testing.T) {
 			},
 			req:     connect.NewRequest(&frontierv1beta1.DeleteMetaSchemaRequest{Id: ""}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound),
 		},
 		{
 			name: "should return not found when metaschema doesn't exist",
@@ -400,7 +400,7 @@ func TestConnectHandler_DeleteMetaSchema(t *testing.T) {
 			},
 			req:     connect.NewRequest(&frontierv1beta1.DeleteMetaSchemaRequest{Id: "nonexistent_id"}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound),
 		},
 		{
 			name: "should return internal error when service fails",
