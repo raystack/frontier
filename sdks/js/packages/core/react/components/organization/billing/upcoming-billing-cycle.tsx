@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice } from '~/src';
 import {
@@ -108,20 +108,17 @@ export const UpcomingBillingCycle = ({
   const [isMemberCountLoading, setIsMemberCountLoading] = useState(false);
   const navigate = useNavigate({ from: '/billing' });
 
-  const [plan, setPlan] = useState<Plan>();
-  const [switchablePlan, setSwitchablePlan] = useState<Plan | null>(null);
-
-  useEffect(() => {
+  const { plan, switchablePlan } = useMemo(() => {
     if (activeSubscription?.planId && allPlans.length > 0) {
       const currentPlan = allPlans.find(
         p => p.id === activeSubscription.planId
       );
-      setPlan(currentPlan);
       const otherPlan = currentPlan
         ? getSwitchablePlan(allPlans, currentPlan)
         : null;
-      setSwitchablePlan(otherPlan);
+      return { plan: currentPlan, switchablePlan: otherPlan };
     }
+    return { plan: null, switchablePlan: null };
   }, [activeSubscription?.planId, allPlans]);
 
   useEffect(() => {

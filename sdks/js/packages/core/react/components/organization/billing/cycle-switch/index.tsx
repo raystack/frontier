@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Skeleton,
@@ -21,13 +21,18 @@ import { timestampToDayjs } from '~/utils/timestamp';
 import { Plan } from '@raystack/proton/frontier';
 
 export function ConfirmCycleSwitch() {
-  const { activePlan, paymentMethod, config, activeSubscription, allPlans, isAllPlansLoading } =
-    useFrontier();
+  const {
+    activePlan,
+    paymentMethod,
+    config,
+    activeSubscription,
+    allPlans,
+    isAllPlansLoading
+  } = useFrontier();
   const navigate = useNavigate({ from: '/billing/cycle-switch/$planId' });
   const { planId } = useParams({ from: '/billing/cycle-switch/$planId' });
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
-  const [nextPlan, setNextPlan] = useState<Plan>();
   const [isCycleSwitching, setCycleSwitching] = useState(false);
 
   const closeModal = useCallback(
@@ -42,6 +47,13 @@ export function ConfirmCycleSwitch() {
     verifyPlanChange
   } = usePlans();
 
+  const nextPlan = useMemo(() => {
+    if (planId && allPlans.length > 0) {
+      const plan = allPlans.find(p => p.id === planId);
+      return plan;
+    }
+  }, [planId, allPlans]);
+
   const nextPlanPrice = nextPlan ? getPlanPrice(nextPlan) : { amount: 0 };
   const isPaymentMethodRequired =
     _.isEmpty(paymentMethod) && nextPlanPrice.amount > 0;
@@ -55,13 +67,6 @@ export function ConfirmCycleSwitch() {
     (Number(nextPlanMetadata?.weightage) || 0) -
       (Number(activePlanMetadata?.weightage) || 0) >
     0;
-
-  useEffect(() => {
-    if (planId && allPlans.length > 0) {
-      const plan = allPlans.find(p => p.id === planId);
-      setNextPlan(plan);
-    }
-  }, [planId, allPlans]);
 
   const isLoading = isAllPlansLoading;
 

@@ -7,7 +7,7 @@ import { Subscription, Plan } from '@raystack/proton/frontier';
 import styles from './styles.module.css';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   checkSimilarPlans,
@@ -39,7 +39,6 @@ export function UpcomingPlanChangeBanner({
     allPlans,
     isAllPlansLoading
   } = useFrontier();
-  const [upcomingPlan, setUpcomingPlan] = useState<Plan>();
   const [isPlanChangeLoading, setIsPlanChangeLoading] = useState(false);
 
   const phases =
@@ -49,10 +48,10 @@ export function UpcomingPlanChangeBanner({
 
   const nextPhase = phases?.[0];
 
-  useEffect(() => {
+  const upcomingPlan = useMemo(() => {
     if (nextPhase?.planId && allPlans.length > 0) {
       const plan = allPlans.find(p => p.id === nextPhase?.planId);
-      setUpcomingPlan(plan);
+      return plan;
     }
   }, [nextPhase?.planId, allPlans]);
 
