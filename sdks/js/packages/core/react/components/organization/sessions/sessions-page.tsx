@@ -102,7 +102,7 @@ export const SessionsPage = () => {
                   onClick={() => handleRevoke(session.id)} 
                   data-test-id="frontier-sdk-revoke-session-button"
                 >
-                  Revoke
+                  {session.isCurrent ? 'Sign out' : 'Revoke'}
                 </Button>
               </Flex>
             ))
