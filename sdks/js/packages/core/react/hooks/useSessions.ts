@@ -51,15 +51,22 @@ export const useSessions = () => {
   };
 
   const sessions: SessionData[] = useMemo(() => 
-    (sessionsData?.sessions || []).map((session: any) => ({
-      id: session.id || '',
-      browser: session.metadata?.browser || 'Unknown',
-      operatingSystem: session.metadata?.operatingSystem || 'Unknown',
-      ipAddress: session.metadata?.ipAddress || 'Unknown',
-      location: session.metadata?.location || 'Unknown',
-      lastActive: formatLastActive(session.updatedAt),
-      isCurrent: session.isCurrentSession || false,
-    })), [sessionsData?.sessions]
+    (sessionsData?.sessions || [])
+      .map((session: any) => ({
+        id: session.id || '',
+        browser: session.metadata?.browser || 'Unknown',
+        operatingSystem: session.metadata?.operatingSystem || 'Unknown',
+        ipAddress: session.metadata?.ipAddress || 'Unknown',
+        location: session.metadata?.location || 'Unknown',
+        lastActive: formatLastActive(session.updatedAt),
+        isCurrent: session.isCurrentSession || false,
+      }))
+      .sort((a, b) => {
+        // Current session first, then by last active (most recent first)
+        if (a.isCurrent && !b.isCurrent) return -1;
+        if (!a.isCurrent && b.isCurrent) return 1;
+        return 0; // Keep original order for non-current sessions
+      }), [sessionsData?.sessions]
   );
 
   const {
