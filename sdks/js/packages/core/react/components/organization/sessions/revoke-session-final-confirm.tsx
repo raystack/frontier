@@ -7,6 +7,13 @@ import {
 } from '@raystack/apsara/v1';
 import styles from './sessions.module.css';
 
+const getErrorMessage = (error: any): string => {
+  if (error?.status === 500) {
+    return 'Something went wrong';
+  }
+  return error?.message || 'Something went wrong';
+};
+
 interface RevokeSessionFinalConfirmProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -28,7 +35,7 @@ export const RevokeSessionFinalConfirm = ({
       onOpenChange(false);
     } catch (error: any) {
       toast.error('Failed to revoke session', {
-        description: error.message || 'Something went wrong'
+        description: getErrorMessage(error)
       });
     }
   };

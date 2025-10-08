@@ -9,6 +9,14 @@ import { useMemo } from 'react';
 
 dayjs.extend(relativeTime);
 
+// Utility function to format error messages based on status code
+const getErrorMessage = (error: any): string => {
+  if (error?.status === 500) {
+    return 'Something went wrong';
+  }
+  return error?.message || 'Something went wrong';
+};
+
 export const formatDeviceDisplay = (browser?: string, operatingSystem?: string): string => {
   const browserName = browser || "Unknown";
   const osName = operatingSystem || "Unknown";
@@ -87,7 +95,7 @@ export const useSessions = () => {
     },
     onError: (error: any) => {
       toast.error('Failed to revoke session', {
-        description: error.message || 'Something went wrong'
+        description: getErrorMessage(error)
       });
     },
   });
