@@ -1,5 +1,5 @@
 import { useFrontier } from '../contexts/FrontierContext';
-import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { toast } from '@raystack/apsara';
@@ -9,7 +9,6 @@ import { useMemo } from 'react';
 
 dayjs.extend(relativeTime);
 
-// Utility function to format device display
 export const formatDeviceDisplay = (browser?: string, operatingSystem?: string): string => {
   const browserName = browser || "Unknown";
   const osName = operatingSystem || "Unknown";
@@ -29,6 +28,7 @@ export interface SessionData {
 export const useSessions = () => {
   const { client } = useFrontier();
   const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const { 
     data: sessionsData, 
@@ -69,7 +69,12 @@ export const useSessions = () => {
     onSuccess: () => {
       // Invalidate and refetch the sessions list
       queryClient.invalidateQueries({
-        queryKey: [FrontierServiceQueries.listSessions],
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listSessions,
+          transport,
+          input: {},
+          cardinality: "finite",
+        }),
       });
       toast.success('Session revoked successfully');
     },
