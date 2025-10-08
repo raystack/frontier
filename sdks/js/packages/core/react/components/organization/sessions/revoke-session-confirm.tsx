@@ -24,12 +24,12 @@ export const RevokeSessionConfirm = () => {
   useEffect(() => {
     if (search.sessionId && sessions.length > 0) {
       const session = sessions.find(s => s.id === search.sessionId);
-      if (session) {
-        setSessionData(session);
-        console.log('Found session for revoking:', session);
-      } else {
-        console.log('Session not found for ID:', search.sessionId);
+      if (!session) {
+        console.error('Session not found for ID:', search.sessionId);
+        return;
       }
+      
+      setSessionData(session);
     }
   }, [search.sessionId, sessions]);
 

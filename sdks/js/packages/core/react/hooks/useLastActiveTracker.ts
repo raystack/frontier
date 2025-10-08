@@ -13,9 +13,6 @@ export const useLastActiveTracker = () => {
   const {
     mutate: pingUserSession,
   } = useMutation(FrontierServiceQueries.pingUserSession, {
-    onSuccess: () => {
-      console.log('Session pinged successfully');
-    },
     onError: (error) => {
       console.error('Failed to ping session:', error);
     },
@@ -29,23 +26,18 @@ export const useLastActiveTracker = () => {
 
     // Start tracking if this is the first component
     if (trackingCount === 1) {
-      console.log('Starting activity tracking (first component)');
       pingUserSession({});
       globalIntervalId = setInterval(() => {
         pingUserSession({});
       }, 10 * 60 * 1000);
-    } else {
-      console.log(`Activity tracking already running (${trackingCount} components)`);
     }
 
     return () => {
       // Decrement reference count
       trackingCount--;
-      console.log(`Component unmounted, tracking count: ${trackingCount}`);
       
       // Stop tracking if this was the last component
       if (trackingCount === 0 && globalIntervalId) {
-        console.log('Stopping activity tracking (last component)');
         clearInterval(globalIntervalId);
         globalIntervalId = null;
       }
