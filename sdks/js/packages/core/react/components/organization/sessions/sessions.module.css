@@ -1,7 +1,3 @@
-* {
-  font-family: var(--rs-font-inter);
-}
-
 .header {
   margin-bottom: var(--rs-space-9);
 }
@@ -29,6 +25,11 @@
 
 .revokeSessionConfirmBody {
   padding: var(--rs-space-5) var(--rs-space-7);
+  border-bottom: 0.9px solid var(--rs-color-border-base-primary);
+}
+
+.revokeSessionFinalConfirmBody {
+  padding: 0 var(--rs-space-7) var(--rs-space-5) var(--rs-space-7);
   border-bottom: 0.9px solid var(--rs-color-border-base-primary);
 }
 
