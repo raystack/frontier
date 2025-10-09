@@ -16,7 +16,7 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, headers
 
 	// IP Address
 	if clientIP := req.Header().Get(headers.ClientIP); clientIP != "" {
-		if parts := strings.Split(clientIP, ":"); len(parts) > 0 {
+		if parts := strings.Split(clientIP, ","); len(parts) > 0 {
 			metadata.IpAddress = parts[0]
 		}
 	}
