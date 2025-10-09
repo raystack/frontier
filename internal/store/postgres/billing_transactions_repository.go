@@ -163,6 +163,75 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 			if err := r.createTransactionEntry(ctx, tx, creditEntry, &creditModel); err != nil {
 				return fmt.Errorf("failed to create credit entry: %w", err)
 			}
+
+			auditCustomerID := debitEntry.CustomerID
+			if auditCustomerID == schema.PlatformOrgID.String() {
+				auditCustomerID = creditEntry.CustomerID
+			}
+
+			if auditCustomerID != schema.PlatformOrgID.String() {
+				var orgID, orgName string
+				orgQuery, orgParams, err := dialect.From(TABLE_BILLING_CUSTOMERS).
+					Select(
+						goqu.I(TABLE_BILLING_CUSTOMERS+".org_id"),
+						goqu.I(TABLE_ORGANIZATIONS+".name"),
+					).
+					Join(
+						goqu.T(TABLE_ORGANIZATIONS),
+						goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+".org_id").Eq(goqu.I(TABLE_ORGANIZATIONS+".id"))),
+					).
+					Where(goqu.Ex{TABLE_BILLING_CUSTOMERS + ".id": auditCustomerID}).
+					ToSQL()
+				if err != nil {
+					fmt.Println("error in org query", err)
+					return fmt.Errorf("failed to build org name query: %w", err)
+				}
+				if err := tx.QueryRowContext(ctx, orgQuery, orgParams...).Scan(&orgID, &orgName); err != nil {
+					return fmt.Errorf("failed to get org info: %w", err)
+				}
+
+				// Determine if this is credit or debit for the customer
+				var eventType string
+				var txModel Transaction
+				var txEntry credit.Transaction
+
+				if debitEntry.CustomerID == auditCustomerID {
+					eventType = "billing_transaction.debit"
+					txModel = debitModel
+					txEntry = debitEntry
+				} else {
+					eventType = "billing_transaction.credit"
+					txModel = creditModel
+					txEntry = creditEntry
+				}
+
+				auditRecord := BuildAuditRecord(
+					ctx,
+					eventType,
+					AuditResource{
+						ID:   orgID,
+						Type: "organization",
+						Name: orgName,
+					},
+					&AuditTarget{
+						ID:   txModel.ID,
+						Type: "billing_transaction",
+						Metadata: map[string]interface{}{
+							"amount":      txEntry.Amount,
+							"source":      txEntry.Source,
+							"description": txEntry.Description,
+						},
+					},
+					orgID,
+					nil,
+					debitModel.CreatedAt,
+				)
+
+				if err := InsertAuditRecordInTx(ctx, tx, auditRecord); err != nil {
+					return fmt.Errorf("failed to insert audit record: %w", err)
+				}
+			}
+
 			return nil
 		})
 	})
