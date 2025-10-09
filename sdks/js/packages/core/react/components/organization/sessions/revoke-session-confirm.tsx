@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
   Button,
-  toast,
   Text,
   Dialog,
   Flex,
   List,
   Skeleton
 } from '@raystack/apsara/v1';
-import { useSessions, SessionData } from '../../../hooks/useSessions';
+import { useSessions } from '../../../hooks/useSessions';
+import { useFrontier } from '../../../contexts/FrontierContext';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import styles from './sessions.module.css';
 
@@ -17,20 +19,37 @@ export const RevokeSessionConfirm = () => {
   const navigate = useNavigate({ from: '/sessions/revoke' });
   const search = useSearch({ from: '/sessions/revoke' }) as { sessionId?: string };
   const { sessions, revokeSession, isRevokingSession } = useSessions();
-  const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const { setUser } = useFrontier();
   const [isFinalConfirmOpen, setIsFinalConfirmOpen] = useState(false);
 
-  // Find the session data based on sessionId from URL params
-  useEffect(() => {
-    if (search.sessionId && sessions.length > 0) {
-      const session = sessions.find(s => s.id === search.sessionId);
-      if (!session) {
-        console.error('Session not found for ID:', search.sessionId);
-        return;
+  const { mutate: logout } = useMutation(FrontierServiceQueries.authLogout, {
+    onSuccess: () => {
+      setUser(undefined);
+      window.location.href = '/login';
+    },
+    onError: (error) => {
+      console.error('Failed to logout:', error);
+      // Fallback to regular session revocation
+      if (search.sessionId) {
+        revokeSession(search.sessionId);
+        navigate({ to: '/sessions' });
       }
-      
-      setSessionData(session);
+    },
+  });
+
+  // Find the session data based on sessionId from URL params
+  const sessionData = useMemo(() => {
+    if (!search.sessionId || sessions.length === 0) {
+      return null;
     }
+    
+    const session = sessions.find(s => s.id === search.sessionId);
+    if (!session) {
+      console.error('Not found');
+      return null;
+    }
+    
+    return session;
   }, [search.sessionId, sessions]);
 
   const handleRevokeClick = () => {
@@ -40,6 +59,13 @@ export const RevokeSessionConfirm = () => {
   const handleFinalConfirm = () => {
     if (!search.sessionId) return;
     
+    // If revoking current session, logout first
+    if (sessionData?.isCurrent) {
+      logout({});
+      return;
+    }
+    
+    // For non-current sessions, just revoke the session
     revokeSession(search.sessionId);
     navigate({ to: '/sessions' });
   };

@@ -1,20 +1,22 @@
-import { useFrontier } from '../contexts/FrontierContext';
+import { useMemo } from 'react';
 import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { toast } from '@raystack/apsara';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { useMemo } from 'react';
 
 dayjs.extend(relativeTime);
 
 // Utility function to format error messages based on status code
-const getErrorMessage = (error: any): string => {
-  if (error?.status === 500) {
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error && 'status' in error && error.status === 500) {
     return 'Something went wrong';
   }
-  return error?.message || 'Something went wrong';
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'Something went wrong';
 };
 
 export const formatDeviceDisplay = (browser?: string, operatingSystem?: string): string => {
@@ -23,18 +25,7 @@ export const formatDeviceDisplay = (browser?: string, operatingSystem?: string):
   return browserName === "Unknown" && osName === "Unknown" ? "Unknown browser and OS" : `${browserName} on ${osName}`;
 };
 
-export interface SessionData {
-  id: string;
-  browser: string;
-  operatingSystem: string;
-  ipAddress: string;
-  location: string;
-  lastActive: string;
-  isCurrent: boolean;
-}
-
 export const useSessions = () => {
-  const { client } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
 
@@ -44,10 +35,7 @@ export const useSessions = () => {
     error 
   } = useQuery(
     FrontierServiceQueries.listSessions,
-    {},
-    {
-      enabled: !!client,
-    }
+    {}
   );
 
   const formatLastActive = (updatedAt?: any) => {
@@ -58,7 +46,7 @@ export const useSessions = () => {
     return dayjs(date).fromNow();
   };
 
-  const sessions: SessionData[] = useMemo(() => 
+  const sessions = useMemo(() => 
     (sessionsData?.sessions || [])
       .map((session: any) => ({
         id: session.id || '',
