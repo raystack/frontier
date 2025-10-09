@@ -59,13 +59,11 @@ export const RevokeSessionConfirm = () => {
   const handleFinalConfirm = () => {
     if (!search.sessionId) return;
     
-    // If revoking current session, logout first
     if (sessionData?.isCurrent) {
       logout({});
       return;
     }
     
-    // For non-current sessions, just revoke the session
     revokeSession(search.sessionId);
     navigate({ to: '/sessions' });
   };
