@@ -13,10 +13,10 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
 import {
-  V1Beta1BillingAccount,
   V1Beta1CheckoutSetupBody,
   V1Beta1Invoice
 } from '~/src';
+import { BillingAccount } from '@raystack/proton/frontier';
 // import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';
@@ -70,7 +70,7 @@ const BillingHeader = ({
 };
 
 interface BillingDetailsProps {
-  billingAccount?: V1Beta1BillingAccount;
+  billingAccount?: BillingAccount;
   onAddDetailsClick?: () => void;
   isLoading: boolean;
   isAllowed: boolean;
@@ -165,13 +165,13 @@ export default function Billing() {
   );
 
   useEffect(() => {
-    if (billingAccount?.id && billingAccount?.org_id) {
-      fetchInvoices(billingAccount?.org_id, billingAccount?.id);
+    if (billingAccount?.id && billingAccount?.orgId) {
+      fetchInvoices(billingAccount?.orgId, billingAccount?.id);
     }
-  }, [billingAccount?.id, billingAccount?.org_id, client, fetchInvoices]);
+  }, [billingAccount?.id, billingAccount?.orgId, client, fetchInvoices]);
 
   const onAddDetailsClick = useCallback(async () => {
-    const orgId = billingAccount?.org_id || '';
+    const orgId = billingAccount?.orgId || '';
     const billingAccountId = billingAccount?.id || '';
     if (billingAccountId && orgId) {
       try {
@@ -180,7 +180,7 @@ export default function Billing() {
             details: btoa(
               qs.stringify({
                 billing_id: billingAccount?.id,
-                organization_id: billingAccount?.org_id,
+                organization_id: billingAccount?.orgId,
                 type: 'billing'
               })
             ),
@@ -196,7 +196,7 @@ export default function Billing() {
         };
 
         const resp = await client?.frontierServiceCreateCheckout(
-          billingAccount?.org_id || '',
+          billingAccount?.orgId || '',
           billingAccount?.id || '',
           {
             cancel_url,
@@ -215,7 +215,7 @@ export default function Billing() {
     }
   }, [
     billingAccount?.id,
-    billingAccount?.org_id,
+    billingAccount?.orgId,
     client,
     config?.billing?.cancelUrl,
     config?.billing?.successUrl

@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
+import { V1Beta1Invoice } from '~/src';
 import {
   Button,
   Tooltip,
@@ -22,6 +22,7 @@ import {
 import { NEGATIVE_BALANCE_TOOLTIP_MESSAGE } from '~/react/utils/constants';
 import line from '~/react/assets/line.svg';
 import billingStyles from './billing.module.css';
+import { Plan } from '@raystack/proton/frontier';
 
 function LabeledBillingData({
   label,
@@ -40,7 +41,7 @@ function LabeledBillingData({
   );
 }
 
-function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
+function PlanSwitchButton({ nextPlan }: { nextPlan: Plan }) {
   const intervalName = getPlanIntervalName(nextPlan).toLowerCase();
 
   const navigate = useNavigate({ from: '/billing' });
@@ -68,7 +69,7 @@ function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
   );
 }
 
-function getSwitchablePlan(plans: V1Beta1Plan[], currentPlan: V1Beta1Plan) {
+function getSwitchablePlan(plans: Plan[], currentPlan: Plan) {
   const currentPlanMetaData =
     (currentPlan?.metadata as Record<string, string>) || {};
   const currentPlanSlug =
@@ -98,44 +99,27 @@ export const UpcomingBillingCycle = ({
     activeSubscription,
     trialSubscription,
     isActiveOrganizationLoading,
-    basePlan
+    basePlan,
+    allPlans,
+    isAllPlansLoading
   } = useFrontier();
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
   const [isMemberCountLoading, setIsMemberCountLoading] = useState(false);
   const navigate = useNavigate({ from: '/billing' });
 
-  const [isPlansLoading, setIsPlansLoading] = useState(false);
-  const [plan, setPlan] = useState<V1Beta1Plan>();
-  const [switchablePlan, setSwitchablePlan] = useState<V1Beta1Plan | null>(
-    null
-  );
-
-  useEffect(() => {
-    async function getPlans(planId: string) {
-      setIsPlansLoading(true);
-      try {
-        const resp = await client?.frontierServiceListPlans();
-        const plansList = resp?.data?.plans || [];
-        const currentPlan = plansList.find(p => p.id === planId);
-        setPlan(currentPlan);
-        const otherPlan = currentPlan
-          ? getSwitchablePlan(plansList, currentPlan)
-          : null;
-        setSwitchablePlan(otherPlan);
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsPlansLoading(false);
-      }
+  const { plan, switchablePlan } = useMemo(() => {
+    if (activeSubscription?.planId && allPlans.length > 0) {
+      const currentPlan = allPlans.find(
+        p => p.id === activeSubscription.planId
+      );
+      const otherPlan = currentPlan
+        ? getSwitchablePlan(allPlans, currentPlan)
+        : null;
+      return { plan: currentPlan, switchablePlan: otherPlan };
     }
-    if (activeSubscription?.plan_id) {
-      getPlans(activeSubscription?.plan_id);
-    }
-  }, [client, activeSubscription?.plan_id]);
+    return { plan: null, switchablePlan: null };
+  }, [activeSubscription?.planId, allPlans]);
 
   useEffect(() => {
     async function getMemberCount(orgId: string) {
@@ -179,17 +163,17 @@ export const UpcomingBillingCycle = ({
 
     if (
       billingAccount?.id &&
-      billingAccount?.org_id &&
-      billingAccount?.provider_id
+      billingAccount?.orgId &&
+      billingAccount?.providerId
     ) {
-      getUpcomingInvoice(billingAccount?.org_id, billingAccount?.id);
-      getMemberCount(billingAccount?.org_id);
+      getUpcomingInvoice(billingAccount?.orgId, billingAccount?.id);
+      getMemberCount(billingAccount?.orgId);
     }
   }, [
     client,
-    billingAccount?.org_id,
+    billingAccount?.orgId,
     billingAccount?.id,
-    billingAccount?.provider_id
+    billingAccount?.providerId
   ]);
 
   const planName = activeSubscription
@@ -219,14 +203,14 @@ export const UpcomingBillingCycle = ({
   };
 
   const alreadyPhased = activeSubscription?.phases?.find(
-    phase => phase.plan_id === switchablePlan?.id
+    phase => phase.planId === switchablePlan?.id
   );
 
   const isLoading =
     isActiveOrganizationLoading ||
     isInvoiceLoading ||
     isMemberCountLoading ||
-    isPlansLoading ||
+    isAllPlansLoading ||
     isPermissionLoading;
 
   const isUserOnlyTrialing = !activeSubscription?.id && trialSubscription?.id;

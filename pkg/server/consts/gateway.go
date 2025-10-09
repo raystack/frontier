@@ -66,6 +66,9 @@ const (
 
 	// RequestIDHeader is the key to store request id from http headers
 	RequestIDHeader = "x-request-id"
+
+	AuditActorSuperUserKey  = "is_super_user"
+	AuditSessionMetadataKey = "context"
 )
 
 func GetRequestIDFromCtx(ctx context.Context) (string, bool) {

@@ -29,6 +29,7 @@ import {
 import checkCircle from '~/react/assets/check-circle.svg';
 
 import plansStyles from './plans.module.css';
+import { timestampToDayjs } from '~/utils/timestamp';
 
 interface PricingColumnHeaderProps {
   plan: PlanIntervalPricing;
@@ -202,12 +203,12 @@ const TrialLink = function TrialLink({
 
   const trialSubscription = subscriptions.find(
     sub =>
-      planIds.includes(sub.plan_id || '') &&
+      planIds.includes(sub.planId || '') &&
       sub.state === SUBSCRIPTION_STATES.TRIALING
   );
 
-  const trialEndDate = trialSubscription?.trial_ends_at
-    ? dayjs(trialSubscription?.trial_ends_at).format(dateFormat)
+  const trialEndDate = trialSubscription?.trialEndsAt
+    ? timestampToDayjs(trialSubscription?.trialEndsAt)?.format(dateFormat)
     : '';
 
   const showButton =
@@ -346,7 +347,7 @@ export const PlanPricingColumn = ({
         onSuccess: async () => {
           const planPhase = await verifyPlanChange({ planId });
           if (planPhase) {
-            const changeDate = dayjs(planPhase?.effective_at).format(
+            const changeDate = timestampToDayjs(planPhase?.effectiveAt)?.format(
               dateFormat
             );
             const actionName = action?.btnLabel.toLowerCase();

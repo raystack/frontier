@@ -146,3 +146,39 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 
 	return connect.NewResponse(&frontierv1beta1.UpdatePermissionResponse{Permission: permissionPB}), nil
 }
+
+func (h *ConnectHandler) ListPermissions(ctx context.Context, request *connect.Request[frontierv1beta1.ListPermissionsRequest]) (*connect.Response[frontierv1beta1.ListPermissionsResponse], error) {
+	actionsList, err := h.permissionService.List(ctx, permission.Filter{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var perms []*frontierv1beta1.Permission
+	for _, act := range actionsList {
+		actPB, err := transformPermissionToPB(act)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		perms = append(perms, actPB)
+	}
+	return connect.NewResponse(&frontierv1beta1.ListPermissionsResponse{Permissions: perms}), nil
+}
+
+func (h *ConnectHandler) GetPermission(ctx context.Context, request *connect.Request[frontierv1beta1.GetPermissionRequest]) (*connect.Response[frontierv1beta1.GetPermissionResponse], error) {
+	fetchedPermission, err := h.permissionService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, permission.ErrNotExist), errors.Is(err, permission.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	permissionPB, err := transformPermissionToPB(fetchedPermission)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetPermissionResponse{Permission: permissionPB}), nil
+}

@@ -3,40 +3,41 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
 import { Button, Skeleton, Text, Flex } from '@raystack/apsara';
 import billingStyles from './billing.module.css';
-import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
+import { V1Beta1CheckoutSetupBody } from '~/src';
+import { PaymentMethod as PaymentMethodType } from '@raystack/proton/frontier';
 import { toast } from '@raystack/apsara';
 import { useState } from 'react';
 
 interface PaymentMethodProps {
-  paymentMethod?: V1Beta1PaymentMethod;
+  paymentMethod?: PaymentMethodType;
   isLoading: boolean;
   isAllowed: boolean;
 }
 
 export const PaymentMethod = ({
-  paymentMethod = {},
+  paymentMethod,
   isLoading,
   isAllowed
 }: PaymentMethodProps) => {
   const { client, config, billingAccount } = useFrontier();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const {
-    card_last4 = '',
-    card_expiry_month,
-    card_expiry_year
-  } = paymentMethod;
+    cardLast4 = '',
+    cardExpiryMonth,
+    cardExpiryYear
+  } = paymentMethod || {};
   // TODO: change card digit as per card type
   const cardDigit = 12;
-  const cardNumber = card_last4 ? _.repeat('*', cardDigit) + card_last4 : 'N/A';
+  const cardNumber = cardLast4 ? _.repeat('*', cardDigit) + cardLast4 : 'N/A';
   const cardExp =
-    card_expiry_month && card_expiry_year
-      ? `${card_expiry_month}/${card_expiry_year}`
+    cardExpiryMonth && cardExpiryYear
+      ? `${cardExpiryMonth}/${cardExpiryYear}`
       : 'N/A';
 
-  const isPaymentMethodAvailable = card_last4 !== '';
+  const isPaymentMethodAvailable = cardLast4 !== '';
 
   const updatePaymentMethod = async () => {
-    const orgId = billingAccount?.org_id || '';
+    const orgId = billingAccount?.orgId || '';
     const billingAccountId = billingAccount?.id || '';
     if (billingAccountId && orgId) {
       setIsActionLoading(true);
@@ -46,7 +47,7 @@ export const PaymentMethod = ({
             details: btoa(
               qs.stringify({
                 billing_id: billingAccount?.id,
-                organization_id: billingAccount?.org_id,
+                organization_id: billingAccount?.orgId,
                 type: 'billing'
               })
             ),
@@ -62,7 +63,7 @@ export const PaymentMethod = ({
         };
 
         const resp = await client?.frontierServiceCreateCheckout(
-          billingAccount?.org_id || '',
+          billingAccount?.orgId || '',
           billingAccount?.id || '',
           {
             cancel_url,

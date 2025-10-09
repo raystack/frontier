@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/pkg/db"
 )
@@ -76,25 +77,53 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 	var query string
 	var params []interface{}
 
-	var kycModel KYC
+	// Struct to hold KYC data + org name
+	type kycWithOrgName struct {
+		KYC
+		OrgName string `db:"org_name"`
+	}
+	var result kycWithOrgName
+
 	_, err := r.GetByOrgID(ctx, input.OrgID)
 	if err == nil {
-		//kyc for org exists, prepare UPDATE query
-		query, params, err = dialect.Update(TABLE_ORGANIZATIONS_KYC).Set(goqu.Record{
-			"status": input.Status,
-			"link":   input.Link,
-		}).Where(goqu.Ex{"org_id": input.OrgID}).
-			Returning(&kycModel).ToSQL()
+		// kyc for org exists, prepare UPDATE query with JOIN
+		query, params, err = dialect.Update(TABLE_ORGANIZATIONS_KYC).
+			Set(goqu.Record{
+				"status": input.Status,
+				"link":   input.Link,
+			}).
+			From(TABLE_ORGANIZATIONS).
+			Where(
+				goqu.Ex{
+					TABLE_ORGANIZATIONS_KYC + ".org_id": input.OrgID,
+				},
+				goqu.Ex{
+					TABLE_ORGANIZATIONS + ".id": input.OrgID,
+				},
+			).
+			Returning(
+				goqu.I(TABLE_ORGANIZATIONS_KYC+".*"),
+				goqu.I(TABLE_ORGANIZATIONS+".name").As("org_name"),
+			).ToSQL()
 		if err != nil {
 			return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
 		}
 	} else if err.Error() == kyc.ErrNotExist.Error() {
-		//kyc for org doesn't exist, so we should prepare INSERT query
-		query, params, err = dialect.Insert(TABLE_ORGANIZATIONS_KYC).Rows(goqu.Record{
-			"org_id": input.OrgID,
-			"status": input.Status,
-			"link":   input.Link,
-		}).Returning(&kycModel).ToSQL()
+		// kyc for org doesn't exist, prepare INSERT query with subquery for org name
+		orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+			Select("name").
+			Where(goqu.Ex{"id": input.OrgID})
+
+		query, params, err = dialect.Insert(TABLE_ORGANIZATIONS_KYC).
+			Rows(goqu.Record{
+				"org_id": input.OrgID,
+				"status": input.Status,
+				"link":   input.Link,
+			}).
+			Returning(
+				goqu.I(TABLE_ORGANIZATIONS_KYC+".*"),
+				orgNameSubquery.As("org_name"),
+			).ToSQL()
 		if err != nil {
 			return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
 		}
@@ -106,11 +135,42 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 		return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
-	err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS_KYC, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&kycModel)
-	})
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS_KYC, "Upsert", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				return err
+			}
 
-	if err != nil {
+			// Determine event based on status
+			event := "kyc.unverified"
+			if result.Status {
+				event = "kyc.verified"
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				event,
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.OrgID,
+					Type: "kyc",
+					Metadata: map[string]interface{}{
+						"status": result.Status,
+						"link":   result.Link,
+					},
+				},
+				result.OrgID,
+				nil,
+				result.UpdatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
+	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrCheckViolation):
@@ -122,7 +182,7 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 		}
 	}
 
-	return kycModel.transformToKyc()
+	return result.KYC.transformToKyc()
 }
 
 func (r OrgKycRepository) List(ctx context.Context) ([]kyc.KYC, error) {

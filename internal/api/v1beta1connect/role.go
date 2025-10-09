@@ -140,6 +140,189 @@ func transformRoleToPB(from role.Role) (frontierv1beta1.Role, error) {
 	}, nil
 }
 
+func (h *ConnectHandler) ListRoles(ctx context.Context, request *connect.Request[frontierv1beta1.ListRolesRequest]) (*connect.Response[frontierv1beta1.ListRolesResponse], error) {
+	var roles []*frontierv1beta1.Role
+
+	roleList, err := h.roleService.List(ctx, role.Filter{
+		OrgID:  schema.PlatformOrgID.String(),
+		Scopes: request.Msg.GetScopes(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, v := range roleList {
+		rolePB, err := transformRoleToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+
+		roles = append(roles, &rolePB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListRolesResponse{Roles: roles}), nil
+}
+
+func (h *ConnectHandler) ListOrganizationRoles(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationRolesRequest]) (*connect.Response[frontierv1beta1.ListOrganizationRolesResponse], error) {
+	var roles []*frontierv1beta1.Role
+
+	roleList, err := h.roleService.List(ctx, role.Filter{
+		OrgID:  request.Msg.GetOrgId(),
+		Scopes: request.Msg.GetScopes(),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	for _, v := range roleList {
+		rolePB, err := transformRoleToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+
+		roles = append(roles, &rolePB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationRolesResponse{Roles: roles}), nil
+}
+
+func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *connect.Request[frontierv1beta1.CreateOrganizationRoleRequest]) (*connect.Response[frontierv1beta1.CreateOrganizationRoleResponse], error) {
+	if utils.IsNullUUID(request.Msg.GetOrgId()) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+
+	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	}
+
+	newRole, err := h.roleService.Upsert(ctx, role.Role{
+		Name:        request.Msg.GetBody().GetName(),
+		Title:       request.Msg.GetBody().GetTitle(),
+		Scopes:      request.Msg.GetBody().GetScopes(),
+		Permissions: request.Msg.GetBody().GetPermissions(),
+		OrgID:       request.Msg.GetOrgId(),
+		Metadata:    metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, permission.ErrNotExist),
+			errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrInvalidDetail):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, role.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	rolePB, err := transformRoleToPB(newRole)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleCreatedEvent, audit.Target{
+		ID:   newRole.ID,
+		Type: schema.RoleNamespace,
+		Name: newRole.Name,
+	})
+	return connect.NewResponse(&frontierv1beta1.CreateOrganizationRoleResponse{Role: &rolePB}), nil
+}
+
+func (h *ConnectHandler) GetOrganizationRole(ctx context.Context, request *connect.Request[frontierv1beta1.GetOrganizationRoleRequest]) (*connect.Response[frontierv1beta1.GetOrganizationRoleResponse], error) {
+	fetchedRole, err := h.roleService.Get(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	rolePB, err := transformRoleToPB(fetchedRole)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetOrganizationRoleResponse{Role: &rolePB}), nil
+}
+
+func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateOrganizationRoleRequest]) (*connect.Response[frontierv1beta1.UpdateOrganizationRoleResponse], error) {
+	if utils.IsNullUUID(request.Msg.GetOrgId()) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+	if len(request.Msg.GetBody().GetPermissions()) == 0 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+
+	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	}
+
+	updatedRole, err := h.roleService.Update(ctx, role.Role{
+		ID:          request.Msg.GetId(),
+		OrgID:       request.Msg.GetOrgId(),
+		Name:        request.Msg.GetBody().GetName(),
+		Title:       request.Msg.GetBody().GetTitle(),
+		Scopes:      request.Msg.GetBody().GetScopes(),
+		Permissions: request.Msg.GetBody().GetPermissions(),
+		Metadata:    metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, role.ErrInvalidDetail):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, role.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	rolePB, err := transformRoleToPB(updatedRole)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleUpdatedEvent, audit.Target{
+		ID:   updatedRole.ID,
+		Type: schema.RoleNamespace,
+		Name: updatedRole.Name,
+	})
+	return connect.NewResponse(&frontierv1beta1.UpdateOrganizationRoleResponse{Role: &rolePB}), nil
+}
+
+func (h *ConnectHandler) DeleteOrganizationRole(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteOrganizationRoleRequest]) (*connect.Response[frontierv1beta1.DeleteOrganizationRoleResponse], error) {
+	if utils.IsNullUUID(request.Msg.GetOrgId()) || utils.IsNullUUID(request.Msg.GetId()) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	err := h.roleService.Delete(ctx, request.Msg.GetId())
+	if err != nil {
+		switch {
+		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrRoleNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleDeletedEvent, audit.Target{
+		ID:   request.Msg.GetId(),
+		Type: schema.RoleNamespace,
+	})
+	return connect.NewResponse(&frontierv1beta1.DeleteOrganizationRoleResponse{}), nil
+}
+
 func (h *ConnectHandler) DeleteRole(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteRoleRequest]) (*connect.Response[frontierv1beta1.DeleteRoleResponse], error) {
 	if utils.IsNullUUID(request.Msg.GetId()) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
