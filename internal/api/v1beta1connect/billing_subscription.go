@@ -57,9 +57,14 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 		subscriptions = append(subscriptions, subscriptionPB)
 	}
 
-	return connect.NewResponse(&frontierv1beta1.ListSubscriptionsResponse{
+	response := &frontierv1beta1.ListSubscriptionsResponse{
 		Subscriptions: subscriptions,
-	}), nil
+	}
+
+	// Handle response enrichment based on expand field
+	response = h.enrichListSubscriptionsResponse(ctx, request.Msg, response)
+
+	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.GetSubscriptionRequest]) (*connect.Response[frontierv1beta1.GetSubscriptionResponse], error) {
@@ -72,9 +77,14 @@ func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.R
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return connect.NewResponse(&frontierv1beta1.GetSubscriptionResponse{
+	response := &frontierv1beta1.GetSubscriptionResponse{
 		Subscription: subscriptionPB,
-	}), nil
+	}
+
+	// Handle response enrichment based on expand field
+	response = h.enrichGetSubscriptionResponse(ctx, request.Msg, response)
+
+	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) CancelSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.CancelSubscriptionRequest]) (*connect.Response[frontierv1beta1.CancelSubscriptionResponse], error) {
@@ -191,4 +201,66 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 		Phases:               phases,
 	}
 	return subsPb, nil
+}
+
+// enrichGetSubscriptionResponse enriches the response with expanded fields
+func (h *ConnectHandler) enrichGetSubscriptionResponse(ctx context.Context, req *frontierv1beta1.GetSubscriptionRequest, resp *frontierv1beta1.GetSubscriptionResponse) *frontierv1beta1.GetSubscriptionResponse {
+	expandModels := parseExpandModels(req)
+	if len(expandModels) == 0 {
+		// no need to enrich the response
+		return resp
+	}
+
+	if resp.GetSubscription() != nil {
+		if expandModels["customer"] {
+			ba, _ := h.GetBillingAccount(ctx, connect.NewRequest(&frontierv1beta1.GetBillingAccountRequest{
+				Id: resp.GetSubscription().GetCustomerId(),
+			}))
+			if ba != nil && ba.Msg != nil {
+				resp.Subscription.Customer = ba.Msg.GetBillingAccount()
+			}
+		}
+		if expandModels["plan"] {
+			plan, _ := h.GetPlan(ctx, connect.NewRequest(&frontierv1beta1.GetPlanRequest{
+				Id: resp.GetSubscription().GetPlanId(),
+			}))
+			if plan != nil && plan.Msg != nil {
+				resp.Subscription.Plan = plan.Msg.GetPlan()
+			}
+		}
+	}
+
+	return resp
+}
+
+// enrichListSubscriptionsResponse enriches the response with expanded fields
+func (h *ConnectHandler) enrichListSubscriptionsResponse(ctx context.Context, req *frontierv1beta1.ListSubscriptionsRequest, resp *frontierv1beta1.ListSubscriptionsResponse) *frontierv1beta1.ListSubscriptionsResponse {
+	expandModels := parseExpandModels(req)
+	if len(expandModels) == 0 {
+		// no need to enrich the response
+		return resp
+	}
+
+	if len(resp.GetSubscriptions()) > 0 {
+		for sIdx, s := range resp.GetSubscriptions() {
+			if expandModels["customer"] {
+				ba, _ := h.GetBillingAccount(ctx, connect.NewRequest(&frontierv1beta1.GetBillingAccountRequest{
+					Id: s.GetCustomerId(),
+				}))
+				if ba != nil && ba.Msg != nil {
+					resp.Subscriptions[sIdx].Customer = ba.Msg.GetBillingAccount()
+				}
+			}
+			if expandModels["plan"] {
+				plan, _ := h.GetPlan(ctx, connect.NewRequest(&frontierv1beta1.GetPlanRequest{
+					Id: s.GetPlanId(),
+				}))
+				if plan != nil && plan.Msg != nil {
+					resp.Subscriptions[sIdx].Plan = plan.Msg.GetPlan()
+				}
+			}
+		}
+	}
+
+	return resp
 }
