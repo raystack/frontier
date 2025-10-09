@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.6.2",
+    "@connectrpc/connect": "^2.1.0",
     "@connectrpc/connect-query": "^2.1.1",
     "@connectrpc/connect-web": "^2.0.3",
     "@hookform/resolvers": "^3.0.1",
@@ -22,6 +23,7 @@
     "@raystack/proton": "^0.1.0-fba39927b8b974dc1cc1ae0f05f1390580ec6d58",
     "@stitches/react": "^1.2.8",
     "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-table": "^8.9.3",
     "@tanstack/table-core": "^8.21.3",
     "axios": "^1.8.4",

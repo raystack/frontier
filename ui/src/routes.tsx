@@ -44,9 +44,9 @@ import { OrganizationApisPage } from "./pages/organizations/details/apis";
 import { UsersList } from "./pages/users/list";
 import { UserDetails } from "./pages/users/details";
 import { UserDetailsSecurityPage } from "./pages/users/details/security";
-import { UserDetailsAuditLogPage } from "./pages/users/details/audit-log";
 
 import { InvoicesList } from "./pages/invoices/list";
+import { AuditLogsList } from "./pages/audit-logs/list";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -72,8 +72,7 @@ export default memo(function AppRoutes() {
         <Route path="organizations" element={<OrganizationList />} />
         <Route
           path="organizations/:organizationId"
-          element={<OrganizationDetails />}
-        >
+          element={<OrganizationDetails />}>
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
@@ -86,10 +85,11 @@ export default memo(function AppRoutes() {
           <Route path="create" element={<NewUser />} />
         </Route>
         <Route path="users/:userId" element={<UserDetails />}>
-          <Route index element={<Navigate to="audit-log" />} />
-          <Route path="audit-log" element={<UserDetailsAuditLogPage />} />
+          <Route index element={<Navigate to="security" />} />
           <Route path="security" element={<UserDetailsSecurityPage />} />
         </Route>
+
+        <Route path="audit-logs" element={<AuditLogsList />} />
 
         <Route path="plans" element={<PlanList />}>
           <Route path=":planId" element={<PlanDetails />} />
