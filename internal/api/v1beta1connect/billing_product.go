@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/product"
@@ -187,6 +188,57 @@ func (h *ConnectHandler) ListFeatures(ctx context.Context, request *connect.Requ
 
 	return connect.NewResponse(&frontierv1beta1.ListFeaturesResponse{
 		Features: featuresPB,
+	}), nil
+}
+
+func (h *ConnectHandler) CreateFeature(ctx context.Context, request *connect.Request[frontierv1beta1.CreateFeatureRequest]) (*connect.Response[frontierv1beta1.CreateFeatureResponse], error) {
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	newFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
+		Name:       request.Msg.GetBody().GetName(),
+		Title:      request.Msg.GetBody().GetTitle(),
+		ProductIDs: request.Msg.GetBody().GetProductIds(),
+		Metadata:   metaDataMap,
+	})
+	if err != nil {
+		if errors.Is(err, product.ErrInvalidFeatureDetail) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	featurePB, err := transformFeatureToPB(newFeature)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.CreateFeatureResponse{
+		Feature: featurePB,
+	}), nil
+}
+
+func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateFeatureRequest]) (*connect.Response[frontierv1beta1.UpdateFeatureResponse], error) {
+	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	updatedFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
+		ID:         request.Msg.GetId(),
+		Name:       request.Msg.GetBody().GetName(),
+		Title:      request.Msg.GetBody().GetTitle(),
+		ProductIDs: request.Msg.GetBody().GetProductIds(),
+		Metadata:   metaDataMap,
+	})
+	if err != nil {
+		if errors.Is(err, product.ErrInvalidFeatureDetail) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	featurePB, err := transformFeatureToPB(updatedFeature)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.UpdateFeatureResponse{
+		Feature: featurePB,
 	}), nil
 }
 
