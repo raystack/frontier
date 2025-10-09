@@ -1,10 +1,4 @@
-import dayjs from 'dayjs';
-import {
-  V1Beta1Subscription,
-  BillingAccountAddress,
-  V1Beta1Plan,
-  V1Beta1PaymentMethod
-} from '~/src';
+import { BillingAccountAddress } from '~/src';
 import {
   BasePlan,
   IntervalKeys,
@@ -15,7 +9,16 @@ import {
 import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
 import { NIL as NIL_UUID } from 'uuid';
-import type { RpcStatus } from '~/src';
+import type { GooglerpcStatus } from '~/src';
+import {
+  FeatureSchema,
+  PaymentMethod,
+  Plan,
+  PlanSchema,
+  Subscription
+} from '@raystack/proton/frontier';
+import { timestampToDayjs } from '../../utils/timestamp';
+import { create } from '@bufbuild/protobuf';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -30,24 +33,30 @@ export const converBillingAddressToString = (
     .join(', ');
 };
 
-export const getActiveSubscription = (subscriptions: V1Beta1Subscription[]) => {
+export const getActiveSubscription = (subscriptions: Subscription[]) => {
   const activeSubscriptions = subscriptions
     .filter(
       sub =>
         sub.state === SUBSCRIPTION_STATES.ACTIVE ||
         sub.state === SUBSCRIPTION_STATES.PAST_DUE
     )
-    .sort((a, b) => (dayjs(a.updated_at).isAfter(b.updated_at) ? -1 : 1));
+    .sort((a, b) =>
+      timestampToDayjs(a.updatedAt)?.isAfter(timestampToDayjs(b.updatedAt))
+        ? -1
+        : 1
+    );
 
   return activeSubscriptions[0];
 };
 
-export const getTrialingSubscription = (
-  subscriptions: V1Beta1Subscription[]
-) => {
+export const getTrialingSubscription = (subscriptions: Subscription[]) => {
   const activeSubscriptions = subscriptions
     .filter(sub => sub.state === SUBSCRIPTION_STATES.TRIALING)
-    .sort((a, b) => (dayjs(a.updated_at).isAfter(b.updated_at) ? -1 : 1));
+    .sort((a, b) =>
+      timestampToDayjs(a.updatedAt)?.isAfter(timestampToDayjs(b.updatedAt))
+        ? -1
+        : 1
+    );
 
   return activeSubscriptions[0];
 };
@@ -104,7 +113,10 @@ export const getPlanChangeAction = (
   }
 };
 
-export const checkSimilarPlans = (plan1: V1Beta1Plan, plan2: V1Beta1Plan) => {
+export const checkSimilarPlans = (
+  plan1: Plan = create(PlanSchema, {}),
+  plan2: Plan = create(PlanSchema, {})
+) => {
   const plan1Metadata = (plan1.metadata as Record<string, string>) || {};
   const plan2Metadata = (plan2.metadata as Record<string, string>) || {};
   const plan1Slug = plan1Metadata?.plan_group_id || makePlanSlug(plan1);
@@ -129,12 +141,12 @@ interface getPlanNameWithIntervalOptions {
   hyphenSeperated?: boolean;
 }
 
-export function getPlanIntervalName(plan: V1Beta1Plan = {}) {
+export function getPlanIntervalName(plan: Plan = create(PlanSchema, {})) {
   return IntervalLabelMap[plan?.interval as IntervalKeys];
 }
 
 export function getPlanNameWithInterval(
-  plan: V1Beta1Plan = {},
+  plan: Plan = create(PlanSchema, {}),
   { hyphenSeperated }: getPlanNameWithIntervalOptions = {}
 ) {
   const interval = getPlanIntervalName(plan);
@@ -143,7 +155,7 @@ export function getPlanNameWithInterval(
     : `${plan?.title} (${interval})`;
 }
 
-export function makePlanSlug(plan: V1Beta1Plan): string {
+export function makePlanSlug(plan: Plan): string {
   const productIds = plan?.products
     ?.map(p => p.id)
     .sort()
@@ -152,7 +164,7 @@ export function makePlanSlug(plan: V1Beta1Plan): string {
   return `${titleSlug}-${productIds}`;
 }
 
-export function getPlanPrice(plan: V1Beta1Plan) {
+export function getPlanPrice(plan: Plan) {
   const planInterval = (plan?.interval || '') as IntervalKeys;
   return (
     plan?.products?.reduce((acc, product) => {
@@ -167,9 +179,7 @@ export function getPlanPrice(plan: V1Beta1Plan) {
   );
 }
 
-export function getDefaultPaymentMethod(
-  paymentMethods: V1Beta1PaymentMethod[] = []
-) {
+export function getDefaultPaymentMethod(paymentMethods: PaymentMethod[] = []) {
   const defaultMethod = paymentMethods.find(pm => {
     const metadata = pm.metadata as PaymentMethodMetadata;
     return metadata.default;
@@ -178,14 +188,14 @@ export function getDefaultPaymentMethod(
   return defaultMethod ? defaultMethod : paymentMethods[0];
 }
 
-export const enrichBasePlan = (plan?: BasePlan): V1Beta1Plan | undefined => {
+export const enrichBasePlan = (plan?: BasePlan): Plan | undefined => {
   const features = Object.entries(plan?.features || {}).map(([key, value]) => {
-    return {
+    return create(FeatureSchema, {
       title: key,
       metadata: {
         [plan?.title || '']: value
       }
-    };
+    });
   });
   return plan
     ? {
@@ -194,9 +204,9 @@ export const enrichBasePlan = (plan?: BasePlan): V1Beta1Plan | undefined => {
         interval: 'year',
         products: [
           {
+            ...plan.products?.[0],
             name: plan.title,
-            features: features,
-            ...plan.products?.[0]
+            features: features
           }
         ]
       }
@@ -208,7 +218,7 @@ export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
 
 export interface HttpErrorResponse extends Response {
   data: unknown;
-  error: RpcStatus;
+  error: GooglerpcStatus;
 }
 
 export const handleSelectValueChange = (onChange: (value: string) => void) => {
