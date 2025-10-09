@@ -62,4 +62,5 @@ var (
 	ErrSessionNotFound             = errors.New("session doesn't exist")
 	ErrInvalidSessionID            = errors.New("invalid session_id format: must be a valid UUID")
 	ErrInvalidUserID               = errors.New("invalid user_id format: must be a valid UUID")
+	ErrRoleNotFound                = errors.New("role doesn't exist")
 )
