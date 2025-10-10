@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/doug-martin/goqu/v9"
@@ -132,6 +133,17 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 	if toCreate.ProviderID != "" {
 		providerID = &toCreate.ProviderID
 	}
+
+	type customerWithContext struct {
+		Customer
+		OrgName string `db:"org_name"`
+	}
+	var result customerWithContext
+
+	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+		Select("name").
+		Where(goqu.Ex{"id": toCreate.OrgID})
+
 	query, params, err := dialect.Insert(TABLE_BILLING_CUSTOMERS).Rows(
 		goqu.Record{
 			"org_id":      toCreate.OrgID,
@@ -146,19 +158,53 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 				TaxIDs: toCreate.TaxData,
 			},
 			"metadata": marshaledMetadata,
-		}).Returning(&Customer{}).ToSQL()
+		}).Returning(
+		goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
+		orgNameSubquery.As("org_name"),
+	).ToSQL()
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
-	var customerModel Customer
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Create", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Create", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"billing_customer.created",
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.ID,
+					Type: "billing_customer",
+					Name: result.Name,
+					Metadata: map[string]interface{}{
+						"email":       result.Email,
+						"currency":    result.Currency,
+						"address":     result.Address,
+						"credit_min":  result.CreditMin,
+						"due_in_days": result.DueInDays,
+						"provider_id": result.ProviderID,
+					},
+				},
+				result.OrgID,
+				nil,
+				result.CreatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
-	return customerModel.transform()
+	return result.Customer.transform()
 }
 
 func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (customer.Customer, error) {
@@ -268,16 +314,59 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		// useful when updating an offline customer
 		updateRecord["provider_id"] = &toUpdate.ProviderID
 	}
+
+	type customerWithContext struct {
+		Customer
+		OrgName string `db:"org_name"`
+	}
+	var result customerWithContext
+
+	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+		Select("name").
+		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_CUSTOMERS + ".org_id")})
+
 	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
-	}).Returning(&Customer{}).ToSQL()
+	}).Returning(
+		goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
+		orgNameSubquery.As("org_name"),
+	).ToSQL()
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
-	var customerModel Customer
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Update", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"billing_customer.updated",
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.ID,
+					Type: "billing_customer",
+					Name: result.Name,
+					Metadata: map[string]interface{}{
+						"email":       result.Email,
+						"currency":    result.Currency,
+						"address":     result.Address,
+						"provider_id": result.ProviderID,
+					},
+				},
+				result.OrgID,
+				nil,
+				result.UpdatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -290,7 +379,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		}
 	}
 
-	return customerModel.transform()
+	return result.Customer.transform()
 }
 
 func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Details, error) {
@@ -368,16 +457,57 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 		"due_in_days": details.DueInDays,
 		"updated_at":  goqu.L("now()"),
 	}
+
+	type customerWithContext struct {
+		Customer
+		OrgName string `db:"org_name"`
+	}
+	var result customerWithContext
+
+	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+		Select("name").
+		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_CUSTOMERS + ".org_id")})
+
 	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
 		"id": customerID,
-	}).Returning(&Customer{}).ToSQL()
+	}).Returning(
+		goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
+		orgNameSubquery.As("org_name"),
+	).ToSQL()
 	if err != nil {
 		return customer.Details{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
-	var customerModel Customer
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "UpdateDetailsByID", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "UpdateDetailsByID", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"billing_customer.credit_updated",
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.ID,
+					Type: "billing_customer",
+					Name: result.Name,
+					Metadata: map[string]interface{}{
+						"credit_min":  result.CreditMin,
+						"due_in_days": result.DueInDays,
+					},
+				},
+				result.OrgID,
+				nil,
+				result.UpdatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -391,23 +521,71 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 	}
 
 	return customer.Details{
-		CreditMin: customerModel.CreditMin,
-		DueInDays: customerModel.DueInDays,
+		CreditMin: result.CreditMin,
+		DueInDays: result.DueInDays,
 	}, nil
 }
 
 func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error {
-	stmt := dialect.Delete(TABLE_BILLING_CUSTOMERS).Where(goqu.Ex{
-		"id": id,
-	})
-	query, params, err := stmt.ToSQL()
+	type customerWithContext struct {
+		Customer
+		OrgName string `db:"org_name"`
+	}
+	var result customerWithContext
+
+	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+		Select("name").
+		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_CUSTOMERS + ".org_id")})
+
+	query, params, err := dialect.Delete(TABLE_BILLING_CUSTOMERS).
+		Where(goqu.Ex{"id": id}).
+		Returning(
+			goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
+			orgNameSubquery.As("org_name"),
+		).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", parseErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
-		_, err := r.dbc.ExecContext(ctx, query, params...)
-		return err
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return customer.ErrNotFound
+				}
+				return err
+			}
+
+			deletedAt := time.Now()
+			if result.DeletedAt != nil {
+				deletedAt = *result.DeletedAt
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"billing_customer.deleted",
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.ID,
+					Type: "billing_customer",
+					Name: result.Name,
+					Metadata: map[string]interface{}{
+						"email":    result.Email,
+						"currency": result.Currency,
+						"address":  result.Address,
+					},
+				},
+				result.OrgID,
+				nil,
+				deletedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

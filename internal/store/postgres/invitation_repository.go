@@ -13,6 +13,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
 )
@@ -51,6 +52,16 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 		invite.ExpiresAt = s.Now().Add(invitation.DefaultExpiryDuration)
 	}
 
+	// Struct to hold invitation data with additional context
+	type invitationWithContext struct {
+		Invitation
+		OrgName string `db:"org_name"`
+	}
+
+	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+		Select("name").
+		Where(goqu.Ex{"id": invite.OrgID})
+
 	query, params, err := dialect.Insert(TABLE_INVITATIONS).Rows(
 		goqu.Record{
 			"id":         invite.ID,
@@ -63,20 +74,51 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 		"user_id":  strings.ToLower(invite.UserEmailID),
 		"org_id":   invite.OrgID,
 		"metadata": marshaledMetadata,
-	})).Returning(&Invitation{}).ToSQL()
+	})).Returning(
+		goqu.I(TABLE_INVITATIONS+".*"),
+		orgNameSubquery.As("org_name"),
+	).ToSQL()
 	if err != nil {
 		return invitation.Invitation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var inviteModel Invitation
-	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "Set", func(ctx context.Context) error {
-		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&inviteModel)
+	var result invitationWithContext
+	if err = s.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "Set", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"organization.invited",
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.ID.String(),
+					Type: "invitation",
+					Metadata: map[string]interface{}{
+						"email":     invite.UserEmailID,
+						"group_ids": invite.GroupIDs,
+						"role_ids":  invite.RoleIDs,
+					},
+				},
+				result.OrgID,
+				nil,
+				result.CreatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		return invitation.Invitation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return inviteModel.transformToInvitation()
+	return result.Invitation.transformToInvitation()
 }
 
 func (s *InvitationRepository) Get(ctx context.Context, id uuid.UUID) (invitation.Invitation, error) {
