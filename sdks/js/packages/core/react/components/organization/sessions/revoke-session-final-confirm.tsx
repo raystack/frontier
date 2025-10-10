@@ -78,7 +78,7 @@ export const RevokeSessionFinalConfirm = ({
               loading={isLoading}
               loaderText={isCurrentSession ? "Signing out..." : "Revoking..."}
             >
-              {isCurrentSession ? 'Sign out' : 'Revoke'}
+              {isCurrentSession ? 'Logout' : 'Revoke'}
             </Button>
           </Flex>
         </Dialog.Footer>
