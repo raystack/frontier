@@ -22,7 +22,7 @@
     "release:ci": "release-it --ci --no-increment --npm.ignoreVersion",
     "release:dry": "release-it --dry-run --npm.ignoreVersion",
     "release": "release-it",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "gen:client": "npx swagger-typescript-api -p ../../../../proto/apidocs.swagger.yaml -o api-client --modular",
     "build:client": "node scripts/gen-swagger-client.mjs"
   },
@@ -69,7 +69,7 @@
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@radix-ui/react-icons": "^1.3.2",
-    "@raystack/apsara": "^0.48.5",
+    "@raystack/apsara": "^0.52.0",
     "@raystack/eslint-config": "workspace:^",
     "@raystack/frontier-tsconfig": "workspace:^",
     "@size-limit/preset-small-lib": "^8.2.6",

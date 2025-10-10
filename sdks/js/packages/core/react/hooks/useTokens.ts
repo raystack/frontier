@@ -29,10 +29,10 @@ export const useTokens = () => {
   );
 
   const fetchTokenBalance = useCallback(() => {
-    if (client && billingAccount?.org_id && billingAccount?.id) {
-      getBalance(billingAccount?.org_id, billingAccount.id);
+    if (client && billingAccount?.orgId && billingAccount?.id) {
+      getBalance(billingAccount?.orgId, billingAccount.id);
     }
-  }, [billingAccount?.org_id, billingAccount?.id, client, getBalance]);
+  }, [billingAccount?.orgId, billingAccount?.id, client, getBalance]);
 
   useEffect(() => {
     fetchTokenBalance();

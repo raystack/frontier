@@ -3,11 +3,11 @@ import {
   DEFAULT_DATE_FORMAT,
   SUBSCRIPTION_STATES
 } from '~/react/utils/constants';
-import { V1Beta1Plan, V1Beta1Subscription } from '~/src';
+import { Subscription, Plan } from '@raystack/proton/frontier';
 import styles from './styles.module.css';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   checkSimilarPlans,
@@ -15,10 +15,11 @@ import {
   getPlanIntervalName,
   getPlanNameWithInterval
 } from '~/react/utils';
+import { timestampToDayjs } from '~/utils/timestamp';
 
 interface ChangeBannerProps {
   isLoading?: boolean;
-  subscription?: V1Beta1Subscription;
+  subscription?: Subscription;
   isAllowed: boolean;
 }
 
@@ -34,47 +35,28 @@ export function UpcomingPlanChangeBanner({
     activeOrganization,
     billingAccount,
     fetchActiveSubsciption,
-    basePlan
+    basePlan,
+    allPlans,
+    isAllPlansLoading
   } = useFrontier();
-  const [upcomingPlan, setUpcomingPlan] = useState<V1Beta1Plan>();
-  const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [isPlanChangeLoading, setIsPlanChangeLoading] = useState(false);
 
   const phases =
     subscription?.phases?.filter(phase =>
-      dayjs(phase.effective_at).isAfter(dayjs())
+      timestampToDayjs(phase.effectiveAt)?.isAfter(dayjs())
     ) || [];
 
   const nextPhase = phases?.[0];
 
-  const fetchPlan = useCallback(
-    async (planId: string) => {
-      setIsPlanLoading(true);
-      try {
-        const resp = await client?.frontierServiceGetPlan(planId);
-        const plan = resp?.data?.plan ?? {};
-        if (plan) {
-          setUpcomingPlan(plan);
-        } else {
-          setUpcomingPlan(undefined);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsPlanLoading(false);
-      }
-    },
-    [client]
-  );
-
-  useEffect(() => {
-    if (nextPhase?.plan_id) {
-      fetchPlan(nextPhase?.plan_id);
+  const upcomingPlan = useMemo(() => {
+    if (nextPhase?.planId && allPlans.length > 0) {
+      const plan = allPlans.find(p => p.id === nextPhase?.planId);
+      return plan;
     }
-  }, [fetchPlan, nextPhase?.plan_id]);
+  }, [nextPhase?.planId, allPlans]);
 
-  const expiryDate = nextPhase?.effective_at
-    ? dayjs(nextPhase?.effective_at).format(
+  const expiryDate = nextPhase?.effectiveAt
+    ? timestampToDayjs(nextPhase?.effectiveAt)?.format(
         config?.dateFormat || DEFAULT_DATE_FORMAT
       )
     : '';
@@ -87,7 +69,7 @@ export function UpcomingPlanChangeBanner({
     Number(activePlanMetadata?.weightage)
   );
 
-  const showLoader = isLoading || isPlanLoading;
+  const showLoader = isLoading || isAllPlansLoading;
 
   const onPlanChangeCancel = useCallback(async () => {
     setIsPlanChangeLoading(true);
@@ -125,17 +107,14 @@ export function UpcomingPlanChangeBanner({
   const currentPlanName = getPlanNameWithInterval(activePlan);
   const upcomingPlanName = getPlanNameWithInterval(upcomingPlan || basePlan);
 
-  const areSimilarPlans = checkSimilarPlans(
-    activePlan || {},
-    upcomingPlan || {}
-  );
+  const areSimilarPlans = checkSimilarPlans(activePlan, upcomingPlan);
 
   const resumePlanTitle = areSimilarPlans
     ? getPlanIntervalName(activePlan)
     : activePlan?.title;
 
   const showBanner =
-    nextPhase?.plan_id ||
+    nextPhase?.planId ||
     (subscription?.state === SUBSCRIPTION_STATES.ACTIVE &&
       nextPhase?.reason === 'cancel');
 

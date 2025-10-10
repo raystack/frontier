@@ -45,12 +45,16 @@ func (s Session) IsValid(now time.Time) bool {
 }
 
 // SetSessionMetadataInContext sets session metadata in context
+// It accepts a SessionMetadata struct but stores it as a map with the same structure to avoid layer violations in repositories
 func SetSessionMetadataInContext(ctx context.Context, metadata SessionMetadata) context.Context {
-	return context.WithValue(ctx, consts.SessionContextKey, metadata)
-}
-
-// GetSessionMetadataFromContext returns session metadata from context
-func GetSessionMetadataFromContext(ctx context.Context) (SessionMetadata, bool) {
-	metadata, ok := ctx.Value(consts.SessionContextKey).(SessionMetadata)
-	return metadata, ok
+	metadataMap := map[string]interface{}{
+		"IpAddress": metadata.IpAddress,
+		"Location": map[string]interface{}{
+			"Country": metadata.Location.Country,
+			"City":    metadata.Location.City,
+		},
+		"OperatingSystem": metadata.OperatingSystem,
+		"Browser":         metadata.Browser,
+	}
+	return context.WithValue(ctx, consts.SessionContextKey, metadataMap)
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/db"
 )
@@ -168,8 +169,33 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
+
+	// Use WithTxn for transaction with audit, wrapping WithTimeout for query timeout
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Upsert", func(ctx context.Context) error {
+			// Execute org insert
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
+				return err
+			}
+
+			// Build and insert audit record
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"organization.create",
+				AuditResource{
+					ID:       orgModel.ID,
+					Type:     "organization",
+					Name:     orgModel.Name,
+					Metadata: org.Metadata,
+				},
+				nil,
+				orgModel.ID,
+				nil,
+				orgModel.CreatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -279,8 +305,29 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Update", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"organization.update",
+				AuditResource{
+					ID:       orgModel.ID,
+					Type:     "organization",
+					Name:     orgModel.Name,
+					Metadata: org.Metadata,
+				},
+				nil,
+				orgModel.ID,
+				nil,
+				orgModel.UpdatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -328,8 +375,29 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "UpdateByName", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "UpdateByName", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"organization.update",
+				AuditResource{
+					ID:       orgModel.ID,
+					Type:     "organization",
+					Name:     orgModel.Name,
+					Metadata: org.Metadata,
+				},
+				nil,
+				orgModel.ID,
+				nil,
+				orgModel.UpdatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -364,8 +432,31 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "SetState", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "SetState", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"organization.state_change",
+				AuditResource{
+					ID:   orgModel.ID,
+					Type: "organization",
+					Name: orgModel.Name,
+					Metadata: map[string]interface{}{
+						"state": state.String(),
+					},
+				},
+				nil,
+				orgModel.ID,
+				nil,
+				orgModel.UpdatedAt,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -389,8 +480,28 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Delete", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Delete", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				"organization.delete",
+				AuditResource{
+					ID:   orgModel.ID,
+					Type: "organization",
+					Name: orgModel.Name,
+				},
+				nil,
+				orgModel.ID,
+				nil,
+				orgModel.DeletedAt.Time,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

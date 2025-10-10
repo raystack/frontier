@@ -17,7 +17,7 @@ func (h *ConnectHandler) ListPreferences(ctx context.Context, req *connect.Reque
 		ResourceType: schema.PlatformNamespace,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, handlePreferenceError(err)
 	}
 
 	var pbPrefs []*frontierv1beta1.Preference
@@ -39,10 +39,7 @@ func (h *ConnectHandler) CreatePreferences(ctx context.Context, req *connect.Req
 			ResourceType: schema.PlatformNamespace,
 		})
 		if err != nil {
-			if errors.Is(err, preference.ErrTraitNotFound) {
-				return nil, connect.NewError(connect.CodeInvalidArgument, err)
-			}
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, handlePreferenceError(err)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -54,6 +51,156 @@ func (h *ConnectHandler) CreatePreferences(ctx context.Context, req *connect.Req
 
 	return connect.NewResponse(&frontierv1beta1.CreatePreferencesResponse{
 		Preference: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) CreateOrganizationPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.CreateOrganizationPreferencesRequest]) (*connect.Response[frontierv1beta1.CreateOrganizationPreferencesResponse], error) {
+	var createdPreferences []preference.Preference
+	for _, prefBody := range req.Msg.GetBodies() {
+		pref, err := h.preferenceService.Create(ctx, preference.Preference{
+			Name:         prefBody.GetName(),
+			Value:        prefBody.GetValue(),
+			ResourceID:   req.Msg.GetId(),
+			ResourceType: schema.OrganizationNamespace,
+		})
+		if err != nil {
+			return nil, handlePreferenceError(err)
+		}
+		createdPreferences = append(createdPreferences, pref)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range createdPreferences {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.CreateOrganizationPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) ListOrganizationPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListOrganizationPreferencesRequest]) (*connect.Response[frontierv1beta1.ListOrganizationPreferencesResponse], error) {
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		OrgID: req.Msg.GetId(),
+	})
+	if err != nil {
+		return nil, handlePreferenceError(err)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListOrganizationPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.CreateUserPreferencesRequest]) (*connect.Response[frontierv1beta1.CreateUserPreferencesResponse], error) {
+	var createdPreferences []preference.Preference
+	for _, prefBody := range req.Msg.GetBodies() {
+		pref, err := h.preferenceService.Create(ctx, preference.Preference{
+			Name:         prefBody.GetName(),
+			Value:        prefBody.GetValue(),
+			ResourceID:   req.Msg.GetId(),
+			ResourceType: schema.UserPrincipal,
+		})
+		if err != nil {
+			return nil, handlePreferenceError(err)
+		}
+		createdPreferences = append(createdPreferences, pref)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range createdPreferences {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.CreateUserPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) ListUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListUserPreferencesRequest]) (*connect.Response[frontierv1beta1.ListUserPreferencesResponse], error) {
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		UserID: req.Msg.GetId(),
+	})
+	if err != nil {
+		return nil, handlePreferenceError(err)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListUserPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.CreateCurrentUserPreferencesRequest]) (*connect.Response[frontierv1beta1.CreateCurrentUserPreferencesResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var createdPreferences []preference.Preference
+	for _, prefBody := range req.Msg.GetBodies() {
+		pref, err := h.preferenceService.Create(ctx, preference.Preference{
+			Name:         prefBody.GetName(),
+			Value:        prefBody.GetValue(),
+			ResourceID:   principal.ID,
+			ResourceType: schema.UserPrincipal,
+		})
+		if err != nil {
+			return nil, handlePreferenceError(err)
+		}
+		createdPreferences = append(createdPreferences, pref)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range createdPreferences {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.CreateCurrentUserPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListCurrentUserPreferencesRequest]) (*connect.Response[frontierv1beta1.ListCurrentUserPreferencesResponse], error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		UserID: principal.ID,
+	})
+	if err != nil {
+		return nil, handlePreferenceError(err)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListCurrentUserPreferencesResponse{
+		Preferences: pbPrefs,
+	}), nil
+}
+
+func (h *ConnectHandler) DescribePreferences(ctx context.Context, req *connect.Request[frontierv1beta1.DescribePreferencesRequest]) (*connect.Response[frontierv1beta1.DescribePreferencesResponse], error) {
+	prefTraits := h.preferenceService.Describe(ctx)
+	var pbTraits []*frontierv1beta1.PreferenceTrait
+	for _, trait := range prefTraits {
+		pbTraits = append(pbTraits, transformPreferenceTraitToPB(trait))
+	}
+	return connect.NewResponse(&frontierv1beta1.DescribePreferencesResponse{
+		Traits: pbTraits,
 	}), nil
 }
 
@@ -70,5 +217,50 @@ func transformPreferenceToPB(pref preference.Preference) *frontierv1beta1.Prefer
 		ResourceType: pref.ResourceType,
 		CreatedAt:    timestamppb.New(pref.CreatedAt),
 		UpdatedAt:    timestamppb.New(pref.UpdatedAt),
+	}
+}
+
+func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.PreferenceTrait {
+	pbTrait := &frontierv1beta1.PreferenceTrait{
+		ResourceType:    pref.ResourceType,
+		Name:            pref.Name,
+		Title:           pref.Title,
+		Description:     pref.Description,
+		LongDescription: pref.LongDescription,
+		Heading:         pref.Heading,
+		SubHeading:      pref.SubHeading,
+		Breadcrumb:      pref.Breadcrumb,
+		InputHints:      pref.InputHints,
+		Default:         pref.Default,
+	}
+	switch pref.Input {
+	case preference.TraitInputText:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Text{}
+	case preference.TraitInputTextarea:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Textarea{}
+	case preference.TraitInputSelect:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Select{}
+	case preference.TraitInputCombobox:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Combobox{}
+	case preference.TraitInputCheckbox:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Checkbox{}
+	case preference.TraitInputMultiselect:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Multiselect{}
+	case preference.TraitInputNumber:
+		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Number{}
+	}
+	return pbTrait
+}
+
+func handlePreferenceError(err error) *connect.Error {
+	switch {
+	case errors.Is(err, preference.ErrInvalidFilter):
+		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidPreferenceFilter)
+	case errors.Is(err, preference.ErrTraitNotFound):
+		return connect.NewError(connect.CodeInvalidArgument, ErrTraitNotFound)
+	case errors.Is(err, preference.ErrInvalidValue):
+		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidPreferenceValue)
+	default:
+		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 }

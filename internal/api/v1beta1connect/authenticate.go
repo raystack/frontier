@@ -284,3 +284,14 @@ func (h *ConnectHandler) ListAuthStrategies(ctx context.Context, request *connec
 	}
 	return connect.NewResponse(&frontierv1beta1.ListAuthStrategiesResponse{Strategies: pbstrategy}), nil
 }
+
+func (h *ConnectHandler) GetJWKs(ctx context.Context, request *connect.Request[frontierv1beta1.GetJWKsRequest]) (*connect.Response[frontierv1beta1.GetJWKsResponse], error) {
+	keySet := h.authnService.JWKs(ctx)
+	jwks, err := toJSONWebKey(keySet)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	return connect.NewResponse(&frontierv1beta1.GetJWKsResponse{
+		Keys: jwks.Keys,
+	}), nil
+}

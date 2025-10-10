@@ -1,6 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -29,6 +28,7 @@ import {
 import checkCircle from '~/react/assets/check-circle.svg';
 
 import plansStyles from './plans.module.css';
+import { timestampToDayjs } from '~/utils/timestamp';
 
 interface PricingColumnHeaderProps {
   plan: PlanIntervalPricing;
@@ -144,7 +144,7 @@ const PlanIntervals = ({
   onIntervalChange
 }: PlanIntervalsProps) => {
   return planIntervals.length > 1 ? (
-    <Tabs.Root
+    <Tabs
       className={plansStyles.plansIntervalList}
       value={selectedInterval}
       onValueChange={value => onIntervalChange(value as IntervalKeys)}
@@ -163,7 +163,7 @@ const PlanIntervals = ({
           </Tabs.Trigger>
         ))}
       </Tabs.List>
-    </Tabs.Root>
+    </Tabs>
   ) : null;
 };
 
@@ -202,12 +202,12 @@ const TrialLink = function TrialLink({
 
   const trialSubscription = subscriptions.find(
     sub =>
-      planIds.includes(sub.plan_id || '') &&
+      planIds.includes(sub.planId || '') &&
       sub.state === SUBSCRIPTION_STATES.TRIALING
   );
 
-  const trialEndDate = trialSubscription?.trial_ends_at
-    ? dayjs(trialSubscription?.trial_ends_at).format(dateFormat)
+  const trialEndDate = trialSubscription?.trialEndsAt
+    ? timestampToDayjs(trialSubscription?.trialEndsAt)?.format(dateFormat)
     : '';
 
   const showButton =
@@ -346,7 +346,7 @@ export const PlanPricingColumn = ({
         onSuccess: async () => {
           const planPhase = await verifyPlanChange({ planId });
           if (planPhase) {
-            const changeDate = dayjs(planPhase?.effective_at).format(
+            const changeDate = timestampToDayjs(planPhase?.effectiveAt)?.format(
               dateFormat
             );
             const actionName = action?.btnLabel.toLowerCase();

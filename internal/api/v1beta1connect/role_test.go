@@ -162,6 +162,76 @@ func TestHandler_CreateRole(t *testing.T) {
 	}
 }
 
+func TestHandler_ListRoles(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.RoleService)
+		request *connect.Request[frontierv1beta1.ListRolesRequest]
+		want    *connect.Response[frontierv1beta1.ListRolesResponse]
+		wantErr error
+	}{
+		{
+			name: "should return empty list if no roles exist",
+			setup: func(rs *mocks.RoleService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{
+					OrgID:  testRoleMap[instanceLevelRoleID].OrgID,
+					Scopes: []string{},
+				}).Return([]role.Role{}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListRolesRequest{
+				Scopes: []string{},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListRolesResponse{
+				Roles: nil,
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return list of roles on success",
+			setup: func(rs *mocks.RoleService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{
+					OrgID:  testRoleMap[instanceLevelRoleID].OrgID,
+					Scopes: []string{"test"},
+				}).Return([]role.Role{testRoleMap[instanceLevelRoleID]}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListRolesRequest{
+				Scopes: []string{"test"},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.ListRolesResponse{
+				Roles: []*frontierv1beta1.Role{&testInstanceLevelRolePB},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error if role service fails",
+			setup: func(rs *mocks.RoleService) {
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{
+					OrgID:  testRoleMap[instanceLevelRoleID].OrgID,
+					Scopes: []string{},
+				}).Return(nil, ErrInternalServerError)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListRolesRequest{
+				Scopes: []string{},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRoleSrv := new(mocks.RoleService)
+			if tt.setup != nil {
+				tt.setup(mockRoleSrv)
+			}
+			mockDep := &ConnectHandler{roleService: mockRoleSrv}
+			resp, err := mockDep.ListRoles(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
 func TestHandler_DeleteRole(t *testing.T) {
 	tests := []struct {
 		name    string

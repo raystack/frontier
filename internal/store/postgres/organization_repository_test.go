@@ -46,7 +46,8 @@ func (s *OrganizationRepositoryTestSuite) SetupSuite() {
 		s.T().Fatal(err)
 	}
 
-	s.ctx = context.TODO()
+	// Set up audit context for tests
+	s.ctx = setTestAuditActorContext(context.TODO())
 	s.repository = postgres.NewOrganizationRepository(s.client)
 
 	s.users, err = bootstrapUser(s.client)
@@ -60,6 +61,11 @@ func (s *OrganizationRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *OrganizationRepositoryTestSuite) SetupTest() {
+	// Clean up first to ensure fresh state
+	if err := s.cleanup(); err != nil {
+		s.T().Fatal(err)
+	}
+
 	var err error
 	s.orgs, err = bootstrapOrganization(s.client)
 	if err != nil {
@@ -107,6 +113,7 @@ func (s *OrganizationRepositoryTestSuite) TearDownTest() {
 
 func (s *OrganizationRepositoryTestSuite) cleanup() error {
 	queries := []string{
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_AUDITRECORDS),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ORGANIZATIONS),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_RELATIONS),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ROLES),
