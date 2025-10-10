@@ -24,6 +24,7 @@ export const Window = ({
   const [zoom, setZoom] = useState(false);
   const [isCloseActive, setCloseActive] = useState(false);
   const [isZoomActive, setZoomActive] = useState(false);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
       <Dialog.Content

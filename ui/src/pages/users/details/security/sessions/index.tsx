@@ -12,6 +12,13 @@ import styles from "./sessions.module.css";
 
 dayjs.extend(relativeTime);
 
+const getErrorMessage = (error: any): string => {
+  if (error?.status === 500) {
+    return 'Something went wrong';
+  }
+  return error?.message || 'Something went wrong';
+};
+
 export const formatDeviceDisplay = (browser?: string, operatingSystem?: string): string => {
   const browserName = browser || "Unknown";
   const osName = operatingSystem || "Unknown";
@@ -61,7 +68,7 @@ export const UserSessions = () => {
     },
     onError: (error: any) => {
       toast.error('Failed to revoke session', {
-        description: error.message || 'Something went wrong'
+        description: getErrorMessage(error)
       });
     },
   });
@@ -152,9 +159,13 @@ export const UserSessions = () => {
                     {session.metadata?.location || "Unknown location"}
                   </Text>
                   <Text variant="tertiary" size="small">•</Text>
-                  <Text variant="tertiary" size="small">
-                    Last active {formatLastActive(session.updatedAt)}
-                  </Text>
+                  {session.isCurrentSession ? (
+                    <Text variant="success" size="small">Current session</Text>
+                  ) : (
+                    <Text variant="tertiary" size="small">
+                      Last active {formatLastActive(session.updatedAt)}
+                    </Text>
+                  )}
                 </Flex>
               </Flex>
               <Button 

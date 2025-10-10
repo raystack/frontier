@@ -46,6 +46,7 @@ import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_DATE_SHORT_FORMAT
 } from '../utils/constants';
+import { useLastActiveTracker } from '../hooks/useLastActiveTracker';
 
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
@@ -305,6 +306,9 @@ export const FrontierContextProvider = ({
       ? enrichBasePlan(config.billing.basePlan)
       : undefined;
   }, [config?.billing?.basePlan]);
+
+  // Track last user activity for session management
+  useLastActiveTracker();
 
   return (
     <FrontierContext.Provider

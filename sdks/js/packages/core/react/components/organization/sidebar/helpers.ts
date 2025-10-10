@@ -99,7 +99,12 @@ export const getUserNavItems = (options: getUserNavItemsOptions = {}) => {
       name: 'Preferences',
       to: '/preferences',
       show: options?.showPreferences
-    }
+    },
+    {
+      name: 'Sessions',
+      to: '/sessions',
+      show: true
+    },
   ];
   const customRoutes = getCustomRoutes(options?.customRoutes);
   return [...routes, ...customRoutes].filter(
