@@ -217,7 +217,10 @@ export const FrontierContextProvider = ({
       create(GetOrganizationKycRequestSchema, {
         orgId: activeOrganization?.id ?? ''
       }),
-      { enabled: !!activeOrganization?.id }
+      {
+        enabled: !!activeOrganization?.id,
+        retry: false
+      }
     );
 
   const organizationKyc = organizationKycData?.organizationKyc;
