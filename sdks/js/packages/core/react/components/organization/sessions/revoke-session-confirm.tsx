@@ -122,7 +122,7 @@ export const RevokeSessionConfirm = () => {
                   onClick={handleRevokeClick}
                   data-test-id="frontier-sdk-confirm-revoke-session-dialog"
                 >
-                  {sessionData?.isCurrent ? 'Sign out' : 'Revoke'}
+                  {sessionData?.isCurrent ? 'Logout' : 'Revoke'}
                 </Button>
               </Flex>
             </Dialog.Footer>
