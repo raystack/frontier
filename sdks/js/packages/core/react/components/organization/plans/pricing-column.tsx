@@ -144,7 +144,7 @@ const PlanIntervals = ({
   onIntervalChange
 }: PlanIntervalsProps) => {
   return planIntervals.length > 1 ? (
-    <Tabs.Root
+    <Tabs
       className={plansStyles.plansIntervalList}
       value={selectedInterval}
       onValueChange={value => onIntervalChange(value as IntervalKeys)}
@@ -163,7 +163,7 @@ const PlanIntervals = ({
           </Tabs.Trigger>
         ))}
       </Tabs.List>
-    </Tabs.Root>
+    </Tabs>
   ) : null;
 };
 
