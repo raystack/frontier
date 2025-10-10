@@ -1,6 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -145,7 +144,7 @@ const PlanIntervals = ({
   onIntervalChange
 }: PlanIntervalsProps) => {
   return planIntervals.length > 1 ? (
-    <Tabs
+    <Tabs.Root
       className={plansStyles.plansIntervalList}
       value={selectedInterval}
       onValueChange={value => onIntervalChange(value as IntervalKeys)}
@@ -164,7 +163,7 @@ const PlanIntervals = ({
           </Tabs.Trigger>
         ))}
       </Tabs.List>
-    </Tabs>
+    </Tabs.Root>
   ) : null;
 };
 
