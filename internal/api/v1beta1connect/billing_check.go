@@ -14,7 +14,13 @@ type EntitlementService interface {
 }
 
 func (h *ConnectHandler) CheckFeatureEntitlement(ctx context.Context, request *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse], error) {
-	checkStatus, err := h.entitlementService.Check(ctx, request.Msg.GetBillingId(), request.Msg.GetFeature())
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichCheckFeatureEntitlementRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	checkStatus, err := h.entitlementService.Check(ctx, enrichedReq.GetBillingId(), enrichedReq.GetFeature())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -56,4 +62,50 @@ func (h *ConnectHandler) CheckCreditEntitlement(ctx context.Context, request *co
 	return connect.NewResponse(&frontierv1beta1.CheckCreditEntitlementResponse{
 		Status: false,
 	}), nil
+}
+
+// enrichCheckFeatureEntitlementRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichCheckFeatureEntitlementRequest(ctx context.Context, req *frontierv1beta1.CheckFeatureEntitlementRequest) (*frontierv1beta1.CheckFeatureEntitlementRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.CheckFeatureEntitlementRequest{
+		ProjectId: req.GetProjectId(),
+		OrgId:     req.GetOrgId(),
+		BillingId: req.GetBillingId(),
+		Feature:   req.GetFeature(),
+	}
+
+	// Step 1: Convert project ID to org ID if needed
+	if enrichedReq.GetProjectId() != "" && enrichedReq.GetOrgId() != "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrStatusOrgProjectMismatch)
+	}
+
+	if enrichedReq.GetProjectId() != "" {
+		proj, err := h.GetProject(ctx, connect.NewRequest(&frontierv1beta1.GetProjectRequest{
+			Id: enrichedReq.GetProjectId(),
+		}))
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		if proj != nil && proj.Msg != nil && proj.Msg.GetProject() != nil {
+			enrichedReq.OrgId = proj.Msg.GetProject().GetOrgId()
+		}
+	}
+
+	// Step 2: Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		// Find default customer id for the org
+		customers, err := h.customerService.List(ctx, customer.Filter{
+			OrgID: enrichedReq.GetOrgId(),
+			State: customer.ActiveState,
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		if len(customers) == 0 {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrCustomerNotFound)
+		}
+		enrichedReq.BillingId = customers[0].ID
+	}
+
+	return enrichedReq, nil
 }

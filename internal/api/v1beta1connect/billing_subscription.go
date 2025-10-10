@@ -28,10 +28,16 @@ type PlanService interface {
 }
 
 func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSubscriptionsRequest]) (*connect.Response[frontierv1beta1.ListSubscriptionsResponse], error) {
-	if request.Msg.GetOrgId() == "" || request.Msg.GetBillingId() == "" {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichListSubscriptionsRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if enrichedReq.GetOrgId() == "" || enrichedReq.GetBillingId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
-	planID := request.Msg.GetPlan()
+	planID := enrichedReq.GetPlan()
 	if planID != "" {
 		plan, err := h.planService.GetByID(ctx, planID)
 		if err != nil {
@@ -42,8 +48,8 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 
 	var subscriptions []*frontierv1beta1.Subscription
 	subscriptionList, err := h.subscriptionService.List(ctx, subscription.Filter{
-		CustomerID: request.Msg.GetBillingId(),
-		State:      request.Msg.GetState(),
+		CustomerID: enrichedReq.GetBillingId(),
+		State:      enrichedReq.GetState(),
 		PlanID:     planID,
 	})
 	if err != nil {
@@ -62,13 +68,19 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 	}
 
 	// Handle response enrichment based on expand field
-	response = h.enrichListSubscriptionsResponse(ctx, request.Msg, response)
+	response = h.enrichListSubscriptionsResponse(ctx, enrichedReq, response)
 
 	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.GetSubscriptionRequest]) (*connect.Response[frontierv1beta1.GetSubscriptionResponse], error) {
-	subscription, err := h.subscriptionService.GetByID(ctx, request.Msg.GetId())
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichGetSubscriptionRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	subscription, err := h.subscriptionService.GetByID(ctx, enrichedReq.GetId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -82,13 +94,19 @@ func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.R
 	}
 
 	// Handle response enrichment based on expand field
-	response = h.enrichGetSubscriptionResponse(ctx, request.Msg, response)
+	response = h.enrichGetSubscriptionResponse(ctx, enrichedReq, response)
 
 	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) CancelSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.CancelSubscriptionRequest]) (*connect.Response[frontierv1beta1.CancelSubscriptionResponse], error) {
-	_, err := h.subscriptionService.Cancel(ctx, request.Msg.GetId(), request.Msg.GetImmediate())
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichCancelSubscriptionRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = h.subscriptionService.Cancel(ctx, enrichedReq.GetId(), enrichedReq.GetImmediate())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -96,17 +114,23 @@ func (h *ConnectHandler) CancelSubscription(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) ChangeSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.ChangeSubscriptionRequest]) (*connect.Response[frontierv1beta1.ChangeSubscriptionResponse], error) {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichChangeSubscriptionRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
 	changeReq := subscription.ChangeRequest{
-		PlanID:         request.Msg.GetPlan(),
-		Immediate:      request.Msg.GetImmediate(),
+		PlanID:         enrichedReq.GetPlan(),
+		Immediate:      enrichedReq.GetImmediate(),
 		CancelUpcoming: false,
 	}
-	if request.Msg.GetPlanChange() != nil {
-		changeReq.PlanID = request.Msg.GetPlanChange().GetPlan()
-		changeReq.Immediate = request.Msg.GetPlanChange().GetImmediate()
+	if enrichedReq.GetPlanChange() != nil {
+		changeReq.PlanID = enrichedReq.GetPlanChange().GetPlan()
+		changeReq.Immediate = enrichedReq.GetPlanChange().GetImmediate()
 	}
-	if request.Msg.GetPhaseChange() != nil {
-		changeReq.CancelUpcoming = request.Msg.GetPhaseChange().GetCancelUpcomingChanges()
+	if enrichedReq.GetPhaseChange() != nil {
+		changeReq.CancelUpcoming = enrichedReq.GetPhaseChange().GetCancelUpcomingChanges()
 	}
 	if changeReq.PlanID != "" && changeReq.CancelUpcoming {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrConflictingPlanChange)
@@ -115,7 +139,7 @@ func (h *ConnectHandler) ChangeSubscription(ctx context.Context, request *connec
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrNoChangeRequested)
 	}
 
-	phase, err := h.subscriptionService.ChangePlan(ctx, request.Msg.GetId(), changeReq)
+	phase, err := h.subscriptionService.ChangePlan(ctx, enrichedReq.GetId(), changeReq)
 	if err != nil {
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPerSeatLimitReached)
@@ -263,4 +287,95 @@ func (h *ConnectHandler) enrichListSubscriptionsResponse(ctx context.Context, re
 	}
 
 	return resp
+}
+
+// enrichGetSubscriptionRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichGetSubscriptionRequest(ctx context.Context, req *frontierv1beta1.GetSubscriptionRequest) (*frontierv1beta1.GetSubscriptionRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.GetSubscriptionRequest{
+		Id:        req.GetId(),
+		BillingId: req.GetBillingId(),
+		OrgId:     req.GetOrgId(),
+		Expand:    req.GetExpand(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichCancelSubscriptionRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichCancelSubscriptionRequest(ctx context.Context, req *frontierv1beta1.CancelSubscriptionRequest) (*frontierv1beta1.CancelSubscriptionRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.CancelSubscriptionRequest{
+		Id:        req.GetId(),
+		BillingId: req.GetBillingId(),
+		OrgId:     req.GetOrgId(),
+		Immediate: req.GetImmediate(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichListSubscriptionsRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichListSubscriptionsRequest(ctx context.Context, req *frontierv1beta1.ListSubscriptionsRequest) (*frontierv1beta1.ListSubscriptionsRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.ListSubscriptionsRequest{
+		OrgId:     req.GetOrgId(),
+		BillingId: req.GetBillingId(),
+		Plan:      req.GetPlan(),
+		State:     req.GetState(),
+		Expand:    req.GetExpand(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichChangeSubscriptionRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichChangeSubscriptionRequest(ctx context.Context, req *frontierv1beta1.ChangeSubscriptionRequest) (*frontierv1beta1.ChangeSubscriptionRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.ChangeSubscriptionRequest{
+		Id:          req.GetId(),
+		BillingId:   req.GetBillingId(),
+		OrgId:       req.GetOrgId(),
+		Plan:        req.GetPlan(),
+		Immediate:   req.GetImmediate(),
+		Change:  req.GetChange(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
 }

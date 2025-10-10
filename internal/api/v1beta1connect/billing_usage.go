@@ -9,6 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/credit"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -21,8 +22,14 @@ type UsageService interface {
 }
 
 func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.CreateBillingUsageRequest]) (*connect.Response[frontierv1beta1.CreateBillingUsageResponse], error) {
-	createRequests := make([]usage.Usage, 0, len(request.Msg.GetUsages()))
-	for _, v := range request.Msg.GetUsages() {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichCreateBillingUsageRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	createRequests := make([]usage.Usage, 0, len(enrichedReq.GetUsages()))
+	for _, v := range enrichedReq.GetUsages() {
 		usageType := usage.CreditType
 		if len(v.GetType()) > 0 {
 			usageType = usage.Type(v.GetType())
@@ -30,7 +37,7 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 
 		createRequests = append(createRequests, usage.Usage{
 			ID:          v.GetId(),
-			CustomerID:  request.Msg.GetBillingId(),
+			CustomerID:  enrichedReq.GetBillingId(),
 			Type:        usageType,
 			Amount:      v.GetAmount(),
 			Source:      strings.ToLower(v.GetSource()), // source in lower case looks nicer
@@ -54,24 +61,26 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.ListBillingTransactionsRequest]) (*connect.Response[frontierv1beta1.ListBillingTransactionsResponse], error) {
-	if request.Msg.GetBillingId() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichListBillingTransactionsRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
 	}
 	var transactions []*frontierv1beta1.BillingTransaction
 	var startRange time.Time
-	if request.Msg.GetSince() != nil {
-		startRange = request.Msg.GetSince().AsTime()
+	if enrichedReq.GetSince() != nil {
+		startRange = enrichedReq.GetSince().AsTime()
 	}
-	if request.Msg.GetStartRange() != nil {
-		startRange = request.Msg.GetStartRange().AsTime()
+	if enrichedReq.GetStartRange() != nil {
+		startRange = enrichedReq.GetStartRange().AsTime()
 	}
 	var endRange time.Time
-	if request.Msg.GetEndRange() != nil {
-		endRange = request.Msg.GetEndRange().AsTime()
+	if enrichedReq.GetEndRange() != nil {
+		endRange = enrichedReq.GetEndRange().AsTime()
 	}
 
 	transactionsList, err := h.creditService.List(ctx, credit.Filter{
-		CustomerID: request.Msg.GetBillingId(),
+		CustomerID: enrichedReq.GetBillingId(),
 		StartRange: startRange,
 		EndRange:   endRange,
 	})
@@ -91,7 +100,7 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 	}
 
 	// Handle response enrichment based on expand field
-	response = h.enrichListBillingTransactionsResponse(ctx, request.Msg, response)
+	response = h.enrichListBillingTransactionsResponse(ctx, enrichedReq, response)
 
 	return connect.NewResponse(response), nil
 }
@@ -134,8 +143,14 @@ func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTra
 }
 
 func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.RevertBillingUsageRequest]) (*connect.Response[frontierv1beta1.RevertBillingUsageResponse], error) {
-	if err := h.usageService.Revert(ctx, request.Msg.GetBillingId(),
-		request.Msg.GetUsageId(), request.Msg.GetAmount()); err != nil {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichRevertBillingUsageRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := h.usageService.Revert(ctx, enrichedReq.GetBillingId(),
+		enrichedReq.GetUsageId(), enrichedReq.GetAmount()); err != nil {
 		if errors.Is(err, usage.ErrRevertAmountExceeds) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		} else if errors.Is(err, usage.ErrExistingRevertedUsage) {
@@ -206,4 +221,133 @@ func (h *ConnectHandler) enrichListBillingTransactionsResponse(ctx context.Conte
 	}
 
 	return resp
+}
+
+// enrichCreateBillingUsageRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichCreateBillingUsageRequest(ctx context.Context, req *frontierv1beta1.CreateBillingUsageRequest) (*frontierv1beta1.CreateBillingUsageRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.CreateBillingUsageRequest{
+		ProjectId: req.GetProjectId(),
+		OrgId:     req.GetOrgId(),
+		BillingId: req.GetBillingId(),
+		Usages:    req.GetUsages(),
+	}
+
+	// Step 1: Convert project ID to org ID if needed
+	if enrichedReq.GetProjectId() != "" && enrichedReq.GetOrgId() != "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrStatusOrgProjectMismatch)
+	}
+
+	if enrichedReq.GetProjectId() != "" {
+		proj, err := h.GetProject(ctx, connect.NewRequest(&frontierv1beta1.GetProjectRequest{
+			Id: enrichedReq.GetProjectId(),
+		}))
+		if err != nil {
+			return nil, err
+		}
+		if proj != nil && proj.Msg != nil && proj.Msg.GetProject() != nil {
+			enrichedReq.OrgId = proj.Msg.GetProject().GetOrgId()
+		}
+	}
+
+	// Step 2: Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichRevertBillingUsageRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichRevertBillingUsageRequest(ctx context.Context, req *frontierv1beta1.RevertBillingUsageRequest) (*frontierv1beta1.RevertBillingUsageRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.RevertBillingUsageRequest{
+		ProjectId: req.GetProjectId(),
+		OrgId:     req.GetOrgId(),
+		BillingId: req.GetBillingId(),
+		UsageId:   req.GetUsageId(),
+		Amount:    req.GetAmount(),
+	}
+
+	// Step 1: Convert project ID to org ID if needed
+	if enrichedReq.GetProjectId() != "" && enrichedReq.GetOrgId() != "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrStatusOrgProjectMismatch)
+	}
+
+	if enrichedReq.GetProjectId() != "" {
+		proj, err := h.GetProject(ctx, connect.NewRequest(&frontierv1beta1.GetProjectRequest{
+			Id: enrichedReq.GetProjectId(),
+		}))
+		if err != nil {
+			return nil, err
+		}
+		if proj != nil && proj.Msg != nil && proj.Msg.GetProject() != nil {
+			enrichedReq.OrgId = proj.Msg.GetProject().GetOrgId()
+		}
+	}
+
+	// Step 2: Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		// Find default customer id for the org
+		customers, err := h.customerService.List(ctx, customer.Filter{
+			OrgID: enrichedReq.GetOrgId(),
+			State: customer.ActiveState,
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		if len(customers) == 0 {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrCustomerNotFound)
+		}
+		enrichedReq.BillingId = customers[0].ID
+	}
+
+	return enrichedReq, nil
+}
+
+// findDefaultBillingAccount finds the default billing account for an organization
+func (h *ConnectHandler) findDefaultBillingAccount(ctx context.Context, orgID string) (string, error) {
+	if orgID == "" {
+		return "", connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+
+	customers, err := h.customerService.List(ctx, customer.Filter{
+		OrgID: orgID,
+		State: customer.ActiveState,
+	})
+	if err != nil {
+		return "", connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
+	if len(customers) == 0 {
+		return "", connect.NewError(connect.CodeInvalidArgument, ErrCustomerNotFound)
+	}
+	return customers[0].ID, nil
+}
+
+// enrichListBillingTransactionsRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichListBillingTransactionsRequest(ctx context.Context, req *frontierv1beta1.ListBillingTransactionsRequest) (*frontierv1beta1.ListBillingTransactionsRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.ListBillingTransactionsRequest{
+		BillingId:  req.GetBillingId(),
+		OrgId:      req.GetOrgId(),
+		Since:      req.GetSince(),
+		StartRange: req.GetStartRange(),
+		EndRange:   req.GetEndRange(),
+		Expand:     req.GetExpand(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
 }

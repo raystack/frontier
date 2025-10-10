@@ -47,9 +47,15 @@ func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.R
 }
 
 func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.ListInvoicesRequest]) (*connect.Response[frontierv1beta1.ListInvoicesResponse], error) {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichListInvoicesRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
 	invoices, err := h.invoiceService.List(ctx, invoice.Filter{
-		CustomerID:  request.Msg.GetBillingId(),
-		NonZeroOnly: request.Msg.GetNonzeroAmountOnly(),
+		CustomerID:  enrichedReq.GetBillingId(),
+		NonZeroOnly: enrichedReq.GetNonzeroAmountOnly(),
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
@@ -68,13 +74,19 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 	}
 
 	// Handle response enrichment based on expand field
-	response = h.enrichListInvoicesResponse(ctx, request.Msg, response)
+	response = h.enrichListInvoicesResponse(ctx, enrichedReq, response)
 
 	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse], error) {
-	invoice, err := h.invoiceService.GetUpcoming(ctx, request.Msg.GetBillingId())
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichGetUpcomingInvoiceRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	invoice, err := h.invoiceService.GetUpcoming(ctx, enrichedReq.GetBillingId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -200,4 +212,46 @@ func (h *ConnectHandler) enrichListInvoicesResponse(ctx context.Context, req *fr
 	}
 
 	return resp
+}
+
+// enrichListInvoicesRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichListInvoicesRequest(ctx context.Context, req *frontierv1beta1.ListInvoicesRequest) (*frontierv1beta1.ListInvoicesRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.ListInvoicesRequest{
+		BillingId:         req.GetBillingId(),
+		OrgId:             req.GetOrgId(),
+		NonzeroAmountOnly: req.GetNonzeroAmountOnly(),
+		Expand:            req.GetExpand(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichGetUpcomingInvoiceRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichGetUpcomingInvoiceRequest(ctx context.Context, req *frontierv1beta1.GetUpcomingInvoiceRequest) (*frontierv1beta1.GetUpcomingInvoiceRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.GetUpcomingInvoiceRequest{
+		BillingId: req.GetBillingId(),
+		OrgId:     req.GetOrgId(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
 }

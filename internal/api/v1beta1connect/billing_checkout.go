@@ -22,12 +22,18 @@ type CheckoutService interface {
 }
 
 func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCheckoutRequest]) (*connect.Response[frontierv1beta1.CreateCheckoutResponse], error) {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichCreateCheckoutRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
 	// check if setup requested
-	if request.Msg.GetSetupBody() != nil && request.Msg.GetSetupBody().GetPaymentMethod() {
+	if enrichedReq.GetSetupBody() != nil && enrichedReq.GetSetupBody().GetPaymentMethod() {
 		newCheckout, err := h.checkoutService.CreateSessionForPaymentMethod(ctx, checkout.Checkout{
-			CustomerID: request.Msg.GetBillingId(),
-			SuccessUrl: request.Msg.GetSuccessUrl(),
-			CancelUrl:  request.Msg.GetCancelUrl(),
+			CustomerID: enrichedReq.GetBillingId(),
+			SuccessUrl: enrichedReq.GetSuccessUrl(),
+			CancelUrl:  enrichedReq.GetCancelUrl(),
 		})
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
@@ -39,11 +45,11 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 	}
 
 	// check if customer portal requested
-	if request.Msg.GetSetupBody() != nil && request.Msg.GetSetupBody().GetCustomerPortal() {
+	if enrichedReq.GetSetupBody() != nil && enrichedReq.GetSetupBody().GetCustomerPortal() {
 		newCheckout, err := h.checkoutService.CreateSessionForCustomerPortal(ctx, checkout.Checkout{
-			CustomerID: request.Msg.GetBillingId(),
-			SuccessUrl: request.Msg.GetSuccessUrl(),
-			CancelUrl:  request.Msg.GetCancelUrl(),
+			CustomerID: enrichedReq.GetBillingId(),
+			SuccessUrl: enrichedReq.GetSuccessUrl(),
+			CancelUrl:  enrichedReq.GetCancelUrl(),
 		})
 		if err != nil {
 			if errors.Is(err, checkout.ErrKycCompleted) {
@@ -58,28 +64,28 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 	}
 
 	// check if checkout requested (subscription or product)
-	if request.Msg.GetSubscriptionBody() == nil && request.Msg.GetProductBody() == nil {
+	if enrichedReq.GetSubscriptionBody() == nil && enrichedReq.GetProductBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 	planID := ""
 	var skipTrial bool
 	var cancelAfterTrial bool
-	if request.Msg.GetSubscriptionBody() != nil {
-		planID = request.Msg.GetSubscriptionBody().GetPlan()
-		skipTrial = request.Msg.GetSubscriptionBody().GetSkipTrial()
-		cancelAfterTrial = request.Msg.GetSubscriptionBody().GetCancelAfterTrial()
+	if enrichedReq.GetSubscriptionBody() != nil {
+		planID = enrichedReq.GetSubscriptionBody().GetPlan()
+		skipTrial = enrichedReq.GetSubscriptionBody().GetSkipTrial()
+		cancelAfterTrial = enrichedReq.GetSubscriptionBody().GetCancelAfterTrial()
 	}
 
 	var featureID string
 	var quantity int64
-	if request.Msg.GetProductBody() != nil {
-		featureID = request.Msg.GetProductBody().GetProduct()
-		quantity = request.Msg.GetProductBody().GetQuantity()
+	if enrichedReq.GetProductBody() != nil {
+		featureID = enrichedReq.GetProductBody().GetProduct()
+		quantity = enrichedReq.GetProductBody().GetQuantity()
 	}
 	newCheckout, err := h.checkoutService.Create(ctx, checkout.Checkout{
-		CustomerID:       request.Msg.GetBillingId(),
-		SuccessUrl:       request.Msg.GetSuccessUrl(),
-		CancelUrl:        request.Msg.GetCancelUrl(),
+		CustomerID:       enrichedReq.GetBillingId(),
+		SuccessUrl:       enrichedReq.GetSuccessUrl(),
+		CancelUrl:        enrichedReq.GetCancelUrl(),
 		PlanID:           planID,
 		ProductID:        featureID,
 		Quantity:         quantity,
@@ -99,24 +105,30 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.DelegatedCheckoutRequest]) (*connect.Response[frontierv1beta1.DelegatedCheckoutResponse], error) {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichDelegatedCheckoutRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
 	var planID string
 	var skipTrial bool
 	var cancelAfterTrail bool
 	var providerCouponID string
-	if request.Msg.GetSubscriptionBody() != nil {
-		planID = request.Msg.GetSubscriptionBody().GetPlan()
-		skipTrial = request.Msg.GetSubscriptionBody().GetSkipTrial()
-		cancelAfterTrail = request.Msg.GetSubscriptionBody().GetCancelAfterTrial()
-		providerCouponID = request.Msg.GetSubscriptionBody().GetProviderCouponId()
+	if enrichedReq.GetSubscriptionBody() != nil {
+		planID = enrichedReq.GetSubscriptionBody().GetPlan()
+		skipTrial = enrichedReq.GetSubscriptionBody().GetSkipTrial()
+		cancelAfterTrail = enrichedReq.GetSubscriptionBody().GetCancelAfterTrial()
+		providerCouponID = enrichedReq.GetSubscriptionBody().GetProviderCouponId()
 	}
 	var productID string
 	var productQuantity int64
-	if request.Msg.GetProductBody() != nil {
-		productID = request.Msg.GetProductBody().GetProduct()
-		productQuantity = request.Msg.GetProductBody().GetQuantity()
+	if enrichedReq.GetProductBody() != nil {
+		productID = enrichedReq.GetProductBody().GetProduct()
+		productQuantity = enrichedReq.GetProductBody().GetQuantity()
 	}
 	subs, prod, err := h.checkoutService.Apply(ctx, checkout.Checkout{
-		CustomerID:       request.Msg.GetBillingId(),
+		CustomerID:       enrichedReq.GetBillingId(),
 		PlanID:           planID,
 		ProductID:        productID,
 		Quantity:         productQuantity,
@@ -148,13 +160,15 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 }
 
 func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Request[frontierv1beta1.ListCheckoutsRequest]) (*connect.Response[frontierv1beta1.ListCheckoutsResponse], error) {
-	if request.Msg.GetOrgId() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichListCheckoutsRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
 	}
 
 	var checkouts []*frontierv1beta1.CheckoutSession
 	checkoutList, err := h.checkoutService.List(ctx, checkout.Filter{
-		CustomerID: request.Msg.GetBillingId(),
+		CustomerID: enrichedReq.GetBillingId(),
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
@@ -169,11 +183,17 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) GetCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.GetCheckoutRequest]) (*connect.Response[frontierv1beta1.GetCheckoutResponse], error) {
-	if request.Msg.GetOrgId() == "" || request.Msg.GetId() == "" {
+	// Handle request enrichment similar to gRPC interceptor
+	enrichedReq, err := h.enrichGetCheckoutRequest(ctx, request.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if enrichedReq.GetOrgId() == "" || enrichedReq.GetId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	ch, err := h.checkoutService.GetByID(ctx, request.Msg.GetId())
+	ch, err := h.checkoutService.GetByID(ctx, enrichedReq.GetId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -196,4 +216,92 @@ func transformCheckoutToPB(ch checkout.Checkout) *frontierv1beta1.CheckoutSessio
 		UpdatedAt:   timestamppb.New(ch.UpdatedAt),
 		ExpireAt:    timestamppb.New(ch.ExpireAt),
 	}
+}
+
+// enrichCreateCheckoutRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichCreateCheckoutRequest(ctx context.Context, req *frontierv1beta1.CreateCheckoutRequest) (*frontierv1beta1.CreateCheckoutRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.CreateCheckoutRequest{
+		BillingId:        req.GetBillingId(),
+		OrgId:            req.GetOrgId(),
+		SuccessUrl:       req.GetSuccessUrl(),
+		CancelUrl:        req.GetCancelUrl(),
+		SubscriptionBody: req.GetSubscriptionBody(),
+		ProductBody:      req.GetProductBody(),
+		SetupBody:        req.GetSetupBody(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichDelegatedCheckoutRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichDelegatedCheckoutRequest(ctx context.Context, req *frontierv1beta1.DelegatedCheckoutRequest) (*frontierv1beta1.DelegatedCheckoutRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.DelegatedCheckoutRequest{
+		BillingId:        req.GetBillingId(),
+		OrgId:            req.GetOrgId(),
+		SubscriptionBody: req.GetSubscriptionBody(),
+		ProductBody:      req.GetProductBody(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichListCheckoutsRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichListCheckoutsRequest(ctx context.Context, req *frontierv1beta1.ListCheckoutsRequest) (*frontierv1beta1.ListCheckoutsRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.ListCheckoutsRequest{
+		BillingId: req.GetBillingId(),
+		OrgId:     req.GetOrgId(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
+}
+
+// enrichGetCheckoutRequest enriches the request similar to gRPC interceptor
+func (h *ConnectHandler) enrichGetCheckoutRequest(ctx context.Context, req *frontierv1beta1.GetCheckoutRequest) (*frontierv1beta1.GetCheckoutRequest, error) {
+	// Create a copy of the request to avoid modifying the original
+	enrichedReq := &frontierv1beta1.GetCheckoutRequest{
+		BillingId: req.GetBillingId(),
+		OrgId:     req.GetOrgId(),
+		Id:        req.GetId(),
+	}
+
+	// Find default billing account if billing_id is empty
+	if enrichedReq.GetBillingId() == "" && enrichedReq.GetOrgId() != "" {
+		billingID, err := h.findDefaultBillingAccount(ctx, enrichedReq.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		enrichedReq.BillingId = billingID
+	}
+
+	return enrichedReq, nil
 }

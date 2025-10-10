@@ -63,4 +63,5 @@ var (
 	ErrInvalidSessionID            = errors.New("invalid session_id format: must be a valid UUID")
 	ErrInvalidUserID               = errors.New("invalid user_id format: must be a valid UUID")
 	ErrRoleNotFound                = errors.New("role doesn't exist")
+	ErrStatusOrgProjectMismatch    = errors.New("both project_id and org_id cannot be provided")
 )
