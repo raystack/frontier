@@ -157,14 +157,14 @@ func TestGetOrganizationKyc(t *testing.T) {
 		},
 		{
 			mockService: mocks.NewKycService(t),
-			name:        "error case - KYC record not found",
+			name:        "KYC record not found - returns default",
 			request: connect.NewRequest(&frontierv1beta1.GetOrganizationKycRequest{
 				OrgId: "nonexistent-org",
 			}),
 			mockResponse:  kyc.KYC{},
 			mockError:     kyc.ErrNotExist,
-			expectError:   connect.NewError(connect.CodeNotFound, kyc.ErrNotExist),
-			expectNilResp: true,
+			expectError:   nil,
+			expectNilResp: false,
 		},
 	}
 
@@ -188,6 +188,11 @@ func TestGetOrganizationKyc(t *testing.T) {
 			} else {
 				assert.NotNil(t, resp)
 				assert.Equal(t, tt.request.Msg.GetOrgId(), resp.Msg.GetOrganizationKyc().GetOrgId())
+				if tt.mockError == kyc.ErrNotExist {
+					// Verify default values are returned
+					assert.False(t, resp.Msg.GetOrganizationKyc().GetStatus())
+					assert.Empty(t, resp.Msg.GetOrganizationKyc().GetLink())
+				}
 			}
 		})
 	}
