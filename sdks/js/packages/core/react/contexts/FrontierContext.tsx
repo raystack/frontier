@@ -39,6 +39,7 @@ import {
   DEFAULT_DATE_SHORT_FORMAT
 } from '../utils/constants';
 import { AxiosError } from 'axios';
+import { useLastActiveTracker } from '../hooks/useLastActiveTracker';
 
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
@@ -478,6 +479,9 @@ export const FrontierContextProvider = ({
       fetchOrganizationKyc(activeOrganization?.id);
     }
   }, [activeOrganization?.id, fetchOrganizationKyc]);
+
+  // Track last user activity for session management
+  useLastActiveTracker();
 
   return (
     <FrontierContext.Provider

@@ -6,7 +6,6 @@ import closeDefault from '~/react/assets/close-default.svg';
 import resizeCollapse from '~/react/assets/resize-collapse.svg';
 import resizeDefault from '~/react/assets/resize-default.svg';
 import resizeExpand from '~/react/assets/resize-expand.svg';
-import { useLastActiveTracker } from '../../hooks/useLastActiveTracker';
 // @ts-ignore
 import styles from './window.module.css';
 
@@ -26,8 +25,6 @@ export const Window = ({
   const [isCloseActive, setCloseActive] = useState(false);
   const [isZoomActive, setZoomActive] = useState(false);
   
-  // Track user last active
-  useLastActiveTracker();
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
       <Dialog.Content
