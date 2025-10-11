@@ -1,38 +1,54 @@
-import { Flex } from "@raystack/apsara";
-import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
-import { useEffect, useState } from "react";
-
+import { Flex, EmptyState } from "@raystack/apsara";
 import { Outlet } from "react-router-dom";
-import { api } from "~/api";
+import { useQuery } from "@connectrpc/connect-query";
+import {
+  AdminServiceQueries,
+  FrontierServiceQueries,
+} from "@raystack/proton/frontier";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function PreferencesLayout() {
-  const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
-  const [traits, setTraits] = useState<V1Beta1PreferenceTrait[]>([]);
-  const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
+  const {
+    data: preferencesData,
+    isLoading: isPreferencesLoading,
+    error: preferencesError,
+    isError: isPreferencesError,
+  } = useQuery(AdminServiceQueries.listPreferences, {}, {
+    staleTime: 60 * 1000, // Cache for 1 minute
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    async function getPreferences() {
-      try {
-        setIsPreferencesLoading(true);
-        const [traitResp, valuesMapResp] = await Promise.all([
-          api?.frontierServiceDescribePreferences(),
-          api?.adminServiceListPreferences(),
-        ]);
+  const {
+    data: traitsData,
+    isLoading: isTraitsLoading,
+    error: traitsError,
+    isError: isTraitsError,
+  } = useQuery(FrontierServiceQueries.describePreferences, {}, {
+    staleTime: 60 * 1000, // Cache for 1 minute
+    refetchOnWindowFocus: false,
+  });
 
-        if (valuesMapResp?.data?.preferences) {
-          setPreferences(valuesMapResp?.data?.preferences);
-        }
-        if (traitResp?.data?.traits) {
-          setTraits(traitResp?.data?.traits);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsPreferencesLoading(false);
-      }
-    }
-    getPreferences();
-  }, []);
+  const preferences = preferencesData?.preferences || [];
+  const traits = traitsData?.traits || [];
+  const isLoading = isPreferencesLoading || isTraitsLoading;
+  const isError = isPreferencesError || isTraitsError;
+  const error = preferencesError || traitsError;
+
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <Flex direction="row" style={{ height: "100%", width: "100%" }}>
+        <EmptyState
+          icon={<ExclamationTriangleIcon />}
+          heading="Error Loading Preferences"
+          subHeading={
+            error?.message ||
+            "Something went wrong while loading preferences. Please try again."
+          }
+        />
+      </Flex>
+    );
+  }
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
@@ -40,7 +56,7 @@ export default function PreferencesLayout() {
         context={{
           preferences,
           traits,
-          isPreferencesLoading,
+          isPreferencesLoading: isLoading,
         }}
       />
     </Flex>
