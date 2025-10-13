@@ -63,6 +63,7 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
 export default function PreferenceDetails() {
   const { name } = useParams();
   const [value, setValue] = useState("");
+  const [originalValue, setOriginalValue] = useState("");
   const { preferences, traits, isPreferencesLoading } = usePreferences();
   const preference = preferences?.find((p) => p.name === name);
   const trait = traits?.find((t) => t.name === name);
@@ -131,8 +132,12 @@ export default function PreferenceDetails() {
       preference?.value !== "" && preference?.value !== undefined
         ? preference?.value
         : trait?.default;
-    setValue(v || "");
+    const newValue = v || "";
+    setValue(newValue);
+    setOriginalValue(newValue);
   }, [preference?.value, trait?.default]);
+
+  const hasChanged = value !== originalValue;
 
   const detailList = [
     {
@@ -232,7 +237,7 @@ export default function PreferenceDetails() {
             />
             <Button
               onClick={onSave}
-              disabled={isActionLoading}
+              disabled={isActionLoading || !hasChanged}
               loading={isActionLoading}
               loaderText="Saving..."
               data-test-id="admin-ui-preference-value-save-btn"
