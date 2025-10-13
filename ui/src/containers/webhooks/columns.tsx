@@ -41,21 +41,24 @@ function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>Delete Webhook</Dialog.Title>
-          <Dialog.CloseButton data-test-id="admin-ui-close-delete-webhook-dialog" />
-        </Dialog.Header>
+      <Dialog.Content
+        style={{
+          maxWidth: "25vw",
+          width: "100%",
+        }}
+      >
+        <Flex direction="column" gap="large" style={{ padding: "24px" }}>
+          <Flex direction="column" gap="medium">
+            <Text size={5} weight={500}>
+              Delete Webhook
+            </Text>
+            <Text>
+              Are you sure you want to delete this webhook
+              {webhookDescription ? ` "${webhookDescription}"` : ""}? This action
+              cannot be undone.
+            </Text>
+          </Flex>
 
-        <Dialog.Body>
-          <Text>
-            Are you sure you want to delete this webhook
-            {webhookDescription ? ` "${webhookDescription}"` : ""}? This action
-            cannot be undone.
-          </Text>
-        </Dialog.Body>
-
-        <Dialog.Footer>
           <Flex justify="end" gap={5}>
             <Button
               variant="outline"
@@ -77,7 +80,7 @@ function DeleteConfirmDialog({
               Delete
             </Button>
           </Flex>
-        </Dialog.Footer>
+        </Flex>
       </Dialog.Content>
     </Dialog>
   );
@@ -160,7 +163,7 @@ export const getColumns: (
                     </DropdownMenu.Item>
                     <DropdownMenu.Item style={{ padding: 0 }}>
                       <Flex
-                        style={{ padding: "12px" }}
+                        className={styles.deleteMenuItem}
                         gap={"small"}
                         data-test-id="admin-ui-webhook-delete-btn"
                         onClick={() => setIsDeleteDialogOpen(true)}
