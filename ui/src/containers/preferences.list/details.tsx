@@ -9,19 +9,17 @@ import {
   InputField,
 } from "@raystack/apsara";
 import { useCallback, useEffect, useState } from "react";
-import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useOutletContext, useParams } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
-import * as R from "ramda";
 import { toast } from "sonner";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { AdminServiceQueries, Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ContextType {
-  preferences: V1Beta1Preference[];
-  traits: V1Beta1PreferenceTrait[];
+  preferences: Preference[];
+  traits: PreferenceTrait[];
   isPreferencesLoading: boolean;
 }
 
@@ -30,23 +28,25 @@ export function usePreferences() {
 }
 
 interface PreferenceValueProps {
-  trait: V1Beta1PreferenceTrait;
+  trait: PreferenceTrait;
   value: string;
   onChange: (v: string) => void;
 }
 
 function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
-  if (R.has("checkbox")(trait)) {
+  if (trait.inputType === PreferenceTrait_InputType.CHECKBOX) {
     const checked = value === "true";
     return (
       <Switch
-        // @ts-ignore
         checked={checked}
         onCheckedChange={(v: boolean) => onChange(v.toString())}
         data-test-id="admin-ui-preference-select"
       />
     );
-  } else if (R.has("text")(trait) || R.has("textarea")(trait)) {
+  } else if (
+    trait.inputType === PreferenceTrait_InputType.TEXT ||
+    trait.inputType === PreferenceTrait_InputType.TEXTAREA
+  ) {
     return (
       <InputField
         value={value}
@@ -124,11 +124,11 @@ export default function PreferenceDetails() {
     },
     {
       key: "Sub heading",
-      value: trait?.sub_heading,
+      value: trait?.subHeading,
     },
     {
       key: "Resource type",
-      value: trait?.resource_type,
+      value: trait?.resourceType,
     },
     {
       key: "Default value",
@@ -137,8 +137,8 @@ export default function PreferenceDetails() {
     {
       key: "Last updated",
       value:
-        preference?.updated_at &&
-        dayjs(preference?.updated_at).format("MMM DD, YYYY hh:mm:A"),
+        preference?.updatedAt &&
+        dayjs(Number(preference.updatedAt.seconds) * 1000).format("MMM DD, YYYY hh:mm:A"),
     },
   ];
 

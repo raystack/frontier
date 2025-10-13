@@ -1,20 +1,17 @@
 import type { DataTableColumnDef } from "@raystack/apsara";
-import type {
-  V1Beta1Preference,
-  V1Beta1PreferenceTrait,
-} from "@raystack/frontier";
+import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
 
 import { Link } from "react-router-dom";
 import styles from "./preferences.module.css";
 
 interface getColumnsOptions {
-  traits: V1Beta1PreferenceTrait[];
-  preferences: V1Beta1Preference[];
+  traits: PreferenceTrait[];
+  preferences: Preference[];
 }
 
 export const getColumns: (
   options: getColumnsOptions,
-) => DataTableColumnDef<V1Beta1PreferenceTrait, unknown>[] = ({
+) => DataTableColumnDef<PreferenceTrait, unknown>[] = ({
   traits,
   preferences,
 }) => {

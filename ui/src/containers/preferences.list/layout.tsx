@@ -4,6 +4,8 @@ import { useQuery } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
   FrontierServiceQueries,
+  Preference,
+  PreferenceTrait,
 } from "@raystack/proton/frontier";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
@@ -26,8 +28,8 @@ export default function PreferencesLayout() {
     staleTime: Infinity,
   });
 
-  const preferences = preferencesData?.preferences || [];
-  const traits = traitsData?.traits || [];
+  const preferences = (preferencesData?.preferences || []) as Preference[];
+  const traits = (traitsData?.traits || []) as PreferenceTrait[];
   const isLoading = isPreferencesLoading || isTraitsLoading;
   const isError = isPreferencesError || isTraitsError;
   const error = preferencesError || traitsError;
