@@ -5,6 +5,7 @@ import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { toast } from '@raystack/apsara';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { timestampToDayjs } from '../../utils/timestamp';
 
 dayjs.extend(relativeTime);
 
@@ -39,11 +40,8 @@ export const useSessions = () => {
   );
 
   const formatLastActive = (updatedAt?: any) => {
-    if (!updatedAt) return "Unknown";
-    
-    const seconds = typeof updatedAt.seconds === 'bigint' ? Number(updatedAt.seconds) : updatedAt.seconds;
-    const date = new Date(seconds * 1000);
-    return dayjs(date).fromNow();
+    const d = timestampToDayjs(updatedAt);
+    return d ? d.fromNow() : "Unknown";
   };
 
   const sessions = useMemo(() => 
