@@ -7,11 +7,11 @@ import {
 } from '@raystack/apsara/v1';
 import styles from './sessions.module.css';
 
-const getErrorMessage = (error: any): string => {
-  if (error?.status === 500) {
+const getErrorMessage = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'status' in error && error.status === 500) {
     return 'Something went wrong';
   }
-  return error?.message || 'Something went wrong';
+  return error instanceof Error ? error.message : 'Something went wrong';
 };
 
 interface RevokeSessionFinalConfirmProps {
