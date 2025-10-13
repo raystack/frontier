@@ -21,7 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 interface ContextType {
   preferences: Preference[];
   traits: PreferenceTrait[];
-  isPreferencesLoading: boolean;
+  isLoading: boolean;
 }
 
 export function usePreferences() {
@@ -64,7 +64,7 @@ export default function PreferenceDetails() {
   const { name } = useParams();
   const [value, setValue] = useState("");
   const [originalValue, setOriginalValue] = useState("");
-  const { preferences, traits, isPreferencesLoading } = usePreferences();
+  const { preferences, traits, isLoading } = usePreferences();
   const preference = preferences?.find((p) => p.name === name);
   const trait = traits?.find((t) => t.name === name);
 
@@ -205,7 +205,7 @@ export default function PreferenceDetails() {
       />
       <Flex direction="column" gap={9} style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) =>
-          isPreferencesLoading ? (
+          isLoading ? (
             <Grid columns={2} gap="small" key={detailItem.key}>
               <Skeleton />
               <Skeleton />
@@ -220,7 +220,7 @@ export default function PreferenceDetails() {
           ),
         )}
         <Separator />
-        {isPreferencesLoading ? (
+        {isLoading ? (
           <Skeleton />
         ) : (
           <Text size={1} weight={500}>

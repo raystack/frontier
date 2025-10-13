@@ -57,7 +57,7 @@ export default function PreferencesLayout() {
         context={{
           preferences,
           traits,
-          isPreferencesLoading: isLoading,
+          isLoading,
         }}
       />
     </Flex>
