@@ -18,8 +18,8 @@ import { AppContext } from "~/contexts/App";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "~/api";
-import type { Frontierv1Beta1OrganizationRequestBody } from "~/api/frontier";
+import { useMutation } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import {
   type Organization,
   OrganizationSchema,
@@ -105,7 +105,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
     setError,
     watch,
     register,
-    formState: { isSubmitting, errors },
+    formState: { errors },
   } = useForm<OrgUpdateSchema>({
     defaultValues: organization
       ? getDefaultValue(organization, industries)
@@ -113,10 +113,26 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
     resolver: zodResolver(orgUpdateSchema),
   });
 
+  const {
+    mutateAsync: updateOrganizationMutation,
+    error: mutationError,
+    isPending: isSubmitting,
+  } = useMutation(FrontierServiceQueries.updateOrganization);
+
+  useEffect(() => {
+    if (mutationError) {
+      if (mutationError.message?.includes("already exists")) {
+        setError("name", { message: "Organization name already exists" });
+      } else {
+        console.error("Unable to update organization:", mutationError);
+      }
+    }
+  }, [mutationError, setError]);
+
   async function onSubmit(data: OrgUpdateSchema) {
     try {
-      const payload: Frontierv1Beta1OrganizationRequestBody = {
-        avatar: data.avatar,
+      const payload = {
+        avatar: data.avatar || "",
         name: data.name,
         title: data.title,
         metadata: {
@@ -128,11 +144,11 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
         },
       };
 
-      const orgResp = await api.frontierServiceUpdateOrganization(
-        orgId,
-        payload,
-      );
-      const organization = orgResp?.data?.organization;
+      const orgResp = await updateOrganizationMutation({
+        id: orgId,
+        body: payload,
+      });
+      const organization = orgResp.organization;
       if (organization) {
         const protoOrg = create(OrganizationSchema, {
           ...organization,
@@ -141,11 +157,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
         updateOrganization(protoOrg);
       }
     } catch (err: unknown) {
-      if (err instanceof Response && err?.status === 409) {
-        setError("name", { message: "Organization name already exists" });
-      } else {
-        console.error(err);
-      }
+      console.error("Unable to update organization:", err);
     }
   }
 
