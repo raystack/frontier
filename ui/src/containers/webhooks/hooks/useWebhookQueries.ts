@@ -1,4 +1,4 @@
-import { createConnectQueryKey, useTransport, useQuery } from "@connectrpc/connect-query";
+import { createConnectQueryKey, useTransport, useQuery, useMutation } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -26,8 +26,15 @@ export function useWebhookQueries() {
     });
   };
 
+  const deleteWebhookMutation = useMutation(AdminServiceQueries.deleteWebhook, {
+    onSuccess: () => {
+      invalidateWebhooksList();
+    },
+  });
+
   return {
     listWebhooks,
-    invalidateWebhooksList
+    invalidateWebhooksList,
+    deleteWebhookMutation,
   };
 }

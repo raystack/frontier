@@ -15,6 +15,7 @@ export default function WebhooksList() {
       error,
       isError,
     },
+    deleteWebhookMutation,
   } = useWebhookQueries();
 
   const webhooks = webhooksResponse?.webhooks || [];
@@ -37,7 +38,7 @@ export default function WebhooksList() {
     );
   }
 
-  const columns = getColumns({ openEditPage });
+  const columns = getColumns({ openEditPage, deleteWebhookMutation });
   return (
     <DataTable
       data={webhooks}

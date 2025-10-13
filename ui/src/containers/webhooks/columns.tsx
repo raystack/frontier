@@ -4,6 +4,8 @@ import {
   Flex,
   Text,
   type DataTableColumnDef,
+  Dialog,
+  Button,
 } from "@raystack/apsara";
 import styles from "./webhooks.module.css";
 import { type Webhook } from "@raystack/proton/frontier";
@@ -13,14 +15,77 @@ import {
   TimeStamp,
 } from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
+import { useState } from "react";
+import { toast } from "sonner";
+import type { useMutation } from "@connectrpc/connect-query";
 
 interface getColumnsOptions {
   openEditPage: (id: string) => void;
+  deleteWebhookMutation: ReturnType<typeof useMutation>;
+}
+
+interface DeleteConfirmDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  isLoading: boolean;
+  webhookDescription?: string;
+}
+
+function DeleteConfirmDialog({
+  isOpen,
+  onOpenChange,
+  onConfirm,
+  isLoading,
+  webhookDescription,
+}: DeleteConfirmDialogProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Delete Webhook</Dialog.Title>
+          <Dialog.CloseButton data-test-id="admin-ui-close-delete-webhook-dialog" />
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <Text>
+            Are you sure you want to delete this webhook
+            {webhookDescription ? ` "${webhookDescription}"` : ""}? This action
+            cannot be undone.
+          </Text>
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Flex justify="end" gap={5}>
+            <Button
+              variant="outline"
+              color="neutral"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+              data-test-id="admin-ui-cancel-delete-webhook"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="solid"
+              color="danger"
+              onClick={onConfirm}
+              loading={isLoading}
+              loaderText="Deleting..."
+              data-test-id="admin-ui-confirm-delete-webhook"
+            >
+              Delete
+            </Button>
+          </Flex>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  );
 }
 
 export const getColumns: (
   opt: getColumnsOptions,
-) => DataTableColumnDef<Webhook, unknown>[] = ({ openEditPage }) => {
+) => DataTableColumnDef<Webhook, unknown>[] = ({ openEditPage, deleteWebhookMutation }) => {
   return [
     {
       header: "Description",
@@ -56,39 +121,71 @@ export const getColumns: (
       header: "Action",
       accessorKey: "id",
       classNames: { cell: styles.actionColumn, header: styles.actionColumn },
-      cell: ({ getValue }) => (
-        // @ts-ignore
-        <DropdownMenu style={{ padding: "0 !important" }}>
-          <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
-            <DotsVerticalIcon />
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content>
-            <DropdownMenu.Group style={{ padding: 0 }}>
-              <DropdownMenu.Item style={{ padding: 0 }}>
-                <Flex
-                  style={{ padding: "12px" }}
-                  gap={"small"}
-                  data-test-id="admin-ui-webhook-update-btn"
-                  onClick={() => openEditPage(getValue() as string)}
-                >
-                  <UpdateIcon />
-                  Update
-                </Flex>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item style={{ padding: 0 }} disabled>
-                <Flex
-                  style={{ padding: "12px" }}
-                  gap={"small"}
-                  data-test-id="admin-ui-webhook-delete-btn"
-                >
-                  <TrashIcon />
-                  Delete
-                </Flex>
-              </DropdownMenu.Item>
-            </DropdownMenu.Group>
-          </DropdownMenu.Content>
-        </DropdownMenu>
-      ),
+      cell: ({ getValue, row }) => {
+        const ActionCell = () => {
+          const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+          const webhookId = getValue() as string;
+          const webhook = row.original;
+
+          const handleDelete = async () => {
+            try {
+              await deleteWebhookMutation.mutateAsync({ id: webhookId });
+              toast.success("Webhook deleted");
+              setIsDeleteDialogOpen(false);
+            } catch (err) {
+              console.error("Failed to delete webhook:", err);
+              toast.error("Failed to delete webhook");
+            }
+          };
+
+          return (
+            <>
+              {/* @ts-ignore */}
+              <DropdownMenu style={{ padding: "0 !important" }}>
+                <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
+                  <DotsVerticalIcon />
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content>
+                  <DropdownMenu.Group style={{ padding: 0 }}>
+                    <DropdownMenu.Item style={{ padding: 0 }}>
+                      <Flex
+                        style={{ padding: "12px" }}
+                        gap={"small"}
+                        data-test-id="admin-ui-webhook-update-btn"
+                        onClick={() => openEditPage(webhookId)}
+                      >
+                        <UpdateIcon />
+                        Update
+                      </Flex>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item style={{ padding: 0 }}>
+                      <Flex
+                        style={{ padding: "12px" }}
+                        gap={"small"}
+                        data-test-id="admin-ui-webhook-delete-btn"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                      >
+                        <TrashIcon />
+                        Delete
+                      </Flex>
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Group>
+                </DropdownMenu.Content>
+              </DropdownMenu>
+
+              <DeleteConfirmDialog
+                isOpen={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                onConfirm={handleDelete}
+                isLoading={deleteWebhookMutation.isPending}
+                webhookDescription={webhook.description}
+              />
+            </>
+          );
+        };
+
+        return <ActionCell />;
+      },
     },
   ];
 };
