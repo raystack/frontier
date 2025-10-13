@@ -1,38 +1,39 @@
 import { Flex, EmptyState } from "@raystack/apsara";
 import { Outlet } from "react-router-dom";
-import { useQuery } from "@connectrpc/connect-query";
+import { createQueryOptions, useTransport } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
   FrontierServiceQueries,
   Preference,
   PreferenceTrait,
+  ListPreferencesResponse,
+  DescribePreferencesResponse,
 } from "@raystack/proton/frontier";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { useQueries } from "@tanstack/react-query";
+import type { ConnectError } from "@connectrpc/connect";
 
 export default function PreferencesLayout() {
-  const {
-    data: preferencesData,
-    isLoading: isPreferencesLoading,
-    error: preferencesError,
-    isError: isPreferencesError,
-  } = useQuery(AdminServiceQueries.listPreferences, {}, {
-    staleTime: Infinity,
+  const transport = useTransport();
+
+  const [preferencesQuery, traitsQuery] = useQueries({
+    queries: [
+      {
+        ...createQueryOptions(AdminServiceQueries.listPreferences, {}, { transport }),
+        staleTime: Infinity,
+      },
+      {
+        ...createQueryOptions(FrontierServiceQueries.describePreferences, {}, { transport }),
+        staleTime: Infinity,
+      },
+    ],
   });
 
-  const {
-    data: traitsData,
-    isLoading: isTraitsLoading,
-    error: traitsError,
-    isError: isTraitsError,
-  } = useQuery(FrontierServiceQueries.describePreferences, {}, {
-    staleTime: Infinity,
-  });
-
-  const preferences = (preferencesData?.preferences || []) as Preference[];
-  const traits = (traitsData?.traits || []) as PreferenceTrait[];
-  const isLoading = isPreferencesLoading || isTraitsLoading;
-  const isError = isPreferencesError || isTraitsError;
-  const error = preferencesError || traitsError;
+  const preferences = ((preferencesQuery.data as ListPreferencesResponse)?.preferences || []) as Preference[];
+  const traits = ((traitsQuery.data as DescribePreferencesResponse)?.traits || []) as PreferenceTrait[];
+  const isLoading = preferencesQuery.isLoading || traitsQuery.isLoading;
+  const isError = preferencesQuery.isError || traitsQuery.isError;
+  const error = (preferencesQuery.error || traitsQuery.error) as ConnectError | null;
 
   if (isError) {
     console.error("ConnectRPC Error:", error);
