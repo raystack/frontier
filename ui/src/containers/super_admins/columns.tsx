@@ -1,9 +1,9 @@
 import type { DataTableColumnDef } from "@raystack/apsara";
-import type { V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
+import type { ServiceUser, User } from "@raystack/proton/frontier";
 import { Link } from "react-router-dom";
 
 export const getColumns: () => DataTableColumnDef<
-  V1Beta1User | V1Beta1ServiceUser,
+  User | ServiceUser,
   unknown
 >[] = () => {
   return [
@@ -36,7 +36,7 @@ export const getColumns: () => DataTableColumnDef<
     },
     {
       header: "Organization",
-      accessorKey: "org_id",
+      accessorKey: "orgId",
       cell: (info) => {
         const org_id = info.getValue() as string;
         return org_id ? (
