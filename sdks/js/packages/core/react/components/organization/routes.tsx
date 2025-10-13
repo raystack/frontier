@@ -64,6 +64,7 @@ export interface OrganizationProfileProps {
   showPreferences?: boolean;
   hideToast?: boolean;
   customScreens?: CustomScreen[];
+  onLogout?: () => void;
 }
 
 export interface CustomRoutes {
@@ -79,7 +80,7 @@ type RouterContext = Pick<
   | 'showAPIKeys'
   | 'hideToast'
   | 'showPreferences'
-> & { customRoutes: CustomRoutes };
+> & { customRoutes: CustomRoutes; onLogout?: () => void };
 
 export function getCustomRoutes(customScreens: CustomScreen[] = []) {
   return (

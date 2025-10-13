@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useNavigate, useSearch, useRouteContext } from '@tanstack/react-router';
 import {
   Button,
   Text,
@@ -9,7 +9,6 @@ import {
   Skeleton
 } from '@raystack/apsara/v1';
 import { useSessions } from '../../../hooks/useSessions';
-import { useFrontier } from '../../../contexts/FrontierContext';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
@@ -19,13 +18,14 @@ export const RevokeSessionConfirm = () => {
   const navigate = useNavigate({ from: '/sessions/revoke' });
   const search = useSearch({ from: '/sessions/revoke' }) as { sessionId?: string };
   const { sessions, revokeSession, isRevokingSession } = useSessions();
-  const { setUser } = useFrontier();
+  const { onLogout } = useRouteContext({ from: '__root__' }) as { onLogout?: () => void };
   const [isFinalConfirmOpen, setIsFinalConfirmOpen] = useState(false);
 
   const { mutate: logout } = useMutation(FrontierServiceQueries.authLogout, {
     onSuccess: () => {
-      setUser(undefined);
-      window.location.href = '/login';
+      if (onLogout) {
+        onLogout();
+      }
     },
     onError: (error) => {
       console.error('Failed to logout:', error);
@@ -86,7 +86,7 @@ export const RevokeSessionConfirm = () => {
             </Dialog.Header>
 
             <Dialog.Body className={styles.revokeSessionConfirmBody}>
-              <List.Root className={styles.listRoot}>
+              <List className={styles.listRoot}>
                 <List.Item className={styles.listItem}>
                   <List.Label minWidth="120px">Device</List.Label>
                   <List.Value>{sessionData.browser} on {sessionData.operatingSystem}</List.Value>
@@ -103,7 +103,7 @@ export const RevokeSessionConfirm = () => {
                   <List.Label minWidth="120px">Last Active</List.Label>
                   <List.Value>{sessionData.lastActive}</List.Value>
                 </List.Item>
-              </List.Root>
+              </List>
             </Dialog.Body>
 
             <Dialog.Footer>
