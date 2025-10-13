@@ -23,6 +23,7 @@
     "@raystack/proton": "^0.1.0-434b8aec0c95625a6633f4e890be311d3e0fefef",
     "@stitches/react": "^1.2.8",
     "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-table": "^8.9.3",
     "@tanstack/table-core": "^8.21.3",
     "axios": "^1.8.4",
