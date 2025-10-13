@@ -1,9 +1,25 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { getColumns } from "./columns";
 import styles from "./super_admins.module.css";
 import { useQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import PageHeader from "~/components/page-header";
+
+const pageHeader = {
+  title: "Super Admins",
+  breadcrumb: [],
+};
+
+const NoAdmins = () => {
+  return (
+    <EmptyState
+      icon={<ExclamationTriangleIcon />}
+      heading="No Admins Found"
+      subHeading="No platform users or service users found."
+    />
+  );
+};
 
 export function SuperAdminList() {
   const {
@@ -43,7 +59,17 @@ export function SuperAdminList() {
       mode="client"
       isLoading={isLoading}
     >
-      <DataTable.Content classNames={{ root: styles.tableRoot }} />
+      <Flex direction="column" className={styles.tableWrapper}>
+        <PageHeader
+          title={pageHeader.title}
+          breadcrumb={pageHeader.breadcrumb}
+          className={styles.header}
+        />
+        <DataTable.Content
+          classNames={{ root: styles.tableRoot }}
+          emptyState={<NoAdmins />}
+        />
+      </Flex>
     </DataTable>
   );
 }
