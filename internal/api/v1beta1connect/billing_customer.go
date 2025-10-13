@@ -166,9 +166,15 @@ func (h *ConnectHandler) ListBillingAccounts(ctx context.Context, request *conne
 		}
 		customers = append(customers, customerPB)
 	}
-	return connect.NewResponse(&frontierv1beta1.ListBillingAccountsResponse{
+
+	response := &frontierv1beta1.ListBillingAccountsResponse{
 		BillingAccounts: customers,
-	}), nil
+	}
+
+	// Handle response enrichment based on expand field
+	response = h.enrichListBillingAccountsResponse(ctx, request.Msg, response)
+
+	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) DeleteBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteBillingAccountRequest]) (*connect.Response[frontierv1beta1.DeleteBillingAccountResponse], error) {
@@ -336,11 +342,17 @@ func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return connect.NewResponse(&frontierv1beta1.GetBillingAccountResponse{
+
+	response := &frontierv1beta1.GetBillingAccountResponse{
 		BillingAccount: customerPB,
 		PaymentMethods: paymentMethodsPbs,
 		BillingDetails: billingDetailsPb,
-	}), nil
+	}
+
+	// Handle response enrichment based on expand field
+	response = h.enrichGetBillingAccountResponse(ctx, request.Msg, response)
+
+	return connect.NewResponse(response), nil
 }
 
 func transformPaymentMethodToPB(pm customer.PaymentMethod) (*frontierv1beta1.PaymentMethod, error) {
@@ -385,4 +397,48 @@ func (h *ConnectHandler) UpdateBillingAccountDetails(ctx context.Context, reques
 	})
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountDetailsResponse{}), nil
+}
+
+// enrichGetBillingAccountResponse enriches the response with expanded fields
+func (h *ConnectHandler) enrichGetBillingAccountResponse(ctx context.Context, req *frontierv1beta1.GetBillingAccountRequest, resp *frontierv1beta1.GetBillingAccountResponse) *frontierv1beta1.GetBillingAccountResponse {
+	expandModels := parseExpandModels(req)
+	if len(expandModels) == 0 {
+		// no need to enrich the response
+		return resp
+	}
+
+	if (expandModels["organization"] || expandModels["org"]) && resp.GetBillingAccount() != nil {
+		org, _ := h.GetOrganization(ctx, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
+			Id: resp.GetBillingAccount().GetOrgId(),
+		}))
+		if org != nil && org.Msg != nil {
+			resp.BillingAccount.Organization = org.Msg.GetOrganization()
+		}
+	}
+
+	return resp
+}
+
+// enrichListBillingAccountsResponse enriches the response with expanded fields
+func (h *ConnectHandler) enrichListBillingAccountsResponse(ctx context.Context, req *frontierv1beta1.ListBillingAccountsRequest, resp *frontierv1beta1.ListBillingAccountsResponse) *frontierv1beta1.ListBillingAccountsResponse {
+	expandModels := parseExpandModels(req)
+	if len(expandModels) == 0 {
+		// no need to enrich the response
+		return resp
+	}
+
+	if len(resp.GetBillingAccounts()) > 0 {
+		for baIdx, ba := range resp.GetBillingAccounts() {
+			if expandModels["organization"] || expandModels["org"] {
+				org, _ := h.GetOrganization(ctx, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
+					Id: ba.GetOrgId(),
+				}))
+				if org != nil && org.Msg != nil {
+					resp.BillingAccounts[baIdx].Organization = org.Msg.GetOrganization()
+				}
+			}
+		}
+	}
+
+	return resp
 }
