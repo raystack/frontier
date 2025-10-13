@@ -31,7 +31,7 @@ export const SessionsPage = () => {
 
   if (isLoading) {
     return (
-      <Flex direction="column" style={{ width: '100%' }}>
+      <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
           <Flex direction="row" justify="between" align="center" className={styles.header}>
             {renderSessionsHeader()}
