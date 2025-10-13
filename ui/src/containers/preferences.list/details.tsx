@@ -15,9 +15,9 @@ import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import * as R from "ramda";
 import { toast } from "sonner";
-import { useMutation } from "@connectrpc/connect-query";
+import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
-import { queryClient } from "~/contexts/ConnectProvider";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ContextType {
   preferences: V1Beta1Preference[];
@@ -66,8 +66,22 @@ export default function PreferenceDetails() {
   const preference = preferences?.find((p) => p.name === name);
   const trait = traits?.find((t) => t.name === name);
 
+  const queryClient = useQueryClient();
+  const transport = useTransport();
+
   const { mutateAsync: createPreferences, isPending: isActionLoading } =
-    useMutation(AdminServiceQueries.createPreferences);
+    useMutation(AdminServiceQueries.createPreferences, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: AdminServiceQueries.listPreferences,
+            transport,
+            input: {},
+            cardinality: "finite",
+          }),
+        });
+      },
+    });
 
   const pageHeader = {
     title: "Preference",
@@ -139,10 +153,6 @@ export default function PreferenceDetails() {
         ],
       });
       toast.success("preference updated");
-      // Invalidate preferences queries to refetch updated data
-      queryClient.invalidateQueries({
-        queryKey: [AdminServiceQueries.listPreferences],
-      });
     } catch (err) {
       console.error("ConnectRPC Error:", err);
       toast.error("something went wrong");

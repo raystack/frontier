@@ -14,8 +14,11 @@ export default function PreferencesLayout() {
     error: preferencesError,
     isError: isPreferencesError,
   } = useQuery(AdminServiceQueries.listPreferences, {}, {
-    staleTime: 60 * 1000, // Cache for 1 minute
+    staleTime: Infinity,
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const {
@@ -24,8 +27,11 @@ export default function PreferencesLayout() {
     error: traitsError,
     isError: isTraitsError,
   } = useQuery(FrontierServiceQueries.describePreferences, {}, {
-    staleTime: 60 * 1000, // Cache for 1 minute
+    staleTime: Infinity,
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const preferences = preferencesData?.preferences || [];
