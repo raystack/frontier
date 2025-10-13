@@ -15,7 +15,9 @@ import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import * as R from "ramda";
 import { toast } from "sonner";
-import { api } from "~/api";
+import { useMutation } from "@connectrpc/connect-query";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { queryClient } from "~/contexts/ConnectProvider";
 
 interface ContextType {
   preferences: V1Beta1Preference[];
@@ -60,10 +62,12 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
 export default function PreferenceDetails() {
   const { name } = useParams();
   const [value, setValue] = useState("");
-  const [isActionLoading, setIsActionLoading] = useState(false);
   const { preferences, traits, isPreferencesLoading } = usePreferences();
   const preference = preferences?.find((p) => p.name === name);
   const trait = traits?.find((t) => t.name === name);
+
+  const { mutateAsync: createPreferences, isPending: isActionLoading } =
+    useMutation(AdminServiceQueries.createPreferences);
 
   const pageHeader = {
     title: "Preference",
@@ -125,9 +129,8 @@ export default function PreferenceDetails() {
   ];
 
   const onSave = useCallback(async () => {
-    setIsActionLoading(true);
     try {
-      const resp = await api?.adminServiceCreatePreferences({
+      await createPreferences({
         preferences: [
           {
             name,
@@ -135,16 +138,16 @@ export default function PreferenceDetails() {
           },
         ],
       });
-      if (resp?.status === 200) {
-        toast.success("preference updated");
-      }
+      toast.success("preference updated");
+      // Invalidate preferences queries to refetch updated data
+      queryClient.invalidateQueries({
+        queryKey: [AdminServiceQueries.listPreferences],
+      });
     } catch (err) {
-      console.error(err);
+      console.error("ConnectRPC Error:", err);
       toast.error("something went wrong");
-    } finally {
-      setIsActionLoading(false);
     }
-  }, [name, value]);
+  }, [name, value, createPreferences]);
 
   return (
     <Flex direction="column" style={{ width: "100%" }} gap={9}>
