@@ -11612,6 +11612,18 @@ definitions:
       immediate:
         type: boolean
         title: should the change be immediate or at the end of the current billing period
+  PreferenceTraitInputType:
+    type: string
+    enum:
+      - INPUT_TYPE_UNSPECIFIED
+      - INPUT_TYPE_TEXT
+      - INPUT_TYPE_TEXTAREA
+      - INPUT_TYPE_SELECT
+      - INPUT_TYPE_COMBOBOX
+      - INPUT_TYPE_CHECKBOX
+      - INPUT_TYPE_MULTISELECT
+      - INPUT_TYPE_NUMBER
+    default: INPUT_TYPE_UNSPECIFIED
   ProductBehaviorConfig:
     type: object
     properties:
@@ -14569,20 +14581,8 @@ definitions:
         type: string
       input_hints:
         type: string
-      text:
-        type: string
-      textarea:
-        type: string
-      select:
-        type: string
-      combobox:
-        type: string
-      checkbox:
-        type: string
-      multiselect:
-        type: string
-      number:
-        type: string
+      input_type:
+        $ref: '#/definitions/PreferenceTraitInputType'
     title: |-
       PreferenceTrait is a trait that can be used to add preferences to a resource
       it explains what preferences are available for a resource

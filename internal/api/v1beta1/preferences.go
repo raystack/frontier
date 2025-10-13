@@ -264,19 +264,19 @@ func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.Prefer
 	}
 	switch pref.Input {
 	case preference.TraitInputText:
-		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Text{}
+		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_TEXT
 	case preference.TraitInputTextarea:
-		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Textarea{}
+		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_TEXTAREA
 	case preference.TraitInputSelect:
-		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Select{}
+		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_SELECT
 	case preference.TraitInputCombobox:
-		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Combobox{}
+		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_COMBOBOX
 	case preference.TraitInputCheckbox:
-		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Checkbox{}
+		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_CHECKBOX
 	case preference.TraitInputMultiselect:
-		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Multiselect{}
+		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_MULTISELECT
 	case preference.TraitInputNumber:
-		pbTrait.Input = &frontierv1beta1.PreferenceTrait_Number{}
+		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_NUMBER
 	}
 	return pbTrait
 }
