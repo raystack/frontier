@@ -11,7 +11,13 @@ export function SuperAdminList() {
     isLoading,
     error,
     isError,
-  } = useQuery(AdminServiceQueries.listPlatformUsers, {});
+  } = useQuery(AdminServiceQueries.listPlatformUsers, {}, {
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
 
   const columns = getColumns();
   const data = [
