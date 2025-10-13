@@ -132,7 +132,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
   async function onSubmit(data: OrgUpdateSchema) {
     try {
       const payload = {
-        avatar: data.avatar || "",
+        avatar: data.avatar,
         name: data.name,
         title: data.title,
         metadata: {
