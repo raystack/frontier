@@ -14,8 +14,7 @@ import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
-import { AdminServiceQueries, Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { AdminServiceQueries, ListPreferencesResponse, Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -73,14 +72,42 @@ export default function PreferenceDetails() {
 
   const { mutateAsync: createPreferences, isPending: isActionLoading } =
     useMutation(AdminServiceQueries.createPreferences, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: createConnectQueryKey({
-            schema: AdminServiceQueries.listPreferences,
-            transport,
-            input: {},
-            cardinality: "finite",
-          }),
+      onSuccess: (data) => {
+        // Update the cache with the new preference from mutation response
+        const queryKey = createConnectQueryKey({
+          schema: AdminServiceQueries.listPreferences,
+          transport,
+          input: {},
+          cardinality: "finite",
+        });
+
+        queryClient.setQueryData(queryKey, (oldData: ListPreferencesResponse | undefined) => {
+          if (!oldData || !data.preference || !Array.isArray(data.preference)) return oldData;
+
+          const updatedPreferences = data.preference;
+          const existingPreferences = oldData.preferences || [];
+
+          // Create a map for quick lookup of updated preferences
+          const updatedMap = new Map(
+            updatedPreferences.map((pref: Preference) => [pref.name, pref])
+          );
+
+          // Update existing preferences or keep them as-is
+          const mergedPreferences = existingPreferences.map((pref: Preference) =>
+            updatedMap.has(pref.name) ? updatedMap.get(pref.name)! : pref
+          );
+
+          // Add any new preferences that weren't in existing list
+          updatedPreferences.forEach((pref: Preference) => {
+            if (!existingPreferences.some((p: Preference) => p.name === pref.name)) {
+              mergedPreferences.push(pref);
+            }
+          });
+
+          return {
+            ...oldData,
+            preferences: mergedPreferences,
+          };
         });
       },
     });
@@ -140,7 +167,7 @@ export default function PreferenceDetails() {
       key: "Last updated",
       value:
         preference?.updatedAt &&
-        dayjs(timestampDate(preference.updatedAt)).format("MMM DD, YYYY hh:mm:A"),
+        dayjs(timestampDate(preference.updatedAt)).format("MMM DD, YYYY hh:mm:ss A"),
     },
   ];
 
