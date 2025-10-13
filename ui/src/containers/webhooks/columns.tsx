@@ -20,11 +20,12 @@ import { DeleteWebhookDialog } from "./delete";
 interface getColumnsOptions {
   openEditPage: (id: string) => void;
   deleteWebhookMutation: ReturnType<typeof useMutation>;
+  enableDelete: boolean;
 }
 
 export const getColumns: (
   opt: getColumnsOptions,
-) => DataTableColumnDef<Webhook, unknown>[] = ({ openEditPage, deleteWebhookMutation }) => {
+) => DataTableColumnDef<Webhook, unknown>[] = ({ openEditPage, deleteWebhookMutation, enableDelete }) => {
   return [
     {
       header: "Description",
@@ -86,17 +87,19 @@ export const getColumns: (
                         Update
                       </Flex>
                     </DropdownMenu.Item>
-                    <DropdownMenu.Item style={{ padding: 0 }}>
-                      <Flex
-                        className={styles.deleteMenuItem}
-                        gap={"small"}
-                        data-test-id="admin-ui-webhook-delete-btn"
-                        onClick={() => setIsDeleteDialogOpen(true)}
-                      >
-                        <TrashIcon />
-                        Delete
-                      </Flex>
-                    </DropdownMenu.Item>
+                    {enableDelete && (
+                      <DropdownMenu.Item style={{ padding: 0 }}>
+                        <Flex
+                          className={styles.deleteMenuItem}
+                          gap={"small"}
+                          data-test-id="admin-ui-webhook-delete-btn"
+                          onClick={() => setIsDeleteDialogOpen(true)}
+                        >
+                          <TrashIcon />
+                          Delete
+                        </Flex>
+                      </DropdownMenu.Item>
+                    )}
                   </DropdownMenu.Group>
                 </DropdownMenu.Content>
               </DropdownMenu>

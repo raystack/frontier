@@ -5,9 +5,11 @@ import { Outlet, useNavigate } from "react-router-dom";
 import styles from "./webhooks.module.css";
 import { useWebhookQueries } from "./hooks/useWebhookQueries";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { useAppContext } from "~/contexts/App";
 
 export default function WebhooksList() {
   const navigate = useNavigate();
+  const { config } = useAppContext();
   const {
     listWebhooks: {
       data: webhooksResponse,
@@ -38,7 +40,8 @@ export default function WebhooksList() {
     );
   }
 
-  const columns = getColumns({ openEditPage, deleteWebhookMutation });
+  const enableDelete = config.webhooks?.enable_delete ?? false;
+  const columns = getColumns({ openEditPage, deleteWebhookMutation, enableDelete });
   return (
     <DataTable
       data={webhooks}
