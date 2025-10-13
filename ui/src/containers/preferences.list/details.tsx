@@ -15,6 +15,8 @@ import dayjs from "dayjs";
 import { toast } from "sonner";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { AdminServiceQueries, Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ContextType {
@@ -138,7 +140,7 @@ export default function PreferenceDetails() {
       key: "Last updated",
       value:
         preference?.updatedAt &&
-        dayjs(Number(preference.updatedAt.seconds) * 1000).format("MMM DD, YYYY hh:mm:A"),
+        dayjs(timestampDate(preference.updatedAt)).format("MMM DD, YYYY hh:mm:A"),
     },
   ];
 
