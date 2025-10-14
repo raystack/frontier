@@ -23,3 +23,5 @@ resource_config
 /rules
 /dist
 __debug_*
+*.local.*
+

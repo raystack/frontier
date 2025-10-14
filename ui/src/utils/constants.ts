@@ -13,12 +13,17 @@ export const SUBSCRIPTION_STATUSES = [
   { label: "Ended", value: "ended" },
 ];
 
+export interface WebhooksConfig {
+  enable_delete: boolean;
+}
+
 export interface Config {
   title: string;
   logo?: string;
   app_url?: string;
   token_product_id?: string;
   organization_types?: string[];
+  webhooks?: WebhooksConfig;
 }
 
 export const defaultConfig: Config = {
@@ -26,6 +31,9 @@ export const defaultConfig: Config = {
   app_url: "example.com",
   token_product_id: DEFAULT_TOKEN_PRODUCT_NAME,
   organization_types: [],
+  webhooks: {
+    enable_delete: false,
+  },
 };
 
 export const NULL_DATE = "0001-01-01T00:00:00Z";
