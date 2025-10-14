@@ -61,3 +61,11 @@
   overflow: scroll;
   position: relative;
 }
+
+.text-overflow {
+  width: fit-content;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

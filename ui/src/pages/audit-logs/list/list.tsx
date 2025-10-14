@@ -107,8 +107,11 @@ export const AuditLogsList = () => {
   const loading = isLoading || isFetchingNextPage;
 
   const onRowClick = useCallback((row: AuditRecord) => {
-    setSidePanelOpen(_value => !_value);
-    setSelectedAuditLog(row);
+    setSelectedAuditLog(_selectedLog => {
+      if (_selectedLog?.id === row.id) setSidePanelOpen(_value => !_value);
+      else setSidePanelOpen(true);
+      return row;
+    });
   }, []);
 
   if (isError) {
