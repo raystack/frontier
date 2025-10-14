@@ -1,11 +1,12 @@
 import { Pencil2Icon } from "@radix-ui/react-icons";
 import { Flex, Image, type DataTableColumnDef } from "@raystack/apsara";
-import type { V1Beta1Product } from "@raystack/frontier";
+import type { Product } from "@raystack/proton/frontier";
 import { Link, NavLink } from "react-router-dom";
 import { Price } from "~/components/Price";
+import { timestampToDate, TimeStamp } from "~/utils/connect-timestamp";
 
 export const getColumns: () => DataTableColumnDef<
-  V1Beta1Product,
+  Product,
   unknown
 >[] = () => {
   return [
@@ -38,7 +39,7 @@ export const getColumns: () => DataTableColumnDef<
 
         const priceComp =
           prices?.length === 1 ? (
-            <Price value={prices[0].amount} currency={prices[0].currency} />
+            <Price value={prices[0].amount?.toString()} currency={prices[0].currency} />
           ) : (
             <NavLink to={`/products/${row?.original?.id}/prices`}>
               {prices?.length} prices
@@ -62,24 +63,32 @@ export const getColumns: () => DataTableColumnDef<
 
     {
       header: "Created on",
-      accessorKey: "created_at",
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
+      accessorKey: "createdAt",
+      cell: ({ getValue }) => {
+        const timestamp = getValue() as TimeStamp | undefined;
+        const date = timestampToDate(timestamp);
+        if (!date) return "-";
+        return date.toLocaleString("en", {
           month: "long",
           day: "numeric",
           year: "numeric",
-        }),
+        });
+      },
       filterVariant: "date",
     },
     {
       header: "Updated on",
-      accessorKey: "updated_at",
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
+      accessorKey: "updatedAt",
+      cell: ({ getValue }) => {
+        const timestamp = getValue() as TimeStamp | undefined;
+        const date = timestampToDate(timestamp);
+        if (!date) return "-";
+        return date.toLocaleString("en", {
           month: "long",
           day: "numeric",
           year: "numeric",
-        }),
+        });
+      },
       filterVariant: "date",
     },
     {
