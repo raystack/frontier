@@ -16,18 +16,19 @@ export const getColumns: () => DataTableColumnDef<
       cell: (info) => {
         return (
           <Link to={`/products/${info.getValue() as string}`}>
-            <Image
-              src="/product.svg"
-              alt="product-icon"
-              width={20}
-              style={{
-                backgroundColor: "var(--rs-color-background-neutral-secondary)",
-                padding: "var(--rs-space-3)",
-                borderRadius: "var(--rs-radius-3)",
-                border: "1px solid var(--rs-color-border-base-primary)",
-              }}
-            />
-          </Link>
+              <Image
+                src="/product.svg"
+                alt="product-icon"
+                width={24}
+                height={24}
+                style={{
+                  backgroundColor: "var(--rs-color-background-neutral-secondary)",
+                  borderRadius: "var(--rs-radius-3)",
+                  border: "1px solid var(--rs-color-border-base-primary)",
+                  margin: "var(--rs-space-3)",
+                }}
+              />
+            </Link>
         );
       },
     },
