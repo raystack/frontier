@@ -25,13 +25,18 @@ type GRPCConfig struct {
 
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
 
+type WebhooksConfig struct {
+	EnableDelete bool `yaml:"enable_delete" mapstructure:"enable_delete" default:"false"`
+}
+
 type UIConfig struct {
-	Port              int      `yaml:"port" mapstructure:"port"`
-	Title             string   `yaml:"title" mapstructure:"title"`
-	Logo              string   `yaml:"logo" mapstructure:"logo"`
-	AppURL            string   `yaml:"app_url" mapstructure:"app_url"`
-	TokenProductId    string   `yaml:"token_product_id" mapstructure:"token_product_id"`
-	OrganizationTypes []string `yaml:"organization_types" mapstructure:"organization_types"`
+	Port              int            `yaml:"port" mapstructure:"port"`
+	Title             string         `yaml:"title" mapstructure:"title"`
+	Logo              string         `yaml:"logo" mapstructure:"logo"`
+	AppURL            string         `yaml:"app_url" mapstructure:"app_url"`
+	TokenProductId    string         `yaml:"token_product_id" mapstructure:"token_product_id"`
+	OrganizationTypes []string       `yaml:"organization_types" mapstructure:"organization_types"`
+	Webhooks          WebhooksConfig `yaml:"webhooks" mapstructure:"webhooks"`
 }
 
 type ConnectConfig struct {

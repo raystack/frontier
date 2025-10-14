@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { type DataTableColumnDef } from "@raystack/apsara";
-import type { V1Beta1Plan } from "@raystack/frontier";
+import type { Plan } from "@raystack/proton/frontier";
+import { timestampToDate, TimeStamp } from "~/utils/connect-timestamp";
 
 export const getColumns: () => DataTableColumnDef<
-  V1Beta1Plan,
+  Plan,
   unknown
 >[] = () => {
   return [
@@ -29,13 +30,17 @@ export const getColumns: () => DataTableColumnDef<
     },
     {
       header: "Created At",
-      accessorKey: "created_at",
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
+      accessorKey: "createdAt",
+      cell: ({ getValue }) => {
+        const timestamp = getValue() as TimeStamp | undefined;
+        const date = timestampToDate(timestamp);
+        if (!date) return "-";
+        return date.toLocaleString("en", {
           month: "long",
           day: "numeric",
           year: "numeric",
-        }),
+        });
+      },
     },
   ];
 };

@@ -46172,10 +46172,28 @@ func (m *RevokeSessionRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SessionId
+	if err := m._validateUuid(m.GetSessionId()); err != nil {
+		err = RevokeSessionRequestValidationError{
+			field:  "SessionId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return RevokeSessionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *RevokeSessionRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
