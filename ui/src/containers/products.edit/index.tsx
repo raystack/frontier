@@ -1,26 +1,43 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import CreateOrUpdateProduct from "../products.create";
-import { V1Beta1Product } from "@raystack/frontier";
-import { api } from "~/api";
+import type { Product } from "@raystack/proton/frontier";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import { EmptyState } from "@raystack/apsara";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function EditProduct() {
   let { productId } = useParams();
-  const [product, setProduct] = useState<V1Beta1Product>();
 
-  useEffect(() => {
-    async function fetchProduct() {
-      try {
-        const res = await api?.frontierServiceGetProduct(productId as string);
-        const product = res?.data?.product;
-        setProduct(product);
-      } catch (error) {
-        console.error(error);
-      }
+  const {
+    data: productResponse,
+    isLoading,
+    error,
+    isError,
+  } = useQuery(
+    FrontierServiceQueries.getProduct,
+    { id: productId ?? "" },
+    {
+      staleTime: Infinity,
+      enabled: !!productId,
     }
+  );
 
-    if (productId) fetchProduct();
-  }, [productId]);
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Product"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading product. Please try again."
+        }
+      />
+    );
+  }
+
+  const product = productResponse?.product as Product | undefined;
 
   return <CreateOrUpdateProduct product={product} />;
 }

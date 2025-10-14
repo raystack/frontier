@@ -3,7 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { Button, Flex, Separator, Sheet } from "@raystack/apsara";
 
-import { V1Beta1Feature, V1Beta1Product } from "@raystack/frontier";
+import type { Feature, Product } from "@raystack/proton/frontier";
+import { useMutation } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import * as R from "ramda";
 import { useCallback, useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -18,12 +20,11 @@ import { FeatureFields } from "./features-fields";
 import { MetadataFields } from "./metadata-fields";
 import { PriceFields } from "./price-fields";
 import { updateResponse } from "./transform";
-import { api } from "~/api";
 
 export default function CreateOrUpdateProduct({
   product,
 }: {
-  product?: V1Beta1Product;
+  product?: Product;
 }) {
   let { productId } = useParams();
   const navigate = useNavigate();
@@ -32,6 +33,14 @@ export default function CreateOrUpdateProduct({
     resolver: zodResolver(productSchema),
     defaultValues: { ...defaultFormValues },
   });
+
+  const { mutateAsync: createProduct } = useMutation(
+    FrontierServiceQueries.createProduct
+  );
+
+  const { mutateAsync: updateProduct } = useMutation(
+    FrontierServiceQueries.updateProduct
+  );
 
   const onOpenChange = useCallback(() => {
     navigate("/products");
@@ -47,7 +56,7 @@ export default function CreateOrUpdateProduct({
     data.features = R.pathOr(
       [],
       ["features"],
-    )(data).map((f: V1Beta1Feature) => ({ label: f.name, value: f.name }));
+    )(data).map((f: Feature) => ({ label: f.name, value: f.name }));
     methods.reset(data);
   }, [product]);
 
@@ -55,15 +64,17 @@ export default function CreateOrUpdateProduct({
     try {
       const transformedData = updateResponse(data);
       if (productId) {
-        await api?.frontierServiceUpdateProduct(productId, {
+        await updateProduct({
+          id: productId,
           body: transformedData,
         });
       } else {
-        await api?.frontierServiceCreateProduct({ body: transformedData });
+        await createProduct({ body: transformedData });
       }
       toast.success(`${productId ? "product updated" : "product added"}`);
       navigate("/products");
     } catch (error: any) {
+      console.error("ConnectRPC Error:", error);
       toast.error("Something went wrong", {
         description: error.message,
       });
