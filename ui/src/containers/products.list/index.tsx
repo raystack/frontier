@@ -1,5 +1,5 @@
 import { EmptyState, Flex, DataTable } from "@raystack/apsara";
-import { Outlet, useOutletContext, useParams } from "react-router-dom";
+import { Outlet, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import type { Product } from "@raystack/proton/frontier";
@@ -24,8 +24,13 @@ export default function ProductList() {
 
   let { productId } = useParams();
   const productMapById = reduceByKey(products ?? [], "id");
+  const navigate = useNavigate();
 
   const columns = getColumns();
+
+  const handleRowClick = (product: Product) => {
+    navigate(`/products/${product.id}`);
+  };
 
   if (isError) {
     console.error("ConnectRPC Error:", error);
@@ -48,6 +53,7 @@ export default function ProductList() {
       isLoading={isProductsLoading}
       mode="client"
       defaultSort={{ name: "title", order: "asc" }}
+      onRowClick={handleRowClick}
     >
       <Flex direction="column" className={styles.tableWrapper}>
         <ProductsHeader />

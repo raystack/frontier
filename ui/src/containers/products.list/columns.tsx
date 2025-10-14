@@ -15,7 +15,6 @@ export const getColumns: () => DataTableColumnDef<
       header: "",
       cell: (info) => {
         return (
-          <Link to={`/products/${info.getValue() as string}`}>
               <Image
                 src="/product.svg"
                 alt="product-icon"
@@ -28,7 +27,6 @@ export const getColumns: () => DataTableColumnDef<
                   margin: "var(--rs-space-3)",
                 }}
               />
-            </Link>
         );
       },
     },
@@ -42,7 +40,10 @@ export const getColumns: () => DataTableColumnDef<
           prices?.length === 1 ? (
             <Price value={prices[0].amount?.toString()} currency={prices[0].currency} />
           ) : (
-            <NavLink to={`/products/${row?.original?.id}/prices`}>
+            <NavLink
+              to={`/products/${row?.original?.id}/prices`}
+              onClick={(e) => e.stopPropagation()}
+            >
               {prices?.length} prices
             </NavLink>
           );
@@ -98,7 +99,10 @@ export const getColumns: () => DataTableColumnDef<
       cell: ({ row }) => {
         return (
           <Flex align="center" justify="center" gap="small">
-            <NavLink to={`/products/${row?.original?.id}/edit`}>
+            <NavLink
+              to={`/products/${row?.original?.id}/edit`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <Pencil2Icon />
             </NavLink>
           </Flex>
