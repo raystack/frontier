@@ -3,7 +3,8 @@ import {
   Button,
   Dialog,
   Flex,
-  List
+  List,
+  Text
 } from '@raystack/apsara';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import { formatDeviceDisplay } from './index';
@@ -42,8 +43,12 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
         <Dialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Dialog.Title>{sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown browser and OS"}</Dialog.Title>
-          <Dialog.CloseButton data-test-id="frontier-ui-close-revoke-session-dialog" />
+          <Flex justify="between" align="center" width="full">
+            <Text size="regular">
+            {sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown browser and OS"}
+            </Text>
+            <Dialog.CloseButton data-test-id="frontier-sdk-close-revoke-session-dialog" />
+          </Flex>
         </Dialog.Header>
 
         <Dialog.Body className={styles.revokeSessionConfirmBody}>
