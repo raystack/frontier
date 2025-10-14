@@ -14,13 +14,15 @@ import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, UpdateOrganizationRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { V1Beta1Organization } from '~/src';
-// @ts-ignore
-import styles from './general.module.css';
 import { AuthTooltipMessage } from '~/react/utils';
 import { AvatarUpload } from '../../avatar-upload';
 import { getInitials } from '~/utils';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import styles from './general.module.css';
 
 const generalSchema = yup
   .object({
@@ -56,11 +58,11 @@ const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
     );
 
     return (
-      <div onClick={focusChild} className={styles.prefixInput}>
+      <div onClick={focusChild} className={styles.prefixInput} data-test-id="frontier-sdk-prefix-input">
         <Text size="small" variant="secondary">
           {prefix}
         </Text>
-        <input {...props} ref={setRef} />
+        <input {...props} ref={setRef} data-test-id="frontier-sdk-prefix-input" />
       </div>
     );
   }
@@ -75,7 +77,10 @@ export const GeneralOrganization = ({
   isLoading?: boolean;
   canUpdateWorkspace?: boolean;
 }) => {
-  const { client, setActiveOrganization } = useFrontier();
+  const { setActiveOrganization } = useFrontier();
+  const { mutateAsync: updateOrganization } = useMutation(
+    FrontierServiceQueries.updateOrganization,
+  );
   const t = useTerminology();
   const {
     reset,
@@ -93,21 +98,24 @@ export const GeneralOrganization = ({
   }, [organization, reset]);
 
   async function onSubmit(data: FormData) {
-    if (!client) return;
     if (!organization?.id) return;
-
     try {
-      const resp = await client.frontierServiceUpdateOrganization(
-        organization?.id,
-        data
-      );
-      if (resp.data?.organization) {
-        setActiveOrganization(resp.data?.organization);
+      const req = create(UpdateOrganizationRequestSchema, {
+        id: organization.id,
+        body: {
+          title: data.title,
+          name: organization.name,
+          avatar: data.avatar
+        }
+      });
+      const { organization: updated } = await updateOrganization(req);
+      if (updated) {
+        setActiveOrganization(updated as any);
       }
       toast.success(`Updated ${t.organization({ case: 'lower' })}`);
     } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error.message
+        description: error?.message || 'Failed to update'
       });
     }
   }

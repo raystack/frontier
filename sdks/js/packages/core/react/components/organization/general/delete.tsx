@@ -14,6 +14,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, DeleteOrganizationRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 import styles from './general.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
@@ -36,11 +39,13 @@ export const DeleteOrganization = () => {
   });
   const navigate = useNavigate({ from: '/delete' });
   const t = useTerminology();
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
+  const { mutateAsync: deleteOrganization } = useMutation(
+    FrontierServiceQueries.deleteOrganization,
+  );
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
   async function onSubmit(data: any) {
-    if (!client) return;
     if (!organization?.id) return;
     if (data.name !== organization.name)
       return setError('name', {
@@ -48,14 +53,17 @@ export const DeleteOrganization = () => {
       });
 
     try {
-      await client.frontierServiceDeleteOrganization(organization?.id);
+      const req = create(DeleteOrganizationRequestSchema, {
+        id: organization.id
+      });
+      await deleteOrganization(req);
       toast.success(`${t.organization({ case: 'capital' })} deleted`);
 
       // @ts-ignore
       window.location = window.location.origin;
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error.message
+        description: error?.message || 'Failed to delete organization'
       });
     }
   }

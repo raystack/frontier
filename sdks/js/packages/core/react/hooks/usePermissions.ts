@@ -1,47 +1,28 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { V1Beta1BatchCheckPermissionBody } from '~/src';
 import { formatPermissions } from '~/utils';
-import { useFrontier } from '../contexts/FrontierContext';
 
 export const usePermissions = (
   permissions: V1Beta1BatchCheckPermissionBody[] = [],
   shouldCalled: boolean | undefined = true
 ) => {
-  const [permisionValues, setPermisionValues] = useState([]);
-  const [fetchingPermissions, setFetchingOrgPermissions] = useState(false);
-
-  const { client } = useFrontier();
-
-  const fetchOrganizationPermissions = useCallback(async () => {
-    try {
-      setFetchingOrgPermissions(true);
-      const {
-        // @ts-ignore
-        data: { pairs }
-      } = await client?.frontierServiceBatchCheckPermission({
-        bodies: permissions
-      });
-      setPermisionValues(pairs);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setFetchingOrgPermissions(false);
-    }
-  }, [client, permissions]);
-
-  useEffect(() => {
-    if (shouldCalled && permissions.length > 0) {
-      fetchOrganizationPermissions();
-    }
-  }, [fetchOrganizationPermissions, permissions.length, shouldCalled]);
+  const { data, isLoading } = useQuery(
+    FrontierServiceQueries.batchCheckPermission,
+    { bodies: permissions },
+    { enabled: shouldCalled && permissions.length > 0 }
+  );
 
   const permissionsMap = useMemo(() => {
-    if (permisionValues.length) {
-      return formatPermissions(permisionValues);
-    } else {
-      return {};
-    }
-  }, [permisionValues]);
+    const pairs = data?.pairs ?? [];
+    if (!pairs.length) return {};
+    const normalizedPairs = pairs.map((p: any) => ({
+      body: p?.body ?? {},
+      status: Boolean(p?.status)
+    }));
+    return formatPermissions(normalizedPairs);
+  }, [data?.pairs]);
 
-  return { isFetching: fetchingPermissions, permissions: permissionsMap };
+  return { isFetching: isLoading, permissions: permissionsMap };
 };
