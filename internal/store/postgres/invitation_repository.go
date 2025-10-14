@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
+
 	"github.com/raystack/frontier/core/invitation"
 
 	"github.com/doug-martin/goqu/v9"
@@ -91,7 +93,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"organization.invited",
+				auditrecord.OrganizationInvitedEvent.String(),
 				AuditResource{
 					ID:   result.OrgID,
 					Type: "organization",

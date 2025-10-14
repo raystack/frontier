@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/kyc"
@@ -142,9 +144,9 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 			}
 
 			// Determine event based on status
-			event := "kyc.unverified"
+			event := auditrecord.KYCUnverifiedEvent.String()
 			if result.Status {
-				event = "kyc.verified"
+				event = auditrecord.KYCVerifiedEvent.String()
 			}
 
 			auditRecord := BuildAuditRecord(

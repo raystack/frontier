@@ -12,6 +12,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/pkg/auditrecord"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
@@ -21,11 +22,6 @@ import (
 type SubscriptionConfig struct {
 	SkipTrial        bool `db:"skip_trial" json:"skip_trial"`
 	CancelAfterTrial bool `db:"cancel_after_trial" json:"cancel_after_trial"`
-}
-
-type checkoutWithContext struct {
-	Checkout
-	OrgName string `db:"org_name"`
 }
 
 func (s *SubscriptionConfig) Scan(src interface{}) error {
@@ -160,81 +156,50 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 	if toCreate.PlanID != "" {
 		record["plan_id"] = toCreate.PlanID
 	}
-
-	var result checkoutWithContext
-
-	// Fetch org name via billing_customers -> organizations
-	orgNameSubquery := dialect.From(TABLE_BILLING_CUSTOMERS).
-		Join(
-			goqu.T(TABLE_ORGANIZATIONS),
-			goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+".org_id").Eq(goqu.I(TABLE_ORGANIZATIONS+".id"))),
-		).
-		Select(goqu.I(TABLE_ORGANIZATIONS + ".name")).
-		Where(goqu.Ex{TABLE_BILLING_CUSTOMERS + ".id": goqu.I(TABLE_BILLING_CHECKOUTS + ".customer_id")})
-
-	query, params, err := dialect.Insert(TABLE_BILLING_CHECKOUTS).
-		Rows(record).
-		Returning(
-			goqu.I(TABLE_BILLING_CHECKOUTS+".*"),
-			orgNameSubquery.As("org_name"),
-		).ToSQL()
+	query, params, err := dialect.Insert(TABLE_BILLING_CHECKOUTS).Rows(record).Returning(&Checkout{}).ToSQL()
 	if err != nil {
 		return checkout.Checkout{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	var checkoutModel Checkout
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "Create", func(ctx context.Context) error {
-			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&checkoutModel); err != nil {
 				return err
 			}
 
-			// Get org_id from billing_customers
-			var orgID string
-			orgIDQuery, orgIDParams, err := dialect.From(TABLE_BILLING_CUSTOMERS).
-				Select("org_id").
-				Where(goqu.Ex{"id": result.CustomerID}).
-				ToSQL()
+			metadataMap, err := unmarshalNullJSONText(checkoutModel.Metadata)
 			if err != nil {
-				return fmt.Errorf("failed to build org_id query: %w", err)
+				return err
 			}
-			if err := tx.QueryRowContext(ctx, orgIDQuery, orgIDParams...).Scan(&orgID); err != nil {
-				return fmt.Errorf("failed to get org_id: %w", err)
-			}
-
-			planID := ""
-			if result.PlanID != nil {
-				planID = *result.PlanID
-			}
-			featureID := ""
-			if result.FeatureID != nil {
-				featureID = *result.FeatureID
-			}
+			orgID := getStringFromMap(metadataMap, "org_id")
+			customerName := getStringFromMap(metadataMap, "customer_name")
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"billing_checkout.created",
+				auditrecord.BillingCheckoutCreatedEvent.String(),
 				AuditResource{
-					ID:   orgID,
-					Type: "organization",
-					Name: result.OrgName,
+					ID:   checkoutModel.CustomerID,
+					Type: "billing_customer",
+					Name: customerName,
 				},
 				&AuditTarget{
-					ID:   result.ID,
+					ID:   checkoutModel.ID,
 					Type: "billing_checkout",
 					Metadata: map[string]interface{}{
-						"plan_id":            planID,
-						"feature_id":         featureID,
-						"state":              result.State,
-						"provider_id":        result.ProviderID,
-						"customer_id":        result.CustomerID,
-						"checkout_url":       result.CheckoutUrl,
-						"skip_trial":         result.SubscriptionConfig.SkipTrial,
-						"cancel_after_trial": result.SubscriptionConfig.CancelAfterTrial,
+						"plan_id":            ptrToString(checkoutModel.PlanID),
+						"feature_id":         ptrToString(checkoutModel.FeatureID),
+						"state":              checkoutModel.State,
+						"provider_id":        checkoutModel.ProviderID,
+						"customer_id":        checkoutModel.CustomerID,
+						"checkout_url":       checkoutModel.CheckoutUrl,
+						"skip_trial":         checkoutModel.SubscriptionConfig.SkipTrial,
+						"cancel_after_trial": checkoutModel.SubscriptionConfig.CancelAfterTrial,
 					},
 				},
 				orgID,
 				nil,
-				result.CreatedAt,
+				checkoutModel.CreatedAt,
 			)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
@@ -242,7 +207,7 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 		return checkout.Checkout{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return result.Checkout.transform()
+	return checkoutModel.transform()
 }
 
 func (r BillingCheckoutRepository) GetByID(ctx context.Context, id string) (checkout.Checkout, error) {
@@ -314,103 +279,29 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 	if toUpdate.PaymentStatus != "" {
 		updateRecord["payment_status"] = toUpdate.PaymentStatus
 	}
-
-	var result checkoutWithContext
-
-	// Fetch org name via billing_customers -> organizations
-	orgNameSubquery := dialect.From(TABLE_BILLING_CUSTOMERS).
-		Select(goqu.I(TABLE_ORGANIZATIONS+".name")).
-		Join(
-			goqu.T(TABLE_ORGANIZATIONS),
-			goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+".org_id").Eq(goqu.I(TABLE_ORGANIZATIONS+".id"))),
-		).
-		Where(goqu.Ex{TABLE_BILLING_CUSTOMERS + ".id": goqu.I(TABLE_BILLING_CHECKOUTS + ".customer_id")})
-
 	query, params, err := dialect.Update(TABLE_BILLING_CHECKOUTS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
-	}).Returning(
-		goqu.I(TABLE_BILLING_CHECKOUTS+".*"),
-		orgNameSubquery.As("org_name"),
-	).ToSQL()
+	}).Returning(&Checkout{}).ToSQL()
 	if err != nil {
 		return checkout.Checkout{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "Update", func(ctx context.Context) error {
-			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
-				err = checkPostgresError(err)
-				switch {
-				case errors.Is(err, sql.ErrNoRows):
-					return checkout.ErrNotFound
-				case errors.Is(err, ErrInvalidTextRepresentation):
-					return checkout.ErrInvalidUUID
-				default:
-					return fmt.Errorf("%w: %w", txnErr, err)
-				}
-			}
-
-			// Get org_id from billing_customers
-			var orgID string
-			orgIDQuery, orgIDParams, err := dialect.From(TABLE_BILLING_CUSTOMERS).
-				Select("org_id").
-				Where(goqu.Ex{"id": result.CustomerID}).
-				ToSQL()
-			if err != nil {
-				return fmt.Errorf("failed to build org_id query: %w", err)
-			}
-			if err := tx.QueryRowContext(ctx, orgIDQuery, orgIDParams...).Scan(&orgID); err != nil {
-				return fmt.Errorf("failed to get org_id: %w", err)
-			}
-
-			planID := ""
-			if result.PlanID != nil {
-				planID = *result.PlanID
-			}
-			featureID := ""
-			if result.FeatureID != nil {
-				featureID = *result.FeatureID
-			}
-			paymentStatus := ""
-			if result.PaymentStatus != nil {
-				paymentStatus = *result.PaymentStatus
-			}
-
-			auditRecord := BuildAuditRecord(
-				ctx,
-				"billing_checkout.updated",
-				AuditResource{
-					ID:   orgID,
-					Type: "organization",
-					Name: result.OrgName,
-				},
-				&AuditTarget{
-					ID:   result.ID,
-					Type: "billing_checkout",
-					Metadata: map[string]interface{}{
-						"plan_id":            planID,
-						"feature_id":         featureID,
-						"state":              result.State,
-						"payment_status":     paymentStatus,
-						"provider_id":        result.ProviderID,
-						"customer_id":        result.CustomerID,
-						"checkout_url":       result.CheckoutUrl,
-						"skip_trial":         result.SubscriptionConfig.SkipTrial,
-						"cancel_after_trial": result.SubscriptionConfig.CancelAfterTrial,
-					},
-				},
-				orgID,
-				nil,
-				result.UpdatedAt,
-			)
-
-			return InsertAuditRecordInTx(ctx, tx, auditRecord)
-		})
+	var customerModel Checkout
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "Update", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
 	}); err != nil {
-		return checkout.Checkout{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return checkout.Checkout{}, checkout.ErrNotFound
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return checkout.Checkout{}, checkout.ErrInvalidUUID
+		default:
+			return checkout.Checkout{}, fmt.Errorf("%w: %w", txnErr, err)
+		}
 	}
 
-	return result.Checkout.transform()
+	return customerModel.transform()
 }
 
 func (r BillingCheckoutRepository) List(ctx context.Context, flt checkout.Filter) ([]checkout.Checkout, error) {

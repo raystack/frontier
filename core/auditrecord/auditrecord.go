@@ -7,10 +7,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 )
 
-var (
-	systemActor = "system"
-)
-
 type AuditRecord struct {
 	ID             string            `json:"id,omitempty"`
 	Event          string            `json:"event"`

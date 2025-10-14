@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
+
 	"github.com/raystack/frontier/billing/customer"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -170,37 +172,17 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 			}
 
 			if auditCustomerID != schema.PlatformOrgID.String() {
-				var orgID, orgName string
-				orgQuery, orgParams, err := dialect.From(TABLE_BILLING_CUSTOMERS).
-					Select(
-						goqu.I(TABLE_BILLING_CUSTOMERS+".org_id"),
-						goqu.I(TABLE_ORGANIZATIONS+".name"),
-					).
-					Join(
-						goqu.T(TABLE_ORGANIZATIONS),
-						goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+".org_id").Eq(goqu.I(TABLE_ORGANIZATIONS+".id"))),
-					).
-					Where(goqu.Ex{TABLE_BILLING_CUSTOMERS + ".id": auditCustomerID}).
-					ToSQL()
-				if err != nil {
-					fmt.Println("error in org query", err)
-					return fmt.Errorf("failed to build org name query: %w", err)
-				}
-				if err := tx.QueryRowContext(ctx, orgQuery, orgParams...).Scan(&orgID, &orgName); err != nil {
-					return fmt.Errorf("failed to get org info: %w", err)
-				}
-
 				// Determine if this is credit or debit for the customer
 				var eventType string
 				var txModel Transaction
 				var txEntry credit.Transaction
 
 				if debitEntry.CustomerID == auditCustomerID {
-					eventType = "billing_transaction.debit"
+					eventType = auditrecord.BillingTransactionDebitEvent.String()
 					txModel = debitModel
 					txEntry = debitEntry
 				} else {
-					eventType = "billing_transaction.credit"
+					eventType = auditrecord.BillingTransactionCreditEvent.String()
 					txModel = creditModel
 					txEntry = creditEntry
 				}
@@ -209,9 +191,9 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 					ctx,
 					eventType,
 					AuditResource{
-						ID:   orgID,
-						Type: "organization",
-						Name: orgName,
+						ID:   auditCustomerID,
+						Type: "billing_customer",
+						Name: customerAcc.Name,
 					},
 					&AuditTarget{
 						ID:   txModel.ID,
@@ -222,11 +204,10 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 							"description": txEntry.Description,
 						},
 					},
-					orgID,
+					customerAcc.OrgID,
 					nil,
 					debitModel.CreatedAt,
 				)
-
 				if err := InsertAuditRecordInTx(ctx, tx, auditRecord); err != nil {
 					return fmt.Errorf("failed to insert audit record: %w", err)
 				}

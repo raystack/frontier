@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -120,14 +122,9 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 				return err
 			}
 
-			title := ""
-			if result.Title.Valid {
-				title = result.Title.String
-			}
-
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"serviceuser.created",
+				auditrecord.ServiceUserCreatedEvent.String(),
 				AuditResource{
 					ID:   result.OrgID,
 					Type: "organization",
@@ -136,13 +133,12 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 				&AuditTarget{
 					ID:   result.ID,
 					Type: "serviceuser",
-					Name: title,
+					Name: nullStringToString(result.Title),
 				},
 				result.OrgID,
 				nil,
 				result.CreatedAt,
 			)
-
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -253,14 +249,9 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 				return err
 			}
 
-			title := ""
-			if result.Title.Valid {
-				title = result.Title.String
-			}
-
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"serviceuser.deleted",
+				auditrecord.ServiceUserDeletedEvent.String(),
 				AuditResource{
 					ID:   result.OrgID,
 					Type: "organization",
@@ -269,7 +260,7 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 				&AuditTarget{
 					ID:   result.ID,
 					Type: "serviceuser",
-					Name: title,
+					Name: nullStringToString(result.Title),
 				},
 				result.OrgID,
 				nil,

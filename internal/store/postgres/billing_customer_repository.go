@@ -16,6 +16,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -133,17 +134,6 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 	if toCreate.ProviderID != "" {
 		providerID = &toCreate.ProviderID
 	}
-
-	type customerWithContext struct {
-		Customer
-		OrgName string `db:"org_name"`
-	}
-	var result customerWithContext
-
-	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-		Select("name").
-		Where(goqu.Ex{"id": toCreate.OrgID})
-
 	query, params, err := dialect.Insert(TABLE_BILLING_CUSTOMERS).Rows(
 		goqu.Record{
 			"org_id":      toCreate.OrgID,
@@ -158,53 +148,46 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 				TaxIDs: toCreate.TaxData,
 			},
 			"metadata": marshaledMetadata,
-		}).Returning(
-		goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
-		orgNameSubquery.As("org_name"),
-	).ToSQL()
+		}).Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
+	var customerModel Customer
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Create", func(ctx context.Context) error {
-			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
 				return err
 			}
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"billing_customer.created",
+				auditrecord.BillingCustomerCreatedEvent.String(),
 				AuditResource{
-					ID:   result.OrgID,
-					Type: "organization",
-					Name: result.OrgName,
-				},
-				&AuditTarget{
-					ID:   result.ID,
+					ID:   customerModel.ID,
 					Type: "billing_customer",
-					Name: result.Name,
+					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
-						"email":       result.Email,
-						"currency":    result.Currency,
-						"address":     result.Address,
-						"credit_min":  result.CreditMin,
-						"due_in_days": result.DueInDays,
-						"provider_id": result.ProviderID,
+						"email":       customerModel.Email,
+						"currency":    customerModel.Currency,
+						"address":     customerModel.Address,
+						"credit_min":  customerModel.CreditMin,
+						"due_in_days": customerModel.DueInDays,
+						"provider_id": customerModel.ProviderID,
 					},
 				},
-				result.OrgID,
 				nil,
-				result.CreatedAt,
+				customerModel.OrgID,
+				nil,
+				customerModel.CreatedAt,
 			)
-
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
-	return result.Customer.transform()
+	return customerModel.transform()
 }
 
 func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (customer.Customer, error) {
@@ -314,57 +297,39 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		// useful when updating an offline customer
 		updateRecord["provider_id"] = &toUpdate.ProviderID
 	}
-
-	type customerWithContext struct {
-		Customer
-		OrgName string `db:"org_name"`
-	}
-	var result customerWithContext
-
-	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-		Select("name").
-		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_CUSTOMERS + ".org_id")})
-
 	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
-	}).Returning(
-		goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
-		orgNameSubquery.As("org_name"),
-	).ToSQL()
+	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
+	var customerModel Customer
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Update", func(ctx context.Context) error {
-			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
 				return err
 			}
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"billing_customer.updated",
+				auditrecord.BillingCustomerUpdatedEvent.String(),
 				AuditResource{
-					ID:   result.OrgID,
-					Type: "organization",
-					Name: result.OrgName,
-				},
-				&AuditTarget{
-					ID:   result.ID,
+					ID:   customerModel.ID,
 					Type: "billing_customer",
-					Name: result.Name,
+					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
-						"email":       result.Email,
-						"currency":    result.Currency,
-						"address":     result.Address,
-						"provider_id": result.ProviderID,
+						"email":       customerModel.Email,
+						"currency":    customerModel.Currency,
+						"address":     customerModel.Address,
+						"provider_id": customerModel.ProviderID,
 					},
 				},
-				result.OrgID,
 				nil,
-				result.UpdatedAt,
+				customerModel.OrgID,
+				nil,
+				customerModel.UpdatedAt,
 			)
-
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -379,7 +344,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		}
 	}
 
-	return result.Customer.transform()
+	return customerModel.transform()
 }
 
 func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Details, error) {
@@ -457,55 +422,37 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 		"due_in_days": details.DueInDays,
 		"updated_at":  goqu.L("now()"),
 	}
-
-	type customerWithContext struct {
-		Customer
-		OrgName string `db:"org_name"`
-	}
-	var result customerWithContext
-
-	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-		Select("name").
-		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_CUSTOMERS + ".org_id")})
-
 	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
 		"id": customerID,
-	}).Returning(
-		goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
-		orgNameSubquery.As("org_name"),
-	).ToSQL()
+	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return customer.Details{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
+	var customerModel Customer
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "UpdateDetailsByID", func(ctx context.Context) error {
-			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
 				return err
 			}
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"billing_customer.credit_updated",
+				auditrecord.BillingCustomerCreditUpdatedEvent.String(),
 				AuditResource{
-					ID:   result.OrgID,
-					Type: "organization",
-					Name: result.OrgName,
-				},
-				&AuditTarget{
-					ID:   result.ID,
+					ID:   customerModel.ID,
 					Type: "billing_customer",
-					Name: result.Name,
+					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
-						"credit_min":  result.CreditMin,
-						"due_in_days": result.DueInDays,
+						"credit_min":  customerModel.CreditMin,
+						"due_in_days": customerModel.DueInDays,
 					},
 				},
-				result.OrgID,
 				nil,
-				result.UpdatedAt,
+				customerModel.OrgID,
+				nil,
+				customerModel.UpdatedAt,
 			)
-
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -521,35 +468,23 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 	}
 
 	return customer.Details{
-		CreditMin: result.CreditMin,
-		DueInDays: result.DueInDays,
+		CreditMin: customerModel.CreditMin,
+		DueInDays: customerModel.DueInDays,
 	}, nil
 }
 
 func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error {
-	type customerWithContext struct {
-		Customer
-		OrgName string `db:"org_name"`
-	}
-	var result customerWithContext
-
-	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-		Select("name").
-		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_CUSTOMERS + ".org_id")})
-
 	query, params, err := dialect.Delete(TABLE_BILLING_CUSTOMERS).
 		Where(goqu.Ex{"id": id}).
-		Returning(
-			goqu.I(TABLE_BILLING_CUSTOMERS+".*"),
-			orgNameSubquery.As("org_name"),
-		).ToSQL()
+		Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", parseErr, err)
 	}
 
+	var customerModel Customer
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
-			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
 					return customer.ErrNotFound
 				}
@@ -557,33 +492,28 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 			}
 
 			deletedAt := time.Now()
-			if result.DeletedAt != nil {
-				deletedAt = *result.DeletedAt
+			if customerModel.DeletedAt != nil {
+				deletedAt = *customerModel.DeletedAt
 			}
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"billing_customer.deleted",
+				auditrecord.BillingCustomerDeletedEvent.String(),
 				AuditResource{
-					ID:   result.OrgID,
-					Type: "organization",
-					Name: result.OrgName,
-				},
-				&AuditTarget{
-					ID:   result.ID,
+					ID:   customerModel.ID,
 					Type: "billing_customer",
-					Name: result.Name,
+					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
-						"email":    result.Email,
-						"currency": result.Currency,
-						"address":  result.Address,
+						"email":    customerModel.Email,
+						"currency": customerModel.Currency,
+						"address":  customerModel.Address,
 					},
 				},
-				result.OrgID,
+				nil,
+				customerModel.OrgID,
 				nil,
 				deletedAt,
 			)
-
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
