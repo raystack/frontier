@@ -10,11 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -152,8 +154,35 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 	}
 
 	var customerModel Customer
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Create", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Create", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				auditrecord.BillingCustomerCreatedEvent.String(),
+				AuditResource{
+					ID:   customerModel.ID,
+					Type: "billing_customer",
+					Name: customerModel.Name,
+					Metadata: map[string]interface{}{
+						"email":       customerModel.Email,
+						"currency":    customerModel.Currency,
+						"address":     customerModel.Address,
+						"credit_min":  customerModel.CreditMin,
+						"due_in_days": customerModel.DueInDays,
+						"provider_id": customerModel.ProviderID,
+					},
+				},
+				nil,
+				customerModel.OrgID,
+				nil,
+				customerModel.CreatedAt,
+			)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
@@ -276,8 +305,33 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	}
 
 	var customerModel Customer
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Update", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				auditrecord.BillingCustomerUpdatedEvent.String(),
+				AuditResource{
+					ID:   customerModel.ID,
+					Type: "billing_customer",
+					Name: customerModel.Name,
+					Metadata: map[string]interface{}{
+						"email":       customerModel.Email,
+						"currency":    customerModel.Currency,
+						"address":     customerModel.Address,
+						"provider_id": customerModel.ProviderID,
+					},
+				},
+				nil,
+				customerModel.OrgID,
+				nil,
+				customerModel.UpdatedAt,
+			)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -376,8 +430,31 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 	}
 
 	var customerModel Customer
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "UpdateDetailsByID", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "UpdateDetailsByID", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				auditrecord.BillingCustomerCreditUpdatedEvent.String(),
+				AuditResource{
+					ID:   customerModel.ID,
+					Type: "billing_customer",
+					Name: customerModel.Name,
+					Metadata: map[string]interface{}{
+						"credit_min":  customerModel.CreditMin,
+						"due_in_days": customerModel.DueInDays,
+					},
+				},
+				nil,
+				customerModel.OrgID,
+				nil,
+				customerModel.UpdatedAt,
+			)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -397,17 +474,48 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 }
 
 func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error {
-	stmt := dialect.Delete(TABLE_BILLING_CUSTOMERS).Where(goqu.Ex{
-		"id": id,
-	})
-	query, params, err := stmt.ToSQL()
+	query, params, err := dialect.Delete(TABLE_BILLING_CUSTOMERS).
+		Where(goqu.Ex{"id": id}).
+		Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", parseErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
-		_, err := r.dbc.ExecContext(ctx, query, params...)
-		return err
+	var customerModel Customer
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return customer.ErrNotFound
+				}
+				return err
+			}
+
+			deletedAt := time.Now()
+			if customerModel.DeletedAt != nil {
+				deletedAt = *customerModel.DeletedAt
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				auditrecord.BillingCustomerDeletedEvent.String(),
+				AuditResource{
+					ID:   customerModel.ID,
+					Type: "billing_customer",
+					Name: customerModel.Name,
+					Metadata: map[string]interface{}{
+						"email":    customerModel.Email,
+						"currency": customerModel.Currency,
+						"address":  customerModel.Address,
+					},
+				},
+				nil,
+				customerModel.OrgID,
+				nil,
+				deletedAt,
+			)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

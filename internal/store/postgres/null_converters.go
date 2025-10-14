@@ -65,3 +65,36 @@ func nullStringToString(ns sql.NullString) string {
 	}
 	return ""
 }
+
+// ptrToString safely converts a string pointer to a string, returning empty string if nil
+func ptrToString(ptr *string) string {
+	if ptr != nil {
+		return *ptr
+	}
+	return ""
+}
+
+// unmarshalNullJSONText unmarshals NullJSONText to map[string]any
+func unmarshalNullJSONText(metadata types.NullJSONText) (map[string]any, error) {
+	if !metadata.Valid {
+		return nil, nil
+	}
+	var result map[string]any
+	if err := metadata.Unmarshal(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// getStringFromMap extracts a string value from a map by key, returns empty string if not found or not a string
+func getStringFromMap(m map[string]any, key string) string {
+	if m == nil {
+		return ""
+	}
+	if val, ok := m[key]; ok {
+		if strVal, ok := val.(string); ok {
+			return strVal
+		}
+	}
+	return ""
+}

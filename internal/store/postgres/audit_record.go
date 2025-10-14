@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/raystack/frontier/core/auditrecord"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/server/consts"
 )
@@ -214,7 +215,14 @@ func BuildAuditRecord(ctx context.Context, event string, resource AuditResource,
 		actorMetadata[consts.AuditSessionMetadataKey] = sessionMetadata
 	}
 
-	actorUUID, _ := uuid.Parse(actorID)
+	var actorUUID uuid.UUID
+	if actorID == "" { // cron jobs
+		actorUUID = uuid.Nil
+		actorType = pkgAuditRecord.SystemActor
+		actorName = pkgAuditRecord.SystemActor
+	} else {
+		actorUUID, _ = uuid.Parse(actorID)
+	}
 	orgUUID, _ := uuid.Parse(orgID)
 
 	record := AuditRecord{

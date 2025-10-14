@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/pkg/auditrecord"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
@@ -160,8 +162,47 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 	}
 
 	var checkoutModel Checkout
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "Create", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&checkoutModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "Create", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&checkoutModel); err != nil {
+				return err
+			}
+
+			metadataMap, err := unmarshalNullJSONText(checkoutModel.Metadata)
+			if err != nil {
+				return err
+			}
+			orgID := getStringFromMap(metadataMap, "org_id")
+			customerName := getStringFromMap(metadataMap, "customer_name")
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				auditrecord.BillingCheckoutCreatedEvent.String(),
+				AuditResource{
+					ID:   checkoutModel.CustomerID,
+					Type: "billing_customer",
+					Name: customerName,
+				},
+				&AuditTarget{
+					ID:   checkoutModel.ID,
+					Type: "billing_checkout",
+					Metadata: map[string]interface{}{
+						"plan_id":            ptrToString(checkoutModel.PlanID),
+						"feature_id":         ptrToString(checkoutModel.FeatureID),
+						"state":              checkoutModel.State,
+						"provider_id":        checkoutModel.ProviderID,
+						"customer_id":        checkoutModel.CustomerID,
+						"checkout_url":       checkoutModel.CheckoutUrl,
+						"skip_trial":         checkoutModel.SubscriptionConfig.SkipTrial,
+						"cancel_after_trial": checkoutModel.SubscriptionConfig.CancelAfterTrial,
+					},
+				},
+				orgID,
+				nil,
+				checkoutModel.CreatedAt,
+			)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		return checkout.Checkout{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

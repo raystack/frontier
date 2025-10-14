@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/organization"
@@ -181,7 +183,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 			// Build and insert audit record
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"organization.create",
+				auditrecord.OrganizationCreateEvent.String(),
 				AuditResource{
 					ID:       orgModel.ID,
 					Type:     "organization",
@@ -313,7 +315,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"organization.update",
+				auditrecord.OrganizationUpdateEvent.String(),
 				AuditResource{
 					ID:       orgModel.ID,
 					Type:     "organization",
@@ -383,7 +385,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"organization.update",
+				auditrecord.OrganizationUpdateEvent.String(),
 				AuditResource{
 					ID:       orgModel.ID,
 					Type:     "organization",
@@ -440,7 +442,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"organization.state_change",
+				auditrecord.OrganizationStateChangeEvent.String(),
 				AuditResource{
 					ID:   orgModel.ID,
 					Type: "organization",
@@ -488,7 +490,7 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				"organization.delete",
+				auditrecord.OrganizationDeleteEvent.String(),
 				AuditResource{
 					ID:   orgModel.ID,
 					Type: "organization",

@@ -8,14 +8,22 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/pkg/db"
 )
 
 type ServiceUserRepository struct {
 	dbc *db.Client
+}
+
+type serviceUserWithContext struct {
+	ServiceUser
+	OrgName string `db:"org_name"`
 }
 
 func NewServiceUserRepository(dbc *db.Client) *ServiceUserRepository {
@@ -84,7 +92,12 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
-	fetchedServiceUser := ServiceUser{}
+	var result serviceUserWithContext
+
+	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+		Select("name").
+		Where(goqu.Ex{"id": serviceUser.OrgID})
+
 	query, params, err := dialect.Insert(TABLE_SERVICEUSER).Rows(
 		goqu.Record{
 			"id":       serviceUser.ID,
@@ -95,17 +108,44 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 		goqu.DoUpdate("id", goqu.Record{
 			"title":    serviceUser.Title,
 			"metadata": marshaledMetadata,
-		})).Returning(&ServiceUser{}).ToSQL()
+		})).Returning(
+		goqu.I(TABLE_SERVICEUSER+".*"),
+		orgNameSubquery.As("org_name"),
+	).ToSQL()
 	if err != nil {
 		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
-	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Create", func(ctx context.Context) error {
-		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&fetchedServiceUser)
+
+	if err = s.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Create", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				auditrecord.ServiceUserCreatedEvent.String(),
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.ID,
+					Type: "serviceuser",
+					Name: nullStringToString(result.Title),
+				},
+				result.OrgID,
+				nil,
+				result.CreatedAt,
+			)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
-	return fetchedServiceUser.transform()
+	return result.ServiceUser.transform()
 }
 
 func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceuser.ServiceUser, error) {
@@ -184,20 +224,51 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 }
 
 func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_SERVICEUSER).Where(
-		goqu.Ex{
-			"id": id,
-		},
-	).ToSQL()
+	var result serviceUserWithContext
+
+	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
+		Select("name").
+		Where(goqu.Ex{"id": goqu.I(TABLE_SERVICEUSER + ".org_id")})
+
+	query, params, err := dialect.Delete(TABLE_SERVICEUSER).
+		Where(goqu.Ex{"id": id}).
+		Returning(
+			goqu.I(TABLE_SERVICEUSER+".*"),
+			orgNameSubquery.As("org_name"),
+		).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Delete", func(ctx context.Context) error {
-		if _, err = s.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+	if err = s.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Delete", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return serviceuser.ErrNotExist
+				}
+				return err
+			}
+
+			auditRecord := BuildAuditRecord(
+				ctx,
+				auditrecord.ServiceUserDeletedEvent.String(),
+				AuditResource{
+					ID:   result.OrgID,
+					Type: "organization",
+					Name: result.OrgName,
+				},
+				&AuditTarget{
+					ID:   result.ID,
+					Type: "serviceuser",
+					Name: nullStringToString(result.Title),
+				},
+				result.OrgID,
+				nil,
+				result.DeletedAt.Time,
+			)
+
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

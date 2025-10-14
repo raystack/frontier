@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/salt/rql"
 )
@@ -79,8 +80,8 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 	// enrich actor info
 	switch {
 	case auditRecord.Actor.ID == uuid.Nil.String():
-		auditRecord.Actor.Type = systemActor
-		auditRecord.Actor.Name = systemActor
+		auditRecord.Actor.Type = auditrecord.SystemActor
+		auditRecord.Actor.Name = auditrecord.SystemActor
 
 	case auditRecord.Actor.Type == schema.UserPrincipal:
 		actorUUID, err := uuid.Parse(auditRecord.Actor.ID)
