@@ -1,17 +1,26 @@
 import { DataTable } from "@raystack/apsara";
 import { Flex, EmptyState } from "@raystack/apsara";
-import { V1Beta1Product } from "@raystack/frontier";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import type { Product } from "@raystack/proton/frontier";
 import { useParams } from "react-router-dom";
 import { ProductsHeader } from "../header";
 import { getColumns } from "./columns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { api } from "~/api";
 
 export default function ProductPrices() {
   let { productId } = useParams();
-  const [isProductLoading, setIsProductLoading] = useState(false);
-  const [product, setProduct] = useState<V1Beta1Product>();
+
+  const {
+    data: productResponse,
+    isLoading: isProductLoading,
+    error,
+    isError,
+  } = useQuery(FrontierServiceQueries.getProduct, { id: productId ?? "" }, {
+    staleTime: Infinity,
+  });
+
+  const product = productResponse?.product as Product | undefined;
 
   const pageHeader = {
     title: "Products",
@@ -31,22 +40,19 @@ export default function ProductPrices() {
     ],
   };
 
-  const getProduct = useCallback(async () => {
-    try {
-      setIsProductLoading(true);
-      const res = await api?.frontierServiceGetProduct(productId ?? "");
-      const product = res?.data?.product;
-      setProduct(product);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsProductLoading(false);
-    }
-  }, [productId]);
-
-  useEffect(() => {
-    getProduct();
-  }, [getProduct]);
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Product"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading product. Please try again."
+        }
+      />
+    );
+  }
 
   const prices = product?.prices || [];
 
@@ -57,7 +63,7 @@ export default function ProductPrices() {
         columns={getColumns(prices)}
         mode="client"
         isLoading={isProductLoading}
-        defaultSort={{ name: "created_at", order: "desc" }}
+        defaultSort={{ name: "createdAt", order: "desc" }}
       >
         <Flex direction="column" width="full">
           <ProductsHeader header={pageHeader} />

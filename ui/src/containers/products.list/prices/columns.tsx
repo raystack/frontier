@@ -1,11 +1,12 @@
-import { Frontierv1Beta1Invoice, V1Beta1Price } from "@raystack/frontier";
+import type { Price as PriceType } from "@raystack/proton/frontier";
 import { Price } from "~/components/Price";
 import type { DataTableColumnDef } from "@raystack/apsara";
+import { timestampToDate, TimeStamp } from "~/utils/connect-timestamp";
 
 export const getColumns: (
-  prices: V1Beta1Price[],
-) => DataTableColumnDef<Frontierv1Beta1Invoice, unknown>[] = (
-  prices: V1Beta1Price[],
+  prices: PriceType[],
+) => DataTableColumnDef<PriceType, unknown>[] = (
+  prices: PriceType[],
 ) => {
   return [
     {
@@ -28,13 +29,13 @@ export const getColumns: (
     },
     {
       header: "Usage Type",
-      accessorKey: "usage_type",
+      accessorKey: "usageType",
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },
     {
       header: "billing_scheme",
-      accessorKey: "billing_scheme",
+      accessorKey: "billingScheme",
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },
@@ -42,32 +43,40 @@ export const getColumns: (
     {
       header: "Amount",
       accessorKey: "amount",
-      cell: ({ row, getValue }) => (
-        <Price value={row.original.amount} currency={row.original.currency} />
+      cell: ({ row }) => (
+        <Price value={row.original.amount?.toString()} currency={row.original.currency} />
       ),
       filterVariant: "text",
     },
 
     {
       header: "creation date",
-      accessorKey: "created_at",
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
+      accessorKey: "createdAt",
+      cell: ({ getValue }) => {
+        const timestamp = getValue() as TimeStamp | undefined;
+        const date = timestampToDate(timestamp);
+        if (!date) return "-";
+        return date.toLocaleString("en", {
           month: "long",
           day: "numeric",
           year: "numeric",
-        }),
+        });
+      },
     },
     {
       header: "Updated date",
-      accessorKey: "updated_at",
+      accessorKey: "updatedAt",
       enableColumnFilter: false,
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
+      cell: ({ getValue }) => {
+        const timestamp = getValue() as TimeStamp | undefined;
+        const date = timestampToDate(timestamp);
+        if (!date) return "-";
+        return date.toLocaleString("en", {
           month: "long",
           day: "numeric",
           year: "numeric",
-        }),
+        });
+      },
     },
   ];
 };
