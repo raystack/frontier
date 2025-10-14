@@ -31,10 +31,7 @@ export function DeleteWebhookDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Content
-        style={{
-          maxWidth: "25vw",
-          width: "100%",
-        }}
+        style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <Flex direction="column" gap="large" style={{ padding: "24px" }}>
           <Flex direction="column" gap="medium">

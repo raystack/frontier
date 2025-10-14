@@ -87,19 +87,17 @@ export const getColumns: (
                         Update
                       </Flex>
                     </DropdownMenu.Item>
-                    {(
-                      <DropdownMenu.Item style={{ padding: 0 }} disabled={!enableDelete}>
-                        <Flex
-                          className={styles.deleteMenuItem}
-                          gap={"small"}
-                          data-test-id="admin-ui-webhook-delete-btn"
-                          onClick={() => enableDelete && setIsDeleteDialogOpen(true)}
-                        >
-                          <TrashIcon />
-                          Delete
-                        </Flex>
-                      </DropdownMenu.Item>
-                    )}
+                    <DropdownMenu.Item style={{ padding: 0 }} disabled={!enableDelete}>
+                      <Flex
+                        className={styles.deleteMenuItem}
+                        gap={"small"}
+                        data-test-id="admin-ui-webhook-delete-btn"
+                        onClick={() => enableDelete && setIsDeleteDialogOpen(true)}
+                      >
+                        <TrashIcon />
+                        Delete
+                      </Flex>
+                    </DropdownMenu.Item>
                   </DropdownMenu.Group>
                 </DropdownMenu.Content>
               </DropdownMenu>
