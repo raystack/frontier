@@ -37,7 +37,7 @@ export default function PlanList() {
 
   let { planId } = useParams();
 
-  const planMapByName = reduceByKey(plans ?? [], "id");
+  const planMapById = reduceByKey(plans ?? [], "id");
 
   const columns = getColumns();
 
@@ -83,7 +83,7 @@ export default function PlanList() {
           <Flex className={styles.sheetContentBody}>
             <Outlet
               context={{
-                plan: planId ? planMapByName[planId] : null,
+                plan: planId ? planMapById[planId] : null,
               }}
             />
           </Flex>
