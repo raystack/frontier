@@ -82,7 +82,7 @@ export default function PreferenceDetails() {
           cardinality: "finite",
         });
 
-        queryClient.setQueryData(queryKey, (oldData: ListPreferencesResponse | undefined) => {
+        queryClient.setQueryData(queryKey, (oldData?: ListPreferencesResponse) => {
           if (!oldData || !data.preference || !Array.isArray(data.preference)) return oldData;
 
           const updatedPreferences = data.preference;
