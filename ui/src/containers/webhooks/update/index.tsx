@@ -14,9 +14,9 @@ import { useMutation } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
   type WebhookRequestBody,
+  WebhookRequestBodySchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { WebhookRequestBodySchema } from "@raystack/proton/frontier";
 import { useWebhookQueries } from "../hooks/useWebhookQueries";
 
 const UpdateWebhookSchema = z.object({

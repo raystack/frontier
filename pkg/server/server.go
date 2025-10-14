@@ -73,12 +73,17 @@ const (
 	connectServerGracePeriod = 10 * time.Second
 )
 
+type WebhooksConfigApiResponse struct {
+	EnableDelete bool `json:"enable_delete"`
+}
+
 type UIConfigApiResponse struct {
-	Title             string   `json:"title"`
-	Logo              string   `json:"logo"`
-	AppUrl            string   `json:"app_url"`
-	TokenProductId    string   `json:"token_product_id"`
-	OrganizationTypes []string `json:"organization_types"`
+	Title             string                    `json:"title"`
+	Logo              string                    `json:"logo"`
+	AppUrl            string                    `json:"app_url"`
+	TokenProductId    string                    `json:"token_product_id"`
+	OrganizationTypes []string                  `json:"organization_types"`
+	Webhooks          WebhooksConfigApiResponse `json:"webhooks"`
 }
 
 func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
@@ -134,6 +139,9 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 				AppUrl:            uiConfig.AppURL,
 				TokenProductId:    uiConfig.TokenProductId,
 				OrganizationTypes: uiConfig.OrganizationTypes,
+				Webhooks: WebhooksConfigApiResponse{
+					EnableDelete: uiConfig.Webhooks.EnableDelete,
+				},
 			}
 			json.NewEncoder(w).Encode(confResp)
 		})

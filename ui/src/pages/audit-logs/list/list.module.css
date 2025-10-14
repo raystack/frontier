@@ -1,0 +1,63 @@
+.navbar {
+  padding: var(--rs-space-4) var(--rs-space-7);
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.table {
+  height: auto;
+}
+
+.table-empty {
+  height: 100%;
+}
+
+.empty-state {
+  height: 100%;
+}
+
+.empty-state-subheading {
+  max-width: 360px;
+  text-wrap: auto;
+}
+
+.name-column {
+  padding-left: var(--rs-space-7);
+  max-width: 200px;
+}
+.org-column {
+  max-width: 200px;
+}
+
+.country-column {
+  max-width: 150px;
+}
+
+.table-wrapper {
+  flex: 1;
+  height: 100%;
+}
+
+.table-header {
+  z-index: 2;
+}
+
+.side-panel {
+  position: sticky;
+  top: 0;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.table-content-container {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 90px);
+  overflow: scroll;
+  position: relative;
+}

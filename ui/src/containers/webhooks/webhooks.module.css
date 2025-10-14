@@ -27,3 +27,8 @@
     display: flex;
     align-items: center;
 }
+
+.deleteMenuItem {
+    padding: 12px;
+    color: var(--rs-color-foreground-danger-primary);
+}

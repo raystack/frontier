@@ -13,14 +13,19 @@ import {
   TimeStamp,
 } from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
+import { useState } from "react";
+import type { useMutation } from "@connectrpc/connect-query";
+import { DeleteWebhookDialog } from "./delete";
 
 interface getColumnsOptions {
   openEditPage: (id: string) => void;
+  deleteWebhookMutation: ReturnType<typeof useMutation>;
+  enableDelete: boolean;
 }
 
 export const getColumns: (
   opt: getColumnsOptions,
-) => DataTableColumnDef<Webhook, unknown>[] = ({ openEditPage }) => {
+) => DataTableColumnDef<Webhook, unknown>[] = ({ openEditPage, deleteWebhookMutation, enableDelete }) => {
   return [
     {
       header: "Description",
@@ -56,39 +61,60 @@ export const getColumns: (
       header: "Action",
       accessorKey: "id",
       classNames: { cell: styles.actionColumn, header: styles.actionColumn },
-      cell: ({ getValue }) => (
-        // @ts-ignore
-        <DropdownMenu style={{ padding: "0 !important" }}>
-          <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
-            <DotsVerticalIcon />
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content>
-            <DropdownMenu.Group style={{ padding: 0 }}>
-              <DropdownMenu.Item style={{ padding: 0 }}>
-                <Flex
-                  style={{ padding: "12px" }}
-                  gap={"small"}
-                  data-test-id="admin-ui-webhook-update-btn"
-                  onClick={() => openEditPage(getValue() as string)}
-                >
-                  <UpdateIcon />
-                  Update
-                </Flex>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item style={{ padding: 0 }} disabled>
-                <Flex
-                  style={{ padding: "12px" }}
-                  gap={"small"}
-                  data-test-id="admin-ui-webhook-delete-btn"
-                >
-                  <TrashIcon />
-                  Delete
-                </Flex>
-              </DropdownMenu.Item>
-            </DropdownMenu.Group>
-          </DropdownMenu.Content>
-        </DropdownMenu>
-      ),
+      cell: ({ getValue, row }) => {
+        const ActionCell = () => {
+          const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+          const webhookId = getValue() as string;
+          const webhook = row.original;
+
+          return (
+            <>
+              {/* @ts-ignore */}
+              <DropdownMenu style={{ padding: "0 !important" }}>
+                <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
+                  <DotsVerticalIcon />
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content>
+                  <DropdownMenu.Group style={{ padding: 0 }}>
+                    <DropdownMenu.Item style={{ padding: 0 }}>
+                      <Flex
+                        style={{ padding: "12px" }}
+                        gap={"small"}
+                        data-test-id="admin-ui-webhook-update-btn"
+                        onClick={() => openEditPage(webhookId)}
+                      >
+                        <UpdateIcon />
+                        Update
+                      </Flex>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item style={{ padding: 0 }} disabled={!enableDelete}>
+                      <Flex
+                        className={styles.deleteMenuItem}
+                        gap={"small"}
+                        data-test-id="admin-ui-webhook-delete-btn"
+                        onClick={() => enableDelete && setIsDeleteDialogOpen(true)}
+                      >
+                        <TrashIcon />
+                        Delete
+                      </Flex>
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Group>
+                </DropdownMenu.Content>
+              </DropdownMenu>
+
+              <DeleteWebhookDialog
+                isOpen={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                webhookId={webhookId}
+                webhookDescription={webhook.description}
+                deleteWebhookMutation={deleteWebhookMutation}
+              />
+            </>
+          );
+        };
+
+        return <ActionCell />;
+      },
     },
   ];
 };

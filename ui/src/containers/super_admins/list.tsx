@@ -1,25 +1,75 @@
-import { DataTable } from "@raystack/apsara";
-import { useContext } from "react";
-import { AppContext } from "~/contexts/App";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { getColumns } from "./columns";
 import styles from "./super_admins.module.css";
+import { useQuery } from "@connectrpc/connect-query";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import PageHeader from "~/components/page-header";
+
+const pageHeader = {
+  title: "Super Admins",
+  breadcrumb: [],
+};
+
+const NoAdmins = () => {
+  return (
+    <EmptyState
+      icon={<ExclamationTriangleIcon />}
+      heading="No Admins Found"
+      subHeading="No platform users or service users found."
+    />
+  );
+};
 
 export function SuperAdminList() {
-  const { platformUsers } = useContext(AppContext);
+  const {
+    data: platformUsersData,
+    isLoading,
+    error,
+    isError,
+  } = useQuery(AdminServiceQueries.listPlatformUsers, {}, {
+    staleTime: Infinity,
+  });
 
   const columns = getColumns();
   const data = [
-    ...(platformUsers?.users || []),
-    ...(platformUsers?.serviceusers || []),
+    ...(platformUsersData?.users || []),
+    ...(platformUsersData?.serviceusers || []),
   ];
+
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Admins"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading Admins. Please try again."
+        }
+      />
+    );
+  }
+
   return (
     <DataTable
       data={data || []}
       defaultSort={{ name: "email", order: "asc" }}
       columns={columns}
       mode="client"
+      isLoading={isLoading}
     >
-      <DataTable.Content classNames={{ root: styles.tableRoot }} />
+      <Flex direction="column" className={styles.tableWrapper}>
+        <PageHeader
+          title={pageHeader.title}
+          breadcrumb={pageHeader.breadcrumb}
+          className={styles.header}
+        />
+        <DataTable.Content
+          classNames={{ root: styles.tableRoot }}
+          emptyState={<NoAdmins />}
+        />
+      </Flex>
     </DataTable>
   );
 }
