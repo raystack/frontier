@@ -43,7 +43,7 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
         <Dialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Flex justify="between" align="center" style={{ width: '100%' }}>
+          <Flex justify="between" align="center" width="full">
             <Text size="regular">
             {sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown browser and OS"}
             </Text>
