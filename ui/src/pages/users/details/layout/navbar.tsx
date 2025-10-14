@@ -23,10 +23,7 @@ export const UserDetailsNavbar = ({
 }: UserDetailsNavbarProps) => {
   const { user } = useUser();
 
-  const links = [
-    { name: "Audit log", path: `/users/${user?.id}/audit-log` },
-    { name: "Security", path: `/users/${user?.id}/security` },
-  ];
+  const links = [{ name: "Security", path: `/users/${user?.id}/security` }];
 
   return (
     <nav className={styles.navbar}>
@@ -45,8 +42,7 @@ export const UserDetailsNavbar = ({
                 fallback={getUserName(user)?.[0]}
                 size={1}
               />
-            }
-          >
+            }>
             {getUserName(user)}
           </Breadcrumb.Item>
         </Breadcrumb>
@@ -57,8 +53,7 @@ export const UserDetailsNavbar = ({
                 <Chip
                   data-state={isActive ? "active" : undefined}
                   variant="filled"
-                  className={styles["nav-chip"]}
-                >
+                  className={styles["nav-chip"]}>
                   {link.name}
                 </Chip>
               )}
@@ -70,8 +65,7 @@ export const UserDetailsNavbar = ({
         <IconButton
           size={3}
           data-test-id="admin-ui-user-details-sidepanel-button"
-          onClick={toggleSidePanel}
-        >
+          onClick={toggleSidePanel}>
           <SidebarIcon />
         </IconButton>
       </Flex>
