@@ -1,5 +1,4 @@
 import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
-import { useEffect, useState } from "react";
 import {
   Outlet,
   useNavigate,
@@ -7,41 +6,34 @@ import {
   useParams,
 } from "react-router-dom";
 
-import type { V1Beta1Plan } from "@raystack/frontier";
+import type { Plan } from "@raystack/proton/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { PlanHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { api } from "~/api";
 import styles from "./plans.module.css";
 import PageTitle from "~/components/page-title";
 import { SheetHeader } from "~/components/sheet/header";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 
 const pageHeader = {
   title: "Plans",
   breadcrumb: [],
 };
 
-type ContextType = { plan: V1Beta1Plan | null };
+type ContextType = { plan: Plan | null };
 export default function PlanList() {
-  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
-  const [isPlansLoading, setIsPlansLoading] = useState(false);
+  const {
+    data: plansResponse,
+    isLoading: isPlansLoading,
+    error,
+    isError,
+  } = useQuery(FrontierServiceQueries.listPlans, {}, {
+    staleTime: Infinity,
+  });
 
-  useEffect(() => {
-    async function getAllPlans() {
-      setIsPlansLoading(true);
-      try {
-        const resp = await api?.frontierServiceListPlans();
-        const plans = resp?.data?.plans ?? [];
-        setPlans(plans);
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setIsPlansLoading(false);
-      }
-    }
-    getAllPlans();
-  }, []);
+  const plans = plansResponse?.plans || [];
 
   let { planId } = useParams();
 
@@ -53,6 +45,20 @@ export default function PlanList() {
 
   function onClose() {
     navigate("/plans");
+  }
+
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Plans"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading plans. Please try again."
+        }
+      />
+    );
   }
 
   return (
