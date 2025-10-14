@@ -30,7 +30,8 @@ export const OrganizationProfile = ({
   showAPIKeys = false,
   showPreferences = false,
   hideToast = false,
-  customScreens = []
+  customScreens = [],
+  onLogout = () => {}
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
@@ -50,7 +51,8 @@ export const OrganizationProfile = ({
       showAPIKeys,
       hideToast,
       showPreferences,
-      customRoutes
+      customRoutes,
+      onLogout
     }
   });
   return <RouterProvider router={memoryRouter} />;

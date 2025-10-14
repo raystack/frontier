@@ -14,6 +14,9 @@ import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
 import { styles } from '../styles';
+import { useMutation, FrontierServiceQueries } from '~hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { createConnectQueryKey } from '@connectrpc/connect-query';
 
 const generalSchema = yup
   .object({
@@ -26,7 +29,21 @@ const generalSchema = yup
 type FormData = yup.InferType<typeof generalSchema>;
 
 export const UpdateProfile = () => {
-  const { client, user, isUserLoading: isLoading, setUser } = useFrontier();
+  const { user, isUserLoading: isLoading } = useFrontier();
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateCurrentUser } = useMutation(
+    FrontierServiceQueries.updateCurrentUser,
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.getCurrentUser,
+            cardinality: 'finite'
+          })
+        });
+      }
+    }
+  );
   const {
     reset,
     control,
@@ -43,13 +60,11 @@ export const UpdateProfile = () => {
 
   async function onSubmit(data: FormData) {
     try {
-      if (!client) return;
       if (!user?.id) return;
 
-      const updatedUser = await client.frontierServiceUpdateCurrentUser(data);
-      if (updatedUser?.data?.user) {
-        setUser(updatedUser?.data?.user);
-      }
+      await updateCurrentUser({
+        body: data
+      });
       toast.success('Updated user');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

@@ -123,7 +123,7 @@ export const TeamPage = () => {
         />
         <Text size="large">Teams</Text>
       </Flex>
-      <Tabs.Root defaultValue="general" className={styles.container}>
+      <Tabs defaultValue="general" className={styles.container}>
         <Tabs.List>
           <Tabs.Trigger value="general">General</Tabs.Trigger>
           <Tabs.Trigger value="members">Members</Tabs.Trigger>
@@ -145,7 +145,7 @@ export const TeamPage = () => {
             refetchMembers={getTeamMembers}
           />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
       <Outlet />
     </Flex>
   );

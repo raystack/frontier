@@ -12,6 +12,51 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestHandler_DeleteProject(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(as *mocks.CascadeDeleter)
+		request *connect.Request[frontierv1beta1.DeleteProjectRequest]
+		want    *connect.Response[frontierv1beta1.DeleteProjectResponse]
+		wantErr error
+	}{
+		{
+			name: "should return success if deleted by id return nil error",
+			setup: func(as *mocks.CascadeDeleter) {
+				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+				Id: "some-id",
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.DeleteProjectResponse{}),
+			wantErr: nil,
+		},
+		{
+			name: "should return error if deleter service encounters an error",
+			setup: func(as *mocks.CascadeDeleter) {
+				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(errors.New("some error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+				Id: "some-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockDeleteSrv := new(mocks.CascadeDeleter)
+			if tt.setup != nil {
+				tt.setup(mockDeleteSrv)
+			}
+			mockDel := &ConnectHandler{deleterService: mockDeleteSrv}
+			resp, err := mockDel.DeleteProject(context.Background(), tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
 func TestHandler_DeleteOrganization(t *testing.T) {
 	tests := []struct {
 		name    string

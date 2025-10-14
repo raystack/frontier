@@ -22,6 +22,7 @@ import PlansIcon from "~/assets/icons/plans.svg?react";
 import WebhooksIcon from "~/assets/icons/webhooks.svg?react";
 import PreferencesIcon from "~/assets/icons/preferences.svg?react";
 import AdminsIcon from "~/assets/icons/admins.svg?react";
+import CpuChipIcon from "~/assets/icons/cpu-chip.svg?react";
 import { AppContext } from "~/contexts/App";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { Link, useLocation } from "react-router-dom";
@@ -45,6 +46,11 @@ const navigationItems: NavigationItemsTypes[] = [
     name: "Users",
     to: `/users`,
     icon: <UserIcon />,
+  },
+  {
+    name: "Audit Logs",
+    to: `/audit-logs`,
+    icon: <CpuChipIcon />,
   },
   {
     name: "Invoices",
@@ -132,21 +138,19 @@ export default function IAMSidebar() {
         </Text>
       </Sidebar.Header>
       <Sidebar.Main>
-        {navigationItems.map((nav) => {
+        {navigationItems.map(nav => {
           return nav?.subItems?.length ? (
             <Sidebar.Group
               label={nav.name}
               key={nav.name}
-              className={styles["sidebar-group"]}
-            >
-              {nav.subItems?.map((subItem) => (
+              className={styles["sidebar-group"]}>
+              {nav.subItems?.map(subItem => (
                 <Sidebar.Item
                   leadingIcon={subItem.icon}
                   key={subItem.name}
                   active={isActive(subItem.to)}
                   data-test-id={`admin-ui-sidebar-navigation-cell-${subItem.name}`}
-                  as={<Link to={subItem?.to ?? ""} />}
-                >
+                  as={<Link to={subItem?.to ?? ""} />}>
                   {subItem.name}
                 </Sidebar.Item>
               ))}
@@ -157,8 +161,7 @@ export default function IAMSidebar() {
               key={nav.name}
               active={isActive(nav.to)}
               data-test-id={`admin-ui-sidebar-navigation-cell-${nav.name}`}
-              as={<Link to={nav?.to ?? ""} />}
-            >
+              as={<Link to={nav?.to ?? ""} />}>
               {nav.name}
             </Sidebar.Item>
           );
@@ -203,22 +206,19 @@ function UserDropdown() {
           leadingIcon={
             <Avatar src={user?.avatar} fallback={userInital} size={3} />
           }
-          data-test-id="frontier-sdk-sidebar-logout"
-        >
+          data-test-id="frontier-sdk-sidebar-logout">
           {user?.email}
         </Sidebar.Item>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         <DropdownMenu.Item
           onClick={toggleTheme}
-          data-test-id="admin-ui-toggle-theme"
-        >
+          data-test-id="admin-ui-toggle-theme">
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>
         <DropdownMenu.Item
           onClick={() => logoutMutation.mutate({})}
-          data-test-id="admin-ui-logout-btn"
-        >
+          data-test-id="admin-ui-logout-btn">
           Logout
         </DropdownMenu.Item>
       </DropdownMenu.Content>

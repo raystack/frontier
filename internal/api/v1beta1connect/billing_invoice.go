@@ -63,9 +63,14 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 		invoicePBs = append(invoicePBs, invoicePB)
 	}
 
-	return connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
+	response := &frontierv1beta1.ListInvoicesResponse{
 		Invoices: invoicePBs,
-	}), nil
+	}
+
+	// Handle response enrichment based on expand field
+	response = h.enrichListInvoicesResponse(ctx, request.Msg, response)
+
+	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse], error) {
@@ -171,4 +176,28 @@ func transformInvoiceToSearchPB(v invoice.InvoiceWithOrganization) *frontierv1be
 		OrgName:     v.OrgName,
 		OrgTitle:    v.OrgTitle,
 	}
+}
+
+// enrichListInvoicesResponse enriches the response with expanded fields
+func (h *ConnectHandler) enrichListInvoicesResponse(ctx context.Context, req *frontierv1beta1.ListInvoicesRequest, resp *frontierv1beta1.ListInvoicesResponse) *frontierv1beta1.ListInvoicesResponse {
+	expandModels := parseExpandModels(req)
+	if len(expandModels) == 0 {
+		// no need to enrich the response
+		return resp
+	}
+
+	if len(resp.GetInvoices()) > 0 {
+		for iIdx, i := range resp.GetInvoices() {
+			if expandModels["customer"] {
+				ba, _ := h.GetBillingAccount(ctx, connect.NewRequest(&frontierv1beta1.GetBillingAccountRequest{
+					Id: i.GetCustomerId(),
+				}))
+				if ba != nil && ba.Msg != nil {
+					resp.Invoices[iIdx].Customer = ba.Msg.GetBillingAccount()
+				}
+			}
+		}
+	}
+
+	return resp
 }

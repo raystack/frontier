@@ -12,6 +12,9 @@ export default function Organization() {
         showTokens={true}
         showPreferences={true}
         showAPIKeys={true}
+        onLogout={() => {
+          window.location.href = '/login';
+        }}
       />
     </Window>
   ) : null;

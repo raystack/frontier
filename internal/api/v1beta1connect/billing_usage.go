@@ -3,12 +3,14 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/credit"
 	"github.com/raystack/frontier/billing/usage"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -84,9 +86,14 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 		transactions = append(transactions, transactionPB)
 	}
 
-	return connect.NewResponse(&frontierv1beta1.ListBillingTransactionsResponse{
+	response := &frontierv1beta1.ListBillingTransactionsResponse{
 		Transactions: transactions,
-	}), nil
+	}
+
+	// Handle response enrichment based on expand field
+	response = h.enrichListBillingTransactionsResponse(ctx, request.Msg, response)
+
+	return connect.NewResponse(response), nil
 }
 
 func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[frontierv1beta1.TotalDebitedTransactionsResponse], error) {
@@ -143,4 +150,60 @@ func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connec
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.RevertBillingUsageResponse{}), nil
+}
+
+// IsUserIDSuperUser returns true if the user ID is a super user
+func (h *ConnectHandler) IsUserIDSuperUser(ctx context.Context, userID string) (bool, error) {
+	return h.userService.IsSudo(ctx, userID, schema.PlatformSudoPermission)
+}
+
+// parseExpandModels extracts expand field values from any request using reflection
+func parseExpandModels(req any) map[string]bool {
+	expandModels := map[string]bool{}
+	expandReflect := reflect.ValueOf(req).Elem().FieldByName("Expand")
+	if expandReflect.IsValid() && expandReflect.Len() > 0 {
+		for i := 0; i < expandReflect.Len(); i++ {
+			expandModels[strings.ToLower(expandReflect.Index(i).String())] = true
+		}
+	}
+	return expandModels
+}
+
+// enrichListBillingTransactionsResponse enriches the response with expanded fields
+func (h *ConnectHandler) enrichListBillingTransactionsResponse(ctx context.Context, req *frontierv1beta1.ListBillingTransactionsRequest, resp *frontierv1beta1.ListBillingTransactionsResponse) *frontierv1beta1.ListBillingTransactionsResponse {
+	expandModels := parseExpandModels(req)
+	if len(expandModels) == 0 {
+		// no need to enrich the response
+		return resp
+	}
+
+	if len(resp.GetTransactions()) > 0 {
+		for tIdx, t := range resp.GetTransactions() {
+			if expandModels["customer"] && len(t.GetCustomerId()) > 0 {
+				ba, _ := h.GetBillingAccount(ctx, connect.NewRequest(&frontierv1beta1.GetBillingAccountRequest{
+					Id: t.GetCustomerId(),
+				}))
+				if ba != nil && ba.Msg != nil {
+					resp.Transactions[tIdx].Customer = ba.Msg.GetBillingAccount()
+				}
+			}
+
+			if expandModels["user"] && len(t.GetUserId()) > 0 {
+				// if we allowed anyone to report usage with a user id, a bad actor can pass any user id
+				// and retrieve user information.
+				user, _ := h.GetUser(ctx, connect.NewRequest(&frontierv1beta1.GetUserRequest{
+					Id: t.GetUserId(),
+				}))
+				if user != nil && user.Msg != nil {
+					if isSuper, err := h.IsUserIDSuperUser(ctx, user.Msg.GetUser().GetId()); err == nil {
+						if !isSuper {
+							resp.Transactions[tIdx].User = user.Msg.GetUser()
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return resp
 }

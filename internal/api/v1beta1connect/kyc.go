@@ -52,7 +52,12 @@ func (h *ConnectHandler) GetOrganizationKyc(ctx context.Context, request *connec
 	if err != nil {
 		switch {
 		case errors.Is(err, kyc.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, kyc.ErrNotExist)
+			// Return default KYC record instead of 404
+			orgKyc = kyc.KYC{
+				OrgID:  request.Msg.GetOrgId(),
+				Status: false,
+				Link:   "",
+			}
 		default:
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}

@@ -2,10 +2,11 @@ import { useCallback, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from '@raystack/apsara';
-import { SubscriptionPhase, V1Beta1CheckoutSession, V1Beta1Plan } from '~/src';
+import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { PlanMetadata } from '~/src/types';
 import { NIL as NIL_UUID } from 'uuid';
+import { Plan } from '@raystack/proton/frontier';
 
 interface checkoutPlanOptions {
   isTrial: boolean;
@@ -50,7 +51,7 @@ export const usePlans = () => {
   const planMap = allPlans.reduce((acc, p) => {
     if (p.id) acc[p.id] = p;
     return acc;
-  }, {} as Record<string, V1Beta1Plan>);
+  }, {} as Record<string, Plan>);
 
   const isCurrentlyTrialing = subscriptions?.some(
     sub => sub.state === SUBSCRIPTION_STATES.TRIALING
@@ -164,7 +165,7 @@ export const usePlans = () => {
       const activeSub = await fetchActiveSubsciption();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
-          phase => phase?.plan_id === planId && phase.reason === 'change'
+          phase => phase?.planId === planId && phase.reason === 'change'
         );
         if (planPhase) {
           onSuccess(planPhase);
@@ -180,7 +181,7 @@ export const usePlans = () => {
       const activeSub = await fetchActiveSubsciption();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
-          phase => phase?.plan_id === '' && phase.reason === 'cancel'
+          phase => phase?.planId === '' && phase.reason === 'cancel'
         );
         if (planPhase) {
           onSuccess(planPhase);
@@ -193,11 +194,11 @@ export const usePlans = () => {
 
   const getSubscribedPlans = useCallback(() => {
     return subscriptions
-      .map(t => (t.plan_id ? planMap[t.plan_id] : null))
-      .filter((plan): plan is V1Beta1Plan => !!plan);
+      .map(t => (t.planId ? planMap[t.planId] : null))
+      .filter((plan): plan is Plan => !!plan);
   }, [planMap, subscriptions]);
 
-  const getTrialedPlanMaxWeightage = (plans: V1Beta1Plan[]) => {
+  const getTrialedPlanMaxWeightage = (plans: Plan[]) => {
     return Math.max(
       ...plans
         .map(plan => {

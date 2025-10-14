@@ -15363,10 +15363,28 @@ func (m *ListUserSessionsRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = ListUserSessionsRequestValidationError{
+			field:  "UserId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return ListUserSessionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ListUserSessionsRequest) _validateUuid(uuid string) error {
+	if matched := _admin_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -15603,12 +15621,28 @@ func (m *RevokeUserSessionRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for UserId
-
-	// no validation rules for SessionId
+	if err := m._validateUuid(m.GetSessionId()); err != nil {
+		err = RevokeUserSessionRequestValidationError{
+			field:  "SessionId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return RevokeUserSessionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *RevokeUserSessionRequest) _validateUuid(uuid string) error {
+	if matched := _admin_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

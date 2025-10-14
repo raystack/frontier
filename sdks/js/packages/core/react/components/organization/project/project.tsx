@@ -167,7 +167,7 @@ export const ProjectPage = () => {
         />
         <Text size="large">Projects</Text>
       </Flex>
-      <Tabs.Root defaultValue="general" className={styles.container}>
+      <Tabs defaultValue="general" className={styles.container}>
         <Tabs.List>
           <Tabs.Trigger value="general">General</Tabs.Trigger>
           <Tabs.Trigger value="members">Members</Tabs.Trigger>
@@ -190,7 +190,7 @@ export const ProjectPage = () => {
             refetch={refetchTeamAndMembers}
           />
         </Tabs.Content>
-      </Tabs.Root>
+      </Tabs>
       <Outlet />
     </Flex>
   );

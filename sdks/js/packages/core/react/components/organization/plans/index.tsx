@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
-import { EmptyState, toast, Skeleton, Text, Flex } from '@raystack/apsara';
+import { EmptyState, Skeleton, Text, Flex } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { groupPlansPricingByInterval } from './helpers';
 import { IntervalPricingWithPlan } from '~/src/types';
 import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';
@@ -12,6 +10,11 @@ import { PlanPricingColumn } from './pricing-column';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import plansStyles from './plans.module.css';
 import { styles } from '../styles';
+import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '~hooks';
+import { create } from '@bufbuild/protobuf';
+import { Feature, ListFeaturesRequestSchema } from '@raystack/proton/frontier';
+import { Plan } from '@raystack/proton/frontier';
 
 const PlansLoader = () => {
   return (
@@ -36,10 +39,10 @@ const NoPlans = () => {
 };
 
 interface PlansListProps {
-  plans: V1Beta1Plan[];
+  plans: Plan[];
   currentPlanId: string;
   allowAction: boolean;
-  features: V1Beta1Feature[];
+  features: Feature[];
 }
 
 const PlansList = ({
@@ -127,48 +130,28 @@ const PlansList = ({
 export default function Plans() {
   const {
     config,
-    client,
     activeSubscription,
     isActiveSubscriptionLoading,
     isActiveOrganizationLoading,
-    basePlan
+    basePlan,
+    allPlans,
+    isAllPlansLoading
   } = useFrontier();
-  const [isPlansLoading, setIsPlansLoading] = useState(false);
-  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
-  const [features, setFeatures] = useState<V1Beta1Feature[]>([]);
 
   const { isFetching: isPermissionsFetching, isAllowed: canChangePlan } =
     useBillingPermission();
 
-  useEffect(() => {
-    async function getPlansAndFeatures() {
-      setIsPlansLoading(true);
-      try {
-        const [planResp, featuresResp] = await Promise.all([
-          client?.frontierServiceListPlans(),
-          client?.frontierServiceListFeatures()
-        ]);
-        if (planResp?.data?.plans) {
-          setPlans([...(basePlan ? [basePlan] : []), ...planResp?.data?.plans]);
-        }
-        if (featuresResp?.data?.features) {
-          setFeatures(featuresResp?.data?.features);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsPlansLoading(false);
-      }
-    }
+  const { data: featuresData } = useConnectQuery(
+    FrontierServiceQueries.listFeatures,
+    create(ListFeaturesRequestSchema, {})
+  );
 
-    getPlansAndFeatures();
-  }, [client, basePlan]);
+  const features = (featuresData?.features || []) as Feature[];
+
+  const plans = [...(basePlan ? [basePlan] : []), ...allPlans];
 
   const isLoading =
-    isPlansLoading ||
+    isAllPlansLoading ||
     isPermissionsFetching ||
     isActiveSubscriptionLoading ||
     isActiveOrganizationLoading;
@@ -193,7 +176,7 @@ export default function Plans() {
           <PlansList
             plans={plans}
             features={features}
-            currentPlanId={activeSubscription?.plan_id || ''}
+            currentPlanId={activeSubscription?.planId || ''}
             allowAction={canChangePlan}
           />
         )}

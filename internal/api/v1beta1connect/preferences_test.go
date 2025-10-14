@@ -96,17 +96,17 @@ func TestConnectHandler_DescribePreferences(t *testing.T) {
 					{
 						ResourceType: "organization",
 						Name:         "text_input",
-						Input:        &frontierv1beta1.PreferenceTrait_Text{},
+						InputType:    frontierv1beta1.PreferenceTrait_INPUT_TYPE_TEXT,
 					},
 					{
 						ResourceType: "organization",
 						Name:         "select_input",
-						Input:        &frontierv1beta1.PreferenceTrait_Select{},
+						InputType:    frontierv1beta1.PreferenceTrait_INPUT_TYPE_SELECT,
 					},
 					{
 						ResourceType: "organization",
 						Name:         "checkbox_input",
-						Input:        &frontierv1beta1.PreferenceTrait_Checkbox{},
+						InputType:    frontierv1beta1.PreferenceTrait_INPUT_TYPE_CHECKBOX,
 					},
 				},
 			}),

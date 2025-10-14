@@ -1,5 +1,7 @@
-import { V1Beta1Plan } from '~/src';
+import { Plan } from '@raystack/proton/frontier';
 import { groupPlansPricingByInterval } from './index';
+import { create } from '@bufbuild/protobuf';
+import { PlanSchema } from '@raystack/proton/frontier';
 
 describe('Plans:helpers:groupPlansPricingByInterval', () => {
   test('should return empty array for no plans', () => {
@@ -7,8 +9,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
     expect(result).toEqual([]);
   });
   test('should merge plan based on name and productIds', () => {
-    const plans: V1Beta1Plan[] = [
-      {
+    const plans: Plan[] = [
+      create(PlanSchema, {
         id: 'plan-1',
         name: 'starter_plan_plan-1',
         title: 'Starter Plan',
@@ -19,12 +21,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -34,20 +36,20 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-2',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
             ]
           }
         ]
-      },
-      {
+      }),
+      create(PlanSchema, {
         id: 'plan-2',
         name: 'starter_plan_plan-2',
         title: 'Starter Plan',
@@ -58,12 +60,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -73,20 +75,20 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-2',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
             ]
           }
         ]
-      },
-      {
+      }),
+      create(PlanSchema, {
         id: 'plan-3',
         name: 'starter_plan_plan-3',
         title: 'Starter Plan 3',
@@ -97,12 +99,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -112,19 +114,19 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-3',
             prices: [
               {
-                amount: '100',
+                amount: BigInt(100),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '500',
+                amount: BigInt(500),
                 interval: 'month',
                 currency: 'INR'
               }
             ]
           }
         ]
-      }
+      })
     ];
 
     const result = groupPlansPricingByInterval(plans);
@@ -139,19 +141,23 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             planId: 'plan-1',
             planName: 'starter_plan_plan-1',
             amount: 0,
-            behavior: '',
             currency: 'INR',
             interval: 'year',
-            weightage: 0
+            weightage: 0,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           },
           month: {
             planId: 'plan-2',
             planName: 'starter_plan_plan-2',
             amount: 0,
-            behavior: '',
             currency: 'INR',
             interval: 'month',
-            weightage: 0
+            weightage: 0,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           }
         },
         features: {}
@@ -164,12 +170,14 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         intervals: {
           month: {
             amount: 500,
-            behavior: '',
             currency: 'INR',
             planId: 'plan-3',
             planName: 'starter_plan_plan-3',
             interval: 'month',
-            weightage: 0
+            weightage: 0,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           }
         },
         features: {}
@@ -178,8 +186,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
   });
 
   test('should add plans weightage', () => {
-    const plans: V1Beta1Plan[] = [
-      {
+    const plans: Plan[] = [
+      create(PlanSchema, {
         id: 'plan-1',
         name: 'starter_plan_plan-1',
         title: 'Starter Plan',
@@ -190,12 +198,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -205,12 +213,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-2',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -220,8 +228,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         metadata: {
           weightage: '1'
         }
-      },
-      {
+      }),
+      create(PlanSchema, {
         id: 'plan-2',
         name: 'starter_plan_plan-2',
         title: 'Starter Plan',
@@ -232,12 +240,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -247,12 +255,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-2',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -262,8 +270,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         metadata: {
           weightage: '2'
         }
-      },
-      {
+      }),
+      create(PlanSchema, {
         id: 'plan-3',
         name: 'starter_plan_plan-3',
         title: 'Starter Plan 3',
@@ -274,12 +282,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -289,12 +297,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-3',
             prices: [
               {
-                amount: '100',
+                amount: BigInt(100),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '500',
+                amount: BigInt(500),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -304,7 +312,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         metadata: {
           weightage: '5'
         }
-      }
+      })
     ];
 
     const result = groupPlansPricingByInterval(plans);
@@ -319,19 +327,23 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             planId: 'plan-1',
             planName: 'starter_plan_plan-1',
             amount: 0,
-            behavior: '',
             currency: 'INR',
             interval: 'year',
-            weightage: 1
+            weightage: 1,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           },
           month: {
             planId: 'plan-2',
             planName: 'starter_plan_plan-2',
             amount: 0,
-            behavior: '',
             currency: 'INR',
             interval: 'month',
-            weightage: 2
+            weightage: 2,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           }
         },
         features: {}
@@ -344,12 +356,14 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         intervals: {
           month: {
             amount: 500,
-            behavior: '',
             currency: 'INR',
             planId: 'plan-3',
             planName: 'starter_plan_plan-3',
             interval: 'month',
-            weightage: 5
+            weightage: 5,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           }
         },
         features: {}
@@ -358,8 +372,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
   });
 
   test('should group plans based on `plan_group_id`', () => {
-    const plans: V1Beta1Plan[] = [
-      {
+    const plans: Plan[] = [
+      create(PlanSchema, {
         id: 'plan-1',
         name: 'starter_plan_plan-1',
         title: 'Starter Plan',
@@ -370,12 +384,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -385,12 +399,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-2',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -401,8 +415,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
           weightage: '1',
           plan_group_id: 'group-1'
         }
-      },
-      {
+      }),
+      create(PlanSchema, {
         id: 'plan-2',
         name: 'starter_plan_plan-2',
         title: 'Starter Plan',
@@ -413,12 +427,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -428,12 +442,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-2',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -444,8 +458,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
           weightage: '2',
           plan_group_id: 'group-1'
         }
-      },
-      {
+      }),
+      create(PlanSchema, {
         id: 'plan-3',
         name: 'starter_plan_plan-3',
         title: 'Starter Plan 3',
@@ -456,12 +470,12 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-1',
             prices: [
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '0',
+                amount: BigInt(0),
                 interval: 'month',
                 currency: 'INR'
               }
@@ -471,17 +485,17 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             id: 'product-3',
             prices: [
               {
-                amount: '100',
+                amount: BigInt(100),
                 interval: 'year',
                 currency: 'INR'
               },
               {
-                amount: '500',
+                amount: BigInt(500),
                 interval: 'month',
                 currency: 'INR'
               },
               {
-                amount: '500',
+                amount: BigInt(500),
                 interval: 'week',
                 currency: 'INR'
               }
@@ -492,7 +506,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
           weightage: '5',
           plan_group_id: 'group-1'
         }
-      }
+      })
     ];
 
     const result = groupPlansPricingByInterval(plans);
@@ -507,28 +521,34 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             planId: 'plan-1',
             planName: 'starter_plan_plan-1',
             amount: 0,
-            behavior: '',
             currency: 'INR',
             interval: 'year',
-            weightage: 1
+            weightage: 1,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           },
           month: {
             planId: 'plan-2',
             planName: 'starter_plan_plan-2',
             amount: 0,
-            behavior: '',
             currency: 'INR',
             interval: 'month',
-            weightage: 2
+            weightage: 2,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           },
           week: {
             amount: 500,
-            behavior: '',
             currency: 'INR',
             planId: 'plan-3',
             planName: 'starter_plan_plan-3',
             interval: 'week',
-            weightage: 5
+            weightage: 5,
+            productNames: ['', ''],
+            trial_days: '',
+            features: {}
           }
         },
         features: {}
