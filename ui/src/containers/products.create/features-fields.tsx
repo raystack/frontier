@@ -30,9 +30,9 @@ export const FeatureFields = ({
               </Select.Trigger>
               <Select.Content style={{ width: "320px" }}>
                 <Select.Group>
-                  {behaviors.map((price: { value: string; title: string }) => (
-                    <Select.Item value={price.value} key={price.value}>
-                      {price.title}
+                  {behaviors.map((behaviour: { value: string; title: string }) => (
+                    <Select.Item value={behaviour.value} key={behaviour.value}>
+                      {behaviour.title}
                     </Select.Item>
                   ))}
                 </Select.Group>
