@@ -57,6 +57,16 @@ export default function CreateOrUpdateProduct({
       [],
       ["features"],
     )(data).map((f: Feature) => ({ label: f.name, value: f.name }));
+
+    // Transform prices - convert bigint amount to string for form input
+    if (data.prices && data.prices.length > 0) {
+      data.prices = data.prices.map((p: any) => ({
+        name: p.name,
+        interval: p.interval,
+        amount: p.amount?.toString() || "",
+      }));
+    }
+
     methods.reset(data);
   }, [product]);
 

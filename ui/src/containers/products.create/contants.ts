@@ -54,10 +54,7 @@ export const productSchema = z.object({
     .object({
       name: z.string(),
       interval: z.string(),
-      amount: z
-        .string()
-        .refine((num) => parseInt(num))
-        .transform(Number),
+      amount: z.coerce.bigint(),
     })
     .array()
     .default([]),
