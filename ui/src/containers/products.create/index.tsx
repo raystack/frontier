@@ -47,6 +47,8 @@ export default function CreateOrUpdateProduct({
   }, []);
 
   useEffect(() => {
+    if (!product) return;
+
     const data = { ...product } as any;
     const metadata = Object.keys(data.metadata || {}).map((m) => ({
       key: m,

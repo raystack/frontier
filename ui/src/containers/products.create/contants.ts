@@ -13,7 +13,7 @@ export const behaviors = [
   { value: "credits", title: "Credits" },
 ];
 
-export const defaultFormValues = {
+export const defaultFormValues: ProductForm = {
   title: "",
   name: "",
   description: "",
@@ -22,6 +22,7 @@ export const defaultFormValues = {
     {
       name: "",
       interval: "",
+      amount: BigInt(0),
     },
   ],
   behaviorConfig: {
@@ -36,6 +37,8 @@ export const defaultFormValues = {
       value: "",
     },
   ],
+  features: [],
+  newfeatures: ""
 };
 
 export type ProductForm = z.infer<typeof productSchema>;
