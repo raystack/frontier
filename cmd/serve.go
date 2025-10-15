@@ -416,7 +416,6 @@ func buildAPIDependencies(
 	groupRepository := postgres.NewGroupRepository(dbc)
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 
-	// Create roleService, policyService, userService with circular dependencies
 	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository)
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
 	userService := user.NewService(userRepository, relationService, policyService, roleService)
