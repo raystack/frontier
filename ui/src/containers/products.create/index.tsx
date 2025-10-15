@@ -76,7 +76,6 @@ export default function CreateOrUpdateProduct({
       };
     }
 
-    console.log("Form data to reset:", data);
 
     methods.reset(data);
   }, [product]);
