@@ -71,7 +71,7 @@ export const PriceFields = ({
                     prices.append({
                       name: "",
                       interval: "",
-                      amount: "" as any,
+                      amount: BigInt(0),
                     });
                   }}
                 >
