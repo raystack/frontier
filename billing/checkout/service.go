@@ -357,6 +357,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Metadata: map[string]any{
 				"plan_name":            plan.Name,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
+				"org_id":               billingCustomer.OrgID,
+				"customer_name":        billingCustomer.Name,
 			},
 			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		})
@@ -477,6 +479,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Metadata: map[string]any{
 				"product_name":         chProduct.Name,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
+				"org_id":               billingCustomer.OrgID,
+				"customer_name":        billingCustomer.Name,
 			},
 			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		})
@@ -813,7 +817,9 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 		State:       string(stripeCheckout.Status),
 		ExpireAt:    utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		Metadata: map[string]any{
-			"mode": "setup",
+			"mode":          "setup",
+			"org_id":        billingCustomer.OrgID,
+			"customer_name": billingCustomer.Name,
 		},
 	})
 }

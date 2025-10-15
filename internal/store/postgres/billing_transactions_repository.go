@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
+
 	"github.com/raystack/frontier/billing/customer"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -163,6 +165,54 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 			if err := r.createTransactionEntry(ctx, tx, creditEntry, &creditModel); err != nil {
 				return fmt.Errorf("failed to create credit entry: %w", err)
 			}
+
+			auditCustomerID := debitEntry.CustomerID
+			if auditCustomerID == schema.PlatformOrgID.String() {
+				auditCustomerID = creditEntry.CustomerID
+			}
+
+			if auditCustomerID != schema.PlatformOrgID.String() {
+				// Determine if this is credit or debit for the customer
+				var eventType string
+				var txModel Transaction
+				var txEntry credit.Transaction
+
+				if debitEntry.CustomerID == auditCustomerID {
+					eventType = auditrecord.BillingTransactionDebitEvent.String()
+					txModel = debitModel
+					txEntry = debitEntry
+				} else {
+					eventType = auditrecord.BillingTransactionCreditEvent.String()
+					txModel = creditModel
+					txEntry = creditEntry
+				}
+
+				auditRecord := BuildAuditRecord(
+					ctx,
+					eventType,
+					AuditResource{
+						ID:   auditCustomerID,
+						Type: "billing_customer",
+						Name: customerAcc.Name,
+					},
+					&AuditTarget{
+						ID:   txModel.ID,
+						Type: "billing_transaction",
+						Metadata: map[string]interface{}{
+							"amount":      txEntry.Amount,
+							"source":      txEntry.Source,
+							"description": txEntry.Description,
+						},
+					},
+					customerAcc.OrgID,
+					nil,
+					debitModel.CreatedAt,
+				)
+				if err := InsertAuditRecordInTx(ctx, tx, auditRecord); err != nil {
+					return fmt.Errorf("failed to insert audit record: %w", err)
+				}
+			}
+
 			return nil
 		})
 	})
