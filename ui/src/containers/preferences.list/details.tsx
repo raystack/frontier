@@ -180,7 +180,7 @@ export default function PreferenceDetails() {
 
   const onSave = useCallback(async () => {
     try {
-      await createPreferences(create(CreatePreferencesRequestSchema,{
+      await createPreferences(create(CreatePreferencesRequestSchema, {
         preferences: [
           {
             name,
