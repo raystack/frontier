@@ -197,6 +197,13 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
 	}
 
+	// Fetch organization to get name for audit record
+	org, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	metaDataMap["org_name"] = org.Title
+
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		Name:        request.Msg.GetBody().GetName(),
 		Title:       request.Msg.GetBody().GetTitle(),
@@ -264,6 +271,13 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
 	}
+
+	// Fetch organization to get name for audit record
+	org, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	metaDataMap["org_name"] = org.Title
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
 		ID:          request.Msg.GetId(),

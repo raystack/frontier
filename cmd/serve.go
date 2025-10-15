@@ -373,14 +373,11 @@ func buildAPIDependencies(
 	relationPGRepository := postgres.NewRelationRepository(dbc)
 	relationService := relation.NewService(relationPGRepository, authzRelationRepository)
 
+	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
+
 	roleRepository := postgres.NewRoleRepository(dbc)
-	roleService := role.NewService(roleRepository, relationService, permissionService)
-
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
-	policyService := policy.NewService(policyPGRepository, relationService, roleService)
-
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, relationService, policyService, roleService)
 
 	prospectRepository := postgres.NewProspectRepository(dbc)
 	prospectService := prospect.NewService(prospectRepository)
@@ -415,15 +412,21 @@ func buildAPIDependencies(
 			return api.Deps{}, fmt.Errorf("failed to parse passkey config: %w", err)
 		}
 	}
-	authnService := authenticate.NewService(logger, cfg.App.Authentication,
-		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
-
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
+
+	// Create roleService, policyService, userService with circular dependencies
+	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository)
+	policyService := policy.NewService(policyPGRepository, relationService, roleService)
+	userService := user.NewService(userRepository, relationService, policyService, roleService)
+	authnService := authenticate.NewService(logger, cfg.App.Authentication,
+		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig)
+	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
-		authnService, policyService, preferenceService)
+		authnService, policyService, preferenceService, auditRecordRepository)
+
+	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
@@ -478,7 +481,8 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, preferenceService)
+		organizationService, groupService, userService, relationService, policyService, preferenceService,
+		auditRecordRepository)
 
 	if GetStripeClientFunc == nil {
 		// allow to override the stripe client creation function in tests
@@ -561,9 +565,6 @@ func buildAPIDependencies(
 		audit.WithLogPublisher(logPublisher),
 		audit.WithIgnoreList(cfg.Log.IgnoredAuditEvents),
 	)
-
-	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
-	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
 	dependencies := api.Deps{
 		OrgService:                       organizationService,

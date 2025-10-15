@@ -185,6 +185,37 @@ func extractSuperUserFromContext(ctx context.Context) bool {
 	return false
 }
 
+// enrichActorFromContext enriches actor from context
+func enrichActorFromContext(ctx context.Context, actor *auditrecord.Actor) {
+	actorID, actorType, actorName, actorMetadata := extractActorFromContext(ctx)
+
+	// Handle system actor (cron jobs, background tasks with no request context)
+	if actorID == "" {
+		actor.ID = uuid.Nil.String()
+		actor.Type = pkgAuditRecord.SystemActor
+		actor.Name = pkgAuditRecord.SystemActor
+		return
+	}
+
+	actor.ID = actorID
+	actor.Type = actorType
+	actor.Name = actorName
+	actor.Metadata = actorMetadata
+
+	// Add additional enrichments
+	if actor.Metadata == nil {
+		actor.Metadata = make(map[string]interface{})
+	}
+
+	if isSuperUser := extractSuperUserFromContext(ctx); isSuperUser {
+		actor.Metadata[consts.AuditActorSuperUserKey] = true
+	}
+
+	if sessionMetadata := extractSessionMetadataFromContext(ctx); sessionMetadata != nil {
+		actor.Metadata[consts.AuditSessionMetadataKey] = sessionMetadata
+	}
+}
+
 type AuditResource struct {
 	ID       string
 	Type     string
@@ -201,36 +232,19 @@ type AuditTarget struct {
 
 // BuildAuditRecord creates an AuditRecord from context and event data
 func BuildAuditRecord(ctx context.Context, event string, resource AuditResource, target *AuditTarget, orgID string, eventMetadata metadata.Metadata, occurredAt time.Time) AuditRecord {
-	actorID, actorType, actorName, actorMetadata := extractActorFromContext(ctx)
+	// Use enrichActorFromContext to get actor details
+	var actor auditrecord.Actor
+	enrichActorFromContext(ctx, &actor)
 
-	if actorMetadata == nil {
-		actorMetadata = make(map[string]interface{})
-	}
-
-	if isSuperUser := extractSuperUserFromContext(ctx); isSuperUser {
-		actorMetadata[consts.AuditActorSuperUserKey] = true
-	}
-
-	if sessionMetadata := extractSessionMetadataFromContext(ctx); sessionMetadata != nil {
-		actorMetadata[consts.AuditSessionMetadataKey] = sessionMetadata
-	}
-
-	var actorUUID uuid.UUID
-	if actorID == "" { // cron jobs
-		actorUUID = uuid.Nil
-		actorType = pkgAuditRecord.SystemActor
-		actorName = pkgAuditRecord.SystemActor
-	} else {
-		actorUUID, _ = uuid.Parse(actorID)
-	}
+	actorUUID, _ := uuid.Parse(actor.ID)
 	orgUUID, _ := uuid.Parse(orgID)
 
 	record := AuditRecord{
 		Event:            event,
 		ActorID:          actorUUID,
-		ActorType:        actorType,
-		ActorName:        actorName,
-		ActorMetadata:    metadataToNullJSONText(actorMetadata),
+		ActorType:        actor.Type,
+		ActorName:        actor.Name,
+		ActorMetadata:    metadataToNullJSONText(actor.Metadata),
 		ResourceID:       resource.ID,
 		ResourceType:     resource.Type,
 		ResourceName:     resource.Name,

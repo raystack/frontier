@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/core/auditrecord"
+	auditMocks "github.com/raystack/frontier/core/auditrecord/mocks"
 	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
@@ -20,6 +22,7 @@ func Test_Get(t *testing.T) {
 	mockRepository := mocks.NewRepository(t)
 	mockRelationSvc := mocks.NewRelationService(t)
 	mockPermissionSvc := mocks.NewPermissionService(t)
+	mockAuditRecordRepo := auditMocks.NewRepository(t)
 
 	t.Run("should fetch by id if id is passed", func(t *testing.T) {
 		mockID := uuid.New().String()
@@ -30,7 +33,7 @@ func Test_Get(t *testing.T) {
 
 		mockRepository.On("Get", mock.Anything, mockID).Return(expectedRole, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		res, err := svc.Get(context.Background(), mockID)
 
 		assert.Equal(t, nil, err)
@@ -46,7 +49,7 @@ func Test_Get(t *testing.T) {
 
 		mockRepository.On("GetByName", mock.Anything, "", mockSlug).Return(expectedRole, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		res, err := svc.Get(context.Background(), mockSlug)
 
 		assert.Equal(t, nil, err)
@@ -59,7 +62,7 @@ func Test_Get(t *testing.T) {
 
 		mockRepository.On("Get", mock.Anything, mockID).Return(role.Role{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		_, err := svc.Get(context.Background(), mockID)
 
 		assert.NotNil(t, err)
@@ -71,6 +74,7 @@ func Test_List(t *testing.T) {
 	mockRepository := mocks.NewRepository(t)
 	mockRelationSvc := mocks.NewRelationService(t)
 	mockPermissionSvc := mocks.NewPermissionService(t)
+	mockAuditRecordRepo := auditMocks.NewRepository(t)
 
 	t.Run("should return roles", func(t *testing.T) {
 		expectedRoles := []role.Role{
@@ -88,7 +92,7 @@ func Test_List(t *testing.T) {
 
 		mockRepository.On("List", mock.Anything, f).Return(expectedRoles, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		res, err := svc.List(context.Background(), f)
 
 		assert.Equal(t, nil, err)
@@ -100,7 +104,7 @@ func Test_List(t *testing.T) {
 		f := role.Filter{}
 		mockRepository.On("List", mock.Anything, f).Return(nil, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		_, err := svc.List(context.Background(), f)
 
 		assert.NotNil(t, err)
@@ -112,6 +116,7 @@ func Test_Upsert(t *testing.T) {
 	mockRepository := mocks.NewRepository(t)
 	mockRelationSvc := mocks.NewRelationService(t)
 	mockPermissionSvc := mocks.NewPermissionService(t)
+	mockAuditRecordRepo := auditMocks.NewRepository(t)
 
 	t.Run("should return an error if one of the permissions in role does not exist", func(t *testing.T) {
 		nonExistentPermission := "non_existent_permission"
@@ -124,7 +129,7 @@ func Test_Upsert(t *testing.T) {
 		mockPermissionSvc.On("Get", mock.Anything, "app_project_viewer").Return(permission.Permission{}, nil).Once()
 		mockPermissionSvc.On("Get", mock.Anything, nonExistentPermission).Return(permission.Permission{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		_, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.NotNil(t, err)
@@ -148,7 +153,7 @@ func Test_Upsert(t *testing.T) {
 		mockPermissionSvc.On("Get", mock.Anything, "app_project_viewer").Return(permissionForRole, nil).Once()
 		mockRepository.On("Upsert", mock.Anything, role.Role{ID: roleToBeUpserted.ID, Permissions: []string{slugForPermission}}).Return(role.Role{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		_, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.NotNil(t, err)
@@ -189,7 +194,7 @@ func Test_Upsert(t *testing.T) {
 		expectedErr := errors.New("Error creating user role relation")
 		mockRelationSvc.On("Create", mock.Anything, userRoleRelation).Return(relation.Relation{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		_, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.NotNil(t, err)
@@ -242,7 +247,10 @@ func Test_Upsert(t *testing.T) {
 		}
 		mockRelationSvc.On("Create", mock.Anything, serviceUserRoleRelation).Return(relation.Relation{}, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc)
+		// Mock audit record repository
+		mockAuditRecordRepo.On("Create", mock.Anything, mock.Anything).Return(auditrecord.AuditRecord{}, nil).Once()
+
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
 		roleCreated, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.Nil(t, err)
