@@ -13,16 +13,6 @@ export function updateResponse(data: any) {
     return acc;
   }, {});
 
-  data.behavior_config = Object.keys(data.behavior_config || {}).reduce(
-    (acc: Record<string, number>, key: string) => {
-      if (data.behavior_config[key]) {
-        acc[key] = parseInt(data.behavior_config[key] || "");
-      }
-      return acc;
-    },
-    {}
-  );
-
   const newFeatures = splitAndTrim(data.newfeatures || "");
   delete data.newfeatures;
   data.features = [...data.features, ...newFeatures.map((f) => ({ name: f }))];

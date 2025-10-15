@@ -24,9 +24,11 @@ export const defaultFormValues = {
       interval: "",
     },
   ],
-  behavior_config: {
-    credit_amount: "",
-    seat_limit: "",
+  behaviorConfig: {
+    creditAmount: BigInt(0),
+    seatLimit: BigInt(0),
+    minQuantity: BigInt(0),
+    maxQuantity: BigInt(0),
   },
   metadata: [
     {
@@ -62,7 +64,13 @@ export const productSchema = z.object({
     .object({ key: z.string(), value: z.string() })
     .array()
     .default([]),
-  behavior_config: z.any().default({}),
+  behaviorConfig: z
+    .object({
+      creditAmount: z.coerce.bigint(),
+      seatLimit: z.coerce.bigint(),
+      minQuantity: z.coerce.bigint(),
+      maxQuantity: z.coerce.bigint(),
+    }),
   features: z.object({ name: z.string() }).array().default([]),
   newfeatures: z.string().default(""),
 });

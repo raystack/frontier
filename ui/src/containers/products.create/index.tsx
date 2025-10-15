@@ -31,7 +31,7 @@ export default function CreateOrUpdateProduct({
 
   const methods = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
-    defaultValues: { ...defaultFormValues },
+    defaultValues: defaultFormValues,
   });
 
   const { mutateAsync: createProduct } = useMutation(
@@ -48,15 +48,12 @@ export default function CreateOrUpdateProduct({
 
   useEffect(() => {
     const data = { ...product } as any;
-    const metadata = Object.keys(R.pathOr({}, ["metadata"])(data)).map((m) => ({
+    const metadata = Object.keys(data.metadata || {}).map((m) => ({
       key: m,
       value: data.metadata[m],
     }));
     data.metadata = metadata.length ? metadata : [{ key: "", value: "" }];
-    data.features = R.pathOr(
-      [],
-      ["features"],
-    )(data).map((f: Feature) => ({ label: f.name, value: f.name }));
+    data.features = (data.features || []).map((f: Feature) => ({ label: f.name, value: f.name }));
 
     // Transform prices - convert bigint amount to string for form input
     if (data.prices && data.prices.length > 0) {
@@ -66,6 +63,18 @@ export default function CreateOrUpdateProduct({
         amount: p.amount?.toString() || "",
       }));
     }
+
+    // Transform behaviorConfig - convert bigint fields to string for form input
+    if (data.behaviorConfig) {
+      data.behaviorConfig = {
+        creditAmount: data.behaviorConfig.creditAmount?.toString() || "",
+        seatLimit: data.behaviorConfig.seatLimit?.toString() || "",
+        minQuantity: data.behaviorConfig.minQuantity?.toString() || "",
+        maxQuantity: data.behaviorConfig.maxQuantity?.toString() || "",
+      };
+    }
+
+    console.log("Form data to reset:", data);
 
     methods.reset(data);
   }, [product]);

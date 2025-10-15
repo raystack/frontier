@@ -34,7 +34,7 @@ export const FeatureFields = ({
           render={({ field }) => (
             <Select
               onValueChange={(value: any) => field.onChange(value)}
-              defaultValue={methods.getValues(`behavior`)}
+              value={field.value}
               data-test-id="admin-ui-behaviour-select"
             >
               <Select.Trigger style={{ height: "26px", width: "100%" }}>
@@ -42,9 +42,9 @@ export const FeatureFields = ({
               </Select.Trigger>
               <Select.Content style={{ width: "320px" }}>
                 <Select.Group>
-                  {behaviors.map((behaviour: { value: string; title: string }) => (
-                    <Select.Item value={behaviour.value} key={behaviour.value}>
-                      {behaviour.title}
+                  {behaviors.map((behavior: { value: string; title: string }) => (
+                    <Select.Item value={behavior.value} key={behavior.value}>
+                      {behavior.title}
                     </Select.Item>
                   ))}
                 </Select.Group>
@@ -57,7 +57,7 @@ export const FeatureFields = ({
         {watchBehavior === "per_seat" && (
           <CustomFieldName
             title="Seat limit"
-            name={"behavior_config.seat_limit"}
+            name={"behaviorConfig.seatLimit"}
             register={methods.register}
             control={methods.control}
           />
@@ -65,7 +65,7 @@ export const FeatureFields = ({
         {watchBehavior === "credits" && (
           <CustomFieldName
             title="Credits"
-            name={"behavior_config.credit_amount"}
+            name={"behaviorConfig.creditAmount"}
             register={methods.register}
             control={methods.control}
           />
