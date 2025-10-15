@@ -4,7 +4,8 @@ import RSelect from "react-select";
 
 import { Controller, UseFormReturn } from "react-hook-form";
 import { CustomFieldName } from "~/components/CustomField";
-import { useFeatures } from "~/hooks/useFeatures";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { ProductForm, behaviors } from "./contants";
 
 export const FeatureFields = ({
@@ -12,7 +13,18 @@ export const FeatureFields = ({
 }: {
   methods: UseFormReturn<ProductForm>;
 }) => {
-  const { features } = useFeatures();
+  const { data: featuresResponse } = useQuery(
+    FrontierServiceQueries.listFeatures,
+    {},
+    {
+      staleTime: Infinity,
+    }
+  );
+
+  const features = (featuresResponse?.features || []).map((f) => ({
+    label: f.name,
+    value: f.name,
+  }));
   const watchBehavior = methods.watch("behavior", "basic");
   return (
     <Flex direction="column" gap={9}>
