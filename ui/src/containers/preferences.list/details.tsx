@@ -14,9 +14,11 @@ import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
-import { AdminServiceQueries, ListPreferencesResponse, Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
+import { AdminServiceQueries, CreatePreferencesRequestSchema, ListPreferencesResponse } from "@raystack/proton/frontier";
+import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { useQueryClient } from "@tanstack/react-query";
+import { create } from "@bufbuild/protobuf";
 
 interface ContextType {
   preferences: Preference[];
@@ -178,14 +180,14 @@ export default function PreferenceDetails() {
 
   const onSave = useCallback(async () => {
     try {
-      await createPreferences({
+      await createPreferences(create(CreatePreferencesRequestSchema,{
         preferences: [
           {
             name,
             value,
           },
         ],
-      });
+      }));
       toast.success("preference updated");
     } catch (err) {
       console.error("ConnectRPC Error:", err);
