@@ -165,7 +165,7 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 				auditrecord.BillingCustomerCreatedEvent.String(),
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType.String(),
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"email":       customerModel.Email,
@@ -316,7 +316,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 				auditrecord.BillingCustomerUpdatedEvent.String(),
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType.String(),
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"email":       customerModel.Email,
@@ -441,7 +441,7 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 				auditrecord.BillingCustomerCreditUpdatedEvent.String(),
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType.String(),
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"credit_min":  customerModel.CreditMin,
@@ -501,7 +501,7 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 				auditrecord.BillingCustomerDeletedEvent.String(),
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType.String(),
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"email":    customerModel.Email,

@@ -186,7 +186,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 				auditrecord.OrganizationCreateEvent.String(),
 				AuditResource{
 					ID:       orgModel.ID,
-					Type:     "organization",
+					Type:     auditrecord.OrganizationType.String(),
 					Name:     orgModel.Name,
 					Metadata: org.Metadata,
 				},
@@ -318,7 +318,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 				auditrecord.OrganizationUpdateEvent.String(),
 				AuditResource{
 					ID:       orgModel.ID,
-					Type:     "organization",
+					Type:     auditrecord.OrganizationType.String(),
 					Name:     orgModel.Name,
 					Metadata: org.Metadata,
 				},
@@ -388,7 +388,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 				auditrecord.OrganizationUpdateEvent.String(),
 				AuditResource{
 					ID:       orgModel.ID,
-					Type:     "organization",
+					Type:     auditrecord.OrganizationType.String(),
 					Name:     orgModel.Name,
 					Metadata: org.Metadata,
 				},
@@ -445,7 +445,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 				auditrecord.OrganizationStateChangeEvent.String(),
 				AuditResource{
 					ID:   orgModel.ID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType.String(),
 					Name: orgModel.Name,
 					Metadata: map[string]interface{}{
 						"state": state.String(),
@@ -493,7 +493,7 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 				auditrecord.OrganizationDeleteEvent.String(),
 				AuditResource{
 					ID:   orgModel.ID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType.String(),
 					Name: orgModel.Name,
 				},
 				nil,

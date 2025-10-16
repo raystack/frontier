@@ -192,12 +192,12 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 					eventType,
 					AuditResource{
 						ID:   auditCustomerID,
-						Type: "billing_customer",
+						Type: auditrecord.BillingCustomerType.String(),
 						Name: customerAcc.Name,
 					},
 					&AuditTarget{
 						ID:   txModel.ID,
-						Type: "billing_transaction",
+						Type: auditrecord.BillingTransactionType.String(),
 						Metadata: map[string]interface{}{
 							"amount":      txEntry.Amount,
 							"source":      txEntry.Source,

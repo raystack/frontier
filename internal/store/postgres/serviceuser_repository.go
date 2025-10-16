@@ -127,12 +127,12 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 				auditrecord.ServiceUserCreatedEvent.String(),
 				AuditResource{
 					ID:   result.OrgID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType.String(),
 					Name: result.OrgName,
 				},
 				&AuditTarget{
 					ID:   result.ID,
-					Type: "serviceuser",
+					Type: auditrecord.ServiceUserType.String(),
 					Name: nullStringToString(result.Title),
 				},
 				result.OrgID,
@@ -254,12 +254,12 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 				auditrecord.ServiceUserDeletedEvent.String(),
 				AuditResource{
 					ID:   result.OrgID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType.String(),
 					Name: result.OrgName,
 				},
 				&AuditTarget{
 					ID:   result.ID,
-					Type: "serviceuser",
+					Type: auditrecord.ServiceUserType.String(),
 					Name: nullStringToString(result.Title),
 				},
 				result.OrgID,

@@ -45,10 +45,15 @@ const (
 	SystemActor = "system"
 
 	// Entity Types (used in Resource.Type and Target.Type)
-	OrganizationType Type = "organization"
-	UserType         Type = "user"
-	RoleType         Type = "role"
-	ServiceUserType  Type = "serviceuser"
+	OrganizationType       Type = "organization"
+	UserType               Type = "user"
+	RoleType               Type = "role"
+	ServiceUserType        Type = "serviceuser"
+	InvitationType         Type = "invitation"
+	KycType                Type = "kyc"
+	BillingCustomerType    Type = "billing_customer"
+	BillingCheckoutType    Type = "billing_checkout"
+	BillingTransactionType Type = "billing_transaction"
 )
 
 // String returns the string representation of the event

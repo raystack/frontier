@@ -96,12 +96,12 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 				auditrecord.OrganizationInvitedEvent.String(),
 				AuditResource{
 					ID:   result.OrgID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType.String(),
 					Name: result.OrgName,
 				},
 				&AuditTarget{
 					ID:   result.ID.String(),
-					Type: "invitation",
+					Type: auditrecord.InvitationType.String(),
 					Metadata: map[string]interface{}{
 						"email":     invite.UserEmailID,
 						"group_ids": invite.GroupIDs,
