@@ -4,8 +4,10 @@ import { Form, FormSubmit } from "@radix-ui/react-form";
 import { Button, Flex, Separator, Sheet, Skeleton } from "@raystack/apsara";
 
 import type { Feature, Product } from "@raystack/proton/frontier";
-import { useMutation } from "@connectrpc/connect-query";
+import { useMutation, useTransport } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import { useQueryClient } from "@tanstack/react-query";
+import { createConnectQueryKey } from "@connectrpc/connect-query";
 import * as R from "ramda";
 import { useCallback, useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -30,6 +32,8 @@ export default function CreateOrUpdateProduct({
 }) {
   let { productId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const methods = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
@@ -93,6 +97,29 @@ export default function CreateOrUpdateProduct({
       } else {
         await createProduct({ body: transformedData });
       }
+
+      // Invalidate products list to show new/updated product
+      await queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listProducts,
+          transport,
+          input: {},
+          cardinality: "finite",
+        }),
+      });
+
+      // Invalidate individual product cache if updating
+      if (productId) {
+        await queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.getProduct,
+            transport,
+            input: { id: productId },
+            cardinality: "finite",
+          }),
+        });
+      }
+
       toast.success(`${productId ? "product updated" : "product added"}`);
       navigate("/products");
     } catch (error: any) {
