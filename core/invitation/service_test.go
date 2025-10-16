@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	auditMocks "github.com/raystack/frontier/core/auditrecord/mocks"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -19,7 +20,7 @@ import (
 )
 
 func mockService(t *testing.T) (*mocks2.Dialer, *mocks.Repository, *mocks.OrganizationService, *mocks.GroupService,
-	*mocks.UserService, *mocks.RelationService, *mocks.PolicyService, *mocks.PreferencesService) {
+	*mocks.UserService, *mocks.RelationService, *mocks.PolicyService, *mocks.PreferencesService, *auditMocks.Repository) {
 	t.Helper()
 	dialer := mocks2.NewDialer(t)
 	repo := mocks.NewRepository(t)
@@ -29,7 +30,8 @@ func mockService(t *testing.T) (*mocks2.Dialer, *mocks.Repository, *mocks.Organi
 	relationService := mocks.NewRelationService(t)
 	policyService := mocks.NewPolicyService(t)
 	prefService := mocks.NewPreferencesService(t)
-	return dialer, repo, orgService, groupService, userService, relationService, policyService, prefService
+	auditRecordRepo := auditMocks.NewRepository(t)
+	return dialer, repo, orgService, groupService, userService, relationService, policyService, prefService, auditRecordRepo
 }
 
 func TestService_Create(t *testing.T) {
@@ -48,7 +50,7 @@ func TestService_Create(t *testing.T) {
 			},
 			err: invitation.ErrAlreadyMember,
 			setup: func() *invitation.Service {
-				dialer, repo, orgService, groupService, userService, relationService, policyService, prefService := mockService(t)
+				dialer, repo, orgService, groupService, userService, relationService, policyService, prefService, auditRecordRepo := mockService(t)
 
 				prefService.EXPECT().LoadPlatformPreferences(mock.Anything).Return(map[string]string{}, nil)
 				orgService.EXPECT().Get(mock.Anything, "org-id").Return(organization.Organization{
@@ -69,7 +71,7 @@ func TestService_Create(t *testing.T) {
 				}, nil)
 
 				return invitation.NewService(dialer, repo, orgService, groupService,
-					userService, relationService, policyService, prefService)
+					userService, relationService, policyService, prefService, auditRecordRepo)
 			},
 		},
 	}

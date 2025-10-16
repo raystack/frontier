@@ -173,16 +173,16 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 
 			if auditCustomerID != schema.PlatformOrgID.String() {
 				// Determine if this is credit or debit for the customer
-				var eventType string
+				var eventType auditrecord.Event
 				var txModel Transaction
 				var txEntry credit.Transaction
 
 				if debitEntry.CustomerID == auditCustomerID {
-					eventType = auditrecord.BillingTransactionDebitEvent.String()
+					eventType = auditrecord.BillingTransactionDebitEvent
 					txModel = debitModel
 					txEntry = debitEntry
 				} else {
-					eventType = auditrecord.BillingTransactionCreditEvent.String()
+					eventType = auditrecord.BillingTransactionCreditEvent
 					txModel = creditModel
 					txEntry = creditEntry
 				}
@@ -192,12 +192,12 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 					eventType,
 					AuditResource{
 						ID:   auditCustomerID,
-						Type: "billing_customer",
+						Type: auditrecord.BillingCustomerType,
 						Name: customerAcc.Name,
 					},
 					&AuditTarget{
 						ID:   txModel.ID,
-						Type: "billing_transaction",
+						Type: auditrecord.BillingTransactionType,
 						Metadata: map[string]interface{}{
 							"amount":      txEntry.Amount,
 							"source":      txEntry.Source,

@@ -144,9 +144,9 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 			}
 
 			// Determine event based on status
-			event := auditrecord.KYCUnverifiedEvent.String()
+			event := auditrecord.KYCUnverifiedEvent
 			if result.Status {
-				event = auditrecord.KYCVerifiedEvent.String()
+				event = auditrecord.KYCVerifiedEvent
 			}
 
 			auditRecord := BuildAuditRecord(
@@ -154,12 +154,12 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 				event,
 				AuditResource{
 					ID:   result.OrgID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType,
 					Name: result.OrgName,
 				},
 				&AuditTarget{
 					ID:   result.OrgID,
-					Type: "kyc",
+					Type: auditrecord.KycType,
 					Metadata: map[string]interface{}{
 						"status": result.Status,
 						"link":   result.Link,

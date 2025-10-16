@@ -162,10 +162,10 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.BillingCustomerCreatedEvent.String(),
+				auditrecord.BillingCustomerCreatedEvent,
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType,
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"email":       customerModel.Email,
@@ -313,10 +313,10 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.BillingCustomerUpdatedEvent.String(),
+				auditrecord.BillingCustomerUpdatedEvent,
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType,
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"email":       customerModel.Email,
@@ -438,10 +438,10 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.BillingCustomerCreditUpdatedEvent.String(),
+				auditrecord.BillingCustomerCreditUpdatedEvent,
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType,
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"credit_min":  customerModel.CreditMin,
@@ -498,10 +498,10 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.BillingCustomerDeletedEvent.String(),
+				auditrecord.BillingCustomerDeletedEvent,
 				AuditResource{
 					ID:   customerModel.ID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType,
 					Name: customerModel.Name,
 					Metadata: map[string]interface{}{
 						"email":    customerModel.Email,

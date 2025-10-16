@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/organization/mocks"
@@ -24,8 +25,9 @@ func TestService_Get(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
+	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
 
 	t.Run("should return orgs when fetched by id (by calling repo.GetByID)", func(t *testing.T) {
 		IDParam := uuid.New()
@@ -81,8 +83,9 @@ func TestService_GetRaw(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
+	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
 
 	t.Run("should return an org based on ID passed", func(t *testing.T) {
 		IDParam := uuid.New()
@@ -137,8 +140,9 @@ func TestService_GetDefaultOrgStateOnCreate(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
+	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
 
 	t.Run("should return org state to be set on creation, as per preferences", func(t *testing.T) {
 		expectedPrefs := map[string]string{
@@ -167,8 +171,9 @@ func TestService_AddMember(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
+	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
 
 	t.Run("should create policy and relation for member as per role", func(t *testing.T) {
 		inputOrgID := "test-id"
@@ -176,6 +181,13 @@ func TestService_AddMember(t *testing.T) {
 		inputPrincipal := authenticate.Principal{
 			ID:   "test-principal-id",
 			Type: schema.UserPrincipal,
+		}
+
+		expectedOrg := organization.Organization{
+			ID:    inputOrgID,
+			Name:  "test-org",
+			Title: "Test Organization",
+			State: organization.Enabled,
 		}
 
 		policyToBeCreated := policy.Policy{
@@ -197,8 +209,11 @@ func TestService_AddMember(t *testing.T) {
 			},
 			RelationName: schema.MemberRelationName,
 		}
+
 		mockPolicySvc.On("Create", mock.Anything, policyToBeCreated).Return(policy.Policy{}, nil)
 		mockRelationSvc.On("Create", mock.Anything, relationToBeCreated).Return(relation.Relation{}, nil)
+		mockRepo.On("GetByID", mock.Anything, inputOrgID).Return(expectedOrg, nil).Once()
+		mockAuditRecordRepo.On("Create", mock.Anything, mock.AnythingOfType("models.AuditRecord")).Return(auditrecord.AuditRecord{}, nil).Once()
 
 		err := svc.AddMember(context.Background(), inputOrgID, inputRelationName, inputPrincipal)
 		assert.Nil(t, err)
@@ -212,8 +227,9 @@ func TestService_AttachToPlatform(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
+	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
 
 	inputOrgID := "some-org-id"
 	relationToBeCreated := relation.Relation{

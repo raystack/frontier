@@ -15,9 +15,11 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/mcuadros/go-defaults"
+	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/preference"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"gopkg.in/mail.v2"
 
 	"github.com/raystack/frontier/pkg/mailer"
@@ -67,30 +69,37 @@ type PreferencesService interface {
 	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
 }
 
+type AuditRecordRepository interface {
+	Create(ctx context.Context, auditRecord models.AuditRecord) (models.AuditRecord, error)
+}
+
 type Service struct {
-	dialer          mailer.Dialer
-	repo            Repository
-	orgSvc          OrganizationService
-	groupSvc        GroupService
-	userService     UserService
-	relationService RelationService
-	policyService   PolicyService
-	prefService     PreferencesService
+	dialer                mailer.Dialer
+	repo                  Repository
+	orgSvc                OrganizationService
+	groupSvc              GroupService
+	userService           UserService
+	relationService       RelationService
+	policyService         PolicyService
+	prefService           PreferencesService
+	auditRecordRepository AuditRecordRepository
 }
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
 	userService UserService, relService RelationService,
-	policyService PolicyService, prefService PreferencesService) *Service {
+	policyService PolicyService, prefService PreferencesService,
+	auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
-		dialer:          dialer,
-		repo:            repo,
-		orgSvc:          orgSvc,
-		groupSvc:        grpSvc,
-		userService:     userService,
-		relationService: relService,
-		policyService:   policyService,
-		prefService:     prefService,
+		dialer:                dialer,
+		repo:                  repo,
+		orgSvc:                orgSvc,
+		groupSvc:              grpSvc,
+		userService:           userService,
+		relationService:       relService,
+		policyService:         policyService,
+		prefService:           prefService,
+		auditRecordRepository: auditRecordRepository,
 	}
 }
 
@@ -357,6 +366,35 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 				return roleErr
 			}
 		}
+	}
+
+	// fetch organization details for audit record
+	org, err := s.orgSvc.Get(ctx, invite.OrgID)
+	if err != nil {
+		return err
+	}
+
+	// create audit record for invitation acceptance
+	_, err = s.auditRecordRepository.Create(ctx, models.AuditRecord{
+		Event: pkgAuditRecord.OrganizationInvitationAcceptedEvent,
+		Resource: models.Resource{
+			ID:   org.ID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &models.Target{
+			ID:   userOb.ID,
+			Type: pkgAuditRecord.UserType,
+			Name: userOb.Title,
+			Metadata: map[string]any{
+				"email": userOb.Email,
+			},
+		},
+		OrgID:      invite.OrgID,
+		OccurredAt: time.Now(),
+	})
+	if err != nil {
+		return err
 	}
 
 	// delete the invitation
