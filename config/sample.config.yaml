@@ -111,10 +111,12 @@ app:
       validity: "720h"
       # secure flag for cookies
       secure: false
-      client_ip: "x-forwarded-for"
-      client_country: "x-frontier-country"
-      client_city: "x-frontier-city"
-      client_user_agent: "User-Agent"
+      # headers configuration for session metadata collection
+      headers:
+        client_ip: "x-forwarded-for"
+        client_country: "x-frontier-country"
+        client_city: "x-frontier-city"
+        client_user_agent: "User-Agent"
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
