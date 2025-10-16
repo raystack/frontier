@@ -1,40 +1,50 @@
-import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
-import { useEffect, useState } from "react";
-import { Outlet, useOutletContext, useParams } from "react-router-dom";
-
-import type { V1Beta1Product } from "@raystack/frontier";
+import { EmptyState, Flex, DataTable } from "@raystack/apsara";
+import { Outlet, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import type { Product } from "@raystack/proton/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { ProductsHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { api } from "~/api";
 import styles from "./products.module.css";
 
-type ContextType = { product: V1Beta1Product | null };
+type ContextType = { product: Product | null };
 export default function ProductList() {
-  const [products, setProducts] = useState<V1Beta1Product[]>([]);
-  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const {
+    data: productsResponse,
+    isLoading: isProductsLoading,
+    error,
+    isError,
+  } = useQuery(FrontierServiceQueries.listProducts, {}, {
+    staleTime: Infinity,
+  });
 
-  useEffect(() => {
-    async function getProducts() {
-      setIsProductsLoading(true);
-      try {
-        const res = await api?.frontierServiceListProducts();
-        const products = res?.data?.products ?? [];
-        setProducts(products);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsProductsLoading(false);
-      }
-    }
-    getProducts();
-  }, []);
+  const products = productsResponse?.products || [];
 
   let { productId } = useParams();
-  const productMapByName = reduceByKey(products ?? [], "id");
+  const productMapById = reduceByKey(products ?? [], "id");
+  const navigate = useNavigate();
 
   const columns = getColumns();
+
+  const handleRowClick = (product: Product) => {
+    navigate(`/products/${product.id}`);
+  };
+
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Products"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading products. Please try again."
+        }
+      />
+    );
+  }
 
   return (
     <DataTable
@@ -43,6 +53,7 @@ export default function ProductList() {
       isLoading={isProductsLoading}
       mode="client"
       defaultSort={{ name: "title", order: "asc" }}
+      onRowClick={handleRowClick}
     >
       <Flex direction="column" className={styles.tableWrapper}>
         <ProductsHeader />
@@ -52,7 +63,7 @@ export default function ProductList() {
         />
         <Outlet
           context={{
-            product: productId ? productMapByName[productId] : null,
+            product: productId ? productMapById[productId] : null,
           }}
         />
       </Flex>
