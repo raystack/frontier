@@ -75,15 +75,15 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 
 	// Create audit record - Actor will be auto-enriched from context by repository
 	_, err = s.auditRecordRepository.Create(ctx, models.AuditRecord{
-		Event: pkgAuditRecord.RoleCreatedEvent.String(),
+		Event: pkgAuditRecord.RoleCreatedEvent,
 		Resource: models.Resource{
 			ID:   createdRole.OrgID,
-			Type: pkgAuditRecord.OrganizationType.String(),
+			Type: pkgAuditRecord.OrganizationType,
 			Name: extractOrgNameFromMetadata(createdRole.OrgID, toCreate.Metadata),
 		},
 		Target: &models.Target{
 			ID:   createdRole.ID,
-			Type: pkgAuditRecord.RoleType.String(),
+			Type: pkgAuditRecord.RoleType,
 			Name: createdRole.Name,
 			Metadata: map[string]any{
 				"permissions": createdRole.Permissions,
@@ -221,15 +221,15 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 
 	// Create audit record - Actor will be auto-enriched from context by repository
 	_, err = s.auditRecordRepository.Create(ctx, models.AuditRecord{
-		Event: pkgAuditRecord.RoleUpdatedEvent.String(),
+		Event: pkgAuditRecord.RoleUpdatedEvent,
 		Resource: models.Resource{
 			ID:   updatedRole.OrgID,
-			Type: pkgAuditRecord.OrganizationType.String(),
+			Type: pkgAuditRecord.OrganizationType,
 			Name: extractOrgNameFromMetadata(updatedRole.OrgID, toUpdate.Metadata),
 		},
 		Target: &models.Target{
 			ID:   updatedRole.ID,
-			Type: pkgAuditRecord.RoleType.String(),
+			Type: pkgAuditRecord.RoleType,
 			Name: updatedRole.Name,
 			Metadata: map[string]any{
 				"permissions": updatedRole.Permissions,

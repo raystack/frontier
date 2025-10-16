@@ -3,13 +3,14 @@ package models
 import (
 	"time"
 
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 )
 
 type AuditRecord struct {
 	ID             string            `json:"id,omitempty"`
-	Event          string            `json:"event"`
+	Event          auditrecord.Event `json:"event"`
 	Actor          Actor             `json:"actor"`
 	Resource       Resource          `json:"resource"`
 	Target         *Target           `json:"target"`
@@ -29,17 +30,17 @@ type Actor struct {
 }
 
 type Resource struct {
-	ID       string            `json:"id"`
-	Type     string            `json:"type"`
-	Name     string            `json:"name"`
-	Metadata metadata.Metadata `json:"metadata"`
+	ID       string                 `json:"id"`
+	Type     auditrecord.EntityType `json:"type"`
+	Name     string                 `json:"name"`
+	Metadata metadata.Metadata      `json:"metadata"`
 }
 
 type Target struct {
-	ID       string            `json:"id"`
-	Type     string            `json:"type"`
-	Name     string            `json:"name"`
-	Metadata metadata.Metadata `json:"metadata"`
+	ID       string                 `json:"id"`
+	Type     auditrecord.EntityType `json:"type"`
+	Name     string                 `json:"name"`
+	Metadata metadata.Metadata      `json:"metadata"`
 }
 
 type AuditRecordsList struct {

@@ -3,8 +3,8 @@ package auditrecord
 // Event represents an audit event type
 type Event string
 
-// Type represents the type of a resource or target in an audit record
-type Type string
+// EntityType represents the type of a resource or target in an audit record
+type EntityType string
 
 const (
 	// Billing Customer Events
@@ -45,10 +45,15 @@ const (
 	SystemActor = "system"
 
 	// Entity Types (used in Resource.Type and Target.Type)
-	OrganizationType Type = "organization"
-	UserType         Type = "user"
-	RoleType         Type = "role"
-	ServiceUserType  Type = "serviceuser"
+	OrganizationType       EntityType = "organization"
+	UserType               EntityType = "user"
+	RoleType               EntityType = "role"
+	ServiceUserType        EntityType = "serviceuser"
+	InvitationType         EntityType = "invitation"
+	KycType                EntityType = "kyc"
+	BillingCustomerType    EntityType = "billing_customer"
+	BillingCheckoutType    EntityType = "billing_checkout"
+	BillingTransactionType EntityType = "billing_transaction"
 )
 
 // String returns the string representation of the event
@@ -56,7 +61,7 @@ func (e Event) String() string {
 	return string(e)
 }
 
-// String returns the string representation of the type
-func (t Type) String() string {
+// String returns the string representation of the entity type
+func (t EntityType) String() string {
 	return string(t)
 }

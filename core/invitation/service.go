@@ -376,15 +376,15 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// create audit record for invitation acceptance
 	_, err = s.auditRecordRepository.Create(ctx, models.AuditRecord{
-		Event: pkgAuditRecord.OrganizationInvitationAcceptedEvent.String(),
+		Event: pkgAuditRecord.OrganizationInvitationAcceptedEvent,
 		Resource: models.Resource{
 			ID:   org.ID,
-			Type: pkgAuditRecord.OrganizationType.String(),
+			Type: pkgAuditRecord.OrganizationType,
 			Name: org.Title,
 		},
 		Target: &models.Target{
 			ID:   userOb.ID,
-			Type: pkgAuditRecord.UserType.String(),
+			Type: pkgAuditRecord.UserType,
 			Name: userOb.Title,
 			Metadata: map[string]any{
 				"email": userOb.Email,

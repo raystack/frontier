@@ -108,14 +108,14 @@ func extractPrincipalInfo(principal authenticate.Principal) (string, map[string]
 }
 
 // mapPrincipalTypeToAuditType maps schema principal types to audit record type constants
-func mapPrincipalTypeToAuditType(principalType string) string {
+func mapPrincipalTypeToAuditType(principalType string) pkgAuditRecord.EntityType {
 	switch principalType {
 	case schema.UserPrincipal:
-		return pkgAuditRecord.UserType.String()
+		return pkgAuditRecord.UserType
 	case schema.ServiceUserPrincipal:
-		return pkgAuditRecord.ServiceUserType.String()
+		return pkgAuditRecord.ServiceUserType
 	default:
-		return pkgAuditRecord.UserType.String()
+		return pkgAuditRecord.UserType
 	}
 }
 
@@ -242,10 +242,10 @@ func (s Service) AddMember(ctx context.Context, orgID, relationName string, prin
 	}
 
 	_, err = s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.OrganizationMemberAddedEvent.String(),
+		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
 		Resource: auditrecord.Resource{
 			ID:   orgID,
-			Type: pkgAuditRecord.OrganizationType.String(),
+			Type: pkgAuditRecord.OrganizationType,
 			Name: org.Title,
 		},
 		Target: &auditrecord.Target{
@@ -400,15 +400,15 @@ func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string
 
 		// Create audit record for member removal
 		_, auditErr := s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
-			Event: pkgAuditRecord.OrganizationMemberRemovedEvent.String(),
+			Event: pkgAuditRecord.OrganizationMemberRemovedEvent,
 			Resource: auditrecord.Resource{
 				ID:   orgID,
-				Type: pkgAuditRecord.OrganizationType.String(),
+				Type: pkgAuditRecord.OrganizationType,
 				Name: org.Title,
 			},
 			Target: &auditrecord.Target{
 				ID:       userID,
-				Type:     pkgAuditRecord.UserType.String(),
+				Type:     pkgAuditRecord.UserType,
 				Name:     userName,
 				Metadata: userMetadata,
 			},

@@ -48,7 +48,7 @@ func nullStringToTargetPtr(targetID, targetType, targetName sql.NullString, targ
 
 	return &auditrecord.Target{
 		ID:       nullStringToString(targetID),
-		Type:     nullStringToString(targetType),
+		Type:     pkgAuditRecord.EntityType(nullStringToString(targetType)),
 		Name:     nullStringToString(targetName),
 		Metadata: nullJSONTextToMetadata(targetMetadata),
 	}
@@ -64,7 +64,7 @@ func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
 	return auditrecord.AuditRecord{
 		ID:             ar.ID.String(),
 		IdempotencyKey: idempotencyKey,
-		Event:          ar.Event,
+		Event:          pkgAuditRecord.Event(ar.Event),
 		Actor: auditrecord.Actor{
 			ID:       ar.ActorID.String(),
 			Type:     ar.ActorType,
@@ -73,7 +73,7 @@ func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
 		},
 		Resource: auditrecord.Resource{
 			ID:       ar.ResourceID,
-			Type:     ar.ResourceType,
+			Type:     pkgAuditRecord.EntityType(ar.ResourceType),
 			Name:     ar.ResourceName,
 			Metadata: nullJSONTextToMetadata(ar.ResourceMetadata),
 		},
@@ -116,19 +116,19 @@ func transformFromDomain(record auditrecord.AuditRecord) (AuditRecord, error) {
 	var targetMetadata metadata.Metadata
 	if record.Target != nil {
 		targetID = record.Target.ID
-		targetType = record.Target.Type
+		targetType = record.Target.Type.String()
 		targetName = record.Target.Name
 		targetMetadata = record.Target.Metadata
 	}
 
 	return AuditRecord{
-		Event:            record.Event,
+		Event:            record.Event.String(),
 		ActorID:          actorID,
 		ActorType:        record.Actor.Type,
 		ActorName:        record.Actor.Name,
 		ActorMetadata:    metadataToNullJSONText(record.Actor.Metadata),
 		ResourceID:       record.Resource.ID,
-		ResourceType:     record.Resource.Type,
+		ResourceType:     record.Resource.Type.String(),
 		ResourceName:     record.Resource.Name,
 		ResourceMetadata: metadataToNullJSONText(record.Resource.Metadata),
 		TargetID:         toNullString(targetID),
@@ -218,20 +218,20 @@ func enrichActorFromContext(ctx context.Context, actor *auditrecord.Actor) {
 
 type AuditResource struct {
 	ID       string
-	Type     string
+	Type     pkgAuditRecord.EntityType
 	Name     string
 	Metadata metadata.Metadata
 }
 
 type AuditTarget struct {
 	ID       string
-	Type     string
+	Type     pkgAuditRecord.EntityType
 	Name     string
 	Metadata metadata.Metadata
 }
 
 // BuildAuditRecord creates an AuditRecord from context and event data
-func BuildAuditRecord(ctx context.Context, event string, resource AuditResource, target *AuditTarget, orgID string, eventMetadata metadata.Metadata, occurredAt time.Time) AuditRecord {
+func BuildAuditRecord(ctx context.Context, event pkgAuditRecord.Event, resource AuditResource, target *AuditTarget, orgID string, eventMetadata metadata.Metadata, occurredAt time.Time) AuditRecord {
 	// Use enrichActorFromContext to get actor details
 	var actor auditrecord.Actor
 	enrichActorFromContext(ctx, &actor)
@@ -240,13 +240,13 @@ func BuildAuditRecord(ctx context.Context, event string, resource AuditResource,
 	orgUUID, _ := uuid.Parse(orgID)
 
 	record := AuditRecord{
-		Event:            event,
+		Event:            event.String(),
 		ActorID:          actorUUID,
 		ActorType:        actor.Type,
 		ActorName:        actor.Name,
 		ActorMetadata:    metadataToNullJSONText(actor.Metadata),
 		ResourceID:       resource.ID,
-		ResourceType:     resource.Type,
+		ResourceType:     resource.Type.String(),
 		ResourceName:     resource.Name,
 		ResourceMetadata: metadataToNullJSONText(resource.Metadata),
 		OrganizationID:   orgUUID,
@@ -257,7 +257,7 @@ func BuildAuditRecord(ctx context.Context, event string, resource AuditResource,
 	// Set target fields if provided
 	if target != nil {
 		record.TargetID = toNullString(target.ID)
-		record.TargetType = toNullString(target.Type)
+		record.TargetType = toNullString(target.Type.String())
 		record.TargetName = toNullString(target.Name)
 		record.TargetMetadata = metadataToNullJSONText(target.Metadata)
 	}
