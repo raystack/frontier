@@ -15,7 +15,9 @@ export function updateResponse(data: any) {
 
   const newFeatures = splitAndTrim(data.newfeatures || "");
   delete data.newfeatures;
-  data.features = [...data.features, ...newFeatures.map((f) => ({ name: f }))];
+
+  // Transform features back to proper format (handle both {label, value} and {name} formats)
+  data.features = [...(data.features || []).map((f: any) => ({ name: f.label || f.value || f.name })), ...newFeatures.map((f) => ({ name: f }))];
 
   return rejectEmptyValue(data);
 }

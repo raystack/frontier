@@ -5,9 +5,10 @@ import { Button, Flex, Separator, Sheet, Skeleton } from "@raystack/apsara";
 
 import type { Feature, Product } from "@raystack/proton/frontier";
 import { useMutation, useTransport } from "@connectrpc/connect-query";
-import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import { FrontierServiceQueries, CreateProductRequestSchema, UpdateProductRequestSchema } from "@raystack/proton/frontier";
 import { useQueryClient } from "@tanstack/react-query";
 import { createConnectQueryKey } from "@connectrpc/connect-query";
+import { create } from "@bufbuild/protobuf";
 import * as R from "ramda";
 import { useCallback, useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -72,6 +73,8 @@ export default function CreateOrUpdateProduct({
         interval: p.interval,
         amount: p.amount?.toString() || "",
       }));
+    } else {
+      data.prices = [{ name: "", interval: "", amount: "" }];
     }
 
     // Transform behaviorConfig - convert bigint fields to string for form input
@@ -92,12 +95,16 @@ export default function CreateOrUpdateProduct({
     try {
       const transformedData = updateResponse(data);
       if (productId) {
-        await updateProduct({
+        const requestBody = create(UpdateProductRequestSchema, {
           id: productId,
           body: transformedData,
         });
+        await updateProduct(requestBody);
       } else {
-        await createProduct({ body: transformedData });
+        const requestBody = create(CreateProductRequestSchema, {
+          body: transformedData,
+        });
+        await createProduct(requestBody);
       }
 
       toast.success(`${productId ? "product updated" : "product added"}`);
