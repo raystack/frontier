@@ -40,13 +40,15 @@ export default function CreateOrUpdateProduct({
     defaultValues: defaultFormValues,
   });
 
-  const { mutateAsync: createProduct } = useMutation(
+  const { mutateAsync: createProduct, isPending: isCreating } = useMutation(
     FrontierServiceQueries.createProduct
   );
 
-  const { mutateAsync: updateProduct } = useMutation(
+  const { mutateAsync: updateProduct, isPending: isUpdating } = useMutation(
     FrontierServiceQueries.updateProduct
   );
+
+  const isMutating = isCreating || isUpdating;
 
   const onOpenChange = useCallback(() => {
     navigate("/products");
@@ -98,8 +100,11 @@ export default function CreateOrUpdateProduct({
         await createProduct({ body: transformedData });
       }
 
-      // Invalidate products list to show new/updated product
-      await queryClient.invalidateQueries({
+      toast.success(`${productId ? "product updated" : "product added"}`);
+      navigate("/products");
+
+      // Invalidate products list to show new/updated product (in background)
+      queryClient.invalidateQueries({
         queryKey: createConnectQueryKey({
           schema: FrontierServiceQueries.listProducts,
           transport,
@@ -108,9 +113,9 @@ export default function CreateOrUpdateProduct({
         }),
       });
 
-      // Invalidate individual product cache if updating
+      // Invalidate individual product cache if updating (in background)
       if (productId) {
-        await queryClient.invalidateQueries({
+        queryClient.invalidateQueries({
           queryKey: createConnectQueryKey({
             schema: FrontierServiceQueries.getProduct,
             transport,
@@ -119,9 +124,6 @@ export default function CreateOrUpdateProduct({
           }),
         });
       }
-
-      toast.success(`${productId ? "product updated" : "product added"}`);
-      navigate("/products");
     } catch (error: any) {
       console.error("ConnectRPC Error:", error);
       toast.error("Something went wrong", {
@@ -193,7 +195,7 @@ export default function CreateOrUpdateProduct({
                 </Flex>
               </Flex>
             ) : (
-              <fieldset disabled={isLoading} style={{ border: 'none', padding: 0, margin: 0 }}>
+              <fieldset disabled={isLoading || isMutating} style={{ border: 'none', padding: 0, margin: 0 }}>
                 <Flex direction="column" gap={9} style={styles.main}>
                   <BaseFields methods={methods} />
                   <Separator size="full" color="primary" />
@@ -211,7 +213,8 @@ export default function CreateOrUpdateProduct({
                     <Button
                       style={{ height: "inherit" }}
                       data-test-id="admin-ui-add-update-new-product-btn"
-                      disabled={isLoading}
+                      disabled={isLoading || isMutating}
+                      loading={isMutating}
                     >
                       {productId ? "Update product" : "Add new product"}
                     </Button>
