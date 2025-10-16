@@ -39,5 +39,5 @@ export default function EditProduct() {
 
   const product = productResponse?.product as Product | undefined;
 
-  return <CreateOrUpdateProduct product={product} />;
+  return <CreateOrUpdateProduct product={product} isLoading={isLoading} />;
 }

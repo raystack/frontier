@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Separator, Sheet } from "@raystack/apsara";
+import { Button, Flex, Separator, Sheet, Skeleton } from "@raystack/apsara";
 
 import type { Feature, Product } from "@raystack/proton/frontier";
 import { useMutation } from "@connectrpc/connect-query";
@@ -23,8 +23,10 @@ import { updateResponse } from "./transform";
 
 export default function CreateOrUpdateProduct({
   product,
+  isLoading = false,
 }: {
   product?: Product;
+  isLoading?: boolean;
 }) {
   let { productId } = useParams();
   const navigate = useNavigate();
@@ -136,28 +138,60 @@ export default function CreateOrUpdateProduct({
               data-test-id="admin-ui-add-update-product-btn"
             ></SheetHeader>
 
-            <Flex direction="column" gap={9} style={styles.main}>
-              <BaseFields methods={methods} />
-              <Separator size="full" color="primary" />
-              <PriceFields methods={methods} />
-              <Separator size="full" color="primary" />
+            {isLoading ? (
+              <Flex direction="column" gap={9} style={styles.main}>
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Separator size="full" color="primary" />
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Separator size="full" color="primary" />
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="40%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Separator size="full" color="primary" />
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+              </Flex>
+            ) : (
+              <fieldset disabled={isLoading} style={{ border: 'none', padding: 0, margin: 0 }}>
+                <Flex direction="column" gap={9} style={styles.main}>
+                  <BaseFields methods={methods} />
+                  <Separator size="full" color="primary" />
+                  <PriceFields methods={methods} />
+                  <Separator size="full" color="primary" />
 
-              <FeatureFields methods={methods} />
-              <Separator size="full" color="primary" />
+                  <FeatureFields methods={methods} />
+                  <Separator size="full" color="primary" />
 
-              <MetadataFields methods={methods} />
-            </Flex>
+                  <MetadataFields methods={methods} />
+                </Flex>
 
-            <SheetFooter>
-              <FormSubmit asChild>
-                <Button
-                  style={{ height: "inherit" }}
-                  data-test-id="admin-ui-add-update-new-product-btn"
-                >
-                  {productId ? "Update product" : "Add new product"}
-                </Button>
-              </FormSubmit>
-            </SheetFooter>
+                <SheetFooter>
+                  <FormSubmit asChild>
+                    <Button
+                      style={{ height: "inherit" }}
+                      data-test-id="admin-ui-add-update-new-product-btn"
+                      disabled={isLoading}
+                    >
+                      {productId ? "Update product" : "Add new product"}
+                    </Button>
+                  </FormSubmit>
+                </SheetFooter>
+              </fieldset>
+            )}
           </Form>
         </FormProvider>
       </Sheet.Content>
