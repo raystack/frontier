@@ -44,7 +44,7 @@ export const getColumns: (
       header: "Amount",
       accessorKey: "amount",
       cell: ({ row }) => (
-        <Price value={row.original.amount?.toString()} currency={row.original.currency} />
+        <Price value={row.original.amount?.toString() ?? '0'} currency={row.original.currency} />
       ),
       filterVariant: "text",
     },

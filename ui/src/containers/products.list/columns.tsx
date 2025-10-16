@@ -38,7 +38,7 @@ export const getColumns: () => DataTableColumnDef<
 
         const priceComp =
           prices?.length === 1 ? (
-            <Price value={prices[0].amount?.toString()} currency={prices[0].currency} />
+            <Price value={prices[0].amount?.toString() ?? '0'} currency={prices[0].currency} />
           ) : (
             <NavLink
               to={`/products/${row?.original?.id}/prices`}
