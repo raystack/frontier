@@ -1,38 +1,28 @@
-import { useCallback, useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import { Flex, EmptyState } from "@raystack/apsara";
-import { V1Beta1User } from "~/api/frontier";
-import { api } from "~/api";
 import LoadingState from "~/components/states/Loading";
 import PageTitle from "~/components/page-title";
 import UserIcon from "~/assets/icons/users.svg?react";
 import { UserDetailsLayout } from "./layout";
 import { UserProvider } from "./user-context";
+import { useQuery } from "@connectrpc/connect-query";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
 
 export const UserDetails = () => {
   const { userId } = useParams();
-  const [user, setUser] = useState<V1Beta1User>();
-  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUser = useCallback(async (id: string) => {
-    try {
-      setIsLoading(true);
-      const response = await api?.adminServiceSearchUsers({
-        search: id,
-      });
-      setUser(response.data?.users?.[0]);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const resetUser = () => {
-    if (userId) fetchUser(userId);
-  };
-
-  useEffect(resetUser, [userId, fetchUser]);
+  const { data, isLoading, refetch } = useQuery(
+    AdminServiceQueries.searchUsers,
+    { query: { search: userId } },
+    {
+      enabled: !!userId,
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+    },
+  );
+  const user = data?.users?.[0];
 
   if (isLoading) {
     return <LoadingState />;
@@ -43,8 +33,7 @@ export const UserDetails = () => {
       <Flex
         style={{ height: "100vh", width: "100%" }}
         align="center"
-        justify="center"
-      >
+        justify="center">
         <PageTitle title="User not found" />
         <EmptyState
           icon={<UserIcon />}
@@ -55,7 +44,7 @@ export const UserDetails = () => {
     );
 
   return (
-    <UserProvider value={{ user, reset: resetUser }}>
+    <UserProvider value={{ user, reset: refetch }}>
       <UserDetailsLayout>
         <Outlet />
       </UserDetailsLayout>
