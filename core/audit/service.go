@@ -2,6 +2,7 @@ package audit
 
 import (
 	"context"
+	"time"
 
 	"golang.org/x/exp/slices"
 
@@ -78,9 +79,15 @@ func (s *Service) Create(ctx context.Context, l *Log) error {
 	if l.ID == "" {
 		l.ID = uuid.NewString()
 	}
-	err := s.repository.Create(ctx, l)
-	if err != nil {
-		return err
+	if l.CreatedAt.IsZero() {
+		l.CreatedAt = time.Now()
+	}
+
+	if s.repository != nil {
+		err := s.repository.Create(ctx, l)
+		if err != nil {
+			return err
+		}
 	}
 
 	if s.publisher != nil {
@@ -100,10 +107,16 @@ func (s *Service) Create(ctx context.Context, l *Log) error {
 }
 
 func (s *Service) List(ctx context.Context, flt Filter) ([]Log, error) {
+	if s.repository == nil {
+		return []Log{}, nil
+	}
 	return s.repository.List(ctx, flt)
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (Log, error) {
+	if s.repository == nil {
+		return Log{}, nil
+	}
 	return s.repository.GetByID(ctx, id)
 }
 
