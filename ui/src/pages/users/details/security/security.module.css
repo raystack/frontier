@@ -7,7 +7,7 @@
   padding-bottom: var(--rs-space-11);
   max-width: 758px;
   width: 90%;
-  height: calc(100vh - 60px);
+  height: calc(95vh);
   overflow-y: auto;
 }
 
