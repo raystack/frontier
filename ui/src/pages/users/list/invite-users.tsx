@@ -10,7 +10,6 @@ import {
   toast,
 } from "@raystack/apsara";
 import { PlusIcon } from "@radix-ui/react-icons";
-import { AxiosError } from "axios";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,13 +19,15 @@ import { SCOPES, DEFAULT_ROLES } from "~/utils/constants";
 import styles from "./invite-users.module.css";
 import { useAppContext } from "~/contexts/App";
 import Skeleton from "react-loading-skeleton";
+import { useMutation } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 
 const inviteSchema = z.object({
   role: z.string(),
   organizationId: z.string(),
   emails: z
     .string()
-    .transform((value) => value.split(",").map((str) => str.trim()))
+    .transform(value => value.split(",").map(str => str.trim()))
     .pipe(z.array(z.string().email())),
 });
 
@@ -46,7 +47,7 @@ export const InviteUser = () => {
   const { organizations, isLoading } = useAppContext();
 
   const defaultRoleId = useMemo(
-    () => roles?.find((role) => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
+    () => roles?.find(role => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
     [roles],
   );
 
@@ -78,31 +79,31 @@ export const InviteUser = () => {
     },
   });
 
-  const onSubmit = async (data: InviteSchemaType) => {
-    try {
-      if (!data.organizationId) return;
-      await api?.frontierServiceCreateOrganizationInvitation(
-        data.organizationId,
-        {
-          user_ids: data?.emails,
-          role_ids: data?.role ? [data?.role] : [],
-        },
-      );
-      onOpenChange(false);
-      reset({ role: defaultRoleId });
+  const { mutateAsync: inviteUser } = useMutation(
+    FrontierServiceQueries.createOrganizationInvitation,
+    {
+      onError: error => {
+        console.error("Failed to invite user", error);
+      },
+    },
+  );
 
-      toast.success(`User${data?.emails?.length > 1 ? "s" : ""} invited`);
-    } catch (err: unknown) {
-      if (err instanceof AxiosError && err?.status === 400) {
-        toast.error("Bad Request", {
-          description: err?.response?.data?.error?.message,
-        });
-      } else {
-        toast.error("Something went wrong", {
-          description: (err as Error).message,
-        });
-      }
-    }
+  const onSubmit = async (data: InviteSchemaType) => {
+    if (!data.organizationId) return;
+    return inviteUser(
+      {
+        orgId: data.organizationId,
+        userIds: data?.emails,
+        roleIds: data?.role ? [data?.role] : [],
+      },
+      {
+        onSuccess: () => {
+          toast.success(`User${data?.emails?.length > 1 ? "s" : ""} invited`);
+          reset({ role: defaultRoleId });
+          onOpenChange(false);
+        },
+      },
+    );
   };
 
   return (
@@ -112,8 +113,7 @@ export const InviteUser = () => {
           variant="text"
           color="neutral"
           leadingIcon={<PlusIcon />}
-          data-test-id="users-list-invite-user-btn"
-        >
+          data-test-id="users-list-invite-user-btn">
           Invite User
         </Button>
       </Dialog.Trigger>
@@ -163,13 +163,12 @@ export const InviteUser = () => {
                       <>
                         <Select
                           {...rest}
-                          onValueChange={(value) => field.onChange(value)}
-                        >
+                          onValueChange={value => field.onChange(value)}>
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select a Role" />
                           </Select.Trigger>
                           <Select.Content>
-                            {roles?.map((role) => (
+                            {roles?.map(role => (
                               <Select.Item key={role.id} value={role.id ?? ""}>
                                 {role.title}
                               </Select.Item>
@@ -179,8 +178,7 @@ export const InviteUser = () => {
                         {error && (
                           <Text
                             size={1}
-                            className={styles["form-error-message"]}
-                          >
+                            className={styles["form-error-message"]}>
                             {error?.message}
                           </Text>
                         )}
@@ -205,8 +203,7 @@ export const InviteUser = () => {
                       <>
                         <Select
                           {...rest}
-                          onValueChange={(value) => field.onChange(value)}
-                        >
+                          onValueChange={value => field.onChange(value)}>
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select an Organization" />
                           </Select.Trigger>
@@ -214,9 +211,8 @@ export const InviteUser = () => {
                             style={{
                               maxHeight: 280,
                               overflowY: "auto",
-                            }}
-                          >
-                            {organizations?.map((org) => (
+                            }}>
+                            {organizations?.map(org => (
                               <Select.Item key={org.id} value={org.id ?? ""}>
                                 {org.name}
                               </Select.Item>
@@ -226,8 +222,7 @@ export const InviteUser = () => {
                         {error && (
                           <Text
                             size={1}
-                            className={styles["form-error-message"]}
-                          >
+                            className={styles["form-error-message"]}>
                             {error?.message}
                           </Text>
                         )}
@@ -243,8 +238,7 @@ export const InviteUser = () => {
               data-test-id="users-list-invite-user-submit-btn"
               type="submit"
               loading={isSubmitting}
-              loaderText="Sending..."
-            >
+              loaderText="Sending...">
               Send invite
             </Button>
           </Dialog.Footer>
