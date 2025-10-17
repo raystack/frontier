@@ -13,19 +13,11 @@ export function updateResponse(data: any) {
     return acc;
   }, {});
 
-  data.behavior_config = Object.keys(data.behavior_config || {}).reduce(
-    (acc: Record<string, number>, key: string) => {
-      if (data.behavior_config[key]) {
-        acc[key] = parseInt(data.behavior_config[key] || "");
-      }
-      return acc;
-    },
-    {}
-  );
-
   const newFeatures = splitAndTrim(data.newfeatures || "");
   delete data.newfeatures;
-  data.features = [...data.features, ...newFeatures.map((f) => ({ name: f }))];
+
+  // Transform features back to proper format (handle both {label, value} and {name} formats)
+  data.features = [...(data.features || []).map((f: any) => ({ name: f.label || f.value || f.name })), ...newFeatures.map((f) => ({ name: f }))];
 
   return rejectEmptyValue(data);
 }

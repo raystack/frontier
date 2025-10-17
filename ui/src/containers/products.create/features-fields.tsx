@@ -4,7 +4,8 @@ import RSelect from "react-select";
 
 import { Controller, UseFormReturn } from "react-hook-form";
 import { CustomFieldName } from "~/components/CustomField";
-import { useFeatures } from "~/hooks/useFeatures";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { ProductForm, behaviors } from "./contants";
 
 export const FeatureFields = ({
@@ -12,7 +13,18 @@ export const FeatureFields = ({
 }: {
   methods: UseFormReturn<ProductForm>;
 }) => {
-  const { features } = useFeatures();
+  const { data: featuresResponse } = useQuery(
+    FrontierServiceQueries.listFeatures,
+    {},
+    {
+      staleTime: Infinity,
+    }
+  );
+
+  const features = (featuresResponse?.features || []).map((f) => ({
+    label: f.name,
+    value: f.name,
+  }));
   const watchBehavior = methods.watch("behavior", "basic");
   return (
     <Flex direction="column" gap={9}>
@@ -22,7 +34,7 @@ export const FeatureFields = ({
           render={({ field }) => (
             <Select
               onValueChange={(value: any) => field.onChange(value)}
-              defaultValue={methods.getValues(`behavior`)}
+              value={field.value}
               data-test-id="admin-ui-behaviour-select"
             >
               <Select.Trigger style={{ height: "26px", width: "100%" }}>
@@ -30,9 +42,9 @@ export const FeatureFields = ({
               </Select.Trigger>
               <Select.Content style={{ width: "320px" }}>
                 <Select.Group>
-                  {behaviors.map((price: { value: string; title: string }) => (
-                    <Select.Item value={price.value} key={price.value}>
-                      {price.title}
+                  {behaviors.map((behavior: { value: string; title: string }) => (
+                    <Select.Item value={behavior.value} key={behavior.value}>
+                      {behavior.title}
                     </Select.Item>
                   ))}
                 </Select.Group>
@@ -45,7 +57,7 @@ export const FeatureFields = ({
         {watchBehavior === "per_seat" && (
           <CustomFieldName
             title="Seat limit"
-            name={"behavior_config.seat_limit"}
+            name={"behaviorConfig.seatLimit"}
             register={methods.register}
             control={methods.control}
           />
@@ -53,7 +65,7 @@ export const FeatureFields = ({
         {watchBehavior === "credits" && (
           <CustomFieldName
             title="Credits"
-            name={"behavior_config.credit_amount"}
+            name={"behaviorConfig.creditAmount"}
             register={methods.register}
             control={methods.control}
           />

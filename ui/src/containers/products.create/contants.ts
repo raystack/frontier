@@ -13,7 +13,7 @@ export const behaviors = [
   { value: "credits", title: "Credits" },
 ];
 
-export const defaultFormValues = {
+export const defaultFormValues: ProductForm = {
   title: "",
   name: "",
   description: "",
@@ -22,11 +22,14 @@ export const defaultFormValues = {
     {
       name: "",
       interval: "",
+      amount: BigInt(0),
     },
   ],
-  behavior_config: {
-    credit_amount: "",
-    seat_limit: "",
+  behaviorConfig: {
+    creditAmount: BigInt(0),
+    seatLimit: BigInt(0),
+    minQuantity: BigInt(0),
+    maxQuantity: BigInt(0),
   },
   metadata: [
     {
@@ -34,6 +37,8 @@ export const defaultFormValues = {
       value: "",
     },
   ],
+  features: [],
+  newfeatures: ""
 };
 
 export type ProductForm = z.infer<typeof productSchema>;
@@ -54,10 +59,7 @@ export const productSchema = z.object({
     .object({
       name: z.string(),
       interval: z.string(),
-      amount: z
-        .string()
-        .refine((num) => parseInt(num))
-        .transform(Number),
+      amount: z.coerce.bigint(),
     })
     .array()
     .default([]),
@@ -65,7 +67,13 @@ export const productSchema = z.object({
     .object({ key: z.string(), value: z.string() })
     .array()
     .default([]),
-  behavior_config: z.any().default({}),
+  behaviorConfig: z
+    .object({
+      creditAmount: z.coerce.bigint(),
+      seatLimit: z.coerce.bigint(),
+      minQuantity: z.coerce.bigint(),
+      maxQuantity: z.coerce.bigint(),
+    }),
   features: z.object({ name: z.string() }).array().default([]),
   newfeatures: z.string().default(""),
 });

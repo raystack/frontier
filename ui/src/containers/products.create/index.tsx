@@ -1,9 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Separator, Sheet } from "@raystack/apsara";
+import { Button, Flex, Separator, Sheet, Skeleton } from "@raystack/apsara";
 
-import { V1Beta1Feature, V1Beta1Product } from "@raystack/frontier";
+import type { Feature, Product } from "@raystack/proton/frontier";
+import { useMutation, useTransport } from "@connectrpc/connect-query";
+import { FrontierServiceQueries, CreateProductRequestSchema, UpdateProductRequestSchema } from "@raystack/proton/frontier";
+import { useQueryClient } from "@tanstack/react-query";
+import { createConnectQueryKey } from "@connectrpc/connect-query";
+import { create } from "@bufbuild/protobuf";
 import * as R from "ramda";
 import { useCallback, useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -18,36 +23,71 @@ import { FeatureFields } from "./features-fields";
 import { MetadataFields } from "./metadata-fields";
 import { PriceFields } from "./price-fields";
 import { updateResponse } from "./transform";
-import { api } from "~/api";
 
 export default function CreateOrUpdateProduct({
   product,
+  isLoading = false,
 }: {
-  product?: V1Beta1Product;
+  product?: Product;
+  isLoading?: boolean;
 }) {
   let { productId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const methods = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
-    defaultValues: { ...defaultFormValues },
+    defaultValues: defaultFormValues,
   });
+
+  const { mutateAsync: createProduct, isPending: isCreating } = useMutation(
+    FrontierServiceQueries.createProduct
+  );
+
+  const { mutateAsync: updateProduct, isPending: isUpdating } = useMutation(
+    FrontierServiceQueries.updateProduct
+  );
+
+  const isMutating = isCreating || isUpdating;
 
   const onOpenChange = useCallback(() => {
     navigate("/products");
   }, []);
 
   useEffect(() => {
+    if (!product) return;
+
     const data = { ...product } as any;
-    const metadata = Object.keys(R.pathOr({}, ["metadata"])(data)).map((m) => ({
+    const metadata = Object.keys(data.metadata || {}).map((m) => ({
       key: m,
       value: data.metadata[m],
     }));
     data.metadata = metadata.length ? metadata : [{ key: "", value: "" }];
-    data.features = R.pathOr(
-      [],
-      ["features"],
-    )(data).map((f: V1Beta1Feature) => ({ label: f.name, value: f.name }));
+    data.features = (data.features || []).map((f: Feature) => ({ label: f.name, value: f.name }));
+
+    // Transform prices - convert bigint amount to string for form input
+    if (data.prices && data.prices.length > 0) {
+      data.prices = data.prices.map((p: any) => ({
+        name: p.name,
+        interval: p.interval,
+        amount: p.amount?.toString() || "",
+      }));
+    } else {
+      data.prices = [{ name: "", interval: "", amount: "" }];
+    }
+
+    // Transform behaviorConfig - convert bigint fields to string for form input
+    if (data.behaviorConfig) {
+      data.behaviorConfig = {
+        creditAmount: data.behaviorConfig.creditAmount?.toString() || "",
+        seatLimit: data.behaviorConfig.seatLimit?.toString() || "",
+        minQuantity: data.behaviorConfig.minQuantity?.toString() || "",
+        maxQuantity: data.behaviorConfig.maxQuantity?.toString() || "",
+      };
+    }
+
+
     methods.reset(data);
   }, [product]);
 
@@ -55,15 +95,44 @@ export default function CreateOrUpdateProduct({
     try {
       const transformedData = updateResponse(data);
       if (productId) {
-        await api?.frontierServiceUpdateProduct(productId, {
+        const requestBody = create(UpdateProductRequestSchema, {
+          id: productId,
           body: transformedData,
         });
+        await updateProduct(requestBody);
       } else {
-        await api?.frontierServiceCreateProduct({ body: transformedData });
+        const requestBody = create(CreateProductRequestSchema, {
+          body: transformedData,
+        });
+        await createProduct(requestBody);
       }
+
       toast.success(`${productId ? "product updated" : "product added"}`);
       navigate("/products");
+
+      // Invalidate products list to show new/updated product (in background)
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listProducts,
+          transport,
+          input: {},
+          cardinality: "finite",
+        }),
+      });
+
+      // Invalidate individual product cache if updating (in background)
+      if (productId) {
+        queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.getProduct,
+            transport,
+            input: { id: productId },
+            cardinality: "finite",
+          }),
+        });
+      }
     } catch (error: any) {
+      console.error("ConnectRPC Error:", error);
       toast.error("Something went wrong", {
         description: error.message,
       });
@@ -105,28 +174,61 @@ export default function CreateOrUpdateProduct({
               data-test-id="admin-ui-add-update-product-btn"
             ></SheetHeader>
 
-            <Flex direction="column" gap={9} style={styles.main}>
-              <BaseFields methods={methods} />
-              <Separator size="full" color="primary" />
-              <PriceFields methods={methods} />
-              <Separator size="full" color="primary" />
+            {isLoading ? (
+              <Flex direction="column" gap={9} style={styles.main}>
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Separator size="full" color="primary" />
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Separator size="full" color="primary" />
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="40%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+                <Separator size="full" color="primary" />
+                <Flex direction="column" gap="medium">
+                  <Skeleton height="20px" width="30%" />
+                  <Skeleton height="32px" width="100%" />
+                </Flex>
+              </Flex>
+            ) : (
+              <fieldset disabled={isLoading || isMutating} style={{ border: 'none', padding: 0, margin: 0 }}>
+                <Flex direction="column" gap={9} style={styles.main}>
+                  <BaseFields methods={methods} />
+                  <Separator size="full" color="primary" />
+                  <PriceFields methods={methods} />
+                  <Separator size="full" color="primary" />
 
-              <FeatureFields methods={methods} />
-              <Separator size="full" color="primary" />
+                  <FeatureFields methods={methods} />
+                  <Separator size="full" color="primary" />
 
-              <MetadataFields methods={methods} />
-            </Flex>
+                  <MetadataFields methods={methods} />
+                </Flex>
 
-            <SheetFooter>
-              <FormSubmit asChild>
-                <Button
-                  style={{ height: "inherit" }}
-                  data-test-id="admin-ui-add-update-new-product-btn"
-                >
-                  {productId ? "Update product" : "Add new product"}
-                </Button>
-              </FormSubmit>
-            </SheetFooter>
+                <SheetFooter>
+                  <FormSubmit asChild>
+                    <Button
+                      style={{ height: "inherit" }}
+                      data-test-id="admin-ui-add-update-new-product-btn"
+                      disabled={isLoading || isMutating}
+                      loading={isMutating}
+                    >
+                      {productId ? "Update product" : "Add new product"}
+                    </Button>
+                  </FormSubmit>
+                </SheetFooter>
+              </fieldset>
+            )}
           </Form>
         </FormProvider>
       </Sheet.Content>

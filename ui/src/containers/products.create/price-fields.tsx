@@ -32,7 +32,7 @@ export const PriceFields = ({
                 render={({ field }) => (
                   <Select
                     onValueChange={(value: any) => field.onChange(value)}
-                    defaultValue={methods.getValues(`prices.${index}.interval`)}
+                    value={field.value}
                   >
                     <Select.Trigger style={{ height: "26px", width: "100%" }}>
                       <Select.Value placeholder="select interval" />
@@ -71,7 +71,7 @@ export const PriceFields = ({
                     prices.append({
                       name: "",
                       interval: "",
-                      amount: 0,
+                      amount: BigInt(0),
                     });
                   }}
                 >
