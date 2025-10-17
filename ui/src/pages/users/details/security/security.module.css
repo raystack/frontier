@@ -7,3 +7,7 @@
   max-width: 758px;
   width: 90%;
 }
+
+.blockUserSection {
+  padding-bottom: var(--rs-space-11);
+}

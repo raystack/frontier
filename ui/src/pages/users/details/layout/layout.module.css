@@ -7,9 +7,13 @@
 .main_content {
   width: 100%;
   transition: width 0.3s ease;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
 }
 
 .main_content_with_sidepanel {
   width: calc(100% - 400px);
   transition: width 0.3s ease;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
 }

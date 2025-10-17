@@ -15,9 +15,9 @@ export const UserDetailsSecurityPage = () => {
       <PageTitle title={title} />
       
       <Flex className={styles["content"]} direction="column" gap={9}>
-      <UserSessions />
+        <UserSessions />
         <Separator />
-        <Flex gap={5} justify="between">
+        <Flex gap={5} justify="between" className={styles["blockUserSection"]}>
           <Flex direction="column" gap={3}>
             <Text size={5}>Block user</Text>
             <Text size={3} variant="secondary">
