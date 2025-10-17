@@ -4,10 +4,10 @@
 
 .content {
   padding-top: var(--rs-space-11);
+  padding-bottom: var(--rs-space-11);
   max-width: 758px;
   width: 90%;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
-.blockUserSection {
-  padding-bottom: var(--rs-space-11);
-}
