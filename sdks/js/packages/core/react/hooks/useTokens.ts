@@ -1,42 +1,46 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useMemo, useEffect } from 'react';
+import { useQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import { FrontierServiceQueries, GetBillingBalanceRequestSchema } from '@raystack/proton/frontier';
 import { useFrontier } from '../contexts/FrontierContext';
 import { toast } from '@raystack/apsara';
 
 export const useTokens = () => {
-  const { client, billingAccount } = useFrontier();
+  const { billingAccount } = useFrontier();
 
-  const [tokenBalance, setTokenBalance] = useState(0);
-  const [isTokensLoading, setIsTokensLoading] = useState(true);
-
-  const getBalance = useCallback(
-    async (orgId: string, billingAccountId: string) => {
-      try {
-        setIsTokensLoading(true);
-        const resp = await client?.frontierServiceGetBillingBalance(
-          orgId,
-          billingAccountId
-        );
-        const tokens = resp?.data?.balance?.amount || '0';
-        setTokenBalance(Number(tokens));
-      } catch (err: any) {
-        console.error(err);
-        toast.error('Unable to fetch balance');
-      } finally {
-        setIsTokensLoading(false);
-      }
-    },
-    [client]
+  const {
+    data,
+    isLoading: isTokensLoading,
+    error,
+    refetch
+  } = useQuery(
+    FrontierServiceQueries.getBillingBalance,
+    create(GetBillingBalanceRequestSchema, {
+      orgId: billingAccount?.orgId ?? '',
+      id: billingAccount?.id ?? ''
+    }),
+    {
+      enabled: !!billingAccount?.orgId && !!billingAccount?.id,
+      retry: false
+    }
   );
 
-  const fetchTokenBalance = useCallback(() => {
-    if (client && billingAccount?.orgId && billingAccount?.id) {
-      getBalance(billingAccount?.orgId, billingAccount.id);
-    }
-  }, [billingAccount?.orgId, billingAccount?.id, client, getBalance]);
-
+  // Handle errors
   useEffect(() => {
-    fetchTokenBalance();
-  }, [fetchTokenBalance]);
+    if (error) {
+      console.error(error);
+      toast.error('Unable to fetch balance');
+    }
+  }, [error]);
+
+  const tokenBalance = useMemo(
+    () => Number(data?.balance?.amount || '0'),
+    [data?.balance?.amount]
+  );
+
+  const fetchTokenBalance = () => {
+    refetch();
+  };
 
   return { tokenBalance, isTokensLoading, fetchTokenBalance };
 };
