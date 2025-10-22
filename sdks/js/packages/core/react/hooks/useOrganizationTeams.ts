@@ -4,10 +4,10 @@ import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
   ListOrganizationGroupsRequestSchema,
-  ListCurrentUserGroupsRequestSchema
+  ListCurrentUserGroupsRequestSchema,
+  Group
 } from '@raystack/proton/frontier';
 import { useFrontier } from '../contexts/FrontierContext';
-import type { V1Beta1Group } from '~/src';
 
 interface useOrganizationTeamsProps {
   withPermissions?: string[];
@@ -55,9 +55,9 @@ export const useOrganizationTeams = ({
 
   const teams = useMemo(() => {
     if (showOrgTeams) {
-      return (orgTeamsData?.groups ?? []) as V1Beta1Group[];
+      return (orgTeamsData?.groups ?? []) as Group[];
     }
-    return (userTeamsData?.groups ?? []) as V1Beta1Group[];
+    return (userTeamsData?.groups ?? []) as Group[];
   }, [showOrgTeams, orgTeamsData?.groups, userTeamsData?.groups]);
 
   const userAccessOnTeam = useMemo(() => {
