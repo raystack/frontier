@@ -34,40 +34,6 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
-interface PrefixInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  prefix: string;
-}
-
-const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
-  function PrefixInput({ prefix, ...props }, ref) {
-    const childRef = useRef<HTMLInputElement | null>(null);
-
-    const focusChild = () => {
-      childRef?.current && childRef?.current?.focus();
-    };
-
-    const setRef = useCallback(
-      (node: HTMLInputElement) => {
-        childRef.current = node;
-        if (ref != null) {
-          (ref as React.MutableRefObject<HTMLInputElement | null>).current =
-            node;
-        }
-      },
-      [ref]
-    );
-
-    return (
-      <div onClick={focusChild} className={styles.prefixInput} data-test-id="frontier-sdk-prefix-input">
-        <Text size="small" variant="secondary">
-          {prefix}
-        </Text>
-        <input {...props} ref={setRef} data-test-id="frontier-sdk-prefix-input-input" />
-      </div>
-    );
-  }
-);
-
 export const GeneralOrganization = ({
   organization,
   isLoading,
