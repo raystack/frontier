@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
-import { V1Beta1BatchCheckPermissionBody } from '~/src';
+import { FrontierServiceQueries, BatchCheckPermissionBody } from '@raystack/proton/frontier';
 import { formatPermissions } from '~/utils';
 
 export const usePermissions = (
-  permissions: V1Beta1BatchCheckPermissionBody[] = [],
+  permissions: BatchCheckPermissionBody[] = [],
   shouldCalled: boolean | undefined = true
 ) => {
   const { data, isLoading } = useQuery(

@@ -6,11 +6,10 @@ import {
   Tooltip,
   Skeleton,
   Box,
-  Text,
   Flex,
   InputField
 } from '@raystack/apsara';
-import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
