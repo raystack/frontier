@@ -93,15 +93,15 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.OrganizationInvitedEvent.String(),
+				auditrecord.OrganizationInvitedEvent,
 				AuditResource{
 					ID:   result.OrgID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType,
 					Name: result.OrgName,
 				},
 				&AuditTarget{
 					ID:   result.ID.String(),
-					Type: "invitation",
+					Type: auditrecord.InvitationType,
 					Metadata: map[string]interface{}{
 						"email":     invite.UserEmailID,
 						"group_ids": invite.GroupIDs,

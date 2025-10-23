@@ -65,6 +65,12 @@ var (
 )
 
 func (r AuditRecordRepository) Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error) {
+	// External RPC calls will have actor already enriched by service.
+	// Internal service calls will have empty actor and need enrichment from context.
+	if auditRecord.Actor.ID == "" {
+		enrichActorFromContext(ctx, &auditRecord.Actor)
+	}
+
 	dbRecord, err := transformFromDomain(auditRecord)
 	if err != nil {
 		return auditrecord.AuditRecord{}, err
