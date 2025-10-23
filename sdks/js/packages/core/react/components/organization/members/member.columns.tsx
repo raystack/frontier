@@ -40,7 +40,7 @@ export const getColumns = (
     cell: ({ row, getValue }) => {
       const id = row.original?.id || '';
       const fallback =
-        row.original?.title || row.original?.email || row.original?.user_id; // user_id will be email in invitations
+        row.original?.title || row.original?.email || row.original?.userId; // userId will be email in invitations
       return (
         <Avatar
           src={getValue() as string}
@@ -59,7 +59,7 @@ export const getColumns = (
     cell: ({ row, getValue }) => {
       const title = getValue() as string;
       const email = row.original.invited
-        ? row.original.user_id
+        ? row.original.userId
         : row.original.email;
       return (
         <Flex direction="column" gap={2}>
