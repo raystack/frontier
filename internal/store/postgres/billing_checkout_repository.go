@@ -177,15 +177,15 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.BillingCheckoutCreatedEvent.String(),
+				auditrecord.BillingCheckoutCreatedEvent,
 				AuditResource{
 					ID:   checkoutModel.CustomerID,
-					Type: "billing_customer",
+					Type: auditrecord.BillingCustomerType,
 					Name: customerName,
 				},
 				&AuditTarget{
 					ID:   checkoutModel.ID,
-					Type: "billing_checkout",
+					Type: auditrecord.BillingCheckoutType,
 					Metadata: map[string]interface{}{
 						"plan_id":            ptrToString(checkoutModel.PlanID),
 						"feature_id":         ptrToString(checkoutModel.FeatureID),

@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/auditrecord"
 
 	"github.com/raystack/frontier/core/preference"
 
@@ -13,6 +15,7 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -61,25 +64,56 @@ type PreferencesService interface {
 	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
 }
 
+type AuditRecordRepository interface {
+	Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
+}
+
 type Service struct {
-	repository      Repository
-	relationService RelationService
-	userService     UserService
-	authnService    AuthnService
-	policyService   PolicyService
-	prefService     PreferencesService
+	repository            Repository
+	relationService       RelationService
+	userService           UserService
+	authnService          AuthnService
+	policyService         PolicyService
+	prefService           PreferencesService
+	auditRecordRepository AuditRecordRepository
 }
 
 func NewService(repository Repository, relationService RelationService,
 	userService UserService, authnService AuthnService, policyService PolicyService,
-	prefService PreferencesService) *Service {
+	prefService PreferencesService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
-		repository:      repository,
-		relationService: relationService,
-		userService:     userService,
-		authnService:    authnService,
-		policyService:   policyService,
-		prefService:     prefService,
+		repository:            repository,
+		relationService:       relationService,
+		userService:           userService,
+		authnService:          authnService,
+		policyService:         policyService,
+		prefService:           prefService,
+		auditRecordRepository: auditRecordRepository,
+	}
+}
+
+// extractPrincipalInfo extracts display name and metadata from principal
+func extractPrincipalInfo(principal authenticate.Principal) (string, map[string]any) {
+	metadata := make(map[string]any)
+	var name string
+
+	if principal.User != nil {
+		name = principal.User.Title
+		metadata["email"] = principal.User.Email
+	} else if principal.ServiceUser != nil {
+		name = principal.ServiceUser.Title
+	}
+
+	return name, metadata
+}
+
+// mapPrincipalTypeToAuditType maps schema principal types to audit record type constants
+func mapPrincipalTypeToAuditType(principalType string) pkgAuditRecord.EntityType {
+	switch principalType {
+	case schema.ServiceUserPrincipal:
+		return pkgAuditRecord.ServiceUserType
+	default:
+		return pkgAuditRecord.UserType
 	}
 }
 
@@ -189,6 +223,42 @@ func (s Service) AddMember(ctx context.Context, orgID, relationName string, prin
 		return err
 	}
 
+	// Get organization details for audit
+	org, err := s.repository.GetByID(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	principalName, principalMetadata := extractPrincipalInfo(principal)
+	targetMetadata := map[string]any{
+		"relation": relationName,
+		"role":     roleID,
+	}
+	// Merge principal metadata into target metadata
+	for k, v := range principalMetadata {
+		targetMetadata[k] = v
+	}
+
+	_, err = s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
+		Resource: auditrecord.Resource{
+			ID:   orgID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:       principal.ID,
+			Type:     mapPrincipalTypeToAuditType(principal.Type),
+			Name:     principalName,
+			Metadata: targetMetadata,
+		},
+		OrgID:      orgID,
+		OccurredAt: time.Now(),
+	})
+	if err != nil {
+		return err
+	}
+
 	audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberCreatedEvent, audit.Target{
 		ID:   principal.ID,
 		Type: principal.Type,
@@ -277,6 +347,12 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 // it doesn't remove user access to projects or other resources provided
 // by policies, don't call directly, use cascade deleter
 func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string) error {
+	// Fetch organization once for all users
+	org, orgErr := s.repository.GetByID(ctx, orgID)
+	if orgErr != nil {
+		return orgErr
+	}
+
 	var err error
 	for _, userID := range userIDs {
 		// remove all access via policies
@@ -304,8 +380,41 @@ func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string
 				ID:        userID,
 				Namespace: schema.UserPrincipal,
 			},
-		}); err != nil {
+		}); currentErr != nil {
 			err = errors.Join(err, currentErr)
+		}
+
+		// Get user details for audit record
+		usr, userErr := s.userService.GetByID(ctx, userID)
+		var userName string
+		var userMetadata map[string]any
+		if userErr == nil {
+			userName, userMetadata = extractPrincipalInfo(authenticate.Principal{
+				ID:   usr.ID,
+				Type: schema.UserPrincipal,
+				User: &usr,
+			})
+		}
+
+		// Create audit record for member removal
+		_, auditErr := s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+			Event: pkgAuditRecord.OrganizationMemberRemovedEvent,
+			Resource: auditrecord.Resource{
+				ID:   orgID,
+				Type: pkgAuditRecord.OrganizationType,
+				Name: org.Title,
+			},
+			Target: &auditrecord.Target{
+				ID:       userID,
+				Type:     pkgAuditRecord.UserType,
+				Name:     userName,
+				Metadata: userMetadata,
+			},
+			OrgID:      orgID,
+			OccurredAt: time.Now(),
+		})
+		if auditErr != nil {
+			err = errors.Join(err, auditErr)
 		}
 
 		audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(userID))

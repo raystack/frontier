@@ -183,10 +183,10 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 			// Build and insert audit record
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.OrganizationCreateEvent.String(),
+				auditrecord.OrganizationCreateEvent,
 				AuditResource{
 					ID:       orgModel.ID,
-					Type:     "organization",
+					Type:     auditrecord.OrganizationType,
 					Name:     orgModel.Name,
 					Metadata: org.Metadata,
 				},
@@ -315,10 +315,10 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.OrganizationUpdateEvent.String(),
+				auditrecord.OrganizationUpdateEvent,
 				AuditResource{
 					ID:       orgModel.ID,
-					Type:     "organization",
+					Type:     auditrecord.OrganizationType,
 					Name:     orgModel.Name,
 					Metadata: org.Metadata,
 				},
@@ -385,10 +385,10 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.OrganizationUpdateEvent.String(),
+				auditrecord.OrganizationUpdateEvent,
 				AuditResource{
 					ID:       orgModel.ID,
-					Type:     "organization",
+					Type:     auditrecord.OrganizationType,
 					Name:     orgModel.Name,
 					Metadata: org.Metadata,
 				},
@@ -442,10 +442,10 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.OrganizationStateChangeEvent.String(),
+				auditrecord.OrganizationStateChangeEvent,
 				AuditResource{
 					ID:   orgModel.ID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType,
 					Name: orgModel.Name,
 					Metadata: map[string]interface{}{
 						"state": state.String(),
@@ -490,10 +490,10 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.OrganizationDeleteEvent.String(),
+				auditrecord.OrganizationDeleteEvent,
 				AuditResource{
 					ID:   orgModel.ID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType,
 					Name: orgModel.Name,
 				},
 				nil,

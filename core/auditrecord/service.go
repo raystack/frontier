@@ -137,7 +137,7 @@ func (s *Service) Export(ctx context.Context, query *rql.Query) (io.Reader, stri
 
 func computeHash(auditRecord AuditRecord) string {
 	// Normalize event and IDs - trim spaces and lowercase for consistency
-	normalisedEvent := strings.ToLower(strings.TrimSpace(auditRecord.Event))
+	normalisedEvent := strings.ToLower(strings.TrimSpace(auditRecord.Event.String()))
 	normalisedActorID := strings.ToLower(strings.TrimSpace(auditRecord.Actor.ID))
 	normalisedResourceID := strings.ToLower(strings.TrimSpace(auditRecord.Resource.ID))
 	normalisedOrgID := strings.ToLower(strings.TrimSpace(auditRecord.OrgID))
