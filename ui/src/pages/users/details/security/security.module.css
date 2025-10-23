@@ -4,6 +4,10 @@
 
 .content {
   padding-top: var(--rs-space-11);
+  padding-bottom: var(--rs-space-11);
   max-width: 758px;
   width: 90%;
+  height: calc(95vh);
+  overflow-y: auto;
 }
+
