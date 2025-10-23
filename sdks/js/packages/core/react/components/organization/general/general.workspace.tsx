@@ -82,15 +82,21 @@ export const GeneralOrganization = ({
   async function onSubmit(data: FormData) {
     if (!organization?.id) return;
     
-    const req = create(UpdateOrganizationRequestSchema, {
-      id: organization.id,
-      body: {
-        title: data.title,
-        name: data.name,
-        avatar: data.avatar
-      }
-    });
-    await updateOrganization(req);
+    try {
+      const req = create(UpdateOrganizationRequestSchema, {
+        id: organization.id,
+        body: {
+          title: data.title,
+          name: data.name,
+          avatar: data.avatar
+        }
+      });
+      await updateOrganization(req);
+    } catch (error: any) {
+      toast.error('Something went wrong', {
+        description: error?.message || 'Failed to update organization'
+      });
+    }
   }
 
   return (
