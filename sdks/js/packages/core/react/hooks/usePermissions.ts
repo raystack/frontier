@@ -4,8 +4,13 @@ import { FrontierServiceQueries, BatchCheckPermissionBodySchema } from '@raystac
 import { create } from '@bufbuild/protobuf';
 import { formatPermissions } from '~/utils';
 
+interface PermissionCheck {
+  permission: string;
+  resource: string;
+}
+
 export const usePermissions = (
-  permissions = [],
+  permissions: PermissionCheck[] = [],
   shouldCalled: boolean | undefined = true
 ): { isFetching: boolean; permissions: Record<string, boolean>; error?: unknown } => {
   const protobufPermissions = useMemo(() => {
