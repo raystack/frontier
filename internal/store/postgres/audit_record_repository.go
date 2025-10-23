@@ -53,16 +53,23 @@ func NewAuditRecordRepository(dbc *db.Client) *AuditRecordRepository {
 var (
 	auditRecordRQLFilterSupportedColumns = []string{
 		"id", "event", "actor_id", "actor_type", "actor_name", "resource_id", "resource_type", "resource_name",
-		"target_id", "target_type", "target_name", "occurred_at", "org_id", "request_id", "created_at", "idempotency_key",
+		"target_id", "target_type", "target_name", "occurred_at", "org_id", "org_name", "request_id", "created_at", "idempotency_key",
 	}
 	auditRecordRQLSearchSupportedColumns = []string{
 		"id", "event", "actor_id", "actor_type", "actor_name", "resource_id", "resource_type", "resource_name",
-		"target_id", "target_type", "target_name", "org_id", "request_id", "idempotency_key",
+		"target_id", "target_type", "target_name", "org_id", "org_name", "request_id", "idempotency_key",
 	}
 	auditRecordRQLGroupSupportedColumns = []string{
-		"event", "actor_type", "resource_type", "target_type", "org_id",
+		"event", "actor_type", "resource_type", "target_type", "org_id", "org_name",
 	}
 )
+
+func buildOrgNameQuery(orgID interface{}) (string, []interface{}, error) {
+	return dialect.Select("name").
+		From(TABLE_ORGANIZATIONS).
+		Where(goqu.Ex{"id": orgID, "deleted_at": nil}).
+		ToSQL()
+}
 
 func (r AuditRecordRepository) Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error) {
 	// External RPC calls will have actor already enriched by service.
@@ -74,6 +81,14 @@ func (r AuditRecordRepository) Create(ctx context.Context, auditRecord auditreco
 	dbRecord, err := transformFromDomain(auditRecord)
 	if err != nil {
 		return auditrecord.AuditRecord{}, err
+	}
+
+	// Enrich organization name from DB
+	if auditRecord.OrgID != "" {
+		query, params, err := buildOrgNameQuery(auditRecord.OrgID)
+		if err == nil {
+			_ = r.dbc.QueryRowxContext(ctx, query, params...).Scan(&dbRecord.OrganizationName)
+		}
 	}
 
 	var auditRecordModel AuditRecord
@@ -257,6 +272,7 @@ func (r AuditRecordRepository) Export(ctx context.Context, rqlQuery *rql.Query) 
 		goqu.L(`COALESCE(target_name, '')`),
 		goqu.L(`COALESCE(target_metadata::text, '{}')`),
 		goqu.L(`COALESCE(org_id::text, '')`),
+		goqu.L(`COALESCE(org_name, '')`),
 		goqu.L(`COALESCE(request_id, '')`),
 		goqu.L(`to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.MS TZ')`),
 		goqu.L(`to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.MS TZ')`),
@@ -373,7 +389,7 @@ func (r AuditRecordRepository) streamCursorToCSV(ctx context.Context, tx *sql.Tx
 	headers := []string{
 		"Record ID", "Idempotency Key", "Event", "Actor ID", "Actor Type", "Actor Name", "Actor Metadata",
 		"Resource ID", "Resource Type", "Resource Name", "Resource Metadata", "Target ID", "Target Type",
-		"Target name", "Target Metadata", "Organization ID", "Request ID", "Occurred At", "Created At", "Metadata",
+		"Target name", "Target Metadata", "Organization ID", "Organization Name", "Request ID", "Occurred At", "Created At", "Metadata",
 	}
 	if err := csvWriter.Write(headers); err != nil {
 		return fmt.Errorf("failed to write CSV headers: %w", err)
