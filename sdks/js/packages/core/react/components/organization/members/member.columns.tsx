@@ -182,7 +182,6 @@ const MembersActions = ({
       
       if (deleteErrors.length > 0) {
         console.warn('Some policy deletions failed:', deleteErrors);
-        // Continue with creation even if some deletes failed
       }
       
       // Create new policy
