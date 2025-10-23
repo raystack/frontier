@@ -6,10 +6,11 @@ import {
   Tooltip,
   Skeleton,
   Box,
+  Text,
   Flex,
   InputField
 } from '@raystack/apsara';
-import React, { useEffect } from 'react';
+import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -33,6 +34,39 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
+interface PrefixInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  prefix: string;
+}
+
+const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
+  function PrefixInput({ prefix, ...props }, ref) {
+    const childRef = useRef<HTMLInputElement | null>(null);
+
+    const focusChild = () => {
+      childRef?.current && childRef?.current?.focus();
+    };
+
+    const setRef = useCallback(
+      (node: HTMLInputElement) => {
+        childRef.current = node;
+        if (ref != null) {
+          (ref as React.MutableRefObject<HTMLInputElement | null>).current =
+            node;
+        }
+      },
+      [ref]
+    );
+
+    return (
+      <div onClick={focusChild} className={styles.prefixInput} data-test-id="frontier-sdk-prefix-input">
+        <Text size="small" variant="secondary">
+          {prefix}
+        </Text>
+        <input {...props} ref={setRef} data-test-id="frontier-sdk-prefix-input-input" />
+      </div>
+    );
+  }
+);
 
 export const GeneralOrganization = ({
   organization,
@@ -143,16 +177,23 @@ export const GeneralOrganization = ({
               <Skeleton height={'32px'} />
             </>
           ) : (
-            <InputField
-              label={`${t.organization({ case: 'capital' })} URL`}
-              size="large"
-              error={errors.name && String(errors.name?.message)}
-              defaultValue={organization?.name || ''}
-              disabled
-              prefix={URL_PREFIX}
-              placeholder={`Provide ${t.organization({ case: 'lower' })} URL`}
-              {...register('name')}
-            />
+            <div>
+              <label className={styles.label}>
+                {`${t.organization({ case: 'capital' })} URL`}
+              </label>
+              <PrefixInput
+                {...register('name')}
+                prefix={URL_PREFIX}
+                disabled
+                placeholder={`Provide ${t.organization({ case: 'lower' })} URL`}
+                className={errors.name ? styles.error : ''}
+              />
+              {errors.name && (
+                <div className={styles.errorMessage}>
+                  {String(errors.name?.message)}
+                </div>
+              )}
+            </div>
           )}
         </Box>
         {isLoading ? (
