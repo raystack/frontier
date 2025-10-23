@@ -177,23 +177,16 @@ export const GeneralOrganization = ({
               <Skeleton height={'32px'} />
             </>
           ) : (
-            <div>
-              <label className={styles.label}>
-                {`${t.organization({ case: 'capital' })} URL`}
-              </label>
-              <PrefixInput
-                {...register('name')}
-                prefix={URL_PREFIX}
-                disabled
-                placeholder={`Provide ${t.organization({ case: 'lower' })} URL`}
-                className={errors.name ? styles.error : ''}
-              />
-              {errors.name && (
-                <div className={styles.errorMessage}>
-                  {String(errors.name?.message)}
-                </div>
-              )}
-            </div>
+            <InputField
+              label={`${t.organization({ case: 'capital' })} URL`}
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              defaultValue={organization?.name || ''}
+              disabled
+              prefix={URL_PREFIX}
+              placeholder={`Provide ${t.organization({ case: 'lower' })} URL`}
+              {...register('name')}
+            />
           )}
         </Box>
         {isLoading ? (
