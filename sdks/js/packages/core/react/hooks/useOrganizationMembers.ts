@@ -25,7 +25,7 @@ export const useOrganizationMembers = ({ showInvitations = false }): {
 
   const { activeOrganization: organization } = useFrontier();
 
-  const { data: organizationUsersData, isLoading: isUsersLoading, error: usersError } = useQuery(
+  const { data: organizationUsersData, isLoading: isUsersLoading, error: usersError, refetch: refetchUsers } = useQuery(
     FrontierServiceQueries.listOrganizationUsers,
     { id: organization?.id || '', withRoles: true },
     { enabled: !!organization?.id }
@@ -43,7 +43,7 @@ export const useOrganizationMembers = ({ showInvitations = false }): {
     }
   }, [organizationUsersData]);
 
-  const { data: rolesData, isLoading: isRolesLoading, error: rolesError } = useQuery(
+  const { data: rolesData, isLoading: isRolesLoading, error: rolesError, refetch: refetchRoles } = useQuery(
     FrontierServiceQueries.listRoles,
     { state: 'enabled', scopes: [PERMISSIONS.OrganizationNamespace] },
     { enabled: !!organization?.id }
@@ -55,7 +55,7 @@ export const useOrganizationMembers = ({ showInvitations = false }): {
     }
   }, [rolesData]);
 
-  const { data: invitationsData, isLoading: isInvitationsLoading, error: invitationsError } = useQuery(
+  const { data: invitationsData, isLoading: isInvitationsLoading, error: invitationsError, refetch: refetchInvitations } = useQuery(
     FrontierServiceQueries.listOrganizationInvitations,
     { orgId: organization?.id || '' },
     { enabled: !!organization?.id && showInvitations }
@@ -78,9 +78,11 @@ export const useOrganizationMembers = ({ showInvitations = false }): {
   const updatedUsers = [...users, ...invitations];
 
   const refetch = useCallback(() => {
-    // All data is now automatically refetched via useQuery
-    // This function is kept for backward compatibility
-  }, []);
+    // Trigger refetch of all queries
+    refetchUsers();
+    refetchRoles();
+    refetchInvitations();
+  }, [refetchUsers, refetchRoles, refetchInvitations]);
 
   return {
     isFetching,

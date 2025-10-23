@@ -37,7 +37,6 @@ type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 export const InviteMember = () => {
   const {
     watch,
-    reset,
     register,
     control,
     handleSubmit,

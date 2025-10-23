@@ -14,13 +14,11 @@ import {
   DropdownMenu,
   DataTableColumnDef
 } from '@raystack/apsara';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role } from '~/src';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, ListPoliciesRequestSchema, DeletePolicyRequestSchema, CreatePolicyRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, DeletePolicyRequestSchema, CreatePolicyRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import styles from '../organization.module.css';
 import type { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
 
 export const getColumns = (

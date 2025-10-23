@@ -60,8 +60,8 @@ const MemberRemoveConfirm = () => {
         await deleteInvitation(req);
       } else {
         const req = create(RemoveOrganizationUserRequestSchema, {
-          orgId: organizationId,
-          id: memberId as string
+          id: organizationId,
+          userId: memberId as string
         });
         await removeUser(req);
       }
