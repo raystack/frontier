@@ -6,18 +6,17 @@ import {
   Tooltip,
   Skeleton,
   Box,
-  Text,
   Flex,
   InputField
 } from '@raystack/apsara';
-import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, UpdateOrganizationRequestSchema } from '@raystack/proton/frontier';
+import { useQueryClient } from '@tanstack/react-query';
+import { FrontierServiceQueries, UpdateOrganizationRequestSchema, Organization } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import { V1Beta1Organization } from '~/src';
 import { AuthTooltipMessage } from '~/react/utils';
 import { AvatarUpload } from '../../avatar-upload';
 import { getInitials } from '~/utils';
@@ -34,59 +33,42 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
-interface PrefixInputProps {
-  prefix: string;
-}
-
-const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
-  function PrefixInput({ prefix, ...props }, ref) {
-    const childRef = useRef<HTMLInputElement | null>(null);
-
-    const focusChild = () => {
-      childRef?.current && childRef?.current?.focus();
-    };
-
-    const setRef = useCallback(
-      (node: HTMLInputElement) => {
-        childRef.current = node;
-        if (ref != null) {
-          (ref as React.MutableRefObject<HTMLInputElement | null>).current =
-            node;
-        }
-      },
-      [ref]
-    );
-
-    return (
-      <div onClick={focusChild} className={styles.prefixInput} data-test-id="frontier-sdk-prefix-input">
-        <Text size="small" variant="secondary">
-          {prefix}
-        </Text>
-        <input {...props} ref={setRef} data-test-id="frontier-sdk-prefix-input" />
-      </div>
-    );
-  }
-);
 
 export const GeneralOrganization = ({
   organization,
   isLoading,
   canUpdateWorkspace = false
 }: {
-  organization?: V1Beta1Organization;
+  organization?: Organization;
   isLoading?: boolean;
   canUpdateWorkspace?: boolean;
 }) => {
   const { setActiveOrganization } = useFrontier();
+  const queryClient = useQueryClient();
   const { mutateAsync: updateOrganization } = useMutation(
     FrontierServiceQueries.updateOrganization,
+    {
+      onSuccess: (data) => {
+        if (data.organization) {
+          setActiveOrganization(data.organization as any);
+          queryClient.invalidateQueries({ queryKey: ['getOrganization'] });
+        }
+        toast.success(`Updated ${t.organization({ case: 'lower' })}`);
+      },
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to update'
+        });
+      },
+    }
   );
   const t = useTerminology();
   const {
     reset,
-    control,
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm({
     resolver: yupResolver(generalSchema)
@@ -99,25 +81,16 @@ export const GeneralOrganization = ({
 
   async function onSubmit(data: FormData) {
     if (!organization?.id) return;
-    try {
-      const req = create(UpdateOrganizationRequestSchema, {
-        id: organization.id,
-        body: {
-          title: data.title,
-          name: organization.name,
-          avatar: data.avatar
-        }
-      });
-      const { organization: updated } = await updateOrganization(req);
-      if (updated) {
-        setActiveOrganization(updated as any);
+    
+    const req = create(UpdateOrganizationRequestSchema, {
+      id: organization.id,
+      body: {
+        title: data.title,
+        name: data.name,
+        avatar: data.avatar
       }
-      toast.success(`Updated ${t.organization({ case: 'lower' })}`);
-    } catch (error: any) {
-      toast.error('Something went wrong', {
-        description: error?.message || 'Failed to update'
-      });
-    }
+    });
+    await updateOrganization(req);
   }
 
   return (
@@ -129,21 +102,17 @@ export const GeneralOrganization = ({
             <Skeleton height="16px" width="100%" />
           </Flex>
         ) : (
-          <Controller
-            render={({ field }) => (
-              <AvatarUpload
-                {...field}
-                subText={`Pick a logo for your ${t.organization({
-                  case: 'lower'
-                })}.`}
-                initials={getInitials(
-                  organization?.title || organization?.name
-                )}
-                disabled={!canUpdateWorkspace}
-              />
+          <AvatarUpload
+            value={watch('avatar')}
+            onChange={(value) => setValue('avatar', value)}
+            subText={`Pick a logo for your ${t.organization({
+              case: 'lower'
+            })}.`}
+            initials={getInitials(
+              organization?.title || organization?.name
             )}
-            control={control}
-            name="avatar"
+            disabled={!canUpdateWorkspace}
+            data-test-id="frontier-sdk-avatar-upload"
           />
         )}
       </Flex>
