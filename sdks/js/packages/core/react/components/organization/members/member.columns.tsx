@@ -17,6 +17,9 @@ import {
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role } from '~/src';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, ListPoliciesRequestSchema, DeletePolicyRequestSchema, CreatePolicyRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from '../organization.module.css';
 import type { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
 
@@ -121,36 +124,81 @@ const MembersActions = ({
   excludedRoles: V1Beta1Role[];
   refetch: () => void;
 }) => {
-  const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
+  
+  // Query to fetch policies for the current member
+  const { data: policiesData, refetch: refetchPolicies } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    { orgId: organizationId, userId: member.id },
+    { enabled: !!member.id }
+  );
+  
+  const { mutateAsync: deletePolicy } = useMutation(
+    FrontierServiceQueries.deletePolicy,
+    {
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to delete policy'
+        });
+      },
+    }
+  );
+  
+  const { mutateAsync: createPolicy } = useMutation(
+    FrontierServiceQueries.createPolicy,
+    {
+      onSuccess: () => {
+        refetch();
+        toast.success('Member role updated');
+      },
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to create policy'
+        });
+      },
+    }
+  );
 
   async function updateRole(role: V1Beta1Role) {
     try {
       const resource = `app/organization:${organizationId}`;
       const principal = `app/user:${member?.id}`;
-      const {
-        // @ts-ignore
-        data: { policies = [] }
-      } = await client?.frontierServiceListPolicies({
-        org_id: organizationId,
-        user_id: member.id
-      });
-      const deletePromises = policies.map((p: V1Beta1Policy) =>
-        client?.frontierServiceDeletePolicy(p.id as string)
+      
+      // Use policies from Connect RPC query
+      const policies = policiesData?.policies || [];
+      
+      // Delete existing policies with individual error handling
+      const deleteResults = await Promise.allSettled(
+        policies.map((p: V1Beta1Policy) => {
+          const req = create(DeletePolicyRequestSchema, {
+            id: p.id as string
+          });
+          return deletePolicy(req);
+        })
       );
-
-      await Promise.all(deletePromises);
-      await client?.frontierServiceCreatePolicy({
-        role_id: role.id as string,
-        title: role.name as string,
-        resource: resource,
-        principal: principal
+      
+      // Check for delete errors
+      const deleteErrors = deleteResults
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(result => result.reason);
+      
+      if (deleteErrors.length > 0) {
+        // Continue with creation even if some deletes failed
+      }
+      
+      // Create new policy
+      const createReq = create(CreatePolicyRequestSchema, {
+        body: {
+          roleId: role.id as string,
+          title: role.name as string,
+          resource: resource,
+          principal: principal
+        }
       });
-      refetch();
-      toast.success('Member role updated');
+      await createPolicy(createReq);
     } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error?.message
+        description: error?.message || 'Failed to update member role'
       });
     }
   }

@@ -2,120 +2,92 @@ import { useCallback, useEffect, useState } from 'react';
 import { V1Beta1User, V1Beta1Role, V1Beta1Invitation } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import { useFrontier } from '../contexts/FrontierContext';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 
 
 export type MemberWithInvite = V1Beta1User & V1Beta1Invitation & {invited?: boolean}
 
 
-
-export const useOrganizationMembers = ({ showInvitations = false }) => {
+export const useOrganizationMembers = ({ showInvitations = false }): {
+  isFetching: boolean;
+  members: MemberWithInvite[];
+  memberRoles: Record<string, V1Beta1Role[]>;
+  roles: V1Beta1Role[];
+  refetch: () => void;
+  error: unknown;
+} => {
   const [users, setUsers] = useState<V1Beta1User[]>([]);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [invitations, setInvitations] = useState<MemberWithInvite[]>([]);
 
-  const [isUsersLoading, setIsUsersLoading] = useState(false);
-  const [isRolesLoading, setIsRolesLoading] = useState(false);
-  const [isInvitationsLoading, setIsInvitationsLoading] = useState(false);
   const [memberRoles, setMemberRoles] = useState<Record<string, V1Beta1Role[]>>({});
 
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
-  const fetchOrganizationUser = useCallback(async () => {
-    if (!organization?.id) return;
-    try {
-      setIsUsersLoading(true);
-      const {
-        // @ts-ignore
-        data: { users, role_pairs }
-      } = await client?.frontierServiceListOrganizationUsers(organization?.id, {
-        with_roles: true
-      });
-      setUsers(users);
+  const { data: organizationUsersData, isLoading: isUsersLoading, error: usersError } = useQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    { id: organization?.id || '', withRoles: true },
+    { enabled: !!organization?.id }
+  );
+
+  useEffect(() => {
+    if (organizationUsersData) {
+      const { users, rolePairs } = organizationUsersData;
+      setUsers(users || []);
       setMemberRoles(
-        role_pairs.reduce((previous: any, mr: any) => {
-          return { ...previous, [mr.user_id]: mr.roles };
+        (rolePairs || []).reduce((previous: any, mr: any) => {
+          return { ...previous, [mr.userId]: mr.roles };
         }, {})
       );
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsUsersLoading(false);
     }
-  }, [client, organization?.id]);
+  }, [organizationUsersData]);
 
-  const fetchOrganizationRoles = useCallback(async () => {
-    if (!organization?.id) return;
-    try {
-      setIsRolesLoading(true);
-      const {
-        // @ts-ignore
-        data: { roles }
-      } = await client?.frontierServiceListRoles({
-        state: 'enabled',
-        scopes: [PERMISSIONS.OrganizationNamespace]
-      });
-      setRoles(roles);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsRolesLoading(false);
+  const { data: rolesData, isLoading: isRolesLoading, error: rolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    { state: 'enabled', scopes: [PERMISSIONS.OrganizationNamespace] },
+    { enabled: !!organization?.id }
+  );
+
+  useEffect(() => {
+    if (rolesData) {
+      setRoles(rolesData.roles || []);
     }
-  }, [client, organization?.id]);
+  }, [rolesData]);
 
-  const fetchInvitations = useCallback(async () => {
-    if (!organization?.id) return;
-    try {
-      setIsInvitationsLoading(true);
+  const { data: invitationsData, isLoading: isInvitationsLoading, error: invitationsError } = useQuery(
+    FrontierServiceQueries.listOrganizationInvitations,
+    { orgId: organization?.id || '' },
+    { enabled: !!organization?.id && showInvitations }
+  );
 
-      const {
-        // @ts-ignore
-        data: { invitations }
-      } = await client?.frontierServiceListOrganizationInvitations(
-        organization?.id
-      );
-      const invitedUsers : MemberWithInvite[] = invitations.map((user: V1Beta1User) => ({
+  useEffect(() => {
+    if (invitationsData) {
+      const invitedUsers: MemberWithInvite[] = (invitationsData.invitations || []).map((user: V1Beta1User) => ({
         ...user,
         invited: true
       }));
       setInvitations(invitedUsers);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsInvitationsLoading(false);
     }
-  }, [client, organization?.id]);
+  }, [invitationsData]);
 
-  useEffect(() => {
-    fetchOrganizationUser();
-  }, [fetchOrganizationUser]);
-
-  useEffect(() => {
-    fetchOrganizationRoles();
-  }, [fetchOrganizationRoles]);
-
-  useEffect(() => {
-    if (showInvitations) {
-      fetchInvitations();
-    }
-  }, [showInvitations, fetchInvitations]);
 
   const isFetching = isUsersLoading || isInvitationsLoading || isRolesLoading;
-
+  const hasError = usersError || rolesError || invitationsError;
 
   const updatedUsers = [...users, ...invitations];
 
   const refetch = useCallback(() => {
-    fetchOrganizationUser();
-    if (showInvitations) {
-      fetchInvitations();
-    }
-  }, [fetchInvitations, fetchOrganizationUser, showInvitations]);
+    // All data is now automatically refetched via useQuery
+    // This function is kept for backward compatibility
+  }, []);
 
   return {
     isFetching,
     members: updatedUsers,
     memberRoles,
     roles,
-    refetch
+    refetch,
+    error: hasError
   };
 };

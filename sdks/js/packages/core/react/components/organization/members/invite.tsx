@@ -20,6 +20,9 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema, ListOrganizationRolesRequestSchema, ListRolesRequestSchema, ListOrganizationGroupsRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from '../organization.module.css';
 import { handleSelectValueChange } from '~/react/utils';
 
@@ -44,9 +47,47 @@ export const InviteMember = () => {
   });
   const [teams, setTeams] = useState<V1Beta1Group[]>([]);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate({ from: '/members/modal' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
+  
+  // Organization roles query
+  const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
+    FrontierServiceQueries.listOrganizationRoles,
+    { orgId: organization?.id || '', scopes: [PERMISSIONS.OrganizationNamespace] },
+    { enabled: !!organization?.id }
+  );
+  
+  // Global roles query
+  const { data: globalRolesData, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    { scopes: [PERMISSIONS.OrganizationNamespace] },
+    { enabled: !!organization?.id }
+  );
+  
+  // Organization groups query
+  const { data: groupsData, isLoading: isGroupsLoading, error: groupsError } = useQuery(
+    FrontierServiceQueries.listOrganizationGroups,
+    { orgId: organization?.id || '' },
+    { enabled: !!organization?.id }
+  );
+  
+  const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
+  const hasError = orgRolesError || globalRolesError || groupsError;
+  
+  const { mutateAsync: createInvitation } = useMutation(
+    FrontierServiceQueries.createOrganizationInvitation,
+    {
+      onSuccess: () => {
+        toast.success('members added');
+        navigate({ to: '/members' });
+      },
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to create invitation'
+        });
+      },
+    }
+  );
 
   const values = watch(['emails', 'type']);
 
@@ -62,62 +103,35 @@ export const InviteMember = () => {
       if (!type) return;
 
       try {
-        await client?.frontierServiceCreateOrganizationInvitation(
-          organization?.id,
-          {
-            userIds: emailList,
-            groupIds: team ? [team] : undefined,
-            roleIds: [type]
-          }
-        );
-        toast.success('members added');
-
-        navigate({ to: '/members' });
-      } catch ({ error }: any) {
+        const req = create(CreateOrganizationInvitationRequestSchema, {
+          orgId: organization.id,
+          userIds: emailList,
+          groupIds: team ? [team] : undefined,
+          roleIds: [type]
+        });
+        await createInvitation(req);
+      } catch (error: any) {
         toast.error('Something went wrong', {
-          description: error.message
+          description: error?.message || 'Failed to create invitation'
         });
       }
     },
-    [client, navigate, organization?.id]
+    [createInvitation, organization?.id]
   );
 
   useEffect(() => {
-    async function getInformation() {
-      try {
-        setIsLoading(true);
-
-        if (!organization?.id) return;
-
-        const orgRolesRes = await client?.frontierServiceListOrganizationRoles(
-          organization.id,
-          {
-            scopes: [PERMISSIONS.OrganizationNamespace]
-          }
-        );
-        const orgRoles = orgRolesRes?.data?.roles ?? [];
-
-        const serviceListRolesRes = await client?.frontierServiceListRoles({
-          scopes: [PERMISSIONS.OrganizationNamespace]
-        });
-        const roles = serviceListRolesRes?.data?.roles ?? [];
-
-        const {
-          // @ts-ignore
-          data: { groups }
-        } = await client?.frontierServiceListOrganizationGroups(
-          organization.id
-        );
-        setRoles([...roles, ...orgRoles]);
-        setTeams(groups);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+    if (orgRolesData && globalRolesData) {
+      const orgRoles = orgRolesData.roles || [];
+      const globalRoles = globalRolesData.roles || [];
+      setRoles([...globalRoles, ...orgRoles]);
     }
-    getInformation();
-  }, [client, organization?.id]);
+  }, [orgRolesData, globalRolesData]);
+
+  useEffect(() => {
+    if (groupsData) {
+      setTeams(groupsData.groups || []);
+    }
+  }, [groupsData]);
 
   const isDisabled = useMemo(() => {
     const [emails, type] = values;
