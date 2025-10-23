@@ -16,6 +16,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const (
+	orgNameMetadataKey = "org_name"
+)
+
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
 	Upsert(ctx context.Context, toCreate role.Role) (role.Role, error)
@@ -202,7 +206,7 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	metaDataMap["org_name"] = org.Title
+	metaDataMap[orgNameMetadataKey] = org.Title
 
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		Name:        request.Msg.GetBody().GetName(),
@@ -277,7 +281,7 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	metaDataMap["org_name"] = org.Title
+	metaDataMap[orgNameMetadataKey] = org.Title
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
 		ID:          request.Msg.GetId(),

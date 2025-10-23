@@ -110,8 +110,6 @@ func extractPrincipalInfo(principal authenticate.Principal) (string, map[string]
 // mapPrincipalTypeToAuditType maps schema principal types to audit record type constants
 func mapPrincipalTypeToAuditType(principalType string) pkgAuditRecord.EntityType {
 	switch principalType {
-	case schema.UserPrincipal:
-		return pkgAuditRecord.UserType
 	case schema.ServiceUserPrincipal:
 		return pkgAuditRecord.ServiceUserType
 	default:
