@@ -15,7 +15,7 @@ export const UserDetailsSecurityPage = () => {
       <PageTitle title={title} />
       
       <Flex className={styles["content"]} direction="column" gap={9}>
-      <UserSessions />
+        <UserSessions />
         <Separator />
         <Flex gap={5} justify="between">
           <Flex direction="column" gap={3}>
