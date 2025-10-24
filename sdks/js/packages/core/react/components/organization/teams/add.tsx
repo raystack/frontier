@@ -14,10 +14,10 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import styles from '../organization.module.css';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, CreateGroupRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import styles from '../organization.module.css';
 
 const teamSchema = yup
   .object({

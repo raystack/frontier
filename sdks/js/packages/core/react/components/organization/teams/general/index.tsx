@@ -14,11 +14,13 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Group, V1Beta1Organization } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { AuthTooltipMessage } from '~/react/utils';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, UpdateGroupRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 const teamSchema = yup
   .object({
@@ -50,7 +52,6 @@ export const General = ({
   });
 
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const { client } = useFrontier();
 
   useEffect(() => {
     reset(team);
@@ -91,19 +92,32 @@ export const General = ({
 
   const isLoading = isTeamLoading || isPermissionsFetching;
 
-  async function onSubmit(data: FormData) {
-    if (!client) return;
+  // Update team using Connect RPC
+  const updateTeamMutation = useMutation(FrontierServiceQueries.updateGroup, {
+    onSuccess: () => {
+      toast.success('Team updated');
+    },
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message || 'Failed to update team'
+      });
+    }
+  });
+
+  function onSubmit(data: FormData) {
     if (!organization?.id) return;
     if (!teamId) return;
 
-    try {
-      await client.frontierServiceUpdateGroup(organization?.id, teamId, data);
-      toast.success('Team updated');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
+    const request = create(UpdateGroupRequestSchema, {
+      id: teamId,
+      orgId: organization.id,
+      body: {
+        title: data.title,
+        name: data.name
+      }
+    });
+
+    updateTeamMutation.mutate(request);
   }
 
   return (
@@ -148,7 +162,7 @@ export const General = ({
                 type="submit"
                 disabled={!canUpdateGroup}
                 data-test-id="frontier-sdk-update-team-btn"
-                loading={isSubmitting}
+                loading={updateTeamMutation.isPending || isSubmitting}
                 loaderText="Updating..."
               >
                 Update team
