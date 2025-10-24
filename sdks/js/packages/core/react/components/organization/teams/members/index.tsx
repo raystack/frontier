@@ -106,7 +106,7 @@ export const Members = ({
             <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
               <DataTable.Search
                 placeholder="Search by name or email"
-                size="medium"
+                size="large"
               />
             </Flex>
             {isLoading ? (
@@ -269,7 +269,6 @@ const AddMemberDropdown = ({
                     fallback={initials}
                     size={1}
                     radius="small"
-                    imageProps={{ fontSize: '10px' }}
                   />
                   <Text>{user?.title || user?.email}</Text>
                 </Flex>
@@ -285,7 +284,7 @@ const AddMemberDropdown = ({
             <Text size="small">No Users found</Text>
           </Flex>
         )}
-        <Separator style={{ margin: 0 }} />
+        <Separator />
         <div style={{ padding: 'var(--rs-space-2)' }}>
           <Link
             to={'/teams/$teamId/invite'}
