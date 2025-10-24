@@ -14,12 +14,11 @@ import {
   type DataTableColumnDef,
   getAvatarColor
 } from '@raystack/apsara';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
 import type { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import { useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, RemoveGroupUserRequestSchema } from '@raystack/proton/frontier';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, RemoveGroupUserRequestSchema, DeletePolicyRequestSchema, CreatePolicyRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
 interface getColumnsOptions {
@@ -77,7 +76,7 @@ export const getColumns: (
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: ({ row, getValue }) => {
+    cell: ({ row }) => {
       return (
         <Text>
           {(row.original?.id &&
@@ -156,31 +155,65 @@ const MembersActions = ({
     removeGroupUserMutation.mutate(request);
   }
 
+  // Get policies using Connect RPC
+  const { refetch: refetchPolicies } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    { groupId: teamId as string, userId: member?.id as string },
+    { enabled: false } // Only fetch when needed
+  );
+
+  // Delete policy using Connect RPC
+  const deletePolicyMutation = useMutation(FrontierServiceQueries.deletePolicy, {
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
+
+  // Create policy using Connect RPC
+  const createPolicyMutation = useMutation(FrontierServiceQueries.createPolicy, {
+    onSuccess: () => {
+      refetch();
+      toast.success('Team member role updated');
+    },
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
+
   async function updateRole(role: V1Beta1Role) {
     try {
       const resource = `app/group:${teamId}`;
       const principal = `app/user:${member?.id}`;
-      const {
-        // @ts-ignore
-        data: { policies = [] }
-      } = await client?.frontierServiceListPolicies({
-        groupId: teamId,
-        userId: member.id
-      });
+      
+      // Get policies using Connect RPC
+      const policiesResponse = await refetchPolicies();
+      const policies = policiesResponse?.data?.policies || [];
 
-      const deletePromises = policies.map((p: V1Beta1Policy) =>
-        client?.frontierServiceDeletePolicy(p.id as string)
-      );
+      // Delete existing policies
+      const deletePromises = policies.map((p: V1Beta1Policy) => {
+        const deleteRequest = create(DeletePolicyRequestSchema, {
+          id: p.id as string
+        });
+        return deletePolicyMutation.mutateAsync(deleteRequest);
+      });
 
       await Promise.all(deletePromises);
-      await client?.frontierServiceCreatePolicy({
-        roleId: role.id as string,
-        title: role.name as string,
-        resource: resource,
-        principal: principal
+      
+      // Create new policy
+      const createRequest = create(CreatePolicyRequestSchema, {
+        body: {
+          roleId: role.id as string,
+          title: role.name as string,
+          resource: resource,
+          principal: principal
+        }
       });
-      refetch();
-      toast.success('Team member role updated');
+      
+      await createPolicyMutation.mutateAsync(createRequest);
     } catch (error: any) {
       toast.error('Something went wrong', {
         description: error?.message

@@ -15,11 +15,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
+import { V1Beta1PolicyRequestBody, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 import cross from '~/react/assets/cross.svg';
-import styles from '../../organization.module.css';
 import { handleSelectValueChange } from '~/react/utils';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({
   userId: yup.string().required('Member is required'),
@@ -31,21 +33,15 @@ type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 export const InviteTeamMembers = () => {
   let { teamId } = useParams({ from: '/teams/$teamId/invite' });
   const navigate = useNavigate({ from: '/teams/$teamId/invite' });
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-
   const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
   const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
 
   const [members, setMembers] = useState<V1Beta1User[]>([]);
 
   const [isTeamMembersLoading, setIsTeamMembersLoading] = useState(false);
-
-  const [isRolesLoading, setIsRolesLoading] = useState(false);
   const { client, activeOrganization: organization } = useFrontier();
 
   const {
-    watch,
-    reset,
     control,
     handleSubmit,
     formState: { errors, isSubmitting }
@@ -83,7 +79,7 @@ export const InviteTeamMembers = () => {
         setIsTeamMembersLoading(true);
         const {
           // @ts-ignore
-          data: { users, role_pairs = [] }
+          data: { users }
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
           teamId,
@@ -102,33 +98,44 @@ export const InviteTeamMembers = () => {
     getTeamMembers();
   }, [client, organization?.id, teamId]);
 
-  const getRoles = useCallback(async () => {
-    try {
-      setIsRolesLoading(true);
-      if (!organization?.id) return;
-      const {
-        // @ts-ignore
-        data: { roles: orgRoles }
-      } = await client?.frontierServiceListOrganizationRoles(organization.id, {
-        scopes: [PERMISSIONS.GroupNamespace]
+  // Get organization roles using Connect RPC
+  const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
+    FrontierServiceQueries.listOrganizationRoles,
+    { orgId: organization?.id || '', scopes: [PERMISSIONS.GroupNamespace] },
+    { enabled: !!organization?.id }
+  );
+
+  // Get roles using Connect RPC
+  const { data: rolesData, isLoading: isRolesLoading, error: rolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    { scopes: [PERMISSIONS.GroupNamespace] },
+    { enabled: !!organization?.id }
+  );
+
+  const roles = useMemo(() => {
+    const orgRoles = orgRolesData?.roles || [];
+    const systemRoles = rolesData?.roles || [];
+    return [...systemRoles, ...orgRoles];
+  }, [orgRolesData?.roles, rolesData?.roles]);
+
+  const isRolesLoadingCombined = isOrgRolesLoading || isRolesLoading;
+
+  // Handle roles errors
+  useEffect(() => {
+    if (orgRolesError) {
+      toast.error('Something went wrong', {
+        description: orgRolesError.message
       });
-      const {
-        // @ts-ignore
-        data: { roles }
-      } = await client?.frontierServiceListRoles({
-        scopes: [PERMISSIONS.GroupNamespace]
-      });
-      setRoles([...roles, ...orgRoles]);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsRolesLoading(false);
     }
-  }, [client, organization?.id]);
+  }, [orgRolesError]);
 
   useEffect(() => {
-    getRoles();
-  }, [getRoles, organization?.id]);
+    if (rolesError) {
+      toast.error('Something went wrong', {
+        description: rolesError.message
+      });
+    }
+  }, [rolesError]);
 
   const addGroupTeamPolicy = useCallback(
     async (roleId: string, userId: string) => {
@@ -244,7 +251,7 @@ export const InviteTeamMembers = () => {
               </Flex>
               <Flex direction="column" gap={2}>
                 <Label>Invite as</Label>
-                {isRolesLoading ? (
+                {isRolesLoadingCombined ? (
                   <Skeleton height={'25px'} />
                 ) : (
                   <Controller
@@ -284,7 +291,7 @@ export const InviteTeamMembers = () => {
                 <Button
                   type="submit"
                   data-test-id="frontier-sdk-add-team-members-btn"
-                  disabled={isUserLoading || isRolesLoading}
+                  disabled={isUserLoading || isRolesLoadingCombined}
                   loading={isSubmitting}
                   loaderText="Adding..."
                 >
