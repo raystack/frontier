@@ -29,6 +29,9 @@ import {
   shouldShowComponent
 } from '~/utils';
 import { getColumns } from './member.columns';
+
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import styles from './members.module.css';
 
 export type MembersProps = {
@@ -143,8 +146,6 @@ const AddMemberDropdown = ({
   refetchMembers
 }: AddMemberDropdownProps) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
-  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
   const [query, setQuery] = useState('');
 
   const [members, setMembers] = useState<V1Beta1User[]>([]);
@@ -153,30 +154,21 @@ const AddMemberDropdown = ({
 
   const { client, activeOrganization: organization } = useFrontier();
 
+  // Get organization members using Connect RPC
+  const { data: orgMembersData, isLoading: isOrgMembersLoading, error: orgMembersError } = useQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    { id: organization?.id || '' },
+    { enabled: !!organization?.id && canUpdateGroup }
+  );
+
+  // Handle organization members error
   useEffect(() => {
-    async function getOrganizationMembers() {
-      if (!organization?.id) return;
-      try {
-        setIsOrgMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListOrganizationUsers(
-          organization?.id
-        );
-        setOrgMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsOrgMembersLoading(false);
-      }
+    if (orgMembersError) {
+      toast.error('Something went wrong', {
+        description: orgMembersError.message
+      });
     }
-    if (canUpdateGroup) {
-      getOrganizationMembers();
-    }
-  }, [client, organization?.id, canUpdateGroup]);
+  }, [orgMembersError]);
 
   useEffect(() => {
     async function getTeamMembers() {
@@ -207,8 +199,8 @@ const AddMemberDropdown = ({
   }, [canUpdateGroup, client, organization?.id, teamId]);
 
   const invitableUser = useMemo(
-    () => filterUsersfromUsers(orgMembers, members) || [],
-    [orgMembers, members]
+    () => filterUsersfromUsers(orgMembersData?.users || [], members) || [],
+    [orgMembersData?.users, members]
   );
 
   const isUserLoading = isOrgMembersLoading || isTeamMembersLoading;
