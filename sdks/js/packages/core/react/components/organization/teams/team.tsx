@@ -8,8 +8,7 @@ import {
 } from '@tanstack/react-router';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1Role, V1Beta1User } from '~/src';
-import type { Role } from '~/src/types';
+import type { V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
@@ -19,9 +18,6 @@ import { FrontierServiceQueries } from '@raystack/proton/frontier';
 
 export const TeamPage = () => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const [members, setMembers] = useState<V1Beta1User[]>([]);
-  const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
-  const [isMembersLoading, setIsMembersLoading] = useState(false);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
 
   const { client, activeOrganization: organization } = useFrontier();
@@ -52,32 +48,29 @@ export const TeamPage = () => {
     }
   }, [teamError]);
 
-  const getTeamMembers = useCallback(async () => {
-    if (!organization?.id || !teamId || isDeleteRoute) return;
-    try {
-      setIsMembersLoading(true);
-      const {
-        // @ts-ignore
-        data: { users, role_pairs }
-      } = await client?.frontierServiceListGroupUsers(
-        organization?.id,
-        teamId,
-        { withRoles: true }
-      );
-      setMembers(users);
-      setMemberRoles(
-        role_pairs.reduce((previous: any, mr: any) => {
-          return { ...previous, [mr.user_id]: mr.roles };
-        }, {})
-      );
-    } catch ({ error }: any) {
+  // Get team members using Connect RPC
+  const { data: membersData, isLoading: isMembersLoading, error: membersError, refetch: refetchMembers } = useQuery(
+    FrontierServiceQueries.listGroupUsers,
+    { id: teamId || '', orgId: organization?.id || '', withRoles: true },
+    { enabled: !!organization?.id && !!teamId && !isDeleteRoute }
+  );
+
+  const members = membersData?.users || [];
+  const memberRoles = useMemo(() => {
+    if (!membersData?.rolePairs) return {};
+    return membersData.rolePairs.reduce((previous: any, mr: any) => {
+      return { ...previous, [mr.user_id]: mr.roles };
+    }, {});
+  }, [membersData?.rolePairs]);
+
+  // Handle members error
+  useEffect(() => {
+    if (membersError) {
       toast.error('Something went wrong', {
-        description: error.message
+        description: membersError.message
       });
-    } finally {
-      setIsMembersLoading(false);
     }
-  }, [client, isDeleteRoute, organization?.id, teamId]);
+  }, [membersError]);
 
   const getTeamRoles = useCallback(async () => {
     if (!organization?.id || !teamId || isDeleteRoute) return;
@@ -98,9 +91,8 @@ export const TeamPage = () => {
   }, [client, isDeleteRoute, organization?.id, teamId]);
 
   useEffect(() => {
-    getTeamMembers();
     getTeamRoles();
-  }, [getTeamMembers, getTeamRoles]);
+  }, [getTeamRoles]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -133,7 +125,7 @@ export const TeamPage = () => {
             memberRoles={memberRoles}
             organizationId={organization?.id || ''}
             isLoading={isMembersLoading}
-            refetchMembers={getTeamMembers}
+            refetchMembers={refetchMembers}
           />
         </Tabs.Content>
       </Tabs>
