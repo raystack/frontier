@@ -22,7 +22,6 @@ export const TeamPage = () => {
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
   const [isMembersLoading, setIsMembersLoading] = useState(false);
-  const [isTeamRoleLoading, setIsTeamRoleLoading] = useState(false);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
 
   const { client, activeOrganization: organization } = useFrontier();
@@ -38,7 +37,7 @@ export const TeamPage = () => {
   // Get team details using Connect RPC
   const { data: teamData, isLoading: isTeamLoading, error: teamError } = useQuery(
     FrontierServiceQueries.getGroup,
-    { id: teamId || '', orgId: organization?.id || '' },
+    { id: teamId || '', orgId: organization?.id || '', withMembers: true },
     { enabled: !!organization?.id && !!teamId && !isDeleteRoute }
   );
 
@@ -83,7 +82,6 @@ export const TeamPage = () => {
   const getTeamRoles = useCallback(async () => {
     if (!organization?.id || !teamId || isDeleteRoute) return;
     try {
-      setIsTeamRoleLoading(true);
       const {
         // @ts-ignore
         data: { roles }
@@ -96,8 +94,6 @@ export const TeamPage = () => {
       toast.error('Something went wrong', {
         description: error?.message
       });
-    } finally {
-      setIsTeamRoleLoading(false);
     }
   }, [client, isDeleteRoute, organization?.id, teamId]);
 
