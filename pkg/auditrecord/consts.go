@@ -42,6 +42,9 @@ const (
 	RoleCreatedEvent Event = "role.created"
 	RoleUpdatedEvent Event = "role.updated"
 
+	// Session Events
+	SessionRevokedEvent Event = "session.revoked"
+
 	SystemActor = "system"
 
 	// Entity Types (used in Resource.Type and Target.Type)
@@ -54,6 +57,7 @@ const (
 	BillingCustomerType    EntityType = "billing_customer"
 	BillingCheckoutType    EntityType = "billing_checkout"
 	BillingTransactionType EntityType = "billing_transaction"
+	SessionType            EntityType = "session"
 )
 
 // String returns the string representation of the event
