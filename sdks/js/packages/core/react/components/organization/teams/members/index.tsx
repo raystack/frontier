@@ -120,6 +120,7 @@ export const Members = ({
                 <AddMemberDropdown
                   canUpdateGroup={canUpdateGroup}
                   refetchMembers={refetchMembers}
+                  members={members}
                 />
               </Tooltip>
             )}
@@ -140,20 +141,18 @@ export const Members = ({
 interface AddMemberDropdownProps {
   canUpdateGroup: boolean;
   refetchMembers: () => void;
+  members: V1Beta1User[];
 }
 
 const AddMemberDropdown = ({
   canUpdateGroup,
-  refetchMembers
+  refetchMembers,
+  members
 }: AddMemberDropdownProps) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const [query, setQuery] = useState('');
 
-  const [members, setMembers] = useState<V1Beta1User[]>([]);
-
-  const [isTeamMembersLoading, setIsTeamMembersLoading] = useState(false);
-
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
   // Get organization members using Connect RPC
   const { data: orgMembersData, isLoading: isOrgMembersLoading, error: orgMembersError } = useQuery(
@@ -171,40 +170,13 @@ const AddMemberDropdown = ({
     }
   }, [orgMembersError]);
 
-  useEffect(() => {
-    async function getTeamMembers() {
-      if (!organization?.id || !teamId) return;
-      try {
-        setIsTeamMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users, role_pairs = [] }
-        } = await client?.frontierServiceListGroupUsers(
-          organization?.id,
-          teamId,
-          { with_roles: true }
-        );
-
-        setMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsTeamMembersLoading(false);
-      }
-    }
-    if (canUpdateGroup) {
-      getTeamMembers();
-    }
-  }, [canUpdateGroup, client, organization?.id, teamId]);
 
   const invitableUser = useMemo(
     () => filterUsersfromUsers(orgMembersData?.users || [], members) || [],
     [orgMembersData?.users, members]
   );
 
-  const isUserLoading = isOrgMembersLoading || isTeamMembersLoading;
+  const isUserLoading = isOrgMembersLoading;
 
   const topUsers = useMemo(
     () =>

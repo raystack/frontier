@@ -11,16 +11,16 @@ import {
   Label
 } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1PolicyRequestBody, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import { handleSelectValueChange } from '~/react/utils';
-import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, CreatePolicyRequestSchema, AddGroupUsersRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({
@@ -33,13 +33,7 @@ type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 export const InviteTeamMembers = () => {
   let { teamId } = useParams({ from: '/teams/$teamId/invite' });
   const navigate = useNavigate({ from: '/teams/$teamId/invite' });
-  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
-  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
-
-  const [members, setMembers] = useState<V1Beta1User[]>([]);
-
-  const [isTeamMembersLoading, setIsTeamMembersLoading] = useState(false);
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
   const {
     control,
@@ -49,54 +43,39 @@ export const InviteTeamMembers = () => {
     resolver: yupResolver(inviteSchema)
   });
 
-  useEffect(() => {
-    async function getOrganizationMembers() {
-      if (!organization?.id) return;
-      try {
-        setIsOrgMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListOrganizationUsers(
-          organization?.id
-        );
-        setOrgMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsOrgMembersLoading(false);
-      }
-    }
-    getOrganizationMembers();
-  }, [client, organization?.id]);
+  // Get organization members using Connect RPC
+  const { data: orgMembersData, isLoading: isOrgMembersLoading, error: orgMembersError } = useQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    { id: organization?.id || '' },
+    { enabled: !!organization?.id }
+  );
 
-  useEffect(() => {
-    async function getTeamMembers() {
-      if (!organization?.id || !teamId) return;
-      try {
-        setIsTeamMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListGroupUsers(
-          organization?.id,
-          teamId,
-          { with_roles: true }
-        );
 
-        setMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsTeamMembersLoading(false);
-      }
+  // Handle organization members error
+  useEffect(() => {
+    if (orgMembersError) {
+      toast.error('Something went wrong', {
+        description: orgMembersError.message
+      });
     }
-    getTeamMembers();
-  }, [client, organization?.id, teamId]);
+  }, [orgMembersError]);
+
+  // Get team members using Connect RPC
+  const { data: teamMembersData, isLoading: isTeamMembersLoading, error: teamMembersError } = useQuery(
+    FrontierServiceQueries.listGroupUsers,
+    { id: teamId || '', orgId: organization?.id || '', withRoles: true },
+    { enabled: !!organization?.id && !!teamId }
+  );
+
+
+  // Handle team members error
+  useEffect(() => {
+    if (teamMembersError) {
+      toast.error('Something went wrong', {
+        description: teamMembersError.message
+      });
+    }
+  }, [teamMembersError]);
 
   // Get organization roles using Connect RPC
   const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
@@ -137,45 +116,70 @@ export const InviteTeamMembers = () => {
     }
   }, [rolesError]);
 
+  // Create policy using Connect RPC
+  const createPolicyMutation = useMutation(FrontierServiceQueries.createPolicy, {
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
+
   const addGroupTeamPolicy = useCallback(
     async (roleId: string, userId: string) => {
       const role = roles.find(r => r.id === roleId);
       if (role?.name && role.name !== PERMISSIONS.RoleGroupMember) {
         const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
         const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
-        const policy: V1Beta1PolicyRequestBody = {
-          role_id: roleId,
-          resource,
-          principal
-        };
-        await client?.frontierServiceCreatePolicy(policy);
+        
+        const request = create(CreatePolicyRequestSchema, {
+          body: {
+            roleId: roleId,
+            resource,
+            principal
+          }
+        });
+        
+        await createPolicyMutation.mutateAsync(request);
       }
     },
-    [client, roles, teamId]
+    [roles, teamId, createPolicyMutation]
   );
+
+  // Add group users using Connect RPC
+  const addGroupUsersMutation = useMutation(FrontierServiceQueries.addGroupUsers, {
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
 
   async function onSubmit({ role, userId }: InviteSchemaType) {
     if (!userId || !role || !organization?.id) return;
+
+    const request = create(AddGroupUsersRequestSchema, {
+      id: teamId as string,
+      orgId: organization.id,
+      userIds: [userId]
+    });
+
     try {
-      await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-        user_ids: [userId]
-      });
+      await addGroupUsersMutation.mutateAsync(request);
       await addGroupTeamPolicy(role, userId);
       toast.success('member added');
       navigate({
         to: '/teams/$teamId',
         params: { teamId }
       });
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
+    } catch (error) {
+      // Error is already handled by the mutation
     }
   }
 
   const invitableUser = useMemo(
-    () => filterUsersfromUsers(orgMembers, members) || [],
-    [orgMembers, members]
+    () => filterUsersfromUsers(orgMembersData?.users || [], teamMembersData?.users || []) || [],
+    [orgMembersData?.users, teamMembersData?.users]
   );
 
   const isUserLoading = isOrgMembersLoading || isTeamMembersLoading;
