@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Tabs, Image, Text, Flex, toast } from '@raystack/apsara';
 import {
   Outlet,
@@ -8,7 +8,6 @@ import {
 } from '@tanstack/react-router';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
@@ -18,9 +17,8 @@ import { FrontierServiceQueries } from '@raystack/proton/frontier';
 
 export const TeamPage = () => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
 
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/teams/$teamId' });
   const routerState = useRouterState();
 
@@ -72,27 +70,23 @@ export const TeamPage = () => {
     }
   }, [membersError]);
 
-  const getTeamRoles = useCallback(async () => {
-    if (!organization?.id || !teamId || isDeleteRoute) return;
-    try {
-      const {
-        // @ts-ignore
-        data: { roles }
-      } = await client?.frontierServiceListRoles({
-        state: 'enabled',
-        scopes: [PERMISSIONS.GroupNamespace]
-      });
-      setRoles(roles);
-    } catch (error: any) {
+  // Get team roles using Connect RPC
+  const { data: rolesData, error: rolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    { state: 'enabled', scopes: [PERMISSIONS.GroupNamespace] },
+    { enabled: !!organization?.id && !!teamId && !isDeleteRoute }
+  );
+
+  const roles = rolesData?.roles || [];
+
+  // Handle roles error
+  useEffect(() => {
+    if (rolesError) {
       toast.error('Something went wrong', {
-        description: error?.message
+        description: rolesError.message
       });
     }
-  }, [client, isDeleteRoute, organization?.id, teamId]);
-
-  useEffect(() => {
-    getTeamRoles();
-  }, [getTeamRoles]);
+  }, [rolesError]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>

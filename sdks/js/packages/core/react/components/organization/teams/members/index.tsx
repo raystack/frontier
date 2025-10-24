@@ -30,8 +30,9 @@ import {
 } from '~/utils';
 import { getColumns } from './member.columns';
 
-import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, AddGroupUsersRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from './members.module.css';
 
 export type MembersProps = {
@@ -222,25 +223,34 @@ const AddMemberDropdown = ({
     setQuery(e.target.value);
   }
 
-  const addMember = useCallback(
-    async (userId: string) => {
-      if (!userId || !organization?.id) return;
-      try {
-        await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-          user_ids: [userId]
-        });
-        toast.success('member added');
-        if (refetchMembers) {
-          refetchMembers();
-        }
-      } catch ({ error }: any) {
-        console.error(error);
-        toast.error('Something went wrong', {
-          description: error.message
-        });
+  // Add group user using Connect RPC
+  const addGroupUserMutation = useMutation(FrontierServiceQueries.addGroupUsers, {
+    onSuccess: () => {
+      toast.success('member added');
+      if (refetchMembers) {
+        refetchMembers();
       }
     },
-    [client, organization?.id, refetchMembers, teamId]
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
+
+  const addMember = useCallback(
+    (userId: string) => {
+      if (!userId || !organization?.id) return;
+
+      const request = create(AddGroupUsersRequestSchema, {
+        id: teamId as string,
+        orgId: organization.id,
+        userIds: [userId]
+      });
+
+      addGroupUserMutation.mutate(request);
+    },
+    [organization?.id, teamId, addGroupUserMutation]
   );
 
   return (

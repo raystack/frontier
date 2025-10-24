@@ -18,6 +18,9 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
 import type { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, RemoveGroupUserRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 interface getColumnsOptions {
   roles: V1Beta1Role[];
@@ -123,16 +126,11 @@ const MembersActions = ({
   refetch: () => void;
 }) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const { client } = useFrontier();
   const navigate = useNavigate({ from: '/teams/$teamId' });
 
-  async function deleteMember() {
-    try {
-      await client?.frontierServiceRemoveGroupUser(
-        organizationId,
-        teamId as string,
-        member?.id as string
-      );
+  // Remove group user using Connect RPC
+  const removeGroupUserMutation = useMutation(FrontierServiceQueries.removeGroupUser, {
+    onSuccess: () => {
       navigate({
         to: '/teams/$teamId',
         params: {
@@ -140,11 +138,22 @@ const MembersActions = ({
         }
       });
       toast.success('Member deleted');
-    } catch ({ error }: any) {
+    },
+    onError: (error) => {
       toast.error('Something went wrong', {
         description: error.message
       });
     }
+  });
+
+  function deleteMember() {
+    const request = create(RemoveGroupUserRequestSchema, {
+      id: teamId as string,
+      orgId: organizationId,
+      userId: member?.id as string
+    });
+
+    removeGroupUserMutation.mutate(request);
   }
 
   async function updateRole(role: V1Beta1Role) {
