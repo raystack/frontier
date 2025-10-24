@@ -8,19 +8,19 @@ import {
 } from '@tanstack/react-router';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1Group, V1Beta1Role, V1Beta1User } from '~/src';
+import type { V1Beta1Role, V1Beta1User } from '~/src';
 import type { Role } from '~/src/types';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
 import styles from './teams.module.css';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 
 export const TeamPage = () => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const [team, setTeam] = useState<V1Beta1Group>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
-  const [isTeamLoading, setIsTeamLoading] = useState(false);
   const [isMembersLoading, setIsMembersLoading] = useState(false);
   const [isTeamRoleLoading, setIsTeamRoleLoading] = useState(false);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
@@ -35,28 +35,23 @@ export const TeamPage = () => {
     );
   }, [routerState.matches]);
 
+  // Get team details using Connect RPC
+  const { data: teamData, isLoading: isTeamLoading, error: teamError } = useQuery(
+    FrontierServiceQueries.getGroup,
+    { id: teamId || '', orgId: organization?.id || '' },
+    { enabled: !!organization?.id && !!teamId && !isDeleteRoute }
+  );
+
+  const team = teamData?.group;
+
+  // Handle team error
   useEffect(() => {
-    async function getTeamDetails() {
-      if (!organization?.id || !teamId || isDeleteRoute) return;
-
-      try {
-        setIsTeamLoading(true);
-        const {
-          // @ts-ignore
-          data: { group }
-        } = await client?.frontierServiceGetGroup(organization?.id, teamId);
-
-        setTeam(group);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsTeamLoading(false);
-      }
+    if (teamError) {
+      toast.error('Something went wrong', {
+        description: teamError.message
+      });
     }
-    getTeamDetails();
-  }, [client, organization?.id, teamId, isDeleteRoute]);
+  }, [teamError]);
 
   const getTeamMembers = useCallback(async () => {
     if (!organization?.id || !teamId || isDeleteRoute) return;
