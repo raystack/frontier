@@ -22,23 +22,6 @@ export const ProductsHeader = ({ header = defaultPageHeader }) => {
       className={styles.header}
     >
       <DataTable.Search placeholder="Search products..." size="small" />
-      <Button
-        size={"small"}
-        variant="outline"
-        color="neutral"
-        onClick={() => navigate("/products/create")}
-        style={{ width: "100%" }}
-        data-test-id="admin-ui-create-product-btn"
-      >
-        <Flex
-          direction="column"
-          align="center"
-          style={{ paddingRight: "var(--rs-space-2)" }}
-        >
-          <PlusIcon />
-        </Flex>
-        new product
-      </Button>
     </PageHeader>
   );
 };
