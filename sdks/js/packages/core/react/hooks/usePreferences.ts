@@ -73,7 +73,7 @@ export function usePreferences({
     }
   });
 
-  const updatePreferences = async (preferences: Preference[]) => {
+  const updatePreferences = useCallback(async (preferences: Preference[]) => {
     try {
       const req = create(CreateCurrentUserPreferencesRequestSchema, {
         bodies: preferences
@@ -86,7 +86,7 @@ export function usePreferences({
       console.error(err);
       throw err;
     }
-  };
+  }, [updatePreferencesMutation]);
 
   const status: UsePreferences['status'] = isUpdatingPreferences
     ? 'loading'
