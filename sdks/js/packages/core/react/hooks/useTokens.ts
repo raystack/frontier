@@ -38,9 +38,9 @@ export const useTokens = () => {
     [data?.balance?.amount]
   );
 
-  const fetchTokenBalance = () => {
-    refetch();
+  return { 
+    tokenBalance,
+    isTokensLoading,
+    fetchTokenBalance: refetch
   };
-
-  return { tokenBalance, isTokensLoading, fetchTokenBalance };
 };
