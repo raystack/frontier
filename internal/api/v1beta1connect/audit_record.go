@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -51,7 +52,7 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 	if target.GetId() != "" || target.GetType() != "" || target.GetName() != "" || target.GetMetadata() != nil {
 		targetPtr = &auditrecord.Target{
 			ID:       target.GetId(),
-			Type:     target.GetType(),
+			Type:     pkgAuditRecord.EntityType(target.GetType()),
 			Name:     target.GetName(),
 			Metadata: metadata.BuildFromProto(target.GetMetadata()),
 		}
@@ -64,7 +65,7 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 	}
 
 	record, idempotentReply, err := h.auditRecordService.Create(ctx, auditrecord.AuditRecord{
-		Event: request.Msg.GetEvent(),
+		Event: pkgAuditRecord.Event(request.Msg.GetEvent()),
 		Actor: auditrecord.Actor{
 			ID:       actor.GetId(),
 			Type:     actor.GetType(),
@@ -73,7 +74,7 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 		},
 		Resource: auditrecord.Resource{
 			ID:       resource.GetId(),
-			Type:     resource.GetType(),
+			Type:     pkgAuditRecord.EntityType(resource.GetType()),
 			Name:     resource.GetName(),
 			Metadata: metadata.BuildFromProto(resource.GetMetadata()),
 		},
@@ -203,7 +204,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 		}
 		target = &frontierv1beta1.AuditRecordTarget{
 			Id:       record.Target.ID,
-			Type:     record.Target.Type,
+			Type:     record.Target.Type.String(),
 			Name:     record.Target.Name,
 			Metadata: targetMetaData,
 		}
@@ -222,7 +223,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 	return &frontierv1beta1.CreateAuditRecordResponse{
 		AuditRecord: &frontierv1beta1.AuditRecord{
 			Id:    record.ID,
-			Event: record.Event,
+			Event: record.Event.String(),
 			Actor: &frontierv1beta1.AuditRecordActor{
 				Id:       record.Actor.ID,
 				Type:     record.Actor.Type,
@@ -231,7 +232,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 			},
 			Resource: &frontierv1beta1.AuditRecordResource{
 				Id:       record.Resource.ID,
-				Type:     record.Resource.Type,
+				Type:     record.Resource.Type.String(),
 				Name:     record.Resource.Name,
 				Metadata: resourceMetaData,
 			},
