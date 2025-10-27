@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
 import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { create } from '@bufbuild/protobuf';
 import { FrontierServiceQueries, CreateCurrentUserPreferencesRequestSchema } from '@raystack/proton/frontier';
+import { useCallback } from 'react';
 
 type Preference = {
   name?: string;
@@ -39,18 +39,16 @@ export function usePreferences({
   const transport = useTransport();
 
   const {
-    data,
+    data: preferences,
     isLoading: isFetchingPreferences,
     refetch
   } = useQuery(
     FrontierServiceQueries.listCurrentUserPreferences,
     {},
-    { enabled: autoFetch }
-  );
-
-  const preferences = useMemo(
-    () => getFormattedData(data?.preferences ?? []),
-    [data?.preferences]
+    {
+      enabled: autoFetch,
+      select: (data) => getFormattedData(data?.preferences ?? [])
+    }
   );
 
   const {
@@ -90,10 +88,6 @@ export function usePreferences({
     }
   };
 
-  const fetchPreferences = () => {
-    refetch();
-  };
-
   const status: UsePreferences['status'] = isUpdatingPreferences
     ? 'loading'
     : isFetchingPreferences
@@ -101,11 +95,11 @@ export function usePreferences({
     : 'idle';
 
   return {
-    preferences,
+    preferences: preferences ?? {},
     status,
     isLoading: isUpdatingPreferences,
     isFetching: isFetchingPreferences,
-    fetchPreferences,
+    fetchPreferences: refetch,
     updatePreferences
   };
 }
