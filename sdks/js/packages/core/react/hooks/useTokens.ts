@@ -5,7 +5,13 @@ import { FrontierServiceQueries, GetBillingBalanceRequestSchema } from '@raystac
 import { useFrontier } from '../contexts/FrontierContext';
 import { toast } from '@raystack/apsara';
 
-export const useTokens = () => {
+interface UseTokensReturn {
+  tokenBalance: number;
+  isTokensLoading: boolean;
+  fetchTokenBalance: () => Promise<any>;
+}
+
+export const useTokens = (): UseTokensReturn => {
   const { billingAccount } = useFrontier();
 
   const {
