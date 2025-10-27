@@ -20,7 +20,10 @@ import styles from "./invite-users.module.css";
 import { useAppContext } from "~/contexts/App";
 import Skeleton from "react-loading-skeleton";
 import { useMutation } from "@connectrpc/connect-query";
-import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import {
+  CreateOrganizationInvitationResponse,
+  FrontierServiceQueries,
+} from "@raystack/proton/frontier";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -85,25 +88,23 @@ export const InviteUser = () => {
       onError: error => {
         console.error("Failed to invite user", error);
       },
+      onSuccess: (data: CreateOrganizationInvitationResponse) => {
+        toast.success(
+          `User${data?.invitations?.length > 1 ? "s" : ""} invited`,
+        );
+        reset({ role: defaultRoleId });
+        onOpenChange(false);
+      },
     },
   );
 
   const onSubmit = async (data: InviteSchemaType) => {
     if (!data.organizationId) return;
-    return inviteUser(
-      {
-        orgId: data.organizationId,
-        userIds: data?.emails,
-        roleIds: data?.role ? [data?.role] : [],
-      },
-      {
-        onSuccess: () => {
-          toast.success(`User${data?.emails?.length > 1 ? "s" : ""} invited`);
-          reset({ role: defaultRoleId });
-          onOpenChange(false);
-        },
-      },
-    );
+    return inviteUser({
+      orgId: data.organizationId,
+      userIds: data?.emails,
+      roleIds: data?.role ? [data?.role] : [],
+    });
   };
 
   return (
