@@ -1,21 +1,29 @@
-import { useState, useCallback, useEffect } from 'react';
-import { V1Beta1Preference } from '../../api-client';
-import { useFrontier } from '../contexts/FrontierContext';
+import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { create } from '@bufbuild/protobuf';
+import { FrontierServiceQueries, CreateCurrentUserPreferencesRequestSchema } from '@raystack/proton/frontier';
+import { useCallback } from 'react';
 
-type Preferences = Record<string, V1Beta1Preference>;
+type Preference = {
+  name?: string;
+  value?: string;
+  [key: string]: any;
+};
+
+type Preferences = Record<string, Preference>;
 
 export interface UsePreferences {
   preferences: Preferences;
   isLoading: boolean;
   isFetching: boolean;
   status: 'idle' | 'fetching' | 'loading';
-  fetchPreferences: () => Promise<V1Beta1Preference[] | undefined>;
+  fetchPreferences: () => void;
   updatePreferences: (
-    preferences: V1Beta1Preference[]
-  ) => Promise<V1Beta1Preference[] | undefined>;
+    preferences: Preference[]
+  ) => Promise<void>;
 }
 
-function getFormattedData(preferences: V1Beta1Preference[] = []): Preferences {
+function getFormattedData(preferences: Preference[] = []): Preferences {
   return preferences.reduce((acc: Preferences, preference) => {
     if (preference?.name) acc[preference.name] = preference;
     return acc;
@@ -27,65 +35,71 @@ export function usePreferences({
 }: {
   autoFetch?: boolean;
 } = {}): UsePreferences {
-  const { client } = useFrontier();
-  const [preferences, setPreferences] = useState<Preferences>({});
-  const [status, setStatus] = useState<UsePreferences['status']>('idle');
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
-  const fetchPreferences = useCallback(async () => {
-    try {
-      setStatus('fetching');
-      const response =
-        await client?.frontierServiceListCurrentUserPreferences();
-      const data = response?.data.preferences || [];
-      setPreferences(getFormattedData(data));
-      return data;
-    } catch (err) {
-      console.error(
-        'frontier:sdk:: There is problem with fetching user preferences'
-      );
-      console.error(err);
-    } finally {
-      setStatus('idle');
+  const {
+    data: preferences,
+    isLoading: isFetchingPreferences,
+    refetch
+  } = useQuery(
+    FrontierServiceQueries.listCurrentUserPreferences,
+    {},
+    {
+      enabled: autoFetch,
+      select: (data) => getFormattedData(data?.preferences ?? [])
     }
-    return [];
-  }, [client]);
-
-  const updatePreferences = useCallback(
-    async (preferences: V1Beta1Preference[]) => {
-      try {
-        setStatus('loading');
-        const response =
-          await client?.frontierServiceCreateCurrentUserPreferences({
-            bodies: preferences
-          });
-        const data = response?.data?.preferences ?? [];
-        setPreferences(getFormattedData(data));
-        return data;
-      } catch (err) {
-        console.error(
-          'frontier:sdk:: There is problem with updating user preferences'
-        );
-        console.error(err);
-      } finally {
-        setStatus('idle');
-      }
-      return [];
-    },
-    [client]
   );
 
-  useEffect(() => {
-    if (autoFetch) {
-      fetchPreferences();
+  const {
+    mutateAsync: updatePreferencesMutation,
+    isPending: isUpdatingPreferences
+  } = useMutation(FrontierServiceQueries.createCurrentUserPreferences, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listCurrentUserPreferences,
+          transport,
+          input: {},
+          cardinality: 'finite'
+        })
+      });
+    },
+    onError: (err) => {
+      console.error(
+        'frontier:sdk:: There is problem with updating user preferences'
+      );
+      console.error(err);
     }
-  }, [fetchPreferences, autoFetch]);
+  });
+
+  const updatePreferences = useCallback(async (preferences: Preference[]) => {
+    try {
+      const req = create(CreateCurrentUserPreferencesRequestSchema, {
+        bodies: preferences
+      });
+      await updatePreferencesMutation(req);
+    } catch (err) {
+      console.error(
+        'frontier:sdk:: There is problem with updating user preferences'
+      );
+      console.error(err);
+      throw err;
+    }
+  }, [updatePreferencesMutation]);
+
+  const status: UsePreferences['status'] = isUpdatingPreferences
+    ? 'loading'
+    : isFetchingPreferences
+    ? 'fetching'
+    : 'idle';
 
   return {
-    preferences,
+    preferences: preferences ?? {},
     status,
-    isLoading: status === 'loading',
-    isFetching: status === 'fetching',
-    fetchPreferences,
+    isLoading: isUpdatingPreferences,
+    isFetching: isFetchingPreferences,
+    fetchPreferences: refetch,
     updatePreferences
   };
 }
