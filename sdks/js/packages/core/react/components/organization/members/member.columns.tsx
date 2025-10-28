@@ -17,7 +17,7 @@ import {
 import type { Role, Policy } from '@raystack/proton/frontier';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, DeletePolicyRequestSchema, CreatePolicyRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, DeletePolicyRequestSchema, CreatePolicyRequestSchema, ListPoliciesRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import type { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
 
@@ -127,7 +127,10 @@ const MembersActions = ({
   // Query to fetch policies for the current member
   const { data: policiesData, refetch: refetchPolicies } = useQuery(
     FrontierServiceQueries.listPolicies,
-    { orgId: organizationId, userId: member.id },
+    create(ListPoliciesRequestSchema, {
+      orgId: organizationId,
+      userId: member.id
+    }),
     { enabled: !!member.id }
   );
   
