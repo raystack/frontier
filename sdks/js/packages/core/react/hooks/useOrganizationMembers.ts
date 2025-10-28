@@ -20,7 +20,6 @@ export interface UseOrganizationMembersReturn {
 
 export const useOrganizationMembers = ({ showInvitations = false }): UseOrganizationMembersReturn => {
   const [users, setUsers] = useState<V1Beta1User[]>([]);
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [invitations, setInvitations] = useState<MemberWithInvite[]>([]);
 
   const [memberRoles, setMemberRoles] = useState<Record<string, V1Beta1Role[]>>({});
@@ -48,20 +47,17 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
     }
   }, [organizationUsersData]);
 
-  const { data: rolesData, isLoading: isRolesLoading, error: rolesError, refetch: refetchRoles } = useQuery(
+  const { data: roles, isLoading: isRolesLoading, error: rolesError, refetch: refetchRoles } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       state: 'enabled',
       scopes: [PERMISSIONS.OrganizationNamespace]
     }),
-    { enabled: !!organization?.id }
-  );
-
-  useEffect(() => {
-    if (rolesData) {
-      setRoles(rolesData.roles || []);
+    { 
+      enabled: !!organization?.id,
+      select: (data) => data?.roles || []
     }
-  }, [rolesData]);
+  );
 
   const { data: invitationsData, isLoading: isInvitationsLoading, error: invitationsError, refetch: refetchInvitations } = useQuery(
     FrontierServiceQueries.listOrganizationInvitations,
@@ -98,7 +94,7 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
     isFetching,
     members: updatedUsers,
     memberRoles,
-    roles,
+    roles: roles ?? [],
     refetch,
     error: hasError
   };
