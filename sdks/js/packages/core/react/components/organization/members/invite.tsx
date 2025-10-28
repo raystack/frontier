@@ -45,27 +45,32 @@ export const InviteMember = () => {
     resolver: yupResolver(inviteSchema)
   });
   const [teams, setTeams] = useState<Group[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
   const navigate = useNavigate({ from: '/members/modal' });
   const { activeOrganization: organization } = useFrontier();
   
   // Organization roles query
-  const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
+  const { data: orgRoles, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
     FrontierServiceQueries.listOrganizationRoles,
     create(ListOrganizationRolesRequestSchema, {
       orgId: organization?.id || '',
       scopes: [PERMISSIONS.OrganizationNamespace]
     }),
-    { enabled: !!organization?.id }
+    { 
+      enabled: !!organization?.id,
+      select: (data) => data?.roles || []
+    }
   );
   
   // Global roles query
-  const { data: globalRolesData, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
+  const { data: globalRoles, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       scopes: [PERMISSIONS.OrganizationNamespace]
     }),
-    { enabled: !!organization?.id }
+    { 
+      enabled: !!organization?.id,
+      select: (data) => data?.roles || []
+    }
   );
   
   // Organization groups query
@@ -78,6 +83,12 @@ export const InviteMember = () => {
   );
   
   const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
+  
+  // Combine roles from both queries
+  const roles = useMemo(() => 
+    [...(globalRoles || []), ...(orgRoles || [])],
+    [globalRoles, orgRoles]
+  );
   
   const { mutateAsync: createInvitation } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
@@ -124,13 +135,6 @@ export const InviteMember = () => {
     [createInvitation, organization?.id]
   );
 
-  useEffect(() => {
-    if (orgRolesData && globalRolesData) {
-      const orgRoles = orgRolesData.roles || [];
-      const globalRoles = globalRolesData.roles || [];
-      setRoles([...globalRoles, ...orgRoles]);
-    }
-  }, [orgRolesData, globalRolesData]);
 
   useEffect(() => {
     if (groupsData) {
