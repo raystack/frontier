@@ -75,7 +75,7 @@ export const DeleteTeam = () => {
     }
   });
 
-  function onSubmit(data: any) {
+  function onSubmit(data: { name?: string }) {
     if (!organization?.id) return;
     if (!teamId) return;
 
