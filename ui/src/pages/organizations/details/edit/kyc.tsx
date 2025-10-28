@@ -13,12 +13,14 @@ import {
 } from "@raystack/apsara";
 import styles from "./edit.module.css";
 import { z } from "zod";
-import { api } from "~/api";
 import { useContext } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { AxiosError } from "axios";
+import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { AdminServiceQueries, FrontierServiceQueries, SetOrganizationKycRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 interface EditKYCPanelProps {
   onClose: () => void;
@@ -42,13 +44,15 @@ const kycUpdateSchema = z
 type KYCUpdateSchema = z.infer<typeof kycUpdateSchema>;
 
 export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
-  const { organization, kycDetails, updateKYCDetails } =
-    useContext(OrganizationContext);
+  const { organization, kycDetails, updateKYCDetails } = useContext(OrganizationContext);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
+  const orgId = organization?.id || "";
 
   const {
     handleSubmit,
     control,
-    formState: { isSubmitting, errors },
+    formState: { errors, isSubmitting },
   } = useForm<KYCUpdateSchema>({
     defaultValues: {
       status: kycDetails?.status || false,
@@ -57,25 +61,48 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
     resolver: zodResolver(kycUpdateSchema),
   });
 
-  async function submit(data: KYCUpdateSchema) {
-    if (!organization?.id) {
-      return;
-    }
-    try {
-      const result = await api?.adminServiceSetOrganizationKyc(
-        organization.id,
-        data,
-      );
-      const newKycDetails = result?.data?.organization_kyc;
+  const {
+    mutateAsync: setOrganizationKycMutation,
+  } = useMutation(AdminServiceQueries.setOrganizationKyc, {
+    onSuccess: (data) => {
+      // Manually update context state for immediate UI update
+      // TODO: Remove this once OrganizationContext uses useQuery for KYC data
+      // and rely solely on query invalidation below
+      const newKycDetails = data.organizationKyc;
       if (newKycDetails) {
         updateKYCDetails(newKycDetails);
       }
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.getOrganizationKyc,
+          transport,
+          input: {orgId},
+          cardinality: "finite",
+        })
+      });
       toast.success("KYC details updated successfully");
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(`Failed to update KYC details: ${error.message}`);
+      console.error("Unable to update KYC details:", error);
+    },
+  });
+
+  async function submit(data: KYCUpdateSchema) {
+    if (!orgId) {
+      return;
+    }
+    try {
+      await setOrganizationKycMutation(
+        create(SetOrganizationKycRequestSchema, {
+          orgId: orgId,
+          status: data.status,
+          link: data.link || "",
+        })
+      );
     } catch (error) {
-      const resp = (error as AxiosError<{ message: string }>)?.response?.data
-        ?.message;
-      toast.error(`Failed to update KYC details: ${resp}`);
-      console.error(error);
+      console.error("Unable to update KYC details:", error);
     }
   }
 
