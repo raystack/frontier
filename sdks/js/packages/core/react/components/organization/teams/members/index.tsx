@@ -20,7 +20,6 @@ import { ExclamationTriangleIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import type { Role, User } from '@raystack/proton/frontier';
 import {
   PERMISSIONS,
   filterUsersfromUsers,
@@ -30,7 +29,7 @@ import {
 import { getColumns } from './member.columns';
 
 import { useQuery, useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, AddGroupUsersRequestSchema, ListOrganizationUsersRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, AddGroupUsersRequestSchema, ListOrganizationUsersRequestSchema, type User, type Role } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import styles from './members.module.css';
 

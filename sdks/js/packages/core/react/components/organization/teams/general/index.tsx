@@ -15,11 +15,10 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import type { Group, Organization } from '@raystack/proton/frontier';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { AuthTooltipMessage } from '~/react/utils';
 import { useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, UpdateGroupRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, UpdateGroupRequestSchema, type Group, type Organization } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
 const teamSchema = yup

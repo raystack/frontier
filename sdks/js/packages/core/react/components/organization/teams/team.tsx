@@ -12,7 +12,7 @@ import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, GetGroupRequestSchema, ListGroupUsersRequestSchema, ListRolesRequestSchema, Organization } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, GetGroupRequestSchema, ListGroupUsersRequestSchema, ListRolesRequestSchema, Organization, type Role } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import styles from './teams.module.css';
 
@@ -57,8 +57,8 @@ export const TeamPage = () => {
   const members = membersData?.users || [];
   const memberRoles = useMemo(() => {
     if (!membersData?.rolePairs) return {};
-    return membersData.rolePairs.reduce((previous: any, mr: any) => {
-      return { ...previous, [mr.user_id]: mr.roles };
+    return membersData.rolePairs.reduce((previous: Record<string, Role[]>, mr: { userId: string; roles: Role[] }) => {
+      return { ...previous, [mr.userId]: mr.roles };
     }, {});
   }, [membersData?.rolePairs]);
 
