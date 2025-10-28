@@ -21,7 +21,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Group, Role } from '@raystack/proton/frontier';
 import { PERMISSIONS } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema, ListOrganizationRolesRequestSchema, ListRolesRequestSchema, ListOrganizationGroupsRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { handleSelectValueChange } from '~/react/utils';
 import styles from '../organization.module.css';
@@ -52,21 +52,28 @@ export const InviteMember = () => {
   // Organization roles query
   const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
     FrontierServiceQueries.listOrganizationRoles,
-    { orgId: organization?.id || '', scopes: [PERMISSIONS.OrganizationNamespace] },
+    create(ListOrganizationRolesRequestSchema, {
+      orgId: organization?.id || '',
+      scopes: [PERMISSIONS.OrganizationNamespace]
+    }),
     { enabled: !!organization?.id }
   );
   
   // Global roles query
   const { data: globalRolesData, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
     FrontierServiceQueries.listRoles,
-    { scopes: [PERMISSIONS.OrganizationNamespace] },
+    create(ListRolesRequestSchema, {
+      scopes: [PERMISSIONS.OrganizationNamespace]
+    }),
     { enabled: !!organization?.id }
   );
   
   // Organization groups query
   const { data: groupsData, isLoading: isGroupsLoading, error: groupsError } = useQuery(
     FrontierServiceQueries.listOrganizationGroups,
-    { orgId: organization?.id || '' },
+    create(ListOrganizationGroupsRequestSchema, {
+      orgId: organization?.id || ''
+    }),
     { enabled: !!organization?.id }
   );
   

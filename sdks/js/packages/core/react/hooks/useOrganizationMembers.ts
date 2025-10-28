@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { V1Beta1User, V1Beta1Role, V1Beta1Invitation } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import { useFrontier } from '../contexts/FrontierContext';
@@ -81,7 +81,10 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
   const isFetching = isUsersLoading || isInvitationsLoading || isRolesLoading;
   const hasError = usersError || rolesError || invitationsError;
 
-  const updatedUsers = [...users, ...invitations];
+  const updatedUsers = useMemo(() => 
+    [...users, ...invitations],
+    [users, invitations]
+  );
 
   const refetch = useCallback(() => {
     // Trigger refetch of all queries
