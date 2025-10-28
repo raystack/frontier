@@ -3,7 +3,8 @@ import { V1Beta1User, V1Beta1Role, V1Beta1Invitation } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import { useFrontier } from '../contexts/FrontierContext';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, ListOrganizationUsersRequestSchema, ListRolesRequestSchema, ListOrganizationInvitationsRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 
 export type MemberWithInvite = V1Beta1User & V1Beta1Invitation & {invited?: boolean}
@@ -28,7 +29,10 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
 
   const { data: organizationUsersData, isLoading: isUsersLoading, error: usersError, refetch: refetchUsers } = useQuery(
     FrontierServiceQueries.listOrganizationUsers,
-    { id: organization?.id || '', withRoles: true },
+    create(ListOrganizationUsersRequestSchema, {
+      id: organization?.id || '',
+      withRoles: true
+    }),
     { enabled: !!organization?.id }
   );
 
@@ -46,7 +50,10 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
 
   const { data: rolesData, isLoading: isRolesLoading, error: rolesError, refetch: refetchRoles } = useQuery(
     FrontierServiceQueries.listRoles,
-    { state: 'enabled', scopes: [PERMISSIONS.OrganizationNamespace] },
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.OrganizationNamespace]
+    }),
     { enabled: !!organization?.id }
   );
 
@@ -58,7 +65,9 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
 
   const { data: invitationsData, isLoading: isInvitationsLoading, error: invitationsError, refetch: refetchInvitations } = useQuery(
     FrontierServiceQueries.listOrganizationInvitations,
-    { orgId: organization?.id || '' },
+    create(ListOrganizationInvitationsRequestSchema, {
+      orgId: organization?.id || ''
+    }),
     { enabled: !!organization?.id && showInvitations }
   );
 
