@@ -1,8 +1,8 @@
+import { User } from "@raystack/proton/frontier";
 import { createContext, useContext } from "react";
-import { V1Beta1User } from "~/api/frontier";
 
 interface UserContextType {
-  user: V1Beta1User | undefined;
+  user: User | undefined;
   reset?: () => void;
 }
 

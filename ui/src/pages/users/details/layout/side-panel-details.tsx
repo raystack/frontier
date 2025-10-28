@@ -1,9 +1,9 @@
 import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara";
-import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import styles from "./side-panel.module.css";
 import { UserState, USER_STATES } from "../../util";
 import { useUser } from "../user-context";
+import { timestampToDayjs } from "~/utils/connect-timestamp";
 
 export const SidePanelDetails = () => {
   const { user } = useUser();
@@ -33,7 +33,9 @@ export const SidePanelDetails = () => {
         <List.Value>
           <Flex gap={3}>
             <CalendarIcon />
-            <Text>{dayjs(user?.created_at).format("DD MMM YYYY")}</Text>
+            <Text>
+              {timestampToDayjs(user?.createdAt)?.format("DD MMM YYYY")}
+            </Text>
           </Flex>
         </List.Value>
       </List.Item>

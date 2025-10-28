@@ -1,11 +1,10 @@
-import { Text, DropdownMenu } from "@raystack/apsara";
+import { Text, DropdownMenu, Skeleton } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { useCallback, useEffect, useState, useMemo } from "react";
-import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";
 import {
   type SearchUserOrganizationsResponse_UserOrganization,
-  SearchOrganizationUsersResponse_OrganizationUserSchema
+  SearchOrganizationUsersResponse_OrganizationUserSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import type { V1Beta1Role } from "~/api/frontier";
@@ -57,11 +56,11 @@ export const MembershipDropdown = ({
   }, [data?.orgId, fetchRoles]);
 
   const toggleAssignRoleDialog = () => {
-    setIsAssignRoleDialogOpen((value) => !value);
+    setIsAssignRoleDialogOpen(value => !value);
   };
 
   const toggleSuspendDialog = () => {
-    setIsSuspendDialogOpen((value) => !value);
+    setIsSuspendDialogOpen(value => !value);
   };
 
   const onRoleUpdate = () => {
@@ -75,17 +74,20 @@ export const MembershipDropdown = ({
   };
 
   const memoizedUser = useMemo(
-    () => create(SearchOrganizationUsersResponse_OrganizationUserSchema, {
-      ...user,
-      roleNames: data?.roleNames || [],
-      roleTitles: data?.roleTitles || [],
-      roleIds: data?.roleIds || [],
-    }),
-    [user, data?.roleNames, data?.roleTitles, data?.roleIds]
+    () =>
+      create(
+        SearchOrganizationUsersResponse_OrganizationUserSchema,
+        Object.assign(user ?? {}, {
+          roleNames: data?.roleNames || [],
+          roleTitles: data?.roleTitles || [],
+          roleIds: data?.roleIds || [],
+        }),
+      ),
+    [user, data?.roleNames, data?.roleTitles, data?.roleIds],
   );
 
   if (isLoading) {
-    return <Skeleton height={30} />;
+    return <Skeleton height={32} />;
   }
 
   return (
@@ -115,8 +117,7 @@ export const MembershipDropdown = ({
         <DropdownMenu.Content>
           <DropdownMenu.Item
             onClick={toggleAssignRoleDialog}
-            data-test-id="admin-ui-user-details-assign-role"
-          >
+            data-test-id="admin-ui-user-details-assign-role">
             Assign role...
           </DropdownMenu.Item>
           {/* TODO: Removed for now */}
