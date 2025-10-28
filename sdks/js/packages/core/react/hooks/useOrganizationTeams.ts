@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
-import type { V1Beta1Group } from '~/src';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, type Group, ListOrganizationGroupsRequestSchema, ListCurrentUserGroupsRequestSchema, type ListCurrentUserGroupsResponse_AccessPair } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 interface useOrganizationTeamsProps {
   withPermissions?: string[];
@@ -16,27 +16,27 @@ export const useOrganizationTeams = ({
   withMemberCount = false
 }: useOrganizationTeamsProps): {
   isFetching: boolean;
-  teams: V1Beta1Group[];
+  teams: Group[];
   userAccessOnTeam: Record<string, string[]>;
   refetch: () => void;
   error: unknown;
 } => {
-  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
-  const [accessPairs, setAccessPairs] = useState([]);
+  const [teams, setTeams] = useState<Group[]>([]);
+  const [accessPairs, setAccessPairs] = useState<ListCurrentUserGroupsResponse_AccessPair[]>([]);
 
   const { activeOrganization: organization } = useFrontier();
 
   // Organization teams query
   const { data: orgTeamsData, isLoading: isOrgTeamsLoading, error: orgTeamsError, refetch: refetchOrgTeams } = useQuery(
     FrontierServiceQueries.listOrganizationGroups,
-    { orgId: organization?.id || '', withMemberCount },
+    create(ListOrganizationGroupsRequestSchema, { orgId: organization?.id || '', withMemberCount }),
     { enabled: !!organization?.id && showOrgTeams }
   );
 
   // User teams query  
   const { data: userTeamsData, isLoading: isUserTeamsLoading, error: userTeamsError, refetch: refetchUserTeams } = useQuery(
     FrontierServiceQueries.listCurrentUserGroups,
-    { orgId: organization?.id || '', withPermissions, withMemberCount },
+    create(ListCurrentUserGroupsRequestSchema, { orgId: organization?.id || '', withPermissions, withMemberCount }),
     { enabled: !!organization?.id && !showOrgTeams }
   );
 
@@ -58,9 +58,9 @@ export const useOrganizationTeams = ({
   }, [teamsData, showOrgTeams]);
 
   const userAccessOnTeam = useMemo(() => {
-    return accessPairs.reduce((acc: any, p: any) => {
-      const { group_id, permissions } = p;
-      acc[group_id] = permissions;
+    return accessPairs.reduce((acc: Record<string, string[]>, p: ListCurrentUserGroupsResponse_AccessPair) => {
+      const { groupId, permissions } = p;
+      acc[groupId] = permissions;
       return acc;
     }, {});
   }, [accessPairs]);

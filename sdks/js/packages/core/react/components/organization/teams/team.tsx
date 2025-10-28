@@ -11,9 +11,10 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
-import styles from './teams.module.css';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, GetGroupRequestSchema, ListGroupUsersRequestSchema, ListRolesRequestSchema, Organization } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import styles from './teams.module.css';
 
 export const TeamPage = () => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
@@ -31,7 +32,7 @@ export const TeamPage = () => {
   // Get team details using Connect RPC
   const { data: teamData, isLoading: isTeamLoading, error: teamError } = useQuery(
     FrontierServiceQueries.getGroup,
-    { id: teamId || '', orgId: organization?.id || '', withMembers: true },
+    create(GetGroupRequestSchema, { id: teamId || '', orgId: organization?.id || '', withMembers: true }),
     { enabled: !!organization?.id && !!teamId && !isDeleteRoute }
   );
 
@@ -49,7 +50,7 @@ export const TeamPage = () => {
   // Get team members using Connect RPC
   const { data: membersData, isLoading: isMembersLoading, error: membersError, refetch: refetchMembers } = useQuery(
     FrontierServiceQueries.listGroupUsers,
-    { id: teamId || '', orgId: organization?.id || '', withRoles: true },
+    create(ListGroupUsersRequestSchema, { id: teamId || '', orgId: organization?.id || '', withRoles: true }),
     { enabled: !!organization?.id && !!teamId && !isDeleteRoute }
   );
 
@@ -73,7 +74,7 @@ export const TeamPage = () => {
   // Get team roles using Connect RPC
   const { data: rolesData, error: rolesError } = useQuery(
     FrontierServiceQueries.listRoles,
-    { state: 'enabled', scopes: [PERMISSIONS.GroupNamespace] },
+    create(ListRolesRequestSchema, { state: 'enabled', scopes: [PERMISSIONS.GroupNamespace] }),
     { enabled: !!organization?.id && !!teamId && !isDeleteRoute }
   );
 
@@ -107,7 +108,7 @@ export const TeamPage = () => {
         </Tabs.List>
         <Tabs.Content value="general">
           <General
-            organization={organization}
+            organization={organization as Organization}
             team={team}
             isLoading={isTeamLoading}
           />

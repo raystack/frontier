@@ -17,10 +17,10 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import styles from '../organization.module.css';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, DeleteGroupRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, DeleteGroupRequestSchema, GetGroupRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import styles from '../organization.module.css';
 
 const teamSchema = yup
   .object({
@@ -47,7 +47,7 @@ export const DeleteTeam = () => {
   // Get team details using Connect RPC
   const { data: teamData, isLoading: isTeamLoading, error: teamError } = useQuery(
     FrontierServiceQueries.getGroup,
-    { id: teamId || '', orgId: organization?.id || '' },
+    create(GetGroupRequestSchema, { id: teamId || '', orgId: organization?.id || '' }),
     { enabled: !!organization?.id && !!teamId }
   );
 

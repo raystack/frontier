@@ -15,7 +15,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1Group, V1Beta1Organization } from '~/src';
+import type { Group, Organization } from '@raystack/proton/frontier';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { AuthTooltipMessage } from '~/react/utils';
 import { useMutation } from '@connectrpc/connect-query';
@@ -32,8 +32,8 @@ const teamSchema = yup
 type FormData = yup.InferType<typeof teamSchema>;
 
 interface GeneralTeamProps {
-  team?: V1Beta1Group;
-  organization?: V1Beta1Organization;
+  team?: Group;
+  organization?: Organization;
   isLoading?: boolean;
 }
 

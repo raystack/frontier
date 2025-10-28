@@ -19,7 +19,13 @@ import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import { handleSelectValueChange } from '~/react/utils';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, CreatePolicyRequestSchema, AddGroupUsersRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries,
+  CreatePolicyRequestSchema,
+  AddGroupUsersRequestSchema,
+  ListOrganizationUsersRequestSchema,
+  ListGroupUsersRequestSchema,
+  ListOrganizationRolesRequestSchema,
+  ListRolesRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import styles from '../../organization.module.css';
 
@@ -46,7 +52,7 @@ export const InviteTeamMembers = () => {
   // Get organization members using Connect RPC
   const { data: orgMembersData, isLoading: isOrgMembersLoading, error: orgMembersError } = useQuery(
     FrontierServiceQueries.listOrganizationUsers,
-    { id: organization?.id || '' },
+    create(ListOrganizationUsersRequestSchema, { id: organization?.id || '' }),
     { enabled: !!organization?.id }
   );
 
@@ -63,7 +69,7 @@ export const InviteTeamMembers = () => {
   // Get team members using Connect RPC
   const { data: teamMembersData, isLoading: isTeamMembersLoading, error: teamMembersError } = useQuery(
     FrontierServiceQueries.listGroupUsers,
-    { id: teamId || '', orgId: organization?.id || '', withRoles: true },
+    create(ListGroupUsersRequestSchema, { id: teamId || '', orgId: organization?.id || '', withRoles: true }),
     { enabled: !!organization?.id && !!teamId }
   );
 
@@ -80,14 +86,14 @@ export const InviteTeamMembers = () => {
   // Get organization roles using Connect RPC
   const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
     FrontierServiceQueries.listOrganizationRoles,
-    { orgId: organization?.id || '', scopes: [PERMISSIONS.GroupNamespace] },
+    create(ListOrganizationRolesRequestSchema, { orgId: organization?.id || '', scopes: [PERMISSIONS.GroupNamespace] }),
     { enabled: !!organization?.id }
   );
 
   // Get roles using Connect RPC
   const { data: rolesData, isLoading: isRolesLoading, error: rolesError } = useQuery(
     FrontierServiceQueries.listRoles,
-    { scopes: [PERMISSIONS.GroupNamespace] },
+    create(ListRolesRequestSchema, { scopes: [PERMISSIONS.GroupNamespace] }),
     { enabled: !!organization?.id }
   );
 
@@ -164,17 +170,14 @@ export const InviteTeamMembers = () => {
       userIds: [userId]
     });
 
-    try {
-      await addGroupUsersMutation.mutateAsync(request);
-      await addGroupTeamPolicy(role, userId);
-      toast.success('member added');
-      navigate({
-        to: '/teams/$teamId',
-        params: { teamId }
-      });
-    } catch (error) {
-      // Error is already handled by the mutation
-    }
+    await addGroupUsersMutation.mutateAsync(request);
+    await addGroupTeamPolicy(role, userId);
+    toast.success('member added');
+    navigate({
+      to: '/teams/$teamId',
+      params: { teamId }
+    });
+    
   }
 
   const invitableUser = useMemo(
