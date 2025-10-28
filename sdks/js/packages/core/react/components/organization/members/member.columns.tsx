@@ -14,7 +14,7 @@ import {
   DropdownMenu,
   DataTableColumnDef
 } from '@raystack/apsara';
-import type { V1Beta1Policy, V1Beta1Role } from '~/src';
+import type { Role, Policy } from '@raystack/proton/frontier';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, DeletePolicyRequestSchema, CreatePolicyRequestSchema } from '@raystack/proton/frontier';
@@ -23,8 +23,8 @@ import type { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
 
 export const getColumns = (
   organizationId: string,
-  memberRoles: Record<string, V1Beta1Role[]> = {},
-  roles: V1Beta1Role[] = [],
+  memberRoles: Record<string, Role[]> = {},
+  roles: Role[] = [],
   canDeleteUser = false,
   refetch = () => {}
 ): DataTableColumnDef<MemberWithInvite, MemberWithInvite>[] => [
@@ -80,7 +80,7 @@ export const getColumns = (
             : (row.original?.id &&
                 memberRoles[row.original?.id] &&
                 memberRoles[row.original?.id]
-                  .map((r: V1Beta1Role) => r.title || r.name)
+                  .map((r: Role) => r.title || r.name)
                   .join(', ')) ??
               'Inherited role'}
         </Text>
@@ -97,7 +97,7 @@ export const getColumns = (
         member={row.original}
         organizationId={organizationId}
         canUpdateGroup={canDeleteUser}
-        excludedRoles={differenceWith<V1Beta1Role>(
+        excludedRoles={differenceWith<Role>(
           isEqualById,
           roles,
           row.original?.id && memberRoles[row.original?.id]
@@ -119,7 +119,7 @@ const MembersActions = ({
   member: MemberWithInvite;
   canUpdateGroup?: boolean;
   organizationId: string;
-  excludedRoles: V1Beta1Role[];
+  excludedRoles: Role[];
   refetch: () => void;
 }) => {
   const navigate = useNavigate({ from: '/members' });
@@ -157,7 +157,7 @@ const MembersActions = ({
     }
   );
 
-  async function updateRole(role: V1Beta1Role) {
+  async function updateRole(role: Role) {
     try {
       const resource = `app/organization:${organizationId}`;
       const principal = `app/user:${member?.id}`;
@@ -167,7 +167,7 @@ const MembersActions = ({
       
       // Delete existing policies with individual error handling
       const deleteResults = await Promise.allSettled(
-        policies.map((p: V1Beta1Policy) => {
+        policies.map((p: Policy) => {
           const req = create(DeletePolicyRequestSchema, {
             id: p.id as string
           });
@@ -210,7 +210,7 @@ const MembersActions = ({
         {/* @ts-ignore */}
         <DropdownMenu.Content portal={false}>
           <DropdownMenu.Group style={{ padding: 0 }}>
-            {excludedRoles.map((role: V1Beta1Role) => (
+            {excludedRoles.map((role: Role) => (
               <DropdownMenu.Item
                 key={role.id}
                 onClick={() => updateRole(role)}
