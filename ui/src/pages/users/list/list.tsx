@@ -61,7 +61,7 @@ export const UsersList = () => {
     { query: query },
     {
       pageParamKey: "query",
-      getNextPageParam: (lastPage) =>
+      getNextPageParam: lastPage =>
         getConnectNextPageParam(lastPage, { query: query }, "users"),
       staleTime: 0,
       refetchOnWindowFocus: false,
@@ -70,7 +70,7 @@ export const UsersList = () => {
     },
   );
 
-  const data = infiniteData?.pages?.flatMap((page) => page?.users || []) || [];
+  const data = infiniteData?.pages?.flatMap(page => page?.users || []) || [];
 
   const groupCountMap = infiniteData
     ? getGroupCountMapFromFirstPage(infiniteData)
@@ -132,8 +132,7 @@ export const UsersList = () => {
         onTableQueryChange={onTableQueryChange}
         mode="server"
         onLoadMore={handleLoadMore}
-        onRowClick={onRowClick}
-      >
+        onRowClick={onRowClick}>
         <Flex direction="column" style={{ width: "100%" }}>
           <Navbar searchQuery={tableQuery.search} />
           <DataTable.Toolbar />
