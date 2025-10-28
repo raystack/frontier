@@ -41,7 +41,7 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
       const { users, rolePairs } = organizationUsersData;
       setUsers(users || []);
       setMemberRoles(
-        (rolePairs || []).reduce((previous: any, mr: any) => {
+        (rolePairs || []).reduce((previous: Record<string, V1Beta1Role[]>, mr: { userId: string; roles: V1Beta1Role[] }) => {
           return { ...previous, [mr.userId]: mr.roles };
         }, {})
       );
