@@ -1,48 +1,82 @@
-import { ComponentProps, useState } from "react";
+import { ComponentProps, useCallback, useState } from "react";
 import { Button, Dialog, toast } from "@raystack/apsara";
-import { api } from "~/api";
 import { useUser } from "../user-context";
 import { getUserName } from "../../util";
+import {
+  createConnectQueryKey,
+  useMutation,
+  useTransport,
+} from "@connectrpc/connect-query";
+import {
+  AdminServiceQueries,
+  FrontierServiceQueries,
+} from "@raystack/proton/frontier";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ButtonColorType = ComponentProps<typeof Button>["color"];
 
 export const BlockUserDialog = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, reset } = useUser();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const isActive = user?.state === "enabled";
   const userName = getUserName(user);
 
-  async function blockUser() {
-    if (!user?.id) return;
-    try {
-      setIsSubmitting(true);
-      await api?.frontierServiceDisableUser(user.id, {});
-      toast.success("User blocked successfully");
-      reset?.();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Failed to block user", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const optimisticUpdateState = useCallback(
+    (state: string) => {
+      queryClient.setQueryData(
+        createConnectQueryKey({
+          schema: AdminServiceQueries.searchUsers,
+          transport,
+          input: { query: { search: user?.id } },
+          cardinality: "finite",
+        }),
+        oldData => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            users: oldData.users.map(user =>
+              user.id === user?.id ? { ...user, state } : user,
+            ),
+          };
+        },
+      );
+    },
+    [queryClient, transport, user?.id],
+  );
 
-  async function unblockUser() {
-    if (!user?.id) return;
-    try {
-      setIsSubmitting(true);
-      await api?.frontierServiceEnableUser(user.id, {});
-      toast.success("User unblocked successfully");
-      reset?.();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Failed to unblock user", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const { mutateAsync: blockUser, isPending: isBlockingUser } = useMutation(
+    FrontierServiceQueries.disableUser,
+    {
+      onSuccess: () => {
+        toast.success("User blocked successfully");
+        optimisticUpdateState("disabled");
+        reset?.();
+        onOpenChange(false);
+      },
+      onError: error => {
+        console.error("Failed to block user", error);
+      },
+    },
+  );
+  const { mutateAsync: unblockUser, isPending: isUnblockingUser } = useMutation(
+    FrontierServiceQueries.enableUser,
+    {
+      onSuccess: () => {
+        toast.success("User unblocked successfully");
+        optimisticUpdateState("enabled");
+        reset?.();
+        onOpenChange(false);
+      },
+      onError: error => {
+        console.error("Failed to block user", error);
+      },
+    },
+  );
+
+  const isSubmitting = isBlockingUser || isUnblockingUser;
 
   const onOpenChange = (value: boolean) => {
     setIsDialogOpen(value);
@@ -74,12 +108,11 @@ export const BlockUserDialog = () => {
         <Button
           color={config.btnColor}
           size="normal"
-          style={{ 
-            alignSelf: 'flex-end',
+          style={{
+            alignSelf: "flex-end",
           }}
           width={70}
-          data-test-id="admin-ui-security-block-user"
-        >
+          data-test-id="admin-ui-security-block-user">
           {config.btnText}
         </Button>
       </Dialog.Trigger>
@@ -93,8 +126,7 @@ export const BlockUserDialog = () => {
             <Button
               color="neutral"
               variant="outline"
-              data-test-id="admin-ui-security-block-user-cancel"
-            >
+              data-test-id="admin-ui-security-block-user-cancel">
               Cancel
             </Button>
           </Dialog.Close>
@@ -103,8 +135,7 @@ export const BlockUserDialog = () => {
             data-test-id="admin-ui-security-block-user-submit"
             loading={isSubmitting}
             loaderText={config.dialogConfirmLoadingText}
-            onClick={config.onClick}
-          >
+            onClick={() => config.onClick({ id: user?.id || "" })}>
             {config.dialogConfirmText}
           </Button>
         </Dialog.Footer>
