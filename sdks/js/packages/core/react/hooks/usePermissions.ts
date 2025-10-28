@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, BatchCheckPermissionBodySchema, BatchCheckPermissionResponsePair } from '@raystack/proton/frontier';
+import { FrontierServiceQueries,
+  BatchCheckPermissionBodySchema,
+  BatchCheckPermissionResponsePair,
+  BatchCheckPermissionRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { formatPermissions } from '~/utils';
 
@@ -21,7 +24,7 @@ export const usePermissions = (
 
   const { data, isLoading, error } = useQuery(
     FrontierServiceQueries.batchCheckPermission,
-    { bodies: protobufPermissions },
+    create(BatchCheckPermissionRequestSchema, { bodies: protobufPermissions }),
     { enabled: shouldCalled && permissions.length > 0 }
   );
 
