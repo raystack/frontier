@@ -8,15 +8,16 @@ import { FrontierServiceQueries } from '@raystack/proton/frontier';
 
 export type MemberWithInvite = V1Beta1User & V1Beta1Invitation & {invited?: boolean}
 
-
-export const useOrganizationMembers = ({ showInvitations = false }): {
+export interface UseOrganizationMembersReturn {
   isFetching: boolean;
   members: MemberWithInvite[];
   memberRoles: Record<string, V1Beta1Role[]>;
   roles: V1Beta1Role[];
   refetch: () => void;
   error: unknown;
-} => {
+}
+
+export const useOrganizationMembers = ({ showInvitations = false }): UseOrganizationMembersReturn => {
   const [users, setUsers] = useState<V1Beta1User[]>([]);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [invitations, setInvitations] = useState<MemberWithInvite[]>([]);
