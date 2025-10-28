@@ -18,7 +18,7 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Role } from '~/src';
+import { Group, Role } from '@raystack/proton/frontier';
 import { PERMISSIONS } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema } from '@raystack/proton/frontier';
@@ -44,8 +44,8 @@ export const InviteMember = () => {
   } = useForm({
     resolver: yupResolver(inviteSchema)
   });
-  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
+  const [teams, setTeams] = useState<Group[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const navigate = useNavigate({ from: '/members/modal' });
   const { activeOrganization: organization } = useFrontier();
   
@@ -71,7 +71,6 @@ export const InviteMember = () => {
   );
   
   const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
-  const hasError = orgRolesError || globalRolesError || groupsError;
   
   const { mutateAsync: createInvitation } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
