@@ -13,12 +13,11 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { Group } from '@raystack/proton/frontier';
 import { PERMISSIONS } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema, ListOrganizationRolesRequestSchema, ListRolesRequestSchema, ListOrganizationGroupsRequestSchema } from '@raystack/proton/frontier';
@@ -44,7 +43,6 @@ export const InviteMember = () => {
   } = useForm({
     resolver: yupResolver(inviteSchema)
   });
-  const [teams, setTeams] = useState<Group[]>([]);
   const navigate = useNavigate({ from: '/members/modal' });
   const { activeOrganization: organization } = useFrontier();
   
@@ -74,12 +72,15 @@ export const InviteMember = () => {
   );
   
   // Organization groups query
-  const { data: groupsData, isLoading: isGroupsLoading, error: groupsError } = useQuery(
+  const { data: teams, isLoading: isGroupsLoading, error: groupsError } = useQuery(
     FrontierServiceQueries.listOrganizationGroups,
     create(ListOrganizationGroupsRequestSchema, {
       orgId: organization?.id || ''
     }),
-    { enabled: !!organization?.id }
+    { 
+      enabled: !!organization?.id,
+      select: (data) => data?.groups || []
+    }
   );
   
   const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
@@ -135,11 +136,6 @@ export const InviteMember = () => {
   );
 
 
-  useEffect(() => {
-    if (groupsData) {
-      setTeams(groupsData.groups || []);
-    }
-  }, [groupsData]);
 
   const isDisabled = useMemo(() => {
     const [emails, type] = values;
@@ -249,12 +245,12 @@ export const InviteMember = () => {
                           </Select.Trigger>
                           <Select.Content>
                             <Select.Group>
-                              {!teams.length && (
+                              {!teams?.length && (
                                 <Text className={styles.noSelectItem}>
                                   No teams available
                                 </Text>
                               )}
-                              {teams.map(t => (
+                              {(teams || []).map(t => (
                                 <Select.Item value={t.id || ''} key={t.id}>
                                   {t.title}
                                 </Select.Item>
