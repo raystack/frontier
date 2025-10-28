@@ -18,7 +18,7 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { Group, Role } from '@raystack/proton/frontier';
+import { Group } from '@raystack/proton/frontier';
 import { PERMISSIONS } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema, ListOrganizationRolesRequestSchema, ListRolesRequestSchema, ListOrganizationGroupsRequestSchema } from '@raystack/proton/frontier';
@@ -84,7 +84,6 @@ export const InviteMember = () => {
   
   const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
   
-  // Combine roles from both queries
   const roles = useMemo(() => 
     [...(globalRoles || []), ...(orgRoles || [])],
     [globalRoles, orgRoles]
