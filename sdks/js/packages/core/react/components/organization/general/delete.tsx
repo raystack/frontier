@@ -17,9 +17,9 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, DeleteOrganizationRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 import styles from './general.module.css';
-import { useTerminology } from '~/react/hooks/useTerminology';
 
 const orgSchema = yup
   .object({

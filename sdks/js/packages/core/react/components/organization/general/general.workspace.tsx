@@ -33,15 +33,17 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
+interface GeneralOrganizationProps {
+  organization?: Organization;
+  isLoading?: boolean;
+  canUpdateWorkspace?: boolean;
+}
+
 export const GeneralOrganization = ({
   organization,
   isLoading,
   canUpdateWorkspace = false
-}: {
-  organization?: Organization;
-  isLoading?: boolean;
-  canUpdateWorkspace?: boolean;
-}) => {
+}: GeneralOrganizationProps) => {
   const { setActiveOrganization } = useFrontier();
   const queryClient = useQueryClient();
   const { mutateAsync: updateOrganization } = useMutation(
@@ -49,12 +51,12 @@ export const GeneralOrganization = ({
     {
       onSuccess: (data) => {
         if (data.organization) {
-          setActiveOrganization(data.organization as any);
+          setActiveOrganization(data.organization);
           queryClient.invalidateQueries({ queryKey: ['getOrganization'] });
         }
         toast.success(`Updated ${t.organization({ case: 'lower' })}`);
       },
-      onError: (error: any) => {
+      onError: (error: Error) => {
         toast.error('Something went wrong', {
           description: error?.message || 'Failed to update'
         });
@@ -74,6 +76,7 @@ export const GeneralOrganization = ({
   });
 
   const URL_PREFIX = window?.location?.host + '/';
+  
   useEffect(() => {
     reset(organization);
   }, [organization, reset]);
@@ -91,9 +94,9 @@ export const GeneralOrganization = ({
         }
       });
       await updateOrganization(req);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Something went wrong', {
-        description: error?.message || 'Failed to update organization'
+        description: error instanceof Error ? error.message : 'Failed to update organization'
       });
     }
   }

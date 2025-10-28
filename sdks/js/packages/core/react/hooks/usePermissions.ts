@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, BatchCheckPermissionBodySchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, BatchCheckPermissionBodySchema, BatchCheckPermissionResponsePair } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { formatPermissions } from '~/utils';
 
@@ -28,7 +28,7 @@ export const usePermissions = (
   const permissionsMap = useMemo(() => {
     const pairs = data?.pairs ?? [];
     if (!pairs.length) return {};
-    const normalizedPairs = pairs.map((p: any) => ({
+    const normalizedPairs = pairs.map((p: BatchCheckPermissionResponsePair) => ({
       body: p?.body ?? {},
       status: Boolean(p?.status)
     }));
