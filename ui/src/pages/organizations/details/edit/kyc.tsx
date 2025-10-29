@@ -93,17 +93,13 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
     if (!orgId) {
       return;
     }
-    try {
-      await setOrganizationKycMutation(
-        create(SetOrganizationKycRequestSchema, {
-          orgId: orgId,
-          status: data.status,
-          link: data.link || "",
-        })
-      );
-    } catch (error) {
-      console.error("Unable to update KYC details:", error);
-    }
+    await setOrganizationKycMutation(
+      create(SetOrganizationKycRequestSchema, {
+        orgId: orgId,
+        status: data.status,
+        link: data.link || "",
+      })
+    );
   }
 
   return (
