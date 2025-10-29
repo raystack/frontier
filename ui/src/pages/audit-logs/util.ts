@@ -1,10 +1,15 @@
-import { AuditRecordActor } from "@raystack/proton/frontier";
+import { toJsonString } from "@bufbuild/protobuf";
+import {
+  AuditRecord,
+  AuditRecordActor,
+  AuditRecordSchema,
+} from "@raystack/proton/frontier";
 
-export const isAuditLogActorServiceUser = (actor?: AuditRecordActor) =>
-  actor?.type === ACTOR_TYPES.SERVICE_USER;
+export const isAuditLogActorSystem = (actor?: AuditRecordActor) =>
+  actor?.type === ACTOR_TYPES.SYSTEM;
 
 export const getAuditLogActorName = (actor?: AuditRecordActor) => {
-  if (isAuditLogActorServiceUser(actor)) return "System";
+  if (isAuditLogActorSystem(actor)) return "System";
 
   const name = actor?.name || "-";
 
@@ -29,4 +34,11 @@ export const getActionBadgeColor = (action: string) => {
 export const ACTOR_TYPES = {
   USER: "app/user",
   SERVICE_USER: "app/serviceuser",
+  SYSTEM: "system",
 } as const;
+
+export const AUDIT_LOG_QUERY_KEY = ["audit-logs", "table-query"];
+
+export const auditLogToJson = (auditLog: AuditRecord) => {
+  return toJsonString(AuditRecordSchema, auditLog, { prettySpaces: 2 });
+};

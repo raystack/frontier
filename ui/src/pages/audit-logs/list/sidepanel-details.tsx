@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Button,
   CopyButton,
   Flex,
   getAvatarColor,
@@ -17,12 +18,14 @@ import {
 import { List } from "@raystack/apsara";
 import styles from "./list.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
-import { isAuditLogActorServiceUser } from "../util";
+import { ACTOR_TYPES, isAuditLogActorSystem } from "../util";
 import { getAuditLogActorName } from "../util";
-import serviceUserIcon from "~/assets/images/service-user.jpg";
+import systemIcon from "~/assets/images/system.jpg";
 import { timestampToDate } from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
 import MapIcon from "~/assets/icons/map.svg?react";
+import SidePanelLogDialog from "./sidepanel-log-dialog";
+import { Link } from "react-router-dom";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
@@ -39,15 +42,12 @@ type AuditSessionContext = {
 };
 
 export default function SidePanelDetails({
-  actor,
-  event,
-  resource,
-  occurredAt,
   onClose,
-  id,
+  ...rest
 }: SidePanelDetailsProps) {
+  const { actor, event, resource, occurredAt, id, orgId, target } = rest;
   const name = getAuditLogActorName(actor);
-  const isServiceUser = isAuditLogActorServiceUser(actor);
+  const isSystem = isAuditLogActorSystem(actor);
   const date = dayjs(timestampToDate(occurredAt));
 
   const session = actor?.metadata?.context as AuditSessionContext;
@@ -61,6 +61,7 @@ export default function SidePanelDetails({
       <SidePanel.Header
         title="Audit log details"
         actions={[
+          <SidePanelLogDialog key="show-audit-json-dialog" {...rest} />,
           <IconButton
             size={3}
             key="close-sidepanel-icon"
@@ -73,24 +74,64 @@ export default function SidePanelDetails({
       <SidePanel.Section>
         <List>
           <List.Header>Overview</List.Header>
-          <List.Item>
-            <List.Label minWidth="120px">Actor</List.Label>
-            <List.Value>
-              <Flex gap={3} align="center">
-                <Avatar
-                  size={1}
-                  fallback={name?.[0]?.toUpperCase()}
-                  color={getAvatarColor(actor?.id ?? "")}
-                  radius="full"
-                  src={isServiceUser ? serviceUserIcon : undefined}
-                />
-                <Text size="regular">{name}</Text>
-              </Flex>
+          {actor?.type === ACTOR_TYPES.SYSTEM ? (
+            <List.Item>
+              <List.Label minWidth="120px">Actor</List.Label>
+              <List.Value>
+                <Flex gap={3} align="center">
+                  <Avatar
+                    size={1}
+                    fallback={name?.[0]?.toUpperCase()}
+                    color={getAvatarColor(actor?.id ?? "")}
+                    radius="full"
+                    src={isSystem ? systemIcon : undefined}
+                  />
+                  {name}
+                </Flex>
+              </List.Value>
+            </List.Item>
+          ) : (
+            <List.Item className={styles["sidepanel-list-link"]}>
+              <List.Label minWidth="112px">Actor</List.Label>
+              <List.Value className={styles["text-overflow"]}>
+                <Link to={`/users/${actor?.id}`}>
+                  <Button
+                    variant="text"
+                    color="neutral"
+                    data-test-id="organization-link"
+                    leadingIcon={
+                      <Avatar
+                        size={1}
+                        fallback={name?.[0]?.toUpperCase()}
+                        color={getAvatarColor(actor?.id ?? "")}
+                        radius="full"
+                        src={isSystem ? systemIcon : undefined}
+                      />
+                    }
+                    className={styles["sidepanel-link-trigger"]}>
+                    {name}
+                  </Button>
+                </Link>
+              </List.Value>
+            </List.Item>
+          )}
+          <List.Item className={styles["sidepanel-list-link"]}>
+            <List.Label minWidth="112px">Organization</List.Label>
+            <List.Value className={styles["text-overflow"]}>
+              <Link to={`/organizations/${orgId}`}>
+                <Button
+                  variant="text"
+                  color="neutral"
+                  data-test-id="organization-link"
+                  className={styles["sidepanel-link-trigger"]}>
+                  {orgId}
+                </Button>
+              </Link>
             </List.Value>
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Action</List.Label>
-            <List.Value className={styles.capitalize}>{event}</List.Value>
+            <List.Value>{event}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Resource</List.Label>
@@ -125,6 +166,12 @@ export default function SidePanelDetails({
               </Flex>
             </List.Value>
           </List.Item>
+          {target && (
+            <List.Item>
+              <List.Label minWidth="120px">Target</List.Label>
+              <List.Value>{target?.name || "-"}</List.Value>
+            </List.Item>
+          )}
         </List>
       </SidePanel.Section>
       {session && (

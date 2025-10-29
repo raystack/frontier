@@ -21,9 +21,9 @@ import {
 import {
   getActionBadgeColor,
   getAuditLogActorName,
-  isAuditLogActorServiceUser,
+  isAuditLogActorSystem,
 } from "../util";
-import serviceUserIcon from "~/assets/images/service-user.jpg";
+import systemIcon from "~/assets/images/system.jpg";
 import { OrganizationCell } from "./organization-cell";
 import { ComponentPropsWithoutRef } from "react";
 
@@ -42,10 +42,11 @@ export const getColumns = ({
         cell: styles["name-column"],
         header: styles["name-column"],
       },
+      enableColumnFilter: true,
       cell: ({ getValue }) => {
         const value = getValue() as AuditRecordActor;
         const name = getAuditLogActorName(value);
-        const isServiceUser = isAuditLogActorServiceUser(value);
+        const isSystem = isAuditLogActorSystem(value);
 
         return (
           <Flex gap={4} align="center">
@@ -54,7 +55,7 @@ export const getColumns = ({
               fallback={name?.[0]?.toUpperCase()}
               color={getAvatarColor(value?.id ?? "")}
               radius="full"
-              src={isServiceUser ? serviceUserIcon : undefined}
+              src={isSystem ? systemIcon : undefined}
             />
             <Text size="regular">{name}</Text>
           </Flex>
@@ -89,10 +90,11 @@ export const getColumns = ({
     {
       accessorKey: "resource",
       header: "Resource",
+      enableColumnFilter: true,
       cell: ({ getValue }) => {
         const value = getValue() as AuditRecordResource;
         return (
-          <Flex gap={1} direction="column" className={styles.capitalize}>
+          <Flex gap={1} direction="column">
             <Text size="small" weight="medium">
               {value.name}
             </Text>
@@ -102,6 +104,13 @@ export const getColumns = ({
           </Flex>
         );
       },
+    },
+    {
+      accessorKey: "resourceType",
+      header: "Resource Type",
+      enableColumnFilter: true,
+      defaultHidden: true,
+      cell: () => null,
     },
     {
       accessorKey: "occurredAt",
