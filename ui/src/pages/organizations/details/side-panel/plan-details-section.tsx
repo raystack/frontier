@@ -1,52 +1,57 @@
-import { V1Beta1Subscription, V1Beta1Plan } from "~/api/frontier";
-import { useContext, useEffect, useState } from "react";
-import { api } from "~/api";
+import { useContext, useMemo } from "react";
 import { List, Text, Flex } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
-import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";
 import { OrganizationContext } from "../contexts/organization-context";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries, ListSubscriptionsRequestSchema, GetPlanRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { timestampToDayjs } from "~/utils/connect-timestamp";
 
 export const PlanDetailsSection = () => {
   const { billingAccount, organization } = useContext(OrganizationContext);
-  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(false);
-  const [subscription, setSubscription] = useState<V1Beta1Subscription>();
-  const [plan, setPlan] = useState<V1Beta1Plan>();
 
   const billingAccountId = billingAccount?.id || "";
   const organizationId = organization?.id || "";
 
-  useEffect(() => {
-    async function fetchBillingDetails(id: string, billingAccountId: string) {
-      try {
-        setIsSubscriptionLoading(true);
-        const subResponse = await api?.frontierServiceListSubscriptions(
-          id,
-          billingAccountId,
-        );
-        const subscriptions = subResponse?.data?.subscriptions || [];
-        const sub = subscriptions.find(
-          (sub) => sub.state === "active" || sub.state === "trialing",
-        );
-        if (sub && sub.plan_id) {
-          setSubscription(sub);
-          const planResponse = await api?.frontierServiceGetPlan(sub.plan_id);
-          const plan = planResponse?.data?.plan;
-          setPlan(plan);
-        }
-      } catch (error) {
-        console.error("Error fetching billing details:", error);
-      } finally {
-        setIsSubscriptionLoading(false);
-      }
+  const { data: subscriptionsData, isLoading: isSubscriptionLoading, error: subscriptionsError } = useQuery(
+    FrontierServiceQueries.listSubscriptions,
+    create(ListSubscriptionsRequestSchema, {
+      orgId: organizationId,
+      billingId: billingAccountId,
+    }),
+    {
+      enabled: !!organizationId && !!billingAccountId,
     }
-    if (organizationId && billingAccountId) {
-      fetchBillingDetails(organizationId, billingAccountId);
-    }
-  }, [organizationId, billingAccountId]);
+  );
 
-  const isLoading = isSubscriptionLoading;
+  if (subscriptionsError) {
+    console.error("Error fetching subscriptions:", subscriptionsError);
+  }
+
+  const activeSubscription = useMemo(() => {
+    const subscriptions = subscriptionsData?.subscriptions ?? [];
+    return subscriptions.find(
+      (sub) => sub.state === "active" || sub.state === "trialing"
+    );
+  }, [subscriptionsData?.subscriptions]);
+
+  const { data: planData, isLoading: isPlanLoading, error: planError } = useQuery(
+    FrontierServiceQueries.getPlan,
+    create(GetPlanRequestSchema, {
+      id: activeSubscription?.planId ?? "",
+    }),
+    {
+      enabled: !!activeSubscription?.planId,
+    }
+  );
+
+  if (planError) {
+    console.error("Error fetching plan:", planError);
+  }
+
+  const isLoading = isSubscriptionLoading || isPlanLoading;
 
   return (
     <List>
@@ -56,7 +61,7 @@ export const PlanDetailsSection = () => {
           Name
         </List.Label>
         <List.Value>
-          {isLoading ? <Skeleton /> : <Text>{plan?.title || "Standard"}</Text>}
+          {isLoading ? <Skeleton /> : <Text>{planData?.plan?.title || "Standard"}</Text>}
         </List.Value>
       </List.Item>
       <List.Item>
@@ -66,11 +71,11 @@ export const PlanDetailsSection = () => {
         <List.Value>
           {isLoading ? (
             <Skeleton />
-          ) : subscription?.current_period_start_at ? (
+          ) : timestampToDayjs(activeSubscription?.currentPeriodStartAt) ? (
             <Flex gap={3}>
               <CalendarIcon />
               <Text>
-                {dayjs(subscription?.current_period_start_at).format(
+                {timestampToDayjs(activeSubscription?.currentPeriodStartAt)?.format(
                   "DD MMM YYYY",
                 )}
               </Text>
@@ -87,11 +92,11 @@ export const PlanDetailsSection = () => {
         <List.Value>
           {isLoading ? (
             <Skeleton />
-          ) : subscription?.current_period_end_at ? (
+          ) : timestampToDayjs(activeSubscription?.currentPeriodEndAt) ? (
             <Flex gap={3}>
               <CalendarIcon />
               <Text>
-                {dayjs(subscription?.current_period_end_at).format(
+                {timestampToDayjs(activeSubscription?.currentPeriodEndAt)?.format(
                   "DD MMM YYYY",
                 )}
               </Text>
