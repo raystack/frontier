@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, ListOrganizationProjectsRequestSchema, ListProjectsByCurrentUserRequestSchema, type Project, type ListProjectsByCurrentUserResponse_AccessPair } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../contexts/FrontierContext';
-import type {
-  V1Beta1ListProjectsByCurrentUserResponseAccessPair,
-  V1Beta1Project
-} from '~/src';
 
 interface useOrganizationProjectsProps {
   showInhreitedProjects?: boolean;
@@ -15,65 +14,76 @@ export const useOrganizationProjects = ({
   withMemberCount = false,
   allProjects = false
 }: useOrganizationProjectsProps) => {
-  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
-  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
-  const [accessPairs, setAccessPairs] = useState<
-    V1Beta1ListProjectsByCurrentUserResponseAccessPair[]
-  >([]);
+  const { activeOrganization: organization } = useFrontier();
 
-  const { client, activeOrganization: organization } = useFrontier();
+  // Query for organization projects (all projects)
+  const { 
+    data: orgProjectsData, 
+    isLoading: isOrgProjectsLoading, 
+    error: orgProjectsError,
+    refetch: refetchOrgProjects 
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationProjects,
+    create(ListOrganizationProjectsRequestSchema, { 
+      orgId: organization?.id || '',
+      withMemberCount 
+    }),
+    { enabled: !!organization?.id && allProjects }
+  );
 
-  const getProjects = useCallback(
-    async (org_id: string) => {
-      try {
-        setIsProjectsLoading(true);
-        const resp = allProjects
-          ? await client?.frontierServiceListOrganizationProjects(org_id, {
-              with_member_count: withMemberCount
-            })
-          : await client?.frontierServiceListProjectsByCurrentUser({
-              org_id,
-              with_permissions: ['update', 'delete'],
-              non_inherited: true,
-              with_member_count: withMemberCount
-            });
-
-        const newProjects = resp?.data?.projects || [];
-        // @ts-ignore
-        const access_pairs = resp?.data?.access_pairs || [];
-        setProjects(newProjects);
-        setAccessPairs(access_pairs);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsProjectsLoading(false);
-      }
-    },
-    [allProjects, client, withMemberCount]
+  // Query for current user projects
+  const { 
+    data: userProjectsData, 
+    isLoading: isUserProjectsLoading, 
+    error: userProjectsError,
+    refetch: refetchUserProjects 
+  } = useQuery(
+    FrontierServiceQueries.listProjectsByCurrentUser,
+    create(ListProjectsByCurrentUserRequestSchema, { 
+      orgId: organization?.id || '',
+      withPermissions: ['update', 'delete'],
+      nonInherited: true,
+      withMemberCount 
+    }),
+    { enabled: !!organization?.id && !allProjects }
   );
 
   const refetch = useCallback(() => {
-    if (organization?.id) {
-      getProjects(organization?.id);
+    if (allProjects) {
+      refetchOrgProjects();
+    } else {
+      refetchUserProjects();
     }
-  }, [getProjects, organization?.id]);
+  }, [allProjects, refetchOrgProjects, refetchUserProjects]);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const projects = useMemo(() => {
+    return allProjects 
+      ? (orgProjectsData?.projects || [])
+      : (userProjectsData?.projects || []);
+  }, [allProjects, orgProjectsData?.projects, userProjectsData?.projects]);
+
+  const accessPairs = useMemo(() => {
+    return allProjects 
+      ? [] // ListOrganizationProjectsResponse doesn't have accessPairs
+      : (userProjectsData?.accessPairs || []);
+  }, [allProjects, userProjectsData?.accessPairs]);
 
   const userAccessOnProject = useMemo(() => {
-    return accessPairs.reduce((acc: any, p: any) => {
-      const { group_id, permissions } = p;
-      acc[group_id] = permissions;
+    return accessPairs.reduce((acc: Record<string, string[]>, p: ListProjectsByCurrentUserResponse_AccessPair) => {
+      const { projectId, permissions } = p;
+      acc[projectId] = permissions;
       return acc;
     }, {});
   }, [accessPairs]);
 
+  const isLoading = allProjects ? isOrgProjectsLoading : isUserProjectsLoading;
+  const error = allProjects ? orgProjectsError : userProjectsError;
+
   return {
-    isFetching: isProjectsLoading,
+    isFetching: isLoading,
     projects: projects,
     userAccessOnProject,
-    refetch: refetch
+    refetch: refetch,
+    error
   };
 };
