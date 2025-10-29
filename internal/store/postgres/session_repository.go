@@ -9,10 +9,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
-	"github.com/raystack/frontier/pkg/server/consts"
-
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/salt/log"
 
 	"github.com/doug-martin/goqu/v9"
@@ -145,7 +143,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 // createSessionRevokeAuditRecord creates an audit record if admin is revoking someone else's session
 func (s *SessionRepository) createSessionRevokeAuditRecord(ctx context.Context, tx *sqlx.Tx, session sessionWithUserName) error {
-	actorID := extractActorIDFromContext(ctx)
+	actorID, _, _, _ := extractActorFromContext(ctx)
 	userID := session.UserID.String()
 
 	// Only create audit record if actor is different from the session owner (admin revoking someone else's session)
@@ -176,17 +174,6 @@ func (s *SessionRepository) createSessionRevokeAuditRecord(ctx context.Context, 
 	)
 
 	return InsertAuditRecordInTx(ctx, tx, auditRecord)
-}
-
-func extractActorIDFromContext(ctx context.Context) string {
-	if val := ctx.Value(consts.AuditRecordActorContextKey); val != nil {
-		if actorMap, ok := val.(map[string]interface{}); ok {
-			if id, ok := actorMap["id"].(string); ok {
-				return id
-			}
-		}
-	}
-	return ""
 }
 
 func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
