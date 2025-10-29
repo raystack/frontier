@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useMutation } from '@connectrpc/connect-query';
+import { createConnectQueryKey, useMutation, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries, UpdateOrganizationRequestSchema, Organization } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
@@ -46,13 +46,21 @@ export const GeneralOrganization = ({
 }: GeneralOrganizationProps) => {
   const { setActiveOrganization } = useFrontier();
   const queryClient = useQueryClient();
+  const transport = useTransport();
   const { mutateAsync: updateOrganization } = useMutation(
     FrontierServiceQueries.updateOrganization,
     {
       onSuccess: (data) => {
         if (data.organization) {
           setActiveOrganization(data.organization);
-          queryClient.invalidateQueries({ queryKey: ['getOrganization'] });
+          queryClient.invalidateQueries({ 
+            queryKey: createConnectQueryKey({
+              schema: FrontierServiceQueries.getOrganization,
+              transport,
+              input: { id: organization?.id || '' },
+              cardinality: 'finite'
+            })
+          });
         }
         toast.success(`Updated ${t.organization({ case: 'lower' })}`);
       },
