@@ -13,9 +13,9 @@ export const UserDetailsSecurityPage = () => {
   return (
     <Flex justify="center" className={styles["container"]}>
       <PageTitle title={title} />
-      
+
       <Flex className={styles["content"]} direction="column" gap={9}>
-      <UserSessions />
+        <UserSessions />
         <Separator />
         <Flex gap={5} justify="between">
           <Flex direction="column" gap={3}>
@@ -25,7 +25,6 @@ export const UserDetailsSecurityPage = () => {
               unauthorized activities.
             </Text>
           </Flex>
-
           <BlockUserDialog />
         </Flex>
       </Flex>

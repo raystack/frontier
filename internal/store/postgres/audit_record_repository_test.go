@@ -14,6 +14,7 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/internal/store/postgres"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
@@ -472,7 +473,7 @@ func (s *AuditRecordRepositoryTestSuite) TestEdgeCases() {
 			return result[:length]
 		}
 
-		record.Event = longString("event.long.", 250)
+		record.Event = pkgAuditRecord.Event(longString("event.long.", 250))
 		record.Actor.Name = longString("Very Long User Name ", 200)
 		record.Resource.Name = longString("Resource ", 200)
 
@@ -849,7 +850,7 @@ func (s *AuditRecordRepositoryTestSuite) TestList_Search() {
 			ExpectedCount: 2, // permission.granted and permission.revoked
 			ValidateFunc: func(records []auditrecord.AuditRecord) bool {
 				for _, r := range records {
-					if !strings.Contains(strings.ToLower(r.Event), "permission") {
+					if !strings.Contains(strings.ToLower(string(r.Event)), "permission") {
 						return false
 					}
 				}
@@ -1031,7 +1032,7 @@ func (s *AuditRecordRepositoryTestSuite) TestList_ComplexScenarios() {
 
 		// Verify all returned records are projects
 		for _, record := range result.AuditRecords {
-			s.Equal("project", record.Resource.Type)
+			s.Equal(pkgAuditRecord.EntityType("project"), record.Resource.Type)
 		}
 	})
 

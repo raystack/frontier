@@ -7,7 +7,6 @@ import {
   getAvatarColor,
 } from "@raystack/apsara";
 import { NavLink } from "react-router-dom";
-import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { SidebarIcon } from "@raystack/apsara/icons";
 import UserIcon from "~/assets/icons/users.svg?react";
 import styles from "./navbar.module.css";
@@ -29,7 +28,10 @@ export const UserDetailsNavbar = ({
     <nav className={styles.navbar}>
       <Flex gap="medium" align="center">
         <Breadcrumb size="small">
-          <Breadcrumb.Item href="/users" leadingIcon={<UserIcon />}>
+          <Breadcrumb.Item
+            href="/users"
+            leadingIcon={<UserIcon />}
+            data-test-id="admin-ui-user-details-breadcrumb-users">
             Users
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
@@ -42,7 +44,8 @@ export const UserDetailsNavbar = ({
                 fallback={getUserName(user)?.[0]}
                 size={1}
               />
-            }>
+            }
+            data-test-id="admin-ui-user-details-breadcrumb-user">
             {getUserName(user)}
           </Breadcrumb.Item>
         </Breadcrumb>

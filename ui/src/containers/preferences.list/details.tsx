@@ -9,18 +9,21 @@ import {
   InputField,
 } from "@raystack/apsara";
 import { useCallback, useEffect, useState } from "react";
-import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useOutletContext, useParams } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
-import * as R from "ramda";
 import { toast } from "sonner";
-import { api } from "~/api";
+import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { AdminServiceQueries, CreatePreferencesRequestSchema, ListPreferencesResponse } from "@raystack/proton/frontier";
+import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
+import { timestampDate } from "@bufbuild/protobuf/wkt";
+import { useQueryClient } from "@tanstack/react-query";
+import { create } from "@bufbuild/protobuf";
 
 interface ContextType {
-  preferences: V1Beta1Preference[];
-  traits: V1Beta1PreferenceTrait[];
-  isPreferencesLoading: boolean;
+  preferences: Preference[];
+  traits: PreferenceTrait[];
+  isLoading: boolean;
 }
 
 export function usePreferences() {
@@ -28,23 +31,25 @@ export function usePreferences() {
 }
 
 interface PreferenceValueProps {
-  trait: V1Beta1PreferenceTrait;
+  trait: PreferenceTrait;
   value: string;
   onChange: (v: string) => void;
 }
 
 function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
-  if (R.has("checkbox")(trait)) {
+  if (trait.inputType === PreferenceTrait_InputType.CHECKBOX) {
     const checked = value === "true";
     return (
       <Switch
-        // @ts-ignore
         checked={checked}
         onCheckedChange={(v: boolean) => onChange(v.toString())}
         data-test-id="admin-ui-preference-select"
       />
     );
-  } else if (R.has("text")(trait) || R.has("textarea")(trait)) {
+  } else if (
+    trait.inputType === PreferenceTrait_InputType.TEXT ||
+    trait.inputType === PreferenceTrait_InputType.TEXTAREA
+  ) {
     return (
       <InputField
         value={value}
@@ -60,10 +65,55 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
 export default function PreferenceDetails() {
   const { name } = useParams();
   const [value, setValue] = useState("");
-  const [isActionLoading, setIsActionLoading] = useState(false);
-  const { preferences, traits, isPreferencesLoading } = usePreferences();
+  const [originalValue, setOriginalValue] = useState("");
+  const { preferences, traits, isLoading } = usePreferences();
   const preference = preferences?.find((p) => p.name === name);
   const trait = traits?.find((t) => t.name === name);
+
+  const queryClient = useQueryClient();
+  const transport = useTransport();
+
+  const { mutateAsync: createPreferences, isPending: isActionLoading } =
+    useMutation(AdminServiceQueries.createPreferences, {
+      onSuccess: (data) => {
+        // Update the cache with the new preference from mutation response
+        const queryKey = createConnectQueryKey({
+          schema: AdminServiceQueries.listPreferences,
+          transport,
+          input: {},
+          cardinality: "finite",
+        });
+
+        queryClient.setQueryData(queryKey, (oldData?: ListPreferencesResponse) => {
+          if (!oldData || !data.preference || !Array.isArray(data.preference)) return oldData;
+
+          const updatedPreferences = data.preference;
+          const existingPreferences = oldData.preferences || [];
+
+          // Create a map for quick lookup of updated preferences
+          const updatedMap = new Map(
+            updatedPreferences.map((pref: Preference) => [pref.name, pref])
+          );
+
+          // Update existing preferences or keep them as-is
+          const mergedPreferences = existingPreferences.map((pref: Preference) =>
+            updatedMap.has(pref.name) ? updatedMap.get(pref.name)! : pref
+          );
+
+          // Add any new preferences that weren't in existing list
+          updatedPreferences.forEach((pref: Preference) => {
+            if (!existingPreferences.some((p: Preference) => p.name === pref.name)) {
+              mergedPreferences.push(pref);
+            }
+          });
+
+          return {
+            ...oldData,
+            preferences: mergedPreferences,
+          };
+        });
+      },
+    });
 
   const pageHeader = {
     title: "Preference",
@@ -84,8 +134,12 @@ export default function PreferenceDetails() {
       preference?.value !== "" && preference?.value !== undefined
         ? preference?.value
         : trait?.default;
-    setValue(v || "");
+    const newValue = v || "";
+    setValue(newValue);
+    setOriginalValue(newValue);
   }, [preference?.value, trait?.default]);
+
+  const hasChanged = value !== originalValue;
 
   const detailList = [
     {
@@ -106,11 +160,11 @@ export default function PreferenceDetails() {
     },
     {
       key: "Sub heading",
-      value: trait?.sub_heading,
+      value: trait?.subHeading,
     },
     {
       key: "Resource type",
-      value: trait?.resource_type,
+      value: trait?.resourceType,
     },
     {
       key: "Default value",
@@ -119,32 +173,27 @@ export default function PreferenceDetails() {
     {
       key: "Last updated",
       value:
-        preference?.updated_at &&
-        dayjs(preference?.updated_at).format("MMM DD, YYYY hh:mm:A"),
+        preference?.updatedAt &&
+        dayjs(timestampDate(preference.updatedAt)).format("MMM DD, YYYY hh:mm:ss A"),
     },
   ];
 
   const onSave = useCallback(async () => {
-    setIsActionLoading(true);
     try {
-      const resp = await api?.adminServiceCreatePreferences({
+      await createPreferences(create(CreatePreferencesRequestSchema, {
         preferences: [
           {
             name,
             value,
           },
         ],
-      });
-      if (resp?.status === 200) {
-        toast.success("preference updated");
-      }
+      }));
+      toast.success("preference updated");
     } catch (err) {
-      console.error(err);
+      console.error("ConnectRPC Error:", err);
       toast.error("something went wrong");
-    } finally {
-      setIsActionLoading(false);
     }
-  }, [name, value]);
+  }, [name, value, createPreferences]);
 
   return (
     <Flex direction="column" style={{ width: "100%" }} gap={9}>
@@ -158,7 +207,7 @@ export default function PreferenceDetails() {
       />
       <Flex direction="column" gap={9} style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) =>
-          isPreferencesLoading ? (
+          isLoading ? (
             <Grid columns={2} gap="small" key={detailItem.key}>
               <Skeleton />
               <Skeleton />
@@ -173,7 +222,7 @@ export default function PreferenceDetails() {
           ),
         )}
         <Separator />
-        {isPreferencesLoading ? (
+        {isLoading ? (
           <Skeleton />
         ) : (
           <Text size={1} weight={500}>
@@ -190,7 +239,7 @@ export default function PreferenceDetails() {
             />
             <Button
               onClick={onSave}
-              disabled={isActionLoading}
+              disabled={isActionLoading || !hasChanged}
               loading={isActionLoading}
               loaderText="Saving..."
               data-test-id="admin-ui-preference-value-save-btn"

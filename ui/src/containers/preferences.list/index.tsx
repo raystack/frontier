@@ -1,8 +1,5 @@
 import { EmptyState, DataTable, Flex } from "@raystack/apsara";
-import type {
-  V1Beta1Preference,
-  V1Beta1PreferenceTrait,
-} from "@raystack/frontier";
+import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
 
 import PageHeader from "~/components/page-header";
 import { getColumns } from "./columns";
@@ -16,8 +13,8 @@ const pageHeader = {
 };
 
 interface ContextType {
-  preferences: V1Beta1Preference[];
-  traits: V1Beta1PreferenceTrait[];
+  preferences: Preference[];
+  traits: PreferenceTrait[];
   isPreferencesLoading: boolean;
 }
 

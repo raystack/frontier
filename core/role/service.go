@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/frontier/core/auditrecord/models"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/permission"
@@ -20,18 +22,35 @@ type PermissionService interface {
 	Get(ctx context.Context, id string) (permission.Permission, error)
 }
 
-type Service struct {
-	repository        Repository
-	relationService   RelationService
-	permissionService PermissionService
+type AuditRecordRepository interface {
+	Create(ctx context.Context, auditRecord models.AuditRecord) (models.AuditRecord, error)
 }
 
-func NewService(repository Repository, relationService RelationService, permissionService PermissionService) *Service {
+type Service struct {
+	repository            Repository
+	relationService       RelationService
+	permissionService     PermissionService
+	auditRecordRepository AuditRecordRepository
+}
+
+func NewService(repository Repository, relationService RelationService, permissionService PermissionService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
-		repository:        repository,
-		relationService:   relationService,
-		permissionService: permissionService,
+		repository:            repository,
+		relationService:       relationService,
+		permissionService:     permissionService,
+		auditRecordRepository: auditRecordRepository,
 	}
+}
+
+// extractOrgNameFromMetadata extracts organization name from role metadata with platform fallback
+func extractOrgNameFromMetadata(orgID string, metadata map[string]any) string {
+	orgName := "platform"
+	if orgID != schema.PlatformOrgID.String() {
+		if name, ok := metadata["org_name"].(string); ok && name != "" {
+			orgName = name
+		}
+	}
+	return orgName
 }
 
 func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
@@ -51,6 +70,29 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 
 	// create relation between role and permissions
 	if err := s.createRolePermissionRelation(ctx, createdRole.ID, createdRole.Permissions); err != nil {
+		return Role{}, err
+	}
+
+	// Create audit record - Actor will be auto-enriched from context by repository
+	_, err = s.auditRecordRepository.Create(ctx, models.AuditRecord{
+		Event: pkgAuditRecord.RoleCreatedEvent,
+		Resource: models.Resource{
+			ID:   createdRole.OrgID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: extractOrgNameFromMetadata(createdRole.OrgID, toCreate.Metadata),
+		},
+		Target: &models.Target{
+			ID:   createdRole.ID,
+			Type: pkgAuditRecord.RoleType,
+			Name: createdRole.Name,
+			Metadata: map[string]any{
+				"permissions": createdRole.Permissions,
+			},
+		},
+		OrgID:      createdRole.OrgID,
+		OccurredAt: createdRole.UpdatedAt,
+	})
+	if err != nil {
 		return Role{}, err
 	}
 
@@ -172,7 +214,35 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	}
 
 	// update in db
-	return s.repository.Update(ctx, toUpdate)
+	updatedRole, err := s.repository.Update(ctx, toUpdate)
+	if err != nil {
+		return Role{}, err
+	}
+
+	// Create audit record - Actor will be auto-enriched from context by repository
+	_, err = s.auditRecordRepository.Create(ctx, models.AuditRecord{
+		Event: pkgAuditRecord.RoleUpdatedEvent,
+		Resource: models.Resource{
+			ID:   updatedRole.OrgID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: extractOrgNameFromMetadata(updatedRole.OrgID, toUpdate.Metadata),
+		},
+		Target: &models.Target{
+			ID:   updatedRole.ID,
+			Type: pkgAuditRecord.RoleType,
+			Name: updatedRole.Name,
+			Metadata: map[string]any{
+				"permissions": updatedRole.Permissions,
+			},
+		},
+		OrgID:      updatedRole.OrgID,
+		OccurredAt: updatedRole.UpdatedAt,
+	})
+	if err != nil {
+		return Role{}, err
+	}
+
+	return updatedRole, nil
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {

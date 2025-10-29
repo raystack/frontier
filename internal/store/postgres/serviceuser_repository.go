@@ -124,15 +124,15 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.ServiceUserCreatedEvent.String(),
+				auditrecord.ServiceUserCreatedEvent,
 				AuditResource{
 					ID:   result.OrgID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType,
 					Name: result.OrgName,
 				},
 				&AuditTarget{
 					ID:   result.ID,
-					Type: "serviceuser",
+					Type: auditrecord.ServiceUserType,
 					Name: nullStringToString(result.Title),
 				},
 				result.OrgID,
@@ -251,15 +251,15 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 
 			auditRecord := BuildAuditRecord(
 				ctx,
-				auditrecord.ServiceUserDeletedEvent.String(),
+				auditrecord.ServiceUserDeletedEvent,
 				AuditResource{
 					ID:   result.OrgID,
-					Type: "organization",
+					Type: auditrecord.OrganizationType,
 					Name: result.OrgName,
 				},
 				&AuditTarget{
 					ID:   result.ID,
-					Type: "serviceuser",
+					Type: auditrecord.ServiceUserType,
 					Name: nullStringToString(result.Title),
 				},
 				result.OrgID,

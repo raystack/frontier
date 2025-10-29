@@ -1,5 +1,5 @@
-import { V1Beta1Product } from "@raystack/frontier";
+import type { Product } from "@raystack/proton/frontier";
 
 export type ProductDetailsTypes = {
-  product: V1Beta1Product;
+  product: Product;
 };
