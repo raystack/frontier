@@ -18,12 +18,9 @@ import { AppContext } from "~/contexts/App";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "~/api";
-import type { Frontierv1Beta1OrganizationRequestBody } from "~/api/frontier";
-import {
-  type Organization,
-  OrganizationSchema,
-} from "@raystack/proton/frontier";
+import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { FrontierServiceQueries, UpdateOrganizationRequestSchema, type Organization, OrganizationSchema } from "@raystack/proton/frontier";
 import { create, type JsonObject } from "@bufbuild/protobuf";
 
 const orgUpdateSchema = z
@@ -87,8 +84,10 @@ function getDefaultValue(organization: Organization, industries: string[]) {
 
 export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
   const { config } = useContext(AppContext);
-  const { organization, updateOrganization } = useContext(OrganizationContext);
+  const { organization } = useContext(OrganizationContext);
   const [countries, setCountries] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const industries = config?.organization_types || [];
   const orgId = organization?.id || "";
@@ -105,7 +104,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
     setError,
     watch,
     register,
-    formState: { isSubmitting, errors },
+    formState: { errors },
   } = useForm<OrgUpdateSchema>({
     defaultValues: organization
       ? getDefaultValue(organization, industries)
@@ -113,9 +112,37 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
     resolver: zodResolver(orgUpdateSchema),
   });
 
+  const {
+    mutateAsync: updateOrganizationMutation,
+    error: mutationError,
+    isPending: isSubmitting,
+  } = useMutation(FrontierServiceQueries.updateOrganization, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.getOrganization,
+          transport,
+          input: { id: orgId },
+          cardinality: "finite",
+        })
+      });
+      onClose();
+    },
+  });
+
+  useEffect(() => {
+    if (mutationError) {
+      if (mutationError.message?.includes("already exists")) {
+        setError("name", { message: "Organization name already exists" });
+      } else {
+        console.error("Unable to update organization:", mutationError);
+      }
+    }
+  }, [mutationError, setError]);
+
   async function onSubmit(data: OrgUpdateSchema) {
     try {
-      const payload: Frontierv1Beta1OrganizationRequestBody = {
+      const payload = {
         avatar: data.avatar,
         name: data.name,
         title: data.title,
@@ -128,24 +155,13 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
         },
       };
 
-      const orgResp = await api.frontierServiceUpdateOrganization(
-        orgId,
-        payload,
-      );
-      const organization = orgResp?.data?.organization;
-      if (organization) {
-        const protoOrg = create(OrganizationSchema, {
-          ...organization,
-          metadata: organization.metadata as JsonObject,
-        });
-        updateOrganization(protoOrg);
-      }
+      await updateOrganizationMutation(create(UpdateOrganizationRequestSchema, {
+         id: orgId,
+        body: payload,
+      } ))
+       
     } catch (err: unknown) {
-      if (err instanceof Response && err?.status === 409) {
-        setError("name", { message: "Organization name already exists" });
-      } else {
-        console.error(err);
-      }
+      console.error("Unable to update organization:", err);
     }
   }
 
