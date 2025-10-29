@@ -33,6 +33,7 @@ type AuditRecord struct {
 	TargetName       sql.NullString     `db:"target_name"`
 	TargetMetadata   types.NullJSONText `db:"target_metadata"`
 	OrganizationID   uuid.UUID          `db:"org_id"`
+	OrganizationName string             `db:"org_name"`
 	RequestID        sql.NullString     `db:"request_id"`
 	OccurredAt       time.Time          `db:"occurred_at"`
 	CreatedAt        time.Time          `db:"created_at" goqu:"skipinsert"`
@@ -80,6 +81,7 @@ func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
 		Target:     nullStringToTargetPtr(ar.TargetID, ar.TargetType, ar.TargetName, ar.TargetMetadata),
 		OccurredAt: ar.OccurredAt,
 		OrgID:      ar.OrganizationID.String(),
+		OrgName:    ar.OrganizationName,
 		RequestID:  nullStringToPtr(ar.RequestID),
 		CreatedAt:  ar.CreatedAt,
 		Metadata:   nullJSONTextToMetadata(ar.Metadata),
@@ -267,6 +269,16 @@ func BuildAuditRecord(ctx context.Context, event pkgAuditRecord.Event, resource 
 
 // InsertAuditRecordInTx inserts an audit record within a transaction
 func InsertAuditRecordInTx(ctx context.Context, tx *sqlx.Tx, record AuditRecord) error {
+	// Enrich the organization name from DB
+	if record.OrganizationID != uuid.Nil {
+		var orgName string
+		query, params, err := buildOrgNameQuery(record.OrganizationID)
+		if err == nil {
+			_ = tx.QueryRowContext(ctx, query, params...).Scan(&orgName)
+			record.OrganizationName = orgName
+		}
+	}
+
 	query, params, err := dialect.Insert(TABLE_AUDITRECORDS).
 		Rows(record).
 		ToSQL()

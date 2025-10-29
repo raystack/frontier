@@ -239,6 +239,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 			Target:     target,
 			OccurredAt: timestamppb.New(record.OccurredAt),
 			OrgId:      record.OrgID,
+			OrgName:    record.OrgName,
 			RequestId:  requestID,
 			CreatedAt:  timestamppb.New(record.CreatedAt),
 			Metadata:   metaData,
