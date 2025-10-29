@@ -32,10 +32,6 @@
   max-width: 200px;
 }
 
-.country-column {
-  max-width: 150px;
-}
-
 .table-wrapper {
   flex: 1;
   height: 100%;

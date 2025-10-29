@@ -12,7 +12,6 @@ import {
   timestampToDate,
 } from "~/utils/connect-timestamp";
 import { ACTOR_TYPES, getActionBadgeColor } from "../util";
-import { OrganizationCell } from "./organization-cell";
 import { ComponentPropsWithoutRef } from "react";
 import ActorCell from "./actor-cell";
 
@@ -50,14 +49,18 @@ export const getColumns = ({
       ],
     },
     {
-      accessorKey: "orgId",
+      accessorKey: "orgName",
       header: "Organization",
       classNames: {
         cell: styles["org-column"],
         header: styles["org-column"],
       },
       cell: ({ getValue }) => {
-        return <OrganizationCell id={getValue() as string} />;
+        return (
+          <Text size="regular" className={styles.capitalize}>
+            {(getValue() as string) || "-"}
+          </Text>
+        );
       },
       enableColumnFilter: true,
     },

@@ -1,5 +1,4 @@
 import {
-  Button,
   CopyButton,
   Flex,
   IconButton,
@@ -21,8 +20,9 @@ import { timestampToDate } from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
 import MapIcon from "~/assets/icons/map.svg?react";
 import SidePanelLogDialog from "./sidepanel-log-dialog";
-import { Link } from "react-router-dom";
 import ActorCell from "./actor-cell";
+import SidepanelListItemLink from "./sidepanel-list-link";
+import { isZeroUUID } from "~/utils/helper";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
@@ -42,7 +42,8 @@ export default function SidePanelDetails({
   onClose,
   ...rest
 }: SidePanelDetailsProps) {
-  const { actor, event, resource, occurredAt, id, orgId, target } = rest;
+  const { actor, event, resource, occurredAt, id, orgId, orgName, target } =
+    rest;
   const date = dayjs(timestampToDate(occurredAt));
 
   const session = actor?.metadata?.context as AuditSessionContext;
@@ -69,46 +70,20 @@ export default function SidePanelDetails({
       <SidePanel.Section>
         <List>
           <List.Header>Overview</List.Header>
-          {actor?.type === ACTOR_TYPES.SYSTEM ? (
-            <List.Item>
-              <List.Label minWidth="120px">Actor</List.Label>
-              <List.Value>
-                <ActorCell value={actor} size="small" />
-              </List.Value>
-            </List.Item>
-          ) : (
-            <List.Item className={styles["sidepanel-list-link"]}>
-              <List.Label minWidth="112px">Actor</List.Label>
-              <List.Value className={styles["text-overflow"]}>
-                <Link to={`/users/${actor?.id}`}>
-                  <Button
-                    variant="text"
-                    color="neutral"
-                    data-test-id="organization-link"
-                    leadingIcon={
-                      <ActorCell value={actor!} size="small" hideName />
-                    }
-                    className={styles["sidepanel-link-trigger"]}>
-                    <ActorCell value={actor!} size="small" hideAvatar />
-                  </Button>
-                </Link>
-              </List.Value>
-            </List.Item>
-          )}
-          <List.Item className={styles["sidepanel-list-link"]}>
-            <List.Label minWidth="112px">Organization</List.Label>
-            <List.Value className={styles["text-overflow"]}>
-              <Link to={`/organizations/${orgId}`}>
-                <Button
-                  variant="text"
-                  color="neutral"
-                  data-test-id="organization-link"
-                  className={styles["sidepanel-link-trigger"]}>
-                  {orgId}
-                </Button>
-              </Link>
-            </List.Value>
-          </List.Item>
+          <SidepanelListItemLink
+            isLink={actor?.type !== ACTOR_TYPES.SYSTEM}
+            href={`/users/${actor?.id}`}
+            label="Actor"
+            data-test-id="actor-link">
+            <ActorCell value={actor!} size="small" />
+          </SidepanelListItemLink>
+          <SidepanelListItemLink
+            isLink={!!orgId && !isZeroUUID(orgId)}
+            href={`/organizations/${orgId}`}
+            label="Organization"
+            data-test-id="actor-link">
+            {orgName || "-"}
+          </SidepanelListItemLink>
           <List.Item>
             <List.Label minWidth="120px">Action</List.Label>
             <List.Value>{event}</List.Value>

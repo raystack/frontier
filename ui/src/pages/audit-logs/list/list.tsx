@@ -46,6 +46,7 @@ const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     occurredAt: "occurred_at",
     orgId: "org_id",
+    orgName: "org_name",
     actor: "actor_name",
     resource: "resource_name",
     resourceType: "resource_type",

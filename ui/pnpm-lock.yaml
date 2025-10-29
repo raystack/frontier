@@ -36,8 +36,8 @@ importers:
         specifier: ^0.72.4
         version: 0.72.4(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.10.0))(@raystack/apsara@0.53.0(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/query-core@5.83.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/proton':
-        specifier: 0.1.0-80ce71da5211fde064d83731a80cee2dffbdf84b
-        version: 0.1.0-80ce71da5211fde064d83731a80cee2dffbdf84b(@tanstack/query-core@5.83.1)(@tanstack/react-query@5.84.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.1.0-a1dcf6bc73a67f383c852060b5129e492d4160d7
+        version: 0.1.0-a1dcf6bc73a67f383c852060b5129e492d4160d7(@tanstack/query-core@5.83.1)(@tanstack/react-query@5.84.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@stitches/react':
         specifier: ^1.2.8
         version: 1.2.8(react@18.3.1)
@@ -1315,8 +1315,8 @@ packages:
       '@tanstack/react-query':
         optional: true
 
-  '@raystack/proton@0.1.0-80ce71da5211fde064d83731a80cee2dffbdf84b':
-    resolution: {integrity: sha512-M79x1AcbYuEg/vZclQIupvj3h5OiwIwrgudhvXXmLSAV0qDkqxbajltt5GWK/n34c0moFumtuQnkHQmX2fT5ow==}
+  '@raystack/proton@0.1.0-a1dcf6bc73a67f383c852060b5129e492d4160d7':
+    resolution: {integrity: sha512-NSCetley/RSo6fqjwBxFPLzenF5j+VVMt3I8iJdOSIknBbXOq+VdxcESIBPczAyLzlbf/1i4c/h/alkMLGmG2g==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
     peerDependenciesMeta:
@@ -4060,7 +4060,7 @@ snapshots:
       - react
       - react-dom
 
-  '@raystack/proton@0.1.0-80ce71da5211fde064d83731a80cee2dffbdf84b(@tanstack/query-core@5.83.1)(@tanstack/react-query@5.84.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/proton@0.1.0-a1dcf6bc73a67f383c852060b5129e492d4160d7(@tanstack/query-core@5.83.1)(@tanstack/react-query@5.84.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@bufbuild/protobuf': 2.10.0
       '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.10.0)
