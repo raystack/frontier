@@ -3,12 +3,16 @@ import {
   DEFAULT_DATE_FORMAT,
   SUBSCRIPTION_STATES
 } from '~/react/utils/constants';
-import { Subscription, Plan } from '@raystack/proton/frontier';
+import { Subscription, ChangeSubscriptionRequestSchema } from '@raystack/proton/frontier';
 import styles from './styles.module.css';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation, FrontierServiceQueries } from '~hooks';
+import { create } from '@bufbuild/protobuf';
+import { useQueryClient } from '@tanstack/react-query';
+import { createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import {
   checkSimilarPlans,
   getPlanChangeAction,
@@ -29,17 +33,43 @@ export function UpcomingPlanChangeBanner({
   isAllowed
 }: ChangeBannerProps) {
   const {
-    client,
     config,
     activePlan,
     activeOrganization,
     billingAccount,
-    fetchActiveSubsciption,
     basePlan,
     allPlans,
     isAllPlansLoading
   } = useFrontier();
-  const [isPlanChangeLoading, setIsPlanChangeLoading] = useState(false);
+
+  const queryClient = useQueryClient();
+  const transport = useTransport();
+
+  const { mutate: cancelUpcomingChange, isPending: isPlanChangeLoading } = useMutation(
+    FrontierServiceQueries.changeSubscription,
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.listSubscriptions,
+            transport,
+            input: {
+              orgId: activeOrganization?.id ?? '',
+              billingId: billingAccount?.id ?? ''
+            },
+            cardinality: 'finite'
+          })
+        });
+        toast.success(`Success: Your ${activePlan?.title} is resumed`);
+      },
+      onError: (err) => {
+        console.error(err);
+        toast.error('Failed to resume plan', {
+          description: err.message
+        });
+      }
+    }
+  );
 
   const phases =
     subscription?.phases?.filter(phase =>
@@ -71,37 +101,27 @@ export function UpcomingPlanChangeBanner({
 
   const showLoader = isLoading || isAllPlansLoading;
 
-  const onPlanChangeCancel = useCallback(async () => {
-    setIsPlanChangeLoading(true);
-    try {
-      if (activeOrganization?.id && billingAccount?.id && subscription?.id) {
-        const resp = await client?.frontierServiceChangeSubscription(
-          activeOrganization?.id,
-          billingAccount?.id,
-          subscription?.id,
-          {
-            phase_change: {
-              cancel_upcoming_changes: true
+  const onPlanChangeCancel = useCallback(() => {
+    if (activeOrganization?.id && billingAccount?.id && subscription?.id) {
+      cancelUpcomingChange(
+        create(ChangeSubscriptionRequestSchema, {
+          orgId: activeOrganization?.id,
+          billingId: billingAccount?.id,
+          id: subscription?.id,
+          change: {
+            case: 'phaseChange',
+            value: {
+              cancelUpcomingChanges: true
             }
           }
-        );
-        if (resp?.data?.phase) {
-          await fetchActiveSubsciption();
-          toast.success(`Success: Your ${activePlan?.title} is resumed`);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsPlanChangeLoading(false);
+        })
+      );
     }
   }, [
     activeOrganization?.id,
-    activePlan?.title,
     billingAccount?.id,
-    client,
-    fetchActiveSubsciption,
-    subscription?.id
+    subscription?.id,
+    cancelUpcomingChange
   ]);
 
   const currentPlanName = getPlanNameWithInterval(activePlan);
