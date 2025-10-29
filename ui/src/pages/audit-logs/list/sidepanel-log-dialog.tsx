@@ -25,8 +25,8 @@ export default function SidePanelLogDialog(props: Partial<AuditRecord>) {
         </Dialog.Header>
         <Dialog.Body className={styles["code-block-container"]}>
           <CodeBlock>
-            <CodeBlock.Content className={styles["code-block"]}>
-              <CodeBlock.Code language="jsx">
+            <CodeBlock.Content>
+              <CodeBlock.Code language="jsx" className={styles["code-block"]}>
                 {auditLogToJson(props as AuditRecord)}
               </CodeBlock.Code>
               <CodeBlock.CopyButton

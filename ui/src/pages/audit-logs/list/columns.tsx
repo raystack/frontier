@@ -1,11 +1,4 @@
-import {
-  Avatar,
-  Badge,
-  DataTableColumnDef,
-  Flex,
-  getAvatarColor,
-  Text,
-} from "@raystack/apsara";
+import { Badge, DataTableColumnDef, Flex, Text } from "@raystack/apsara";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import {
@@ -18,14 +11,10 @@ import {
   TimeStamp,
   timestampToDate,
 } from "~/utils/connect-timestamp";
-import {
-  getActionBadgeColor,
-  getAuditLogActorName,
-  isAuditLogActorSystem,
-} from "../util";
-import systemIcon from "~/assets/images/system.jpg";
+import { ACTOR_TYPES, getActionBadgeColor } from "../util";
 import { OrganizationCell } from "./organization-cell";
 import { ComponentPropsWithoutRef } from "react";
+import ActorCell from "./actor-cell";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
@@ -43,24 +32,22 @@ export const getColumns = ({
         header: styles["name-column"],
       },
       enableColumnFilter: true,
-      cell: ({ getValue }) => {
-        const value = getValue() as AuditRecordActor;
-        const name = getAuditLogActorName(value);
-        const isSystem = isAuditLogActorSystem(value);
-
-        return (
-          <Flex gap={4} align="center">
-            <Avatar
-              size={3}
-              fallback={name?.[0]?.toUpperCase()}
-              color={getAvatarColor(value?.id ?? "")}
-              radius="full"
-              src={isSystem ? systemIcon : undefined}
-            />
-            <Text size="regular">{name}</Text>
-          </Flex>
-        );
-      },
+      cell: ({ getValue }) => (
+        <ActorCell value={getValue() as AuditRecordActor} />
+      ),
+    },
+    {
+      accessorKey: "actorType",
+      header: "Actor Type",
+      enableColumnFilter: true,
+      defaultHidden: true,
+      cell: () => null,
+      filterType: "multiselect",
+      filterOptions: [
+        { label: "User", value: ACTOR_TYPES.USER },
+        { label: "Service User", value: ACTOR_TYPES.SERVICE_USER },
+        { label: "System", value: ACTOR_TYPES.SYSTEM },
+      ],
     },
     {
       accessorKey: "orgId",
@@ -96,10 +83,10 @@ export const getColumns = ({
         return (
           <Flex gap={1} direction="column">
             <Text size="small" weight="medium">
-              {value.name}
+              {value.name || "-"}
             </Text>
             <Text size="small" variant="secondary">
-              {value.type.toLowerCase()}
+              {value.type.toLowerCase() ?? "-"}
             </Text>
           </Flex>
         );

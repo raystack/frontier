@@ -49,6 +49,7 @@ const TRANSFORM_OPTIONS = {
     actor: "actor_name",
     resource: "resource_name",
     resourceType: "resource_type",
+    actorType: "actor_type",
   },
 };
 

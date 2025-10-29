@@ -20,7 +20,7 @@ export const OrganizationCell = memo(({ id }: OrganizationCellProps) => {
   if (isLoading) return <Skeleton />;
   return (
     <Text size="regular" className={styles.capitalize}>
-      {orgData?.title || orgData?.name}
+      {orgData?.title || orgData?.name || "-"}
     </Text>
   );
 });

@@ -1,9 +1,7 @@
 import {
-  Avatar,
   Button,
   CopyButton,
   Flex,
-  getAvatarColor,
   IconButton,
   SidePanel,
   Text,
@@ -18,14 +16,13 @@ import {
 import { List } from "@raystack/apsara";
 import styles from "./list.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
-import { ACTOR_TYPES, isAuditLogActorSystem } from "../util";
-import { getAuditLogActorName } from "../util";
-import systemIcon from "~/assets/images/system.jpg";
+import { ACTOR_TYPES } from "../util";
 import { timestampToDate } from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
 import MapIcon from "~/assets/icons/map.svg?react";
 import SidePanelLogDialog from "./sidepanel-log-dialog";
 import { Link } from "react-router-dom";
+import ActorCell from "./actor-cell";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
@@ -46,8 +43,6 @@ export default function SidePanelDetails({
   ...rest
 }: SidePanelDetailsProps) {
   const { actor, event, resource, occurredAt, id, orgId, target } = rest;
-  const name = getAuditLogActorName(actor);
-  const isSystem = isAuditLogActorSystem(actor);
   const date = dayjs(timestampToDate(occurredAt));
 
   const session = actor?.metadata?.context as AuditSessionContext;
@@ -78,16 +73,7 @@ export default function SidePanelDetails({
             <List.Item>
               <List.Label minWidth="120px">Actor</List.Label>
               <List.Value>
-                <Flex gap={3} align="center">
-                  <Avatar
-                    size={1}
-                    fallback={name?.[0]?.toUpperCase()}
-                    color={getAvatarColor(actor?.id ?? "")}
-                    radius="full"
-                    src={isSystem ? systemIcon : undefined}
-                  />
-                  {name}
-                </Flex>
+                <ActorCell value={actor} size="small" />
               </List.Value>
             </List.Item>
           ) : (
@@ -100,16 +86,10 @@ export default function SidePanelDetails({
                     color="neutral"
                     data-test-id="organization-link"
                     leadingIcon={
-                      <Avatar
-                        size={1}
-                        fallback={name?.[0]?.toUpperCase()}
-                        color={getAvatarColor(actor?.id ?? "")}
-                        radius="full"
-                        src={isSystem ? systemIcon : undefined}
-                      />
+                      <ActorCell value={actor!} size="small" hideName />
                     }
                     className={styles["sidepanel-link-trigger"]}>
-                    {name}
+                    <ActorCell value={actor!} size="small" hideAvatar />
                   </Button>
                 </Link>
               </List.Value>

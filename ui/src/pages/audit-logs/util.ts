@@ -5,11 +5,8 @@ import {
   AuditRecordSchema,
 } from "@raystack/proton/frontier";
 
-export const isAuditLogActorSystem = (actor?: AuditRecordActor) =>
-  actor?.type === ACTOR_TYPES.SYSTEM;
-
 export const getAuditLogActorName = (actor?: AuditRecordActor) => {
-  if (isAuditLogActorSystem(actor)) return "System";
+  if (actor?.type === ACTOR_TYPES.SYSTEM) return "System";
 
   const name = actor?.name || "-";
 
