@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { Avatar, getAvatarColor, SidePanel, Text } from "@raystack/apsara";
 import { SidePanelDetails } from "./side-panel-details";
 import { SidePanelMembership } from "./side-panel-membership";
@@ -34,8 +33,7 @@ export const UserDetailsSidePanel = () => {
   return (
     <SidePanel
       data-test-id="admin-ui-user-details-sidepanel"
-      className={styles["side-panel"]}
-    >
+      className={styles["side-panel"]}>
       <SidePanel.Header
         title={getUserName(user)}
         icon={
