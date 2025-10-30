@@ -24,8 +24,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import type { V1Beta1Group, V1Beta1User } from '~/src';
-import type { Role } from '@raystack/proton/frontier';
+import type { Role, Group, User } from '@raystack/proton/frontier';
 import {
   PERMISSIONS,
   filterUsersfromUsers,
@@ -37,11 +36,10 @@ import styles from './members.module.css';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, ListOrganizationUsersRequestSchema, CreatePolicyForProjectRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import type { User } from '@raystack/proton/frontier';
 
 export type MembersProps = {
-  teams?: V1Beta1Group[];
-  members?: V1Beta1User[];
+  teams?: Group[];
+  members?: User[];
   roles?: Role[];
   memberRoles?: Record<string, Role[]>;
   groupRoles?: Record<string, Role[]>;
@@ -155,7 +153,7 @@ export const Members = ({
 
 interface AddMemberDropdownProps {
   canUpdateProject: boolean;
-  members?: V1Beta1User[];
+  members?: User[];
   refetch?: () => void;
 }
 
@@ -219,18 +217,15 @@ const AddMemberDropdown = ({
     [invitableUser, query]
   );
 
-  const topTeams: V1Beta1Group[] = useMemo(
-    () =>
-      teams
-        .filter((team: V1Beta1Group) =>
-          query
-            ? team.title &&
-              team.title.toLowerCase().includes(query.toLowerCase())
-            : true
-        )
-        .slice(0, 7),
-    [query, teams]
-  );
+  const topTeams = useMemo(() =>
+    teams
+      .filter(team =>
+        query
+          ? team.title && team.title.toLowerCase().includes(query.toLowerCase())
+          : true
+      )
+      .slice(0, 7),
+  [query, teams]);
 
   function onTextChange(e: React.ChangeEvent<HTMLInputElement>) {
     setQuery(e.target.value);
