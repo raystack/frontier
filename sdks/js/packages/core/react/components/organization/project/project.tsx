@@ -167,6 +167,13 @@ export const ProjectPage = () => {
     // roles fetched via query above
   }, [refetch]);
 
+  useEffect(() => {
+    if (refetch) {
+      refetchProjectUsers();
+      refetchProjectGroups();
+    }
+  }, [refetch, refetchProjectUsers, refetchProjectGroups]);
+
   const isLoading =
     isProjectLoading ||
     isTeamsLoading ||

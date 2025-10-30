@@ -58,7 +58,7 @@ export const getColumns = (
     cell: ({ row, getValue }) => {
       const title = getValue() as string;
       const email = row.original.invited
-        ? row.original.user_id
+        ? row.original.userId
         : row.original.email;
       return (
         <Flex direction="column" gap={2}>
