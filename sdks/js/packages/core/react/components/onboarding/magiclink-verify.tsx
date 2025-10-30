@@ -11,7 +11,6 @@ import React, {
 import { Container } from '~/react/components/Container';
 import { Header } from '~/react/components/Header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { hasWindow } from '~/utils/index';
 import { useMutation, FrontierServiceQueries } from '~hooks';
 
 // @ts-ignore
@@ -20,11 +19,13 @@ import styles from './onboarding.module.css';
 type MagicLinkVerifyProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
+  redirectURL?: string;
 };
 
 export const MagicLinkVerify = ({
   logo,
   title = 'Check your email',
+  redirectURL,
   ...props
 }: MagicLinkVerifyProps) => {
   const { config } = useFrontier();
@@ -64,12 +65,6 @@ export const MagicLinkVerify = ({
           state: stateParam
         });
 
-        const searchParams = new URLSearchParams(
-          hasWindow() ? window.location.search : ``
-        );
-        const redirectURL =
-          searchParams.get('redirect_uri') || searchParams.get('redirectURL');
-
         // @ts-ignore
         window.location = redirectURL ? redirectURL : window.location.origin;
       } catch (error) {
@@ -78,7 +73,7 @@ export const MagicLinkVerify = ({
         setSubmitError('Please enter a valid OTP');
       }
     },
-    [otp, stateParam, authCallback]
+    [otp, stateParam, authCallback, redirect_uri]
   );
 
   return (
