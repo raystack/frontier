@@ -1,4 +1,3 @@
-import { Pencil2Icon } from "@radix-ui/react-icons";
 import { Flex, Image, type DataTableColumnDef } from "@raystack/apsara";
 import type { Product } from "@raystack/proton/frontier";
 import { Link, NavLink } from "react-router-dom";
@@ -92,22 +91,6 @@ export const getColumns: () => DataTableColumnDef<
         });
       },
       filterVariant: "date",
-    },
-    {
-      accessorKey: "id",
-      header: "Actions",
-      cell: ({ row }) => {
-        return (
-          <Flex align="center" justify="center" gap="small">
-            <NavLink
-              to={`/products/${row?.original?.id}/edit`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Pencil2Icon />
-            </NavLink>
-          </Flex>
-        );
-      },
     },
   ];
 };

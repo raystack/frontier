@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/salt/log"
 
 	"github.com/doug-martin/goqu/v9"
@@ -93,29 +95,85 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 	return session.transformToSession()
 }
 
+// sessionWithUserName extends Session to include user_name for audit logging
+type sessionWithUserName struct {
+	Session
+	UserName string `db:"user_name"`
+}
+
 // Delete marks a session as deleted by setting deleted_at timestamp
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	var result sessionWithUserName
+
+	// Subquery to fetch user_name (title)
+	userNameSubquery := dialect.From(TABLE_USERS).
+		Select("title").
+		Where(goqu.Ex{"id": goqu.I(TABLE_SESSIONS + ".user_id")})
+
 	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
 		goqu.Record{
 			"deleted_at": time.Now().UTC(),
 		},
-	).Where(goqu.Ex{"id": id}).ToSQL()
+	).Where(goqu.Ex{"id": id}).
+		Returning(
+			goqu.I(TABLE_SESSIONS+".*"),
+			userNameSubquery.As("user_name"),
+		).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Delete", func(ctx context.Context) error {
-		result, err := s.dbc.ExecContext(ctx, query, params...)
-		if err != nil {
-			return fmt.Errorf("%w: %s", dbErr, err)
-		}
+	if err = s.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Delete", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return frontiersession.ErrNoSession
+				}
+				return err
+			}
 
-		if count, _ := result.RowsAffected(); count == 0 {
-			return frontiersession.ErrNoSession
-		}
+			return s.createSessionRevokeAuditRecord(ctx, tx, result)
+		})
+	}); err != nil {
+		return fmt.Errorf("%w: %w", dbErr, err)
+	}
 
+	return nil
+}
+
+// createSessionRevokeAuditRecord creates an audit record if admin is revoking someone else's session
+func (s *SessionRepository) createSessionRevokeAuditRecord(ctx context.Context, tx *sqlx.Tx, session sessionWithUserName) error {
+	actorID, _, _, _ := extractActorFromContext(ctx)
+	userID := session.UserID.String()
+
+	// Only create audit record if actor is different from the session owner (admin revoking someone else's session)
+	if actorID == "" || actorID == userID {
 		return nil
-	})
+	}
+
+	deletedAt := time.Now().UTC()
+	if session.DeletedAt != nil {
+		deletedAt = *session.DeletedAt
+	}
+
+	auditRecord := BuildAuditRecord(
+		ctx,
+		pkgAuditRecord.SessionRevokedEvent,
+		AuditResource{
+			ID:   userID,
+			Type: pkgAuditRecord.UserType,
+			Name: session.UserName,
+		},
+		&AuditTarget{
+			ID:   session.ID.String(),
+			Type: pkgAuditRecord.SessionType,
+		},
+		"", // sessions are not org-specific, will be stored as zero uuid
+		nil,
+		deletedAt,
+	)
+
+	return InsertAuditRecordInTx(ctx, tx, auditRecord)
 }
 
 func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {

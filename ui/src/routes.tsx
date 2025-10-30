@@ -15,8 +15,6 @@ import MagicLink from "./containers/magiclink";
 import PreferencesList from "./containers/preferences.list";
 import PreferenceDetails from "./containers/preferences.list/details";
 import PreferencesLayout from "./containers/preferences.list/layout";
-import CreateOrUpdateProduct from "./containers/products.create";
-import EditProduct from "./containers/products.edit";
 import ProductList from "./containers/products.list";
 import ProductDetails from "./containers/products.list/details";
 import ProductPrices from "./containers/products.list/prices";
@@ -99,9 +97,7 @@ export default memo(function AppRoutes() {
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
         <Route path="products" element={<ProductList />}>
-          <Route path="create" element={<CreateOrUpdateProduct />} />
           <Route path=":productId" element={<ProductDetails />} />
-          <Route path=":productId/edit" element={<EditProduct />} />
         </Route>
 
         <Route path="products/:productId/prices" element={<ProductPrices />} />
