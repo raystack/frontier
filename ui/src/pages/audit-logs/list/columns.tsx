@@ -56,11 +56,7 @@ export const getColumns = ({
         header: styles["org-column"],
       },
       cell: ({ getValue }) => {
-        return (
-          <Text size="regular" className={styles.capitalize}>
-            {(getValue() as string) || "-"}
-          </Text>
-        );
+        return <Text size="regular">{(getValue() as string) || "-"}</Text>;
       },
       enableColumnFilter: true,
     },

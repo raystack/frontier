@@ -90,15 +90,11 @@ export default function SidePanelDetails({
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Resource</List.Label>
-            <List.Value className={styles.capitalize}>
-              {resource?.name || "-"}
-            </List.Value>
+            <List.Value>{resource?.name || "-"}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Type</List.Label>
-            <List.Value className={styles.capitalize}>
-              {resource?.type || "-"}
-            </List.Value>
+            <List.Value>{resource?.type || "-"}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Date</List.Label>
