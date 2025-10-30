@@ -2,6 +2,7 @@ package connectinterceptors
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"connectrpc.com/connect"
@@ -54,8 +55,21 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 			// Get response code from error or OK if no error
 			code := connect.Code(0).String()
 			if err != nil {
-				if connectErr, ok := err.(*connect.Error); ok {
-					code = connectErr.Code().String()
+				if ctx.Err() != nil {
+					if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+						code = connect.CodeDeadlineExceeded.String()
+						err = connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
+					} else if errors.Is(ctx.Err(), context.Canceled) {
+						code = connect.CodeCanceled.String()
+						err = connect.NewError(connect.CodeCanceled, ctx.Err())
+					} else {
+						code = connect.CodeInternal.String()
+						err = connect.NewError(connect.CodeInternal, err)
+					}
+				} else {
+					if connectErr, ok := err.(*connect.Error); ok {
+						code = connectErr.Code().String()
+					}
 				}
 			}
 
@@ -68,23 +82,23 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				zap.String("request_id", req.Header().Get(consts.RequestIDHeader)),
 				zap.Error(err),
 			}
-			if err == nil {
+			if err == nil && ctx.Err() == nil {
 				logger.Info("finished call", fields...)
 				return resp, err
 			}
 
-			switch connect.CodeOf(err) {
-			case connect.CodeCanceled:
+			switch code {
+			case connect.CodeCanceled.String():
 				logger.Warn("client cancelled request", fields...)
-			case connect.CodeDeadlineExceeded:
+			case connect.CodeDeadlineExceeded.String():
 				logger.Info("request timeout", fields...)
-			case connect.CodeInvalidArgument,
-				connect.CodeNotFound,
-				connect.CodeAlreadyExists,
-				connect.CodeUnauthenticated,
-				connect.CodePermissionDenied,
-				connect.CodeFailedPrecondition,
-				connect.CodeOutOfRange:
+			case connect.CodeInvalidArgument.String(),
+				connect.CodeNotFound.String(),
+				connect.CodeAlreadyExists.String(),
+				connect.CodeUnauthenticated.String(),
+				connect.CodePermissionDenied.String(),
+				connect.CodeFailedPrecondition.String(),
+				connect.CodeOutOfRange.String():
 				logger.Warn("finished call", fields...)
 			default:
 				logger.Error("finished call", fields...)

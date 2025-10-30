@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	// "strings"
+	// "time"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
@@ -33,10 +35,7 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 
 	orgBillingData, err := h.orgBillingService.Search(ctx, rqlQuery)
 	if err != nil {
-		if ctx.Err() != nil {
-			return nil, connect.NewError(connect.CodeCanceled, ctx.Err())
-		}
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("my error"))
 	}
 
 	for _, v := range orgBillingData.Organizations {
