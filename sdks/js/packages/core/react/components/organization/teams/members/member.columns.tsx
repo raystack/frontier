@@ -135,6 +135,7 @@ const MembersActions = ({
   // Remove group user using Connect RPC
   const removeGroupUserMutation = useMutation(FrontierServiceQueries.removeGroupUser, {
     onSuccess: () => {
+      refetch();
       navigate({
         to: '/teams/$teamId',
         params: {
