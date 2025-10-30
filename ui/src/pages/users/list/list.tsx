@@ -16,6 +16,7 @@ import {
 } from "~/utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import { useDebouncedState } from "~/hooks/useDebouncedState";
 
 const NoUsers = () => {
   return (
@@ -39,7 +40,10 @@ const INITIAL_QUERY: DataTableQuery = {
 
 export const UsersList = () => {
   const navigate = useNavigate();
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200,
+  );
 
   // Transform the DataTableQuery to RQLRequest format
   const query = transformDataTableQueryToRQLRequest(tableQuery, {

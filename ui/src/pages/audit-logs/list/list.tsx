@@ -16,6 +16,7 @@ import {
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import SidePanelDetails from "./sidepanel-details";
+import { useDebouncedState } from "~/hooks/useDebouncedState";
 
 const NoAuditLogs = () => {
   return (
@@ -38,7 +39,10 @@ const INITIAL_QUERY: DataTableQuery = {
 };
 
 export const AuditLogsList = () => {
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200,
+  );
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [selectedAuditLog, setSelectedAuditLog] = useState<AuditRecord | null>(
     null,
