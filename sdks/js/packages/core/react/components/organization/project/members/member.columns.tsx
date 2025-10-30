@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   DotsHorizontalIcon,
   TrashIcon,
@@ -15,35 +15,36 @@ import {
   getAvatarColor
 } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import {
+  FrontierServiceQueries,
+  ListPoliciesRequestSchema,
+  DeletePolicyRequestSchema,
+  CreatePolicyRequestSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import teamIcon from '~/react/assets/users.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type {
-  V1Beta1Group,
-  V1Beta1Policy,
-  V1Beta1Role,
-  V1Beta1User
-} from '~/src';
-import type { Role } from '~/src/types';
+import type { Role } from '@raystack/proton/frontier';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 
-type ColumnType = V1Beta1User & (V1Beta1Group & { isTeam?: boolean });
-
-const teamAvatarStyles: React.CSSProperties = {
-  height: '32px',
-  width: '32px',
-  padding: '6px',
-  boxSizing: 'border-box',
-  color: 'var(--rs-color-foreground-base-primary)'
+type RowMember = {
+  id?: string;
+  title?: string;
+  email?: string;
+  name?: string;
+  avatar?: string;
+  isTeam?: boolean;
 };
 
 export const getColumns = (
   memberRoles: Record<string, Role[]> = {},
   groupRoles: Record<string, Role[]> = {},
-  roles: V1Beta1Role[] = [],
+  roles: Role[] = [],
   canUpdateProject: boolean,
   projectId: string,
   refetch: () => void
-): DataTableColumnDef<ColumnType, unknown>[] => [
+): DataTableColumnDef<RowMember, unknown>[] => [
   {
     header: '',
     accessorKey: 'avatar',
@@ -58,7 +59,6 @@ export const getColumns = (
       const fallback = row.original?.isTeam
         ? ''
         : getInitials(row.original?.title || row.original?.email);
-      const imageProps = row.original?.isTeam ? teamAvatarStyles : {};
       const color = getAvatarColor(row?.original?.id || '');
       return (
         <Avatar
@@ -67,7 +67,6 @@ export const getColumns = (
           fallback={fallback}
           size={5}
           radius="small"
-          imageProps={imageProps}
           style={{ marginRight: 'var(--rs-space-4)' }}
         />
       );
@@ -124,9 +123,9 @@ export const getColumns = (
       <MembersActions
         refetch={refetch}
         projectId={projectId}
-        member={row.original as V1Beta1User & { isTeam: boolean }}
+        member={row.original as RowMember & { isTeam: boolean }}
         canUpdateProject={canUpdateProject}
-        excludedRoles={differenceWith<V1Beta1Role>(
+         excludedRoles={differenceWith<Role>(
           isEqualById,
           roles,
           row.original.isTeam
@@ -150,9 +149,9 @@ const MembersActions = ({
   refetch = () => null
 }: {
   projectId: string;
-  member: V1Beta1User & { isTeam: boolean };
+  member: RowMember & { isTeam: boolean };
   canUpdateProject?: boolean;
-  excludedRoles: V1Beta1Role[];
+  excludedRoles: Role[];
   refetch: () => void;
 }) => {
   const { client } = useFrontier();
@@ -169,37 +168,60 @@ const MembersActions = ({
     });
   }
 
-  async function updateRole(role: V1Beta1Role) {
+  const { data: policies = [], refetch: refetchPolicies, error: policiesError } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    create(ListPoliciesRequestSchema, {
+      projectId: projectId,
+      userId: member.isTeam ? undefined : (member.id as string),
+      groupId: member.isTeam ? (member.id as string) : undefined
+    }),
+    { enabled: !!projectId && !!member?.id, select: d => d?.policies ?? [] }
+  );
+
+  const { mutateAsync: deletePolicy } = useMutation(FrontierServiceQueries.deletePolicy, {
+    onError: (err: Error) =>
+      toast.error('Something went wrong', { description: err.message })
+  });
+  const { mutateAsync: createPolicy } = useMutation(FrontierServiceQueries.createPolicy, {
+    onError: (err: Error) =>
+      toast.error('Something went wrong', { description: err.message })
+  });
+
+  useEffect(() => {
+    if (policiesError) {
+      toast.error('Something went wrong', { description: (policiesError as Error).message });
+    }
+  }, [policiesError]);
+
+  async function updateRole(role: Role) {
     try {
       const resource = `app/project:${projectId}`;
       const principal = member.isTeam
         ? `app/group:${member?.id}`
         : `app/user:${member?.id}`;
-      const {
-        // @ts-ignore
-        data: { policies = [] }
-      } = await client?.frontierServiceListPolicies({
-        project_id: projectId,
-        user_id: member.id
-      });
 
-      const deletePromises = policies.map((p: V1Beta1Policy) =>
-        client?.frontierServiceDeletePolicy(p.id as string)
+      await Promise.all(
+        (policies || []).map(p =>
+          deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' }))
+        )
       );
 
-      await Promise.all(deletePromises);
-      await client?.frontierServiceCreatePolicy({
-        role_id: role.id as string,
-        title: role.name as string,
-        resource: resource,
-        principal: principal
-      });
+      await createPolicy(
+        create(CreatePolicyRequestSchema, {
+          body: {
+            roleId: role.id as string,
+            title: (role.title || role.name) as string,
+            resource,
+            principal
+          }
+        })
+      );
+      await refetchPolicies();
       refetch();
       toast.success('Project member role updated');
-    } catch (error: any) {
-      toast.error('Something went wrong', {
-        description: error?.message
-      });
+    } catch (err) {
+      const message = (err as Error)?.message || 'Failed to update role';
+      toast.error('Something went wrong', { description: message });
     }
   }
 
@@ -211,7 +233,7 @@ const MembersActions = ({
       {/* @ts-ignore */}
       <DropdownMenu.Content portal={false}>
         <DropdownMenu.Group style={{ padding: 0 }}>
-          {excludedRoles.map((role: V1Beta1Role) => (
+          {excludedRoles.map((role: Role) => (
             <DropdownMenu.Item
               key={role.id}
               onClick={() => updateRole(role)}

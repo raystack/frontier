@@ -9,13 +9,9 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type {
-  V1Beta1Group,
-  V1Beta1Project,
-  V1Beta1Role,
-  V1Beta1User
-} from '~/src';
-import type { Role } from '~/src/types';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, ListProjectGroupsRequestSchema, ListProjectUsersRequestSchema, GetProjectRequestSchema, ListRolesRequestSchema, type Role as ProtoRole, type Group, type User } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
@@ -25,17 +21,16 @@ export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
   const [isProjectLoading, setIsProjectLoading] = useState(false);
   const [isProjectRoleLoading, setIsProjectRoleLoading] = useState(false);
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-  const [project, setProject] = useState<V1Beta1Project>();
-  const [members, setMembers] = useState<V1Beta1User[]>([]);
-  const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
-  const [groupRoles, setGroupRoles] = useState<Record<string, Role[]>>({});
+  const [roles, setRoles] = useState<ProtoRole[]>([]);
+  const [project, setProject] = useState<any>();
+  const [members, setMembers] = useState<User[]>([]);
+  const [memberRoles, setMemberRoles] = useState<Record<string, ProtoRole[]>>({});
+  const [groupRoles, setGroupRoles] = useState<Record<string, ProtoRole[]>>({});
   const [isMembersLoading, setIsMembersLoading] = useState(false);
 
-  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
-  const [isTeamsLoading, setIsTeamsLoading] = useState(false);
+  const [teams, setTeams] = useState<Group[]>([]);
 
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/projects/$projectId' });
   const routeState = useRouterState();
 
@@ -48,101 +43,129 @@ export const ProjectPage = () => {
     );
   }, [routeState.matches]);
 
-  const getProjectTeams = useCallback(async () => {
-    if (!organization?.id || !projectId || isDeleteRoute) return;
-    try {
-      setIsTeamsLoading(true);
-      const resp = await client?.frontierServiceListProjectGroups(projectId, {
-        with_roles: true
-      });
-      const groups = resp?.data?.groups || [];
-      const role_pairs = resp?.data?.role_pairs || [];
-      setTeams(groups);
-      setGroupRoles(
-        role_pairs.reduce((previous: any, gr: any) => {
-          return { ...previous, [gr.group_id]: gr.roles };
+  const {
+    data: projectGroupsData,
+    isLoading: isTeamsLoading,
+    error: projectGroupsError,
+    refetch: refetchProjectGroups
+  } = useQuery(
+    FrontierServiceQueries.listProjectGroups,
+    create(ListProjectGroupsRequestSchema, {
+      id: projectId || '',
+      withRoles: true
+    }),
+    {
+      enabled: !!organization?.id && !!projectId && !isDeleteRoute,
+      select: d => ({
+        groups: d?.groups ?? [],
+        groupRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, gr: any) => {
+          const key = gr.groupId ?? gr.group_id;
+          acc[key] = gr.roles as ProtoRole[];
+          return acc;
         }, {})
-      );
-    } catch (error: any) {
-      toast.error('Something went wrong', {
-        description: error?.message
-      });
-    } finally {
-      setIsTeamsLoading(false);
+      })
     }
-  }, [client, isDeleteRoute, organization?.id, projectId]);
-
-  const getProjectMembers = useCallback(async () => {
-    if (!organization?.id || !projectId || isDeleteRoute) return;
-    try {
-      setIsMembersLoading(true);
-      const resp = await client?.frontierServiceListProjectUsers(projectId, {
-        with_roles: true
-      });
-      const users = resp?.data?.users || [];
-      const role_pairs = resp?.data?.role_pairs || [];
-      setMembers(users);
-      setMemberRoles(
-        role_pairs.reduce((previous: any, mr: any) => {
-          return { ...previous, [mr.user_id]: mr.roles };
-        }, {})
-      );
-    } catch (error: any) {
-      toast.error('Something went wrong', {
-        description: error?.message
-      });
-    } finally {
-      setIsMembersLoading(false);
-    }
-  }, [client, isDeleteRoute, organization?.id, projectId]);
-
-  const getProjectDetails = useCallback(async () => {
-    if (!organization?.id || !projectId || isDeleteRoute) return;
-    try {
-      setIsProjectLoading(true);
-      const resp = await client?.frontierServiceGetProject(projectId);
-      const project = resp?.data?.project;
-      setProject(project);
-    } catch (error: any) {
-      toast.error('Something went wrong', {
-        description: error?.message
-      });
-    } finally {
-      setIsProjectLoading(false);
-    }
-  }, [client, isDeleteRoute, organization?.id, projectId]);
-
-  const getProjectRoles = useCallback(async () => {
-    if (!organization?.id || !projectId || isDeleteRoute) return;
-    try {
-      setIsProjectRoleLoading(true);
-      const resp = await client?.frontierServiceListRoles({
-        state: 'enabled',
-        scopes: [PERMISSIONS.ProjectNamespace]
-      });
-      const roles = resp?.data?.roles || [];
-      setRoles(roles);
-    } catch (error: any) {
-      toast.error('Something went wrong', {
-        description: error?.message
-      });
-    } finally {
-      setIsProjectRoleLoading(false);
-    }
-  }, [client, isDeleteRoute, organization?.id, projectId]);
+  );
 
   useEffect(() => {
-    getProjectDetails();
-    getProjectMembers();
-    getProjectTeams();
-    getProjectRoles();
-  }, [
-    getProjectDetails,
-    getProjectMembers,
-    getProjectTeams,
-    getProjectRoles,
-    refetch
-  ]);
+    if (projectGroupsError) {
+      toast.error('Something went wrong', {
+        description: projectGroupsError.message
+      });
+    }
+  }, [projectGroupsError]);
+
+  useEffect(() => {
+    if (projectGroupsData) {
+      setTeams(projectGroupsData.groups as Group[]);
+      setGroupRoles(projectGroupsData.groupRoles as Record<string, ProtoRole[]>);
+    }
+  }, [projectGroupsData]);
+
+  const {
+    data: projectUsersData,
+    isLoading: isMembersLoadingQuery,
+    refetch: refetchProjectUsers
+  } = useQuery(
+    FrontierServiceQueries.listProjectUsers,
+    create(ListProjectUsersRequestSchema, {
+      id: projectId || '',
+      withRoles: true
+    }),
+    {
+      enabled: !!organization?.id && !!projectId && !isDeleteRoute,
+      select: d => ({
+        users: d?.users ?? [],
+        memberRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, mr: any) => {
+          const key = mr.userId ?? mr.user_id;
+          acc[key] = mr.roles as ProtoRole[];
+          return acc;
+        }, {})
+      })
+    }
+  );
+
+  useEffect(() => {
+    if (projectUsersData) {
+      setMembers(projectUsersData.users as User[]);
+      setMemberRoles(projectUsersData.memberRoles as Record<string, ProtoRole[]>);
+    }
+  }, [projectUsersData]);
+
+  useEffect(() => {
+    setIsMembersLoading(isMembersLoadingQuery);
+  }, [isMembersLoadingQuery]);
+
+  const { data: projectData, isLoading: isProjectLoadingQuery, error: projectError } = useQuery(
+    FrontierServiceQueries.getProject,
+    create(GetProjectRequestSchema, { id: projectId || '' }),
+    {
+      enabled: !!organization?.id && !!projectId && !isDeleteRoute
+    }
+  );
+
+  useEffect(() => {
+    if (projectData?.project) {
+      setProject(projectData.project as unknown);
+    }
+  }, [projectData]);
+
+  useEffect(() => {
+    if (projectError) {
+      toast.error('Something went wrong', { description: projectError.message });
+    }
+  }, [projectError]);
+
+  useEffect(() => {
+    setIsProjectLoading(isProjectLoadingQuery);
+  }, [isProjectLoadingQuery]);
+
+  const { data: rolesData, isLoading: isProjectRoleLoadingQuery, error: rolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: !!organization?.id && !!projectId && !isDeleteRoute }
+  );
+
+  useEffect(() => {
+    if (rolesError) {
+      toast.error('Something went wrong', { description: rolesError.message });
+    }
+  }, [rolesError]);
+
+  useEffect(() => {
+    setRoles((rolesData?.roles || []) as ProtoRole[]);
+  }, [rolesData]);
+
+  useEffect(() => {
+    setIsProjectRoleLoading(isProjectRoleLoadingQuery);
+  }, [isProjectRoleLoadingQuery]);
+
+  useEffect(() => {
+    // roles fetched via query above
+  }, [refetch]);
 
   const isLoading =
     isProjectLoading ||
@@ -151,9 +174,9 @@ export const ProjectPage = () => {
     isProjectRoleLoading;
 
   const refetchTeamAndMembers = useCallback(() => {
-    getProjectMembers();
-    getProjectTeams();
-  }, [getProjectMembers, getProjectTeams]);
+    refetchProjectUsers();
+    refetchProjectGroups();
+  }, [refetchProjectUsers, refetchProjectGroups]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -186,7 +209,7 @@ export const ProjectPage = () => {
             groupRoles={groupRoles}
             isLoading={isLoading}
             teams={teams}
-            roles={roles}
+            roles={roles as ProtoRole[]}
             refetch={refetchTeamAndMembers}
           />
         </Tabs.Content>
