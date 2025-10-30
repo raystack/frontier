@@ -14,7 +14,7 @@ export { OrganizationProfile } from './components/organization/profile';
 export { Window } from './components/window';
 
 export { useFrontier } from './contexts/FrontierContext';
-export { FrontierProvider } from './contexts/FrontierProvider';
+export { FrontierProvider, queryClient } from './contexts/FrontierProvider';
 export { 
   CustomizationProvider
 } from './contexts/CustomizationContext';
