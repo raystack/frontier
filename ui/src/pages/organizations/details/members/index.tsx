@@ -22,6 +22,7 @@ import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
+import { useDebouncedState } from "~/hooks/useDebouncedState";
 
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
@@ -80,7 +81,10 @@ export function OrganizationMembersPage() {
 
   const title = `Members | ${organization?.title} | Organizations`;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200,
+  );
 
   // Transform the DataTableQuery to RQLRequest format
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
@@ -110,7 +114,7 @@ export function OrganizationMembersPage() {
     {
       enabled: !!organizationId,
       pageParamKey: "query",
-      getNextPageParam: (lastPage) =>
+      getNextPageParam: lastPage =>
         getConnectNextPageParam(lastPage, { query: query }, "orgUsers"),
       staleTime: 0,
       refetchOnWindowFocus: false,
@@ -119,7 +123,7 @@ export function OrganizationMembersPage() {
     },
   );
 
-  const data = infiniteData?.pages?.flatMap((page) => page.orgUsers) || [];
+  const data = infiniteData?.pages?.flatMap(page => page.orgUsers) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
@@ -221,8 +225,7 @@ export function OrganizationMembersPage() {
           mode="server"
           onTableQueryChange={onTableQueryChange}
           onLoadMore={fetchMore}
-          query={tableQuery}
-        >
+          query={tableQuery}>
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content

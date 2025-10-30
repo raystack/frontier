@@ -14,6 +14,7 @@ import {
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
 import { getColumns } from "./columns";
+import { useDebouncedState } from "~/hooks/useDebouncedState";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
@@ -58,7 +59,10 @@ export function OrganizationTokensPage() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200,
+  );
 
   const title = `Tokens | ${organization?.title} | Organizations`;
 
@@ -93,7 +97,7 @@ export function OrganizationTokensPage() {
     {
       enabled: !!organizationId,
       pageParamKey: "query",
-      getNextPageParam: (lastPage) =>
+      getNextPageParam: lastPage =>
         getConnectNextPageParam(
           lastPage,
           { query: query },
@@ -107,7 +111,7 @@ export function OrganizationTokensPage() {
   );
 
   const data =
-    infiniteData?.pages?.flatMap((page) => page.organizationTokens) || [];
+    infiniteData?.pages?.flatMap(page => page.organizationTokens) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
@@ -141,8 +145,7 @@ export function OrganizationTokensPage() {
         mode="server"
         onTableQueryChange={onTableQueryChange}
         onLoadMore={fetchMore}
-        query={tableQuery}
-      >
+        query={tableQuery}>
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content
