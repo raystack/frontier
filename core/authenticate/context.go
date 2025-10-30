@@ -79,7 +79,7 @@ func GetPrincipalName(principal *Principal) string {
 		return "unknown"
 	}
 	if principal.User != nil {
-		return principal.User.Title
+		return utils.Coalesce(principal.User.Name, principal.User.Title)
 	}
 	if principal.ServiceUser != nil {
 		return principal.ServiceUser.Title

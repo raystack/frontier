@@ -16,6 +16,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 )
 
@@ -102,7 +103,7 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 			}
 			return AuditRecord{}, false, err
 		}
-		auditRecord.Actor.Name = user.Title
+		auditRecord.Actor.Name = utils.Coalesce(user.Name, user.Title)
 
 		// check if the user is a superuser
 		if isSudo, err := s.userService.IsSudo(ctx, user.ID, schema.PlatformSudoPermission); err != nil {
