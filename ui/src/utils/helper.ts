@@ -49,7 +49,7 @@ export const capitalizeFirstLetter = (str: string) => {
 export const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 export const keyToColumnMetaObject = (key: any) =>
-  ({ key: key, name: key, value: key }) as TableColumnMetadata;
+  ({ key: key, name: key, value: key } as TableColumnMetadata);
 
 /*
  * @desc returns date string - Eg, June 13, 2025. return '-' if the date in the argument is invalid.
@@ -107,3 +107,14 @@ export const exportCsvFromStream = async <T>(
   const blob = new Blob(chunks, { type: "text/csv" });
   downloadFile(blob, filename);
 };
+
+const ZERO_UUID = "00000000-0000-0000-0000-000000000000" as const;
+/**
+ * Checks if a UUID is the zero UUID (all zeros).
+ * @param {string} uuid - The UUID to check.
+ * @returns {boolean} True if the UUID is all zeros, false otherwise.
+ */
+export function isZeroUUID(uuid: string) {
+  if (typeof uuid !== "string") return false;
+  return uuid.toLowerCase() === ZERO_UUID;
+}

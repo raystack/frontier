@@ -1,8 +1,6 @@
 import {
-  Avatar,
   CopyButton,
   Flex,
-  getAvatarColor,
   IconButton,
   SidePanel,
   Text,
@@ -17,12 +15,14 @@ import {
 import { List } from "@raystack/apsara";
 import styles from "./list.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
-import { isAuditLogActorServiceUser } from "../util";
-import { getAuditLogActorName } from "../util";
-import serviceUserIcon from "~/assets/images/service-user.jpg";
+import { ACTOR_TYPES } from "../util";
 import { timestampToDate } from "~/utils/connect-timestamp";
 import dayjs from "dayjs";
 import MapIcon from "~/assets/icons/map.svg?react";
+import SidePanelLogDialog from "./sidepanel-log-dialog";
+import ActorCell from "./actor-cell";
+import SidepanelListItemLink from "./sidepanel-list-link";
+import { isZeroUUID } from "~/utils/helper";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
@@ -39,15 +39,11 @@ type AuditSessionContext = {
 };
 
 export default function SidePanelDetails({
-  actor,
-  event,
-  resource,
-  occurredAt,
   onClose,
-  id,
+  ...rest
 }: SidePanelDetailsProps) {
-  const name = getAuditLogActorName(actor);
-  const isServiceUser = isAuditLogActorServiceUser(actor);
+  const { actor, event, resource, occurredAt, id, orgId, orgName, target } =
+    rest;
   const date = dayjs(timestampToDate(occurredAt));
 
   const session = actor?.metadata?.context as AuditSessionContext;
@@ -61,6 +57,7 @@ export default function SidePanelDetails({
       <SidePanel.Header
         title="Audit log details"
         actions={[
+          <SidePanelLogDialog key="show-audit-json-dialog" {...rest} />,
           <IconButton
             size={3}
             key="close-sidepanel-icon"
@@ -73,36 +70,31 @@ export default function SidePanelDetails({
       <SidePanel.Section>
         <List>
           <List.Header>Overview</List.Header>
-          <List.Item>
-            <List.Label minWidth="120px">Actor</List.Label>
-            <List.Value>
-              <Flex gap={3} align="center">
-                <Avatar
-                  size={1}
-                  fallback={name?.[0]?.toUpperCase()}
-                  color={getAvatarColor(actor?.id ?? "")}
-                  radius="full"
-                  src={isServiceUser ? serviceUserIcon : undefined}
-                />
-                <Text size="regular">{name}</Text>
-              </Flex>
-            </List.Value>
-          </List.Item>
+          <SidepanelListItemLink
+            isLink={actor?.type !== ACTOR_TYPES.SYSTEM}
+            href={`/users/${actor?.id}`}
+            label="Actor"
+            data-test-id="actor-link">
+            <ActorCell value={actor!} size="small" />
+          </SidepanelListItemLink>
+          <SidepanelListItemLink
+            isLink={!!orgId && !isZeroUUID(orgId)}
+            href={`/organizations/${orgId}`}
+            label="Organization"
+            data-test-id="actor-link">
+            {orgName || "-"}
+          </SidepanelListItemLink>
           <List.Item>
             <List.Label minWidth="120px">Action</List.Label>
-            <List.Value className={styles.capitalize}>{event}</List.Value>
+            <List.Value>{event}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Resource</List.Label>
-            <List.Value className={styles.capitalize}>
-              {resource?.name || "-"}
-            </List.Value>
+            <List.Value>{resource?.name || "-"}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Type</List.Label>
-            <List.Value className={styles.capitalize}>
-              {resource?.type || "-"}
-            </List.Value>
+            <List.Value>{resource?.type || "-"}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">Date</List.Label>
@@ -125,6 +117,12 @@ export default function SidePanelDetails({
               </Flex>
             </List.Value>
           </List.Item>
+          {target && (
+            <List.Item>
+              <List.Label minWidth="120px">Target</List.Label>
+              <List.Value>{target?.name || "-"}</List.Value>
+            </List.Item>
+          )}
         </List>
       </SidePanel.Section>
       {session && (
