@@ -16,7 +16,7 @@ import (
 func mockService(t *testing.T) (*credit.Service, *mocks.TransactionRepository) {
 	t.Helper()
 	mockTransaction := mocks.NewTransactionRepository(t)
-	return credit.NewService(mockTransaction), mockTransaction
+	return credit.NewService(mockTransaction, nil, nil), mockTransaction
 }
 
 func TestService_GetBalance(t *testing.T) {
@@ -208,7 +208,7 @@ func TestService_Add(t *testing.T) {
 				cred: credit.Credit{
 					ID:         "12",
 					Amount:     10,
-					CustomerID: "",
+					CustomerID: schema.PlatformOrgID.String(),
 					Metadata: metadata.Metadata{
 						"a": "a",
 					},
@@ -217,7 +217,7 @@ func TestService_Add(t *testing.T) {
 			want: nil,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{CustomerID: schema.PlatformOrgID.String(), Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, Amount: 10, ID: "12", Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{CustomerID: schema.PlatformOrgID.String(), Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, Amount: 10, ID: "12", CustomerID: schema.PlatformOrgID.String(), Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
 				return s
 			},
 		},
@@ -333,7 +333,7 @@ func TestService_Deduct(t *testing.T) {
 				cred: credit.Credit{
 					ID:         "12",
 					Amount:     10,
-					CustomerID: "customer_id",
+					CustomerID: schema.PlatformOrgID.String(),
 					Metadata: metadata.Metadata{
 						"a": "a",
 					},
@@ -342,7 +342,7 @@ func TestService_Deduct(t *testing.T) {
 			want: nil,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{ID: "12", CustomerID: "customer_id", Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, CustomerID: schema.PlatformOrgID.String(), Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{ID: "12", CustomerID: schema.PlatformOrgID.String(), Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, CustomerID: schema.PlatformOrgID.String(), Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
 				return s
 			},
 		},
