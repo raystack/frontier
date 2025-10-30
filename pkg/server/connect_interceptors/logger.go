@@ -74,6 +74,10 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 			}
 
 			switch connect.CodeOf(err) {
+			case connect.CodeCanceled:
+				logger.Warn("client cancelled request", fields...)
+			case connect.CodeDeadlineExceeded:
+				logger.Info("request timeout", fields...)
 			case connect.CodeInvalidArgument,
 				connect.CodeNotFound,
 				connect.CodeAlreadyExists,
