@@ -33,7 +33,7 @@ export const useOrganizationProjects = ({
   } = useQuery(
     FrontierServiceQueries.listOrganizationProjects,
     create(ListOrganizationProjectsRequestSchema, { 
-      orgId: organization?.id || '',
+      id: organization?.id || '',
       withMemberCount 
     }),
     { enabled: !!organization?.id && allProjects }
