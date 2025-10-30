@@ -1,4 +1,4 @@
-import { useContext, useMemo } from "react";
+import { useContext } from "react";
 import { List, Text, Flex } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { CalendarIcon } from "@radix-ui/react-icons";
@@ -15,7 +15,7 @@ export const PlanDetailsSection = () => {
   const billingAccountId = billingAccount?.id || "";
   const organizationId = organization?.id || "";
 
-  const { data: subscriptionsData, isLoading: isSubscriptionLoading, error: subscriptionsError } = useQuery(
+  const { data: activeSubscription, isLoading: isSubscriptionLoading, error: subscriptionsError } = useQuery(
     FrontierServiceQueries.listSubscriptions,
     create(ListSubscriptionsRequestSchema, {
       orgId: organizationId,
@@ -23,19 +23,18 @@ export const PlanDetailsSection = () => {
     }),
     {
       enabled: !!organizationId && !!billingAccountId,
+      select: (data) => {
+        const subscriptions = data?.subscriptions ?? [];
+        return subscriptions.find(
+          (sub) => sub.state === "active" || sub.state === "trialing"
+        );
+      },
     }
   );
 
   if (subscriptionsError) {
     console.error("Error fetching subscriptions:", subscriptionsError);
   }
-
-  const activeSubscription = useMemo(() => {
-    const subscriptions = subscriptionsData?.subscriptions ?? [];
-    return subscriptions.find(
-      (sub) => sub.state === "active" || sub.state === "trialing"
-    );
-  }, [subscriptionsData?.subscriptions]);
 
   const { data: planData, isLoading: isPlanLoading, error: planError } = useQuery(
     FrontierServiceQueries.getPlan,
