@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, ListOrganizationProjectsRequestSchema, ListProjectsByCurrentUserRequestSchema, type Project, type ListProjectsByCurrentUserResponse_AccessPair } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
@@ -10,10 +10,18 @@ interface useOrganizationProjectsProps {
   allProjects?: boolean;
 }
 
+export interface UseOrganizationProjectsReturn {
+  isFetching: boolean;
+  projects: Project[];
+  userAccessOnProject: Record<string, string[]>;
+  refetch: () => void;
+  error: unknown;
+}
+
 export const useOrganizationProjects = ({
   withMemberCount = false,
   allProjects = false
-}: useOrganizationProjectsProps) => {
+}: useOrganizationProjectsProps): UseOrganizationProjectsReturn => {
   const { activeOrganization: organization } = useFrontier();
 
   // Query for organization projects (all projects)
@@ -76,8 +84,8 @@ export const useOrganizationProjects = ({
     }, {});
   }, [accessPairs]);
 
-  const isLoading = allProjects ? isOrgProjectsLoading : isUserProjectsLoading;
-  const error = allProjects ? orgProjectsError : userProjectsError;
+  const isLoading: boolean = allProjects ? isOrgProjectsLoading : isUserProjectsLoading;
+  const error: unknown = allProjects ? orgProjectsError : userProjectsError;
 
   return {
     isFetching: isLoading,
