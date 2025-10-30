@@ -17,6 +17,18 @@ import { General } from './general';
 import { Members } from './members';
 import styles from './project.module.css';
 
+interface ProjectGroupRolePair {
+  groupId?: string;
+  group_id?: string;
+  roles: ProtoRole[];
+}
+
+interface ProjectUserRolePair {
+  userId?: string;
+  user_id?: string;
+  roles: ProtoRole[];
+}
+
 export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
 
@@ -48,9 +60,9 @@ export const ProjectPage = () => {
       enabled: !!organization?.id && !!projectId && !isDeleteRoute,
       select: d => ({
         groups: d?.groups ?? [],
-        groupRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, gr: any) => {
+        groupRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, gr: ProjectGroupRolePair) => {
           const key = gr.groupId ?? gr.group_id;
-          acc[key] = gr.roles as ProtoRole[];
+          if (key) acc[key] = gr.roles;
           return acc;
         }, {})
       })
@@ -77,9 +89,9 @@ export const ProjectPage = () => {
       enabled: !!organization?.id && !!projectId && !isDeleteRoute,
       select: d => ({
         users: d?.users ?? [],
-        memberRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, mr: any) => {
+        memberRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, mr: ProjectUserRolePair) => {
           const key = mr.userId ?? mr.user_id;
-          acc[key] = mr.roles as ProtoRole[];
+          if (key) acc[key] = mr.roles;
           return acc;
         }, {})
       })
@@ -117,7 +129,7 @@ export const ProjectPage = () => {
     }),
     {
       enabled: !!organization?.id && !!projectId && !isDeleteRoute,
-      select: d => (d?.roles ?? []) as ProtoRole[]
+      select: d => (d?.roles ?? [])
     }
   );
 
