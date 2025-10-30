@@ -4,6 +4,7 @@ import {
   UpdateIcon
 } from '@radix-ui/react-icons';
 import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import {
   toast,
   Label,
@@ -125,13 +126,19 @@ const MembersActions = ({
   const navigate = useNavigate({ from: '/members' });
   
   // Query to fetch policies for the current member
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const { data: policiesData, refetch: refetchPolicies } = useQuery(
     FrontierServiceQueries.listPolicies,
     create(ListPoliciesRequestSchema, {
       orgId: organizationId,
       userId: member.id
     }),
-    { enabled: !!member.id }
+    {
+      enabled: isMenuOpen && !!member.id,
+      staleTime: 60_000,
+      gcTime: 300_000
+    }
   );
   
   const { mutateAsync: deletePolicy } = useMutation(
@@ -206,7 +213,14 @@ const MembersActions = ({
 
   return canUpdateGroup ? (
     <>
-      <DropdownMenu placement="bottom-end">
+      <DropdownMenu
+        placement="bottom-end"
+        open={isMenuOpen}
+        onOpenChange={(open: boolean) => {
+          setIsMenuOpen(open);
+          if (open) refetchPolicies();
+        }}
+      >
         <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
           <DotsHorizontalIcon />
         </DropdownMenu.Trigger>
