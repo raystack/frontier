@@ -73,7 +73,7 @@ export const MagicLinkVerify = ({
         setSubmitError('Please enter a valid OTP');
       }
     },
-    [otp, stateParam, authCallback, redirect_uri]
+    [otp, stateParam, authCallback, redirectURL]
   );
 
   return (
