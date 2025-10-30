@@ -1,47 +1,42 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { V1Beta1BatchCheckPermissionBody } from '~/src';
+import { useMemo } from 'react';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries,
+  BatchCheckPermissionBodySchema,
+  BatchCheckPermissionResponsePair,
+  BatchCheckPermissionRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { formatPermissions } from '~/utils';
-import { useFrontier } from '../contexts/FrontierContext';
+
+interface PermissionCheck {
+  permission: string;
+  resource: string;
+}
 
 export const usePermissions = (
-  permissions: V1Beta1BatchCheckPermissionBody[] = [],
+  permissions: PermissionCheck[] = [],
   shouldCalled: boolean | undefined = true
-) => {
-  const [permisionValues, setPermisionValues] = useState([]);
-  const [fetchingPermissions, setFetchingOrgPermissions] = useState(false);
+): { isFetching: boolean; permissions: Record<string, boolean>; error?: unknown } => {
+  const protobufPermissions = useMemo(() => {
+    return permissions.map(permission => 
+      create(BatchCheckPermissionBodySchema, permission)
+    );
+  }, [permissions]);
 
-  const { client } = useFrontier();
-
-  const fetchOrganizationPermissions = useCallback(async () => {
-    try {
-      setFetchingOrgPermissions(true);
-      const {
-        // @ts-ignore
-        data: { pairs }
-      } = await client?.frontierServiceBatchCheckPermission({
-        bodies: permissions
-      });
-      setPermisionValues(pairs);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setFetchingOrgPermissions(false);
-    }
-  }, [client, permissions]);
-
-  useEffect(() => {
-    if (shouldCalled && permissions.length > 0) {
-      fetchOrganizationPermissions();
-    }
-  }, [fetchOrganizationPermissions, permissions.length, shouldCalled]);
+  const { data, isLoading, error } = useQuery(
+    FrontierServiceQueries.batchCheckPermission,
+    create(BatchCheckPermissionRequestSchema, { bodies: protobufPermissions }),
+    { enabled: shouldCalled && permissions.length > 0 }
+  );
 
   const permissionsMap = useMemo(() => {
-    if (permisionValues.length) {
-      return formatPermissions(permisionValues);
-    } else {
-      return {};
-    }
-  }, [permisionValues]);
+    const pairs = data?.pairs ?? [];
+    if (!pairs.length) return {};
+    const normalizedPairs = pairs.map((p: BatchCheckPermissionResponsePair) => ({
+      body: p?.body ?? {},
+      status: Boolean(p?.status)
+    }));
+    return formatPermissions(normalizedPairs);
+  }, [data?.pairs]);
 
-  return { isFetching: fetchingPermissions, permissions: permissionsMap };
+  return { isFetching: isLoading, permissions: permissionsMap, error };
 };
