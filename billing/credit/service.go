@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
+	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 )
 
 type TransactionRepository interface {
@@ -19,13 +21,25 @@ type TransactionRepository interface {
 	GetBalanceForRange(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
 }
 
-type Service struct {
-	transactionRepository TransactionRepository
+type CustomerRepository interface {
+	GetByID(ctx context.Context, id string) (customer.Customer, error)
 }
 
-func NewService(repository TransactionRepository) *Service {
+type AuditRecordRepository interface {
+	Create(ctx context.Context, record auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
+}
+
+type Service struct {
+	transactionRepository TransactionRepository
+	customerRepository    CustomerRepository
+	auditRepository       AuditRecordRepository
+}
+
+func NewService(repository TransactionRepository, customerRepo CustomerRepository, auditRepo AuditRecordRepository) *Service {
 	return &Service{
 		transactionRepository: repository,
+		customerRepository:    customerRepo,
+		auditRepository:       auditRepo,
 	}
 }
 
@@ -42,7 +56,7 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		txSource = cred.Source
 	}
 
-	_, err := s.transactionRepository.CreateEntry(ctx, Transaction{
+	debitEntry := Transaction{
 		CustomerID:  schema.PlatformOrgID.String(),
 		Type:        DebitType,
 		Amount:      cred.Amount,
@@ -50,7 +64,8 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		Source:      txSource,
 		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
-	}, Transaction{
+	}
+	creditEntry := Transaction{
 		ID:          cred.ID,
 		Type:        CreditType,
 		CustomerID:  cred.CustomerID,
@@ -59,13 +74,22 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		Source:      txSource,
 		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
-	})
+	}
+
+	_, err := s.transactionRepository.CreateEntry(ctx, debitEntry, creditEntry)
 	if err != nil {
 		if errors.Is(err, ErrAlreadyApplied) {
 			return ErrAlreadyApplied
 		}
 		return fmt.Errorf("transactionRepository.CreateEntry: %w", err)
 	}
+
+	if creditEntry.CustomerID != schema.PlatformOrgID.String() {
+		if err := s.createAuditRecord(ctx, creditEntry.CustomerID, pkgAuditRecord.BillingTransactionCreditEvent, creditEntry.ID, creditEntry); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -82,7 +106,7 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		txSource = cred.Source
 	}
 
-	if _, err := s.transactionRepository.CreateEntry(ctx, Transaction{
+	debitEntry := Transaction{
 		ID:          cred.ID,
 		CustomerID:  cred.CustomerID,
 		Type:        DebitType,
@@ -91,7 +115,8 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		Source:      txSource,
 		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
-	}, Transaction{
+	}
+	creditEntry := Transaction{
 		Type:        CreditType,
 		CustomerID:  schema.PlatformOrgID.String(),
 		Amount:      cred.Amount,
@@ -99,7 +124,10 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		Source:      txSource,
 		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
-	}); err != nil {
+	}
+
+	_, err := s.transactionRepository.CreateEntry(ctx, debitEntry, creditEntry)
+	if err != nil {
 		if errors.Is(err, ErrAlreadyApplied) {
 			return ErrAlreadyApplied
 		} else if errors.Is(err, ErrInsufficientCredits) {
@@ -107,6 +135,14 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		}
 		return fmt.Errorf("failed to deduct credits: %w", err)
 	}
+
+	// Create audit record after transaction succeeds
+	if debitEntry.CustomerID != schema.PlatformOrgID.String() {
+		if err := s.createAuditRecord(ctx, debitEntry.CustomerID, pkgAuditRecord.BillingTransactionDebitEvent, debitEntry.ID, debitEntry); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -130,4 +166,34 @@ func (s Service) GetBalanceForRange(ctx context.Context, accountID string, start
 
 func (s Service) GetByID(ctx context.Context, id string) (Transaction, error) {
 	return s.transactionRepository.GetByID(ctx, id)
+}
+
+// createAuditRecord creates an audit record for billing transaction events.
+func (s Service) createAuditRecord(ctx context.Context, customerID string, eventType pkgAuditRecord.Event, txID string, txEntry Transaction) error {
+	customerAcc, err := s.customerRepository.GetByID(ctx, customerID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.auditRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: eventType,
+		Resource: auditrecord.Resource{
+			ID:   customerID,
+			Type: pkgAuditRecord.BillingCustomerType,
+			Name: customerAcc.Name,
+		},
+		Target: &auditrecord.Target{
+			ID:   txID,
+			Type: pkgAuditRecord.BillingTransactionType,
+			Metadata: map[string]interface{}{
+				"amount":      txEntry.Amount,
+				"source":      txEntry.Source,
+				"description": txEntry.Description,
+				"user_id":     txEntry.UserID,
+			},
+		},
+		OccurredAt: time.Now(),
+		OrgID:      customerAcc.OrgID,
+	})
+	return err
 }

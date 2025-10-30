@@ -18,7 +18,7 @@ const fetchWithCreds: typeof fetch = (input, init) => {
   });
 };
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 export const FrontierProvider = (props: FrontierProviderProps) => {
   const { children, initialState, config, theme, ...options } = props;

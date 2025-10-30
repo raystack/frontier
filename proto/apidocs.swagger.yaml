@@ -12333,6 +12333,8 @@ definitions:
         format: date-time
       org_id:
         type: string
+      org_name:
+        type: string
       request_id:
         type: string
       metadata:
