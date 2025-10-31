@@ -14,28 +14,16 @@ func UnaryConnectErrorResponseInterceptor() connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			resp, err := next(ctx, req)
-			if err != nil {
-				// handler error
-				if ctx.Err() != nil {
-					if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-						return resp, connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
-					}
-					return resp, connect.NewError(connect.CodeCanceled, ctx.Err())
-				} else {
-					// no context error, only handler error
-					return resp, err
-				}
-			} else {
-				// no handler error
+			if ctx.Err() != nil {
 				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 					return resp, connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
-				} else if errors.Is(ctx.Err(), context.Canceled) {
+				}
+				if errors.Is(ctx.Err(), context.Canceled) {
 					return resp, connect.NewError(connect.CodeCanceled, ctx.Err())
-				} else {
-					// no context error, no handler error
-					return resp, err
 				}
 			}
+			// no context error, only handler error
+			return resp, err
 		}
 	}
 }
