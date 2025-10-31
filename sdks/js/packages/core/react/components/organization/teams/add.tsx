@@ -47,8 +47,7 @@ export const AddTeam = () => {
   const navigate = useNavigate({ from: '/members/modal' });
   const { activeOrganization: organization } = useFrontier();
 
-  // Create team using Connect RPC
-  const createTeamMutation = useMutation(FrontierServiceQueries.createGroup, {
+  const { mutate: createTeamMutation, isPending } = useMutation(FrontierServiceQueries.createGroup, {
     onSuccess: () => {
       toast.success('Team added');
       navigate({ to: '/teams' });
@@ -71,7 +70,7 @@ export const AddTeam = () => {
       }
     });
 
-    createTeamMutation.mutate(request);
+    createTeamMutation(request);
   }
 
   return (
@@ -118,7 +117,7 @@ export const AddTeam = () => {
               <Button
                 type="submit"
                 data-test-id="frontier-sdk-add-team-btn"
-                loading={createTeamMutation.isPending || isSubmitting}
+                loading={isSubmitting || isPending}
                 loaderText="Adding..."
               >
                 Add team

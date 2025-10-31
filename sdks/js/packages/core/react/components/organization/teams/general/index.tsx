@@ -91,8 +91,7 @@ export const General = ({
 
   const isLoading = isTeamLoading || isPermissionsFetching;
 
-  // Update team using Connect RPC
-  const updateTeamMutation = useMutation(FrontierServiceQueries.updateGroup, {
+  const { mutate: updateTeamMutation, isPending } = useMutation(FrontierServiceQueries.updateGroup, {
     onSuccess: () => {
       toast.success('Team updated');
     },
@@ -116,7 +115,7 @@ export const General = ({
       }
     });
 
-    updateTeamMutation.mutate(request);
+    updateTeamMutation(request);
   }
 
   return (
@@ -161,7 +160,7 @@ export const General = ({
                 type="submit"
                 disabled={!canUpdateGroup}
                 data-test-id="frontier-sdk-update-team-btn"
-                loading={updateTeamMutation.isPending || isSubmitting}
+                loading={isPending || isSubmitting}
                 loaderText="Updating..."
               >
                 Update team
