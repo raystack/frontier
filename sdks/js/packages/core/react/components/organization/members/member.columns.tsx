@@ -4,6 +4,7 @@ import {
   UpdateIcon
 } from '@radix-ui/react-icons';
 import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import {
   toast,
   Label,
@@ -14,16 +15,17 @@ import {
   DropdownMenu,
   DataTableColumnDef
 } from '@raystack/apsara';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1Policy, V1Beta1Role } from '~/src';
+import type { Role, Policy } from '@raystack/proton/frontier';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import styles from '../organization.module.css';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, DeletePolicyRequestSchema, CreatePolicyRequestSchema, ListPoliciesRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import type { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
 
 export const getColumns = (
   organizationId: string,
-  memberRoles: Record<string, V1Beta1Role[]> = {},
-  roles: V1Beta1Role[] = [],
+  memberRoles: Record<string, Role[]> = {},
+  roles: Role[] = [],
   canDeleteUser = false,
   refetch = () => {}
 ): DataTableColumnDef<MemberWithInvite, MemberWithInvite>[] => [
@@ -39,7 +41,7 @@ export const getColumns = (
     cell: ({ row, getValue }) => {
       const id = row.original?.id || '';
       const fallback =
-        row.original?.title || row.original?.email || row.original?.user_id; // user_id will be email in invitations
+        row.original?.title || row.original?.email || row.original?.userId; // userId will be email in invitations
       return (
         <Avatar
           src={getValue() as string}
@@ -79,7 +81,7 @@ export const getColumns = (
             : (row.original?.id &&
                 memberRoles[row.original?.id] &&
                 memberRoles[row.original?.id]
-                  .map((r: V1Beta1Role) => r.title || r.name)
+                  .map((r: Role) => r.title || r.name)
                   .join(', ')) ??
               'Inherited role'}
         </Text>
@@ -96,7 +98,7 @@ export const getColumns = (
         member={row.original}
         organizationId={organizationId}
         canUpdateGroup={canDeleteUser}
-        excludedRoles={differenceWith<V1Beta1Role>(
+        excludedRoles={differenceWith<Role>(
           isEqualById,
           roles,
           row.original?.id && memberRoles[row.original?.id]
@@ -118,53 +120,114 @@ const MembersActions = ({
   member: MemberWithInvite;
   canUpdateGroup?: boolean;
   organizationId: string;
-  excludedRoles: V1Beta1Role[];
+  excludedRoles: Role[];
   refetch: () => void;
 }) => {
-  const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
+  
+  // Query to fetch policies for the current member
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  async function updateRole(role: V1Beta1Role) {
+  const { data: policiesData, refetch: refetchPolicies } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    create(ListPoliciesRequestSchema, {
+      orgId: organizationId,
+      userId: member.id
+    }),
+    {
+      enabled: isMenuOpen && !!member.id,
+      staleTime: 60_000,
+      gcTime: 300_000
+    }
+  );
+  
+  const { mutateAsync: deletePolicy } = useMutation(
+    FrontierServiceQueries.deletePolicy,
+    {
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to delete policy'
+        });
+      },
+    }
+  );
+  
+  const { mutateAsync: createPolicy } = useMutation(
+    FrontierServiceQueries.createPolicy,
+    {
+      onSuccess: () => {
+        refetch();
+        toast.success('Member role updated');
+      },
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to create policy'
+        });
+      },
+    }
+  );
+
+  async function updateRole(role: Role) {
     try {
       const resource = `app/organization:${organizationId}`;
       const principal = `app/user:${member?.id}`;
-      const {
-        // @ts-ignore
-        data: { policies = [] }
-      } = await client?.frontierServiceListPolicies({
-        org_id: organizationId,
-        user_id: member.id
-      });
-      const deletePromises = policies.map((p: V1Beta1Policy) =>
-        client?.frontierServiceDeletePolicy(p.id as string)
+      
+      // Use policies from Connect RPC query
+      const policies = policiesData?.policies || [];
+      
+      // Delete existing policies with individual error handling
+      const deleteResults = await Promise.allSettled(
+        policies.map((p: Policy) => {
+          const req = create(DeletePolicyRequestSchema, {
+            id: p.id as string
+          });
+          return deletePolicy(req);
+        })
       );
-
-      await Promise.all(deletePromises);
-      await client?.frontierServiceCreatePolicy({
-        role_id: role.id as string,
-        title: role.name as string,
-        resource: resource,
-        principal: principal
+      
+      // Check for delete errors
+      const deleteErrors = deleteResults
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(result => result.reason);
+      
+      if (deleteErrors.length > 0) {
+        console.warn('Some policy deletions failed:', deleteErrors);
+      }
+      
+      // Create new policy
+      const createReq = create(CreatePolicyRequestSchema, {
+        body: {
+          roleId: role.id as string,
+          title: role.name as string,
+          resource: resource,
+          principal: principal
+        }
       });
-      refetch();
-      toast.success('Member role updated');
+      await createPolicy(createReq);
     } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error?.message
+        description: error?.message || 'Failed to update member role'
       });
     }
   }
 
   return canUpdateGroup ? (
     <>
-      <DropdownMenu placement="bottom-end">
+      <DropdownMenu
+        placement="bottom-end"
+        open={isMenuOpen}
+        onOpenChange={(open: boolean) => {
+          setIsMenuOpen(open);
+          if (open) refetchPolicies();
+        }}
+      >
         <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
           <DotsHorizontalIcon />
         </DropdownMenu.Trigger>
         {/* @ts-ignore */}
         <DropdownMenu.Content portal={false}>
           <DropdownMenu.Group style={{ padding: 0 }}>
-            {excludedRoles.map((role: V1Beta1Role) => (
+            {excludedRoles.map((role: Role) => (
               <DropdownMenu.Item
                 key={role.id}
                 onClick={() => updateRole(role)}
