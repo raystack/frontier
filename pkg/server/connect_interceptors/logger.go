@@ -65,7 +65,7 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				zap.String("request_id", req.Header().Get(consts.RequestIDHeader)),
 				zap.Error(err),
 			}
-			if err == nil && ctx.Err() == nil {
+			if err == nil {
 				logger.Info("finished call", fields...)
 				return resp, err
 			}
