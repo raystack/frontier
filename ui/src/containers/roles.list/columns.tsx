@@ -1,36 +1,25 @@
 import { type DataTableColumnDef, Flex } from "@raystack/apsara";
-import type { V1Beta1Role } from "@raystack/frontier";
-
-import { Link } from "react-router-dom";
+import type { Role } from "@raystack/proton/frontier";
 import styles from "./roles.module.css";
-export const getColumns: () => DataTableColumnDef<
-  V1Beta1Role,
-  unknown
->[] = () => {
+export const getColumns: () => DataTableColumnDef<Role, unknown>[] = () => {
   return [
     {
       accessorKey: "id",
       header: "ID",
       filterVariant: "text",
-      cell: ({ row, getValue }) => {
-        return (
-          <Link to={`${encodeURIComponent(row.getValue("id"))}`}>
-            {getValue() as string}
-          </Link>
-        );
-      },
+      cell: ({ getValue }) => getValue(),
     },
     {
       header: "Title",
       accessorKey: "title",
       filterVariant: "text",
-      cell: (info) => info.getValue(),
+      cell: info => info.getValue(),
     },
     {
       header: "Name",
       accessorKey: "name",
       filterVariant: "text",
-      cell: (info) => info.getValue(),
+      cell: info => info.getValue(),
     },
     {
       header: "Permissions",
@@ -39,8 +28,8 @@ export const getColumns: () => DataTableColumnDef<
       classNames: {
         cell: styles.permissionsColumn,
       },
-      cell: (info) => <Flex>{(info.getValue() as string[]).join(", ")}</Flex>,
-      footer: (props) => props.column.id,
+      cell: info => <Flex>{(info.getValue() as string[]).join(", ")}</Flex>,
+      footer: props => props.column.id,
     },
   ];
 };
