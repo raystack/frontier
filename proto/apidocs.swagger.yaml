@@ -12352,6 +12352,8 @@ definitions:
         title: not mandatory if id is zeroUUID
       name:
         type: string
+      title:
+        type: string
       metadata:
         type: object
     required:
