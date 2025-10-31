@@ -1,11 +1,4 @@
-import {
-  Avatar,
-  Badge,
-  DataTableColumnDef,
-  Flex,
-  getAvatarColor,
-  Text,
-} from "@raystack/apsara";
+import { Badge, DataTableColumnDef, Flex, Text } from "@raystack/apsara";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import {
@@ -18,14 +11,9 @@ import {
   TimeStamp,
   timestampToDate,
 } from "~/utils/connect-timestamp";
-import {
-  getActionBadgeColor,
-  getAuditLogActorName,
-  isAuditLogActorServiceUser,
-} from "../util";
-import serviceUserIcon from "~/assets/images/service-user.jpg";
-import { OrganizationCell } from "./organization-cell";
+import { ACTOR_TYPES, getActionBadgeColor } from "../util";
 import { ComponentPropsWithoutRef } from "react";
+import ActorCell from "./actor-cell";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
@@ -42,34 +30,33 @@ export const getColumns = ({
         cell: styles["name-column"],
         header: styles["name-column"],
       },
-      cell: ({ getValue }) => {
-        const value = getValue() as AuditRecordActor;
-        const name = getAuditLogActorName(value);
-        const isServiceUser = isAuditLogActorServiceUser(value);
-
-        return (
-          <Flex gap={4} align="center">
-            <Avatar
-              size={3}
-              fallback={name?.[0]?.toUpperCase()}
-              color={getAvatarColor(value?.id ?? "")}
-              radius="full"
-              src={isServiceUser ? serviceUserIcon : undefined}
-            />
-            <Text size="regular">{name}</Text>
-          </Flex>
-        );
-      },
+      enableColumnFilter: true,
+      cell: ({ getValue }) => (
+        <ActorCell value={getValue() as AuditRecordActor} />
+      ),
     },
     {
-      accessorKey: "orgId",
+      accessorKey: "actorType",
+      header: "Actor Type",
+      enableColumnFilter: true,
+      defaultHidden: true,
+      cell: () => null,
+      filterType: "multiselect",
+      filterOptions: [
+        { label: "User", value: ACTOR_TYPES.USER },
+        { label: "Service User", value: ACTOR_TYPES.SERVICE_USER },
+        { label: "System", value: ACTOR_TYPES.SYSTEM },
+      ],
+    },
+    {
+      accessorKey: "orgName",
       header: "Organization",
       classNames: {
         cell: styles["org-column"],
         header: styles["org-column"],
       },
       cell: ({ getValue }) => {
-        return <OrganizationCell id={getValue() as string} />;
+        return <Text size="regular">{(getValue() as string) || "-"}</Text>;
       },
       enableColumnFilter: true,
     },
@@ -89,19 +76,27 @@ export const getColumns = ({
     {
       accessorKey: "resource",
       header: "Resource",
+      enableColumnFilter: true,
       cell: ({ getValue }) => {
         const value = getValue() as AuditRecordResource;
         return (
-          <Flex gap={1} direction="column" className={styles.capitalize}>
+          <Flex gap={1} direction="column">
             <Text size="small" weight="medium">
-              {value.name}
+              {value.name || "-"}
             </Text>
             <Text size="small" variant="secondary">
-              {value.type.toLowerCase()}
+              {value.type.toLowerCase() ?? "-"}
             </Text>
           </Flex>
         );
       },
+    },
+    {
+      accessorKey: "resourceType",
+      header: "Resource Type",
+      enableColumnFilter: true,
+      defaultHidden: true,
+      cell: () => null,
     },
     {
       accessorKey: "occurredAt",

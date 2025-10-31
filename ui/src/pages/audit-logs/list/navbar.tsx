@@ -2,11 +2,14 @@ import { DataTable, Flex, Text, IconButton, Spinner } from "@raystack/apsara";
 import CpuChipIcon from "~/assets/icons/cpu-chip.svg?react";
 import styles from "./list.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { clients } from "~/connect/clients";
 import { exportCsvFromStream } from "~/utils/helper";
+import { useQueryClient } from "@tanstack/react-query";
+import { AUDIT_LOG_QUERY_KEY } from "../util";
+import { RQLExportRequest } from "@raystack/proton/frontier";
 
-const adminClient = clients.admin({ useBinary: true });
+const adminClient = clients.admin({ useBinary: false });
 
 interface NavbarProps {
   searchQuery?: string;
@@ -15,24 +18,29 @@ interface NavbarProps {
 const Navbar = ({ searchQuery }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const queryClient = useQueryClient();
 
-  function toggleSearch() {
+  const toggleSearch = useCallback(() => {
     setShowSearch(prev => !prev);
-  }
+  }, []);
 
-  function onSearchBlur(e: React.FocusEvent<HTMLInputElement>) {
+  const onSearchBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (!value) {
       setShowSearch(false);
     }
-  }
+  }, []);
 
-  async function onDownloadClick() {
+  const onDownloadClick = useCallback(async () => {
     try {
       setIsDownloading(true);
+      const query = queryClient.getQueryData(
+        AUDIT_LOG_QUERY_KEY,
+      ) as RQLExportRequest;
+
       await exportCsvFromStream(
         adminClient.exportAuditRecords,
-        {},
+        { query },
         "audit-logs.csv",
       );
     } catch (error) {
@@ -40,7 +48,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
     } finally {
       setIsDownloading(false);
     }
-  }
+  }, [queryClient]);
 
   return (
     <nav className={styles.navbar}>
