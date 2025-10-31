@@ -17,7 +17,7 @@ import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, UpdateProjectRequestSchema, Organization } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, UpdateProjectRequestSchema, Organization, Project } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { AuthTooltipMessage } from '~/react/utils';
@@ -32,7 +32,7 @@ const projectSchema = yup
 type FormData = yup.InferType<typeof projectSchema>;
 
 interface GeneralProjectProps {
-  project?: any;
+  project?: Project;
   organization?: Organization;
   isLoading?: boolean;
 }
