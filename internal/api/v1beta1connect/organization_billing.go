@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	// "strings"
 	// "time"
 
@@ -38,6 +40,7 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
+	time.Sleep(10 * time.Second)
 	for _, v := range orgBillingData.Organizations {
 		orgs = append(orgs, transformAggregatedOrgToPB(v))
 	}

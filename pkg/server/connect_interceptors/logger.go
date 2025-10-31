@@ -53,23 +53,28 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 			duration := time.Since(startTime)
 
 			// Get response code from error or OK if no error
-			code := connect.Code(0).String()
+			code := connect.Code(0)
 			if err != nil {
 				if ctx.Err() != nil {
 					if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-						code = connect.CodeDeadlineExceeded.String()
-						err = connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
+						code = connect.CodeDeadlineExceeded
+						err = connect.NewError(code, ctx.Err())
 					} else if errors.Is(ctx.Err(), context.Canceled) {
-						code = connect.CodeCanceled.String()
-						err = connect.NewError(connect.CodeCanceled, ctx.Err())
+						code = connect.CodeCanceled
+						err = connect.NewError(code, ctx.Err())
 					} else {
-						code = connect.CodeInternal.String()
-						err = connect.NewError(connect.CodeInternal, err)
+						code = connect.CodeInternal
+						err = connect.NewError(code, err)
 					}
 				} else {
 					if connectErr, ok := err.(*connect.Error); ok {
-						code = connectErr.Code().String()
+						code = connectErr.Code()
 					}
+				}
+			} else {
+				if ctx.Err() != nil {
+					code = connect.CodeDeadlineExceeded
+					err = connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
 				}
 			}
 
@@ -78,7 +83,7 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				zap.Time("start_time", startTime),
 				zap.String("method", req.Spec().Procedure),
 				zap.Int64("time_ms", duration.Milliseconds()),
-				zap.String("code", code),
+				zap.String("code", code.String()),
 				zap.String("request_id", req.Header().Get(consts.RequestIDHeader)),
 				zap.Error(err),
 			}
@@ -88,17 +93,17 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 			}
 
 			switch code {
-			case connect.CodeCanceled.String():
+			case connect.CodeCanceled:
 				logger.Warn("client cancelled request", fields...)
-			case connect.CodeDeadlineExceeded.String():
-				logger.Info("request timeout", fields...)
-			case connect.CodeInvalidArgument.String(),
-				connect.CodeNotFound.String(),
-				connect.CodeAlreadyExists.String(),
-				connect.CodeUnauthenticated.String(),
-				connect.CodePermissionDenied.String(),
-				connect.CodeFailedPrecondition.String(),
-				connect.CodeOutOfRange.String():
+			case connect.CodeDeadlineExceeded:
+				logger.Warn("request timeout", fields...)
+			case connect.CodeInvalidArgument,
+				connect.CodeNotFound,
+				connect.CodeAlreadyExists,
+				connect.CodeUnauthenticated,
+				connect.CodePermissionDenied,
+				connect.CodeFailedPrecondition,
+				connect.CodeOutOfRange:
 				logger.Warn("finished call", fields...)
 			default:
 				logger.Error("finished call", fields...)
