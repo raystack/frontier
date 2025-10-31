@@ -21,7 +21,12 @@ export default function RoleList() {
   const { roleId } = useParams();
   const navigate = useNavigate();
 
-  const { data: roles = [], isLoading } = useQuery(
+  const {
+    data: roles = [],
+    isLoading,
+    error,
+    isError,
+  } = useQuery(
     FrontierServiceQueries.listRoles,
     {},
     {
@@ -35,6 +40,19 @@ export default function RoleList() {
   }
   function onRowClick(role: Role) {
     navigate(`${encodeURIComponent(role.id ?? "")}`);
+  }
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Roles"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading roles. Please try again."
+        }
+      />
+    );
   }
 
   const columns = getColumns();
