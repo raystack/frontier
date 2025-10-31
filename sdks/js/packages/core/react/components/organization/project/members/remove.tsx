@@ -1,15 +1,14 @@
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
-import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useState } from 'react';
-import { V1Beta1Policy } from '~/api-client';
+import { useEffect } from 'react';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, ListPoliciesRequestSchema, DeletePolicyRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 
 export const RemoveProjectMember = () => {
-  const [isLoading, setIsLoading] = useState(false);
 
-  const { client } = useFrontier();
   const navigate = useNavigate({
     from: '/projects/$projectId/$membertype/$memberId/remove'
   });
@@ -18,34 +17,37 @@ export const RemoveProjectMember = () => {
     from: '/projects/$projectId/$membertype/$memberId/remove'
   });
 
+  const { data: policies = [], error: policiesError } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    create(ListPoliciesRequestSchema, {
+      projectId: projectId || '',
+      userId: memberId || ''
+    }),
+    { enabled: !!projectId && !!memberId, select: d => d?.policies ?? [] }
+  );
+
+  useEffect(() => {
+    if (policiesError) {
+      toast.error('Something went wrong', { description: (policiesError as Error).message });
+    }
+  }, [policiesError]);
+
+  const { mutateAsync: deletePolicy, isPending } = useMutation(FrontierServiceQueries.deletePolicy, {
+    onError: (err: Error) =>
+      toast.error('Something went wrong', { description: err.message })
+  });
+
   async function onConfirm() {
-    setIsLoading(true);
     try {
-      const {
-        // @ts-ignore
-        data: { policies = [] }
-      } = await client?.frontierServiceListPolicies({
-        project_id: projectId,
-        user_id: memberId
-      });
-
-      const deletePromises = policies.map((p: V1Beta1Policy) =>
-        client?.frontierServiceDeletePolicy(p.id as string)
+      await Promise.all(
+        (policies || []).map(p => deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' })))
       );
-
-      await Promise.all(deletePromises);
-      navigate({
-        to: '/projects/$projectId',
-        params: { projectId },
-        state: { refetch: true }
-      });
+      navigate({ to: '/projects/$projectId', params: { projectId }, state: { refetch: true } });
       toast.success('Member removed');
-    } catch (err: any) {
-      toast.error('Something went wrong', {
-        description: err.message
-      });
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      // Error is already handled by mutation's onError callback
+      // This catch prevents unhandled promise rejection
+      console.error('Failed to delete policies:', error);
     }
   }
 
@@ -91,7 +93,7 @@ export const RemoveProjectMember = () => {
               variant="outline"
               onClick={() => navigate({ to: '/members' })}
               data-test-id="frontier-sdk-remove-project-member-cancel-btn"
-              disabled={isLoading}
+              disabled={isPending}
             >
               Cancel
             </Button>
@@ -101,8 +103,8 @@ export const RemoveProjectMember = () => {
               variant="solid"
               onClick={onConfirm}
               data-test-id="frontier-sdk-remove-project-member-confirm-btn"
-              disabled={isLoading}
-              loading={isLoading}
+              disabled={isPending}
+              loading={isPending}
               loaderText="Removing"
             >
               Remove

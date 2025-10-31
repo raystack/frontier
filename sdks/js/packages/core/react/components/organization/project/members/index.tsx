@@ -24,13 +24,6 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import type {
-  V1Beta1CreatePolicyForProjectBody,
-  V1Beta1Group,
-  V1Beta1Role,
-  V1Beta1User
-} from '~/src';
-import type { Role } from '~/src/types';
 import {
   PERMISSIONS,
   filterUsersfromUsers,
@@ -38,12 +31,21 @@ import {
   shouldShowComponent
 } from '~/utils';
 import { getColumns } from './member.columns';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries,
+  ListOrganizationUsersRequestSchema,
+  CreatePolicyForProjectRequestSchema,
+  type Group,
+  type User,
+  type Role,
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from './members.module.css';
 
 export type MembersProps = {
-  teams?: V1Beta1Group[];
-  members?: V1Beta1User[];
-  roles?: V1Beta1Role[];
+  teams?: Group[];
+  members?: User[];
+  roles?: Role[];
   memberRoles?: Record<string, Role[]>;
   groupRoles?: Record<string, Role[]>;
   isLoading?: boolean;
@@ -122,7 +124,7 @@ export const Members = ({
             <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
               <DataTable.Search
                 placeholder="Search by name or email"
-                size="medium"
+                size="large"
               />
             </Flex>
             {isLoading ? (
@@ -156,7 +158,7 @@ export const Members = ({
 
 interface AddMemberDropdownProps {
   canUpdateProject: boolean;
-  members?: V1Beta1User[];
+  members?: User[];
   refetch?: () => void;
 }
 
@@ -166,12 +168,10 @@ const AddMemberDropdown = ({
   refetch
 }: AddMemberDropdownProps) => {
   const { projectId } = useParams({ from: '/projects/$projectId' });
-  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
-  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
   const [query, setQuery] = useState('');
   const [showTeam, setShowTeam] = useState(false);
 
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
   const { isFetching: isTeamsLoading, teams } = useOrganizationTeams({});
 
   const toggleShowTeam = (e: React.MouseEvent<HTMLElement>) => {
@@ -180,35 +180,22 @@ const AddMemberDropdown = ({
     setShowTeam(prev => !prev);
   };
 
-  useEffect(() => {
-    async function getOrganizationMembers() {
-      if (!organization?.id) return;
-      try {
-        setIsOrgMembersLoading(true);
-        const resp = await client?.frontierServiceListOrganizationUsers(
-          organization?.id
-        );
-        const users = resp?.data?.users || [];
-        setOrgMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsOrgMembersLoading(false);
-      }
-    }
-    if (canUpdateProject) {
-      getOrganizationMembers();
-    }
-  }, [client, organization?.id, canUpdateProject]);
-
-  const invitableUser = useMemo(
-    () => filterUsersfromUsers(orgMembers, members) || [],
-    [orgMembers, members]
+  const { data: orgUsersResp, isLoading: isOrgUsersLoading, error: orgUsersError } = useQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    create(ListOrganizationUsersRequestSchema, { id: organization?.id || '' }),
+    { enabled: !!organization?.id && canUpdateProject, select: d => d?.users ?? [] }
   );
 
-  const isUserLoading = isOrgMembersLoading;
+  useEffect(() => {
+    if (orgUsersError) {
+      toast.error('Something went wrong', { description: orgUsersError.message });
+    }
+  }, [orgUsersError]);
+
+  const invitableUser = useMemo(
+    () => filterUsersfromUsers(orgUsersResp || [], members) || [],
+    [orgUsersResp, members]
+  );
 
   const topUsers = useMemo(
     () =>
@@ -223,71 +210,59 @@ const AddMemberDropdown = ({
     [invitableUser, query]
   );
 
-  const topTeams: V1Beta1Group[] = useMemo(
-    () =>
-      teams
-        .filter((team: V1Beta1Group) =>
-          query
-            ? team.title &&
-              team.title.toLowerCase().includes(query.toLowerCase())
-            : true
-        )
-        .slice(0, 7),
-    [query, teams]
-  );
+  const topTeams = useMemo(() =>
+    teams
+      .filter(team =>
+        query
+          ? team.title && team.title.toLowerCase().includes(query.toLowerCase())
+          : true
+      )
+      .slice(0, 7),
+  [query, teams]);
 
   function onTextChange(e: React.ChangeEvent<HTMLInputElement>) {
     setQuery(e.target.value);
   }
 
-  const addMember = useCallback(
-    async (userId: string) => {
-      if (!userId || !organization?.id || !projectId) return;
-      try {
-        const principal = `${PERMISSIONS.UserNamespace}:${userId}`;
-
-        const policy: V1Beta1CreatePolicyForProjectBody = {
-          role_id: PERMISSIONS.RoleProjectViewer,
-          principal
-        };
-        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
+  const { mutate: createPolicyForProject, isPending: isCreatingPolicy } = useMutation(
+    FrontierServiceQueries.createPolicyForProject,
+    {
+      onSuccess: () => {
         toast.success('Member added');
-        if (refetch) {
-          refetch();
-        }
-      } catch ({ error }: any) {
-        console.error(error);
-        toast.error('Something went wrong', {
-          description: error.message
-        });
+        if (refetch) refetch();
+      },
+      onError: (err: Error) => {
+        toast.error('Something went wrong', { description: err.message });
       }
+    }
+  );
+
+  const addMember = useCallback(
+    (userId: string) => {
+      if (!userId || !organization?.id || !projectId) return;
+      const principal = `${PERMISSIONS.UserNamespace}:${userId}`;
+      createPolicyForProject(
+        create(CreatePolicyForProjectRequestSchema, {
+          projectId: projectId,
+          body: { roleId: PERMISSIONS.RoleProjectViewer, principal }
+        })
+      );
     },
-    [client, organization?.id, projectId, refetch]
+    [createPolicyForProject, organization?.id, projectId]
   );
 
   const addTeam = useCallback(
-    async (teamId: string) => {
+    (teamId: string) => {
       if (!teamId || !organization?.id || !projectId) return;
-      try {
-        const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
-
-        const policy: V1Beta1CreatePolicyForProjectBody = {
-          role_id: PERMISSIONS.RoleProjectViewer,
-          principal
-        };
-        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
-        toast.success('Team added');
-        if (refetch) {
-          refetch();
-        }
-      } catch ({ error }: any) {
-        console.error(error);
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      }
+      const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
+      createPolicyForProject(
+        create(CreatePolicyForProjectRequestSchema, {
+          projectId: projectId,
+          body: { roleId: PERMISSIONS.RoleProjectViewer, principal }
+        })
+      );
     },
-    [client, organization?.id, projectId, refetch]
+    [createPolicyForProject, organization?.id, projectId]
   );
 
   return (
@@ -310,7 +285,7 @@ const AddMemberDropdown = ({
           onChange={onTextChange}
           variant="borderless"
           showClearButton
-          disabled={isTeamsLoading || isUserLoading}
+          disabled={isTeamsLoading || isOrgUsersLoading}
           onClear={() => setQuery('')}
         />
         <Separator />
@@ -334,9 +309,6 @@ const AddMemberDropdown = ({
                       fallback={initals}
                       size={1}
                       radius="small"
-                      imageProps={{
-                        fontSize: '10px'
-                      }}
                     />
                     <Text>{team?.title || team?.name}</Text>
                   </Flex>
@@ -352,7 +324,7 @@ const AddMemberDropdown = ({
               <Text size="small">No Teams found</Text>
             </Flex>
           )
-        ) : isUserLoading ? (
+        ) : isOrgUsersLoading ? (
           <Skeleton height={'32px'} />
         ) : topUsers.length ? (
           <div style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}>
@@ -371,9 +343,6 @@ const AddMemberDropdown = ({
                     fallback={initals}
                     size={1}
                     radius="small"
-                    imageProps={{
-                      fontSize: '10px'
-                    }}
                   />
                   <Text>{user?.title || user?.email}</Text>
                 </Flex>
@@ -389,7 +358,7 @@ const AddMemberDropdown = ({
             <Text size="small">No Users found</Text>
           </Flex>
         )}
-        <Separator style={{ margin: 0 }} />
+        <Separator />
 
         <div style={{ padding: 'var(--rs-space-2)' }}>
           <Flex

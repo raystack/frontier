@@ -9,16 +9,17 @@ import {
   Button,
   Text,
   Select,
-  DataTable
+  DataTable,
+  toast
 } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import type { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './projects.columns';
+import { Project } from '@raystack/proton/frontier';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import styles from './project.module.css';
 
@@ -33,7 +34,8 @@ export default function WorkspaceProjects() {
     isFetching: isProjectsLoading,
     projects,
     userAccessOnProject,
-    refetch
+    refetch,
+    error: projectsError
   } = useOrganizationProjects({
     allProjects: showOrgProjects,
     withMemberCount: true
@@ -93,6 +95,14 @@ export default function WorkspaceProjects() {
     }
   }, [isListRoute, refetch, routerState.location.state.key]);
 
+  useEffect(() => {
+    if (projectsError) {
+      toast.error('Something went wrong', {
+        description: projectsError.message
+      });
+    }
+  }, [projectsError]);
+
   const isLoading = isPermissionsFetching || isProjectsLoading;
 
   return (
@@ -102,7 +112,6 @@ export default function WorkspaceProjects() {
       </Flex>
       <Flex direction="column" gap={9} className={styles.container}>
         <ProjectsTable
-          // @ts-ignore
           projects={projects}
           isLoading={isLoading}
           canCreateProject={canCreateProject}
@@ -117,7 +126,7 @@ export default function WorkspaceProjects() {
 }
 
 interface WorkspaceProjectsProps {
-  projects: V1Beta1Project[];
+  projects: Project[];
   isLoading?: boolean;
   canCreateProject?: boolean;
   userAccessOnProject: Record<string, string[]>;
@@ -153,7 +162,7 @@ const ProjectsTable = ({
             {isLoading ? (
               <Skeleton height="34px" width="500px" />
             ) : (
-              <DataTable.Search placeholder="Search by title " size="medium" />
+              <DataTable.Search placeholder="Search by title " size="large" />
             )}
             {canListOrgProjects ? (
               <Select
