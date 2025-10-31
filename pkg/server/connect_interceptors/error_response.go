@@ -7,7 +7,6 @@ import (
 	"connectrpc.com/connect"
 )
 
-
 // UnaryConnectErrorResponseInterceptor handles error processing after the handler executes
 // but before the logger interceptor logs the response. This interceptor normalizes
 // context-related errors and wraps them in proper Connect error types.
