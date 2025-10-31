@@ -27,6 +27,7 @@ type Actor struct {
 	ID       string            `json:"id"`
 	Type     string            `json:"type"`
 	Name     string            `json:"name"`
+	Title    string            `json:"title"`
 	Metadata metadata.Metadata `json:"metadata"`
 }
 
@@ -58,6 +59,7 @@ type AuditRecordRQLSchema struct {
 	ActorID        string    `rql:"name=actor_id,type=string"`
 	ActorType      string    `rql:"name=actor_type,type=string"`
 	ActorName      string    `rql:"name=actor_name,type=string"`
+	ActorTitle     string    `rql:"name=actor_title,type=string"`
 	ResourceID     string    `rql:"name=resource_id,type=string"`
 	ResourceType   string    `rql:"name=resource_type,type=string"`
 	ResourceName   string    `rql:"name=resource_name,type=string"`

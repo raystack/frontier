@@ -32,10 +32,6 @@
   max-width: 200px;
 }
 
-.country-column {
-  max-width: 150px;
-}
-
 .table-wrapper {
   flex: 1;
   height: 100%;
@@ -68,4 +64,28 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.code-block-container {
+  padding: 0;
+}
+.code-block {
+  max-height: 400px;
+  overflow: auto;
+}
+.sidepanel-link-trigger {
+  width: 100%;
+  justify-content: start;
+  border-radius: var(--rs-radius-2);
+  padding: 0 var(--rs-space-3);
+  cursor: pointer;
+  height: 32px;
+}
+.sidepanel-list-link {
+  padding: var(--rs-space-2) 0;
+  display: flex;
+  align-items: center;
+}
+.sidepanel-list-link a {
+  text-decoration: none;
 }
