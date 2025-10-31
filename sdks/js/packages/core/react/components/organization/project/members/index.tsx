@@ -24,7 +24,6 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import type { Role, Group, User } from '@raystack/proton/frontier';
 import {
   PERMISSIONS,
   filterUsersfromUsers,
@@ -32,10 +31,16 @@ import {
   shouldShowComponent
 } from '~/utils';
 import { getColumns } from './member.columns';
-import styles from './members.module.css';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, ListOrganizationUsersRequestSchema, CreatePolicyForProjectRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries,
+  ListOrganizationUsersRequestSchema,
+  CreatePolicyForProjectRequestSchema,
+  type Group,
+  type User,
+  type Role,
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import styles from './members.module.css';
 
 export type MembersProps = {
   teams?: Group[];
@@ -163,8 +168,6 @@ const AddMemberDropdown = ({
   refetch
 }: AddMemberDropdownProps) => {
   const { projectId } = useParams({ from: '/projects/$projectId' });
-  const [orgMembers, setOrgMembers] = useState<User[]>([]);
-  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
   const [query, setQuery] = useState('');
   const [showTeam, setShowTeam] = useState(false);
 
@@ -184,25 +187,15 @@ const AddMemberDropdown = ({
   );
 
   useEffect(() => {
-    setIsOrgMembersLoading(isOrgUsersLoading);
-  }, [isOrgUsersLoading]);
-
-  useEffect(() => {
     if (orgUsersError) {
       toast.error('Something went wrong', { description: orgUsersError.message });
     }
   }, [orgUsersError]);
 
-  useEffect(() => {
-    if (orgUsersResp) setOrgMembers(orgUsersResp as User[]);
-  }, [orgUsersResp]);
-
   const invitableUser = useMemo(
-    () => filterUsersfromUsers(orgMembers, members) || [],
-    [orgMembers, members]
+    () => filterUsersfromUsers(orgUsersResp || [], members) || [],
+    [orgUsersResp, members]
   );
-
-  const isUserLoading = isOrgMembersLoading;
 
   const topUsers = useMemo(
     () =>
@@ -292,7 +285,7 @@ const AddMemberDropdown = ({
           onChange={onTextChange}
           variant="borderless"
           showClearButton
-          disabled={isTeamsLoading || isUserLoading}
+          disabled={isTeamsLoading || isOrgUsersLoading}
           onClear={() => setQuery('')}
         />
         <Separator />
@@ -331,7 +324,7 @@ const AddMemberDropdown = ({
               <Text size="small">No Teams found</Text>
             </Flex>
           )
-        ) : isUserLoading ? (
+        ) : isOrgUsersLoading ? (
           <Skeleton height={'32px'} />
         ) : topUsers.length ? (
           <div style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}>

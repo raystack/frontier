@@ -52,9 +52,8 @@ export const General = ({
     resolver: yupResolver(projectSchema)
   });
   let { projectId } = useParams({ from: '/projects/$projectId' });
-  const { client } = useFrontier();
   const { mutate: updateProject } = useMutation(FrontierServiceQueries.updateProject, {
-    onSuccess: () => toast.success('Project updated'),
+    onSuccess: () => toast.success('Project updated successfully'),
     onError: (error: Error) =>
       toast.error('Something went wrong', { description: error.message })
   });

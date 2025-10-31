@@ -19,7 +19,6 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, GetProjectRequestSchema, DeleteProjectRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import { V1Beta1Project } from '~/src';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
@@ -42,23 +41,20 @@ export const DeleteProject = () => {
   let { projectId } = useParams({ from: '/projects/$projectId/delete' });
   const navigate = useNavigate({ from: '/projects/$projectId/delete' });
   const { activeOrganization: organization } = useFrontier();
-  const [isProjectLoading, setIsProjectLoading] = useState(false);
-  const [project, setProject] = useState<V1Beta1Project>();
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
-  const { data: projectResp, isLoading: isProjectQueryLoading, error: projectError } = useQuery(
+  const {
+    data: project,
+    isLoading: isProjectQueryLoading,
+    error: projectError
+  } = useQuery(
     FrontierServiceQueries.getProject,
     create(GetProjectRequestSchema, { id: projectId || '' }),
-    { enabled: !!projectId }
+    {
+      enabled: !!projectId,
+      select: (d) => d?.project
+    }
   );
-
-  useEffect(() => {
-    setIsProjectLoading(isProjectQueryLoading);
-  }, [isProjectQueryLoading]);
-
-  useEffect(() => {
-    if (projectResp?.project) setProject(projectResp.project);
-  }, [projectResp]);
 
   useEffect(() => {
     if (projectError) {
@@ -66,7 +62,7 @@ export const DeleteProject = () => {
     }
   }, [projectError]);
 
-  const { mutate: deleteProject, isPending: isDeleting } = useMutation(
+  const { mutateAsync: deleteProject } = useMutation(
     FrontierServiceQueries.deleteProject,
     {
       onSuccess: () => {
@@ -78,11 +74,11 @@ export const DeleteProject = () => {
     }
   );
 
-  function onSubmit(data: { name?: string }) {
+  async function onSubmit(data: { name?: string }) {
     if (!organization?.id || !projectId) return;
     if (data.name !== project?.name)
       return setError('name', { message: 'project name is not same' });
-    deleteProject(create(DeleteProjectRequestSchema, { id: projectId }));
+    await deleteProject(create(DeleteProjectRequestSchema, { id: projectId }));
   }
 
   const name = watch('name', '');
@@ -111,7 +107,7 @@ export const DeleteProject = () => {
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Flex direction="column" gap={5}>
-              {isProjectLoading ? (
+              {isProjectQueryLoading ? (
                 <>
                   <Skeleton height={'16px'} />
                   <Skeleton width={'50%'} height={'16px'} />
@@ -152,7 +148,7 @@ export const DeleteProject = () => {
                     disabled={!name || !isAcknowledged}
                     style={{ width: '100%' }}
                     data-test-id="frontier-sdk-delete-project-btn"
-                    loading={isSubmitting || isDeleting}
+                    loading={isSubmitting}
                     loaderText="Deleting..."
                   >
                     Delete this project

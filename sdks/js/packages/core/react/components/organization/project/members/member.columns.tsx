@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   DotsHorizontalIcon,
   TrashIcon,
@@ -20,13 +20,14 @@ import {
   FrontierServiceQueries,
   ListPoliciesRequestSchema,
   DeletePolicyRequestSchema,
-  CreatePolicyRequestSchema
+  CreatePolicyRequestSchema,
+  type Role
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import teamIcon from '~/react/assets/users.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { Role } from '@raystack/proton/frontier';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
+
+import teamIcon from '~/react/assets/users.svg';
 
 type RowMember = {
   id?: string;
