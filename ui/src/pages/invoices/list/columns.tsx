@@ -6,15 +6,8 @@ import {
   TimeStamp,
   timestampToDate,
 } from "~/utils/connect-timestamp";
-import styles from "./list.module.css";
 
-interface getColumnsOptions {
-  groupCountMap: Record<string, Record<string, number>>;
-}
-
-export const getColumns = ({
-  groupCountMap,
-}: getColumnsOptions): DataTableColumnDef<
+export const getColumns = (): DataTableColumnDef<
   SearchInvoicesResponse_Invoice,
   unknown
 >[] => {

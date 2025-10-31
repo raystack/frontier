@@ -15,7 +15,6 @@ import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
-  getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
@@ -60,7 +59,7 @@ export const InvoicesList = () => {
     hasNextPage,
   } = useInfiniteQuery(
     AdminServiceQueries.searchInvoices,
-    { query: query },
+    { query },
     {
       pageParamKey: "query",
       getNextPageParam: lastPage =>
@@ -73,10 +72,6 @@ export const InvoicesList = () => {
   );
 
   const data = infiniteData?.pages?.flatMap(page => page?.invoices || []) || [];
-
-  const groupCountMap = infiniteData
-    ? getGroupCountMapFromFirstPage(infiniteData)
-    : {};
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery({
@@ -95,15 +90,7 @@ export const InvoicesList = () => {
     }
   };
 
-  const columns = useMemo(
-    () =>
-      getColumns({
-        groupCountMap: infiniteData
-          ? getGroupCountMapFromFirstPage(infiniteData)
-          : {},
-      }),
-    [infiniteData],
-  );
+  const columns = getColumns();
 
   const loading = isLoading || isFetchingNextPage;
 
