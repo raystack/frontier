@@ -2,10 +2,12 @@ import { List, Text, Flex } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import CoinIcon from "~/assets/icons/coin.svg?react";
 import CoinColoredIcon from "~/assets/icons/coin-colored.svg?react";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import Skeleton from "react-loading-skeleton";
-import { api } from "~/api";
 import { OrganizationContext } from "../contexts/organization-context";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries, TotalDebitedTransactionsRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 export const TokensDetailsSection = () => {
   const {
@@ -15,34 +17,26 @@ export const TokensDetailsSection = () => {
     isTokenBalanceLoading,
     billingAccountDetails,
   } = useContext(OrganizationContext);
-  const [tokensUsed, setTokensUsed] = useState("0");
-  const [isTokensLoading, setIsTokensLoading] = useState(false);
 
   const organizationId = organization?.id || "";
   const billingAccountId = billingAccount?.id || "";
 
-  useEffect(() => {
-    async function fetchTokenUsed(id: string, billingAccountId: string) {
-      try {
-        setIsTokensLoading(true);
-        const resp = await api.frontierServiceTotalDebitedTransactions(
-          id,
-          billingAccountId,
-        );
-
-        const newTokensUsed = resp.data.debited?.amount || "0";
-        setTokensUsed(newTokensUsed);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsTokensLoading(false);
-      }
+  const { data: debitedData, isLoading: isTokensLoading, error } = useQuery(
+    FrontierServiceQueries.totalDebitedTransactions,
+    create(TotalDebitedTransactionsRequestSchema, {
+      orgId: organizationId,
+      billingId: billingAccountId,
+    }),
+    {
+      enabled: !!organizationId && !!billingAccountId,
     }
-    if (organizationId && billingAccountId) {
-      fetchTokenUsed(organizationId, billingAccountId);
-    }
-  }, [organizationId, billingAccountId]);
+  );
 
+  if (error) {
+    console.error("Error fetching debited transactions:", error);
+  }
+
+  const tokensUsed = String(debitedData?.debited?.amount || "0");
   const isLoading = isTokensLoading;
 
   return (

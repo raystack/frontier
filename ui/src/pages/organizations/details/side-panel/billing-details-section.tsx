@@ -1,51 +1,39 @@
 import { CopyButton, Flex, Link, List, Text } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
-import { Frontierv1Beta1Invoice } from "~/api/frontier";
 import { converBillingAddressToString } from "~/utils/helper";
 import Skeleton from "react-loading-skeleton";
-import { useContext, useEffect, useState } from "react";
-import { api } from "~/api";
-import dayjs from "dayjs";
+import { useContext } from "react";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Amount } from "@raystack/apsara";
 import { OrganizationContext } from "../contexts/organization-context";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries, GetUpcomingInvoiceRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { timestampToDayjs } from "~/utils/connect-timestamp";
 
 export const BillingDetailsSection = () => {
   const { billingAccount, organization } = useContext(OrganizationContext);
-  const [upcomingInvoice, setUpcomingInvoice] =
-    useState<Frontierv1Beta1Invoice>();
-  const [isUpcomingInvoiceLoading, setIsUpcomingInvoiceLoading] =
-    useState(false);
 
   const organizationId = organization?.id || "";
+  const billingAccountId = billingAccount?.id || "";
 
-  useEffect(() => {
-    async function getUpcomingInvoice(orgId: string, billingId: string) {
-      setIsUpcomingInvoiceLoading(true);
-      try {
-        const resp = await api?.frontierServiceGetUpcomingInvoice(
-          orgId,
-          billingId,
-        );
-        const invoice = resp?.data?.invoice;
-        if (invoice && invoice.state) {
-          setUpcomingInvoice(invoice);
-        }
-      } catch (err: any) {
-        console.error(err);
-      } finally {
-        setIsUpcomingInvoiceLoading(false);
-      }
+  const { data: invoiceData, isLoading, error } = useQuery(
+    FrontierServiceQueries.getUpcomingInvoice,
+    create(GetUpcomingInvoiceRequestSchema, {
+      orgId: organizationId,
+      billingId: billingAccountId,
+    }),
+    {
+      enabled: !!organizationId && !!billingAccountId,
     }
+  );
 
-    if (organizationId && billingAccount?.id) {
-      getUpcomingInvoice(organizationId, billingAccount.id);
-    }
-  }, [organizationId, billingAccount]);
+  if (error) {
+    console.error("Error fetching upcoming invoice:", error);
+  }
 
-  const isLoading = isUpcomingInvoiceLoading;
-
-  const due_date = upcomingInvoice?.due_date || upcomingInvoice?.period_end_at;
+  const upcomingInvoice = invoiceData?.invoice;
+  const due_date = upcomingInvoice?.dueDate || upcomingInvoice?.periodEndAt;
 
   const stripeLink = billingAccount?.provider_id
     ? "https://dashboard.stripe.com/customers/" + billingAccount?.provider_id
@@ -117,10 +105,10 @@ export const BillingDetailsSection = () => {
         <List.Value className={styles["side-panel-section-item-value"]}>
           {isLoading ? (
             <Skeleton />
-          ) : due_date ? (
+          ) : timestampToDayjs(due_date) ? (
             <Flex gap={3}>
               <CalendarIcon />
-              <Text>{dayjs(due_date).format("DD MMM YYYY")}</Text>
+              <Text>{timestampToDayjs(due_date)?.format("DD MMM YYYY")}</Text>
             </Flex>
           ) : (
             <Text>-</Text>
