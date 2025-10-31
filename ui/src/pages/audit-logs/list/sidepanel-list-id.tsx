@@ -4,7 +4,7 @@ import styles from "./list.module.css";
 export default function SidepanelListId({ id = "-" }: { id?: string }) {
   return (
     <List.Value>
-      <Flex gap={3} style={{ width: "100%" }}>
+      <Flex gap={3} width="full">
         <CopyButton text={id || ""} data-test-id="copy-button" />
         <Tooltip message={id || ""}>
           <Text className={styles["text-overflow"]} weight="medium">
