@@ -13,15 +13,17 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
-import styles from '../organization.module.css';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema, ListOrganizationRolesRequestSchema, ListRolesRequestSchema, ListOrganizationGroupsRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { handleSelectValueChange } from '~/react/utils';
+import styles from '../organization.module.css';
 
 const inviteSchema = yup.object({
   type: yup.string().required(),
@@ -34,7 +36,6 @@ type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 export const InviteMember = () => {
   const {
     watch,
-    reset,
     register,
     control,
     handleSubmit,
@@ -42,11 +43,67 @@ export const InviteMember = () => {
   } = useForm({
     resolver: yupResolver(inviteSchema)
   });
-  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate({ from: '/members/modal' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
+  
+  // Organization roles query
+  const { data: orgRoles, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
+    FrontierServiceQueries.listOrganizationRoles,
+    create(ListOrganizationRolesRequestSchema, {
+      orgId: organization?.id || '',
+      scopes: [PERMISSIONS.OrganizationNamespace]
+    }),
+    { 
+      enabled: !!organization?.id,
+      select: (data) => data?.roles || []
+    }
+  );
+  
+  // Global roles query
+  const { data: globalRoles, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      scopes: [PERMISSIONS.OrganizationNamespace]
+    }),
+    { 
+      enabled: !!organization?.id,
+      select: (data) => data?.roles || []
+    }
+  );
+  
+  // Organization groups query
+  const { data: teams, isLoading: isGroupsLoading, error: groupsError } = useQuery(
+    FrontierServiceQueries.listOrganizationGroups,
+    create(ListOrganizationGroupsRequestSchema, {
+      orgId: organization?.id || ''
+    }),
+    { 
+      enabled: !!organization?.id,
+      select: (data) => data?.groups || []
+    }
+  );
+  
+  const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
+  
+  const roles = useMemo(() => 
+    [...(globalRoles || []), ...(orgRoles || [])],
+    [globalRoles, orgRoles]
+  );
+  
+  const { mutateAsync: createInvitation } = useMutation(
+    FrontierServiceQueries.createOrganizationInvitation,
+    {
+      onSuccess: () => {
+        toast.success('members added');
+        navigate({ to: '/members' });
+      },
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to create invitation'
+        });
+      },
+    }
+  );
 
   const values = watch(['emails', 'type']);
 
@@ -62,62 +119,23 @@ export const InviteMember = () => {
       if (!type) return;
 
       try {
-        await client?.frontierServiceCreateOrganizationInvitation(
-          organization?.id,
-          {
-            userIds: emailList,
-            groupIds: team ? [team] : undefined,
-            roleIds: [type]
-          }
-        );
-        toast.success('members added');
-
-        navigate({ to: '/members' });
-      } catch ({ error }: any) {
+        const req = create(CreateOrganizationInvitationRequestSchema, {
+          orgId: organization.id,
+          userIds: emailList,
+          groupIds: team ? [team] : undefined,
+          roleIds: [type]
+        });
+        await createInvitation(req);
+      } catch (error: any) {
         toast.error('Something went wrong', {
-          description: error.message
+          description: error?.message || 'Failed to create invitation'
         });
       }
     },
-    [client, navigate, organization?.id]
+    [createInvitation, organization?.id]
   );
 
-  useEffect(() => {
-    async function getInformation() {
-      try {
-        setIsLoading(true);
 
-        if (!organization?.id) return;
-
-        const orgRolesRes = await client?.frontierServiceListOrganizationRoles(
-          organization.id,
-          {
-            scopes: [PERMISSIONS.OrganizationNamespace]
-          }
-        );
-        const orgRoles = orgRolesRes?.data?.roles ?? [];
-
-        const serviceListRolesRes = await client?.frontierServiceListRoles({
-          scopes: [PERMISSIONS.OrganizationNamespace]
-        });
-        const roles = serviceListRolesRes?.data?.roles ?? [];
-
-        const {
-          // @ts-ignore
-          data: { groups }
-        } = await client?.frontierServiceListOrganizationGroups(
-          organization.id
-        );
-        setRoles([...roles, ...orgRoles]);
-        setTeams(groups);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    getInformation();
-  }, [client, organization?.id]);
 
   const isDisabled = useMemo(() => {
     const [emails, type] = values;
@@ -227,12 +245,12 @@ export const InviteMember = () => {
                           </Select.Trigger>
                           <Select.Content>
                             <Select.Group>
-                              {!teams.length && (
+                              {!teams?.length && (
                                 <Text className={styles.noSelectItem}>
                                   No teams available
                                 </Text>
                               )}
-                              {teams.map(t => (
+                              {(teams || []).map(t => (
                                 <Select.Item value={t.id || ''} key={t.id}>
                                   {t.title}
                                 </Select.Item>
