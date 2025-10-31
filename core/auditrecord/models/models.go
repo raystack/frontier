@@ -16,6 +16,7 @@ type AuditRecord struct {
 	Target         *Target           `json:"target"`
 	OccurredAt     time.Time         `json:"occurred_at"`
 	OrgID          string            `json:"org_id"`
+	OrgName        string            `json:"org_name"`
 	RequestID      *string           `json:"request_id"`
 	CreatedAt      time.Time         `json:"created_at,omitempty"`
 	Metadata       metadata.Metadata `json:"metadata"`
@@ -26,6 +27,7 @@ type Actor struct {
 	ID       string            `json:"id"`
 	Type     string            `json:"type"`
 	Name     string            `json:"name"`
+	Title    string            `json:"title"`
 	Metadata metadata.Metadata `json:"metadata"`
 }
 
@@ -57,6 +59,7 @@ type AuditRecordRQLSchema struct {
 	ActorID        string    `rql:"name=actor_id,type=string"`
 	ActorType      string    `rql:"name=actor_type,type=string"`
 	ActorName      string    `rql:"name=actor_name,type=string"`
+	ActorTitle     string    `rql:"name=actor_title,type=string"`
 	ResourceID     string    `rql:"name=resource_id,type=string"`
 	ResourceType   string    `rql:"name=resource_type,type=string"`
 	ResourceName   string    `rql:"name=resource_name,type=string"`
@@ -65,6 +68,7 @@ type AuditRecordRQLSchema struct {
 	TargetName     string    `rql:"name=target_name,type=string"`
 	OccurredAt     time.Time `rql:"name=occurred_at,type=datetime"`
 	OrgID          string    `rql:"name=org_id,type=string"`
+	OrgName        string    `rql:"name=org_name,type=string"`
 	RequestID      string    `rql:"name=request_id,type=string"`
 	CreatedAt      time.Time `rql:"name=created_at,type=datetime"`
 	IdempotencyKey string    `rql:"name=idempotency_key,type=string"`

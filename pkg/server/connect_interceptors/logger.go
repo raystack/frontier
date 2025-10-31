@@ -51,12 +51,9 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 			resp, err := next(ctx, req)
 			duration := time.Since(startTime)
 
-			// Get response code from error or OK if no error
-			code := connect.Code(0).String()
-			if err != nil {
-				if connectErr, ok := err.(*connect.Error); ok {
-					code = connectErr.Code().String()
-				}
+			code := connect.Code(0)
+			if connectErr, ok := err.(*connect.Error); ok {
+				code = connectErr.Code()
 			}
 
 			fields := []zap.Field{
@@ -64,7 +61,7 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				zap.Time("start_time", startTime),
 				zap.String("method", req.Spec().Procedure),
 				zap.Int64("time_ms", duration.Milliseconds()),
-				zap.String("code", code),
+				zap.String("code", code.String()),
 				zap.String("request_id", req.Header().Get(consts.RequestIDHeader)),
 				zap.Error(err),
 			}
@@ -73,7 +70,11 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				return resp, err
 			}
 
-			switch connect.CodeOf(err) {
+			switch code {
+			case connect.CodeCanceled:
+				logger.Warn("client cancelled request", fields...)
+			case connect.CodeDeadlineExceeded:
+				logger.Warn("request timeout", fields...)
 			case connect.CodeInvalidArgument,
 				connect.CodeNotFound,
 				connect.CodeAlreadyExists,

@@ -73,16 +73,16 @@ func GetSuperUserFromContext(ctx context.Context) (bool, bool) {
 	return isSuperUser, ok
 }
 
-// GetPrincipalName returns the name/title from a principal
-func GetPrincipalName(principal *Principal) string {
+// GetPrincipalNameAndTitle extracts name and title from a principal
+func GetPrincipalNameAndTitle(principal *Principal) (name, title string) {
 	if principal == nil {
-		return "unknown"
+		return "", ""
 	}
 	if principal.User != nil {
-		return principal.User.Title
+		return principal.User.Name, principal.User.Title
 	}
 	if principal.ServiceUser != nil {
-		return principal.ServiceUser.Title
+		return "", principal.ServiceUser.Title
 	}
-	return "unknown"
+	return "", ""
 }

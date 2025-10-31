@@ -4,6 +4,9 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useState } from 'react';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, DeleteOrganizationInvitationRequestSchema, RemoveOrganizationUserRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 const MemberRemoveConfirm = () => {
   const navigate = useNavigate({
@@ -12,29 +15,59 @@ const MemberRemoveConfirm = () => {
   const { memberId, invited } = useParams({
     from: '/members/remove-member/$memberId/$invited'
   });
-  const { client, activeOrganization } = useFrontier();
+  const { activeOrganization } = useFrontier();
   const organizationId = activeOrganization?.id ?? '';
   const [isLoading, setIsLoading] = useState(false);
   const t = useTerminology();
+  
+  const { mutateAsync: deleteInvitation } = useMutation(
+    FrontierServiceQueries.deleteOrganizationInvitation,
+    {
+      onSuccess: () => {
+        navigate({ to: '/members' });
+        toast.success('Member deleted');
+      },
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to delete invitation'
+        });
+      },
+    }
+  );
+  
+  const { mutateAsync: removeUser } = useMutation(
+    FrontierServiceQueries.removeOrganizationUser,
+    {
+      onSuccess: () => {
+        navigate({ to: '/members' });
+        toast.success('Member deleted');
+      },
+      onError: (error: any) => {
+        toast.error('Something went wrong', {
+          description: error?.message || 'Failed to remove user'
+        });
+      },
+    }
+  );
   const deleteMember = async () => {
     setIsLoading(true);
     try {
       if (invited === 'true') {
-        await client?.frontierServiceDeleteOrganizationInvitation(
-          organizationId,
-          memberId as string
-        );
+        const req = create(DeleteOrganizationInvitationRequestSchema, {
+          orgId: organizationId,
+          id: memberId as string
+        });
+        await deleteInvitation(req);
       } else {
-        await client?.frontierServiceRemoveOrganizationUser(
-          organizationId,
-          memberId as string
-        );
+        const req = create(RemoveOrganizationUserRequestSchema, {
+          id: organizationId,
+          userId: memberId as string
+        });
+        await removeUser(req);
       }
-      navigate({ to: '/members' });
-      toast.success('Member deleted');
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error.message
+        description: error?.message || 'Failed to remove member'
       });
     } finally {
       setIsLoading(false);

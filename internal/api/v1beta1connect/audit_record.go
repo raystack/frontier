@@ -70,6 +70,7 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 			ID:       actor.GetId(),
 			Type:     actor.GetType(),
 			Name:     actor.GetName(),
+			Title:    actor.GetTitle(),
 			Metadata: metadata.BuildFromProto(actor.GetMetadata()),
 		},
 		Resource: auditrecord.Resource{
@@ -228,6 +229,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 				Id:       record.Actor.ID,
 				Type:     record.Actor.Type,
 				Name:     record.Actor.Name,
+				Title:    record.Actor.Title,
 				Metadata: actorMetaData,
 			},
 			Resource: &frontierv1beta1.AuditRecordResource{
@@ -239,6 +241,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 			Target:     target,
 			OccurredAt: timestamppb.New(record.OccurredAt),
 			OrgId:      record.OrgID,
+			OrgName:    record.OrgName,
 			RequestId:  requestID,
 			CreatedAt:  timestamppb.New(record.CreatedAt),
 			Metadata:   metaData,

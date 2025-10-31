@@ -12333,6 +12333,8 @@ definitions:
         format: date-time
       org_id:
         type: string
+      org_name:
+        type: string
       request_id:
         type: string
       metadata:
@@ -12349,6 +12351,8 @@ definitions:
         type: string
         title: not mandatory if id is zeroUUID
       name:
+        type: string
+      title:
         type: string
       metadata:
         type: object
