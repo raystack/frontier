@@ -1,11 +1,4 @@
-import {
-  CopyButton,
-  Flex,
-  IconButton,
-  SidePanel,
-  Text,
-  Tooltip,
-} from "@raystack/apsara";
+import { Flex, IconButton, SidePanel } from "@raystack/apsara";
 import {
   Cross2Icon,
   DesktopIcon,
@@ -23,6 +16,7 @@ import SidePanelLogDialog from "./sidepanel-log-dialog";
 import ActorCell from "./actor-cell";
 import SidepanelListItemLink from "./sidepanel-list-link";
 import { isZeroUUID } from "~/utils/helper";
+import SidepanelListId from "./sidepanel-list-id";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
@@ -106,22 +100,19 @@ export default function SidePanelDetails({
           </List.Item>
           <List.Item>
             <List.Label minWidth="120px">ID</List.Label>
-            <List.Value>
-              <Flex gap={3} style={{ width: "100%" }}>
-                <CopyButton text={id || ""} data-test-id="copy-button" />
-                <Tooltip message={id || ""}>
-                  <Text className={styles["text-overflow"]} weight="medium">
-                    {id}
-                  </Text>
-                </Tooltip>
-              </Flex>
-            </List.Value>
+            <SidepanelListId id={id} />
           </List.Item>
           {target && (
-            <List.Item>
-              <List.Label minWidth="120px">Target</List.Label>
-              <List.Value>{target?.name || "-"}</List.Value>
-            </List.Item>
+            <>
+              <List.Item>
+                <List.Label minWidth="120px">Target ID</List.Label>
+                <SidepanelListId id={target?.id} />
+              </List.Item>
+              <List.Item>
+                <List.Label minWidth="120px">Target Type</List.Label>
+                <List.Value>{target?.type || "-"}</List.Value>
+              </List.Item>
+            </>
           )}
         </List>
       </SidePanel.Section>
