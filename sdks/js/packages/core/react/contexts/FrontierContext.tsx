@@ -308,7 +308,9 @@ export const FrontierContextProvider = ({
   }, [config?.billing?.basePlan]);
 
   // Track last user activity for session management
-  useLastActiveTracker();
+  useLastActiveTracker({
+    enabled: Boolean(user?.id)
+  });
 
   return (
     <FrontierContext.Provider
