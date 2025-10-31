@@ -6,11 +6,18 @@ import {
   useParams,
   useRouterState
 } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, ListProjectGroupsRequestSchema, ListProjectUsersRequestSchema, GetProjectRequestSchema, ListRolesRequestSchema, type Role as ProtoRole, type Group, type User } from '@raystack/proton/frontier';
+import { FrontierServiceQueries,
+  ListProjectGroupsRequestSchema,
+  ListProjectUsersRequestSchema,
+  GetProjectRequestSchema,
+  ListRolesRequestSchema,
+  type Role as ProtoRole,
+  type Organization
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
@@ -69,11 +76,13 @@ export const ProjectPage = () => {
     }
   );
 
-  if (projectGroupsError) {
-    toast.error('Something went wrong', {
-      description: projectGroupsError.message
-    });
-  }
+  useEffect(() => {
+    if (projectGroupsError) {
+      toast.error('Something went wrong', {
+        description: projectGroupsError.message
+      });
+    }
+  }, [projectGroupsError]);
 
   const {
     data: projectUsers = { users: [], memberRoles: {} },
@@ -133,9 +142,11 @@ export const ProjectPage = () => {
     }
   );
 
-  if (rolesError) {
-    toast.error('Something went wrong', { description: rolesError.message });
-  }
+  useEffect(() => {
+    if (rolesError) {
+      toast.error('Something went wrong', { description: rolesError.message });
+    }
+  }, [rolesError]);
 
   useEffect(() => {
     if (refetch) {
@@ -174,7 +185,7 @@ export const ProjectPage = () => {
         </Tabs.List>
         <Tabs.Content value="general">
           <General
-            organization={organization}
+            organization={organization as Organization}
             project={project}
             isLoading={isProjectLoadingQuery}
           />

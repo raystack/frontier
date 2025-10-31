@@ -1,10 +1,10 @@
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
-import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, ListPoliciesRequestSchema, DeletePolicyRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 
 export const RemoveProjectMember = () => {
@@ -38,11 +38,17 @@ export const RemoveProjectMember = () => {
   });
 
   async function onConfirm() {
-    await Promise.all(
-      (policies || []).map(p => deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' })))
-    );
-    navigate({ to: '/projects/$projectId', params: { projectId }, state: { refetch: true } });
-    toast.success('Member removed');
+    try {
+      await Promise.all(
+        (policies || []).map(p => deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' })))
+      );
+      navigate({ to: '/projects/$projectId', params: { projectId }, state: { refetch: true } });
+      toast.success('Member removed');
+    } catch (error) {
+      // Error is already handled by mutation's onError callback
+      // This catch prevents unhandled promise rejection
+      console.error('Failed to delete policies:', error);
+    }
   }
 
   return (
