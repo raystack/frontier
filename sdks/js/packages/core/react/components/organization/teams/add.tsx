@@ -47,7 +47,7 @@ export const AddTeam = () => {
   const navigate = useNavigate({ from: '/members/modal' });
   const { activeOrganization: organization } = useFrontier();
 
-  const { mutate: createTeamMutation, isPending } = useMutation(FrontierServiceQueries.createGroup, {
+  const { mutateAsync: createTeam } = useMutation(FrontierServiceQueries.createGroup, {
     onSuccess: () => {
       toast.success('Team added');
       navigate({ to: '/teams' });
@@ -59,7 +59,7 @@ export const AddTeam = () => {
     }
   });
 
-  function onSubmit(data: FormData) {
+  async function onSubmit(data: FormData) {
     if (!organization?.id) return;
 
     const request = create(CreateGroupRequestSchema, {
@@ -70,7 +70,7 @@ export const AddTeam = () => {
       }
     });
 
-    createTeamMutation(request);
+    await createTeam(request);
   }
 
   return (
@@ -117,7 +117,7 @@ export const AddTeam = () => {
               <Button
                 type="submit"
                 data-test-id="frontier-sdk-add-team-btn"
-                loading={isSubmitting || isPending}
+                loading={isSubmitting}
                 loaderText="Adding..."
               >
                 Add team

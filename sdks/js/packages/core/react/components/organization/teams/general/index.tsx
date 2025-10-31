@@ -91,7 +91,7 @@ export const General = ({
 
   const isLoading = isTeamLoading || isPermissionsFetching;
 
-  const { mutate: updateTeamMutation, isPending } = useMutation(FrontierServiceQueries.updateGroup, {
+  const { mutateAsync: updateTeam } = useMutation(FrontierServiceQueries.updateGroup, {
     onSuccess: () => {
       toast.success('Team updated');
     },
@@ -102,7 +102,7 @@ export const General = ({
     }
   });
 
-  function onSubmit(data: FormData) {
+  async function onSubmit(data: FormData) {
     if (!organization?.id) return;
     if (!teamId) return;
 
@@ -115,7 +115,7 @@ export const General = ({
       }
     });
 
-    updateTeamMutation(request);
+    await updateTeam(request);
   }
 
   return (
@@ -160,7 +160,7 @@ export const General = ({
                 type="submit"
                 disabled={!canUpdateGroup}
                 data-test-id="frontier-sdk-update-team-btn"
-                loading={isPending || isSubmitting}
+                loading={isSubmitting}
                 loaderText="Updating..."
               >
                 Update team
