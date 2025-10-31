@@ -24,7 +24,6 @@ import {
   type Role
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 
 import teamIcon from '~/react/assets/users.svg';
@@ -95,7 +94,7 @@ export const getColumns = (
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: ({ row, getValue }) => {
+    cell: ({ row }) => {
       return (
         <Text>
           {row.original?.isTeam
@@ -103,13 +102,13 @@ export const getColumns = (
               (row.original?.id &&
                 groupRoles[row.original?.id] &&
                 groupRoles[row.original?.id]
-                  .map((r: any) => r.title || r.name)
+                  .map((r: Role) => r.title || r.name)
                   .join(', ')) ??
               'Project Viewer'
             : (row.original?.id &&
                 memberRoles[row.original?.id] &&
                 memberRoles[row.original?.id]
-                  .map((r: any) => r.title || r.name)
+                  .map((r: Role) => r.title || r.name)
                   .join(', ')) ??
               'Inherited role'}
         </Text>
@@ -155,7 +154,6 @@ const MembersActions = ({
   excludedRoles: Role[];
   refetch: () => void;
 }) => {
-  const { client } = useFrontier();
   const navigate = useNavigate({ from: '/projects' });
 
   function removeMember() {
