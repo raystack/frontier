@@ -2,16 +2,23 @@ import { useCallback, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from '@raystack/apsara';
-import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
+import { SubscriptionPhase } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { PlanMetadata } from '~/src/types';
 import { NIL as NIL_UUID } from 'uuid';
-import { Plan } from '@raystack/proton/frontier';
+import { Plan, CheckoutSession } from '@raystack/proton/frontier';
+import { useMutation, FrontierServiceQueries } from '~hooks';
+import { create } from '@bufbuild/protobuf';
+import {
+  CreateCheckoutRequestSchema,
+  ChangeSubscriptionRequestSchema,
+  CancelSubscriptionRequestSchema
+} from '@raystack/proton/frontier';
 
 interface checkoutPlanOptions {
   isTrial: boolean;
   planId: string;
-  onSuccess: (data: V1Beta1CheckoutSession) => void;
+  onSuccess: (data: CheckoutSession) => void;
 }
 
 interface changePlanOptions {
@@ -37,7 +44,6 @@ export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
   const {
-    client,
     activeOrganization,
     billingAccount,
     config,
@@ -47,6 +53,17 @@ export const usePlans = () => {
     allPlans,
     isAllPlansLoading
   } = useFrontier();
+
+  // Setup mutations
+  const { mutateAsync: createCheckoutMutation } = useMutation(
+    FrontierServiceQueries.createCheckout
+  );
+  const { mutateAsync: changeSubscriptionMutation } = useMutation(
+    FrontierServiceQueries.changeSubscription
+  );
+  const { mutateAsync: cancelSubscriptionMutation } = useMutation(
+    FrontierServiceQueries.cancelSubscription
+  );
 
   const planMap = allPlans.reduce((acc, p) => {
     if (p.id) acc[p.id] = p;
@@ -84,27 +101,27 @@ export const usePlans = () => {
             cancelAfterTrial = config?.billing?.cancelAfterTrial;
           }
 
-          const resp = await client?.frontierServiceCreateCheckout(
-            activeOrganization?.id,
-            billingAccount?.id,
-            {
-              cancel_url: cancel_url,
-              success_url: success_url,
-              subscription_body: {
+          const resp = await createCheckoutMutation(
+            create(CreateCheckoutRequestSchema, {
+              orgId: activeOrganization?.id,
+              billingId: billingAccount?.id,
+              cancelUrl: cancel_url,
+              successUrl: success_url,
+              subscriptionBody: {
                 plan: planId,
-                skip_trial: !isTrial,
-                cancel_after_trial: isTrial && cancelAfterTrial
+                skipTrial: !isTrial,
+                cancelAfterTrial: isTrial && cancelAfterTrial
               }
-            }
+            })
           );
-          if (resp?.data?.checkout_session?.checkout_url) {
-            onSuccess(resp?.data?.checkout_session);
+          if (resp?.checkoutSession?.checkoutUrl) {
+            onSuccess(resp.checkoutSession);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
         toast.error('Something went wrong', {
-          description: err?.message
+          description: (err as Error)?.message
         });
       } finally {
         setIsLoading(false);
@@ -116,7 +133,7 @@ export const usePlans = () => {
       config?.billing?.cancelUrl,
       config?.billing?.successUrl,
       config?.billing?.cancelAfterTrial,
-      client
+      createCheckoutMutation
     ]
   );
 
@@ -133,31 +150,39 @@ export const usePlans = () => {
           billingAccount?.id &&
           activeSubscription?.id
         ) {
-          const resp = await client?.frontierServiceChangeSubscription(
-            activeOrganization?.id,
-            billingAccount?.id,
-            activeSubscription?.id,
-            {
-              plan_change: {
-                plan: planId,
-                immediate: immediate
+          const resp = await changeSubscriptionMutation(
+            create(ChangeSubscriptionRequestSchema, {
+              orgId: activeOrganization?.id,
+              billingId: billingAccount?.id,
+              id: activeSubscription?.id,
+              change: {
+                case: 'planChange',
+                value: {
+                  plan: planId,
+                  immediate: immediate
+                }
               }
-            }
+            })
           );
-          if (resp?.data?.phase) {
+          if (resp?.phase) {
             onSuccess();
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
         toast.error('Something went wrong', {
-          description: err?.message
+          description: (err as Error)?.message
         });
       } finally {
         setIsLoading(false);
       }
     },
-    [activeOrganization?.id, activeSubscription?.id, billingAccount?.id, client]
+    [
+      activeOrganization?.id,
+      activeSubscription?.id,
+      billingAccount?.id,
+      changeSubscriptionMutation
+    ]
   );
 
   const verifyPlanChange = useCallback(
@@ -257,13 +282,15 @@ export const usePlans = () => {
           billingAccount?.id &&
           activeSubscription?.id
         ) {
-          const resp = await client?.frontierServiceCancelSubscription(
-            activeOrganization?.id,
-            billingAccount?.id,
-            activeSubscription?.id,
-            { immediate: false }
+          const resp = await cancelSubscriptionMutation(
+            create(CancelSubscriptionRequestSchema, {
+              orgId: activeOrganization?.id,
+              billingId: billingAccount?.id,
+              id: activeSubscription?.id,
+              immediate: false
+            })
           );
-          if (resp?.data) {
+          if (resp) {
             onSuccess();
           }
         }
@@ -276,7 +303,12 @@ export const usePlans = () => {
         setIsLoading(false);
       }
     },
-    [activeOrganization?.id, billingAccount?.id, activeSubscription?.id, client]
+    [
+      activeOrganization?.id,
+      billingAccount?.id,
+      activeSubscription?.id,
+      cancelSubscriptionMutation
+    ]
   );
 
   return {

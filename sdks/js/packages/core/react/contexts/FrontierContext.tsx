@@ -256,15 +256,18 @@ export const FrontierContextProvider = ({
     return undefined;
   }, [billingAccountData?.paymentMethods]);
 
-  const { data: subscriptionsData, isLoading: isActiveSubscriptionLoading } =
-    useConnectQuery(
-      FrontierServiceQueries.listSubscriptions,
-      create(ListSubscriptionsRequestSchema, {
-        orgId: activeOrganization?.id ?? '',
-        billingId: billingAccount?.id ?? ''
-      }),
-      { enabled: !!activeOrganization?.id && !!billingAccount?.id }
-    );
+  const {
+    data: subscriptionsData,
+    isLoading: isActiveSubscriptionLoading,
+    refetch: refetchActiveSubscription
+  } = useConnectQuery(
+    FrontierServiceQueries.listSubscriptions,
+    create(ListSubscriptionsRequestSchema, {
+      orgId: activeOrganization?.id ?? '',
+      billingId: billingAccount?.id ?? ''
+    }),
+    { enabled: !!activeOrganization?.id && !!billingAccount?.id }
+  );
 
   const subscriptions = (subscriptionsData?.subscriptions ||
     []) as Subscription[];
@@ -298,8 +301,10 @@ export const FrontierContextProvider = ({
   }, [allPlans, trialSubscription?.planId]);
 
   const fetchActiveSubsciption = useCallback(async () => {
-    return getActiveSubscription(subscriptions);
-  }, [subscriptions]);
+    const refetchedData = await refetchActiveSubscription();
+    const refetchedSubscriptions = refetchedData?.data?.subscriptions || [];
+    return getActiveSubscription(refetchedSubscriptions);
+  }, [refetchActiveSubscription]);
 
   const basePlan = useMemo(() => {
     return config?.billing?.basePlan
