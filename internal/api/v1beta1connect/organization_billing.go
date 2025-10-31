@@ -33,7 +33,7 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 
 	orgBillingData, err := h.orgBillingService.Search(ctx, rqlQuery)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	for _, v := range orgBillingData.Organizations {

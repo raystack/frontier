@@ -143,7 +143,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 // createSessionRevokeAuditRecord creates an audit record if admin is revoking someone else's session
 func (s *SessionRepository) createSessionRevokeAuditRecord(ctx context.Context, tx *sqlx.Tx, session sessionWithUserName) error {
-	actorID, _, _, _ := extractActorFromContext(ctx)
+	actorID, _, _, _, _ := extractActorFromContext(ctx)
 	userID := session.UserID.String()
 
 	// Only create audit record if actor is different from the session owner (admin revoking someone else's session)
