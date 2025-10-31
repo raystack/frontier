@@ -201,6 +201,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	interceptors := connect.WithInterceptors(
 		otelInterceptor,
 		connectinterceptors.UnaryConnectLoggerInterceptor(grpcZapLogger.Desugar(), loggerOpts),
+		connectinterceptors.UnaryConnectErrorResponseInterceptor(),
 		sessionInterceptor,
 		authNInterceptor,
 		authZInterceptor,

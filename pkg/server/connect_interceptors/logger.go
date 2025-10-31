@@ -2,7 +2,6 @@ package connectinterceptors
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"connectrpc.com/connect"
@@ -52,30 +51,9 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 			resp, err := next(ctx, req)
 			duration := time.Since(startTime)
 
-			// Get response code from error or OK if no error
 			code := connect.Code(0)
-			if err != nil {
-				if ctx.Err() != nil {
-					if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-						code = connect.CodeDeadlineExceeded
-						err = connect.NewError(code, ctx.Err())
-					} else if errors.Is(ctx.Err(), context.Canceled) {
-						code = connect.CodeCanceled
-						err = connect.NewError(code, ctx.Err())
-					} else {
-						code = connect.CodeInternal
-						err = connect.NewError(code, err)
-					}
-				} else {
-					if connectErr, ok := err.(*connect.Error); ok {
-						code = connectErr.Code()
-					}
-				}
-			} else {
-				if ctx.Err() != nil {
-					code = connect.CodeDeadlineExceeded
-					err = connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
-				}
+			if connectErr, ok := err.(*connect.Error); ok {
+				code = connectErr.Code()
 			}
 
 			fields := []zap.Field{
