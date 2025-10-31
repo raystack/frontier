@@ -20,8 +20,6 @@ import { ExclamationTriangleIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import type { V1Beta1Role, V1Beta1User } from '~/src';
-import type { Role } from '~/src/types';
 import {
   PERMISSIONS,
   filterUsersfromUsers,
@@ -29,11 +27,15 @@ import {
   shouldShowComponent
 } from '~/utils';
 import { getColumns } from './member.columns';
+
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, AddGroupUsersRequestSchema, ListOrganizationUsersRequestSchema, type User, type Role } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from './members.module.css';
 
 export type MembersProps = {
-  members: V1Beta1User[];
-  roles: V1Beta1Role[];
+  members: User[];
+  roles: Role[];
   organizationId: string;
   memberRoles?: Record<string, Role[]>;
   isLoading?: boolean;
@@ -102,7 +104,7 @@ export const Members = ({
             <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
               <DataTable.Search
                 placeholder="Search by name or email"
-                size="medium"
+                size="large"
               />
             </Flex>
             {isLoading ? (
@@ -116,6 +118,7 @@ export const Members = ({
                 <AddMemberDropdown
                   canUpdateGroup={canUpdateGroup}
                   refetchMembers={refetchMembers}
+                  members={members}
                 />
               </Tooltip>
             )}
@@ -136,82 +139,42 @@ export const Members = ({
 interface AddMemberDropdownProps {
   canUpdateGroup: boolean;
   refetchMembers: () => void;
+  members: User[];
 }
 
 const AddMemberDropdown = ({
   canUpdateGroup,
-  refetchMembers
+  refetchMembers,
+  members
 }: AddMemberDropdownProps) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
-  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
   const [query, setQuery] = useState('');
 
-  const [members, setMembers] = useState<V1Beta1User[]>([]);
+  const { activeOrganization: organization } = useFrontier();
 
-  const [isTeamMembersLoading, setIsTeamMembersLoading] = useState(false);
-
-  const { client, activeOrganization: organization } = useFrontier();
-
-  useEffect(() => {
-    async function getOrganizationMembers() {
-      if (!organization?.id) return;
-      try {
-        setIsOrgMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListOrganizationUsers(
-          organization?.id
-        );
-        setOrgMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsOrgMembersLoading(false);
-      }
-    }
-    if (canUpdateGroup) {
-      getOrganizationMembers();
-    }
-  }, [client, organization?.id, canUpdateGroup]);
-
-  useEffect(() => {
-    async function getTeamMembers() {
-      if (!organization?.id || !teamId) return;
-      try {
-        setIsTeamMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users, role_pairs = [] }
-        } = await client?.frontierServiceListGroupUsers(
-          organization?.id,
-          teamId,
-          { with_roles: true }
-        );
-
-        setMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsTeamMembersLoading(false);
-      }
-    }
-    if (canUpdateGroup) {
-      getTeamMembers();
-    }
-  }, [canUpdateGroup, client, organization?.id, teamId]);
-
-  const invitableUser = useMemo(
-    () => filterUsersfromUsers(orgMembers, members) || [],
-    [orgMembers, members]
+  // Get organization members using Connect RPC
+  const { data: orgMembersData, isLoading: isOrgMembersLoading, error: orgMembersError } = useQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    create(ListOrganizationUsersRequestSchema, { id: organization?.id || '' }),
+    { enabled: !!organization?.id && canUpdateGroup }
   );
 
-  const isUserLoading = isOrgMembersLoading || isTeamMembersLoading;
+  // Handle organization members error
+  useEffect(() => {
+    if (orgMembersError) {
+      toast.error('Something went wrong', {
+        description: orgMembersError.message
+      });
+    }
+  }, [orgMembersError]);
+
+
+  const invitableUser = useMemo(
+    () => filterUsersfromUsers(orgMembersData?.users || [], members) || [],
+    [orgMembersData?.users, members]
+  );
+
+  const isUserLoading = isOrgMembersLoading;
 
   const topUsers = useMemo(
     () =>
@@ -230,25 +193,34 @@ const AddMemberDropdown = ({
     setQuery(e.target.value);
   }
 
-  const addMember = useCallback(
-    async (userId: string) => {
-      if (!userId || !organization?.id) return;
-      try {
-        await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-          user_ids: [userId]
-        });
-        toast.success('member added');
-        if (refetchMembers) {
-          refetchMembers();
-        }
-      } catch ({ error }: any) {
-        console.error(error);
-        toast.error('Something went wrong', {
-          description: error.message
-        });
+  // Add group user using Connect RPC
+  const addGroupUserMutation = useMutation(FrontierServiceQueries.addGroupUsers, {
+    onSuccess: () => {
+      toast.success('member added');
+      if (refetchMembers) {
+        refetchMembers();
       }
     },
-    [client, organization?.id, refetchMembers, teamId]
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
+
+  const addMember = useCallback(
+    (userId: string) => {
+      if (!userId || !organization?.id) return;
+
+      const request = create(AddGroupUsersRequestSchema, {
+        id: teamId as string,
+        orgId: organization.id,
+        userIds: [userId]
+      });
+
+      addGroupUserMutation.mutate(request);
+    },
+    [organization?.id, teamId, addGroupUserMutation]
   );
 
   return (
@@ -295,7 +267,6 @@ const AddMemberDropdown = ({
                     fallback={initials}
                     size={1}
                     radius="small"
-                    imageProps={{ fontSize: '10px' }}
                   />
                   <Text>{user?.title || user?.email}</Text>
                 </Flex>
@@ -311,7 +282,7 @@ const AddMemberDropdown = ({
             <Text size="small">No Users found</Text>
           </Flex>
         )}
-        <Separator style={{ margin: 0 }} />
+        <Separator />
         <div style={{ padding: 'var(--rs-space-2)' }}>
           <Link
             to={'/teams/$teamId/invite'}
