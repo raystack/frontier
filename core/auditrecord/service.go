@@ -102,7 +102,8 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 			}
 			return AuditRecord{}, false, err
 		}
-		auditRecord.Actor.Name = user.Title
+		auditRecord.Actor.Name = user.Name
+		auditRecord.Actor.Title = user.Title
 
 		// check if the user is a superuser
 		if isSudo, err := s.userService.IsSudo(ctx, user.ID, schema.PlatformSudoPermission); err != nil {
@@ -120,7 +121,7 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 		if err != nil {
 			return AuditRecord{}, false, err
 		}
-		auditRecord.Actor.Name = serviceUser.Title
+		auditRecord.Actor.Title = serviceUser.Title
 	}
 
 	createdRecord, err := s.repository.Create(ctx, auditRecord)
@@ -169,6 +170,7 @@ func SetAuditRecordActorContext(ctx context.Context, actor Actor) context.Contex
 		"id":       actor.ID,
 		"type":     actor.Type,
 		"name":     actor.Name,
+		"title":    actor.Title,
 		"metadata": actor.Metadata,
 	}
 	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actorMap)

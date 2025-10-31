@@ -23,6 +23,7 @@ type AuditRecord struct {
 	ActorID          uuid.UUID          `db:"actor_id"`
 	ActorType        string             `db:"actor_type"`
 	ActorName        string             `db:"actor_name"`
+	ActorTitle       string             `db:"actor_title"`
 	ActorMetadata    types.NullJSONText `db:"actor_metadata"`
 	ResourceID       string             `db:"resource_id"`
 	ResourceType     string             `db:"resource_type"`
@@ -70,6 +71,7 @@ func (ar *AuditRecord) transformToDomain() (auditrecord.AuditRecord, error) {
 			ID:       ar.ActorID.String(),
 			Type:     ar.ActorType,
 			Name:     ar.ActorName,
+			Title:    ar.ActorTitle,
 			Metadata: nullJSONTextToMetadata(ar.ActorMetadata),
 		},
 		Resource: auditrecord.Resource{
@@ -128,6 +130,7 @@ func transformFromDomain(record auditrecord.AuditRecord) (AuditRecord, error) {
 		ActorID:          actorID,
 		ActorType:        record.Actor.Type,
 		ActorName:        record.Actor.Name,
+		ActorTitle:       record.Actor.Title,
 		ActorMetadata:    metadataToNullJSONText(record.Actor.Metadata),
 		ResourceID:       record.Resource.ID,
 		ResourceType:     record.Resource.Type.String(),
@@ -146,8 +149,8 @@ func transformFromDomain(record auditrecord.AuditRecord) (AuditRecord, error) {
 	}, nil
 }
 
-func extractActorFromContext(ctx context.Context) (string, string, string, map[string]interface{}) {
-	var id, actorType, name string
+func extractActorFromContext(ctx context.Context) (string, string, string, string, map[string]interface{}) {
+	var id, actorType, name, title string
 	var actorMetadata map[string]interface{}
 
 	if val := ctx.Value(consts.AuditRecordActorContextKey); val != nil {
@@ -161,12 +164,15 @@ func extractActorFromContext(ctx context.Context) (string, string, string, map[s
 			if v, ok := actorMap["name"].(string); ok {
 				name = v
 			}
+			if v, ok := actorMap["title"].(string); ok {
+				title = v
+			}
 			if v, ok := actorMap["metadata"].(map[string]interface{}); ok {
 				actorMetadata = v
 			}
 		}
 	}
-	return id, actorType, name, actorMetadata
+	return id, actorType, name, title, actorMetadata
 }
 
 func extractSessionMetadataFromContext(ctx context.Context) map[string]interface{} {
@@ -189,7 +195,7 @@ func extractSuperUserFromContext(ctx context.Context) bool {
 
 // enrichActorFromContext enriches actor from context
 func enrichActorFromContext(ctx context.Context, actor *auditrecord.Actor) {
-	actorID, actorType, actorName, actorMetadata := extractActorFromContext(ctx)
+	actorID, actorType, actorName, actorTitle, actorMetadata := extractActorFromContext(ctx)
 
 	// Handle system actor (cron jobs, background tasks with no request context)
 	if actorID == "" {
@@ -202,6 +208,7 @@ func enrichActorFromContext(ctx context.Context, actor *auditrecord.Actor) {
 	actor.ID = actorID
 	actor.Type = actorType
 	actor.Name = actorName
+	actor.Title = actorTitle
 	actor.Metadata = actorMetadata
 
 	// Add additional enrichments
@@ -246,6 +253,7 @@ func BuildAuditRecord(ctx context.Context, event pkgAuditRecord.Event, resource 
 		ActorID:          actorUUID,
 		ActorType:        actor.Type,
 		ActorName:        actor.Name,
+		ActorTitle:       actor.Title,
 		ActorMetadata:    metadataToNullJSONText(actor.Metadata),
 		ResourceID:       resource.ID,
 		ResourceType:     resource.Type.String(),

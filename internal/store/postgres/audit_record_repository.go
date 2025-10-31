@@ -52,11 +52,11 @@ func NewAuditRecordRepository(dbc *db.Client) *AuditRecordRepository {
 
 var (
 	auditRecordRQLFilterSupportedColumns = []string{
-		"id", "event", "actor_id", "actor_type", "actor_name", "resource_id", "resource_type", "resource_name",
+		"id", "event", "actor_id", "actor_type", "actor_name", "actor_title", "resource_id", "resource_type", "resource_name",
 		"target_id", "target_type", "target_name", "occurred_at", "org_id", "org_name", "request_id", "created_at", "idempotency_key",
 	}
 	auditRecordRQLSearchSupportedColumns = []string{
-		"id", "event", "actor_id", "actor_type", "actor_name", "resource_id", "resource_type", "resource_name",
+		"id", "event", "actor_id", "actor_type", "actor_name", "actor_title", "resource_id", "resource_type", "resource_name",
 		"target_id", "target_type", "target_name", "org_id", "org_name", "request_id", "idempotency_key",
 	}
 	auditRecordRQLGroupSupportedColumns = []string{
@@ -262,6 +262,7 @@ func (r AuditRecordRepository) Export(ctx context.Context, rqlQuery *rql.Query) 
 		goqu.L(`actor_id`),
 		goqu.L(`actor_type`),
 		goqu.L(`actor_name`),
+		goqu.L(`actor_title`),
 		goqu.L(`COALESCE(actor_metadata::text, '{}')`),
 		goqu.L(`resource_id`),
 		goqu.L(`resource_type`),
@@ -387,7 +388,7 @@ func (r AuditRecordRepository) streamCursorToCSV(ctx context.Context, tx *sql.Tx
 
 	// Write CSV headers first
 	headers := []string{
-		"Record ID", "Idempotency Key", "Event", "Actor ID", "Actor Type", "Actor Name", "Actor Metadata",
+		"Record ID", "Idempotency Key", "Event", "Actor ID", "Actor Type", "Actor Name", "Actor Title", "Actor Metadata",
 		"Resource ID", "Resource Type", "Resource Name", "Resource Metadata", "Target ID", "Target Type",
 		"Target name", "Target Metadata", "Organization ID", "Organization Name", "Request ID", "Occurred At", "Created At", "Metadata",
 	}
