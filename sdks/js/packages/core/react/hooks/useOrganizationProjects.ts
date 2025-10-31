@@ -5,7 +5,7 @@ import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../contexts/FrontierContext';
 
 interface useOrganizationProjectsProps {
-  showInhreitedProjects?: boolean;
+  showInheritedProjects?: boolean;
   withMemberCount?: boolean;
   allProjects?: boolean;
 }
