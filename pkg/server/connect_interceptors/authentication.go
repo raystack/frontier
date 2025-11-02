@@ -51,10 +51,12 @@ func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.Un
 		ctx = frontiersession.SetSessionMetadataInContext(ctx, sessionMetadata)
 
 		// Set audit record actor context - for repositories and audit consumers
+		actorName, actorTitle := authenticate.GetPrincipalNameAndTitle(&principal)
 		ctx = auditrecord.SetAuditRecordActorContext(ctx, auditrecord.Actor{
 			ID:       principal.ID,
 			Type:     principal.Type,
-			Name:     authenticate.GetPrincipalName(&principal),
+			Name:     actorName,
+			Title:    actorTitle,
 			Metadata: nil,
 		})
 		return next(ctx, req)

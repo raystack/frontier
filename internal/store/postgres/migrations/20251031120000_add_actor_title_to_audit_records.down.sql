@@ -1,0 +1,1 @@
+ALTER TABLE audit_records DROP COLUMN IF EXISTS actor_title;

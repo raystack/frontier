@@ -1,5 +1,4 @@
 import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
-import { useEffect, useState } from "react";
 import {
   Outlet,
   useNavigate,
@@ -7,53 +6,64 @@ import {
   useParams,
 } from "react-router-dom";
 
-import type { V1Beta1Role } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { RolesHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { api } from "~/api";
 import PageTitle from "~/components/page-title";
 import styles from "./roles.module.css";
 import { SheetHeader } from "~/components/sheet/header";
+import { FrontierServiceQueries, Role } from "@raystack/proton/frontier";
+import { useQuery } from "@connectrpc/connect-query";
 
-type ContextType = { role: V1Beta1Role | null };
+type ContextType = { role: Role | null };
 export default function RoleList() {
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-  const [isRolesLoading, setIsRolesLoading] = useState(false);
-
-  useEffect(() => {
-    async function getRoles() {
-      setIsRolesLoading(true);
-      try {
-        const res = await api?.frontierServiceListRoles();
-        const roles = res?.data?.roles ?? [];
-        setRoles(roles);
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setIsRolesLoading(false);
-      }
-    }
-    getRoles();
-  }, []);
-  let { roleId } = useParams();
-  const roleMapByName = reduceByKey(roles ?? [], "id");
+  const { roleId } = useParams();
   const navigate = useNavigate();
+
+  const {
+    data: roles = [],
+    isLoading,
+    error,
+    isError,
+  } = useQuery(
+    FrontierServiceQueries.listRoles,
+    {},
+    {
+      select: data => data?.roles ?? [],
+    },
+  );
+  const roleMapByName = reduceByKey(roles ?? [], "id");
 
   function onClose() {
     navigate("/roles");
+  }
+  function onRowClick(role: Role) {
+    navigate(`${encodeURIComponent(role.id ?? "")}`);
+  }
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+    return (
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Error Loading Roles"
+        subHeading={
+          error?.message ||
+          "Something went wrong while loading roles. Please try again."
+        }
+      />
+    );
   }
 
   const columns = getColumns();
   return (
     <DataTable
+      onRowClick={onRowClick}
       data={roles}
       columns={columns}
       mode="client"
       defaultSort={{ name: "title", order: "asc" }}
-      isLoading={isRolesLoading}
-    >
+      isLoading={isLoading}>
       <Flex direction="column">
         <PageTitle title="Roles" />
         <RolesHeader />
@@ -66,7 +76,11 @@ export default function RoleList() {
         />
         <Sheet open={roleId !== undefined}>
           <Sheet.Content className={styles.sheetContent}>
-            <SheetHeader title="Role Details" onClick={onClose} />
+            <SheetHeader
+              title="Role Details"
+              onClick={onClose}
+              data-test-id="role-details-header"
+            />
             <Flex className={styles.sheetContentBody}>
               <Outlet
                 context={{

@@ -8,7 +8,11 @@ import { getColumns } from "./columns";
 import PageTitle from "~/components/page-title";
 import CpuChipIcon from "~/assets/icons/cpu-chip.svg?react";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
-import { AdminServiceQueries, AuditRecord } from "@raystack/proton/frontier";
+import {
+  AdminServiceQueries,
+  AuditRecord,
+  RQLRequest,
+} from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
@@ -17,6 +21,8 @@ import {
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import SidePanelDetails from "./sidepanel-details";
+import { useQueryClient } from "@tanstack/react-query";
+import { AUDIT_LOG_QUERY_KEY } from "../util";
 
 const NoAuditLogs = () => {
   return (
@@ -37,24 +43,37 @@ const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
 };
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    occurredAt: "occurred_at",
+    orgId: "org_id",
+    orgName: "org_name",
+    actor: "actor_name",
+    resource: "resource_name",
+    resourceType: "resource_type",
+    actorType: "actor_type",
+  },
+};
 
 export const AuditLogsList = () => {
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
+  const queryClient = useQueryClient();
+  const [tableQuery, setTableQuery] = useDebouncedState<{
+    query: DataTableQuery;
+    rqlRequest: RQLRequest;
+  }>(
+    {
+      query: INITIAL_QUERY,
+      rqlRequest: transformDataTableQueryToRQLRequest(
+        INITIAL_QUERY,
+        TRANSFORM_OPTIONS,
+      ),
+    },
     200,
   );
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [selectedAuditLog, setSelectedAuditLog] = useState<AuditRecord | null>(
     null,
   );
-
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      occurredAt: "occurred_at",
-      orgId: "org_id",
-      actor: "actor.name",
-    },
-  });
 
   const {
     data: infiniteData,
@@ -66,11 +85,15 @@ export const AuditLogsList = () => {
     hasNextPage,
   } = useInfiniteQuery(
     AdminServiceQueries.listAuditRecords,
-    { query: query },
+    { query: tableQuery.rqlRequest },
     {
       pageParamKey: "query",
       getNextPageParam: lastPage =>
-        getConnectNextPageParam(lastPage, { query: query }, "auditRecords"),
+        getConnectNextPageParam(
+          lastPage,
+          { query: tableQuery.rqlRequest },
+          "auditRecords",
+        ),
       staleTime: 0,
       refetchOnWindowFocus: false,
       retry: 1,
@@ -81,13 +104,25 @@ export const AuditLogsList = () => {
   const data =
     infiniteData?.pages?.flatMap(page => page?.auditRecords || []) || [];
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery({
-      ...newQuery,
-      offset: 0,
-      limit: newQuery.limit || DEFAULT_PAGE_SIZE,
-    });
-  };
+  const onTableQueryChange = useCallback(
+    (query: DataTableQuery) => {
+      const updatedQuery = {
+        ...query,
+        offset: 0,
+        limit: query.limit || DEFAULT_PAGE_SIZE,
+      };
+      const updatedRQLRequest = transformDataTableQueryToRQLRequest(
+        updatedQuery,
+        TRANSFORM_OPTIONS,
+      );
+      queryClient.setQueryData(AUDIT_LOG_QUERY_KEY, updatedRQLRequest);
+      setTableQuery({
+        query: updatedQuery,
+        rqlRequest: updatedRQLRequest,
+      });
+    },
+    [queryClient],
+  );
 
   const handleLoadMore = async () => {
     try {
@@ -142,7 +177,7 @@ export const AuditLogsList = () => {
     <>
       <PageTitle title="Audit Logs" />
       <DataTable
-        query={tableQuery}
+        query={tableQuery.query}
         columns={columns}
         data={data}
         isLoading={loading}
@@ -152,7 +187,7 @@ export const AuditLogsList = () => {
         onLoadMore={handleLoadMore}
         onRowClick={onRowClick}>
         <Flex direction="column" style={{ width: "100%" }}>
-          <Navbar searchQuery={tableQuery.search} />
+          <Navbar searchQuery={tableQuery.query.search} />
           <DataTable.Toolbar />
           <Flex className={styles["table-content-container"]}>
             <DataTable.Content
