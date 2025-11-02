@@ -22,7 +22,7 @@ import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { useDebouncedState } from "~/hooks/useDebouncedState";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {

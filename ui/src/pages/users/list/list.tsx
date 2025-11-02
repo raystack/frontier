@@ -16,7 +16,7 @@ import {
 } from "~/utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
-import { useDebouncedState } from "~/hooks/useDebouncedState";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 
 const NoUsers = () => {
   return (

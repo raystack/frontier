@@ -14,7 +14,7 @@ import {
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
 import { getColumns } from "./columns";
-import { useDebouncedState } from "~/hooks/useDebouncedState";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {

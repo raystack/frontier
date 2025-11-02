@@ -30,11 +30,11 @@ importers:
         specifier: ^1.3.0
         version: 1.3.2(react@18.3.1)
       '@raystack/apsara':
-        specifier: ^0.52.0
-        version: 0.52.0(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.53.2
+        version: 0.53.2(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
         specifier: ^0.72.4
-        version: 0.72.4(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.9.0))(@raystack/apsara@0.52.0(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/query-core@5.83.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 0.72.4(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.9.0))(@raystack/apsara@0.53.2(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/query-core@5.83.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/proton':
         specifier: 0.1.0-80ce71da5211fde064d83731a80cee2dffbdf84b
         version: 0.1.0-80ce71da5211fde064d83731a80cee2dffbdf84b(@tanstack/query-core@5.83.1)(@tanstack/react-query@5.84.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1278,8 +1278,8 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
-  '@raystack/apsara@0.52.0':
-    resolution: {integrity: sha512-iWFnDGUI52Z+KwQaJsx+g1JC/cTK1yf86eScxA3HbSR1M1yhR+mFBxkJ8+GMSXIjUKGABA0P+mXyNryDn1Ta4g==}
+  '@raystack/apsara@0.53.2':
+    resolution: {integrity: sha512-sgYbL0OnOYQyKBUoS2H7I8VtQJwJm0tLg4acrHk2GCW9wF/cfH3o0DjKGkvC/yp1Q69Z820/E+J88tjvyy++VQ==}
     engines: {node: '>=22'}
     peerDependencies:
       '@types/react': ^18 || ^19
@@ -1548,6 +1548,9 @@ packages:
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
+
+  '@types/prismjs@1.26.5':
+    resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
 
   '@types/prop-types@15.7.14':
     resolution: {integrity: sha512-gNMvNH49DJ7OJYv+KAKn0Xp45p8PLl6zo2YnvDIbTd4J6MER2BmWN49TG7n9LvkyihINxeKW8+3bfS2yDC9dzQ==}
@@ -2293,6 +2296,11 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  prism-react-renderer@2.4.1:
+    resolution: {integrity: sha512-ey8Ls/+Di31eqzUxC46h8MksNuGx/n0AAC8uKpwFau4RPDYLuE3EXTp8N8G2vX2N7UC/+IXeNUnlWBGGcAG+Ig==}
+    peerDependencies:
+      react: '>=16.0.0'
 
   prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
@@ -3986,7 +3994,7 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
-  '@raystack/apsara@0.52.0(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/apsara@0.53.2(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@ariakit/react': 0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-icons': 1.3.2(react@18.3.1)
@@ -3997,6 +4005,7 @@ snapshots:
       cmdk: 1.1.1(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       color: 5.0.2
       dayjs: 1.11.13
+      prism-react-renderer: 2.4.1(react@18.3.1)
       radix-ui: 1.4.2(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
       react-day-picker: 9.6.7(react@18.3.1)
@@ -4007,13 +4016,13 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react-dom'
 
-  '@raystack/frontier@0.72.4(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.9.0))(@raystack/apsara@0.52.0(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/query-core@5.83.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/frontier@0.72.4(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.9.0))(@raystack/apsara@0.53.2(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/query-core@5.83.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@bufbuild/protobuf': 2.9.0
       '@connectrpc/connect-query': 2.1.1(@bufbuild/protobuf@2.9.0)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.9.0))(@tanstack/query-core@5.83.1)(@tanstack/react-query@5.84.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@connectrpc/connect-web': 2.1.0(@bufbuild/protobuf@2.9.0)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.9.0))
       '@hookform/resolvers': 3.10.0(react-hook-form@7.60.0(react@18.3.1))
-      '@raystack/apsara': 0.52.0(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@raystack/apsara': 0.53.2(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/proton': 0.1.0-2dbafa5913a214851fdc4f1beefbe27c4a6de55a(@tanstack/query-core@5.83.1)(@tanstack/react-query@5.84.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query': 5.84.1(react@18.3.1)
       '@tanstack/react-router': 1.58.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4255,6 +4264,8 @@ snapshots:
       undici-types: 5.26.5
 
   '@types/parse-json@4.0.2': {}
+
+  '@types/prismjs@1.26.5': {}
 
   '@types/prop-types@15.7.14': {}
 
@@ -5011,6 +5022,12 @@ snapshots:
       source-map-js: 1.2.1
 
   prelude-ls@1.2.1: {}
+
+  prism-react-renderer@2.4.1(react@18.3.1):
+    dependencies:
+      '@types/prismjs': 1.26.5
+      clsx: 2.1.1
+      react: 18.3.1
 
   prop-types@15.8.1:
     dependencies:
