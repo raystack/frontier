@@ -14,13 +14,20 @@ import {
   type DataTableColumnDef,
   getAvatarColor
 } from '@raystack/apsara';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
-import type { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries,
+  RemoveGroupUserRequestSchema,
+  DeletePolicyRequestSchema,
+  CreatePolicyRequestSchema,
+  Policy,
+  Role,
+  User,
+  ListPoliciesRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 interface getColumnsOptions {
-  roles: V1Beta1Role[];
+  roles: Role[];
   organizationId: string;
   canUpdateGroup?: boolean;
   memberRoles?: Record<string, Role[]>;
@@ -29,7 +36,7 @@ interface getColumnsOptions {
 
 export const getColumns: (
   options: getColumnsOptions
-) => DataTableColumnDef<V1Beta1User, unknown>[] = ({
+) => DataTableColumnDef<User, unknown>[] = ({
   roles = [],
   organizationId,
   canUpdateGroup = false,
@@ -74,7 +81,7 @@ export const getColumns: (
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: ({ row, getValue }) => {
+    cell: ({ row }) => {
       return (
         <Text>
           {(row.original?.id &&
@@ -94,10 +101,10 @@ export const getColumns: (
     cell: ({ row }) => (
       <MembersActions
         refetch={refetchMembers}
-        member={row.original as V1Beta1User}
+        member={row.original as User}
         organizationId={organizationId}
         canUpdateGroup={canUpdateGroup}
-        excludedRoles={differenceWith<V1Beta1Role>(
+        excludedRoles={differenceWith<Role>(
           isEqualById,
           roles,
           row.original?.id && memberRoles[row.original?.id]
@@ -116,23 +123,19 @@ const MembersActions = ({
   excludedRoles = [],
   refetch = () => null
 }: {
-  member: V1Beta1User;
+  member: User;
   canUpdateGroup?: boolean;
   organizationId: string;
-  excludedRoles: V1Beta1Role[];
+  excludedRoles: Role[];
   refetch: () => void;
 }) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const { client } = useFrontier();
   const navigate = useNavigate({ from: '/teams/$teamId' });
 
-  async function deleteMember() {
-    try {
-      await client?.frontierServiceRemoveGroupUser(
-        organizationId,
-        teamId as string,
-        member?.id as string
-      );
+  // Remove group user using Connect RPC
+  const removeGroupUserMutation = useMutation(FrontierServiceQueries.removeGroupUser, {
+    onSuccess: () => {
+      refetch();
       navigate({
         to: '/teams/$teamId',
         params: {
@@ -140,38 +143,83 @@ const MembersActions = ({
         }
       });
       toast.success('Member deleted');
-    } catch ({ error }: any) {
+    },
+    onError: (error) => {
       toast.error('Something went wrong', {
         description: error.message
       });
     }
+  });
+
+  function deleteMember() {
+    const request = create(RemoveGroupUserRequestSchema, {
+      id: teamId as string,
+      orgId: organizationId,
+      userId: member?.id as string
+    });
+
+    removeGroupUserMutation.mutate(request);
   }
 
-  async function updateRole(role: V1Beta1Role) {
+  // Get policies using Connect RPC
+  const { refetch: refetchPolicies } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    create(ListPoliciesRequestSchema, { groupId: teamId as string, userId: member?.id as string }),
+    { enabled: false } // Only fetch when needed
+  );
+
+  // Delete policy using Connect RPC
+  const deletePolicyMutation = useMutation(FrontierServiceQueries.deletePolicy, {
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
+
+  // Create policy using Connect RPC
+  const createPolicyMutation = useMutation(FrontierServiceQueries.createPolicy, {
+    onSuccess: () => {
+      refetch();
+      toast.success('Team member role updated');
+    },
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
+
+  async function updateRole(role: Role) {
     try {
       const resource = `app/group:${teamId}`;
       const principal = `app/user:${member?.id}`;
-      const {
-        // @ts-ignore
-        data: { policies = [] }
-      } = await client?.frontierServiceListPolicies({
-        groupId: teamId,
-        userId: member.id
-      });
+      
+      // Get policies using Connect RPC
+      const policiesResponse = await refetchPolicies();
+      const policies = policiesResponse?.data?.policies || [];
 
-      const deletePromises = policies.map((p: V1Beta1Policy) =>
-        client?.frontierServiceDeletePolicy(p.id as string)
-      );
+      // Delete existing policies
+      const deletePromises = policies.map((p: Policy) => {
+        const deleteRequest = create(DeletePolicyRequestSchema, {
+          id: p.id as string
+        });
+        return deletePolicyMutation.mutateAsync(deleteRequest);
+      });
 
       await Promise.all(deletePromises);
-      await client?.frontierServiceCreatePolicy({
-        roleId: role.id as string,
-        title: role.name as string,
-        resource: resource,
-        principal: principal
+      
+      // Create new policy
+      const createRequest = create(CreatePolicyRequestSchema, {
+        body: {
+          roleId: role.id as string,
+          title: role.name as string,
+          resource: resource,
+          principal: principal
+        }
       });
-      refetch();
-      toast.success('Team member role updated');
+      
+      await createPolicyMutation.mutateAsync(createRequest);
     } catch (error: any) {
       toast.error('Something went wrong', {
         description: error?.message
@@ -186,7 +234,7 @@ const MembersActions = ({
       {/* @ts-ignore */}
       <DropdownMenu.Content portal={false}>
         <DropdownMenu.Group>
-          {excludedRoles.map((role: V1Beta1Role) => (
+          {excludedRoles.map((role: Role) => (
             <DropdownMenu.Item
               key={role.id}
               onClick={() => updateRole(role)}

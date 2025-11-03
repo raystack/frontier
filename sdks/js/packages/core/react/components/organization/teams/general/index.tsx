@@ -14,11 +14,12 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1Group, V1Beta1Organization } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { AuthTooltipMessage } from '~/react/utils';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, UpdateGroupRequestSchema, type Group, type Organization } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 const teamSchema = yup
   .object({
@@ -30,8 +31,8 @@ const teamSchema = yup
 type FormData = yup.InferType<typeof teamSchema>;
 
 interface GeneralTeamProps {
-  team?: V1Beta1Group;
-  organization?: V1Beta1Organization;
+  team?: Group;
+  organization?: Organization;
   isLoading?: boolean;
 }
 
@@ -50,7 +51,6 @@ export const General = ({
   });
 
   let { teamId } = useParams({ from: '/teams/$teamId' });
-  const { client } = useFrontier();
 
   useEffect(() => {
     reset(team);
@@ -91,19 +91,31 @@ export const General = ({
 
   const isLoading = isTeamLoading || isPermissionsFetching;
 
+  const { mutateAsync: updateTeam } = useMutation(FrontierServiceQueries.updateGroup, {
+    onSuccess: () => {
+      toast.success('Team updated');
+    },
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message || 'Failed to update team'
+      });
+    }
+  });
+
   async function onSubmit(data: FormData) {
-    if (!client) return;
     if (!organization?.id) return;
     if (!teamId) return;
 
-    try {
-      await client.frontierServiceUpdateGroup(organization?.id, teamId, data);
-      toast.success('Team updated');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
+    const request = create(UpdateGroupRequestSchema, {
+      id: teamId,
+      orgId: organization.id,
+      body: {
+        title: data.title,
+        name: data.name
+      }
+    });
+
+    await updateTeam(request);
   }
 
   return (

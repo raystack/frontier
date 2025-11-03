@@ -1,21 +1,28 @@
 import { Amount, type DataTableColumnDef, Link, Text } from "@raystack/apsara";
 import dayjs from "dayjs";
-import type { V1Beta1SearchInvoicesResponseInvoice } from "~/api/frontier";
-import { NULL_DATE } from "~/utils/constants";
+import type { SearchInvoicesResponse_Invoice } from "@raystack/proton/frontier";
+import {
+  isNullTimestamp,
+  TimeStamp,
+  timestampToDate,
+} from "~/utils/connect-timestamp";
 
 export const getColumns = (): DataTableColumnDef<
-  V1Beta1SearchInvoicesResponseInvoice,
+  SearchInvoicesResponse_Invoice,
   unknown
 >[] => {
   return [
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Billed on",
       filterType: "date",
       enableColumnFilter: true,
       cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return <Text>{date}</Text>;
       },
       enableHiding: true,
       enableSorting: true,
@@ -23,7 +30,7 @@ export const getColumns = (): DataTableColumnDef<
     {
       enableColumnFilter: true,
       accessorKey: "state",
-      filterOptions: ["paid", "open", "draft"].map((value) => ({
+      filterOptions: ["paid", "open", "draft"].map(value => ({
         value: value,
         label: value,
       })),
@@ -34,7 +41,7 @@ export const getColumns = (): DataTableColumnDef<
       },
     },
     {
-      accessorKey: "org_title",
+      accessorKey: "orgTitle",
       header: "Organization",
       cell: ({ row, getValue }) => {
         return getValue() as string;
@@ -44,13 +51,12 @@ export const getColumns = (): DataTableColumnDef<
       header: "Amount",
       accessorKey: "amount",
       cell: ({ row, getValue }) => {
-        const currency = row?.original?.currency;
-        const value = getValue() as number;
-        return <Amount value={value} currency={currency} />;
+        const value = Number(getValue());
+        return <Amount value={value} currency={row.original.currency} />;
       },
     },
     {
-      accessorKey: "invoice_link",
+      accessorKey: "invoiceLink",
       header: "",
       cell: ({ row, getValue }) => {
         const link = getValue() as string;

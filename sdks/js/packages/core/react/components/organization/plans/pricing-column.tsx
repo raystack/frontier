@@ -362,7 +362,7 @@ export const PlanPricingColumn = ({
         planId: selectedIntervalPricing?.planId,
         isTrial: false,
         onSuccess: data => {
-          window.location.href = data?.checkout_url as string;
+          window.location.href = data?.checkoutUrl as string;
         }
       });
     }
@@ -387,7 +387,7 @@ export const PlanPricingColumn = ({
       isTrial: true,
       onSuccess: data => {
         setIsTrialCheckoutLoading(false);
-        window.location.href = data?.checkout_url as string;
+        window.location.href = data?.checkoutUrl as string;
       }
     });
   };

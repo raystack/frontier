@@ -14,6 +14,7 @@ import {
   DEFAULT_PAGE_SIZE,
   getGroupCountMapFromFirstPage,
 } from "~/utils/connect-pagination";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
@@ -60,7 +61,10 @@ export function OrganizationInvoicesPage() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200,
+  );
 
   const title = `Invoices | ${organization?.title} | Organizations`;
 
@@ -96,7 +100,7 @@ export function OrganizationInvoicesPage() {
     {
       enabled: !!organizationId,
       pageParamKey: "query",
-      getNextPageParam: (lastPage) =>
+      getNextPageParam: lastPage =>
         getConnectNextPageParam(
           lastPage,
           { query: query },
@@ -110,7 +114,7 @@ export function OrganizationInvoicesPage() {
   );
 
   const data =
-    infiniteData?.pages?.flatMap((page) => page.organizationInvoices) || [];
+    infiniteData?.pages?.flatMap(page => page.organizationInvoices) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;
   const groupCountMap = infiniteData
     ? getGroupCountMapFromFirstPage(infiniteData)
@@ -146,8 +150,7 @@ export function OrganizationInvoicesPage() {
         mode="server"
         onTableQueryChange={onTableQueryChange}
         onLoadMore={fetchMore}
-        query={tableQuery}
-      >
+        query={tableQuery}>
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content

@@ -23,6 +23,7 @@ import {
 } from "~/utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 
 const NoOrganizations = () => {
   return (
@@ -50,7 +51,10 @@ export const OrganizationList = () => {
 
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200,
+  );
 
   // Transform the DataTableQuery to RQLRequest format
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
@@ -76,7 +80,7 @@ export const OrganizationList = () => {
     { query: query },
     {
       pageParamKey: "query",
-      getNextPageParam: (lastPage) =>
+      getNextPageParam: lastPage =>
         getConnectNextPageParam(lastPage, { query: query }, "organizations"),
       staleTime: 0,
       refetchOnWindowFocus: false,
@@ -86,7 +90,7 @@ export const OrganizationList = () => {
   );
 
   const data =
-    infiniteData?.pages?.flatMap((page) => page?.organizations || []) || [];
+    infiniteData?.pages?.flatMap(page => page?.organizations || []) || [];
 
   const groupCountMap = infiniteData
     ? getGroupCountMapFromFirstPage(infiniteData)
@@ -177,8 +181,7 @@ export const OrganizationList = () => {
         onTableQueryChange={onTableQueryChange}
         mode="server"
         onLoadMore={handleLoadMore}
-        onRowClick={onRowClick}
-      >
+        onRowClick={onRowClick}>
         <Flex direction="column" style={{ width: "100%" }}>
           <OrganizationsNavabar
             searchQuery={tableQuery.search}
