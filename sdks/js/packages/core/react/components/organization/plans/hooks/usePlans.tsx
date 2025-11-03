@@ -6,10 +6,11 @@ import { SubscriptionPhase } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { PlanMetadata } from '~/src/types';
 import { NIL as NIL_UUID } from 'uuid';
-import { Plan, CheckoutSession } from '@raystack/proton/frontier';
 import { useMutation, FrontierServiceQueries } from '~hooks';
 import { create } from '@bufbuild/protobuf';
 import {
+  type Plan,
+  type CheckoutSession,
   CreateCheckoutRequestSchema,
   ChangeSubscriptionRequestSchema,
   CancelSubscriptionRequestSchema
