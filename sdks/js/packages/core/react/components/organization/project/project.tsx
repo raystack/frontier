@@ -1,7 +1,6 @@
 import { Tabs, Image, Text, toast, Flex } from '@raystack/apsara';
 import {
   Outlet,
-  useLocation,
   useNavigate,
   useParams,
   useRouterState
@@ -42,9 +41,6 @@ export const ProjectPage = () => {
   const { activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/projects/$projectId' });
   const routeState = useRouterState();
-
-  const location = useLocation();
-  const refetch = location?.state?.refetch;
 
   const isDeleteRoute = useMemo(() => {
     return routeState.matches.some(
@@ -147,13 +143,6 @@ export const ProjectPage = () => {
       toast.error('Something went wrong', { description: rolesError.message });
     }
   }, [rolesError]);
-
-  useEffect(() => {
-    if (refetch) {
-      refetchProjectUsers();
-      refetchProjectGroups();
-    }
-  }, [refetch, refetchProjectUsers, refetchProjectGroups]);
 
   const isLoading =
     isProjectLoadingQuery ||

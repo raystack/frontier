@@ -1,17 +1,19 @@
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect } from 'react';
-import { useQuery, useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, ListPoliciesRequestSchema, DeletePolicyRequestSchema } from '@raystack/proton/frontier';
+import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { FrontierServiceQueries, ListPoliciesRequestSchema, DeletePolicyRequestSchema, ListProjectUsersRequestSchema, ListProjectGroupsRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 
 export const RemoveProjectMember = () => {
-
   const navigate = useNavigate({
     from: '/projects/$projectId/$membertype/$memberId/remove'
   });
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const { projectId, memberId } = useParams({
     from: '/projects/$projectId/$membertype/$memberId/remove'
@@ -42,7 +44,32 @@ export const RemoveProjectMember = () => {
       await Promise.all(
         (policies || []).map(p => deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' })))
       );
-      navigate({ to: '/projects/$projectId', params: { projectId }, state: { refetch: true } });
+      // Invalidate and refetch project users and groups queries after all policies are deleted
+      if (projectId) {
+        await queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.listProjectUsers,
+            transport,
+            input: create(ListProjectUsersRequestSchema, {
+              id: projectId,
+              withRoles: true
+            }),
+            cardinality: 'finite'
+          })
+        });
+        await queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.listProjectGroups,
+            transport,
+            input: create(ListProjectGroupsRequestSchema, {
+              id: projectId,
+              withRoles: true
+            }),
+            cardinality: 'finite'
+          })
+        });
+      }
+      navigate({ to: '/projects/$projectId', params: { projectId } });
       toast.success('Member removed');
     } catch (error) {
       // Error is already handled by mutation's onError callback
