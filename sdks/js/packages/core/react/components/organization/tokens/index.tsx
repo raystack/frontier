@@ -14,15 +14,20 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { styles } from '../styles';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
-import { V1Beta1BillingTransaction } from '~/src';
+import {
+  FrontierServiceQueries,
+  ListBillingTransactionsRequestSchema
+} from '~/src';
 import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
 import coin from '~/react/assets/coin.svg';
 import { useNavigate, Outlet } from '@tanstack/react-router';
+import { useQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -66,7 +71,6 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
 interface BalancePanelProps {
   balance: number;
   isLoading: boolean;
-  isCheckoutLoading: boolean;
   onAddTokenClick: () => void;
   canUpdateWorkspace: boolean;
 }
@@ -74,13 +78,11 @@ interface BalancePanelProps {
 function BalancePanel({
   balance,
   isLoading,
-  isCheckoutLoading,
   onAddTokenClick,
   canUpdateWorkspace
 }: BalancePanelProps) {
   const formattedBalance = getFormattedNumberString(balance);
-  const disableAddTokensBtn =
-    isLoading || isCheckoutLoading || !canUpdateWorkspace;
+  const disableAddTokensBtn = isLoading || !canUpdateWorkspace;
   return (
     <Flex className={tokenStyles.balancePanel} justify="between">
       <Flex className={tokenStyles.balanceTokenBox}>
@@ -96,9 +98,7 @@ function BalancePanel({
           {isLoading ? (
             <Skeleton style={{ height: '24px' }} />
           ) : (
-            <Headline size="t2" weight="medium">
-              {formattedBalance}
-            </Headline>
+            <Headline size="t2">{formattedBalance}</Headline>
           )}
         </Flex>
       </Flex>
@@ -114,7 +114,6 @@ function BalancePanel({
               className={tokenStyles.addTokenButton}
               onClick={onAddTokenClick}
               disabled={disableAddTokensBtn}
-              loading={isCheckoutLoading}
               loaderText="Adding tokens..."
               data-test-id="frontier-sdk-add-tokens-btn"
             >
@@ -132,14 +131,13 @@ function BalancePanel({
 interface TokenInfoBoxProps {
   balance: number;
   isLoading: boolean;
-  isCheckoutLoading: boolean;
   canUpdateWorkspace: boolean;
 }
 
 function TokenInfoBox({ canUpdateWorkspace }: TokenInfoBoxProps) {
   const { billingDetails } = useFrontier();
   const isPostpaid =
-    billingDetails?.credit_min && parseInt(billingDetails.credit_min) < 0;
+    billingDetails?.creditMin && billingDetails.creditMin < BigInt(0);
 
   return isPostpaid && canUpdateWorkspace ? (
     <Callout
@@ -156,48 +154,39 @@ function TokenInfoBox({ canUpdateWorkspace }: TokenInfoBoxProps) {
 export default function Tokens() {
   const {
     config,
-    client,
     activeOrganization,
     billingAccount,
     isActiveOrganizationLoading,
     isBillingAccountLoading
   } = useFrontier();
   const navigate = useNavigate({ from: '/tokens' });
-  const [transactionsList, setTransactionsList] = useState<
-    V1Beta1BillingTransaction[]
-  >([]);
-  const [isTransactionsListLoading, setIsTransactionsListLoading] =
-    useState(false);
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const { isAllowed, isFetching: isPermissionsFetching } =
     useBillingPermission();
   const { tokenBalance, isTokensLoading } = useTokens();
 
-  useEffect(() => {
-    async function getTransactions(orgId: string, billingAccountId: string) {
-      try {
-        setIsTransactionsListLoading(true);
-        const resp = await client?.frontierServiceListBillingTransactions(
-          orgId,
-          billingAccountId,
-          {
-            expand: ['user']
-          }
-        );
-        const txns = resp?.data?.transactions || [];
-        setTransactionsList(txns);
-      } catch (err: any) {
-        console.error(err);
-        toast.error('Unable to fetch transactions');
-      } finally {
-        setIsTransactionsListLoading(false);
-      }
+  const {
+    data: transactionsData = [],
+    isLoading: isTransactionsListLoading,
+    error: transactionsError
+  } = useQuery(
+    FrontierServiceQueries.listBillingTransactions,
+    create(ListBillingTransactionsRequestSchema, {
+      orgId: activeOrganization?.id ?? '',
+      expand: ['user'],
+      billingId: billingAccount?.id ?? ''
+    }),
+    {
+      enabled: !!activeOrganization?.id && !!billingAccount?.id,
+      select: data => data?.transactions ?? []
     }
+  );
 
-    if (activeOrganization?.id && billingAccount?.id) {
-      getTransactions(activeOrganization?.id, billingAccount?.id);
+  useEffect(() => {
+    if (transactionsError) {
+      console.error(transactionsError);
+      toast.error('Unable to fetch transactions');
     }
-  }, [activeOrganization?.id, billingAccount?.id, client]);
+  }, [transactionsError]);
 
   const isLoading =
     isActiveOrganizationLoading ||
@@ -221,18 +210,16 @@ export default function Tokens() {
           <TokenInfoBox
             balance={tokenBalance}
             isLoading={isLoading}
-            isCheckoutLoading={isCheckoutLoading}
             canUpdateWorkspace={isAllowed}
           />
           <BalancePanel
             balance={tokenBalance}
             isLoading={isLoading}
             onAddTokenClick={() => navigate({ to: '/tokens/modal' })}
-            isCheckoutLoading={isCheckoutLoading}
             canUpdateWorkspace={isAllowed}
           />
           <TransactionsTable
-            transactions={transactionsList}
+            transactions={transactionsData}
             isLoading={isTxnDataLoading}
           />
         </Flex>

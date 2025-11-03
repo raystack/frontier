@@ -1,13 +1,13 @@
 import { EmptyState, Text, Flex, DataTable } from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import type { V1Beta1BillingTransaction } from '~/src';
+import type { BillingTransaction } from '~/src';
 import { getColumns } from './columns';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import tokenStyles from '../token.module.css';
 
 interface TransactionsTableProps {
-  transactions: V1Beta1BillingTransaction[];
+  transactions: BillingTransaction[];
   isLoading: boolean;
 }
 
