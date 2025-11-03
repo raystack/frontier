@@ -14,6 +14,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, CreateProjectRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
@@ -38,7 +41,6 @@ type FormData = yup.InferType<typeof projectSchema>;
 export const AddProject = () => {
   const {
     reset,
-    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -47,30 +49,44 @@ export const AddProject = () => {
     resolver: yupResolver(projectSchema)
   });
   const navigate = useNavigate({ from: '/projects/modal' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
     reset({ org_id: organization?.id });
   }, [organization, reset]);
 
-  async function onSubmit(data: FormData) {
-    if (!client) return;
-
-    try {
-      await client.frontierServiceCreateProject(data);
-      toast.success('Project added');
-      navigate({ to: '/projects' });
-    } catch (err: unknown) {
-      if (err instanceof Response && err?.status === 409) {
-        setError('name', {
-          message: 'Project name already exists. Please enter a unique name.'
-        });
-      } else {
-        toast.error('Something went wrong', {
-          description: (err as Error)?.message
-        });
+  const { mutateAsync: createProject } = useMutation(
+    FrontierServiceQueries.createProject,
+    {
+      onSuccess: () => {
+        toast.success('Project added');
+        navigate({ to: '/projects' });
+      },
+      onError: (error: Error) => {
+        if (error instanceof Response && error?.status === 409) {
+          setError('name', {
+            message: 'Project name already exists. Please enter a unique name.'
+          });
+        } else {
+          toast.error('Something went wrong', {
+            description: error.message || 'Failed to create project'
+          });
+        }
       }
     }
+  );
+
+  async function onSubmit(data: FormData) {
+    if (!organization?.id) return;
+    await createProject(
+      create(CreateProjectRequestSchema, {
+        body: {
+          title: data.title,
+          name: data.name,
+          orgId: organization.id
+        }
+      })
+    );
   }
 
   return (

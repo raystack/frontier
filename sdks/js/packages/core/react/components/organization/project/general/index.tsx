@@ -12,15 +12,12 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import {
-  V1Beta1Organization,
-  V1Beta1Project,
-  V1Beta1ProjectRequestBody
-} from '~/src';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, UpdateProjectRequestSchema, Project, Organization } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { AuthTooltipMessage } from '~/react/utils';
 
@@ -34,8 +31,8 @@ const projectSchema = yup
 type FormData = yup.InferType<typeof projectSchema>;
 
 interface GeneralProjectProps {
-  project?: V1Beta1Project;
-  organization?: V1Beta1Organization;
+  project?: Project;
+  organization?: Organization;
   isLoading?: boolean;
 }
 
@@ -46,7 +43,6 @@ export const General = ({
 }: GeneralProjectProps) => {
   const {
     reset,
-    control,
     handleSubmit,
     formState: { errors, isSubmitting },
     register
@@ -54,7 +50,11 @@ export const General = ({
     resolver: yupResolver(projectSchema)
   });
   let { projectId } = useParams({ from: '/projects/$projectId' });
-  const { client } = useFrontier();
+  const { mutateAsync: updateProject } = useMutation(FrontierServiceQueries.updateProject, {
+    onSuccess: () => toast.success('Project updated successfully'),
+    onError: (error: Error) =>
+      toast.error('Something went wrong', { description: error.message })
+  });
 
   useEffect(() => {
     reset(project);
@@ -94,23 +94,19 @@ export const General = ({
   }, [permissions, resource]);
 
   async function onSubmit(data: FormData) {
-    if (!client) return;
     if (!organization?.id) return;
     if (!projectId) return;
 
-    try {
-      const payload: V1Beta1ProjectRequestBody = {
-        name: data.name,
-        title: data.title,
-        orgId: organization.id
-      };
-      await client.frontierServiceUpdateProject(projectId, payload);
-      toast.success('Project updated');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
+    await updateProject(
+      create(UpdateProjectRequestSchema, {
+        id: projectId,
+        body: {
+          name: data.name,
+          title: data.title,
+          orgId: organization.id
+        }
+      })
+    );
   }
 
   const isLoading = isPermissionsFetching || isProjectLoading;

@@ -16,7 +16,9 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Project } from '~/src';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, GetProjectRequestSchema, DeleteProjectRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
@@ -38,49 +40,45 @@ export const DeleteProject = () => {
   });
   let { projectId } = useParams({ from: '/projects/$projectId/delete' });
   const navigate = useNavigate({ from: '/projects/$projectId/delete' });
-  const { client, activeOrganization: organization } = useFrontier();
-  const [isProjectLoading, setIsProjectLoading] = useState(false);
-  const [project, setProject] = useState<V1Beta1Project>();
+  const { activeOrganization: organization } = useFrontier();
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
-  useEffect(() => {
-    async function getProjectDetails() {
-      if (!projectId) return;
-      try {
-        setIsProjectLoading(true);
-        const {
-          // @ts-ignore
-          data: { project }
-        } = await client?.frontierServiceGetProject(projectId);
-        setProject(project);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsProjectLoading(false);
-      }
+  const {
+    data: project,
+    isLoading: isProjectQueryLoading,
+    error: projectError
+  } = useQuery(
+    FrontierServiceQueries.getProject,
+    create(GetProjectRequestSchema, { id: projectId || '' }),
+    {
+      enabled: !!projectId,
+      select: (d) => d?.project
     }
-    getProjectDetails();
-  }, [client, projectId]);
+  );
 
-  async function onSubmit(data: any) {
-    if (!organization?.id) return;
-    if (!projectId) return;
-    if (!client) return;
+  useEffect(() => {
+    if (projectError) {
+      toast.error('Something went wrong', { description: projectError.message });
+    }
+  }, [projectError]);
 
+  const { mutateAsync: deleteProject } = useMutation(
+    FrontierServiceQueries.deleteProject,
+    {
+      onSuccess: () => {
+        toast.success('project deleted');
+        navigate({ to: '/projects' });
+      },
+      onError: (err: Error) =>
+        toast.error('Something went wrong', { description: err.message })
+    }
+  );
+
+  async function onSubmit(data: { name?: string }) {
+    if (!organization?.id || !projectId) return;
     if (data.name !== project?.name)
       return setError('name', { message: 'project name is not same' });
-
-    try {
-      await client.frontierServiceDeleteProject(projectId);
-      toast.success('project deleted');
-      navigate({ to: '/projects' });
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
+    await deleteProject(create(DeleteProjectRequestSchema, { id: projectId }));
   }
 
   const name = watch('name', '');
@@ -109,7 +107,7 @@ export const DeleteProject = () => {
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Flex direction="column" gap={5}>
-              {isProjectLoading ? (
+              {isProjectQueryLoading ? (
                 <>
                   <Skeleton height={'16px'} />
                   <Skeleton width={'50%'} height={'16px'} />
