@@ -32,6 +32,7 @@
 
 .txnTableHeader {
   z-index: 1;
+  top: calc(var(--rs-space-9) * -1);
 }
 
 .txnTableEventColumn {

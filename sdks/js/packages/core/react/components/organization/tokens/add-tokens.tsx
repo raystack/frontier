@@ -8,9 +8,9 @@ import {
   InputField,
   Skeleton
 } from '@raystack/apsara';
-
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
+import { useMutation } from '@connectrpc/connect-query';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -19,16 +19,46 @@ import styles from '../organization.module.css';
 import tokenStyles from './token.module.css';
 import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@connectrpc/connect-query';
+import { CreateCheckoutRequestSchema, FrontierServiceQueries } from '~/src';
+import { create } from '@bufbuild/protobuf';
 
 export const AddTokens = () => {
-  const [productDescription, setProductDescription] = useState<string>('');
-  const [minQuantity, setMinQuantity] = useState<number>(1);
-  const [maxQuantity, setMaxQuantity] = useState<number>(1000000);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
   const navigate = useNavigate({ from: '/tokens/modal' });
-  const { config, client, activeOrganization, billingAccount } = useFrontier();
+  const { config, activeOrganization, billingAccount } = useFrontier();
+
+  const tokenProductId =
+    config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
+
+  const { data: product, isLoading } = useQuery(
+    FrontierServiceQueries.getProduct,
+    { id: tokenProductId },
+    {
+      enabled: !!tokenProductId,
+      select: data => data?.product
+    }
+  );
+  const { productDescription, minQuantity, maxQuantity } = useMemo(() => {
+    let productDescription = '';
+    let minQuantity = 1;
+    let maxQuantity = 1000000;
+    if (product) {
+      const productPrice = product?.prices?.[0];
+      const price = Number(productPrice?.amount || '100') / 100;
+      const currency = productPrice?.currency || 'USD';
+      productDescription = `1 token = ${currency} ${price}`;
+    }
+    // Set quantity constraints from behavior config
+    const behaviorConfig = product?.behaviorConfig;
+    if (behaviorConfig?.minQuantity) {
+      minQuantity = Number(behaviorConfig?.minQuantity);
+    }
+    if (behaviorConfig?.maxQuantity) {
+      maxQuantity = Number(behaviorConfig?.maxQuantity);
+    }
+    return { productDescription, minQuantity, maxQuantity };
+  }, [product]);
 
   // Create schema dynamically based on product config
   const tokensSchema = yup
@@ -53,90 +83,58 @@ export const AddTokens = () => {
     resolver: yupResolver(tokensSchema)
   });
 
-  // Fetch product description for helper text
-  useEffect(() => {
-    const fetchProductDescription = async () => {
-      try {
-        const tokenProductId =
-          config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
-        const response = await client?.frontierServiceGetProduct(
-          tokenProductId
-        );
-        const product = response?.data?.product;
-
-        if (product) {
-          // Set price description
-          const productPrice = product?.prices?.[0];
-          const price = parseInt(productPrice?.amount || '100') / 100;
-          const currency = productPrice?.currency || 'USD';
-          const description = `1 token = ${currency} ${price}`;
-          setProductDescription(description);
-
-          // Set quantity constraints from behavior config
-          const behaviorConfig = product?.behavior_config;
-          if (behaviorConfig?.min_quantity) {
-            setMinQuantity(parseInt(behaviorConfig.min_quantity));
-          }
-          if (behaviorConfig?.max_quantity) {
-            setMaxQuantity(parseInt(behaviorConfig.max_quantity));
-          }
-        }
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Failed to fetch product description:', error);
+  const { mutateAsync: createCheckout, isPending: isCreatingCheckout } =
+    useMutation(FrontierServiceQueries.createCheckout, {
+      onSuccess: data => {
+        const checkoutUrl = data?.checkoutSession?.checkoutUrl;
+        if (checkoutUrl) window.location.href = checkoutUrl;
+      },
+      onError: (error: Error) => {
+        toast.error('Something went wrong', {
+          description: error?.message
+        });
       }
-    };
-
-    fetchProductDescription();
-  }, [client, config?.billing?.tokenProductId]);
+    });
 
   const onSubmit = async (data: FormData) => {
-    if (!client) return;
-    if (!activeOrganization?.id) return;
-
     try {
-      if (activeOrganization?.id && billingAccount?.id) {
-        // Token product id or name can be used here
-        const tokenProductId =
-          config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
-        const query = qs.stringify(
-          {
-            details: btoa(
-              qs.stringify({
-                billing_id: billingAccount?.id,
-                organization_id: activeOrganization?.id,
-                type: 'tokens'
-              })
-            ),
-            checkout_id: '{{.CheckoutID}}'
-          },
-          { encode: false }
-        );
-        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
-        const success_url = `${config?.billing?.successUrl}?${query}`;
+      if (!activeOrganization?.id || !billingAccount?.id) return;
+      const query = qs.stringify(
+        {
+          details: btoa(
+            qs.stringify({
+              billing_id: billingAccount?.id,
+              organization_id: activeOrganization?.id,
+              type: 'tokens'
+            })
+          ),
+          checkout_id: '{{.CheckoutID}}'
+        },
+        { encode: false }
+      );
+      const cancelUrl = `${config?.billing?.cancelUrl}?${query}`;
+      const successUrl = `${config?.billing?.successUrl}?${query}`;
 
-        const resp = await client?.frontierServiceCreateCheckout(
-          activeOrganization?.id,
-          billingAccount?.id,
-          {
-            cancel_url: cancel_url,
-            success_url: success_url,
-            product_body: {
-              product: tokenProductId,
-              quantity: data.tokens.toString()
-            }
+      await createCheckout(
+        create(CreateCheckoutRequestSchema, {
+          orgId: activeOrganization?.id || '',
+          billingId: billingAccount?.id || '',
+          cancelUrl: cancelUrl,
+          successUrl: successUrl,
+          productBody: {
+            product: tokenProductId,
+            quantity: BigInt(data.tokens)
           }
-        );
-        if (resp?.data?.checkout_session?.checkout_url) {
-          window.location.href = resp?.data?.checkout_session.checkout_url;
-        }
-      }
+        })
+      );
     } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error.message
+        description: error?.message
       });
     }
   };
+
+  const isFormSubmitting = isSubmitting || isCreatingCheckout;
 
   return (
     <Dialog open={true}>
@@ -191,6 +189,7 @@ export const AddTokens = () => {
                       setValue('tokens', parsedValue);
                     }
                   }}
+                  data-test-id="frontier-sdk-add-tokens-input"
                 />
               )}
             </Flex>
@@ -201,13 +200,14 @@ export const AddTokens = () => {
               variant="outline"
               color="neutral"
               onClick={() => navigate({ to: '/tokens' })}
+              data-test-id="frontier-sdk-add-tokens-cancel-btn"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              loading={isSubmitting}
-              disabled={!!errors.tokens || isSubmitting || isLoading}
+              loading={isFormSubmitting}
+              disabled={!!errors.tokens || isFormSubmitting || isLoading}
               loaderText="Adding..."
               data-test-id="frontier-sdk-add-tokens-btn"
             >
