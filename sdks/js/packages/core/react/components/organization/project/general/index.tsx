@@ -43,7 +43,6 @@ export const General = ({
 }: GeneralProjectProps) => {
   const {
     reset,
-    control,
     handleSubmit,
     formState: { errors, isSubmitting },
     register
@@ -51,7 +50,7 @@ export const General = ({
     resolver: yupResolver(projectSchema)
   });
   let { projectId } = useParams({ from: '/projects/$projectId' });
-  const { mutate: updateProject } = useMutation(FrontierServiceQueries.updateProject, {
+  const { mutateAsync: updateProject } = useMutation(FrontierServiceQueries.updateProject, {
     onSuccess: () => toast.success('Project updated successfully'),
     onError: (error: Error) =>
       toast.error('Something went wrong', { description: error.message })
@@ -94,11 +93,11 @@ export const General = ({
     };
   }, [permissions, resource]);
 
-  function onSubmit(data: FormData) {
+  async function onSubmit(data: FormData) {
     if (!organization?.id) return;
     if (!projectId) return;
 
-    updateProject(
+    await updateProject(
       create(UpdateProjectRequestSchema, {
         id: projectId,
         body: {
