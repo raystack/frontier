@@ -8,7 +8,7 @@ import {
 export const getAuditLogActorName = (actor?: AuditRecordActor) => {
   if (actor?.type === ACTOR_TYPES.SYSTEM) return "System";
 
-  const name = actor?.name || "-";
+  const name = actor?.title || actor?.name || "-";
 
   if (actor?.metadata?.["is_super_user"] === true) return name + " (Admin)";
 
