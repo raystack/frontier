@@ -17,7 +17,9 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group } from '~/src';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, DeleteGroupRequestSchema, GetGroupRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from '../organization.module.css';
 
 const teamSchema = yup
@@ -38,52 +40,54 @@ export const DeleteTeam = () => {
   });
   let { teamId } = useParams({ from: `/teams/$teamId/delete` });
   const navigate = useNavigate();
-  const [team, setTeam] = useState<V1Beta1Group>();
-  const [isTeamLoading, setIsTeamLoading] = useState(false);
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
+  // Get team details using Connect RPC
+  const { data: teamData, isLoading: isTeamLoading, error: teamError } = useQuery(
+    FrontierServiceQueries.getGroup,
+    create(GetGroupRequestSchema, { id: teamId || '', orgId: organization?.id || '' }),
+    { enabled: !!organization?.id && !!teamId }
+  );
+
+  const team = teamData?.group;
+
+  // Handle team error
   useEffect(() => {
-    async function getTeamDetails() {
-      if (!organization?.id || !teamId) return;
-
-      try {
-        setIsTeamLoading(true);
-        const {
-          // @ts-ignore
-          data: { group }
-        } = await client?.frontierServiceGetGroup(organization?.id, teamId);
-        setTeam(group);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsTeamLoading(false);
-      }
+    if (teamError) {
+      toast.error('Something went wrong', {
+        description: teamError.message
+      });
     }
-    getTeamDetails();
-  }, [client, organization?.id, teamId]);
+  }, [teamError]);
 
-  async function onSubmit(data: any) {
-    if (!organization?.id) return;
-    if (!teamId) return;
-    if (!client) return;
-
-    if (data.name !== team?.name)
-      return setError('name', { message: 'team name is not same' });
-
-    try {
-      await client.frontierServiceDeleteGroup(organization.id, teamId);
+  // Delete team using Connect RPC
+  const deleteTeamMutation = useMutation(FrontierServiceQueries.deleteGroup, {
+    onSuccess: () => {
       toast.success('team deleted');
-
       navigate({ to: '/teams' });
-    } catch ({ error }: any) {
+    },
+    onError: (error) => {
       toast.error('Something went wrong', {
         description: error.message
       });
     }
+  });
+
+  function onSubmit(data: { name?: string }) {
+    if (!organization?.id) return;
+    if (!teamId) return;
+
+    if (data.name !== team?.name)
+      return setError('name', { message: 'team name is not same' });
+
+    const request = create(DeleteGroupRequestSchema, {
+      id: teamId,
+      orgId: organization.id
+    });
+
+    deleteTeamMutation.mutate(request);
   }
 
   const name = watch('name', '');
@@ -158,7 +162,7 @@ export const DeleteTeam = () => {
                     type="submit"
                     style={{ width: '100%' }}
                     data-test-id="frontier-sdk-delete-team-btn-general"
-                    loading={isSubmitting}
+                    loading={deleteTeamMutation.isPending || isSubmitting}
                     loaderText="Deleting..."
                   >
                     Delete this team
