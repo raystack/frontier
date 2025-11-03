@@ -42,7 +42,6 @@ interface verifyCancelSubscriptionOptions {
 }
 
 export const usePlans = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
   const {
     activeOrganization,
@@ -56,15 +55,41 @@ export const usePlans = () => {
   } = useFrontier();
 
   // Setup mutations
-  const { mutateAsync: createCheckoutMutation } = useMutation(
-    FrontierServiceQueries.createCheckout
+  const { mutateAsync: createCheckoutMutation, isPending: isCheckoutPending } = useMutation(
+    FrontierServiceQueries.createCheckout,
+    {
+      onError: (err: Error) => {
+        console.error(err);
+        toast.error('Checkout failed', {
+          description: err?.message
+        });
+      }
+    }
   );
-  const { mutateAsync: changeSubscriptionMutation } = useMutation(
-    FrontierServiceQueries.changeSubscription
+  const { mutateAsync: changeSubscriptionMutation, isPending: isChangePlanPending } = useMutation(
+    FrontierServiceQueries.changeSubscription,
+    {
+      onError: (err: Error) => {
+        console.error(err);
+        toast.error('Failed to change plan', {
+          description: err?.message
+        });
+      }
+    }
   );
-  const { mutateAsync: cancelSubscriptionMutation } = useMutation(
-    FrontierServiceQueries.cancelSubscription
+  const { mutateAsync: cancelSubscriptionMutation, isPending: isCancelPending } = useMutation(
+    FrontierServiceQueries.cancelSubscription,
+    {
+      onError: (err: Error) => {
+        console.error(err);
+        toast.error('Failed to cancel subscription', {
+          description: err?.message
+        });
+      }
+    }
   );
+
+  const isLoading = isCheckoutPending || isChangePlanPending || isCancelPending;
 
   const planMap = allPlans.reduce((acc, p) => {
     if (p.id) acc[p.id] = p;
@@ -77,7 +102,6 @@ export const usePlans = () => {
 
   const checkoutPlan = useCallback(
     async ({ planId, onSuccess, isTrial }: checkoutPlanOptions) => {
-      setIsLoading(true);
       try {
         if (activeOrganization?.id && billingAccount?.id) {
           const query = qs.stringify(
@@ -118,14 +142,12 @@ export const usePlans = () => {
           if (resp?.checkoutSession?.checkoutUrl) {
             onSuccess(resp.checkoutSession);
           }
+        } catch (err: unknown) {
+          console.error(err);
+          toast.error('Failed to prepare checkout', {
+            description: (err as Error)?.message
+          });
         }
-      } catch (err: unknown) {
-        console.error(err);
-        toast.error('Something went wrong', {
-          description: (err as Error)?.message
-        });
-      } finally {
-        setIsLoading(false);
       }
     },
     [
@@ -144,38 +166,28 @@ export const usePlans = () => {
 
   const changePlan = useCallback(
     async ({ planId, onSuccess, immediate = false }: changePlanOptions) => {
-      setIsLoading(true);
-      try {
-        if (
-          activeOrganization?.id &&
-          billingAccount?.id &&
-          activeSubscription?.id
-        ) {
-          const resp = await changeSubscriptionMutation(
-            create(ChangeSubscriptionRequestSchema, {
-              orgId: activeOrganization?.id,
-              billingId: billingAccount?.id,
-              id: activeSubscription?.id,
-              change: {
-                case: 'planChange',
-                value: {
-                  plan: planId,
-                  immediate: immediate
-                }
+      if (
+        activeOrganization?.id &&
+        billingAccount?.id &&
+        activeSubscription?.id
+      ) {
+        const resp = await changeSubscriptionMutation(
+          create(ChangeSubscriptionRequestSchema, {
+            orgId: activeOrganization?.id,
+            billingId: billingAccount?.id,
+            id: activeSubscription?.id,
+            change: {
+              case: 'planChange',
+              value: {
+                plan: planId,
+                immediate: immediate
               }
-            })
-          );
-          if (resp?.phase) {
-            onSuccess();
-          }
+            }
+          })
+        );
+        if (resp?.phase) {
+          onSuccess();
         }
-      } catch (err: unknown) {
-        console.error(err);
-        toast.error('Something went wrong', {
-          description: (err as Error)?.message
-        });
-      } finally {
-        setIsLoading(false);
       }
     },
     [
@@ -276,32 +288,22 @@ export const usePlans = () => {
 
   const cancelSubscription = useCallback(
     async ({ onSuccess }: cancelSubscriptionOptions) => {
-      setIsLoading(true);
-      try {
-        if (
-          activeOrganization?.id &&
-          billingAccount?.id &&
-          activeSubscription?.id
-        ) {
-          const resp = await cancelSubscriptionMutation(
-            create(CancelSubscriptionRequestSchema, {
-              orgId: activeOrganization?.id,
-              billingId: billingAccount?.id,
-              id: activeSubscription?.id,
-              immediate: false
-            })
-          );
-          if (resp) {
-            onSuccess();
-          }
+      if (
+        activeOrganization?.id &&
+        billingAccount?.id &&
+        activeSubscription?.id
+      ) {
+        const resp = await cancelSubscriptionMutation(
+          create(CancelSubscriptionRequestSchema, {
+            orgId: activeOrganization?.id,
+            billingId: billingAccount?.id,
+            id: activeSubscription?.id,
+            immediate: false
+          })
+        );
+        if (resp) {
+          onSuccess();
         }
-      } catch (err: any) {
-        console.error(err);
-        toast.error('Something went wrong', {
-          description: err?.message
-        });
-      } finally {
-        setIsLoading(false);
       }
     },
     [
