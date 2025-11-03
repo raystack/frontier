@@ -10260,6 +10260,8 @@ func (m *AuditRecordActor) validate(all bool) error {
 
 	// no validation rules for Name
 
+	// no validation rules for Title
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:

@@ -66,11 +66,11 @@ func TestService_Create_Idempotency(t *testing.T) {
 				sessionSvc.EXPECT().Get(mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(mockSession, nil)
 
 				userSvc.EXPECT().GetByID(mock.Anything, "user-123").Return(user.User{
-					ID: "user-123", Title: "Test User",
+					ID: "user-123", Name: "Test User", Title: "Test User",
 				}, nil)
 				userSvc.EXPECT().IsSudo(mock.Anything, "user-123", schema.PlatformSudoPermission).Return(false, nil)
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
-					return ar.Actor.Name == "Test User" // Check enrichment happened
+					return ar.Actor.Name == "Test User" && ar.Actor.Title == "Test User" // Check enrichment happened
 				})).Return(auditrecord.AuditRecord{ID: "new-id"}, nil)
 			},
 			auditRecord: func() auditrecord.AuditRecord {
@@ -404,12 +404,12 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 				sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
 
 				userSvc.EXPECT().GetByID(mock.Anything, "user-456").Return(user.User{
-					ID: "user-456", Title: "John Doe",
+					ID: "user-456", Name: "John Doe", Title: "John Doe",
 				}, nil)
 				userSvc.EXPECT().IsSudo(mock.Anything, "user-456", schema.PlatformSudoPermission).Return(false, nil)
 
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
-					return ar.Actor.Name == "John Doe" && ar.Actor.Type == schema.UserPrincipal
+					return ar.Actor.Name == "John Doe" && ar.Actor.Title == "John Doe" && ar.Actor.Type == schema.UserPrincipal
 				})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 			},
 			inputRecord: auditrecord.AuditRecord{
@@ -441,14 +441,14 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 				sessionSvc.EXPECT().Get(mock.Anything, adminUUID).Return(mockSession, nil)
 
 				userSvc.EXPECT().GetByID(mock.Anything, "admin-789").Return(user.User{
-					ID: "admin-789", Title: "Super Admin",
+					ID: "admin-789", Name: "Super Admin", Title: "Super Admin",
 				}, nil)
 				userSvc.EXPECT().IsSudo(mock.Anything, "admin-789", schema.PlatformSudoPermission).Return(true, nil) // IS sudo!
 
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
 					// Verify super user metadata was added
 					isSudo, exists := ar.Actor.Metadata[consts.AuditActorSuperUserKey]
-					return ar.Actor.Name == "Super Admin" && exists && isSudo == true
+					return ar.Actor.Name == "Super Admin" && ar.Actor.Title == "Super Admin" && exists && isSudo == true
 				})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 			},
 			inputRecord: auditrecord.AuditRecord{
@@ -479,7 +479,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 				}, nil)
 
 				repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
-					return ar.Actor.Name == "API Service" && ar.Actor.Type == schema.ServiceUserPrincipal
+					return ar.Actor.Title == "API Service" && ar.Actor.Type == schema.ServiceUserPrincipal
 				})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 			},
 			inputRecord: auditrecord.AuditRecord{
@@ -675,7 +675,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 		sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
 
 		userSvc.EXPECT().GetByID(mock.Anything, "user-123").Return(user.User{
-			ID: "user-123", Title: "Super User",
+			ID: "user-123", Name: "Super User", Title: "Super User",
 		}, nil)
 		userSvc.EXPECT().IsSudo(mock.Anything, "user-123", schema.PlatformSudoPermission).Return(true, nil)
 
@@ -718,7 +718,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 		sessionSvc.EXPECT().Get(mock.Anything, userUUID).Return(mockSession, nil)
 
 		userSvc.EXPECT().GetByID(mock.Anything, "user-456").Return(user.User{
-			ID: "user-456", Title: "Super User",
+			ID: "user-456", Name: "Super User", Title: "Super User",
 		}, nil)
 		userSvc.EXPECT().IsSudo(mock.Anything, "user-456", schema.PlatformSudoPermission).Return(true, nil)
 
