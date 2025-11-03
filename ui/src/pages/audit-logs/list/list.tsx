@@ -1,5 +1,11 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import {
+  DataTable,
+  type DataTableQuery,
+  type DataTableSort,
+  EmptyState,
+  Flex,
+} from "@raystack/apsara";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 import { useCallback, useMemo, useState } from "react";
 import Navbar from "./navbar";
 import styles from "./list.module.css";
@@ -56,16 +62,19 @@ const TRANSFORM_OPTIONS = {
 
 export const AuditLogsList = () => {
   const queryClient = useQueryClient();
-  const [tableQuery, setTableQuery] = useState<{
+  const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;
     rqlRequest: RQLRequest;
-  }>(() => ({
-    query: INITIAL_QUERY,
-    rqlRequest: transformDataTableQueryToRQLRequest(
-      INITIAL_QUERY,
-      TRANSFORM_OPTIONS,
-    ),
-  }));
+  }>(
+    {
+      query: INITIAL_QUERY,
+      rqlRequest: transformDataTableQueryToRQLRequest(
+        INITIAL_QUERY,
+        TRANSFORM_OPTIONS,
+      ),
+    },
+    200,
+  );
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [selectedAuditLog, setSelectedAuditLog] = useState<AuditRecord | null>(
     null,

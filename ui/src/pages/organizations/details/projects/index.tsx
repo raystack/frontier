@@ -1,12 +1,15 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import {
+  DataTable,
+  EmptyState,
+  Flex,
+  type DataTableQuery,
+  type DataTableSort,
+} from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import styles from "./projects.module.css";
 import { useContext, useEffect, useState } from "react";
 import { getColumns } from "./columns";
-import type {
-  SearchOrganizationProjectsResponse_OrganizationProject,
-} from "@raystack/proton/frontier";
+import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   useInfiniteQuery,
@@ -22,6 +25,7 @@ import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
@@ -75,7 +79,10 @@ export function OrganizationProjectssPage() {
     projectId: "",
   });
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200,
+  );
 
   const title = `Projects | ${organization?.title} | Organizations`;
 
@@ -106,7 +113,7 @@ export function OrganizationProjectssPage() {
     {
       enabled: !!organizationId,
       pageParamKey: "query",
-      getNextPageParam: (lastPage) =>
+      getNextPageParam: lastPage =>
         getConnectNextPageParam(lastPage, { query: query }, "orgProjects"),
       staleTime: 0,
       refetchOnWindowFocus: false,
@@ -115,8 +122,9 @@ export function OrganizationProjectssPage() {
     },
   );
 
-  const data = infiniteData?.pages?.flatMap((page) => page.orgProjects) || [];
-  const loading = (isLoading || isFetchingNextPage || isOrgMembersMapLoading) && !isError;
+  const data = infiniteData?.pages?.flatMap(page => page.orgProjects) || [];
+  const loading =
+    (isLoading || isFetchingNextPage || isOrgMembersMapLoading) && !isError;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
@@ -150,7 +158,9 @@ export function OrganizationProjectssPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  function handleMemberDialogOpen(project: SearchOrganizationProjectsResponse_OrganizationProject) {
+  function handleMemberDialogOpen(
+    project: SearchOrganizationProjectsResponse_OrganizationProject,
+  ) {
     setMemberDialogConfig({
       projectId: project.id || "",
       open: true,
@@ -185,8 +195,7 @@ export function OrganizationProjectssPage() {
           onTableQueryChange={onTableQueryChange}
           onLoadMore={fetchMore}
           query={tableQuery}
-          onRowClick={handleMemberDialogOpen}
-        >
+          onRowClick={handleMemberDialogOpen}>
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content
