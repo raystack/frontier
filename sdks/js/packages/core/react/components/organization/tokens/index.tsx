@@ -137,7 +137,7 @@ interface TokenInfoBoxProps {
 function TokenInfoBox({ canUpdateWorkspace }: TokenInfoBoxProps) {
   const { billingDetails } = useFrontier();
   const isPostpaid =
-    billingDetails?.creditMin && Number(billingDetails.creditMin) < 0;
+    billingDetails?.creditMin && billingDetails.creditMin < BigInt(0);
 
   return isPostpaid && canUpdateWorkspace ? (
     <Callout
