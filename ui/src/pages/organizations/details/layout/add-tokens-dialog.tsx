@@ -17,7 +17,7 @@ import { AppContext } from "~/contexts/App";
 import { defaultConfig } from "~/utils/constants";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { AdminServiceQueries, CheckoutProductBodySchema, DelegatedCheckoutRequestSchema, FrontierServiceQueries } from "@raystack/proton/frontier";
+import { AdminServiceQueries, CheckoutProductBodySchema, DelegatedCheckoutRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 
 interface InviteUsersDialogProps {
