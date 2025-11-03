@@ -40,9 +40,16 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const transport = useTransport();
   const organizationId = organization?.id || "";
 
+  const defaultRoleId = useMemo(
+    () => roles?.find((role) => role.name === DEFAULT_INVITE_ROLE)?.id,
+    [roles],
+  );
+
   const methods = useForm<InviteSchemaType>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: {},
+    defaultValues: {
+      role: defaultRoleId,
+    },
   });
 
   const { mutateAsync: createInvitation } = useMutation(
@@ -79,11 +86,6 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
       }),
     );
   };
-
-  const defaultRoleId = useMemo(
-    () => roles?.find((role) => role.name === DEFAULT_INVITE_ROLE)?.id,
-    [roles],
-  );
 
   const isSubmitting = methods?.formState?.isSubmitting;
   const errors = methods?.formState?.errors;
@@ -133,7 +135,6 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                         <Select
                           {...rest}
                           onValueChange={(value: any) => field.onChange(value)}
-                          defaultValue={defaultRoleId}
                         >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select Role" />
