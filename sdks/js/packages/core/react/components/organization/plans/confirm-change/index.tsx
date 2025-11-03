@@ -11,7 +11,6 @@ import {
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import dayjs from 'dayjs';
 import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_PLAN_UPGRADE_MESSAGE
@@ -32,7 +31,6 @@ export default function ConfirmPlanChange() {
     activePlan,
     isAllPlansLoading,
     config,
-    client,
     activeSubscription,
     basePlan,
     allPlans
@@ -138,7 +136,7 @@ export default function ConfirmPlanChange() {
     } finally {
       setIsNewPlanLoading(false);
     }
-  }, [isNewPlanBasePlan, basePlan, client]);
+  }, [isNewPlanBasePlan, basePlan, currentPlan]);
 
   useEffect(() => {
     if (planId) {
