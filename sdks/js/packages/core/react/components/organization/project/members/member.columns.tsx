@@ -21,21 +21,16 @@ import {
   ListPoliciesRequestSchema,
   DeletePolicyRequestSchema,
   CreatePolicyRequestSchema,
-  type Role
+  type Role,
+  type User,
+  type Group
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 
 import teamIcon from '~/react/assets/users.svg';
 
-type RowMember = {
-  id?: string;
-  title?: string;
-  email?: string;
-  name?: string;
-  avatar?: string;
-  isTeam?: boolean;
-};
+type RowMember = (User & { isTeam?: false }) | (Group & { isTeam: true });
 
 export const getColumns = (
   memberRoles: Record<string, Role[]> = {},
@@ -123,7 +118,7 @@ export const getColumns = (
       <MembersActions
         refetch={refetch}
         projectId={projectId}
-        member={row.original as RowMember & { isTeam: boolean }}
+        member={row.original as RowMember}
         canUpdateProject={canUpdateProject}
          excludedRoles={differenceWith<Role>(
           isEqualById,
@@ -149,7 +144,7 @@ const MembersActions = ({
   refetch = () => null
 }: {
   projectId: string;
-  member: RowMember & { isTeam: boolean };
+  member: RowMember;
   canUpdateProject?: boolean;
   excludedRoles: Role[];
   refetch: () => void;
