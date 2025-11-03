@@ -55,39 +55,37 @@ export const usePlans = () => {
   } = useFrontier();
 
   // Setup mutations
-  const { mutateAsync: createCheckoutMutation, isPending: isCheckoutPending } = useMutation(
-    FrontierServiceQueries.createCheckout,
-    {
+  const { mutateAsync: createCheckoutMutation, isPending: isCheckoutPending } =
+    useMutation(FrontierServiceQueries.createCheckout, {
       onError: (err: Error) => {
         console.error(err);
         toast.error('Checkout failed', {
           description: err?.message
         });
       }
+    });
+  const {
+    mutateAsync: changeSubscriptionMutation,
+    isPending: isChangePlanPending
+  } = useMutation(FrontierServiceQueries.changeSubscription, {
+    onError: (err: Error) => {
+      console.error(err);
+      toast.error('Failed to change plan', {
+        description: err?.message
+      });
     }
-  );
-  const { mutateAsync: changeSubscriptionMutation, isPending: isChangePlanPending } = useMutation(
-    FrontierServiceQueries.changeSubscription,
-    {
-      onError: (err: Error) => {
-        console.error(err);
-        toast.error('Failed to change plan', {
-          description: err?.message
-        });
-      }
+  });
+  const {
+    mutateAsync: cancelSubscriptionMutation,
+    isPending: isCancelPending
+  } = useMutation(FrontierServiceQueries.cancelSubscription, {
+    onError: (err: Error) => {
+      console.error(err);
+      toast.error('Failed to cancel subscription', {
+        description: err?.message
+      });
     }
-  );
-  const { mutateAsync: cancelSubscriptionMutation, isPending: isCancelPending } = useMutation(
-    FrontierServiceQueries.cancelSubscription,
-    {
-      onError: (err: Error) => {
-        console.error(err);
-        toast.error('Failed to cancel subscription', {
-          description: err?.message
-        });
-      }
-    }
-  );
+  });
 
   const isLoading = isCheckoutPending || isChangePlanPending || isCancelPending;
 
@@ -142,12 +140,12 @@ export const usePlans = () => {
           if (resp?.checkoutSession?.checkoutUrl) {
             onSuccess(resp.checkoutSession);
           }
-        } catch (err: unknown) {
-          console.error(err);
-          toast.error('Failed to prepare checkout', {
-            description: (err as Error)?.message
-          });
         }
+      } catch (err: unknown) {
+        console.error(err);
+        toast.error('Failed to prepare checkout', {
+          description: (err as Error)?.message
+        });
       }
     },
     [
