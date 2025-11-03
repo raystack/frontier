@@ -5,12 +5,12 @@ import {
 } from '@radix-ui/react-icons';
 import { Text, DropdownMenu } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
-import type { V1Beta1Project } from '~/src';
+import type { Project } from '@raystack/proton/frontier';
 import type { DataTableColumnDef } from '@raystack/apsara';
 
 export const getColumns: (
   userAccessOnProject: Record<string, string[]>
-) => DataTableColumnDef<V1Beta1Project, unknown>[] = userAccessOnProject => [
+) => DataTableColumnDef<Project, unknown>[] = userAccessOnProject => [
   {
     header: 'Title',
     accessorKey: 'title',
@@ -58,7 +58,7 @@ export const getColumns: (
     enableSorting: false,
     cell: ({ row, getValue }) => (
       <ProjectActions
-        project={row.original as V1Beta1Project}
+        project={row.original as Project}
         userAccessOnProject={userAccessOnProject}
       />
     )
@@ -69,7 +69,7 @@ const ProjectActions = ({
   project,
   userAccessOnProject
 }: {
-  project: V1Beta1Project;
+  project: Project;
   userAccessOnProject: Record<string, string[]>;
 }) => {
   const canUpdateProject = (userAccessOnProject[project.id!] ?? []).includes(

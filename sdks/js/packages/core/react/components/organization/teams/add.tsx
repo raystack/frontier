@@ -14,6 +14,9 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, CreateGroupRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from '../organization.module.css';
 
 const teamSchema = yup
@@ -35,8 +38,6 @@ type FormData = yup.InferType<typeof teamSchema>;
 
 export const AddTeam = () => {
   const {
-    reset,
-    control,
     handleSubmit,
     formState: { errors, isSubmitting },
     register
@@ -44,21 +45,32 @@ export const AddTeam = () => {
     resolver: yupResolver(teamSchema)
   });
   const navigate = useNavigate({ from: '/members/modal' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
-  async function onSubmit(data: FormData) {
-    if (!client) return;
-    if (!organization?.id) return;
-
-    try {
-      await client.frontierServiceCreateGroup(organization?.id, data);
+  const { mutateAsync: createTeam } = useMutation(FrontierServiceQueries.createGroup, {
+    onSuccess: () => {
       toast.success('Team added');
       navigate({ to: '/teams' });
-    } catch ({ error }: any) {
+    },
+    onError: (error) => {
       toast.error('Something went wrong', {
         description: error.message
       });
     }
+  });
+
+  async function onSubmit(data: FormData) {
+    if (!organization?.id) return;
+
+    const request = create(CreateGroupRequestSchema, {
+      orgId: organization.id,
+      body: {
+        title: data.title,
+        name: data.name
+      }
+    });
+
+    await createTeam(request);
   }
 
   return (

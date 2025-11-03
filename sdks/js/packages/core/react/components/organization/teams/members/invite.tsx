@@ -11,15 +11,23 @@ import {
   Label
 } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 import cross from '~/react/assets/cross.svg';
-import styles from '../../organization.module.css';
 import { handleSelectValueChange } from '~/react/utils';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { FrontierServiceQueries,
+  CreatePolicyRequestSchema,
+  AddGroupUsersRequestSchema,
+  ListOrganizationUsersRequestSchema,
+  ListGroupUsersRequestSchema,
+  ListOrganizationRolesRequestSchema,
+  ListRolesRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({
   userId: yup.string().required('Member is required'),
@@ -31,21 +39,9 @@ type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 export const InviteTeamMembers = () => {
   let { teamId } = useParams({ from: '/teams/$teamId/invite' });
   const navigate = useNavigate({ from: '/teams/$teamId/invite' });
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-
-  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
-  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
-
-  const [members, setMembers] = useState<V1Beta1User[]>([]);
-
-  const [isTeamMembersLoading, setIsTeamMembersLoading] = useState(false);
-
-  const [isRolesLoading, setIsRolesLoading] = useState(false);
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
   const {
-    watch,
-    reset,
     control,
     handleSubmit,
     formState: { errors, isSubmitting }
@@ -53,82 +49,87 @@ export const InviteTeamMembers = () => {
     resolver: yupResolver(inviteSchema)
   });
 
+  // Get organization members using Connect RPC
+  const { data: orgMembersData, isLoading: isOrgMembersLoading, error: orgMembersError } = useQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    create(ListOrganizationUsersRequestSchema, { id: organization?.id || '' }),
+    { enabled: !!organization?.id }
+  );
+
+
+  // Handle organization members error
   useEffect(() => {
-    async function getOrganizationMembers() {
-      if (!organization?.id) return;
-      try {
-        setIsOrgMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListOrganizationUsers(
-          organization?.id
-        );
-        setOrgMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsOrgMembersLoading(false);
-      }
-    }
-    getOrganizationMembers();
-  }, [client, organization?.id]);
-
-  useEffect(() => {
-    async function getTeamMembers() {
-      if (!organization?.id || !teamId) return;
-      try {
-        setIsTeamMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users, role_pairs = [] }
-        } = await client?.frontierServiceListGroupUsers(
-          organization?.id,
-          teamId,
-          { with_roles: true }
-        );
-
-        setMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsTeamMembersLoading(false);
-      }
-    }
-    getTeamMembers();
-  }, [client, organization?.id, teamId]);
-
-  const getRoles = useCallback(async () => {
-    try {
-      setIsRolesLoading(true);
-      if (!organization?.id) return;
-      const {
-        // @ts-ignore
-        data: { roles: orgRoles }
-      } = await client?.frontierServiceListOrganizationRoles(organization.id, {
-        scopes: [PERMISSIONS.GroupNamespace]
+    if (orgMembersError) {
+      toast.error('Something went wrong', {
+        description: orgMembersError.message
       });
-      const {
-        // @ts-ignore
-        data: { roles }
-      } = await client?.frontierServiceListRoles({
-        scopes: [PERMISSIONS.GroupNamespace]
-      });
-      setRoles([...roles, ...orgRoles]);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsRolesLoading(false);
     }
-  }, [client, organization?.id]);
+  }, [orgMembersError]);
+
+  // Get team members using Connect RPC
+  const { data: teamMembersData, isLoading: isTeamMembersLoading, error: teamMembersError } = useQuery(
+    FrontierServiceQueries.listGroupUsers,
+    create(ListGroupUsersRequestSchema, { id: teamId || '', orgId: organization?.id || '', withRoles: true }),
+    { enabled: !!organization?.id && !!teamId }
+  );
+
+
+  // Handle team members error
+  useEffect(() => {
+    if (teamMembersError) {
+      toast.error('Something went wrong', {
+        description: teamMembersError.message
+      });
+    }
+  }, [teamMembersError]);
+
+  // Get organization roles using Connect RPC
+  const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
+    FrontierServiceQueries.listOrganizationRoles,
+    create(ListOrganizationRolesRequestSchema, { orgId: organization?.id || '', scopes: [PERMISSIONS.GroupNamespace] }),
+    { enabled: !!organization?.id }
+  );
+
+  // Get roles using Connect RPC
+  const { data: rolesData, isLoading: isRolesLoading, error: rolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, { scopes: [PERMISSIONS.GroupNamespace] }),
+    { enabled: !!organization?.id }
+  );
+
+  const roles = useMemo(() => {
+    const orgRoles = orgRolesData?.roles || [];
+    const systemRoles = rolesData?.roles || [];
+    return [...systemRoles, ...orgRoles];
+  }, [orgRolesData?.roles, rolesData?.roles]);
+
+  const isRolesLoadingCombined = isOrgRolesLoading || isRolesLoading;
+
+  // Handle roles errors
+  useEffect(() => {
+    if (orgRolesError) {
+      toast.error('Something went wrong', {
+        description: orgRolesError.message
+      });
+    }
+  }, [orgRolesError]);
 
   useEffect(() => {
-    getRoles();
-  }, [getRoles, organization?.id]);
+    if (rolesError) {
+      toast.error('Something went wrong', {
+        description: rolesError.message
+      });
+    }
+  }, [rolesError]);
+
+  // Create policy using Connect RPC
+  const createPolicyMutation = useMutation(FrontierServiceQueries.createPolicy, {
+    onError: (error) => {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  });
 
   const addGroupTeamPolicy = useCallback(
     async (roleId: string, userId: string) => {
@@ -136,39 +137,52 @@ export const InviteTeamMembers = () => {
       if (role?.name && role.name !== PERMISSIONS.RoleGroupMember) {
         const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
         const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
-        const policy: V1Beta1PolicyRequestBody = {
-          role_id: roleId,
-          resource,
-          principal
-        };
-        await client?.frontierServiceCreatePolicy(policy);
+        
+        const request = create(CreatePolicyRequestSchema, {
+          body: {
+            roleId: roleId,
+            resource,
+            principal
+          }
+        });
+        
+        await createPolicyMutation.mutateAsync(request);
       }
     },
-    [client, roles, teamId]
+    [roles, teamId, createPolicyMutation]
   );
 
-  async function onSubmit({ role, userId }: InviteSchemaType) {
-    if (!userId || !role || !organization?.id) return;
-    try {
-      await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-        user_ids: [userId]
-      });
-      await addGroupTeamPolicy(role, userId);
-      toast.success('member added');
-      navigate({
-        to: '/teams/$teamId',
-        params: { teamId }
-      });
-    } catch ({ error }: any) {
+  // Add group users using Connect RPC
+  const addGroupUsersMutation = useMutation(FrontierServiceQueries.addGroupUsers, {
+    onError: (error) => {
       toast.error('Something went wrong', {
         description: error.message
       });
     }
+  });
+
+  async function onSubmit({ role, userId }: InviteSchemaType) {
+    if (!userId || !role || !organization?.id) return;
+
+    const request = create(AddGroupUsersRequestSchema, {
+      id: teamId as string,
+      orgId: organization.id,
+      userIds: [userId]
+    });
+
+    await addGroupUsersMutation.mutateAsync(request);
+    await addGroupTeamPolicy(role, userId);
+    toast.success('member added');
+    navigate({
+      to: '/teams/$teamId',
+      params: { teamId }
+    });
+    
   }
 
   const invitableUser = useMemo(
-    () => filterUsersfromUsers(orgMembers, members) || [],
-    [orgMembers, members]
+    () => filterUsersfromUsers(orgMembersData?.users || [], teamMembersData?.users || []) || [],
+    [orgMembersData?.users, teamMembersData?.users]
   );
 
   const isUserLoading = isOrgMembersLoading || isTeamMembersLoading;
@@ -244,7 +258,7 @@ export const InviteTeamMembers = () => {
               </Flex>
               <Flex direction="column" gap={2}>
                 <Label>Invite as</Label>
-                {isRolesLoading ? (
+                {isRolesLoadingCombined ? (
                   <Skeleton height={'25px'} />
                 ) : (
                   <Controller
@@ -284,7 +298,7 @@ export const InviteTeamMembers = () => {
                 <Button
                   type="submit"
                   data-test-id="frontier-sdk-add-team-members-btn"
-                  disabled={isUserLoading || isRolesLoading}
+                  disabled={isUserLoading || isRolesLoadingCombined}
                   loading={isSubmitting}
                   loaderText="Adding..."
                 >
