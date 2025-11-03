@@ -13,8 +13,10 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/billing/subscription"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -130,6 +132,13 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 		CurrentPeriodEndAt:   currentPeriodEndAt,
 		BillingCycleAnchorAt: billingCycleAnchorAt,
 	}, nil
+}
+
+// subscriptionWithCustomer extends Subscription to include customer info for audit logging
+type subscriptionWithCustomer struct {
+	Subscription
+	CustomerOrgID string `db:"customer_org_id"`
+	CustomerName  string `db:"customer_name"`
 }
 
 type BillingSubscriptionRepository struct {
@@ -272,6 +281,13 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	if strings.TrimSpace(toUpdate.State) == "" {
 		return subscription.Subscription{}, subscription.ErrInvalidDetail
 	}
+
+	// Get old subscription to check for plan change
+	oldSub, err := r.GetByID(ctx, toUpdate.ID)
+	if err != nil {
+		return subscription.Subscription{}, err
+	}
+
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
 		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -307,29 +323,53 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	}
 	updateRecord["changes"] = r.toSubscriptionChanges(toUpdate)
 
+	// Subqueries to fetch customer org_id and name
+	customerOrgIDSubquery := dialect.From(TABLE_BILLING_CUSTOMERS).
+		Select("org_id").
+		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_SUBSCRIPTIONS + ".customer_id")})
+
+	customerNameSubquery := dialect.From(TABLE_BILLING_CUSTOMERS).
+		Select("name").
+		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_SUBSCRIPTIONS + ".customer_id")})
+
 	query, params, err := dialect.Update(TABLE_BILLING_SUBSCRIPTIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
-	}).Returning(&Subscription{}).ToSQL()
+	}).Returning(
+		goqu.I(TABLE_BILLING_SUBSCRIPTIONS+".*"),
+		customerOrgIDSubquery.As("customer_org_id"),
+		customerNameSubquery.As("customer_name"),
+	).ToSQL()
 	if err != nil {
 		return subscription.Subscription{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var customerModel Subscription
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	var result subscriptionWithCustomer
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "Update", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				err = checkPostgresError(err)
+				switch {
+				case errors.Is(err, sql.ErrNoRows):
+					return subscription.ErrNotFound
+				case errors.Is(err, ErrInvalidTextRepresentation):
+					return subscription.ErrInvalidUUID
+				default:
+					return err
+				}
+			}
+
+			// Audit if plan changed
+			if oldSub.PlanID != result.PlanID {
+				return r.createSubscriptionPlanChangeAuditRecord(ctx, tx, result, oldSub.PlanID)
+			}
+
+			return nil
+		})
 	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return subscription.Subscription{}, subscription.ErrNotFound
-		case errors.Is(err, ErrInvalidTextRepresentation):
-			return subscription.Subscription{}, subscription.ErrInvalidUUID
-		default:
-			return subscription.Subscription{}, fmt.Errorf("%w: %w", txnErr, err)
-		}
+		return subscription.Subscription{}, fmt.Errorf("%w: %w", txnErr, err)
 	}
 
-	return customerModel.transform()
+	return result.Subscription.transform()
 }
 
 func (r BillingSubscriptionRepository) toSubscriptionChanges(toUpdate subscription.Subscription) SubscriptionChanges {
@@ -407,4 +447,35 @@ func (r BillingSubscriptionRepository) Delete(ctx context.Context, id string) er
 		return fmt.Errorf("%w: %s", dbErr, err)
 	}
 	return nil
+}
+
+// createSubscriptionPlanChangeAuditRecord creates an audit record for subscription plan changes
+func (r BillingSubscriptionRepository) createSubscriptionPlanChangeAuditRecord(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	sub subscriptionWithCustomer,
+	oldPlanID string,
+) error {
+	auditRecord := BuildAuditRecord(
+		ctx,
+		pkgAuditRecord.BillingSubscriptionChangedEvent,
+		AuditResource{
+			ID:   sub.SubscriptionID,
+			Type: pkgAuditRecord.BillingCustomerType,
+			Name: sub.CustomerName,
+		},
+		&AuditTarget{
+			ID:   sub.ID,
+			Type: pkgAuditRecord.BillingSubscriptionType,
+			Metadata: map[string]interface{}{
+				"old_plan_id": oldPlanID,
+				"new_plan_id": sub.PlanID,
+			},
+		},
+		sub.CustomerOrgID,
+		nil,
+		sub.UpdatedAt,
+	)
+
+	return InsertAuditRecordInTx(ctx, tx, auditRecord)
 }

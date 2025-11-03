@@ -16,6 +16,9 @@ const (
 	// Billing Checkout Events
 	BillingCheckoutCreatedEvent Event = "billing_checkout.created"
 
+	// Billing Subscription Events
+	BillingSubscriptionChangedEvent Event = "billing_subscription.changed"
+
 	// Billing Transaction Events
 	BillingTransactionDebitEvent  Event = "billing_transaction.debit"
 	BillingTransactionCreditEvent Event = "billing_transaction.credit"
@@ -48,16 +51,17 @@ const (
 	SystemActor = "system"
 
 	// Entity Types (used in Resource.Type and Target.Type)
-	OrganizationType       EntityType = "organization"
-	UserType               EntityType = "user"
-	RoleType               EntityType = "role"
-	ServiceUserType        EntityType = "serviceuser"
-	InvitationType         EntityType = "invitation"
-	KycType                EntityType = "kyc"
-	BillingCustomerType    EntityType = "billing_customer"
-	BillingCheckoutType    EntityType = "billing_checkout"
-	BillingTransactionType EntityType = "billing_transaction"
-	SessionType            EntityType = "session"
+	OrganizationType        EntityType = "organization"
+	UserType                EntityType = "user"
+	RoleType                EntityType = "role"
+	ServiceUserType         EntityType = "serviceuser"
+	InvitationType          EntityType = "invitation"
+	KycType                 EntityType = "kyc"
+	BillingCustomerType     EntityType = "billing_customer"
+	BillingCheckoutType     EntityType = "billing_checkout"
+	BillingSubscriptionType EntityType = "billing_subscription"
+	BillingTransactionType  EntityType = "billing_transaction"
+	SessionType             EntityType = "session"
 )
 
 // String returns the string representation of the event
