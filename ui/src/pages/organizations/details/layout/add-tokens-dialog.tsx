@@ -11,11 +11,14 @@ import { useContext } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import styles from "./layout.module.css";
-import { api } from "~/api";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppContext } from "~/contexts/App";
 import { defaultConfig } from "~/utils/constants";
+import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { AdminServiceQueries, CheckoutProductBodySchema, DelegatedCheckoutRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 interface InviteUsersDialogProps {
   onOpenChange: (open: boolean) => void;
@@ -38,6 +41,8 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const { config } = useContext(AppContext);
   const { organization, billingAccount, fetchTokenBalance } =
     useContext(OrganizationContext);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
   const organisationId = organization?.id || "";
   const billingAccountId = billingAccount?.id || "";
 
@@ -49,24 +54,43 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
     },
   });
 
+  const { mutateAsync: delegatedCheckout } = useMutation(
+    AdminServiceQueries.delegatedCheckout,
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: AdminServiceQueries.searchOrganizationTokens,
+            transport,
+            input: { id: organisationId },
+            cardinality: "infinite",
+          }),
+        });
+        fetchTokenBalance(organisationId, billingAccountId);
+        toast.success("Tokens added");
+        onOpenChange(false);
+      },
+      onError: (error) => {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+        console.error("Unable to add tokens:", error);
+      },
+    },
+  );
+
   const onSubmit = async (product_body: AddTokenRequestType) => {
-    try {
-      if (!organisationId) return;
-      await api?.adminServiceDelegatedCheckout(
-        organisationId,
-        billingAccountId,
-        {
-          product_body,
-        },
-      );
-      onOpenChange(false);
-      toast.success("tokens added");
-      fetchTokenBalance(organisationId, billingAccountId);
-    } catch (err: unknown) {
-      toast.error("Something went wrong", {
-        description: (err as Error).message,
-      });
-    }
+    if (!organisationId) return;
+    await delegatedCheckout(
+      create(DelegatedCheckoutRequestSchema, {
+        orgId: organisationId,
+        billingId: billingAccountId,
+        productBody: create(CheckoutProductBodySchema, {
+          product: product_body.product,
+          quantity: BigInt(product_body.quantity),
+        }),
+      }),
+    );
   };
 
   const isSubmitting = methods?.formState?.isSubmitting;

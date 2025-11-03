@@ -1,10 +1,13 @@
 'use client';
 
-import { Switch, Separator, Box, Text, Headline, Flex } from '@raystack/apsara';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Switch, Separator, Box, Text, Headline, Flex, toast } from '@raystack/apsara';
+import { useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1Preference } from '~/src';
+import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { FrontierServiceQueries, ListOrganizationPreferencesRequestSchema, CreateOrganizationPreferencesRequestSchema, type Preference } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import type { SecurityCheckboxTypes } from './security.types';
 import { styles } from '../styles';
@@ -13,29 +16,60 @@ export default function WorkspaceSecurity() {
   const [socialLogin, setSocialLogin] = useState<boolean>(false);
   const [mailLink, setMailLink] = useState<boolean>(false);
 
-  const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
-  const fetchOrganizationPreferences = useCallback(async () => {
-    const {
-      // @ts-ignore
-      data: { preferences }
-    } = await client?.frontierServiceListOrganizationPreferences(
-      organization?.id as string
-    );
-
-    setPreferences(preferences);
-  }, [client, organization?.id]);
+  const {
+    data: preferences = [],
+    error: preferencesError
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationPreferences,
+    create(ListOrganizationPreferencesRequestSchema, {
+      id: organization?.id || ''
+    }),
+    {
+      enabled: !!organization?.id,
+      select: (d) => d?.preferences ?? []
+    }
+  );
 
   useEffect(() => {
-    if (organization?.id) fetchOrganizationPreferences();
-  }, [organization?.id, client, fetchOrganizationPreferences]);
+    if (preferencesError) {
+      toast.error('Something went wrong', {
+        description: preferencesError.message
+      });
+    }
+  }, [preferencesError]);
+
+  const { mutate: createOrganizationPreferences } = useMutation(
+    FrontierServiceQueries.createOrganizationPreferences,
+    {
+      onSuccess: () => {
+        toast.success('Preference updated successfully');
+        queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.listOrganizationPreferences,
+            transport,
+            input: create(ListOrganizationPreferencesRequestSchema, {
+              id: organization?.id || ''
+            }),
+            cardinality: 'finite'
+          })
+        });
+      },
+      onError: (error: Error) => {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    }
+  );
 
   const preferencesMap = useMemo(() => {
-    return preferences.reduce<Record<string, Record<string, string>>>(
+    return preferences.reduce<Record<string, Preference>>(
       (map, el) => {
-        // @ts-ignore
-        map[el.name] = el;
+        if (el.name) map[el.name] = el;
         return map;
       },
       {}
@@ -48,27 +82,26 @@ export default function WorkspaceSecurity() {
 
     if (preferencesMap['mail_link'])
       setMailLink(preferencesMap['mail_link']?.value === 'true');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preferences]);
+  }, [preferencesMap]);
 
-  const onValueChange = useCallback(
-    async (key: string, checked: boolean) => {
-      if (key === 'mail_link') setMailLink(checked);
-      if (key === 'social_login') setSocialLogin(checked);
-      await client?.frontierServiceCreateOrganizationPreferences(
-        organization?.id as string,
-        {
-          bodies: [
-            {
-              name: key,
-              value: `${checked}`
-            }
-          ]
-        }
-      );
-    },
-    [client, organization?.id]
-  );
+  const onValueChange = (key: string, checked: boolean) => {
+    if (!organization?.id) return;
+    
+    if (key === 'mail_link') setMailLink(checked);
+    if (key === 'social_login') setSocialLogin(checked);
+    
+    createOrganizationPreferences(
+      create(CreateOrganizationPreferencesRequestSchema, {
+        id: organization.id,
+        bodies: [
+          {
+            name: key,
+            value: `${checked}`
+          }
+        ]
+      })
+    );
+  };
 
   const listOfPermissionsToCheck = useMemo(
     () => [

@@ -14,9 +14,11 @@ import { OrganizationContext } from "../contexts/organization-context";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { AxiosError } from "axios";
-import { api } from "~/api";
 import { DEFAULT_INVITE_ROLE } from "../types";
+import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -34,39 +36,56 @@ interface InviteUsersDialogProps {
 
 export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const { roles = [], organization } = useContext(OrganizationContext);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
   const organizationId = organization?.id || "";
-
-  const methods = useForm<InviteSchemaType>({
-    resolver: zodResolver(inviteSchema),
-    defaultValues: {},
-  });
-
-  const onSubmit = async (data: InviteSchemaType) => {
-    try {
-      if (!organizationId) return;
-      await api?.frontierServiceCreateOrganizationInvitation(organizationId, {
-        user_ids: data?.emails,
-        role_ids: data?.role ? [data?.role] : [],
-      });
-      onOpenChange(false);
-      toast.success("user invited");
-    } catch (err: unknown) {
-      if (err instanceof AxiosError && err?.status === 400) {
-        toast.error("Bad Request", {
-          description: err?.response?.data?.error?.message,
-        });
-      } else {
-        toast.error("Something went wrong", {
-          description: (err as Error).message,
-        });
-      }
-    }
-  };
 
   const defaultRoleId = useMemo(
     () => roles?.find((role) => role.name === DEFAULT_INVITE_ROLE)?.id,
     [roles],
   );
+
+  const methods = useForm<InviteSchemaType>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: {
+      role: defaultRoleId,
+    },
+  });
+
+  const { mutateAsync: createInvitation } = useMutation(
+    FrontierServiceQueries.createOrganizationInvitation,
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.listOrganizationInvitations,
+            transport,
+            input: { orgId: organizationId },
+            cardinality: "finite",
+          }),
+        });
+        toast.success("User invited");
+        onOpenChange(false);
+      },
+      onError: (error) => {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+        console.error("Unable to invite user:", error);
+      },
+    },
+  );
+
+  const onSubmit = async (data: InviteSchemaType) => {
+    if (!organizationId) return;
+    await createInvitation(
+      create(CreateOrganizationInvitationRequestSchema, {
+        orgId: organizationId,
+        userIds: data.emails,
+        roleIds: data.role ? [data.role] : [],
+      }),
+    );
+  };
 
   const isSubmitting = methods?.formState?.isSubmitting;
   const errors = methods?.formState?.errors;
@@ -116,7 +135,6 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                         <Select
                           {...rest}
                           onValueChange={(value: any) => field.onChange(value)}
-                          defaultValue={defaultRoleId}
                         >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select Role" />

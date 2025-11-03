@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
-import type { V1Beta1Group } from '~/src';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, type Group, ListOrganizationGroupsRequestSchema, ListCurrentUserGroupsRequestSchema, type ListCurrentUserGroupsResponse_AccessPair } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 interface useOrganizationTeamsProps {
   withPermissions?: string[];
@@ -12,55 +14,70 @@ export const useOrganizationTeams = ({
   withPermissions = [],
   showOrgTeams = false,
   withMemberCount = false
-}: useOrganizationTeamsProps) => {
-  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
-  const [isTeamsLoading, setIsTeamsLoading] = useState(false);
-  const [accessPairs, setAccessPairs] = useState([]);
+}: useOrganizationTeamsProps): {
+  isFetching: boolean;
+  teams: Group[];
+  userAccessOnTeam: Record<string, string[]>;
+  refetch: () => void;
+  error: unknown;
+} => {
+  const [teams, setTeams] = useState<Group[]>([]);
+  const [accessPairs, setAccessPairs] = useState<ListCurrentUserGroupsResponse_AccessPair[]>([]);
 
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
-  const getTeams = useCallback(async () => {
-    if (!organization?.id) return;
-    try {
-      setIsTeamsLoading(true);
-      const {
-        // @ts-ignore
-        data: { groups = [], access_pairs = [] }
-      } = showOrgTeams
-        ? await client?.frontierServiceListOrganizationGroups(
-            organization?.id,
-            { with_member_count: withMemberCount }
-          )
-        : await client?.frontierServiceListCurrentUserGroups({
-            org_id: organization?.id,
-            with_permissions: withPermissions,
-            with_member_count: withMemberCount
-          });
-      setTeams(groups);
-      setAccessPairs(access_pairs);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsTeamsLoading(false);
-    }
-  }, [client, organization?.id, showOrgTeams, withMemberCount]);
+  // Organization teams query
+  const { data: orgTeamsData, isLoading: isOrgTeamsLoading, error: orgTeamsError, refetch: refetchOrgTeams } = useQuery(
+    FrontierServiceQueries.listOrganizationGroups,
+    create(ListOrganizationGroupsRequestSchema, { orgId: organization?.id || '', withMemberCount }),
+    { enabled: !!organization?.id && showOrgTeams }
+  );
+
+  // User teams query  
+  const { data: userTeamsData, isLoading: isUserTeamsLoading, error: userTeamsError, refetch: refetchUserTeams } = useQuery(
+    FrontierServiceQueries.listCurrentUserGroups,
+    create(ListCurrentUserGroupsRequestSchema, { orgId: organization?.id || '', withPermissions, withMemberCount }),
+    { enabled: !!organization?.id && !showOrgTeams }
+  );
+
+  const isTeamsLoading = showOrgTeams ? isOrgTeamsLoading : isUserTeamsLoading;
+  const teamsData = showOrgTeams ? orgTeamsData : userTeamsData;
 
   useEffect(() => {
-    getTeams();
-  }, [client, getTeams, organization?.id]);
+    if (teamsData) {
+      const { groups = [] } = teamsData;
+      setTeams(groups);
+      
+      // Only set accessPairs for user teams (not org teams)
+      if (!showOrgTeams && 'accessPairs' in teamsData) {
+        setAccessPairs(teamsData?.accessPairs || []);
+      } else {
+        setAccessPairs([]);
+      }
+    }
+  }, [teamsData, showOrgTeams]);
 
   const userAccessOnTeam = useMemo(() => {
-    return accessPairs.reduce((acc: any, p: any) => {
-      const { group_id, permissions } = p;
-      acc[group_id] = permissions;
+    return accessPairs.reduce((acc: Record<string, string[]>, p: ListCurrentUserGroupsResponse_AccessPair) => {
+      const { groupId, permissions } = p;
+      acc[groupId] = permissions;
       return acc;
     }, {});
   }, [accessPairs]);
+
+  const refetch = useCallback(() => {
+    if (showOrgTeams) {
+      refetchOrgTeams();
+    } else {
+      refetchUserTeams();
+    }
+  }, [showOrgTeams, refetchOrgTeams, refetchUserTeams]);
 
   return {
     isFetching: isTeamsLoading,
     teams: teams,
     userAccessOnTeam,
-    refetch: getTeams
+    refetch,
+    error: showOrgTeams ? orgTeamsError : userTeamsError
   };
 };
