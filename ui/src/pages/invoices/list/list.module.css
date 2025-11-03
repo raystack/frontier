@@ -1,31 +1,37 @@
 .navbar {
-    padding: var(--rs-space-4) var(--rs-space-7);
-    border-bottom: 0.5px solid var(--rs-color-border-base-primary);
-    background: var(--rs-color-background-base-primary);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  padding: var(--rs-space-4) var(--rs-space-7);
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .table {
-    height: auto;
+  height: auto;
 }
 
 .table-empty {
-    height: 100%;
+  height: 100%;
 }
 
 .empty-state {
-    height: 100%;
+  height: 100%;
 }
 
 .table-wrapper {
-    /* Navbar Height + Toolbar height */
-    max-height: calc(100vh - 90px);
-    overflow: scroll;
+  /* Navbar Height + Toolbar height */
+  max-height: calc(100vh - 90px);
+  overflow: scroll;
 }
 
 .table-header {
-    /* position: relative; */
-    z-index: 2;
+  /* position: relative; */
+  z-index: 2;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--rs-space-7);
+  max-width: 200px;
 }
