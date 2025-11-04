@@ -12,7 +12,10 @@ import {
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, GetOrganizationDomainRequestSchema, VerifyOrganizationDomainRequestSchema, type Domain } from '@raystack/proton/frontier';
+import { FrontierServiceQueries,
+  GetOrganizationDomainRequestSchema,
+  VerifyOrganizationDomainRequestSchema
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';

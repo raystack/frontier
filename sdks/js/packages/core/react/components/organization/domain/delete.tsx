@@ -17,7 +17,11 @@ import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
-import { FrontierServiceQueries, GetOrganizationDomainRequestSchema, DeleteOrganizationDomainRequestSchema, ListOrganizationDomainsRequestSchema, type Domain } from '@raystack/proton/frontier';
+import { FrontierServiceQueries,
+  GetOrganizationDomainRequestSchema,
+  DeleteOrganizationDomainRequestSchema,
+  ListOrganizationDomainsRequestSchema
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import styles from '../organization.module.css';
 
