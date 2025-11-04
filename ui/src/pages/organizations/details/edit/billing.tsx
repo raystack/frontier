@@ -11,55 +11,42 @@ import {
   toast,
 } from "@raystack/apsara";
 import styles from "./edit.module.css";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
-import { api } from "~/api";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Skeleton from "react-loading-skeleton";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import {
+  AdminServiceQueries,
+  FrontierServiceQueries,
+  GetBillingAccountDetailsRequestSchema,
+  GetBillingAccountRequestSchema,
+  UpdateBillingAccountDetailsRequestSchema,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 interface EditBillingPanelProps {
   onClose: () => void;
 }
 
+
 const billingDetailsUpdateSchema = z
   .object({
-    token_payment_type: z.enum(["prepaid", "postpaid"]),
-    credit_min: z.number().transform((val) => {
-      // Convert negative API values to positive UI values
-      return Math.abs(val);
-    }),
-    due_in_days: z.number().min(0),
-  })
-  .refine(
-    (data) => {
-      // If payment type is postpaid, credit_min should be more than 0
-      return data.token_payment_type !== "postpaid" || data.credit_min > 0;
-    },
-    {
-      message: "Credit limit must be greater than 0 for postpaid payment type",
-      path: ["credit_min"],
-    },
-  );
-
-// Schema for API submission (converts UI values back to API format)
-const billingDetailsApiSchema = billingDetailsUpdateSchema.transform(
-  (data) => ({
-    ...data,
-    credit_min:
-      data.token_payment_type === "postpaid"
-        ? -Math.abs(data.credit_min)
-        : data.credit_min,
-  }),
-);
+    tokenPaymentType: z.enum(["prepaid", "postpaid"]),
+    creditMin: z.string().regex(/^[0-9]+$/, "Credit limit should be a number greater than 0"),
+    dueInDays: z.string().regex(/^[0-9]+$/, "Due days should be a number greater than 0"),
+  });
 
 type BillingDetailsForm = z.infer<typeof billingDetailsUpdateSchema>;
 
 export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
   const { billingAccount, setBillingAccountDetails } =
     useContext(OrganizationContext);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const organizationId = billingAccount?.org_id || "";
+  const billingId = billingAccount?.id || "";
 
   const {
     watch,
@@ -72,74 +59,99 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     resolver: zodResolver(billingDetailsUpdateSchema),
   });
 
-  const getBillingDetails = useCallback(
-    async (orgId: string, billingId: string) => {
-      setIsLoading(true);
-      try {
-        const resp = await api?.adminServiceGetBillingAccountDetails(
-          orgId,
-          billingId,
-        );
-        const data = resp?.data;
-        const credit_min = Number(data?.credit_min) * -1;
-        reset({
-          token_payment_type: credit_min > 0 ? "postpaid" : "prepaid",
-          credit_min: credit_min,
-          due_in_days: Number(data?.due_in_days),
-        });
-      } catch (error) {
-        console.error("Failed to fetch billing details:", error);
-      } finally {
-        setIsLoading(false);
-      }
+  const { data: billingDetailsData, isLoading } = useQuery(
+    AdminServiceQueries.getBillingAccountDetails,
+    create(GetBillingAccountDetailsRequestSchema, {
+      orgId: organizationId,
+      id: billingId,
+    }),
+    {
+      enabled: !!organizationId && !!billingId,
     },
-    [reset],
   );
 
   useEffect(() => {
-    if (billingAccount?.org_id && billingAccount?.id) {
-      getBillingDetails(billingAccount?.org_id, billingAccount?.id);
+    if (billingDetailsData) {
+      const data = billingDetailsData;
+      const isPostpaid = data?.creditMin < 0n;
+      const creditMin = isPostpaid ? data.creditMin * BigInt(-1) : data.creditMin;
+      reset({
+        tokenPaymentType: isPostpaid ? "postpaid" : "prepaid",
+        creditMin: creditMin.toString(),
+        dueInDays: data?.dueInDays.toString(),
+      });
     }
-  }, [billingAccount?.org_id, billingAccount?.id, getBillingDetails]);
+  }, [billingDetailsData, reset]);
+
+  const { mutateAsync: updateBillingDetails } = useMutation(
+    AdminServiceQueries.updateBillingAccountDetails,
+    {
+      onError: (error) => {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+        console.error("Unable to update billing details:", error);
+      },
+    },
+  );
+
+  const { mutateAsync: getBillingAccount } = useMutation(
+    FrontierServiceQueries.getBillingAccount,
+    {
+      onError: (error) => {
+        console.error("Unable to fetch billing account:", error);
+      },
+    },
+  );
 
   const onSubmit = async (data: BillingDetailsForm) => {
     // Transform data for API submission
-    const apiData = billingDetailsApiSchema.parse(data);
+    const creditMinValue = BigInt(data.creditMin);
+    const creditMinForApi = data.tokenPaymentType === "postpaid"
+      ? -creditMinValue
+      : creditMinValue;
 
-    await api?.adminServiceUpdateBillingAccountDetails(
-      billingAccount?.org_id || "",
-      billingAccount?.id || "",
-      {
-        credit_min: apiData.credit_min.toString(),
-        due_in_days: apiData.due_in_days.toString(),
-      },
+    await updateBillingDetails(
+      create(UpdateBillingAccountDetailsRequestSchema, {
+        orgId: organizationId,
+        id: billingId,
+        creditMin: creditMinForApi,
+        dueInDays: BigInt(data.dueInDays),
+      }),
     );
-    const getBillingResp = await api?.frontierServiceGetBillingAccount(
-      billingAccount?.org_id || "",
-      billingAccount?.id || "",
-      { with_billing_details: true },
+
+    const getBillingResp = await getBillingAccount(
+      create(GetBillingAccountRequestSchema, {
+        orgId: organizationId,
+        id: billingId,
+        withBillingDetails: true,
+      }),
     );
-    const updatedDetails = getBillingResp?.data?.billing_details;
+
+    const updatedDetails = getBillingResp?.billingDetails;
     if (updatedDetails && setBillingAccountDetails) {
-      setBillingAccountDetails(updatedDetails);
+      setBillingAccountDetails({
+        credit_min: updatedDetails.creditMin.toString(),
+        due_in_days: updatedDetails.dueInDays.toString(),
+      });
     }
     toast.success("Billing details updated");
   };
 
   const onValueChange = (value: string) => {
-    const paymentType = value as BillingDetailsForm["token_payment_type"];
-    setValue("token_payment_type", paymentType);
+    const paymentType = value as BillingDetailsForm["tokenPaymentType"];
+    setValue("tokenPaymentType", paymentType);
     if (paymentType === "prepaid") {
-      setValue("credit_min", 0);
-      setValue("due_in_days", 0);
+      setValue("creditMin", "0");
+      setValue("dueInDays", "0");
     } else {
-      setValue("credit_min", 0);
-      setValue("due_in_days", 30);
+      setValue("creditMin", "0");
+      setValue("dueInDays", "30");
     }
   };
 
-  const token_payment_type = watch("token_payment_type");
-  const isPrepaid = token_payment_type === "prepaid";
+  const tokenPaymentType = watch("tokenPaymentType");
+  const isPrepaid = tokenPaymentType === "prepaid";
 
   return (
     <Sheet open>
@@ -177,7 +189,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                     Token payment type
                   </Text>
                   <Select
-                    value={token_payment_type}
+                    value={tokenPaymentType}
                     onValueChange={onValueChange}
                   >
                     <Select.Trigger>
@@ -196,9 +208,9 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                 <InputField
                   disabled={isPrepaid}
                   label="Credit limit"
-                  type="number"
-                  {...register("credit_min", { valueAsNumber: true })}
-                  error={errors?.credit_min?.message}
+                  type="string"
+                  {...register("creditMin", { pattern: { value: /^\d+$/, message: "Credit limit must be a number" } })}
+                  error={errors?.creditMin?.message}
                 />
               )}
               {isLoading ? (
@@ -207,10 +219,10 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                 <InputField
                   disabled={isPrepaid}
                   label="Billing due date"
-                  type="number"
+                  type="string"
                   suffix="Days"
-                  {...register("due_in_days", { valueAsNumber: true })}
-                  error={errors?.due_in_days?.message}
+                  {...register("dueInDays", { pattern: { value: /^\d+$/, message: "due days must be in number" } })}
+                  error={errors?.dueInDays?.message}
                 />
               )}
             </Flex>
