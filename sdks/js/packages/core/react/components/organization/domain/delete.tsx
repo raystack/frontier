@@ -11,12 +11,14 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain } from '~/src';
+import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { FrontierServiceQueries, GetOrganizationDomainRequestSchema, DeleteOrganizationDomainRequestSchema, ListOrganizationDomainsRequestSchema, type Domain } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import styles from '../organization.module.css';
 
 const domainSchema = yup
@@ -33,66 +35,85 @@ type FormData = yup.InferType<typeof domainSchema>;
 export const DeleteDomain = () => {
   const {
     watch,
-    control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     register
   } = useForm({
     resolver: yupResolver(domainSchema)
   });
   const navigate = useNavigate({ from: '/domains/$domainId/delete' });
   const { domainId } = useParams({ from: '/domains/$domainId/delete' });
-  const { client, activeOrganization: organization } = useFrontier();
-  const [domain, setDomain] = useState<V1Beta1Domain>();
-  const [isLoading, setIsLoading] = useState(false);
+  const { activeOrganization: organization } = useFrontier();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
-  const fetchDomainDetails = useCallback(async () => {
-    if (!domainId) return;
-    if (!organization?.id) return;
-
-    try {
-      setIsLoading(true);
-      const res = await client?.frontierServiceGetOrganizationDomain(
-        organization?.id,
-        domainId
-      );
-      const domain = res?.data.domain;
-      setDomain(domain);
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    } finally {
-      setIsLoading(false);
+  const {
+    data: domain,
+    isLoading,
+    error: domainError
+  } = useQuery(
+    FrontierServiceQueries.getOrganizationDomain,
+    create(GetOrganizationDomainRequestSchema, {
+      id: domainId || '',
+      orgId: organization?.id || ''
+    }),
+    {
+      enabled: !!domainId && !!organization?.id,
+      select: (d) => d?.domain
     }
-  }, [client, domainId, organization?.id]);
+  );
 
   useEffect(() => {
-    fetchDomainDetails();
-  }, [fetchDomainDetails]);
+    if (domainError) {
+      toast.error('Something went wrong', {
+        description: (domainError as Error).message
+      });
+    }
+  }, [domainError]);
+
+  const { mutateAsync: deleteOrganizationDomain, isPending } = useMutation(
+    FrontierServiceQueries.deleteOrganizationDomain,
+    {
+      onSuccess: async () => {
+        toast.success('Domain successfully deleted');
+        // Invalidate domains list to refetch
+        if (organization?.id) {
+          await queryClient.invalidateQueries({
+            queryKey: createConnectQueryKey({
+              schema: FrontierServiceQueries.listOrganizationDomains,
+              transport,
+              input: create(ListOrganizationDomainsRequestSchema, {
+                orgId: organization.id
+              }),
+              cardinality: 'finite'
+            })
+          });
+        }
+        navigate({ to: '/domains' });
+      },
+      onError: (error: Error) => {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    }
+  );
 
   async function onSubmit(data: FormData) {
-    // @ts-ignore. TODO: fix buf openapi plugin
-    if (!domain?.id || !domain?.org_id) return;
+    if (!domain?.id || !organization?.id) return;
 
     if (data.domain !== domain.name) {
       return setError('domain', { message: 'domain name is not same' });
     }
-    try {
-      await client?.frontierServiceDeleteOrganizationDomain(
-        // @ts-ignore
-        domain.org_id,
-        domain.id
-      );
-      navigate({ to: '/domains' });
-      toast.success('Domain deleted');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
+
+    await deleteOrganizationDomain(
+      create(DeleteOrganizationDomainRequestSchema, {
+        id: domain.id,
+        orgId: organization.id
+      })
+    );
   }
 
   const domainName = watch('domain', '');
@@ -152,10 +173,10 @@ export const DeleteDomain = () => {
                   <Button
                     variant="solid"
                     color="danger"
-                    disabled={!domainName || !isAcknowledged}
+                    disabled={!domainName || !isAcknowledged || isPending}
                     type="submit"
                     style={{ width: '100%' }}
-                    loading={isSubmitting}
+                    loading={isPending}
                     loaderText="Deleting..."
                     data-test-id="frontier-sdk-delete-domain-btn"
                   >
