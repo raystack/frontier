@@ -136,9 +136,6 @@ const (
 	FrontierService_GetMetaSchema_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/GetMetaSchema"
 	FrontierService_UpdateMetaSchema_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/UpdateMetaSchema"
 	FrontierService_DeleteMetaSchema_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/DeleteMetaSchema"
-	FrontierService_ListOrganizationAuditLogs_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs"
-	FrontierService_CreateOrganizationAuditLogs_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs"
-	FrontierService_GetOrganizationAuditLog_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog"
 	FrontierService_DescribePreferences_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/DescribePreferences"
 	FrontierService_CreateOrganizationPreferences_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences"
 	FrontierService_ListOrganizationPreferences_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationPreferences"
@@ -331,13 +328,6 @@ type FrontierServiceClient interface {
 	GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error)
-	// Deprecated: Do not use.
-	// Audit logs
-	ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error)
-	// Deprecated: Do not use.
-	CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error)
-	// Deprecated: Do not use.
-	GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(ctx context.Context, in *DescribePreferencesRequest, opts ...grpc.CallOption) (*DescribePreferencesResponse, error)
 	CreateOrganizationPreferences(ctx context.Context, in *CreateOrganizationPreferencesRequest, opts ...grpc.CallOption) (*CreateOrganizationPreferencesResponse, error)
@@ -1464,36 +1454,6 @@ func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, in *Delete
 	return out, nil
 }
 
-// Deprecated: Do not use.
-func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error) {
-	out := new(ListOrganizationAuditLogsResponse)
-	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationAuditLogs_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Deprecated: Do not use.
-func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error) {
-	out := new(CreateOrganizationAuditLogsResponse)
-	err := c.cc.Invoke(ctx, FrontierService_CreateOrganizationAuditLogs_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Deprecated: Do not use.
-func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error) {
-	out := new(GetOrganizationAuditLogResponse)
-	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationAuditLog_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *frontierServiceClient) DescribePreferences(ctx context.Context, in *DescribePreferencesRequest, opts ...grpc.CallOption) (*DescribePreferencesResponse, error) {
 	out := new(DescribePreferencesResponse)
 	err := c.cc.Invoke(ctx, FrontierService_DescribePreferences_FullMethodName, in, out, opts...)
@@ -2092,13 +2052,6 @@ type FrontierServiceServer interface {
 	GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error)
-	// Deprecated: Do not use.
-	// Audit logs
-	ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error)
-	// Deprecated: Do not use.
-	CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error)
-	// Deprecated: Do not use.
-	GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(context.Context, *DescribePreferencesRequest) (*DescribePreferencesResponse, error)
 	CreateOrganizationPreferences(context.Context, *CreateOrganizationPreferencesRequest) (*CreateOrganizationPreferencesResponse, error)
@@ -2519,15 +2472,6 @@ func (UnimplementedFrontierServiceServer) UpdateMetaSchema(context.Context, *Upd
 }
 func (UnimplementedFrontierServiceServer) DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteMetaSchema not implemented")
-}
-func (UnimplementedFrontierServiceServer) ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationAuditLogs not implemented")
-}
-func (UnimplementedFrontierServiceServer) CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganizationAuditLogs not implemented")
-}
-func (UnimplementedFrontierServiceServer) GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationAuditLog not implemented")
 }
 func (UnimplementedFrontierServiceServer) DescribePreferences(context.Context, *DescribePreferencesRequest) (*DescribePreferencesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DescribePreferences not implemented")
@@ -4801,60 +4745,6 @@ func _FrontierService_DeleteMetaSchema_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_ListOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListOrganizationAuditLogsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).ListOrganizationAuditLogs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_ListOrganizationAuditLogs_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).ListOrganizationAuditLogs(ctx, req.(*ListOrganizationAuditLogsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FrontierService_CreateOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateOrganizationAuditLogsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).CreateOrganizationAuditLogs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_CreateOrganizationAuditLogs_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).CreateOrganizationAuditLogs(ctx, req.(*CreateOrganizationAuditLogsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FrontierService_GetOrganizationAuditLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetOrganizationAuditLogRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).GetOrganizationAuditLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_GetOrganizationAuditLog_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).GetOrganizationAuditLog(ctx, req.(*GetOrganizationAuditLogRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _FrontierService_DescribePreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DescribePreferencesRequest)
 	if err := dec(in); err != nil {
@@ -6247,18 +6137,6 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMetaSchema",
 			Handler:    _FrontierService_DeleteMetaSchema_Handler,
-		},
-		{
-			MethodName: "ListOrganizationAuditLogs",
-			Handler:    _FrontierService_ListOrganizationAuditLogs_Handler,
-		},
-		{
-			MethodName: "CreateOrganizationAuditLogs",
-			Handler:    _FrontierService_CreateOrganizationAuditLogs_Handler,
-		},
-		{
-			MethodName: "GetOrganizationAuditLog",
-			Handler:    _FrontierService_GetOrganizationAuditLog_Handler,
 		},
 		{
 			MethodName: "DescribePreferences",

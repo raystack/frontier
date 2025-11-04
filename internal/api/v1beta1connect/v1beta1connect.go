@@ -35,7 +35,6 @@ type ConnectHandler struct {
 	bootstrapService                 apiv1beta1.BootstrapService
 	invitationService                apiv1beta1.InvitationService
 	serviceUserService               apiv1beta1.ServiceUserService
-	auditService                     apiv1beta1.AuditService
 	domainService                    apiv1beta1.DomainService
 	preferenceService                apiv1beta1.PreferenceService
 	customerService                  apiv1beta1.CustomerService
@@ -84,7 +83,6 @@ func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHand
 		bootstrapService:                 deps.BootstrapService,
 		invitationService:                deps.InvitationService,
 		serviceUserService:               deps.ServiceUserService,
-		auditService:                     deps.AuditService,
 		domainService:                    deps.DomainService,
 		preferenceService:                deps.PreferenceService,
 		customerService:                  deps.CustomerService,

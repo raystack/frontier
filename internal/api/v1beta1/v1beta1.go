@@ -30,7 +30,6 @@ type Handler struct {
 	bootstrapService                 BootstrapService
 	invitationService                InvitationService
 	serviceUserService               ServiceUserService
-	auditService                     AuditService
 	domainService                    DomainService
 	preferenceService                PreferenceService
 	customerService                  CustomerService
@@ -78,7 +77,6 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		bootstrapService:                 deps.BootstrapService,
 		invitationService:                deps.InvitationService,
 		serviceUserService:               deps.ServiceUserService,
-		auditService:                     deps.AuditService,
 		domainService:                    deps.DomainService,
 		preferenceService:                deps.PreferenceService,
 		customerService:                  deps.CustomerService,
