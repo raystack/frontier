@@ -216,7 +216,7 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 		if sessionID, err := h.getLoggedInSessionID(ctx); err == nil {
 			customClaims[token.SessionIDClaimKey] = sessionID.String()
 		} else {
-			logger.Warn("failed to get session ID for token claims", zap.Error(err), zap.String("principal", principal.ID))
+			logger.Error("failed to get session ID for token claims", zap.Error(err), zap.String("principal", principal.ID))
 		}
 	}
 
