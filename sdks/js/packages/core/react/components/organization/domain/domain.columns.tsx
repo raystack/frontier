@@ -1,8 +1,7 @@
 import { CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
 import { Button, Text, Flex } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1Domain } from '~/src';
+import type { Domain } from '@raystack/proton/frontier';
 import dayjs from 'dayjs';
 import type { DataTableColumnDef } from '@raystack/apsara';
 
@@ -13,7 +12,7 @@ interface getColumnsOptions {
 
 export const getColumns: (
   options: getColumnsOptions
-) => DataTableColumnDef<V1Beta1Domain, unknown>[] = ({
+) => DataTableColumnDef<Domain, unknown>[] = ({
   canCreateDomain,
   dateFormat
 }) => [
@@ -53,7 +52,7 @@ export const getColumns: (
     enableSorting: false,
     cell: ({ row, getValue }) => (
       <DomainActions
-        domain={row.original as V1Beta1Domain}
+        domain={row.original as Domain}
         canCreateDomain={canCreateDomain}
       />
     )
@@ -64,10 +63,9 @@ const DomainActions = ({
   domain,
   canCreateDomain
 }: {
-  domain: V1Beta1Domain;
+  domain: Domain;
   canCreateDomain?: boolean;
 }) => {
-  const { client } = useFrontier();
   const navigate = useNavigate({ from: '/domains' });
 
   return canCreateDomain ? (

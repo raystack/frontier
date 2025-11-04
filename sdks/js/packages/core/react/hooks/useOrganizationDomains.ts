@@ -1,35 +1,38 @@
-import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
-import { V1Beta1Domain } from '~/src';
+import { useQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, ListOrganizationDomainsRequestSchema, type Domain } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
-export const useOrganizationDomains = () => {
-  const [domains, setDomains] = useState<V1Beta1Domain[]>([]);
-  const [isDomainsLoading, setIsDomainsLoading] = useState(false);
-  const { client, activeOrganization: organization } = useFrontier();
+export interface UseOrganizationDomainsReturn {
+  isFetching: boolean;
+  domains: Domain[];
+  refetch: () => void;
+  error: unknown;
+}
 
-  const getDomains = useCallback(async () => {
-    try {
-      setIsDomainsLoading(true);
-      if (!organization?.id) return;
-      const resp = await client?.frontierServiceListOrganizationDomains(
-        organization?.id
-      );
-      const data = resp?.data?.domains || [];
-      setDomains(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsDomainsLoading(false);
+export const useOrganizationDomains = (): UseOrganizationDomainsReturn => {
+  const { activeOrganization: organization } = useFrontier();
+
+  const {
+    data: domainsData,
+    isLoading: isDomainsLoading,
+    error: domainsError,
+    refetch: refetchDomains
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationDomains,
+    create(ListOrganizationDomainsRequestSchema, {
+      orgId: organization?.id || ''
+    }),
+    {
+      enabled: !!organization?.id,
+      select: (d) => d?.domains ?? []
     }
-  }, [client, organization?.id]);
-
-  useEffect(() => {
-    getDomains();
-  }, [getDomains]);
+  );
 
   return {
     isFetching: isDomainsLoading,
-    domains: domains,
-    refetch: getDomains
+    domains: domainsData || [],
+    refetch: refetchDomains,
+    error: domainsError
   };
 };
