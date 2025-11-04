@@ -382,15 +382,6 @@ const (
 	// FrontierServiceDeleteMetaSchemaProcedure is the fully-qualified name of the FrontierService's
 	// DeleteMetaSchema RPC.
 	FrontierServiceDeleteMetaSchemaProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteMetaSchema"
-	// FrontierServiceListOrganizationAuditLogsProcedure is the fully-qualified name of the
-	// FrontierService's ListOrganizationAuditLogs RPC.
-	FrontierServiceListOrganizationAuditLogsProcedure = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs"
-	// FrontierServiceCreateOrganizationAuditLogsProcedure is the fully-qualified name of the
-	// FrontierService's CreateOrganizationAuditLogs RPC.
-	FrontierServiceCreateOrganizationAuditLogsProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs"
-	// FrontierServiceGetOrganizationAuditLogProcedure is the fully-qualified name of the
-	// FrontierService's GetOrganizationAuditLog RPC.
-	FrontierServiceGetOrganizationAuditLogProcedure = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog"
 	// FrontierServiceDescribePreferencesProcedure is the fully-qualified name of the FrontierService's
 	// DescribePreferences RPC.
 	FrontierServiceDescribePreferencesProcedure = "/raystack.frontier.v1beta1.FrontierService/DescribePreferences"
@@ -682,14 +673,6 @@ type FrontierServiceClient interface {
 	GetMetaSchema(context.Context, *connect.Request[v1beta1.GetMetaSchemaRequest]) (*connect.Response[v1beta1.GetMetaSchemaResponse], error)
 	UpdateMetaSchema(context.Context, *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error)
 	DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error)
-	// Audit logs
-	//
-	// Deprecated: do not use.
-	ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
-	// Deprecated: do not use.
-	CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
-	// Deprecated: do not use.
-	GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error)
 	CreateOrganizationPreferences(context.Context, *connect.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect.Response[v1beta1.CreateOrganizationPreferencesResponse], error)
@@ -1468,24 +1451,6 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("DeleteMetaSchema")),
 			connect.WithClientOptions(opts...),
 		),
-		listOrganizationAuditLogs: connect.NewClient[v1beta1.ListOrganizationAuditLogsRequest, v1beta1.ListOrganizationAuditLogsResponse](
-			httpClient,
-			baseURL+FrontierServiceListOrganizationAuditLogsProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationAuditLogs")),
-			connect.WithClientOptions(opts...),
-		),
-		createOrganizationAuditLogs: connect.NewClient[v1beta1.CreateOrganizationAuditLogsRequest, v1beta1.CreateOrganizationAuditLogsResponse](
-			httpClient,
-			baseURL+FrontierServiceCreateOrganizationAuditLogsProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationAuditLogs")),
-			connect.WithClientOptions(opts...),
-		),
-		getOrganizationAuditLog: connect.NewClient[v1beta1.GetOrganizationAuditLogRequest, v1beta1.GetOrganizationAuditLogResponse](
-			httpClient,
-			baseURL+FrontierServiceGetOrganizationAuditLogProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationAuditLog")),
-			connect.WithClientOptions(opts...),
-		),
 		describePreferences: connect.NewClient[v1beta1.DescribePreferencesRequest, v1beta1.DescribePreferencesResponse](
 			httpClient,
 			baseURL+FrontierServiceDescribePreferencesProcedure,
@@ -1914,9 +1879,6 @@ type frontierServiceClient struct {
 	getMetaSchema                  *connect.Client[v1beta1.GetMetaSchemaRequest, v1beta1.GetMetaSchemaResponse]
 	updateMetaSchema               *connect.Client[v1beta1.UpdateMetaSchemaRequest, v1beta1.UpdateMetaSchemaResponse]
 	deleteMetaSchema               *connect.Client[v1beta1.DeleteMetaSchemaRequest, v1beta1.DeleteMetaSchemaResponse]
-	listOrganizationAuditLogs      *connect.Client[v1beta1.ListOrganizationAuditLogsRequest, v1beta1.ListOrganizationAuditLogsResponse]
-	createOrganizationAuditLogs    *connect.Client[v1beta1.CreateOrganizationAuditLogsRequest, v1beta1.CreateOrganizationAuditLogsResponse]
-	getOrganizationAuditLog        *connect.Client[v1beta1.GetOrganizationAuditLogRequest, v1beta1.GetOrganizationAuditLogResponse]
 	describePreferences            *connect.Client[v1beta1.DescribePreferencesRequest, v1beta1.DescribePreferencesResponse]
 	createOrganizationPreferences  *connect.Client[v1beta1.CreateOrganizationPreferencesRequest, v1beta1.CreateOrganizationPreferencesResponse]
 	listOrganizationPreferences    *connect.Client[v1beta1.ListOrganizationPreferencesRequest, v1beta1.ListOrganizationPreferencesResponse]
@@ -2571,29 +2533,6 @@ func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, req *conne
 	return c.deleteMetaSchema.CallUnary(ctx, req)
 }
 
-// ListOrganizationAuditLogs calls
-// raystack.frontier.v1beta1.FrontierService.ListOrganizationAuditLogs.
-//
-// Deprecated: do not use.
-func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, req *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error) {
-	return c.listOrganizationAuditLogs.CallUnary(ctx, req)
-}
-
-// CreateOrganizationAuditLogs calls
-// raystack.frontier.v1beta1.FrontierService.CreateOrganizationAuditLogs.
-//
-// Deprecated: do not use.
-func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error) {
-	return c.createOrganizationAuditLogs.CallUnary(ctx, req)
-}
-
-// GetOrganizationAuditLog calls raystack.frontier.v1beta1.FrontierService.GetOrganizationAuditLog.
-//
-// Deprecated: do not use.
-func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error) {
-	return c.getOrganizationAuditLog.CallUnary(ctx, req)
-}
-
 // DescribePreferences calls raystack.frontier.v1beta1.FrontierService.DescribePreferences.
 func (c *frontierServiceClient) DescribePreferences(ctx context.Context, req *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error) {
 	return c.describePreferences.CallUnary(ctx, req)
@@ -2993,14 +2932,6 @@ type FrontierServiceHandler interface {
 	GetMetaSchema(context.Context, *connect.Request[v1beta1.GetMetaSchemaRequest]) (*connect.Response[v1beta1.GetMetaSchemaResponse], error)
 	UpdateMetaSchema(context.Context, *connect.Request[v1beta1.UpdateMetaSchemaRequest]) (*connect.Response[v1beta1.UpdateMetaSchemaResponse], error)
 	DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error)
-	// Audit logs
-	//
-	// Deprecated: do not use.
-	ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error)
-	// Deprecated: do not use.
-	CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error)
-	// Deprecated: do not use.
-	GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error)
 	// DescribePreferences list down all the supported preferences of entities
 	DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error)
 	CreateOrganizationPreferences(context.Context, *connect.Request[v1beta1.CreateOrganizationPreferencesRequest]) (*connect.Response[v1beta1.CreateOrganizationPreferencesResponse], error)
@@ -3775,24 +3706,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("DeleteMetaSchema")),
 		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListOrganizationAuditLogsHandler := connect.NewUnaryHandler(
-		FrontierServiceListOrganizationAuditLogsProcedure,
-		svc.ListOrganizationAuditLogs,
-		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationAuditLogs")),
-		connect.WithHandlerOptions(opts...),
-	)
-	frontierServiceCreateOrganizationAuditLogsHandler := connect.NewUnaryHandler(
-		FrontierServiceCreateOrganizationAuditLogsProcedure,
-		svc.CreateOrganizationAuditLogs,
-		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationAuditLogs")),
-		connect.WithHandlerOptions(opts...),
-	)
-	frontierServiceGetOrganizationAuditLogHandler := connect.NewUnaryHandler(
-		FrontierServiceGetOrganizationAuditLogProcedure,
-		svc.GetOrganizationAuditLog,
-		connect.WithSchema(frontierServiceMethods.ByName("GetOrganizationAuditLog")),
-		connect.WithHandlerOptions(opts...),
-	)
 	frontierServiceDescribePreferencesHandler := connect.NewUnaryHandler(
 		FrontierServiceDescribePreferencesProcedure,
 		svc.DescribePreferences,
@@ -4335,12 +4248,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceUpdateMetaSchemaHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteMetaSchemaProcedure:
 			frontierServiceDeleteMetaSchemaHandler.ServeHTTP(w, r)
-		case FrontierServiceListOrganizationAuditLogsProcedure:
-			frontierServiceListOrganizationAuditLogsHandler.ServeHTTP(w, r)
-		case FrontierServiceCreateOrganizationAuditLogsProcedure:
-			frontierServiceCreateOrganizationAuditLogsHandler.ServeHTTP(w, r)
-		case FrontierServiceGetOrganizationAuditLogProcedure:
-			frontierServiceGetOrganizationAuditLogHandler.ServeHTTP(w, r)
 		case FrontierServiceDescribePreferencesProcedure:
 			frontierServiceDescribePreferencesHandler.ServeHTTP(w, r)
 		case FrontierServiceCreateOrganizationPreferencesProcedure:
@@ -4918,18 +4825,6 @@ func (UnimplementedFrontierServiceHandler) UpdateMetaSchema(context.Context, *co
 
 func (UnimplementedFrontierServiceHandler) DeleteMetaSchema(context.Context, *connect.Request[v1beta1.DeleteMetaSchemaRequest]) (*connect.Response[v1beta1.DeleteMetaSchemaResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema is not implemented"))
-}
-
-func (UnimplementedFrontierServiceHandler) ListOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.ListOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.ListOrganizationAuditLogsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationAuditLogs is not implemented"))
-}
-
-func (UnimplementedFrontierServiceHandler) CreateOrganizationAuditLogs(context.Context, *connect.Request[v1beta1.CreateOrganizationAuditLogsRequest]) (*connect.Response[v1beta1.CreateOrganizationAuditLogsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationAuditLogs is not implemented"))
-}
-
-func (UnimplementedFrontierServiceHandler) GetOrganizationAuditLog(context.Context, *connect.Request[v1beta1.GetOrganizationAuditLogRequest]) (*connect.Response[v1beta1.GetOrganizationAuditLogResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationAuditLog is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) DescribePreferences(context.Context, *connect.Request[v1beta1.DescribePreferencesRequest]) (*connect.Response[v1beta1.DescribePreferencesResponse], error) {
