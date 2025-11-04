@@ -70,4 +70,3 @@ func (e *ErrorLogger) LogTransformError(ctx context.Context, req connect.AnyRequ
 func (e *ErrorLogger) getRequestID(req connect.AnyRequest) string {
 	return req.Header().Get(consts.RequestIDHeader)
 }
-

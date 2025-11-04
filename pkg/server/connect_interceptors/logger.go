@@ -10,8 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const loggerContextKey = "logger"
-
 type LoggerOption struct {
 	// Decider returns true if method should be logged
 	Decider func(procedure string) bool
