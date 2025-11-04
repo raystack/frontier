@@ -136,7 +136,15 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 
 func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request[frontierv1beta1.AuthTokenRequest]) (*connect.Response[frontierv1beta1.AuthTokenResponse], error) {
 	logger := ExtractLogger(ctx)
-	existingMD := metadata.New(map[string]string{})
+	// Get existing metadata from context to preserve session info from interceptor
+	existingMD, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		existingMD = metadata.New(map[string]string{})
+	} else {
+		// Clone existing metadata to avoid modifying the original
+		existingMD = existingMD.Copy()
+	}
+
 	switch request.Msg.GetGrantType() {
 	case "client_credentials":
 		if request.Msg.GetClientId() != "" && request.Msg.GetClientSecret() != "" {
@@ -207,6 +215,8 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 	if h.authConfig.Token.Claims.AddSessionIDClaim && principal.Type == schema.UserPrincipal {
 		if sessionID, err := h.getLoggedInSessionID(ctx); err == nil {
 			customClaims[token.SessionIDClaimKey] = sessionID.String()
+		} else {
+			logger.Warn("failed to get session ID for token claims", zap.Error(err), zap.String("principal", principal.ID))
 		}
 	}
 
