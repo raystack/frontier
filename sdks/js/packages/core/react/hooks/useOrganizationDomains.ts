@@ -31,7 +31,7 @@ export const useOrganizationDomains = (): UseOrganizationDomainsReturn => {
 
   return {
     isFetching: isDomainsLoading,
-    domains: domainsData ?? [],
+    domains: domainsData || [],
     refetch: refetchDomains,
     error: domainsError
   };
