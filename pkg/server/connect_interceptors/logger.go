@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/pkg/server/consts"
 	"go.uber.org/zap"
 )
@@ -44,8 +45,8 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				return next(ctx, req)
 			}
 
-			// Embed logger in context
-			ctx = context.WithValue(ctx, loggerContextKey, logger)
+			// Embed logger in context using grpc-zap method for consistency
+			ctx = grpczap.ToContext(ctx, logger)
 
 			startTime := time.Now()
 			resp, err := next(ctx, req)

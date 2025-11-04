@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
@@ -20,6 +21,7 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/pagination"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -84,6 +86,8 @@ func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *conne
 
 func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Request[frontierv1beta1.CreateUserRequest]) (*connect.Response[frontierv1beta1.CreateUserResponse], error) {
 	logger := grpczap.Extract(ctx)
+	requestID := request.Header().Get(consts.RequestIDHeader)
+
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -120,18 +124,42 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 		Avatar:   request.Msg.GetBody().GetAvatar(),
 		Metadata: metaDataMap,
 	})
+	err = fmt.Errorf("test error for logging verification")
 	if err != nil {
+		// Log detailed error info before generic mapping
+		logger.Error("user service create failed",
+			zap.String("operation", "CreateUser"),
+			zap.String("request_id", requestID),
+			zap.String("email", email),
+			zap.String("name", name),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
+
 		switch {
 		case errors.Is(err, user.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		case errors.Is(errors.Unwrap(err), user.ErrKeyDoesNotExists):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
+			// Additional logging for unexpected errors
+			logger.Error("unexpected error in CreateUser",
+				zap.String("operation", "CreateUser"),
+				zap.String("request_id", requestID),
+				zap.String("user_email", email),
+				zap.String("user_name", name),
+				zap.String("error_chain", fmt.Sprintf("%+v", err)),
+				zap.Error(err))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	transformedUser, err := transformUserToPB(newUser)
 	if err != nil {
+		logger.Error("user transformation to protobuf failed",
+			zap.String("operation", "CreateUser"),
+			zap.String("request_id", requestID),
+			zap.String("user_id", newUser.ID),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
@@ -145,18 +173,43 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 }
 
 func (h *ConnectHandler) GetUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetUserRequest]) (*connect.Response[frontierv1beta1.GetUserResponse], error) {
-	fetchedUser, err := h.userService.GetByID(ctx, request.Msg.GetId())
+	logger := grpczap.Extract(ctx)
+	requestID := request.Header().Get(consts.RequestIDHeader)
+	userID := request.Msg.GetId()
+
+	fetchedUser, err := h.userService.GetByID(ctx, userID)
 	if err != nil {
+		// Log detailed error info before generic mapping
+		logger.Error("user service get failed",
+			zap.String("operation", "GetUser"),
+			zap.String("request_id", requestID),
+			zap.String("user_id", userID),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		default:
+			// Additional logging for unexpected errors
+			logger.Error("unexpected error in GetUser",
+				zap.String("operation", "GetUser"),
+				zap.String("request_id", requestID),
+				zap.String("user_id", userID),
+				zap.String("error_chain", fmt.Sprintf("%+v", err)),
+				zap.Error(err))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {
+		logger.Error("user transformation to protobuf failed",
+			zap.String("operation", "GetUser"),
+			zap.String("request_id", requestID),
+			zap.String("user_id", fetchedUser.ID),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -191,6 +244,8 @@ func (h *ConnectHandler) GetCurrentUser(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateUserRequest]) (*connect.Response[frontierv1beta1.UpdateUserResponse], error) {
+	logger := grpczap.Extract(ctx)
+	requestID := request.Header().Get(consts.RequestIDHeader)
 	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
 	var updatedUser user.User
 
@@ -225,6 +280,13 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 				}
 				return connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: createUserResponse.Msg.GetUser()}), nil
 			} else {
+				// Log detailed error info for unexpected GetByEmail failure
+				logger.Error("user service get by email failed during update upsert",
+					zap.String("operation", "UpdateUser"),
+					zap.String("request_id", requestID),
+					zap.String("email", id),
+					zap.String("error_type", fmt.Sprintf("%T", err)),
+					zap.Error(err))
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 		}
@@ -244,6 +306,15 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 	})
 
 	if err != nil {
+		// Log detailed error info before generic mapping
+		logger.Error("user service update failed",
+			zap.String("operation", "UpdateUser"),
+			zap.String("request_id", requestID),
+			zap.String("user_id", id),
+			zap.String("email", email),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
@@ -252,12 +323,26 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 		case errors.Is(err, user.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
+			// Additional logging for unexpected errors
+			logger.Error("unexpected error in UpdateUser",
+				zap.String("operation", "UpdateUser"),
+				zap.String("request_id", requestID),
+				zap.String("user_id", id),
+				zap.String("user_email", email),
+				zap.String("error_chain", fmt.Sprintf("%+v", err)),
+				zap.Error(err))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	userPB, err := transformUserToPB(updatedUser)
 	if err != nil {
+		logger.Error("user transformation to protobuf failed",
+			zap.String("operation", "UpdateUser"),
+			zap.String("request_id", requestID),
+			zap.String("user_id", updatedUser.ID),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -327,13 +412,32 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 }
 
 func (h *ConnectHandler) EnableUser(ctx context.Context, request *connect.Request[frontierv1beta1.EnableUserRequest]) (*connect.Response[frontierv1beta1.EnableUserResponse], error) {
-	if err := h.userService.Enable(ctx, request.Msg.GetId()); err != nil {
+	logger := grpczap.Extract(ctx)
+	requestID := request.Header().Get(consts.RequestIDHeader)
+	userID := request.Msg.GetId()
+
+	if err := h.userService.Enable(ctx, userID); err != nil {
+		// Log detailed error info before generic mapping
+		logger.Error("user service enable failed",
+			zap.String("operation", "EnableUser"),
+			zap.String("request_id", requestID),
+			zap.String("user_id", userID),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, user.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
+			// Additional logging for unexpected errors
+			logger.Error("unexpected error in EnableUser",
+				zap.String("operation", "EnableUser"),
+				zap.String("request_id", requestID),
+				zap.String("user_id", userID),
+				zap.String("error_chain", fmt.Sprintf("%+v", err)),
+				zap.Error(err))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -355,13 +459,32 @@ func (h *ConnectHandler) DisableUser(ctx context.Context, request *connect.Reque
 }
 
 func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteUserRequest]) (*connect.Response[frontierv1beta1.DeleteUserResponse], error) {
-	if err := h.deleterService.DeleteUser(ctx, request.Msg.GetId()); err != nil {
+	logger := grpczap.Extract(ctx)
+	requestID := request.Header().Get(consts.RequestIDHeader)
+	userID := request.Msg.GetId()
+
+	if err := h.deleterService.DeleteUser(ctx, userID); err != nil {
+		// Log detailed error info before generic mapping
+		logger.Error("deleter service delete user failed",
+			zap.String("operation", "DeleteUser"),
+			zap.String("request_id", requestID),
+			zap.String("user_id", userID),
+			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.Error(err))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, user.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
+			// Additional logging for unexpected errors
+			logger.Error("unexpected error in DeleteUser",
+				zap.String("operation", "DeleteUser"),
+				zap.String("request_id", requestID),
+				zap.String("user_id", userID),
+				zap.String("error_chain", fmt.Sprintf("%+v", err)),
+				zap.Error(err))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
