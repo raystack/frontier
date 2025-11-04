@@ -1,9 +1,8 @@
 import { CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
-import { Button, Text, Flex } from '@raystack/apsara';
+import { Button, Text, Flex, type DataTableColumnDef } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
 import type { Domain } from '@raystack/proton/frontier';
 import dayjs from 'dayjs';
-import type { DataTableColumnDef } from '@raystack/apsara';
 
 interface getColumnsOptions {
   canCreateDomain?: boolean;
