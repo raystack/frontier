@@ -10,16 +10,24 @@ import {
   type DataTableColumnDef
 } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useCallback, useEffect, useState } from 'react';
-import type {
-  V1Beta1CreatePolicyForProjectBody,
-  V1Beta1Policy,
-  Frontierv1Beta1Project
-} from '~/src';
+import { useCallback, useState, useEffect } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
 import styles from './styles.module.css';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  ListServiceUserProjectsRequestSchema,
+  ListOrganizationProjectsRequestSchema,
+  CreatePolicyForProjectRequestSchema,
+  CreatePolicyForProjectBodySchema,
+  ListPoliciesRequestSchema,
+  DeletePolicyRequestSchema,
+  Project,
+  Policy
+} from '@raystack/proton/frontier';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
@@ -29,7 +37,7 @@ const getColumns = ({
 }: {
   permMap: ProjectAccessMap;
   onChange: (projectId: string, value: boolean) => void;
-}): DataTableColumnDef<Frontierv1Beta1Project, unknown>[] => {
+}): DataTableColumnDef<Project, unknown>[] => {
   return [
     {
       header: '',
@@ -41,7 +49,7 @@ const getColumns = ({
         }
       },
       cell: ({ getValue }) => {
-        const projectId = getValue();
+        const projectId = getValue() as string;
         const { value, isLoading } = permMap[projectId] || {};
         return (
           <Flex>
@@ -61,7 +69,7 @@ const getColumns = ({
       header: 'Project Name',
       accessorKey: 'title',
       cell: ({ getValue }) => {
-        const value = getValue();
+        const value = getValue() as string;
         return (
           <Flex direction="column">
             <Text>{value}</Text>
@@ -83,15 +91,12 @@ const getColumns = ({
 };
 
 export default function ManageServiceUserProjects() {
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
 
   const { id } = useParams({
     from: '/api-keys/$id/projects'
   });
 
-  const [projects, setProjects] = useState<Frontierv1Beta1Project[]>([]);
-  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
-  const [isAddedProjectsLoading, setIsAddedProjectsLoading] = useState(false);
   const [addedProjectsMap, setAddedProjectsMap] = useState<ProjectAccessMap>(
     {}
   );
@@ -99,6 +104,54 @@ export default function ManageServiceUserProjects() {
   const navigate = useNavigate({ from: '/api-keys/$id/projects' });
 
   const orgId = organization?.id || '';
+
+  const {
+    data: projects = [],
+    isLoading: isProjectsLoading
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationProjects,
+    create(ListOrganizationProjectsRequestSchema, {
+      id: orgId,
+      state: '',
+      withMemberCount: false
+    }),
+    {
+      enabled: !!orgId,
+      select: data => {
+        const list = data?.projects ?? [];
+        return list.sort((a, b) =>
+          (a?.title?.toLowerCase() || '') > (b?.title?.toLowerCase() || '')
+            ? 1
+            : -1
+        );
+      }
+    }
+  );
+
+  const {
+    data: addedProjects = [],
+    isLoading: isAddedProjectsLoading
+  } = useQuery(
+    FrontierServiceQueries.listServiceUserProjects,
+    create(ListServiceUserProjectsRequestSchema, {
+      id,
+      orgId,
+      withPermissions: []
+    }),
+    {
+      enabled: !!id && !!orgId,
+      select: data => data?.projects ?? []
+    }
+  );
+
+  // Initialize addedProjectsMap from query data
+  useEffect(() => {
+    const permMap = addedProjects.reduce((acc, proj) => {
+      acc[proj?.id || ''] = { value: true, isLoading: false };
+      return acc;
+    }, {} as ProjectAccessMap);
+    setAddedProjectsMap(permMap);
+  }, [addedProjects]);
 
   function onCancel() {
     navigate({
@@ -109,49 +162,17 @@ export default function ManageServiceUserProjects() {
     });
   }
 
-  useEffect(() => {
-    async function fetchAddedProjects() {
-      try {
-        setIsAddedProjectsLoading(true);
-        const data = await client?.frontierServiceListServiceUserProjects(
-          orgId,
-          id
-        );
-        const permMap = data?.data?.projects?.reduce((acc, proj) => {
-          acc[proj?.id || ''] = { value: true, isLoading: false };
-          return acc;
-        }, {} as ProjectAccessMap);
-        setAddedProjectsMap(permMap || {});
-      } catch (error: unknown) {
-        console.error(error);
-      } finally {
-        setIsAddedProjectsLoading(false);
-      }
-    }
+  const { mutateAsync: createPolicyForProject } = useMutation(
+    FrontierServiceQueries.createPolicyForProject
+  );
 
-    async function fetchProjects() {
-      try {
-        setIsProjectsLoading(true);
-        const data = await client?.frontierServiceListOrganizationProjects(
-          orgId
-        );
-        const list = data?.data?.projects?.sort((a, b) =>
-          (a?.title?.toLowerCase() || '') > (b?.title?.toLowerCase() || '')
-            ? 1
-            : -1
-        );
-        setProjects(list || []);
-      } catch (error: unknown) {
-        console.error(error);
-      } finally {
-        setIsProjectsLoading(false);
-      }
-    }
-    if (orgId) {
-      fetchProjects();
-      fetchAddedProjects();
-    }
-  }, [client, id, orgId]);
+  const { mutateAsync: listPolicies } = useMutation(
+    FrontierServiceQueries.listPolicies
+  );
+
+  const { mutateAsync: deletePolicy } = useMutation(
+    FrontierServiceQueries.deletePolicy
+  );
 
   const onAccessChange = useCallback(
     async (projectId: string, value: boolean) => {
@@ -163,26 +184,36 @@ export default function ManageServiceUserProjects() {
 
         if (value) {
           const principal = `${PERMISSIONS.ServiceUserPrincipal}:${id}`;
-          const policy: V1Beta1CreatePolicyForProjectBody = {
-            role_id: PERMISSIONS.RoleProjectOwner,
-            principal
-          };
-          await client?.frontierServiceCreatePolicyForProject(
-            projectId,
-            policy
+          await createPolicyForProject(
+            create(CreatePolicyForProjectRequestSchema, {
+              projectId,
+              body: create(CreatePolicyForProjectBodySchema, {
+                roleId: PERMISSIONS.RoleProjectOwner,
+                principal
+              })
+            })
           );
           setAddedProjectsMap(prev => ({
             ...prev,
             [projectId]: { value: true, isLoading: false }
           }));
         } else {
-          const policiesResp = await client?.frontierServiceListPolicies({
-            project_id: projectId,
-            user_id: id
-          });
-          const policies = policiesResp?.data?.policies || [];
-          const deletePromises = policies.map((p: V1Beta1Policy) =>
-            client?.frontierServiceDeletePolicy(p.id as string)
+          const policiesResp = await listPolicies(
+            create(ListPoliciesRequestSchema, {
+              projectId,
+              userId: id,
+              orgId: '',
+              roleId: '',
+              groupId: ''
+            })
+          );
+          const policies = policiesResp?.policies || [];
+          const deletePromises = policies.map((p: Policy) =>
+            deletePolicy(
+              create(DeletePolicyRequestSchema, {
+                id: p.id
+              })
+            )
           );
           await Promise.all(deletePromises);
           setAddedProjectsMap(prev => ({
@@ -190,8 +221,8 @@ export default function ManageServiceUserProjects() {
             [projectId]: { value: false, isLoading: false }
           }));
         }
-      } catch (err: unknown) {
-        console.error(err);
+      } catch (error: unknown) {
+        console.error(error);
         toast.error('unable to update project access');
         setAddedProjectsMap(prev => ({
           ...prev,
@@ -199,7 +230,7 @@ export default function ManageServiceUserProjects() {
         }));
       }
     },
-    [client, id]
+    [id, createPolicyForProject, listPolicies, deletePolicy]
   );
 
   const columns = getColumns({

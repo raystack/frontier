@@ -16,15 +16,15 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getColumns } from './columns';
-import type { ServiceUser } from '~/src';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useTerminology } from '~/react/hooks/useTerminology';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
-  ListOrganizationServiceUsersRequestSchema
-} from '~/src';
+  ListOrganizationServiceUsersRequestSchema,
+  type ServiceUser
+} from '@raystack/proton/frontier';
 
 const NoServiceAccounts = () => {
   const t = useTerminology();
