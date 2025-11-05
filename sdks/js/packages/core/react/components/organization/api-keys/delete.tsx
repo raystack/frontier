@@ -4,12 +4,18 @@ import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from './styles.module.css';
+import { useQueryClient } from '@tanstack/react-query';
+import { createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, ListOrganizationServiceUsersRequestSchema } from '~/src';
+import { create } from '@bufbuild/protobuf';
 
 export const DeleteServiceAccount = () => {
   const { id } = useParams({ from: '/api-keys/$id/delete' });
   const navigate = useNavigate({ from: '/api-keys/$id/delete' });
   const { client, activeOrganization: organization } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const orgId = organization?.id || '';
 
@@ -17,12 +23,20 @@ export const DeleteServiceAccount = () => {
     try {
       setIsLoading(true);
       await client?.frontierServiceDeleteServiceUser(orgId, id);
-      navigate({
-        to: '/api-keys',
-        state: {
-          refetch: true
-        }
+
+      // Invalidate service users query
+      await queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listOrganizationServiceUsers,
+          transport,
+          input: create(ListOrganizationServiceUsersRequestSchema, {
+            id: orgId
+          }),
+          cardinality: 'finite'
+        })
       });
+
+      navigate({ to: '/api-keys' });
       toast.success('Service account deleted');
     } catch (err: any) {
       toast.error('Unable to delete service account', {

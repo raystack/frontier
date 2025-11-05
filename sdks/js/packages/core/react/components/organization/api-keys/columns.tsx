@@ -1,14 +1,14 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { Button, type DataTableColumnDef, Flex, Text } from '@raystack/apsara';
 import { Link, useNavigate } from '@tanstack/react-router';
-import dayjs from 'dayjs';
-import type { V1Beta1ServiceUser } from '~/api-client';
+import type { ServiceUser } from '~/src';
+import { timestampToDayjs } from '~/utils/timestamp';
 
 export const getColumns = ({
   dateFormat
 }: {
   dateFormat: string;
-}): DataTableColumnDef<V1Beta1ServiceUser, unknown>[] => {
+}): DataTableColumnDef<ServiceUser, unknown>[] => {
   return [
     {
       header: 'Name',
@@ -33,12 +33,12 @@ export const getColumns = ({
     },
     {
       header: 'Created on',
-      accessorKey: 'created_at',
+      accessorKey: 'createdAt',
       cell: ({ row, getValue }) => {
         const value = getValue();
         return (
           <Flex direction="column">
-            <Text>{dayjs(value).format(dateFormat)}</Text>
+            <Text>{timestampToDayjs(value)?.format(dateFormat) ?? '-'}</Text>
           </Flex>
         );
       }

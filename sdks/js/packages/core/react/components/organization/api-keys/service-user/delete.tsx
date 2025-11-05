@@ -5,6 +5,10 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from './styles.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import { useQueryClient } from '@tanstack/react-query';
+import { createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { FrontierServiceQueries, ListOrganizationServiceUsersRequestSchema } from '~/src';
+import { create } from '@bufbuild/protobuf';
 
 export const DeleteServiceAccountKey = () => {
   const { id, tokenId } = useParams({
@@ -13,6 +17,8 @@ export const DeleteServiceAccountKey = () => {
   const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
   const { client, activeOrganization } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const orgId = activeOrganization?.id || '';
 
@@ -20,13 +26,23 @@ export const DeleteServiceAccountKey = () => {
     try {
       setIsLoading(true);
       await client?.frontierServiceDeleteServiceUserToken(orgId, id, tokenId);
+
+      // Invalidate service users query
+      await queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listOrganizationServiceUsers,
+          transport,
+          input: create(ListOrganizationServiceUsersRequestSchema, {
+            id: orgId
+          }),
+          cardinality: 'finite'
+        })
+      });
+
       navigate({
         to: '/api-keys/$id',
         params: {
           id: id
-        },
-        state: {
-          refetch: true
         }
       });
       toast.success('Service account key revoked');
