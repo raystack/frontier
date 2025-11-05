@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -19,6 +20,8 @@ type OrgBillingService interface {
 }
 
 func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	var orgs []*frontierv1beta1.SearchOrganizationsResponse_OrganizationResult
 
 	rqlQuery, err := transformProtoToRQL(request.Msg.GetQuery())
@@ -33,6 +36,7 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 
 	orgBillingData, err := h.orgBillingService.Search(ctx, rqlQuery)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "SearchOrganizations.Search", err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -61,11 +65,14 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 }
 
 func (h *ConnectHandler) ExportOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	errorLogger := NewErrorLogger()
+
 	orgBillingDataBytes, contentType, err := h.orgBillingService.Export(ctx)
 	if err != nil {
 		if errors.Is(err, orgbilling.ErrNoContent) {
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
+		errorLogger.LogServiceError(ctx, request, "ExportOrganizations.Export", err)
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return streamBytesInChunks(orgBillingDataBytes, contentType, stream)
