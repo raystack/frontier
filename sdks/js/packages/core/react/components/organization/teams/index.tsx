@@ -5,7 +5,6 @@ import {
   Tooltip,
   Skeleton,
   EmptyState,
-  Text,
   Flex,
   Button,
   Select,
@@ -21,6 +20,7 @@ import type { V1Beta1Group } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './teams.columns';
 import { AuthTooltipMessage } from '~/react/utils';
+import { PageHeader } from '~/react/components/common/page-header';
 import styles from './teams.module.css';
 
 const teamsSelectOptions = [
@@ -109,18 +109,23 @@ export default function WorkspaceTeams() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header}>
-        <Text size={6}>Teams</Text>
-      </Flex>
-      <Flex direction="column" gap={9} className={styles.container}>
-        <TeamsTable
-          teams={teams}
-          isLoading={isLoading}
-          canCreateGroup={canCreateGroup}
-          userAccessOnTeam={userAccessOnTeam}
-          canListOrgGroups={canListOrgGroups}
-          onOrgTeamsFilterChange={onOrgTeamsFilterChange}
-        />
+      <Flex direction="column" className={styles.container}>
+        <Flex direction="row" justify="between" align="center" className={styles.header}>
+          <PageHeader 
+            title="Teams" 
+            description="Manage teams in this organization."
+          />
+        </Flex>
+        <Flex direction="column" gap={9}>
+          <TeamsTable
+            teams={teams}
+            isLoading={isLoading}
+            canCreateGroup={canCreateGroup}
+            userAccessOnTeam={userAccessOnTeam}
+            canListOrgGroups={canListOrgGroups}
+            onOrgTeamsFilterChange={onOrgTeamsFilterChange}
+          />
+        </Flex>
       </Flex>
       <Outlet />
     </Flex>

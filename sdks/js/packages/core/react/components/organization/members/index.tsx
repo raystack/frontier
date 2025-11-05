@@ -88,7 +88,7 @@ export default function WorkspaceMembers() {
         <Flex direction="row" justify="between" align="center" className={styles.header}>
           <PageHeader 
             title="Members" 
-            description="Manage members for this organization."
+            description="Manage members in this organization."
           />
         </Flex>
         <Flex direction="column" gap={9}>
