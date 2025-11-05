@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -6,8 +5,12 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from './styles.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
 import { useQueryClient } from '@tanstack/react-query';
-import { createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, ListOrganizationServiceUsersRequestSchema } from '~/src';
+import { useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import {
+  FrontierServiceQueries,
+  ListServiceUserTokensRequestSchema,
+  DeleteServiceUserTokenRequestSchema
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
 export const DeleteServiceAccountKey = () => {
@@ -15,25 +18,34 @@ export const DeleteServiceAccountKey = () => {
     from: '/api-keys/$id/key/$tokenId/delete'
   });
   const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
-  const { client, activeOrganization } = useFrontier();
-  const [isLoading, setIsLoading] = useState(false);
+  const { activeOrganization } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
 
   const orgId = activeOrganization?.id || '';
 
+  const { mutateAsync: deleteServiceUserToken, isPending } = useMutation(
+    FrontierServiceQueries.deleteServiceUserToken
+  );
+
   async function onDeleteClick() {
     try {
-      setIsLoading(true);
-      await client?.frontierServiceDeleteServiceUserToken(orgId, id, tokenId);
+      await deleteServiceUserToken(
+        create(DeleteServiceUserTokenRequestSchema, {
+          id,
+          tokenId,
+          orgId
+        })
+      );
 
-      // Invalidate service users query
+      // Invalidate service user tokens query
       await queryClient.invalidateQueries({
         queryKey: createConnectQueryKey({
-          schema: FrontierServiceQueries.listOrganizationServiceUsers,
+          schema: FrontierServiceQueries.listServiceUserTokens,
           transport,
-          input: create(ListOrganizationServiceUsersRequestSchema, {
-            id: orgId
+          input: create(ListServiceUserTokensRequestSchema, {
+            id,
+            orgId
           }),
           cardinality: 'finite'
         })
@@ -46,12 +58,10 @@ export const DeleteServiceAccountKey = () => {
         }
       });
       toast.success('Service account key revoked');
-    } catch (err: any) {
+    } catch (error: unknown) {
       toast.error('Unable to revoke service account key', {
-        description: err?.message
+        description: error instanceof Error ? error.message : 'Unknown error'
       });
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -114,8 +124,8 @@ export const DeleteServiceAccountKey = () => {
               color="danger"
               size="normal"
               data-test-id="frontier-sdk-revoke-service-account-key-confirm-btn"
-              loading={isLoading}
-              disabled={isLoading}
+              loading={isPending}
+              disabled={isPending}
               onClick={onDeleteClick}
               loaderText="Revoking..."
             >
