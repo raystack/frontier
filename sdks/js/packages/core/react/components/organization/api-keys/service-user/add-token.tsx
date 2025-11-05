@@ -6,6 +6,12 @@ import { useCallback } from 'react';
 import { Flex, toast, Button, InputField } from '@raystack/apsara';
 import { V1Beta1ServiceUserToken } from '~/api-client';
 import styles from './styles.module.css';
+import { useMutation } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  CreateServiceUserTokenRequestSchema
+} from '@raystack/proton/frontier';
 
 const serviceAccountSchema = yup
   .object({
@@ -22,7 +28,7 @@ export default function AddServiceUserToken({
   serviceUserId: string;
   onAddToken: (token: V1Beta1ServiceUserToken) => void;
 }) {
-  const { client, activeOrganization } = useFrontier();
+  const { activeOrganization } = useFrontier();
   const {
     register,
     handleSubmit,
@@ -33,29 +39,31 @@ export default function AddServiceUserToken({
 
   const orgId = activeOrganization?.id || '';
 
+  const { mutateAsync: createServiceUserToken } = useMutation(
+    FrontierServiceQueries.createServiceUserToken
+  );
+
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!client) return;
-
       try {
-        const {
-          data: { token }
-        } = await client.frontierServiceCreateServiceUserToken(
-          orgId,
-          serviceUserId,
-          data
+        const response = await createServiceUserToken(
+          create(CreateServiceUserTokenRequestSchema, {
+            orgId,
+            id: serviceUserId,
+            title: data.title
+          })
         );
-        if (token) {
-          onAddToken(token);
+        if (response.token) {
+          onAddToken(response.token);
           toast.success('Api key created');
         }
-      } catch ({ error }: any) {
+      } catch (error: unknown) {
         toast.error('Something went wrong', {
-          description: error.message
+          description: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     },
-    [client, onAddToken, serviceUserId, orgId]
+    [createServiceUserToken, onAddToken, serviceUserId, orgId]
   );
 
   return (

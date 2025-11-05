@@ -7,13 +7,20 @@ import {
   useNavigate,
   useParams
 } from '@tanstack/react-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client';
+import type { V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import { useQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  GetServiceUserRequestSchema,
+  ListServiceUserTokensRequestSchema
+} from '@raystack/proton/frontier';
 
 const Headings = ({
   isLoading,
@@ -183,79 +190,51 @@ const SerivceUserTokenList = ({
 
 export default function ServiceUserPage() {
   let { id } = useParams({ from: '/api-keys/$id' });
-  const { client, activeOrganization } = useFrontier();
+  const { activeOrganization } = useFrontier();
   const navigate = useNavigate({ from: '/api-keys/$id' });
-
-  const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
-  const [isServiceUserLoadning, setIsServiceUserLoading] = useState(false);
-
-  const [serviceUserTokens, setServiceUserTokens] = useState<
-    V1Beta1ServiceUserToken[]
-  >([]);
-
-  const [isServiceUserTokensLoading, setIsServiceUserTokensLoading] =
-    useState(false);
 
   const location = useLocation();
   const existingToken = location?.state?.token;
-  const refetch = location?.state?.refetch;
   const orgId = activeOrganization?.id || '';
 
-  const getServiceUser = useCallback(
-    async (serviceUserId: string) => {
-      try {
-        setIsServiceUserLoading(true);
-        const resp = await client?.frontierServiceGetServiceUser(
-          orgId,
-          serviceUserId
-        );
-        const data = resp?.data?.serviceuser;
-        setServiceUser(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsServiceUserLoading(false);
-      }
-    },
-    [client, orgId]
-  );
+  const [newlyAddedTokens, setNewlyAddedTokens] = useState<
+    V1Beta1ServiceUserToken[]
+  >([]);
 
-  const getServiceUserTokens = useCallback(
-    async (serviceUserId: string) => {
-      try {
-        setIsServiceUserTokensLoading(true);
-        const resp = await client?.frontierServiceListServiceUserTokens(
-          orgId,
-          serviceUserId
-        );
-        const data = resp?.data?.tokens || [];
-        setServiceUserTokens(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsServiceUserTokensLoading(false);
-      }
-    },
-    [client, orgId]
-  );
-
-  useEffect(() => {
-    if (id) {
-      getServiceUser(id);
-      if (!existingToken?.id) {
-        getServiceUserTokens(id);
-      }
+  const { data: serviceUser, isLoading: isServiceUserLoading } = useQuery(
+    FrontierServiceQueries.getServiceUser,
+    create(GetServiceUserRequestSchema, {
+      id,
+      orgId
+    }),
+    {
+      enabled: !!id && !!orgId,
+      select: data => data?.serviceuser
     }
-  }, [id, getServiceUser, getServiceUserTokens, existingToken?.id, refetch]);
+  );
 
-  const tokenList = existingToken
-    ? [existingToken, ...serviceUserTokens]
-    : serviceUserTokens;
+  const {
+    data: serviceUserTokens = [],
+    isLoading: isServiceUserTokensLoading
+  } = useQuery(
+    FrontierServiceQueries.listServiceUserTokens,
+    create(ListServiceUserTokensRequestSchema, {
+      id,
+      orgId
+    }),
+    {
+      enabled: !!id && !!orgId && !existingToken?.id,
+      select: data => data?.tokens ?? []
+    }
+  );
 
-  const isLoading = isServiceUserLoadning || isServiceUserTokensLoading;
+  const allTokens = [...newlyAddedTokens, ...serviceUserTokens];
+  const tokenList = existingToken ? [existingToken, ...allTokens] : allTokens;
+
+  const isLoading = isServiceUserLoading || isServiceUserTokensLoading;
 
   const onAddToken = (token: V1Beta1ServiceUserToken) => {
-    setServiceUserTokens(prev => [token, ...prev]);
+    setNewlyAddedTokens(prev => [token, ...prev]);
   };
 
   return (
