@@ -1,8 +1,10 @@
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { api } from "~/api";
 import { OutletContext, OrganizationStatus } from "../types";
+import { useMutation } from "@connectrpc/connect-query";
+import { FrontierServiceQueries, DisableOrganizationRequestSchema, EnableOrganizationRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 interface componentConfigType {
   btnColor: "danger" | "accent";
@@ -19,39 +21,62 @@ const BlockOrganizationDialog = () => {
   const { organization, fetchOrganization } = useOutletContext<OutletContext>();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { mutateAsync: disableOrganization, isPending: isDisabling } = useMutation(
+    FrontierServiceQueries.disableOrganization,
+    {
+      onSuccess: async () => {
+        await fetchOrganization(organization.id || "");
+        setIsDialogOpen(false);
+        toast.success("Organization blocked");
+      },
+      onError: (error) => {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+        console.error("Failed to block organization:", error);
+      },
+    },
+  );
+
+  const { mutateAsync: enableOrganization, isPending: isEnabling } = useMutation(
+    FrontierServiceQueries.enableOrganization,
+    {
+      onSuccess: async () => {
+        await fetchOrganization(organization.id || "");
+        setIsDialogOpen(false);
+        toast.success("Organization unblocked");
+      },
+      onError: (error) => {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+        console.error("Failed to unblock organization:", error);
+      },
+    },
+  );
 
   async function onBlockOrganization() {
-    try {
-      setIsSubmitting(true);
-      await api?.frontierServiceDisableOrganization(organization.id || "", {});
-      await fetchOrganization(organization.id || "");
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Failed to block organization", error);
-      toast.error("Failed to block organization");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await disableOrganization(
+      create(DisableOrganizationRequestSchema, {
+        id: organization.id || "",
+      }),
+    );
   }
 
   async function onUnblockOrganization() {
-    try {
-      setIsSubmitting(true);
-      await api?.frontierServiceEnableOrganization(organization.id || "", {});
-      await fetchOrganization(organization.id || "");
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Failed to unblock organization", error);
-      toast.error("Failed to unblock organization");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await enableOrganization(
+      create(EnableOrganizationRequestSchema, {
+        id: organization.id || "",
+      }),
+    );
   }
 
   const onOpenChange = (value: boolean) => {
     setIsDialogOpen(value);
   };
+
+  const isSubmitting = isDisabling || isEnabling;
 
   const componentConfig: componentConfigType =
     organization?.state === OrganizationStatus.enabled
