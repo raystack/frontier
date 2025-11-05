@@ -12,7 +12,7 @@ import Skeleton from "react-loading-skeleton";
 import { useState } from "react";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { FrontierServiceQueries, DeleteOrganizationDomainRequestSchema, Domain, ListOrganizationDomainsRequestSchema } from "@raystack/proton/frontier";
+import { FrontierServiceQueries, DeleteOrganizationDomainRequestSchema, Domain } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 
 interface DeleteDomainDialogProps {
