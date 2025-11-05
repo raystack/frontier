@@ -2,9 +2,10 @@ import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { OutletContext, OrganizationStatus } from "../types";
-import { useMutation } from "@connectrpc/connect-query";
+import { createConnectQueryKey, useMutation, useTransport } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, DisableOrganizationRequestSchema, EnableOrganizationRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface componentConfigType {
   btnColor: "danger" | "accent";
@@ -18,7 +19,9 @@ interface componentConfigType {
 }
 
 const BlockOrganizationDialog = () => {
-  const { organization, fetchOrganization } = useOutletContext<OutletContext>();
+  const { organization } = useOutletContext<OutletContext>();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -26,7 +29,14 @@ const BlockOrganizationDialog = () => {
     FrontierServiceQueries.disableOrganization,
     {
       onSuccess: async () => {
-        await fetchOrganization(organization.id || "");
+        await queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.getOrganization,
+            transport,
+            input: { id: organization.id },
+            cardinality: "finite",
+          }),
+        });
         setIsDialogOpen(false);
         toast.success("Organization blocked");
       },
@@ -43,7 +53,14 @@ const BlockOrganizationDialog = () => {
     FrontierServiceQueries.enableOrganization,
     {
       onSuccess: async () => {
-        await fetchOrganization(organization.id || "");
+        await queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.getOrganization,
+            transport,
+            input: { id: organization.id },
+            cardinality: "finite",
+          }),
+        });
         setIsDialogOpen(false);
         toast.success("Organization unblocked");
       },

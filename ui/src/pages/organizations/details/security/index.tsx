@@ -45,15 +45,15 @@ const AddDomainSection = () => {
 };
 
 export const OrganizationSecurity = () => {
-  const { organizationId, organization } = useOutletContext<OutletContext>();
+  const { organization } = useOutletContext<OutletContext>();
 
   const { data: domainsData, isLoading } = useQuery(
     FrontierServiceQueries.listOrganizationDomains,
     create(ListOrganizationDomainsRequestSchema, {
-      orgId: organizationId,
+      orgId: organization.id,
     }),
     {
-      enabled: !!organizationId,
+      enabled: !!organization.id,
     },
   );
 
@@ -68,7 +68,6 @@ export const OrganizationSecurity = () => {
         <DomainsList
           isLoading={isLoading}
           domains={domains}
-          organizationId={organizationId}
         />
         <Separator />
         <BlockOrganizationSection />

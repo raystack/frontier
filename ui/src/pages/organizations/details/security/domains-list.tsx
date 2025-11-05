@@ -14,16 +14,17 @@ import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/co
 import { useQueryClient } from "@tanstack/react-query";
 import { FrontierServiceQueries, DeleteOrganizationDomainRequestSchema, Domain } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { OutletContext } from "../types";
+import { useOutletContext } from "react-router-dom";
 
 interface DeleteDomainDialogProps {
-  organizationId: string;
   domain: Domain;
 }
 
 const DeleteDomainDialog = ({
-  organizationId,
   domain,
 }: DeleteDomainDialogProps) => {
+  const {organization} = useOutletContext<OutletContext>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -36,7 +37,7 @@ const DeleteDomainDialog = ({
           queryKey: createConnectQueryKey({
             schema: FrontierServiceQueries.listOrganizationDomains,
             transport,
-            input: { orgId: organizationId },
+            input: { orgId: organization?.id || "" },
             cardinality: "finite",
           }),
         });
@@ -105,11 +106,10 @@ const DeleteDomainDialog = ({
 };
 
 interface DomainItemProps {
-  organizationId: string;
   domain: Domain;
 }
 
-const DomainItem = ({ organizationId, domain }: DomainItemProps) => {
+const DomainItem = ({ domain }: DomainItemProps) => {
   return (
     <Flex className={styles["domains-list-item"]} justify="between">
       <Flex gap={3}>
@@ -120,7 +120,7 @@ const DomainItem = ({ organizationId, domain }: DomainItemProps) => {
           />
         ) : null}
       </Flex>
-      <DeleteDomainDialog organizationId={organizationId} domain={domain} />
+      <DeleteDomainDialog domain={domain} />
     </Flex>
   );
 };
@@ -128,13 +128,11 @@ const DomainItem = ({ organizationId, domain }: DomainItemProps) => {
 interface DomainsListProps {
   isLoading: boolean;
   domains: Domain[];
-  organizationId: string;
 }
 
 export const DomainsList = ({
   isLoading,
   domains = [],
-  organizationId,
 }: DomainsListProps) => {
   return isLoading ? (
     <Flex direction="column" className={styles["domains-list"]}>
@@ -151,7 +149,6 @@ export const DomainsList = ({
       {domains.map((domain) => (
         <DomainItem
           key={domain?.id}
-          organizationId={organizationId}
           domain={domain}
         />
       ))}

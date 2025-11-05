@@ -66,10 +66,6 @@ export const OrganizationDetails = () => {
     { id: organizationId },
   ];
 
-  async function fetchOrganization() {
-    await refetch();
-  }
-
   async function updateOrganization(org: Organization) {
     queryClient.setQueryData(getOrganizationQueryKey, { organization: org });
   }
@@ -230,8 +226,6 @@ export const OrganizationDetails = () => {
         {organization?.id ? (
           <Outlet
             context={{
-              organizationId: organization?.id,
-              fetchOrganization,
               organization,
             }}
           />
