@@ -105,7 +105,7 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 			).
 			Returning(
 				goqu.I(TABLE_ORGANIZATIONS_KYC+".*"),
-				goqu.I(TABLE_ORGANIZATIONS+".name").As("org_name"),
+				goqu.I(TABLE_ORGANIZATIONS+".title").As("org_name"),
 			).ToSQL()
 		if err != nil {
 			return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
@@ -113,7 +113,7 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 	} else if err.Error() == kyc.ErrNotExist.Error() {
 		// kyc for org doesn't exist, prepare INSERT query with subquery for org name
 		orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-			Select("name").
+			Select("title").
 			Where(goqu.Ex{"id": input.OrgID})
 
 		query, params, err = dialect.Insert(TABLE_ORGANIZATIONS_KYC).
