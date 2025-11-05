@@ -47,17 +47,16 @@ const AddDomainSection = () => {
 export const OrganizationSecurity = () => {
   const { organization } = useOutletContext<OutletContext>();
 
-  const { data: domainsData, isLoading } = useQuery(
+  const { data: domains, isLoading } = useQuery(
     FrontierServiceQueries.listOrganizationDomains,
     create(ListOrganizationDomainsRequestSchema, {
       orgId: organization.id,
     }),
     {
       enabled: !!organization.id,
+      select: (data) => data?.domains || [],
     },
   );
-
-  const domains = domainsData?.domains || [];
   const title = `Security | ${organization.title} | Organizations`;
 
   return (
