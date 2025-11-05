@@ -699,20 +699,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		})
 	},
 
-	// audit logs
-	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		pbreq := req.(*connect.Request[frontierv1beta1.ListOrganizationAuditLogsRequest])
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.UpdatePermission)
-	},
-	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		pbreq := req.(*connect.Request[frontierv1beta1.CreateOrganizationAuditLogsRequest])
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission)
-	},
-	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		pbreq := req.(*connect.Request[frontierv1beta1.GetOrganizationAuditLogRequest])
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.UpdatePermission)
-	},
-
 	// audit records
 	frontierv1beta1connect.FrontierServiceCreateAuditRecordProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.CreateAuditRecordRequest])
