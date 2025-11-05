@@ -66,7 +66,7 @@ export const OrganizationSecurity = () => {
         <AddDomainSection />
         <DomainsList
           isLoading={isLoading}
-          domains={domains}
+          domains={domains ?? []}
         />
         <Separator />
         <BlockOrganizationSection />
