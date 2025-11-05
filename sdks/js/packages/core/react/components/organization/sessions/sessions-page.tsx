@@ -3,12 +3,12 @@
 import {
   Text,
   Flex,
-  Headline,
   Button,
   Skeleton,
 } from '@raystack/apsara/v1';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useSessions } from '../../../hooks/useSessions';
+import { PageHeader } from '../../common/page-header';
 import styles from './sessions.module.css';
 
 export const SessionsPage = () => {
@@ -20,21 +20,15 @@ export const SessionsPage = () => {
     navigate({ to: '/sessions/revoke', search: { sessionId } });
   };
 
-  const renderSessionsHeader = () => (
-    <Flex direction="column" gap={2}>
-      <Headline size="t1">Sessions</Headline>
-      <Text size="regular" variant="secondary">
-        Devices logged into this account.
-      </Text>
-    </Flex>
-  );
-
   if (isLoading) {
     return (
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
           <Flex direction="row" justify="between" align="center" className={styles.header}>
-            {renderSessionsHeader()}
+            <PageHeader 
+              title="Sessions" 
+              description="Devices logged into this account."
+            />
           </Flex>
           <Flex direction="column" className={styles.sessionsList}>
             <Skeleton 
@@ -53,7 +47,10 @@ export const SessionsPage = () => {
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
           <Flex direction="row" justify="between" align="center" className={styles.header}>
-            {renderSessionsHeader()}
+            <PageHeader 
+              title="Sessions" 
+              description="Devices logged into this account."
+            />
           </Flex>
           <Flex justify="center" align="center" style={{ padding: '2rem' }}>
             <Text variant="danger" size="regular">
@@ -69,7 +66,10 @@ export const SessionsPage = () => {
     <Flex direction="column" width="full">
       <Flex direction="column" className={styles.container}>
         <Flex direction="row" justify="between" align="center" className={styles.header}>
-          {renderSessionsHeader()}
+          <PageHeader 
+            title="Sessions" 
+            description="Devices logged into this account."
+          />
         </Flex>
         
         <Flex direction="column" className={styles.sessionsList}>
