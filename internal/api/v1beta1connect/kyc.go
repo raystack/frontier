@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,6 +20,8 @@ type KycService interface {
 }
 
 func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connect.Request[frontierv1beta1.SetOrganizationKycRequest]) (*connect.Response[frontierv1beta1.SetOrganizationKycResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	orgKyc, err := h.orgKycService.SetKyc(ctx, kyc.KYC{
 		OrgID:  request.Msg.GetOrgId(),
 		Status: request.Msg.GetStatus(),
@@ -33,6 +36,10 @@ func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connec
 		case errors.Is(err, kyc.ErrOrgDoesntExist):
 			return nil, connect.NewError(connect.CodeInvalidArgument, kyc.ErrOrgDoesntExist)
 		default:
+			errorLogger.LogServiceError(ctx, request, "SetOrganizationKyc.SetKyc", err,
+				zap.String("org_id", request.Msg.GetOrgId()),
+				zap.Bool("status", request.Msg.GetStatus()),
+				zap.String("link", request.Msg.GetLink()))
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
@@ -48,6 +55,8 @@ func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) GetOrganizationKyc(ctx context.Context, request *connect.Request[frontierv1beta1.GetOrganizationKycRequest]) (*connect.Response[frontierv1beta1.GetOrganizationKycResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	orgKyc, err := h.orgKycService.GetKyc(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -59,6 +68,8 @@ func (h *ConnectHandler) GetOrganizationKyc(ctx context.Context, request *connec
 				Link:   "",
 			}
 		default:
+			errorLogger.LogServiceError(ctx, request, "GetOrganizationKyc.GetKyc", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
@@ -66,12 +77,15 @@ func (h *ConnectHandler) GetOrganizationKyc(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) ListOrganizationsKyc(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationsKycRequest]) (*connect.Response[frontierv1beta1.ListOrganizationsKycResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	orgKycs, err := h.orgKycService.ListKycs(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, kyc.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, kyc.ErrNotExist)
 		default:
+			errorLogger.LogServiceError(ctx, request, "ListOrganizationsKyc.ListKycs", err)
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
