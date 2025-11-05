@@ -4583,169 +4583,6 @@ paths:
           type: string
       tags:
         - Organization
-  /v1beta1/organizations/{org_id}/auditlogs:
-    get:
-      summary: List audit logs
-      description: 'Returns a list of audit logs of an organization in Frontier. DEPRECATED: Use admin ListAuditRecords API instead.'
-      operationId: FrontierService_ListOrganizationAuditLogs
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListOrganizationAuditLogsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: org_id
-          in: path
-          required: true
-          type: string
-        - name: source
-          in: query
-          required: false
-          type: string
-        - name: action
-          in: query
-          required: false
-          type: string
-        - name: ignore_system
-          in: query
-          required: false
-          type: boolean
-        - name: start_time
-          description: start_time and end_time are inclusive
-          in: query
-          required: false
-          type: string
-          format: date-time
-        - name: end_time
-          in: query
-          required: false
-          type: string
-          format: date-time
-      tags:
-        - AuditLog
-      deprecated: true
-    post:
-      summary: Create audit log
-      description: 'Create new audit logs in a batch. DEPRECATED: Use ListAuditRecords API instead with filters.'
-      operationId: FrontierService_CreateOrganizationAuditLogs
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateOrganizationAuditLogsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: org_id
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              logs:
-                type: array
-                items:
-                  type: object
-                  $ref: '#/definitions/v1beta1AuditLog'
-      tags:
-        - AuditLog
-      deprecated: true
-  /v1beta1/organizations/{org_id}/auditlogs/{id}:
-    get:
-      summary: Get audit log
-      description: 'Get an audit log by ID. DEPRECATED: Use admin GetAuditRecord API instead.'
-      operationId: FrontierService_GetOrganizationAuditLog
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1GetOrganizationAuditLogResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: org_id
-          in: path
-          required: true
-          type: string
-        - name: id
-          in: path
-          required: true
-          type: string
-      tags:
-        - AuditLog
-      deprecated: true
   /v1beta1/organizations/{org_id}/billing:
     get:
       summary: List billing accounts
@@ -12264,57 +12101,6 @@ definitions:
     properties:
       organization:
         $ref: '#/definitions/v1beta1Organization'
-  v1beta1AuditLog:
-    type: object
-    properties:
-      id:
-        type: string
-        title: A unique identifier of the audit log if not supplied will be autogenerated
-      source:
-        type: string
-        example: auth
-        description: The source service generating the event.
-        title: Source service generating the event
-      action:
-        type: string
-        title: Action performed, e.g. project.create, user.update, serviceuser.delete
-      actor:
-        $ref: '#/definitions/v1beta1AuditLogActor'
-        title: Actor performing the action
-      target:
-        $ref: '#/definitions/v1beta1AuditLogTarget'
-        title: Target of the action
-      context:
-        type: object
-        additionalProperties:
-          type: string
-        title: Context contains additional information about the event
-      created_at:
-        type: string
-        format: date-time
-        example: "2023-06-07T05:39:56.961Z"
-        description: The time the log was created.
-    required:
-      - source
-      - action
-  v1beta1AuditLogActor:
-    type: object
-    properties:
-      id:
-        type: string
-      type:
-        type: string
-      name:
-        type: string
-  v1beta1AuditLogTarget:
-    type: object
-    properties:
-      id:
-        type: string
-      type:
-        type: string
-      name:
-        type: string
   v1beta1AuditRecord:
     type: object
     properties:
@@ -12818,8 +12604,6 @@ definitions:
     properties:
       metaschema:
         $ref: '#/definitions/v1beta1MetaSchema'
-  v1beta1CreateOrganizationAuditLogsResponse:
-    type: object
   v1beta1CreateOrganizationDomainResponse:
     type: object
     properties:
@@ -13302,11 +13086,6 @@ definitions:
     properties:
       namespace:
         $ref: '#/definitions/v1beta1Namespace'
-  v1beta1GetOrganizationAuditLogResponse:
-    type: object
-    properties:
-      log:
-        $ref: '#/definitions/v1beta1AuditLog'
   v1beta1GetOrganizationDomainResponse:
     type: object
     properties:
@@ -13767,14 +13546,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
-  v1beta1ListOrganizationAuditLogsResponse:
-    type: object
-    properties:
-      logs:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1AuditLog'
   v1beta1ListOrganizationDomainsResponse:
     type: object
     properties:

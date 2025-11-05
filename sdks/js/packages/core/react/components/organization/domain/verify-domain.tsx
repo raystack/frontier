@@ -6,7 +6,8 @@ import {
   Text,
   Flex,
   toast,
-  Dialog
+  Dialog,
+  CopyButton
 } from '@raystack/apsara';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -113,13 +114,25 @@ export const VerifyDomain = () => {
                   hostname.
                 </Text>
                 <Flex
+                  justify="between"
+                  align="center"
+                  gap={3}
                   style={{
                     padding: 'var(--rs-space-3)',
                     border: '1px solid var(--rs-color-border-base-secondary)',
                     borderRadius: 'var(--rs-space-2)'
                   }}
                 >
-                  <Text size="small">{domain?.token}</Text>
+                  <Text size="small" style={{ wordBreak: 'break-all' }}>
+                    {domain?.token}
+                  </Text>
+                  {domain?.token && (
+                    <CopyButton
+                      text={domain.token}
+                      size={3}
+                      data-test-id="frontier-sdk-domain-token-copy-btn"
+                    />
+                  )}
                 </Flex>
                 <Text size="small">
                   Wait until your DNS configuration changes. This could take up
