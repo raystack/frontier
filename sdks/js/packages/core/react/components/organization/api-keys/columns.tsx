@@ -3,6 +3,7 @@ import { Button, type DataTableColumnDef, Flex, Text } from '@raystack/apsara';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { ServiceUser } from '~/src';
 import { timestampToDayjs } from '~/utils/timestamp';
+import type { Timestamp } from '@bufbuild/protobuf/wkt';
 
 export const getColumns = ({
   dateFormat
@@ -14,6 +15,7 @@ export const getColumns = ({
       header: 'Name',
       accessorKey: 'title',
       cell: ({ row, getValue }) => {
+        const value = getValue() as string;
         return (
           <Link
             to={`/api-keys/$id`}
@@ -26,7 +28,7 @@ export const getColumns = ({
               fontSize: 'var(--rs-font-size-small)'
             }}
           >
-            {getValue()}
+            {value}
           </Link>
         );
       }
@@ -35,7 +37,7 @@ export const getColumns = ({
       header: 'Created on',
       accessorKey: 'createdAt',
       cell: ({ row, getValue }) => {
-        const value = getValue();
+        const value = getValue() as Timestamp | undefined;
         return (
           <Flex direction="column">
             <Text>{timestampToDayjs(value)?.format(dateFormat) ?? '-'}</Text>
@@ -48,7 +50,8 @@ export const getColumns = ({
       accessorKey: 'id',
       enableSorting: false,
       cell: ({ row, getValue }) => {
-        return <ServiceAccountDeleteAction id={getValue()} />;
+        const value = getValue() as string;
+        return <ServiceAccountDeleteAction id={value} />;
       }
     }
   ];
