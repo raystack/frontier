@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -21,6 +22,8 @@ type UsageService interface {
 }
 
 func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.CreateBillingUsageRequest]) (*connect.Response[frontierv1beta1.CreateBillingUsageResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	createRequests := make([]usage.Usage, 0, len(request.Msg.GetUsages()))
 	for _, v := range request.Msg.GetUsages() {
 		usageType := usage.CreditType
@@ -47,6 +50,9 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 		if errors.Is(err, credit.ErrAlreadyApplied) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrAlreadyApplied)
 		}
+		errorLogger.LogServiceError(ctx, request, "CreateBillingUsage.Report", err,
+			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.Int("usage_count", len(createRequests)))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -54,6 +60,8 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.ListBillingTransactionsRequest]) (*connect.Response[frontierv1beta1.ListBillingTransactionsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if request.Msg.GetBillingId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -76,11 +84,16 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 		EndRange:   endRange,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListBillingTransactions.List", err,
+			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.Time("start_range", startRange),
+			zap.Time("end_range", endRange))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	for _, v := range transactionsList {
 		transactionPB, err := transformTransactionToPB(v)
 		if err != nil {
+			errorLogger.LogTransformError(ctx, request, "ListBillingTransactions", v.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		transactions = append(transactions, transactionPB)
@@ -97,12 +110,16 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 }
 
 func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[frontierv1beta1.TotalDebitedTransactionsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if request.Msg.GetBillingId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
 	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, request.Msg.GetBillingId())
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "TotalDebitedTransactions.GetTotalDebitedAmount", err,
+			zap.String("billing_id", request.Msg.GetBillingId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -134,6 +151,8 @@ func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTra
 }
 
 func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.RevertBillingUsageRequest]) (*connect.Response[frontierv1beta1.RevertBillingUsageResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if err := h.usageService.Revert(ctx, request.Msg.GetBillingId(),
 		request.Msg.GetUsageId(), request.Msg.GetAmount()); err != nil {
 		if errors.Is(err, usage.ErrRevertAmountExceeds) {
@@ -147,6 +166,10 @@ func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connec
 		} else if errors.Is(err, credit.ErrAlreadyApplied) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
+		errorLogger.LogServiceError(ctx, request, "RevertBillingUsage.Revert", err,
+			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("usage_id", request.Msg.GetUsageId()),
+			zap.Int64("amount", request.Msg.GetAmount()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.RevertBillingUsageResponse{}), nil
