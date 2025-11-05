@@ -7,7 +7,6 @@ import {
   Button,
   Tooltip,
   Skeleton,
-  Text,
   EmptyState,
   Flex,
   DataTable
@@ -20,6 +19,7 @@ import { AuthTooltipMessage } from '~/react/utils';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
+import { PageHeader } from '~/react/components/common/page-header';
 import styles from './members.module.css';
 
 export default function WorkspaceMembers() {
@@ -84,41 +84,32 @@ export default function WorkspaceMembers() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header}>
-        <Text size="large">Members</Text>
-      </Flex>
-      <Flex direction="column" gap={9} className={styles.container}>
-        <ManageMembers />
-        {organization?.id ? (
-          <MembersTable
-            roles={roles}
-            users={members}
-            organizationId={organization?.id}
-            isLoading={isLoading}
-            canCreateInvite={canCreateInvite}
-            canDeleteUser={canDeleteUser}
-            memberRoles={memberRoles}
-            refetch={refetch}
+      <Flex direction="column" className={styles.container}>
+        <Flex direction="row" justify="between" align="center" className={styles.header}>
+          <PageHeader 
+            title="Members" 
+            description="Manage members for this organization."
           />
-        ) : null}
+        </Flex>
+        <Flex direction="column" gap={9}>
+          {organization?.id ? (
+            <MembersTable
+              roles={roles}
+              users={members}
+              organizationId={organization?.id}
+              isLoading={isLoading}
+              canCreateInvite={canCreateInvite}
+              canDeleteUser={canDeleteUser}
+              memberRoles={memberRoles}
+              refetch={refetch}
+            />
+          ) : null}
+        </Flex>
       </Flex>
       <Outlet />
     </Flex>
   );
 }
-
-const ManageMembers = () => (
-  <Flex direction="row" justify="between" align="center">
-    <Flex direction="column" gap={3}>
-      <Text size="large" weight="medium">
-        Manage members
-      </Text>
-      <Text size="regular" variant="secondary">
-        Manage members for this domain.
-      </Text>
-    </Flex>
-  </Flex>
-);
 
 const MembersTable = ({
   isLoading,

@@ -15,9 +15,9 @@ import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { GeneralOrganization } from './general.workspace';
 import { AuthTooltipMessage } from '~/react/utils';
-import { styles } from '../styles';
 import { useTerminology } from '~/react/hooks/useTerminology';
-import { PageHeader } from '../../common/page-header';
+import { PageHeader } from '~/react/components/common/page-header';
+import { styles } from '../styles';
 
 export default function GeneralSetting() {
   const { activeOrganization: organization, isActiveOrganizationLoading } =
