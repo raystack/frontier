@@ -192,7 +192,12 @@ export const FrontierContextProvider = ({
   );
 
   const { data: currentUserData, isLoading: isUserLoading } = useConnectQuery(
-    FrontierServiceQueries.getCurrentUser
+    FrontierServiceQueries.getCurrentUser,
+    {},
+    {
+      retry: false,
+      refetchOnWindowFocus: false
+    }
   );
 
   const user = currentUserData?.user;

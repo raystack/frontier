@@ -65,7 +65,7 @@ var (
 )
 
 func buildOrgNameQuery(orgID interface{}) (string, []interface{}, error) {
-	return dialect.Select("name").
+	return dialect.Select("title").
 		From(TABLE_ORGANIZATIONS).
 		Where(goqu.Ex{"id": orgID}).
 		ToSQL()

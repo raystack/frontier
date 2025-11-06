@@ -61,7 +61,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 	}
 
 	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-		Select("name").
+		Select("title").
 		Where(goqu.Ex{"id": invite.OrgID})
 
 	query, params, err := dialect.Insert(TABLE_INVITATIONS).Rows(

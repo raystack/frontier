@@ -95,7 +95,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 	var result serviceUserWithContext
 
 	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-		Select("name").
+		Select("title").
 		Where(goqu.Ex{"id": serviceUser.OrgID})
 
 	query, params, err := dialect.Insert(TABLE_SERVICEUSER).Rows(
@@ -227,7 +227,7 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 	var result serviceUserWithContext
 
 	orgNameSubquery := dialect.From(TABLE_ORGANIZATIONS).
-		Select("name").
+		Select("title").
 		Where(goqu.Ex{"id": goqu.I(TABLE_SERVICEUSER + ".org_id")})
 
 	query, params, err := dialect.Delete(TABLE_SERVICEUSER).

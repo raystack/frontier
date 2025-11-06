@@ -5,7 +5,7 @@ import {
   Flex,
   Button,
   Skeleton,
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useSessions } from '../../../hooks/useSessions';
 import { PageHeader } from '../../common/page-header';

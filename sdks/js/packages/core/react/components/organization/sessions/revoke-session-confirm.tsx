@@ -7,7 +7,7 @@ import {
   Flex,
   List,
   Skeleton
-} from '@raystack/apsara/v1';
+} from '@raystack/apsara';
 import { useSessions } from '../../../hooks/useSessions';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
