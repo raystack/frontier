@@ -1,6 +1,6 @@
 import { Dialog, Flex, Skeleton, Tabs, Text, toast } from "@raystack/apsara";
 import styles from "./apis.module.css";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
 import { useQuery } from "@connectrpc/connect-query";
 import {
@@ -23,37 +23,41 @@ export const ServiceUserDetailsDialog = ({
 }: ServiceUserDetailsDialogProps) => {
   const { id = "", orgId = "", title = "" } = serviceUser || {};
 
+  const projectsRequest = useMemo(
+    () =>
+      create(ListServiceUserProjectsRequestSchema, {
+        orgId: orgId,
+        id: id,
+      }),
+    [orgId, id],
+  );
+
+  const tokensRequest = useMemo(
+    () =>
+      create(ListServiceUserTokensRequestSchema, {
+        orgId: orgId,
+        id: id,
+      }),
+    [orgId, id],
+  );
+
   const {
     data: projects,
     isLoading: isProjectLoading,
     error: projectError,
-  } = useQuery(
-    FrontierServiceQueries.listServiceUserProjects,
-    create(ListServiceUserProjectsRequestSchema, {
-      orgId: orgId,
-      id: id,
-    }),
-    {
-      enabled: !!orgId && !!id,
-      select: (data) => data?.projects || [],
-    },
-  );
+  } = useQuery(FrontierServiceQueries.listServiceUserProjects, projectsRequest, {
+    enabled: !!orgId && !!id,
+    select: (data) => data?.projects || [],
+  });
 
   const {
     data: tokens,
     isLoading: isTokenLoading,
     error: tokenError,
-  } = useQuery(
-    FrontierServiceQueries.listServiceUserTokens,
-    create(ListServiceUserTokensRequestSchema, {
-      orgId: orgId,
-      id: id,
-    }),
-    {
-      enabled: !!orgId && !!id,
-      select: (data) => data?.tokens || [],
-    },
-  );
+  } = useQuery(FrontierServiceQueries.listServiceUserTokens, tokensRequest, {
+    enabled: !!orgId && !!id,
+    select: (data) => data?.tokens || [],
+  });
 
   useEffect(() => {
     if (projectError) {
@@ -73,11 +77,14 @@ export const ServiceUserDetailsDialog = ({
     }
   }, [tokenError]);
 
-  function onOpenChange(val: boolean) {
-    if (!val) {
-      onClose();
-    }
-  }
+  const onOpenChange = useCallback(
+    (val: boolean) => {
+      if (!val) {
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
   return (
     <Dialog open={id !== ""} onOpenChange={onOpenChange}>

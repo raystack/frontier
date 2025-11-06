@@ -2,7 +2,7 @@ import { DataTable, EmptyState, Flex, toast } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./apis.module.css";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { getColumns } from "./columns";
@@ -39,7 +39,7 @@ export function OrganizationApisPage() {
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const transport = useTransport();
-  const client = createClient(AdminService, transport);
+  const client = useMemo(() => createClient(AdminService, transport), [transport]);
   const [selectedServiceUser, setSelectedServiceUser] =
     useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(
       null,
@@ -104,17 +104,18 @@ export function OrganizationApisPage() {
 
   const isLoading = loading;
 
-  function onDialogClose() {
+  const onDialogClose = useCallback(() => {
     setSelectedServiceUser(null);
-  }
+  }, []);
 
-  function onRowClick(
-    row: SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
-  ) {
-    setSelectedServiceUser(row);
-  }
+  const onRowClick = useCallback(
+    (row: SearchOrganizationServiceUsersResponse_OrganizationServiceUser) => {
+      setSelectedServiceUser(row);
+    },
+    [],
+  );
 
-  const columns = getColumns({ groupCountMap });
+  const columns = useMemo(() => getColumns({ groupCountMap }), [groupCountMap]);
   return (
     <Flex justify="center" className={styles["container"]}>
       <ServiceUserDetailsDialog
