@@ -254,7 +254,7 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 			if err := h.IsAuthorized(ctx, relation.Object{
 				Namespace: schema.ProjectNamespace,
 				ID:        proj.ID,
-			}, schema.GetPermission); err == nil {
+			}, schema.GetPermission, request); err == nil {
 				customClaims["project_id"] = proj.ID
 			} else {
 				errorLogger.LogUnexpectedError(ctx, request, "getAccessToken", err, zap.String("project", proj.ID), zap.String("principal", principal.ID))
