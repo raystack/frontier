@@ -1,9 +1,9 @@
 import { Flex, Separator, Text } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import { useUser } from "../user-context";
-import styles from "./security.module.css";
 import { BlockUserDialog } from "./block-user";
 import { UserSessions } from "./sessions";
+import styles from "./security.module.css";
 
 export const UserDetailsSecurityPage = () => {
   const { user } = useUser();
@@ -19,8 +19,8 @@ export const UserDetailsSecurityPage = () => {
         <Separator />
         <Flex gap={5} justify="between">
           <Flex direction="column" gap={3}>
-            <Text size={5}>Block user</Text>
-            <Text size={3} variant="secondary">
+            <Text size="large" weight="medium">Block user</Text>
+            <Text size="regular" variant="secondary">
               Block user access to safeguard platform integrity and prevent
               unauthorized activities.
             </Text>

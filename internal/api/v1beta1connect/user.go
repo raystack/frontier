@@ -24,6 +24,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -84,6 +85,8 @@ func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *conne
 
 func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Request[frontierv1beta1.CreateUserRequest]) (*connect.Response[frontierv1beta1.CreateUserResponse], error) {
 	logger := grpczap.Extract(ctx)
+	errorLogger := NewErrorLogger()
+
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -121,17 +124,25 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 		Metadata: metaDataMap,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateUser", err,
+			zap.String("email", email),
+			zap.String("name", name))
+
 		switch {
 		case errors.Is(err, user.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		case errors.Is(errors.Unwrap(err), user.ErrKeyDoesNotExists):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "CreateUser", err,
+				zap.String("user_email", email),
+				zap.String("user_name", name))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	transformedUser, err := transformUserToPB(newUser)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "CreateUser", newUser.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
@@ -145,18 +156,27 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 }
 
 func (h *ConnectHandler) GetUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetUserRequest]) (*connect.Response[frontierv1beta1.GetUserResponse], error) {
-	fetchedUser, err := h.userService.GetByID(ctx, request.Msg.GetId())
+	errorLogger := NewErrorLogger()
+	userID := request.Msg.GetId()
+
+	fetchedUser, err := h.userService.GetByID(ctx, userID)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "GetUser", err,
+			zap.String("user_id", userID))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "GetUser", err,
+				zap.String("user_id", userID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "GetUser", fetchedUser.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -191,6 +211,7 @@ func (h *ConnectHandler) GetCurrentUser(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateUserRequest]) (*connect.Response[frontierv1beta1.UpdateUserResponse], error) {
+	errorLogger := NewErrorLogger()
 	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
 	var updatedUser user.User
 
@@ -225,6 +246,8 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 				}
 				return connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: createUserResponse.Msg.GetUser()}), nil
 			} else {
+				errorLogger.LogServiceError(ctx, request, "UpdateUser.GetByEmail", err,
+					zap.String("lookup_email", id))
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 		}
@@ -244,6 +267,10 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 	})
 
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateUser", err,
+			zap.String("user_id", id),
+			zap.String("email", email))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
@@ -252,12 +279,16 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 		case errors.Is(err, user.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "UpdateUser", err,
+				zap.String("user_id", id),
+				zap.String("user_email", email))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	userPB, err := transformUserToPB(updatedUser)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "UpdateUser", updatedUser.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -327,13 +358,21 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 }
 
 func (h *ConnectHandler) EnableUser(ctx context.Context, request *connect.Request[frontierv1beta1.EnableUserRequest]) (*connect.Response[frontierv1beta1.EnableUserResponse], error) {
-	if err := h.userService.Enable(ctx, request.Msg.GetId()); err != nil {
+	errorLogger := NewErrorLogger()
+	userID := request.Msg.GetId()
+
+	if err := h.userService.Enable(ctx, userID); err != nil {
+		errorLogger.LogServiceError(ctx, request, "EnableUser", err,
+			zap.String("user_id", userID))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, user.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "EnableUser", err,
+				zap.String("user_id", userID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -355,13 +394,21 @@ func (h *ConnectHandler) DisableUser(ctx context.Context, request *connect.Reque
 }
 
 func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteUserRequest]) (*connect.Response[frontierv1beta1.DeleteUserResponse], error) {
-	if err := h.deleterService.DeleteUser(ctx, request.Msg.GetId()); err != nil {
+	errorLogger := NewErrorLogger()
+	userID := request.Msg.GetId()
+
+	if err := h.deleterService.DeleteUser(ctx, userID); err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteUser", err,
+			zap.String("user_id", userID))
+
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, user.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "DeleteUser", err,
+				zap.String("user_id", userID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
