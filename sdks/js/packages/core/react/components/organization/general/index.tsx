@@ -64,7 +64,7 @@ export default function GeneralSetting() {
         <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="General" 
-            description="Manage your organization's basic settings and information."
+            description="Basic configuration for the organization."
           />
         </Flex>
         <Flex direction="column" gap={9}>

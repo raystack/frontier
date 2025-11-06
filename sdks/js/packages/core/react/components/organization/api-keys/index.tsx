@@ -77,7 +77,7 @@ const ApiKeysHeader = ({ isLoading }: ApiKeysHeaderProps) => {
   return (
     <PageHeader
       title="API Keys"
-      description={`Create a non-human identity to allow access to ${t.appName()} resources`}
+      description={`Create a non-human identity to allow access to ${t.appName()} resources.`}
     />
   );
 };
