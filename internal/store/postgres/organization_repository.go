@@ -279,6 +279,43 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 	return transformedOrgs, nil
 }
 
+// buildOrgUpdateAuditRecord creates an audit record for organization updates
+func buildOrgUpdateAuditRecord(ctx context.Context, orgBeforeUpdate, orgAfterUpdate Organization, metadata map[string]interface{}) AuditRecord {
+	title := nullStringToString(orgBeforeUpdate.Title)
+	updatedTitle := nullStringToString(orgAfterUpdate.Title)
+
+	auditMetadata := metadata
+	if title != updatedTitle {
+		// Create a new one to avoid mutating the original
+		auditMetadata = make(map[string]interface{})
+		if metadata != nil {
+			for k, v := range metadata {
+				auditMetadata[k] = v
+			}
+		}
+		auditMetadata["title"] = title
+		auditMetadata["updated_title"] = updatedTitle
+	}
+
+	auditRecord := BuildAuditRecord(
+		ctx,
+		auditrecord.OrganizationUpdateEvent,
+		AuditResource{
+			ID:       orgAfterUpdate.ID,
+			Type:     auditrecord.OrganizationType,
+			Name:     title,
+			Metadata: auditMetadata,
+		},
+		nil,
+		orgAfterUpdate.ID,
+		nil,
+		orgAfterUpdate.UpdatedAt,
+	)
+	// Pre-populate OrganizationName with title to avoid fetching the updated title from DB
+	auditRecord.OrganizationName = title
+	return auditRecord
+}
+
 func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization.Organization) (organization.Organization, error) {
 	if strings.TrimSpace(org.ID) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
@@ -291,6 +328,14 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+	}
+
+	// Query to fetch org title before update
+	getQuery, getParams, err := dialect.From(TABLE_ORGANIZATIONS).
+		Select("title").
+		Where(goqu.Ex{"id": org.ID}).ToSQL()
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
@@ -309,25 +354,19 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	var orgModel Organization
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Update", func(ctx context.Context) error {
+			// Fetch title before update
+			var orgBeforeUpdate Organization
+			if err := tx.QueryRowxContext(ctx, getQuery, getParams...).StructScan(&orgBeforeUpdate); err != nil {
+				return err
+			}
+
+			// Execute update
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
 				return err
 			}
 
-			auditRecord := BuildAuditRecord(
-				ctx,
-				auditrecord.OrganizationUpdateEvent,
-				AuditResource{
-					ID:       orgModel.ID,
-					Type:     auditrecord.OrganizationType,
-					Name:     nullStringToString(orgModel.Title),
-					Metadata: org.Metadata,
-				},
-				nil,
-				orgModel.ID,
-				nil,
-				orgModel.UpdatedAt,
-			)
-
+			// Create audit record
+			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, org.Metadata)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -362,6 +401,14 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
+	// Query to fetch org data before update
+	getQuery, getParams, err := dialect.From(TABLE_ORGANIZATIONS).
+		Select("title").
+		Where(goqu.Ex{"name": org.Name}).ToSQL()
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
 			"title":      org.Title,
@@ -379,25 +426,18 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 	var orgModel Organization
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "UpdateByName", func(ctx context.Context) error {
+			// Fetch title before update
+			var orgBeforeUpdate Organization
+			if err := tx.QueryRowxContext(ctx, getQuery, getParams...).StructScan(&orgBeforeUpdate); err != nil {
+				return err
+			}
+
+			// Execute update
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
 				return err
 			}
 
-			auditRecord := BuildAuditRecord(
-				ctx,
-				auditrecord.OrganizationUpdateEvent,
-				AuditResource{
-					ID:       orgModel.ID,
-					Type:     auditrecord.OrganizationType,
-					Name:     nullStringToString(orgModel.Title),
-					Metadata: org.Metadata,
-				},
-				nil,
-				orgModel.ID,
-				nil,
-				orgModel.UpdatedAt,
-			)
-
+			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, org.Metadata)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
