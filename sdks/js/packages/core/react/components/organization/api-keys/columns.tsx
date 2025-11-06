@@ -22,6 +22,9 @@ export const getColumns = ({
             params={{
               id: row.original.id || ''
             }}
+            state={{
+              enableServiceUserTokensListFetch: true
+            }}
             style={{
               textDecoration: 'none',
               color: 'var(--rs-color-foreground-base-primary)',

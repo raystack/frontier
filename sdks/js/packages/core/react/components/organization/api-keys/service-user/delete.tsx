@@ -4,14 +4,13 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from './styles.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
-import { useQueryClient } from '@tanstack/react-query';
-import { useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
-  ListServiceUserTokensRequestSchema,
   DeleteServiceUserTokenRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import { useServiceUserTokens } from '../hooks/useServiceUserTokens';
 
 export const DeleteServiceAccountKey = () => {
   const { id, tokenId } = useParams({
@@ -19,10 +18,14 @@ export const DeleteServiceAccountKey = () => {
   });
   const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
   const { activeOrganization } = useFrontier();
-  const queryClient = useQueryClient();
-  const transport = useTransport();
 
   const orgId = activeOrganization?.id || '';
+
+  const { removeToken } = useServiceUserTokens({
+    id,
+    orgId,
+    enableFetch: false
+  });
 
   const { mutateAsync: deleteServiceUserToken, isPending } = useMutation(
     FrontierServiceQueries.deleteServiceUserToken
@@ -38,18 +41,8 @@ export const DeleteServiceAccountKey = () => {
         })
       );
 
-      // Invalidate service user tokens query
-      await queryClient.invalidateQueries({
-        queryKey: createConnectQueryKey({
-          schema: FrontierServiceQueries.listServiceUserTokens,
-          transport,
-          input: create(ListServiceUserTokensRequestSchema, {
-            id,
-            orgId
-          }),
-          cardinality: 'finite'
-        })
-      });
+      // Remove token from cache
+      removeToken(tokenId);
 
       navigate({
         to: '/api-keys/$id',

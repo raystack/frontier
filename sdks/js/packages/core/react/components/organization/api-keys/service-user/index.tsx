@@ -7,9 +7,7 @@ import {
   useNavigate,
   useParams
 } from '@tanstack/react-router';
-import { useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
@@ -19,8 +17,10 @@ import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
   GetServiceUserRequestSchema,
-  ListServiceUserTokensRequestSchema
+  type ServiceUserToken
 } from '@raystack/proton/frontier';
+import { useServiceUserTokens } from '../hooks/useServiceUserTokens';
+import { useState } from 'react';
 
 const Headings = ({
   isLoading,
@@ -76,7 +76,7 @@ const ServiceUserTokenItem = ({
   isLoading,
   serviceUserId
 }: {
-  token: V1Beta1ServiceUserToken;
+  token: ServiceUserToken;
   isLoading: boolean;
   serviceUserId: string;
 }) => {
@@ -163,13 +163,13 @@ const SerivceUserTokenList = ({
   serviceUserId
 }: {
   isLoading: boolean;
-  tokens: V1Beta1ServiceUserToken[];
+  tokens: ServiceUserToken[];
   serviceUserId: string;
 }) => {
   const tokenList = isLoading
     ? [
         ...new Array(3).map(
-          (_, i) => ({ id: i.toString() } as V1Beta1ServiceUserToken)
+          (_, i) => ({ id: i.toString() } as ServiceUserToken)
         )
       ]
     : tokens;
@@ -194,12 +194,7 @@ export default function ServiceUserPage() {
   const navigate = useNavigate({ from: '/api-keys/$id' });
 
   const location = useLocation();
-  const existingToken = location?.state?.token;
   const orgId = activeOrganization?.id || '';
-
-  const [newlyAddedTokens, setNewlyAddedTokens] = useState<
-    V1Beta1ServiceUserToken[]
-  >([]);
 
   const { data: serviceUser, isLoading: isServiceUserLoading } = useQuery(
     FrontierServiceQueries.getServiceUser,
@@ -208,37 +203,25 @@ export default function ServiceUserPage() {
       orgId
     }),
     {
-      enabled: !!id && !!orgId,
+      enabled: Boolean(id) && Boolean(orgId),
       select: data => data?.serviceuser
     }
   );
 
   const {
-    data: serviceUserTokens = [],
-    isLoading: isServiceUserTokensLoading
-  } = useQuery(
-    FrontierServiceQueries.listServiceUserTokens,
-    create(ListServiceUserTokensRequestSchema, {
-      id,
-      orgId
-    }),
-    {
-      enabled: !!id && !!orgId && !existingToken?.id,
-      select: data => data?.tokens ?? []
-    }
-  );
-
-  const allTokens = [...newlyAddedTokens, ...serviceUserTokens];
-  const tokenList = existingToken ? [existingToken, ...allTokens] : allTokens;
+    tokens: serviceUserTokens,
+    isLoading: isServiceUserTokensLoading,
+    addToken: onAddToken
+  } = useServiceUserTokens({
+    id,
+    orgId,
+    enableFetch: location.state?.enableServiceUserTokensListFetch
+  });
 
   const isLoading = isServiceUserLoading || isServiceUserTokensLoading;
 
-  const onAddToken = (token: V1Beta1ServiceUserToken) => {
-    setNewlyAddedTokens(prev => [token, ...prev]);
-  };
-
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
+    <Flex direction="column" width="full">
       <Flex className={styles.header} gap={3}>
         <Image
           alt="back-icon"
@@ -259,7 +242,7 @@ export default function ServiceUserPage() {
           <AddServiceUserToken serviceUserId={id} onAddToken={onAddToken} />
           <SerivceUserTokenList
             isLoading={isLoading}
-            tokens={tokenList}
+            tokens={serviceUserTokens}
             serviceUserId={id}
           />
         </Flex>

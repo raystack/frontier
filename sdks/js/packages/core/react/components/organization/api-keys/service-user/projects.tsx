@@ -116,7 +116,7 @@ export default function ManageServiceUserProjects() {
       withMemberCount: false
     }),
     {
-      enabled: !!orgId,
+      enabled: Boolean(orgId),
       select: data => {
         const list = data?.projects ?? [];
         return list.sort((a, b) =>
@@ -139,7 +139,7 @@ export default function ManageServiceUserProjects() {
       withPermissions: []
     }),
     {
-      enabled: !!id && !!orgId,
+      enabled: Boolean(id) && Boolean(orgId),
       select: data => data?.projects ?? []
     }
   );

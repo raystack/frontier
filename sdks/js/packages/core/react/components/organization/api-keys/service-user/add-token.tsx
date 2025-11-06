@@ -4,13 +4,13 @@ import { useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback } from 'react';
 import { Flex, toast, Button, InputField } from '@raystack/apsara';
-import { V1Beta1ServiceUserToken } from '~/api-client';
 import styles from './styles.module.css';
 import { useMutation } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
-  CreateServiceUserTokenRequestSchema
+  CreateServiceUserTokenRequestSchema,
+  type ServiceUserToken
 } from '@raystack/proton/frontier';
 
 const serviceAccountSchema = yup
@@ -26,7 +26,7 @@ export default function AddServiceUserToken({
   onAddToken = () => {}
 }: {
   serviceUserId: string;
-  onAddToken: (token: V1Beta1ServiceUserToken) => void;
+  onAddToken: (token: ServiceUserToken) => void;
 }) {
   const { activeOrganization } = useFrontier();
   const {

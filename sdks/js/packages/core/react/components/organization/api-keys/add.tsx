@@ -23,6 +23,8 @@ import {
   CreateServiceUserTokenRequestSchema,
   ListOrganizationServiceUsersRequestSchema,
   ListOrganizationProjectsRequestSchema,
+  ListServiceUserTokensRequestSchema,
+  ListServiceUserTokensResponseSchema,
   ServiceUserRequestBodySchema,
   CreatePolicyForProjectBodySchema
 } from '@raystack/proton/frontier';
@@ -77,7 +79,7 @@ export const AddServiceAccount = () => {
       withMemberCount: false
     }),
     {
-      enabled: !!orgId,
+      enabled: Boolean(orgId),
       select: data => {
         const list = data?.projects ?? [];
         return list.sort((a, b) =>
@@ -148,14 +150,29 @@ export const AddServiceAccount = () => {
           })
         });
 
+        // Seed listServiceUserTokens cache with the new token
+        const listTokensQueryKey = createConnectQueryKey({
+          schema: FrontierServiceQueries.listServiceUserTokens,
+          transport,
+          input: create(ListServiceUserTokensRequestSchema, {
+            id: serviceUserId,
+            orgId
+          }),
+          cardinality: 'finite'
+        });
+
+        queryClient.setQueryData(
+          listTokensQueryKey,
+          create(ListServiceUserTokensResponseSchema, {
+            tokens: tokenResponse.token ? [tokenResponse.token] : []
+          })
+        );
+
         toast.success('Service user created');
 
         navigate({
           to: '/api-keys/$id',
-          params: { id: serviceUserId },
-          state: {
-            token: tokenResponse.token
-          }
+          params: { id: serviceUserId }
         });
       } catch (error: unknown) {
         toast.error('Something went wrong', {

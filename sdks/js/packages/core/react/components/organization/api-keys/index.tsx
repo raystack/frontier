@@ -186,7 +186,7 @@ export default function ApiKeys() {
       id: organization?.id ?? ''
     }),
     {
-      enabled: !!organization?.id && canUpdateWorkspace,
+      enabled: Boolean(organization?.id) && canUpdateWorkspace,
       select: data => data?.serviceusers ?? []
     }
   );

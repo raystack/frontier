@@ -8,7 +8,6 @@ import {
   getRootTree,
   OrganizationProfileProps
 } from './routes';
-import { V1Beta1ServiceUserToken } from '../../../api-client';
 
 const router = createRouter({
   routeTree: getRootTree({}),
@@ -64,7 +63,7 @@ declare module '@tanstack/react-router' {
   }
 
   interface HistoryState {
-    token?: V1Beta1ServiceUserToken;
     refetch?: boolean;
+    enableServiceUserTokensListFetch?: boolean;
   }
 }
