@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex, toast } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./apis.module.css";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
@@ -6,10 +6,17 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { getColumns } from "./columns";
-import { api } from "~/api";
-import type { SearchOrganizationServiceUsersResponseOrganizationServiceUser } from "~/api/frontier";
 import { useRQL } from "~/hooks/useRQL";
 import { ServiceUserDetailsDialog } from "./details-dialog";
+import { useTransport } from "@connectrpc/connect-query";
+import {
+  AdminService,
+  SearchOrganizationServiceUsersRequestSchema,
+  type SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { createClient } from "@connectrpc/connect";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 
 const NoCredentials = () => {
   return (
@@ -31,8 +38,10 @@ const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 export function OrganizationApisPage() {
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
+  const transport = useTransport();
+  const client = createClient(AdminService, transport);
   const [selectedServiceUser, setSelectedServiceUser] =
-    useState<SearchOrganizationServiceUsersResponseOrganizationServiceUser | null>(
+    useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(
       null,
     );
 
@@ -46,17 +55,36 @@ export function OrganizationApisPage() {
 
   const apiCallback = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
-      const response = await api?.adminServiceSearchOrganizationServiceUsers(
-        organizationId,
-        { ...apiQuery, search: searchQuery || "" },
-      );
-      return response?.data;
+      try {
+        const rqlQuery = transformDataTableQueryToRQLRequest({
+          ...apiQuery,
+          search: searchQuery || "",
+        });
+
+        const response = await client.searchOrganizationServiceUsers(
+          create(SearchOrganizationServiceUsersRequestSchema, {
+            id: organizationId,
+            query: rqlQuery,
+          }),
+        );
+
+        return {
+          organization_service_users: response.organizationServiceUsers || [],
+          count: Number(response.pagination?.totalCount || 0),
+        };
+      } catch (error) {
+        toast.error("Something went wrong", {
+          description: "Unable to fetch service users",
+        });
+        console.error("Unable to fetch service users:", error);
+        throw error;
+      }
     },
-    [organizationId, searchQuery],
+    [organizationId, searchQuery, client],
   );
 
   const { data, loading, query, onTableQueryChange, groupCountMap, fetchMore } =
-    useRQL<SearchOrganizationServiceUsersResponseOrganizationServiceUser>({
+    useRQL<SearchOrganizationServiceUsersResponse_OrganizationServiceUser>({
       initialQuery: { offset: 0 },
       key: organizationId,
       dataKey: "organization_service_users",
@@ -81,7 +109,7 @@ export function OrganizationApisPage() {
   }
 
   function onRowClick(
-    row: SearchOrganizationServiceUsersResponseOrganizationServiceUser,
+    row: SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
   ) {
     setSelectedServiceUser(row);
   }
