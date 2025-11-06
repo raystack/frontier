@@ -66,7 +66,7 @@ export const SessionsPage = () => {
   return (
     <Flex direction="column" width="full">
       <Flex direction="column" className={styles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Sessions" 
             description="Devices logged into this account."
