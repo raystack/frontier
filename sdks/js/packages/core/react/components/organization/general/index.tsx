@@ -17,7 +17,7 @@ import { GeneralOrganization } from './general.workspace';
 import { AuthTooltipMessage } from '~/react/utils';
 import { useTerminology } from '~/react/hooks/useTerminology';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles } from '../styles';
+import sharedStyles from '../styles.module.css';
 
 export default function GeneralSetting() {
   const { activeOrganization: organization, isActiveOrganizationLoading } =
@@ -60,8 +60,8 @@ export default function GeneralSetting() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={styles.container}>
-        <Flex direction="row" justify="between" align="center" style={styles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="General" 
             description="Manage your organization's basic settings and information."

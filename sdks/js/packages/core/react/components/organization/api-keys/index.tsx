@@ -8,7 +8,6 @@ import {
 } from '@raystack/apsara';
 import keyIcon from '~/react/assets/key.svg';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles as sharedStyles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { useEffect, useMemo, useState } from 'react';
@@ -19,6 +18,7 @@ import { getColumns } from './columns';
 import type { V1Beta1ServiceUser } from '~/api-client';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import sharedStyles from '../styles.module.css';
 import styles from './styles.module.css';
 
 const NoServiceAccounts = () => {
@@ -212,8 +212,8 @@ export default function ApiKeys() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <ApiKeysHeader isLoading={isLoading} />
         </Flex>
         {canUpdateWorkspace || isLoading ? (

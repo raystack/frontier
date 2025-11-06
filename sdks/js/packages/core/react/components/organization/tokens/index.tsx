@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Button,
   Tooltip,
@@ -11,11 +12,8 @@ import {
   Callout
 } from '@raystack/apsara';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { styles as sharedStyles } from '../styles';
-import tokenStyles from './token.module.css';
 import { PageHeader } from '~/react/components/common/page-header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useEffect } from 'react';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
 import {
   FrontierServiceQueries,
@@ -25,10 +23,12 @@ import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
-import coin from '~/react/assets/coin.svg';
 import { useNavigate, Outlet } from '@tanstack/react-router';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
+import coin from '~/react/assets/coin.svg';
+import sharedStyles from '../styles.module.css';
+import tokenStyles from './token.module.css';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -201,8 +201,8 @@ export default function Tokens() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <TokensHeader
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}

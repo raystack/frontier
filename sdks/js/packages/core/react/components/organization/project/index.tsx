@@ -21,7 +21,7 @@ import { getColumns } from './projects.columns';
 import { Project } from '@raystack/proton/frontier';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles as sharedStyles } from '../styles';
+import sharedStyles from '../styles.module.css';
 import styles from './project.module.css';
 
 const projectsSelectOptions = [
@@ -109,7 +109,7 @@ export default function WorkspaceProjects() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex direction="column" className={styles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Projects" 
             description="Manage projects in this organization."

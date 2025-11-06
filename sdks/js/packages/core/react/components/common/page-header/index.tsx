@@ -9,7 +9,7 @@ interface PageHeaderProps {
 }
 
 /**
- * PageHeader - Component for displaying page headers with a title and optional description on top of SDK pages.
+ * PageHeader - Component for displaying page header with a title and optional description on top of SDK pages.
  * 
  * @param title - The main heading text for the page
  * @param description - Optional description text or ReactNode displayed below the title

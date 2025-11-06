@@ -21,7 +21,7 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './teams.columns';
 import { AuthTooltipMessage } from '~/react/utils';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles as sharedStyles } from '../styles';
+import sharedStyles from '../styles.module.css';
 import styles from './teams.module.css';
 
 const teamsSelectOptions = [
@@ -111,7 +111,7 @@ export default function WorkspaceTeams() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex direction="column" className={styles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Teams" 
             description="Manage teams in this organization."

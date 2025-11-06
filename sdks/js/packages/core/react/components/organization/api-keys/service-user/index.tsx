@@ -1,21 +1,21 @@
+import { useCallback, useEffect, useState } from 'react';
 import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara';
-import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles as sharedStyles } from '../../styles';
 import {
   Outlet,
   useLocation,
   useNavigate,
   useParams
 } from '@tanstack/react-router';
-import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import sharedStyles from '../../styles.module.css';
+import styles from './styles.module.css';
 
 const Headings = ({
   isLoading,
@@ -262,8 +262,8 @@ export default function ServiceUserPage() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <Flex gap={3} align="center">
             <Image
               alt="back-icon"

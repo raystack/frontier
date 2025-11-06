@@ -22,7 +22,7 @@ import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles as sharedStyles } from '../styles';
+import sharedStyles from '../styles.module.css';
 import styles from './project.module.css';
 
 interface ProjectGroupRolePair {
@@ -159,8 +159,8 @@ export const ProjectPage = () => {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <Flex gap={3} align="center">
             <Image
               alt="back-icon"

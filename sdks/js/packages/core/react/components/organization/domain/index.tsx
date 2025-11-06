@@ -21,7 +21,7 @@ import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles as sharedStyles } from '../styles';
+import sharedStyles from '../styles.module.css';
 import styles from './domain.module.css';
 
 export default function Domain() {
@@ -70,7 +70,7 @@ export default function Domain() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex direction="column" className={styles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Allowed email domains" 
             description="Anyone with an email address at these domains is allowed to sign up

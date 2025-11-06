@@ -8,11 +8,9 @@ import {
   Link
 } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
-import { styles as sharedStyles } from '../styles';
 import { PageHeader } from '~/react/components/common/page-header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
-import billingStyles from './billing.module.css';
 import {
   V1Beta1CheckoutSetupBody,
   V1Beta1Invoice
@@ -21,6 +19,8 @@ import { BillingAccount } from '@raystack/proton/frontier';
 // import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';
+import sharedStyles from '../styles.module.css';
+import billingStyles from './billing.module.css';
 
 import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
@@ -236,8 +236,8 @@ export default function Billing() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <BillingHeader
             isLoading={isLoading}
             billingSupportEmail={config.billing?.supportEmail}

@@ -12,13 +12,13 @@ import {
   Headline,
   Select
 } from '@raystack/apsara';
-import bell from '~/react/assets/bell.svg';
 import bellSlash from '~/react/assets/bell-slash.svg';
-import { styles as sharedStyles } from '../styles';
 import { PageHeader } from '~/react/components/common/page-header';
 import { PreferencesSelectionTypes } from './preferences.types';
 import { usePreferences } from '~/react/hooks/usePreferences';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
+import bell from '~/react/assets/bell.svg';
+import sharedStyles from '../styles.module.css';
 
 const themeOptions = [
   {
@@ -87,8 +87,8 @@ export default function UserPreferences() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Preferences" 
             description="Customize your workspace preferences and settings."

@@ -15,7 +15,7 @@ import { useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, GetGroupRequestSchema, ListGroupUsersRequestSchema, ListRolesRequestSchema, Organization, type Role } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { PageHeader } from '~/react/components/common/page-header';
-import { styles as sharedStyles } from '../styles';
+import sharedStyles from '../styles.module.css';
 import styles from './teams.module.css';
 
 export const TeamPage = () => {
@@ -93,8 +93,8 @@ export const TeamPage = () => {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <Flex gap={3} align="center">
             <Image
               alt="back-icon"

@@ -10,8 +10,8 @@ import { FrontierServiceQueries, ListOrganizationPreferencesRequestSchema, Creat
 import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import type { SecurityCheckboxTypes } from './security.types';
-import { styles as sharedStyles } from '../styles';
 import { PageHeader } from '~/react/components/common/page-header';
+import sharedStyles from '../styles.module.css';
 
 export default function WorkspaceSecurity() {
   const [socialLogin, setSocialLogin] = useState<boolean>(false);
@@ -126,8 +126,8 @@ export default function WorkspaceSecurity() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" style={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Security" 
             description="Manage your workspace security and how it's members authenticate"
