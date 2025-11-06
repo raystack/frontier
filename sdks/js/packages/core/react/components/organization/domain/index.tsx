@@ -8,10 +8,11 @@ import {
   Skeleton,
   Text,
   Flex,
-  DataTable
+  DataTable,
+  toast
 } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationDomains } from '~/react/hooks/useOrganizationDomains';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -23,8 +24,16 @@ import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import styles from './domain.module.css';
 
 export default function Domain() {
-  const { isFetching, domains } = useOrganizationDomains();
+  const { isFetching, domains, error: domainsError } = useOrganizationDomains();
   const { activeOrganization: organization, config } = useFrontier();
+
+  useEffect(() => {
+    if (domainsError) {
+      toast.error('Something went wrong', {
+        description: (domainsError as Error).message
+      });
+    }
+  }, [domainsError]);
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
