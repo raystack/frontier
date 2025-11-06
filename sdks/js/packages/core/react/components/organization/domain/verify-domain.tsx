@@ -11,11 +11,13 @@ import {
 } from '@raystack/apsara';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { FrontierServiceQueries,
   GetOrganizationDomainRequestSchema,
-  VerifyOrganizationDomainRequestSchema
+  VerifyOrganizationDomainRequestSchema,
+  ListOrganizationDomainsRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
@@ -25,6 +27,8 @@ export const VerifyDomain = () => {
   const navigate = useNavigate({ from: '/domains/$domainId/verify' });
   const { domainId } = useParams({ from: '/domains/$domainId/verify' });
   const { activeOrganization: organization } = useFrontier();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const {
     data: domain,
@@ -53,9 +57,22 @@ export const VerifyDomain = () => {
   const { mutateAsync: verifyOrganizationDomain, isPending: isVerifying } = useMutation(
     FrontierServiceQueries.verifyOrganizationDomain,
     {
-      onSuccess: () => {
-        navigate({ to: '/domains' });
+      onSuccess: async () => {
         toast.success('Domain verified');
+        // Invalidate domains list to refetch
+        if (organization?.id) {
+          await queryClient.invalidateQueries({
+            queryKey: createConnectQueryKey({
+              schema: FrontierServiceQueries.listOrganizationDomains,
+              transport,
+              input: create(ListOrganizationDomainsRequestSchema, {
+                orgId: organization.id
+              }),
+              cardinality: 'finite'
+            })
+          });
+        }
+        navigate({ to: '/domains' });
       },
       onError: (error: Error) => {
         toast.error('Something went wrong', {
