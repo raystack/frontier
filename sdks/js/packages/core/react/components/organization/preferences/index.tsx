@@ -125,7 +125,7 @@ export default function UserPreferences() {
 
 export const PreferencesHeader = () => {
   return (
-    <Box style={styles.container}>
+    <Box>
       <Headline size="t3">Preferences</Headline>
       <Text size="regular" variant="secondary">
         Manage your workspace security and how it&apos;s members authenticate

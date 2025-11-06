@@ -161,7 +161,7 @@ export default function WorkspaceSecurity() {
 
 export const SecurityHeader = () => {
   return (
-    <Box style={styles.container}>
+    <Box>
       <Headline size="t3">Security</Headline>
       <Text size="regular" variant="secondary">
         Manage your workspace security and how it&apos;s members authenticate
