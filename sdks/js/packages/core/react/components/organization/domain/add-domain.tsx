@@ -62,7 +62,6 @@ export const AddDomain = () => {
             })
           });
         }
-        navigate({ to: '/domains' });
         navigate({
           to: `/domains/$domainId/verify`,
           params: { domainId: data?.domain?.id ?? '' }
