@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -24,7 +25,9 @@ type ProspectService interface {
 }
 
 func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *connect.Request[frontierv1beta1.CreateProspectPublicRequest]) (*connect.Response[frontierv1beta1.CreateProspectPublicResponse], error) {
+	errorLogger := NewErrorLogger()
 	email := request.Msg.GetEmail()
+
 	if !isValidEmail(email) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidEmail)
 	}
@@ -48,10 +51,19 @@ func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *conn
 		Metadata: metaDataMap,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateProspectPublic", err,
+			zap.String("email", strings.ToLower(email)),
+			zap.String("activity", activity),
+			zap.String("source", request.Msg.GetSource()))
+
 		switch {
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return connect.NewResponse(&frontierv1beta1.CreateProspectPublicResponse{}), nil
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "CreateProspectPublic", err,
+				zap.String("email", strings.ToLower(email)),
+				zap.String("activity", activity),
+				zap.String("source", request.Msg.GetSource()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -59,7 +71,9 @@ func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *conn
 }
 
 func (h *ConnectHandler) CreateProspect(ctx context.Context, request *connect.Request[frontierv1beta1.CreateProspectRequest]) (*connect.Response[frontierv1beta1.CreateProspectResponse], error) {
+	errorLogger := NewErrorLogger()
 	email := request.Msg.GetEmail()
+
 	if !isValidEmail(email) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidEmail)
 	}
@@ -88,22 +102,36 @@ func (h *ConnectHandler) CreateProspect(ctx context.Context, request *connect.Re
 		Metadata: metaDataMap,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateProspect", err,
+			zap.String("email", strings.ToLower(email)),
+			zap.String("activity", activity),
+			zap.String("status", subsStatus),
+			zap.String("source", request.Msg.GetSource()))
+
 		switch {
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "CreateProspect", err,
+				zap.String("email", strings.ToLower(email)),
+				zap.String("activity", activity),
+				zap.String("status", subsStatus),
+				zap.String("source", request.Msg.GetSource()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	transformedProspect, err := transformProspectToPB(newProspect)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "CreateProspect", newProspect.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateProspectResponse{Prospect: transformedProspect}), nil
 }
 
 func (h *ConnectHandler) ListProspects(ctx context.Context, request *connect.Request[frontierv1beta1.ListProspectsRequest]) (*connect.Response[frontierv1beta1.ListProspectsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	requestQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), prospect.Prospect{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrRQLParse)
@@ -116,6 +144,7 @@ func (h *ConnectHandler) ListProspects(ctx context.Context, request *connect.Req
 
 	prospects, err := h.prospectService.List(ctx, requestQuery)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProspects", err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -123,6 +152,7 @@ func (h *ConnectHandler) ListProspects(ctx context.Context, request *connect.Req
 	for _, val := range prospects.Prospects {
 		transformedProspect, err := transformProspectToPB(val)
 		if err != nil {
+			errorLogger.LogTransformError(ctx, request, "ListProspects", val.ID, err)
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
 		}
 		transformedProspects = append(transformedProspects, transformedProspect)
@@ -156,28 +186,38 @@ func (h *ConnectHandler) ListProspects(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) GetProspect(ctx context.Context, request *connect.Request[frontierv1beta1.GetProspectRequest]) (*connect.Response[frontierv1beta1.GetProspectResponse], error) {
+	errorLogger := NewErrorLogger()
 	prospectId := request.Msg.GetId()
+
 	if prospectId == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrProspectIdRequired)
 	}
 	prspct, err := h.prospectService.Get(ctx, prospectId)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "GetProspect", err,
+			zap.String("prospect_id", prospectId))
+
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "GetProspect", err,
+				zap.String("prospect_id", prospectId))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	transformedProspect, err := transformProspectToPB(prspct)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "GetProspect", prspct.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.GetProspectResponse{Prospect: transformedProspect}), nil
 }
 
 func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateProspectRequest]) (*connect.Response[frontierv1beta1.UpdateProspectResponse], error) {
+	errorLogger := NewErrorLogger()
 	prospectId := request.Msg.GetId()
+
 	if prospectId == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrProspectIdRequired)
 	}
@@ -210,33 +250,54 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 		Metadata: metaDataMap,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateProspect", err,
+			zap.String("prospect_id", prospectId),
+			zap.String("email", strings.ToLower(email)),
+			zap.String("activity", activity),
+			zap.String("status", subsStatus),
+			zap.String("source", request.Msg.GetSource()))
+
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrConflictRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "UpdateProspect", err,
+				zap.String("prospect_id", prospectId),
+				zap.String("email", strings.ToLower(email)),
+				zap.String("activity", activity),
+				zap.String("status", subsStatus),
+				zap.String("source", request.Msg.GetSource()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	transformedProspect, err := transformProspectToPB(updatedProspect)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "UpdateProspect", updatedProspect.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.UpdateProspectResponse{Prospect: transformedProspect}), nil
 }
 
 func (h *ConnectHandler) DeleteProspect(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteProspectRequest]) (*connect.Response[frontierv1beta1.DeleteProspectResponse], error) {
+	errorLogger := NewErrorLogger()
 	prospectId := request.Msg.GetId()
+
 	if prospectId == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrProspectIdRequired)
 	}
 	err := h.prospectService.Delete(ctx, prospectId)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteProspect", err,
+			zap.String("prospect_id", prospectId))
+
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "DeleteProspect", err,
+				zap.String("prospect_id", prospectId))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
