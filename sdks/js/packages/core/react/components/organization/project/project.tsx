@@ -1,4 +1,4 @@
-import { Tabs, Image, Text, toast, Flex } from '@raystack/apsara';
+import { Tabs, Image, toast, Flex } from '@raystack/apsara';
 import {
   Outlet,
   useNavigate,
@@ -21,6 +21,8 @@ import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
+import { PageHeader } from '~/react/components/common/page-header';
+import { styles as sharedStyles } from '../styles';
 import styles from './project.module.css';
 
 interface ProjectGroupRolePair {
@@ -157,17 +159,23 @@ export const ProjectPage = () => {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header}>
-        <Image
-          alt="back-icon"
-          style={{ cursor: 'pointer' }}
-          src={backIcon as unknown as string}
-          onClick={() => navigate({ to: '/projects' })}
-          data-test-id="frontier-sdk-projects-page-back-link"
-        />
-        <Text size="large">Projects</Text>
-      </Flex>
-      <Tabs defaultValue="general" className={styles.container}>
+      <Flex direction="column" style={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+          <Flex gap={3} align="center">
+            <Image
+              alt="back-icon"
+              style={{ cursor: 'pointer' }}
+              src={backIcon as unknown as string}
+              onClick={() => navigate({ to: '/projects' })}
+              data-test-id="frontier-sdk-projects-page-back-link"
+            />
+            <PageHeader 
+              title="Project" 
+              description="Manage project settings and members."
+            />
+          </Flex>
+        </Flex>
+        <Tabs defaultValue="general" className={styles.container}>
         <Tabs.List>
           <Tabs.Trigger value="general">General</Tabs.Trigger>
           <Tabs.Trigger value="members">Members</Tabs.Trigger>
@@ -190,7 +198,8 @@ export const ProjectPage = () => {
             refetch={refetchTeamAndMembers}
           />
         </Tabs.Content>
-      </Tabs>
+        </Tabs>
+      </Flex>
       <Outlet />
     </Flex>
   );

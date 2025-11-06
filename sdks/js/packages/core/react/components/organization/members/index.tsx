@@ -20,6 +20,7 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
 import { PageHeader } from '~/react/components/common/page-header';
+import { styles as sharedStyles } from '../styles';
 import styles from './members.module.css';
 
 export default function WorkspaceMembers() {
@@ -85,7 +86,7 @@ export default function WorkspaceMembers() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex direction="column" className={styles.container}>
-        <Flex direction="row" justify="between" align="center" className={styles.header}>
+        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
           <PageHeader 
             title="Members" 
             description="Manage members in this organization."

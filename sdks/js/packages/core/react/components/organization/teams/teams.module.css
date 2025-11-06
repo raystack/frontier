@@ -5,10 +5,6 @@
   box-sizing: border-box;
 }
 
-.header {
-  margin-bottom: var(--rs-space-9);
-}
-
 .tableWrapper {
   height: 100%;
 }

@@ -11,8 +11,9 @@ import {
   Callout
 } from '@raystack/apsara';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { styles } from '../styles';
+import { styles as sharedStyles } from '../styles';
 import tokenStyles from './token.module.css';
+import { PageHeader } from '~/react/components/common/page-header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect } from 'react';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
@@ -35,36 +36,38 @@ interface TokenHeaderProps {
 }
 
 const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
+  if (isLoading) {
+    return (
+      <Flex direction="column" gap={2} className={tokenStyles.flex1}>
+        <Skeleton />
+        <Skeleton />
+      </Flex>
+    );
+  }
+
   return (
-    <Flex direction="column" gap={3}>
-      {isLoading ? (
-        <Skeleton containerClassName={tokenStyles.flex1} />
-      ) : (
-        <Text size="large">Tokens</Text>
-      )}
-      {isLoading ? (
-        <Skeleton containerClassName={tokenStyles.flex1} />
-      ) : (
-        <Text size="regular" variant="secondary">
-          Track your token balance, credit limit, and all transactions.
-          {billingSupportEmail ? (
-            <>
-              {' '}
-              For more details, contact{' '}
-              <Link
-                size="regular"
-                href={`mailto:${billingSupportEmail}`}
-                data-test-id="frontier-sdk-billing-email-link"
-                external
-                style={{ textDecoration: 'none' }}
-              >
-                {billingSupportEmail}
-              </Link>
-            </>
-          ) : null}
-        </Text>
-      )}
-    </Flex>
+    <PageHeader
+      title="Tokens"
+      description={
+        billingSupportEmail ? (
+          <>
+            Track your token balance, credit limit, and all transactions.{' '}
+            For more details, contact{' '}
+            <Link
+              size="regular"
+              href={`mailto:${billingSupportEmail}`}
+              data-test-id="frontier-sdk-billing-email-link"
+              external
+              style={{ textDecoration: 'none' }}
+            >
+              {billingSupportEmail}
+            </Link>
+          </>
+        ) : (
+          'Track your token balance, credit limit, and all transactions.'
+        )
+      }
+    />
   );
 };
 
@@ -198,15 +201,14 @@ export default function Tokens() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
-        <Text size="large">Tokens</Text>
-      </Flex>
-      <Flex direction="column" gap={9} style={styles.container}>
-        <Flex direction="column" gap={9}>
+      <Flex direction="column" style={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
           <TokensHeader
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}
           />
+        </Flex>
+        <Flex direction="column" gap={9}>
           <TokenInfoBox
             balance={tokenBalance}
             isLoading={isLoading}

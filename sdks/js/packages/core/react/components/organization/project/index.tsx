@@ -7,7 +7,6 @@ import {
   Skeleton,
   Flex,
   Button,
-  Text,
   Select,
   DataTable,
   toast
@@ -21,6 +20,8 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './projects.columns';
 import { Project } from '@raystack/proton/frontier';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { PageHeader } from '~/react/components/common/page-header';
+import { styles as sharedStyles } from '../styles';
 import styles from './project.module.css';
 
 const projectsSelectOptions = [
@@ -107,18 +108,23 @@ export default function WorkspaceProjects() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header}>
-        <Text size={6}>Projects</Text>
-      </Flex>
-      <Flex direction="column" gap={9} className={styles.container}>
-        <ProjectsTable
-          projects={projects}
-          isLoading={isLoading}
-          canCreateProject={canCreateProject}
-          userAccessOnProject={userAccessOnProject}
-          onOrgProjectsFilterChange={onOrgProjectsFilterChange}
-          canListOrgProjects={canUpdateOrganization}
-        />
+      <Flex direction="column" className={styles.container}>
+        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+          <PageHeader 
+            title="Projects" 
+            description="Manage projects in this organization."
+          />
+        </Flex>
+        <Flex direction="column" gap={9}>
+          <ProjectsTable
+            projects={projects}
+            isLoading={isLoading}
+            canCreateProject={canCreateProject}
+            userAccessOnProject={userAccessOnProject}
+            onOrgProjectsFilterChange={onOrgProjectsFilterChange}
+            canListOrgProjects={canUpdateOrganization}
+          />
+        </Flex>
       </Flex>
       <Outlet />
     </Flex>

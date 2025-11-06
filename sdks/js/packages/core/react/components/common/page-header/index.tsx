@@ -1,17 +1,18 @@
 'use client';
 
 import { Flex, Headline, Text } from '@raystack/apsara';
+import { ReactNode } from 'react';
 
 interface PageHeaderProps {
   title: string;
-  description?: string;
+  description?: string | ReactNode;
 }
 
 /**
  * PageHeader - Component for displaying page headers with a title and optional description on top of SDK pages.
  * 
  * @param title - The main heading text for the page
- * @param description - Optional description text displayed below the title
+ * @param description - Optional description text or ReactNode displayed below the title
  * 
  * @example
  * <PageHeader 

@@ -1,6 +1,8 @@
 import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara';
 import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
+import { PageHeader } from '~/react/components/common/page-header';
+import { styles as sharedStyles } from '../../styles';
 import {
   Outlet,
   useLocation,
@@ -260,18 +262,24 @@ export default function ServiceUserPage() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header} gap={3}>
-        <Image
-          alt="back-icon"
-          style={{ cursor: 'pointer' }}
-          src={backIcon as unknown as string}
-          onClick={() => navigate({ to: '/api-keys' })}
-          data-test-id="frontier-sdk-api-keys-page-back-link"
-        />
-        <Text size="large">API</Text>
-      </Flex>
-      <Flex justify="center" align="center">
-        <Flex className={styles.content} direction="column" gap={9}>
+      <Flex direction="column" style={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
+          <Flex gap={3} align="center">
+            <Image
+              alt="back-icon"
+              style={{ cursor: 'pointer' }}
+              src={backIcon as unknown as string}
+              onClick={() => navigate({ to: '/api-keys' })}
+              data-test-id="frontier-sdk-api-keys-page-back-link"
+            />
+            <PageHeader 
+              title="Service Account" 
+              description="Manage service account settings and tokens."
+            />
+          </Flex>
+        </Flex>
+        <Flex justify="center" align="center">
+          <Flex className={styles.content} direction="column" gap={9}>
           <Headings
             isLoading={isLoading}
             name={serviceUser?.title || ''}
@@ -283,6 +291,7 @@ export default function ServiceUserPage() {
             tokens={tokenList}
             serviceUserId={id}
           />
+          </Flex>
         </Flex>
       </Flex>
       <Outlet />

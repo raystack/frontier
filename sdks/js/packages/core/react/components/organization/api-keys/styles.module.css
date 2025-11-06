@@ -1,8 +1,3 @@
-.header {
-  padding: var(--rs-space-5) var(--rs-space-11);
-  border-bottom: 1px solid var(--rs-color-border-base-primary);
-}
-
 .container {
   height: 100%;
   width: 100%;

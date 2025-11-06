@@ -4,11 +4,12 @@ import {
   Text,
   Flex,
   toast,
-  Link,
-  Tooltip
+  Tooltip,
+  Link
 } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
-import { styles } from '../styles';
+import { styles as sharedStyles } from '../styles';
+import { PageHeader } from '~/react/components/common/page-header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
@@ -36,38 +37,41 @@ const BillingHeader = ({
   billingSupportEmail,
   isLoading
 }: BillingHeaderProps) => {
+  if (isLoading) {
+    return (
+      <Flex direction="column" gap={2} className={billingStyles.flex1}>
+        <Skeleton />
+        <Skeleton />
+      </Flex>
+    );
+  }
+
   return (
-    <Flex direction="column" gap={3}>
-      {isLoading ? (
-        <Skeleton containerClassName={billingStyles.flex1} />
-      ) : (
-        <Text size="large">Billing</Text>
-      )}
-      {isLoading ? (
-        <Skeleton containerClassName={billingStyles.flex1} />
-      ) : (
-        <Text size="regular" variant="secondary">
-          Oversee your billing and invoices.
-          {billingSupportEmail ? (
-            <>
-              {' '}
-              For more details, contact{' '}
-              <Link
-                size="regular"
-                href={`mailto:${billingSupportEmail}`}
-                data-test-id="frontier-sdk-billing-email-link"
-                external
-                style={{ textDecoration: 'none' }}
-              >
-                {billingSupportEmail}
-              </Link>
-            </>
-          ) : null}
-        </Text>
-      )}
-    </Flex>
+    <PageHeader
+      title="Billing"
+      description={
+        billingSupportEmail ? (
+          <>
+            Oversee your billing and invoices.{' '}
+            For more details, contact{' '}
+            <Link
+              size="regular"
+              href={`mailto:${billingSupportEmail}`}
+              data-test-id="frontier-sdk-billing-email-link"
+              external
+              style={{ textDecoration: 'none' }}
+            >
+              {billingSupportEmail}
+            </Link>
+          </>
+        ) : (
+          'Oversee your billing and invoices.'
+        )
+      }
+    />
   );
 };
+
 
 interface BillingDetailsProps {
   billingAccount?: BillingAccount;
@@ -232,15 +236,15 @@ export default function Billing() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
-        <Text size="large">Billing</Text>
-      </Flex>
-      <Flex direction="column" gap={9} style={styles.container}>
-        <Flex direction="column" gap={7}>
+      <Flex direction="column" style={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
           <BillingHeader
             isLoading={isLoading}
             billingSupportEmail={config.billing?.supportEmail}
           />
+        </Flex>
+        <Flex direction="column" gap={9}>
+          <Flex direction="column" gap={7}>
           <PaymentIssue
             isLoading={isLoading}
             subscription={activeSubscription}
@@ -271,6 +275,7 @@ export default function Billing() {
             isPermissionLoading={isFetching}
           />
           <Invoices invoices={invoices} isLoading={isLoading} />
+          </Flex>
         </Flex>
       </Flex>
       <Outlet />

@@ -9,6 +9,7 @@ import {
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useSessions } from '../../../hooks/useSessions';
 import { PageHeader } from '../../common/page-header';
+import { styles as sharedStyles } from '../styles';
 import styles from './sessions.module.css';
 
 export const SessionsPage = () => {
@@ -24,7 +25,7 @@ export const SessionsPage = () => {
     return (
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
-          <Flex direction="row" justify="between" align="center" className={styles.header}>
+          <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
             <PageHeader 
               title="Sessions" 
               description="Devices logged into this account."
@@ -46,7 +47,7 @@ export const SessionsPage = () => {
     return (
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
-          <Flex direction="row" justify="between" align="center" className={styles.header}>
+          <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
             <PageHeader 
               title="Sessions" 
               description="Devices logged into this account."
@@ -65,7 +66,7 @@ export const SessionsPage = () => {
   return (
     <Flex direction="column" width="full">
       <Flex direction="column" className={styles.container}>
-        <Flex direction="row" justify="between" align="center" className={styles.header}>
+        <Flex direction="row" justify="between" align="center" style={sharedStyles.header}>
           <PageHeader 
             title="Sessions" 
             description="Devices logged into this account."
