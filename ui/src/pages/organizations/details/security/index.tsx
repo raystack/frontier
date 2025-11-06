@@ -5,18 +5,20 @@ import {
   Separator,
   Text,
   Tooltip,
+  toast,
 } from "@raystack/apsara";
 
 import styles from "./security.module.css";
 import { PlusIcon } from "@radix-ui/react-icons";
-import { useCallback, useEffect, useState } from "react";
-import { V1Beta1Domain } from "~/api/frontier";
-import { api } from "~/api";
 import { useOutletContext } from "react-router-dom";
 import { OutletContext } from "../types";
 import { BlockOrganizationSection } from "./block-organization";
 import { DomainsList } from "./domains-list";
 import PageTitle from "~/components/page-title";
+import { useQuery } from "@connectrpc/connect-query";
+import { FrontierServiceQueries, ListOrganizationDomainsRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { useEffect } from "react";
 
 const AddDomainSection = () => {
   return (
@@ -45,28 +47,27 @@ const AddDomainSection = () => {
 };
 
 export const OrganizationSecurity = () => {
-  const { organizationId, organization } = useOutletContext<OutletContext>();
-  const [domains, setDomains] = useState<V1Beta1Domain[]>([]);
-  const [isDomainLoading, setIsDomainLoading] = useState(false);
+  const { organization } = useOutletContext<OutletContext>();
 
-  const fetchDomains = useCallback(async () => {
-    if (!organizationId) return;
-    try {
-      setIsDomainLoading(true);
-      const response =
-        await api?.frontierServiceListOrganizationDomains(organizationId);
-      const data = response?.data?.domains || [];
-      setDomains(data);
-    } catch (error) {
-      console.error("Error fetching domains:", error);
-    } finally {
-      setIsDomainLoading(false);
-    }
-  }, [organizationId]);
+  const { data: domains, isLoading, error } = useQuery(
+    FrontierServiceQueries.listOrganizationDomains,
+    create(ListOrganizationDomainsRequestSchema, {
+      orgId: organization.id,
+    }),
+    {
+      enabled: !!organization.id,
+      select: (data) => data?.domains || [],
+    },
+  );
 
   useEffect(() => {
-    fetchDomains();
-  }, [fetchDomains]);
+    if (error) {
+      toast.error("Something went wrong", {
+        description: "Unable to fetch domains",
+      });
+      console.error("Unable to fetch domains:", error);
+    }
+  }, [error]);
 
   const title = `Security | ${organization.title} | Organizations`;
 
@@ -76,9 +77,8 @@ export const OrganizationSecurity = () => {
       <Flex className={styles["content"]} direction="column" gap={9}>
         <AddDomainSection />
         <DomainsList
-          isLoading={isDomainLoading}
-          domains={domains}
-          fetchDomains={fetchDomains}
+          isLoading={isLoading}
+          domains={domains ?? []}
         />
         <Separator />
         <BlockOrganizationSection />
