@@ -138,6 +138,7 @@ export const UpdateProfile = () => {
               type="submit"
               style={{ width: 'fit-content' }}
               disabled={isLoading || isSubmitting || !isDirty}
+              loading={isSubmitting}
               loaderText="Updating..."
               data-test-id="frontier-sdk-update-user-btn"
             >
