@@ -138,9 +138,10 @@ export const UpdateProfile = () => {
               type="submit"
               style={{ width: 'fit-content' }}
               disabled={isLoading || isSubmitting || !isDirty}
+              loaderText="Updating..."
               data-test-id="frontier-sdk-update-user-btn"
             >
-              {isSubmitting ? 'Updating...' : 'Update'}
+              Update
             </Button>
           </Flex>
         </Flex>
