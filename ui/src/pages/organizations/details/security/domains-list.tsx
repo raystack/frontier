@@ -6,39 +6,60 @@ import {
   Text,
   toast,
 } from "@raystack/apsara";
-import { V1Beta1Domain } from "~/api/frontier";
 import styles from "./security.module.css";
 import { CheckCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";
 import { useState } from "react";
-import { api } from "~/api";
+import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { FrontierServiceQueries, DeleteOrganizationDomainRequestSchema, Domain } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { OutletContext } from "../types";
+import { useOutletContext } from "react-router-dom";
 
 interface DeleteDomainDialogProps {
-  fetchDomains: () => Promise<void>;
-  domain: V1Beta1Domain;
+  domain: Domain;
 }
 
 const DeleteDomainDialog = ({
-  fetchDomains,
   domain,
 }: DeleteDomainDialogProps) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const {organization} = useOutletContext<OutletContext>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
+
+  const { mutateAsync: deleteDomain, isPending } = useMutation(
+    FrontierServiceQueries.deleteOrganizationDomain,
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.listOrganizationDomains,
+            transport,
+            input: { orgId: organization?.id || "" },
+            cardinality: "finite",
+          }),
+        });
+        setIsDialogOpen(false);
+        toast.success("Domain deleted");
+      },
+      onError: (error) => {
+        toast.error("Something went wrong", {
+          description: error.message,
+        });
+        console.error("Unable to delete domain:", error);
+      },
+    },
+  );
 
   const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await api?.frontierServiceDeleteOrganizationDomain(
-        domain?.org_id || "",
-        domain?.id || "",
-      );
-      await fetchDomains();
-      setIsDialogOpen(false);
-    } catch (error) {
-      toast.error("unable to delete domain");
-    } finally {
-      setIsDeleting(false);
-    }
+    await deleteDomain(
+      create(DeleteOrganizationDomainRequestSchema, {
+        orgId: domain?.orgId || "",
+        id: domain?.id || "",
+      }),
+    );
   };
 
   const onOpenChange = (value: boolean) => {
@@ -72,7 +93,7 @@ const DeleteDomainDialog = ({
           <Button
             color={"danger"}
             data-test-id="delete-domain-submit-button"
-            loading={isDeleting}
+            loading={isPending}
             loaderText="Deleting..."
             onClick={handleDelete}
           >
@@ -85,11 +106,10 @@ const DeleteDomainDialog = ({
 };
 
 interface DomainItemProps {
-  domain: V1Beta1Domain;
-  fetchDomains: () => Promise<void>;
+  domain: Domain;
 }
 
-const DomainItem = ({ fetchDomains, domain }: DomainItemProps) => {
+const DomainItem = ({ domain }: DomainItemProps) => {
   return (
     <Flex className={styles["domains-list-item"]} justify="between">
       <Flex gap={3}>
@@ -100,21 +120,19 @@ const DomainItem = ({ fetchDomains, domain }: DomainItemProps) => {
           />
         ) : null}
       </Flex>
-      <DeleteDomainDialog fetchDomains={fetchDomains} domain={domain} />
+      <DeleteDomainDialog domain={domain} />
     </Flex>
   );
 };
 
 interface DomainsListProps {
   isLoading: boolean;
-  domains: V1Beta1Domain[];
-  fetchDomains: () => Promise<void>;
+  domains: Domain[];
 }
 
 export const DomainsList = ({
   isLoading,
   domains = [],
-  fetchDomains,
 }: DomainsListProps) => {
   return isLoading ? (
     <Flex direction="column" className={styles["domains-list"]}>
@@ -132,7 +150,6 @@ export const DomainsList = ({
         <DomainItem
           key={domain?.id}
           domain={domain}
-          fetchDomains={fetchDomains}
         />
       ))}
     </Flex>
