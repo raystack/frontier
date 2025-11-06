@@ -5,6 +5,7 @@ import {
   Separator,
   Text,
   Tooltip,
+  toast,
 } from "@raystack/apsara";
 
 import styles from "./security.module.css";
@@ -17,6 +18,7 @@ import PageTitle from "~/components/page-title";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, ListOrganizationDomainsRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { useEffect } from "react";
 
 const AddDomainSection = () => {
   return (
@@ -47,7 +49,7 @@ const AddDomainSection = () => {
 export const OrganizationSecurity = () => {
   const { organization } = useOutletContext<OutletContext>();
 
-  const { data: domains, isLoading } = useQuery(
+  const { data: domains, isLoading, error } = useQuery(
     FrontierServiceQueries.listOrganizationDomains,
     create(ListOrganizationDomainsRequestSchema, {
       orgId: organization.id,
@@ -57,6 +59,16 @@ export const OrganizationSecurity = () => {
       select: (data) => data?.domains || [],
     },
   );
+
+  useEffect(() => {
+    if (error) {
+      toast.error("Something went wrong", {
+        description: "Unable to fetch domains",
+      });
+      console.error("Unable to fetch domains:", error);
+    }
+  }, [error]);
+
   const title = `Security | ${organization.title} | Organizations`;
 
   return (
