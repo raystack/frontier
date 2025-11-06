@@ -11,7 +11,7 @@ import {
   toast,
 } from "@raystack/apsara";
 import styles from "./edit.module.css";
-import { useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -20,9 +20,7 @@ import Skeleton from "react-loading-skeleton";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
-  FrontierServiceQueries,
   GetBillingAccountDetailsRequestSchema,
-  GetBillingAccountRequestSchema,
   UpdateBillingAccountDetailsRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
@@ -35,9 +33,40 @@ interface EditBillingPanelProps {
 const billingDetailsUpdateSchema = z
   .object({
     tokenPaymentType: z.enum(["prepaid", "postpaid"]),
-    creditMin: z.string().regex(/^[0-9]+$/, "Credit limit should be a number greater than 0"),
-    dueInDays: z.string().regex(/^[0-9]+$/, "Due days should be a number greater than 0"),
-  });
+    creditMin: z.string().regex(/^[0-9]+$/, "Credit limit must be a number greater than 0"),
+    dueInDays: z.string().regex(/^[0-9]+$/, "Due days must be a number greater than 0"),
+  })
+  .refine(
+    (data) => {
+      if (data.tokenPaymentType === "postpaid") {
+        try {
+          return BigInt(data.creditMin) > 0n;
+        } catch {
+          return false
+        }
+      }
+      return true;
+    },
+    {
+      message: "Credit limit must be greater than 0 for postpaid",
+      path: ["creditMin"],
+    }
+  ).refine(
+    (data) => {
+      if (data.tokenPaymentType === "postpaid") {
+        try {
+          return BigInt(data.dueInDays) > 0n;
+        } catch {
+          return false
+        }
+      }
+      return true;
+    },
+    {
+      message: "Due days must be greater than 0 for postpaid",
+      path: ["dueInDays"],
+    }
+  );
 
 type BillingDetailsForm = z.infer<typeof billingDetailsUpdateSchema>;
 
@@ -59,7 +88,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     resolver: zodResolver(billingDetailsUpdateSchema),
   });
 
-  const { data: billingDetailsData, isLoading } = useQuery(
+  const { data: billingDetailsData, isLoading, error, refetch: refetchBillingDetails } = useQuery(
     AdminServiceQueries.getBillingAccountDetails,
     create(GetBillingAccountDetailsRequestSchema, {
       orgId: organizationId,
@@ -67,19 +96,30 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     }),
     {
       enabled: !!organizationId && !!billingId,
+      select: (data) => {
+        const isPostpaid = data?.creditMin < 0n;
+        const creditMin = isPostpaid ? data.creditMin * BigInt(-1) : data.creditMin;
+        return {
+          tokenPaymentType: isPostpaid ? "postpaid" as const : "prepaid" as const,
+          creditMin: creditMin.toString(),
+          dueInDays: data?.dueInDays.toString(),
+        };
+      },
     },
   );
 
   useEffect(() => {
-    if (billingDetailsData) {
-      const data = billingDetailsData;
-      const isPostpaid = data?.creditMin < 0n;
-      const creditMin = isPostpaid ? data.creditMin * BigInt(-1) : data.creditMin;
-      reset({
-        tokenPaymentType: isPostpaid ? "postpaid" : "prepaid",
-        creditMin: creditMin.toString(),
-        dueInDays: data?.dueInDays.toString(),
+    if (error) {
+      toast.error("Something went wrong", {
+        description: "Unable to fetch billing details",
       });
+      console.error("Unable to fetch billing details:", error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (billingDetailsData) {
+      reset(billingDetailsData);
     }
   }, [billingDetailsData, reset]);
 
@@ -95,50 +135,45 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     },
   );
 
-  const { mutateAsync: getBillingAccount } = useMutation(
-    FrontierServiceQueries.getBillingAccount,
-    {
-      onError: (error) => {
-        console.error("Unable to fetch billing account:", error);
-      },
-    },
-  );
-
   const onSubmit = async (data: BillingDetailsForm) => {
-    // Transform data for API submission
-    const creditMinValue = BigInt(data.creditMin);
-    const creditMinForApi = data.tokenPaymentType === "postpaid"
-      ? -creditMinValue
-      : creditMinValue;
+    try {
+      // For prepaid, set values to 0; for postpaid, use form values
+      const creditMinValue = data.tokenPaymentType === "prepaid" ? 0n : BigInt(data.creditMin);
+      const dueInDaysValue = data.tokenPaymentType === "prepaid" ? 0n : BigInt(data.dueInDays);
 
-    await updateBillingDetails(
-      create(UpdateBillingAccountDetailsRequestSchema, {
-        orgId: organizationId,
-        id: billingId,
-        creditMin: creditMinForApi,
-        dueInDays: BigInt(data.dueInDays),
-      }),
-    );
+      // For postpaid, creditMin should be negative for API
+      const creditMinForApi = data.tokenPaymentType === "postpaid"
+        ? -creditMinValue
+        : creditMinValue;
 
-    const getBillingResp = await getBillingAccount(
-      create(GetBillingAccountRequestSchema, {
-        orgId: organizationId,
-        id: billingId,
-        withBillingDetails: true,
-      }),
-    );
+      await updateBillingDetails(
+        create(UpdateBillingAccountDetailsRequestSchema, {
+          orgId: organizationId,
+          id: billingId,
+          creditMin: creditMinForApi,
+          dueInDays: dueInDaysValue,
+        }),
+      );
 
-    const updatedDetails = getBillingResp?.billingDetails;
-    if (updatedDetails && setBillingAccountDetails) {
-      setBillingAccountDetails({
-        credit_min: updatedDetails.creditMin.toString(),
-        due_in_days: updatedDetails.dueInDays.toString(),
+      const getBillingDetailsResp = await refetchBillingDetails();
+      const updatedDetails = getBillingDetailsResp?.data;
+      if (updatedDetails && setBillingAccountDetails) {
+        setBillingAccountDetails({
+          credit_min: updatedDetails.creditMin.toString(),
+          due_in_days: updatedDetails.dueInDays.toString(),
+        });
+      }
+
+      toast.success("Billing details updated");
+    } catch (error) {
+      toast.error("Something went wrong", {
+        description: "Failed to update billing details",
       });
+      console.error("Failed to update billing details:", error);
     }
-    toast.success("Billing details updated");
   };
 
-  const onValueChange = (value: string) => {
+  const onValueChange = useCallback((value: string) => {
     const paymentType = value as BillingDetailsForm["tokenPaymentType"];
     setValue("tokenPaymentType", paymentType);
     if (paymentType === "prepaid") {
@@ -148,7 +183,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
       setValue("creditMin", "0");
       setValue("dueInDays", "30");
     }
-  };
+  }, [setValue]);
 
   const tokenPaymentType = watch("tokenPaymentType");
   const isPrepaid = tokenPaymentType === "prepaid";
@@ -209,7 +244,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                   disabled={isPrepaid}
                   label="Credit limit"
                   type="string"
-                  {...register("creditMin", { pattern: { value: /^\d+$/, message: "Credit limit must be a number" } })}
+                  {...register("creditMin", {})}
                   error={errors?.creditMin?.message}
                 />
               )}
@@ -221,7 +256,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                   label="Billing due date"
                   type="string"
                   suffix="Days"
-                  {...register("dueInDays", { pattern: { value: /^\d+$/, message: "due days must be in number" } })}
+                  {...register("dueInDays", {})}
                   error={errors?.dueInDays?.message}
                 />
               )}
