@@ -243,7 +243,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                 <InputField
                   disabled={isPrepaid}
                   label="Credit limit"
-                  type="string"
+                  type="text"
                   {...register("creditMin", {})}
                   error={errors?.creditMin?.message}
                 />
@@ -254,7 +254,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                 <InputField
                   disabled={isPrepaid}
                   label="Billing due date"
-                  type="string"
+                  type="text"
                   suffix="Days"
                   {...register("dueInDays", {})}
                   error={errors?.dueInDays?.message}
