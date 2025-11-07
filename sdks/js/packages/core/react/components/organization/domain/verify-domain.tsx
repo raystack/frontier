@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   Button,
   Skeleton,
@@ -13,12 +12,12 @@ import {
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { FrontierServiceQueries,
-  GetOrganizationDomainRequestSchema,
   VerifyOrganizationDomainRequestSchema,
   ListOrganizationDomainsRequestSchema
 } from '@raystack/proton/frontier';
+import { useOrganizationDomain } from '~/react/hooks/useOrganizationDomain';
 import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
@@ -30,29 +29,7 @@ export const VerifyDomain = () => {
   const queryClient = useQueryClient();
   const transport = useTransport();
 
-  const {
-    data: domain,
-    isLoading: isDomainLoading,
-    error: domainError
-  } = useQuery(
-    FrontierServiceQueries.getOrganizationDomain,
-    create(GetOrganizationDomainRequestSchema, {
-      id: domainId || '',
-      orgId: organization?.id || ''
-    }),
-    {
-      enabled: !!domainId && !!organization?.id,
-      select: (d) => d?.domain
-    }
-  );
-
-  useEffect(() => {
-    if (domainError) {
-      toast.error('Something went wrong', {
-        description: (domainError as Error).message
-      });
-    }
-  }, [domainError]);
+  const { domain, isLoading: isDomainLoading } = useOrganizationDomain(domainId);
 
   const { mutateAsync: verifyOrganizationDomain, isPending: isVerifying } = useMutation(
     FrontierServiceQueries.verifyOrganizationDomain,

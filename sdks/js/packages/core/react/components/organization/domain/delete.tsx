@@ -11,17 +11,17 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries,
-  GetOrganizationDomainRequestSchema,
   DeleteOrganizationDomainRequestSchema,
   ListOrganizationDomainsRequestSchema
 } from '@raystack/proton/frontier';
+import { useOrganizationDomain } from '~/react/hooks/useOrganizationDomain';
 import { create } from '@bufbuild/protobuf';
 import styles from '../organization.module.css';
 
@@ -53,29 +53,7 @@ export const DeleteDomain = () => {
   const transport = useTransport();
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
-  const {
-    data: domain,
-    isLoading,
-    error: domainError
-  } = useQuery(
-    FrontierServiceQueries.getOrganizationDomain,
-    create(GetOrganizationDomainRequestSchema, {
-      id: domainId || '',
-      orgId: organization?.id || ''
-    }),
-    {
-      enabled: !!domainId && !!organization?.id,
-      select: (d) => d?.domain
-    }
-  );
-
-  useEffect(() => {
-    if (domainError) {
-      toast.error('Something went wrong', {
-        description: (domainError as Error).message
-      });
-    }
-  }, [domainError]);
+  const { domain, isLoading } = useOrganizationDomain(domainId);
 
   const { mutateAsync: deleteOrganizationDomain, isPending } = useMutation(
     FrontierServiceQueries.deleteOrganizationDomain,
