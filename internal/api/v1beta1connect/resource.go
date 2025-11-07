@@ -11,11 +11,13 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (h *ConnectHandler) ListResources(ctx context.Context, request *connect.Request[frontierv1beta1.ListResourcesRequest]) (*connect.Response[frontierv1beta1.ListResourcesResponse], error) {
+	errorLogger := NewErrorLogger()
 	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.Msg.GetNamespace())
 	filters := resource.Filter{
@@ -24,12 +26,16 @@ func (h *ConnectHandler) ListResources(ctx context.Context, request *connect.Req
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListResources", err,
+			zap.String("namespace", request.Msg.GetNamespace()),
+			zap.String("project_id", request.Msg.GetProjectId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	for _, r := range resourcesList {
 		resourcePB, err := transformResourceToPB(r)
 		if err != nil {
+			errorLogger.LogTransformError(ctx, request, "ListResources", r.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		resources = append(resources, resourcePB)
@@ -41,6 +47,7 @@ func (h *ConnectHandler) ListResources(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) ListProjectResources(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectResourcesRequest]) (*connect.Response[frontierv1beta1.ListProjectResourcesResponse], error) {
+	errorLogger := NewErrorLogger()
 	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.Msg.GetNamespace())
 	filters := resource.Filter{
@@ -49,11 +56,15 @@ func (h *ConnectHandler) ListProjectResources(ctx context.Context, request *conn
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectResources", err,
+			zap.String("namespace", request.Msg.GetNamespace()),
+			zap.String("project_id", request.Msg.GetProjectId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	for _, r := range resourcesList {
 		resourcePB, err := transformResourceToPB(r)
 		if err != nil {
+			errorLogger.LogTransformError(ctx, request, "ListProjectResources", r.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		resources = append(resources, resourcePB)
@@ -64,6 +75,8 @@ func (h *ConnectHandler) ListProjectResources(ctx context.Context, request *conn
 }
 
 func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.CreateProjectResourceRequest]) (*connect.Response[frontierv1beta1.CreateProjectResourceResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -76,6 +89,8 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 
 	parentProject, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateProjectResource.GetProject", err,
+			zap.String("project_id", request.Msg.GetProjectId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -97,6 +112,13 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 		Metadata:      metaDataMap,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateProjectResource", err,
+			zap.String("resource_id", request.Msg.GetId()),
+			zap.String("project_id", request.Msg.GetProjectId()),
+			zap.String("resource_name", request.Msg.GetBody().GetName()),
+			zap.String("namespace", request.Msg.GetBody().GetNamespace()),
+			zap.String("principal", request.Msg.GetBody().GetPrincipal()))
+
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
@@ -106,12 +128,19 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 		case errors.Is(err, resource.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "CreateProjectResource", err,
+				zap.String("resource_id", request.Msg.GetId()),
+				zap.String("project_id", request.Msg.GetProjectId()),
+				zap.String("resource_name", request.Msg.GetBody().GetName()),
+				zap.String("namespace", request.Msg.GetBody().GetNamespace()),
+				zap.String("principal", request.Msg.GetBody().GetPrincipal()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(newResource)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "CreateProjectResource", newResource.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -125,20 +154,29 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 }
 
 func (h *ConnectHandler) GetProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.GetProjectResourceRequest]) (*connect.Response[frontierv1beta1.GetProjectResourceResponse], error) {
-	fetchedResource, err := h.resourceService.Get(ctx, request.Msg.GetId())
+	errorLogger := NewErrorLogger()
+	resourceID := request.Msg.GetId()
+
+	fetchedResource, err := h.resourceService.Get(ctx, resourceID)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "GetProjectResource", err,
+			zap.String("resource_id", resourceID))
+
 		switch {
 		case errors.Is(err, resource.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "GetProjectResource", err,
+				zap.String("resource_id", resourceID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(fetchedResource)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "GetProjectResource", fetchedResource.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -148,6 +186,8 @@ func (h *ConnectHandler) GetProjectResource(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateProjectResourceRequest]) (*connect.Response[frontierv1beta1.UpdateProjectResourceResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -160,6 +200,8 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 
 	parentProject, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateProjectResource.GetProject", err,
+			zap.String("project_id", request.Msg.GetProjectId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -180,6 +222,13 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 		Metadata:      metaDataMap,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateProjectResource", err,
+			zap.String("resource_id", request.Msg.GetId()),
+			zap.String("project_id", request.Msg.GetProjectId()),
+			zap.String("resource_name", request.Msg.GetBody().GetName()),
+			zap.String("namespace", request.Msg.GetBody().GetNamespace()),
+			zap.String("principal", request.Msg.GetBody().GetPrincipal()))
+
 		switch {
 		case errors.Is(err, resource.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidUUID),
@@ -191,12 +240,19 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 		case errors.Is(err, resource.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "UpdateProjectResource", err,
+				zap.String("resource_id", request.Msg.GetId()),
+				zap.String("project_id", request.Msg.GetProjectId()),
+				zap.String("resource_name", request.Msg.GetBody().GetName()),
+				zap.String("namespace", request.Msg.GetBody().GetNamespace()),
+				zap.String("principal", request.Msg.GetBody().GetPrincipal()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(updatedResource)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "UpdateProjectResource", updatedResource.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -210,30 +266,45 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 }
 
 func (h *ConnectHandler) DeleteProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteProjectResourceRequest]) (*connect.Response[frontierv1beta1.DeleteProjectResourceResponse], error) {
-	resourceToDel, err := h.resourceService.Get(ctx, request.Msg.GetId())
+	errorLogger := NewErrorLogger()
+	resourceID := request.Msg.GetId()
+
+	resourceToDel, err := h.resourceService.Get(ctx, resourceID)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource.GetResource", err,
+			zap.String("resource_id", resourceID))
+
 		switch {
 		case errors.Is(err, resource.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidID),
 			errors.Is(err, resource.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "DeleteProjectResource.GetResource", err,
+				zap.String("resource_id", resourceID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	parentProject, err := h.projectService.Get(ctx, resourceToDel.ProjectID)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource.GetProject", err,
+			zap.String("resource_id", resourceID),
+			zap.String("project_id", resourceToDel.ProjectID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	err = h.resourceService.Delete(ctx, resourceToDel.NamespaceID, resourceToDel.ID)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource", err,
+			zap.String("resource_id", resourceID),
+			zap.String("project_id", resourceToDel.ProjectID),
+			zap.String("namespace", resourceToDel.NamespaceID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{
-		ID:   request.Msg.GetId(),
+		ID:   resourceID,
 		Type: resourceToDel.NamespaceID,
 	})
 	return connect.NewResponse(&frontierv1beta1.DeleteProjectResourceResponse{}), nil

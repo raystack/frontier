@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,6 +20,7 @@ type UserOrgsService interface {
 }
 
 func (h *ConnectHandler) SearchUserOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.SearchUserOrganizationsRequest]) (*connect.Response[frontierv1beta1.SearchUserOrganizationsResponse], error) {
+	errorLogger := NewErrorLogger()
 	var userOrgs []*frontierv1beta1.SearchUserOrganizationsResponse_UserOrganization
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), userorgs.AggregatedUserOrganization{})
@@ -38,8 +40,12 @@ func (h *ConnectHandler) SearchUserOrganizations(ctx context.Context, request *c
 	userOrgsData, err := h.userOrgsService.Search(ctx, request.Msg.GetId(), rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
+			errorLogger.LogServiceError(ctx, request, "SearchUserOrganizations.Search", err,
+				zap.String("user_id", request.Msg.GetId()))
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
+		errorLogger.LogUnexpectedError(ctx, request, "SearchUserOrganizations", err,
+			zap.String("user_id", request.Msg.GetId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
