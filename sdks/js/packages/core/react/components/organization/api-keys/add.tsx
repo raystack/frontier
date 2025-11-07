@@ -16,6 +16,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback } from 'react';
+import { orderBy } from 'lodash';
 import {
   FrontierServiceQueries,
   CreateServiceUserRequestSchema,
@@ -82,9 +83,7 @@ export const AddServiceAccount = () => {
       enabled: Boolean(orgId),
       select: data => {
         const list = data?.projects ?? [];
-        return list.sort((a, b) =>
-          (a?.title || '') > (b?.title || '') ? 1 : -1
-        );
+        return orderBy(list, ['title'], ['asc']);
       }
     }
   );
