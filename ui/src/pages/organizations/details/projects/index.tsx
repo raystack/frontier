@@ -7,7 +7,7 @@ import {
 } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import styles from "./projects.module.css";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { getColumns } from "./columns";
 import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
@@ -25,12 +25,19 @@ import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { useDebouncedState } from "@raystack/apsara/hooks";
+import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+};
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    userIds: "user_ids",
+  },
 };
 
 const NoProjects = () => {
@@ -79,26 +86,19 @@ export function OrganizationProjectssPage() {
     projectId: "",
   });
 
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
-    200,
-  );
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const title = `Projects | ${organization?.title} | Organizations`;
 
-  // Transform the DataTableQuery to RQLRequest format
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-      userIds: "user_ids",
-    },
-  });
+  const computedQuery = useMemo(() => {
+    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
+    return {
+      ...tempQuery,
+      search: searchQuery || "",
+    };
+  }, [tableQuery, searchQuery]);
 
-  // Add search to the query if present
-  if (searchQuery) {
-    query.search = searchQuery;
-  }
+  const [query] = useDebounceValue(computedQuery, 200);
 
   const {
     data: infiniteData,
