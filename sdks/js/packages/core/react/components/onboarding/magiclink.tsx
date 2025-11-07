@@ -30,11 +30,10 @@ const emailSchema = yup.object({
   email: yup
     .string()
     .trim()
-    .email()
     .required()
     .test(
       'is-valid',
-      message => `${message.path} is invalid`,
+      () => 'Please enter a valid email address.',
       value =>
         value ? isEmail(value) : new yup.ValidationError('Invalid value')
     )
