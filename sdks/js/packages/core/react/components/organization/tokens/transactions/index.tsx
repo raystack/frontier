@@ -1,4 +1,10 @@
-import { EmptyState, Text, Flex, DataTable } from '@raystack/apsara';
+import {
+  EmptyState,
+  Text,
+  Flex,
+  DataTable,
+  DataTableSort
+} from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import type { BillingTransaction } from '~/src';
 import { getColumns } from './columns';
@@ -10,6 +16,8 @@ interface TransactionsTableProps {
   transactions: BillingTransaction[];
   isLoading: boolean;
 }
+
+const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 
 export function TransactionsTable({
   isLoading,
@@ -26,7 +34,7 @@ export function TransactionsTable({
       data={transactions}
       isLoading={isLoading}
       mode="client"
-      defaultSort={{ name: 'created_at', order: 'desc' }}
+      defaultSort={DEFAULT_SORT}
     >
       <Flex gap={7} direction="column">
         <Text size="small" weight="medium">
