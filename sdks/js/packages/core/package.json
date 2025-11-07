@@ -96,6 +96,7 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.6.3",
+    "@connectrpc/connect": "^2.0.2",
     "@connectrpc/connect-query": "^2.1.1",
     "@connectrpc/connect-web": "^2.0.2",
     "@hookform/resolvers": "^3.10.0",
