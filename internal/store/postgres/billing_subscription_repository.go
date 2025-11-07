@@ -151,6 +151,19 @@ func NewBillingSubscriptionRepository(dbc *db.Client) *BillingSubscriptionReposi
 	}
 }
 
+// buildCustomerSubqueries creates subqueries to fetch customer org_id and name
+func (r BillingSubscriptionRepository) buildCustomerSubqueries() (orgIDSubquery, nameSubquery *goqu.SelectDataset) {
+	orgIDSubquery = dialect.From(TABLE_BILLING_CUSTOMERS).
+		Select("org_id").
+		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_SUBSCRIPTIONS + ".customer_id")})
+
+	nameSubquery = dialect.From(TABLE_BILLING_CUSTOMERS).
+		Select("name").
+		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_SUBSCRIPTIONS + ".customer_id")})
+
+	return orgIDSubquery, nameSubquery
+}
+
 func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subscription.Subscription) (subscription.Subscription, error) {
 	if toCreate.Metadata == nil {
 		toCreate.Metadata = make(map[string]any)
@@ -186,20 +199,45 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 	if toCreate.State != "" {
 		record["state"] = toCreate.State
 	}
+
+	// Fetch customer info for audit
+	customerOrgIDSubquery, customerNameSubquery := r.buildCustomerSubqueries()
+
 	query, params, err := dialect.Insert(TABLE_BILLING_SUBSCRIPTIONS).
-		Rows(record).Returning(&Subscription{}).ToSQL()
+		Rows(record).Returning(
+		goqu.I(TABLE_BILLING_SUBSCRIPTIONS+".*"),
+		customerOrgIDSubquery.As("customer_org_id"),
+		customerNameSubquery.As("customer_name"),
+	).ToSQL()
 	if err != nil {
 		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var subscriptionModel Subscription
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "Create", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&subscriptionModel)
+	var result subscriptionWithCustomer
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "Create", func(ctx context.Context) error {
+			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				return err
+			}
+
+			// Create audit record for subscription creation
+			return r.createSubscriptionAuditRecord(
+				ctx,
+				tx,
+				pkgAuditRecord.BillingSubscriptionCreatedEvent,
+				result,
+				map[string]interface{}{
+					"plan_id": result.PlanID,
+					"state":   result.State,
+				},
+				result.CreatedAt,
+			)
+		})
 	}); err != nil {
 		return subscription.Subscription{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return subscriptionModel.transform()
+	return result.Subscription.transform()
 }
 
 func (r BillingSubscriptionRepository) GetByID(ctx context.Context, id string) (subscription.Subscription, error) {
@@ -323,14 +361,8 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	}
 	updateRecord["changes"] = r.toSubscriptionChanges(toUpdate)
 
-	// Subqueries to fetch customer org_id and name
-	customerOrgIDSubquery := dialect.From(TABLE_BILLING_CUSTOMERS).
-		Select("org_id").
-		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_SUBSCRIPTIONS + ".customer_id")})
-
-	customerNameSubquery := dialect.From(TABLE_BILLING_CUSTOMERS).
-		Select("name").
-		Where(goqu.Ex{"id": goqu.I(TABLE_BILLING_SUBSCRIPTIONS + ".customer_id")})
+	// Fetch customer info for audit
+	customerOrgIDSubquery, customerNameSubquery := r.buildCustomerSubqueries()
 
 	query, params, err := dialect.Update(TABLE_BILLING_SUBSCRIPTIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
@@ -360,7 +392,17 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 
 			// Audit if plan changed
 			if oldSub.PlanID != result.PlanID {
-				return r.createSubscriptionPlanChangeAuditRecord(ctx, tx, result, oldSub.PlanID)
+				return r.createSubscriptionAuditRecord(
+					ctx,
+					tx,
+					pkgAuditRecord.BillingSubscriptionChangedEvent,
+					result,
+					map[string]interface{}{
+						"old_plan_id": oldSub.PlanID,
+						"new_plan_id": result.PlanID,
+					},
+					result.UpdatedAt,
+				)
 			}
 
 			return nil
@@ -449,32 +491,31 @@ func (r BillingSubscriptionRepository) Delete(ctx context.Context, id string) er
 	return nil
 }
 
-// createSubscriptionPlanChangeAuditRecord creates an audit record for subscription plan changes
-func (r BillingSubscriptionRepository) createSubscriptionPlanChangeAuditRecord(
+// createSubscriptionAuditRecord creates an audit record for subscription operations
+func (r BillingSubscriptionRepository) createSubscriptionAuditRecord(
 	ctx context.Context,
 	tx *sqlx.Tx,
+	event pkgAuditRecord.Event,
 	sub subscriptionWithCustomer,
-	oldPlanID string,
+	targetMetadata map[string]interface{},
+	occurredAt time.Time,
 ) error {
 	auditRecord := BuildAuditRecord(
 		ctx,
-		pkgAuditRecord.BillingSubscriptionChangedEvent,
+		event,
 		AuditResource{
 			ID:   sub.SubscriptionID,
 			Type: pkgAuditRecord.BillingCustomerType,
 			Name: sub.CustomerName,
 		},
 		&AuditTarget{
-			ID:   sub.ID,
-			Type: pkgAuditRecord.BillingSubscriptionType,
-			Metadata: map[string]interface{}{
-				"old_plan_id": oldPlanID,
-				"new_plan_id": sub.PlanID,
-			},
+			ID:       sub.ID,
+			Type:     pkgAuditRecord.BillingSubscriptionType,
+			Metadata: targetMetadata,
 		},
 		sub.CustomerOrgID,
 		nil,
-		sub.UpdatedAt,
+		occurredAt,
 	)
 
 	return InsertAuditRecordInTx(ctx, tx, auditRecord)
