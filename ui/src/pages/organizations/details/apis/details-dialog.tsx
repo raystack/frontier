@@ -66,16 +66,13 @@ export const ServiceUserDetailsDialog = ({
       });
       console.error("Unable to fetch projects:", projectError);
     }
-  }, [projectError]);
-
-  useEffect(() => {
     if (tokenError) {
       toast.error("Something went wrong", {
         description: "Unable to fetch tokens",
       });
       console.error("Unable to fetch tokens:", tokenError);
     }
-  }, [tokenError]);
+  }, [projectError, tokenError]);
 
   const onOpenChange = useCallback(
     (val: boolean) => {
