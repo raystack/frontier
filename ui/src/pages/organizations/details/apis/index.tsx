@@ -1,22 +1,25 @@
-import { DataTable, EmptyState, Flex, toast } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 import styles from "./apis.module.css";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { InfoCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { getColumns } from "./columns";
-import { useRQL } from "~/hooks/useRQL";
 import { ServiceUserDetailsDialog } from "./details-dialog";
-import { useTransport } from "@connectrpc/connect-query";
+import { useInfiniteQuery } from "@connectrpc/connect-query";
 import {
-  AdminService,
-  SearchOrganizationServiceUsersRequestSchema,
+  AdminServiceQueries,
   type SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
 } from "@raystack/proton/frontier";
-import { create } from "@bufbuild/protobuf";
-import { createClient } from "@connectrpc/connect";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import {
+  getConnectNextPageParam,
+  getGroupCountMapFromFirstPage,
+  DEFAULT_PAGE_SIZE,
+} from "~/utils/connect-pagination";
+import { RQLRequest } from "@raystack/frontier";
 
 const NoCredentials = () => {
   return (
@@ -33,66 +36,57 @@ const NoCredentials = () => {
   );
 };
 
+const ErrorState = () => {
+  return (
+    <EmptyState
+      classNames={{
+        container: styles["empty-state"],
+        subHeading: styles["empty-state-subheading"],
+      }}
+      heading="Error Loading API Credentials"
+      subHeading="Something went wrong while loading API credentials. Please try refreshing the page."
+      icon={<ExclamationTriangleIcon />}
+    />
+  );
+};
+
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE,
+};
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    createdAt: "created_at",
+  },
+};
 
 export function OrganizationApisPage() {
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
-  const transport = useTransport();
-  const client = useMemo(() => createClient(AdminService, transport), [transport]);
-  const [selectedServiceUser, setSelectedServiceUser] =
-    useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(
-      null,
-    );
-
   const {
     onChange: onSearchChange,
     setVisibility: setSearchVisibility,
     query: searchQuery,
   } = search;
 
-  const title = `API | ${organization?.title} | Organizations`;
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [query, setQuery] = useDebouncedState<RQLRequest | undefined>(undefined, 200);
 
-  const apiCallback = useCallback(
-    async (apiQuery: DataTableQuery = {}) => {
-      try {
-        const rqlQuery = transformDataTableQueryToRQLRequest({
-          ...apiQuery,
-          search: searchQuery || "",
-        });
-
-        const response = await client.searchOrganizationServiceUsers(
-          create(SearchOrganizationServiceUsersRequestSchema, {
-            id: organizationId,
-            query: rqlQuery,
-          }),
-        );
-
-        return {
-          organization_service_users: response.organizationServiceUsers || [],
-          count: Number(response.pagination?.totalCount || 0),
-        };
-      } catch (error) {
-        toast.error("Something went wrong", {
-          description: "Unable to fetch service users",
-        });
-        console.error("Unable to fetch service users:", error);
-        throw error;
-      }
-    },
-    [organizationId, searchQuery, client],
-  );
-
-  const { data, loading, query, onTableQueryChange, groupCountMap, fetchMore } =
-    useRQL<SearchOrganizationServiceUsersResponse_OrganizationServiceUser>({
-      initialQuery: { offset: 0 },
-      key: organizationId,
-      dataKey: "organization_service_users",
-      fn: apiCallback,
-      searchParam: searchQuery || "",
-      onError: (error: Error | unknown) =>
-        console.error("Failed to fetch service users:", error),
+  useEffect(() => {
+    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
+    setQuery({
+      ...tempQuery,
+      search: searchQuery || "",
     });
+  }, [tableQuery, searchQuery, setQuery]);
+
+  const [selectedServiceUser, setSelectedServiceUser] =
+    useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(
+      null,
+    );
+
+  const title = `API | ${organization?.title} | Organizations`;
 
   useEffect(() => {
     setSearchVisibility(true);
@@ -102,7 +96,50 @@ export function OrganizationApisPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  const isLoading = loading;
+  const {
+    data: infiniteData,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    error,
+    isError,
+    hasNextPage,
+  } = useInfiniteQuery(
+    AdminServiceQueries.searchOrganizationServiceUsers,
+    { id: organizationId, query: query },
+    {
+      pageParamKey: "query",
+      getNextPageParam: lastPage =>
+        getConnectNextPageParam(
+          lastPage,
+          { query: query },
+          "organizationServiceUsers",
+        ),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+      enabled: !!organizationId,
+    },
+  );
+
+  const data =
+    infiniteData?.pages?.flatMap(page => page?.organizationServiceUsers || []) || [];
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery(newQuery);
+  };
+
+  const handleLoadMore = async () => {
+    try {
+      if (!hasNextPage) return;
+      await fetchNextPage();
+    } catch (error) {
+      console.error("Error loading more service users:", error);
+    }
+  };
+
+  const loading = isLoading || isFetchingNextPage;
 
   const onDialogClose = useCallback(() => {
     setSelectedServiceUser(null);
@@ -115,7 +152,20 @@ export function OrganizationApisPage() {
     [],
   );
 
-  const columns = useMemo(() => getColumns({ groupCountMap }), [groupCountMap]);
+  if (isError) {
+    console.error("ConnectRPC Error:", error);
+  }
+
+  const columns = useMemo(
+    () =>
+      getColumns({
+        groupCountMap: infiniteData
+          ? getGroupCountMapFromFirstPage(infiniteData)
+          : {},
+      }),
+    [infiniteData],
+  );
+
   return (
     <Flex justify="center" className={styles["container"]}>
       <ServiceUserDetailsDialog
@@ -124,23 +174,23 @@ export function OrganizationApisPage() {
       />
       <PageTitle title={title} />
       <DataTable
+        query={tableQuery}
         columns={columns}
         data={data}
-        isLoading={isLoading}
+        isLoading={loading}
         defaultSort={DEFAULT_SORT}
-        mode="server"
         onTableQueryChange={onTableQueryChange}
-        onLoadMore={fetchMore}
-        query={{ ...query, search: searchQuery }}
+        mode="server"
+        onLoadMore={handleLoadMore}
         onRowClick={onRowClick}
       >
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content
-            emptyState={<NoCredentials />}
+            emptyState={isError ? <ErrorState /> : <NoCredentials />}
             classNames={{
-              table: styles["table"],
               root: styles["table-wrapper"],
+              table: styles["table"],
               header: styles["table-header"],
             }}
           />
