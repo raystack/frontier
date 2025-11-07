@@ -15,13 +15,11 @@ export { Window } from './components/window';
 
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider, queryClient } from './contexts/FrontierProvider';
-export { 
-  CustomizationProvider
-} from './contexts/CustomizationContext';
-
+export { CustomizationProvider } from './contexts/CustomizationContext';
 
 export { useTokens } from './hooks/useTokens';
 export { useBillingPermission } from './hooks/useBillingPermission';
+export { useConnectQueryPolling } from './hooks/useConnectQueryPolling';
 export { usePreferences } from './hooks/usePreferences';
 export { Layout } from './components/Layout';
 
@@ -33,5 +31,9 @@ export type {
 
 export { PREFERENCE_OPTIONS } from './utils/constants';
 
-export { timestampToDate, timestampToDayjs, isNullTimestamp } from '../utils/timestamp';
+export {
+  timestampToDate,
+  timestampToDayjs,
+  isNullTimestamp
+} from '../utils/timestamp';
 export type { TimeStamp } from '../utils/timestamp';
