@@ -107,15 +107,15 @@ export default function WorkspaceProjects() {
   const isLoading = isPermissionsFetching || isProjectsLoading;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" className={styles.container}>
+    <Flex direction="column" className={sharedStyles.pageWrapper}>
+      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
         <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Projects" 
             description="Manage projects in this organization."
           />
         </Flex>
-        <Flex direction="column" gap={9}>
+        <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
           <ProjectsTable
             projects={projects}
             isLoading={isLoading}

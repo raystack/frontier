@@ -40,13 +40,18 @@
 }
 
 .tableWrapper {
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
 .tableRoot {
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
 }
 
 .tableHeader {

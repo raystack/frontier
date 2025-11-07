@@ -68,8 +68,8 @@ export default function Domain() {
   const isLoading = isFetching || isPermissionsFetching;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" className={styles.container}>
+    <Flex direction="column" className={sharedStyles.pageWrapper}>
+      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
         <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <PageHeader 
             title="Allowed email domains" 
@@ -77,7 +77,7 @@ export default function Domain() {
           for this organization."
           />
         </Flex>
-        <Flex direction="column" gap={9}>
+        <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
           <Domains
             domains={domains}
             isLoading={isLoading}

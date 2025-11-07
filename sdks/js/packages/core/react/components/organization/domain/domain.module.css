@@ -1,17 +1,16 @@
-.container {
-  height: 100%;
-  padding: var(--rs-space-9) var(--rs-space-11);
+.tableWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
-.tableWrapper {
-  height: 100%;
-}
-
 .tableRoot {
-  height: 100%;
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
 }
 
 .tableHeader {

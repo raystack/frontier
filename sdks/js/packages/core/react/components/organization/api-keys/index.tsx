@@ -211,14 +211,14 @@ export default function ApiKeys() {
   const serviceAccountsCount: number = serviceUsers?.length;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
-      <Flex direction="column" className={sharedStyles.container}>
+    <Flex direction="column" className={sharedStyles.pageWrapper}>
+      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
         <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
           <ApiKeysHeader isLoading={isLoading} />
         </Flex>
         {canUpdateWorkspace || isLoading ? (
           serviceAccountsCount > 0 || isLoading ? (
-            <Flex direction="column" gap={9}>
+            <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
               <ServiceAccountsTable
                 isLoading={isLoading}
                 serviceUsers={serviceUsers}
