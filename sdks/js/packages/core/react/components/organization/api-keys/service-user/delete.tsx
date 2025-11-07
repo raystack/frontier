@@ -1,41 +1,60 @@
-import { useState } from 'react';
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from './styles.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import { useMutation } from '@connectrpc/connect-query';
+import {
+  FrontierServiceQueries,
+  DeleteServiceUserTokenRequestSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import { useServiceUserTokens } from '../hooks/useServiceUserTokens';
 
 export const DeleteServiceAccountKey = () => {
   const { id, tokenId } = useParams({
     from: '/api-keys/$id/key/$tokenId/delete'
   });
   const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
-  const { client, activeOrganization } = useFrontier();
-  const [isLoading, setIsLoading] = useState(false);
+  const { activeOrganization } = useFrontier();
 
   const orgId = activeOrganization?.id || '';
 
+  const { removeToken } = useServiceUserTokens({
+    id,
+    orgId,
+    enableFetch: false
+  });
+
+  const { mutateAsync: deleteServiceUserToken, isPending } = useMutation(
+    FrontierServiceQueries.deleteServiceUserToken
+  );
+
   async function onDeleteClick() {
     try {
-      setIsLoading(true);
-      await client?.frontierServiceDeleteServiceUserToken(orgId, id, tokenId);
+      await deleteServiceUserToken(
+        create(DeleteServiceUserTokenRequestSchema, {
+          id,
+          tokenId,
+          orgId
+        })
+      );
+
+      // Remove token from cache
+      removeToken(tokenId);
+
       navigate({
         to: '/api-keys/$id',
         params: {
           id: id
-        },
-        state: {
-          refetch: true
         }
       });
       toast.success('Service account key revoked');
-    } catch (err: any) {
+    } catch (error: unknown) {
       toast.error('Unable to revoke service account key', {
-        description: err?.message
+        description: error instanceof Error ? error.message : 'Unknown error'
       });
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -98,8 +117,8 @@ export const DeleteServiceAccountKey = () => {
               color="danger"
               size="normal"
               data-test-id="frontier-sdk-revoke-service-account-key-confirm-btn"
-              loading={isLoading}
-              disabled={isLoading}
+              loading={isPending}
+              disabled={isPending}
               onClick={onDeleteClick}
               loaderText="Revoking..."
             >

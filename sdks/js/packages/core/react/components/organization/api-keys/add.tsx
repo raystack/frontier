@@ -15,12 +15,29 @@ import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { orderBy } from 'lodash';
 import {
-  V1Beta1CreatePolicyForProjectBody,
-  Frontierv1Beta1Project
-} from '~/src';
+  FrontierServiceQueries,
+  CreateServiceUserRequestSchema,
+  CreatePolicyForProjectRequestSchema,
+  CreateServiceUserTokenRequestSchema,
+  ListOrganizationServiceUsersRequestSchema,
+  ListOrganizationProjectsRequestSchema,
+  ListServiceUserTokensRequestSchema,
+  ListServiceUserTokensResponseSchema,
+  ServiceUserRequestBodySchema,
+  CreatePolicyForProjectBodySchema
+} from '@raystack/proton/frontier';
 import { PERMISSIONS } from '~/utils';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  createConnectQueryKey,
+  useTransport
+} from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from './styles.module.css';
 import { handleSelectValueChange } from '~/react/utils';
@@ -39,11 +56,10 @@ type FormData = yup.InferType<typeof serviceAccountSchema>;
 
 export const AddServiceAccount = () => {
   const navigate = useNavigate({ from: '/api-keys/add' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
   const t = useTerminology();
-  const [projects, setProjects] = useState<Frontierv1Beta1Project[]>([]);
-
-  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const {
     register,
@@ -56,82 +72,123 @@ export const AddServiceAccount = () => {
 
   const orgId = organization?.id || '';
 
+  const { data: projects = [], isLoading: isProjectsLoading } = useQuery(
+    FrontierServiceQueries.listOrganizationProjects,
+    create(ListOrganizationProjectsRequestSchema, {
+      id: orgId,
+      state: '',
+      withMemberCount: false
+    }),
+    {
+      enabled: Boolean(orgId),
+      select: data => {
+        const list = data?.projects ?? [];
+        return orderBy(list, ['title'], ['asc']);
+      }
+    }
+  );
+
+  const { mutateAsync: createServiceUser } = useMutation(
+    FrontierServiceQueries.createServiceUser
+  );
+
+  const { mutateAsync: createPolicyForProject } = useMutation(
+    FrontierServiceQueries.createPolicyForProject
+  );
+
+  const { mutateAsync: createServiceUserToken } = useMutation(
+    FrontierServiceQueries.createServiceUserToken
+  );
+
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!client || !orgId) return;
       if (!orgId) return;
 
       try {
-        const {
-          data: { serviceuser }
-        } = await client.frontierServiceCreateServiceUser(orgId, {
-          body: data
+        const serviceUserResponse = await createServiceUser(
+          create(CreateServiceUserRequestSchema, {
+            orgId,
+            body: create(ServiceUserRequestBodySchema, {
+              title: data.title
+            })
+          })
+        );
+
+        const serviceUserId = serviceUserResponse.serviceuser?.id;
+        if (!serviceUserId) return;
+
+        const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceUserId}`;
+
+        await createPolicyForProject(
+          create(CreatePolicyForProjectRequestSchema, {
+            projectId: data.project_id,
+            body: create(CreatePolicyForProjectBodySchema, {
+              roleId: PERMISSIONS.RoleProjectOwner,
+              principal
+            })
+          })
+        );
+
+        const tokenResponse = await createServiceUserToken(
+          create(CreateServiceUserTokenRequestSchema, {
+            orgId,
+            id: serviceUserId,
+            title: DEFAULT_KEY_NAME
+          })
+        );
+
+        // Invalidate service users query
+        await queryClient.invalidateQueries({
+          queryKey: createConnectQueryKey({
+            schema: FrontierServiceQueries.listOrganizationServiceUsers,
+            transport,
+            input: create(ListOrganizationServiceUsersRequestSchema, {
+              id: orgId
+            }),
+            cardinality: 'finite'
+          })
         });
 
-        if (serviceuser?.id) {
-          const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceuser?.id}`;
+        // Seed listServiceUserTokens cache with the new token
+        const listTokensQueryKey = createConnectQueryKey({
+          schema: FrontierServiceQueries.listServiceUserTokens,
+          transport,
+          input: create(ListServiceUserTokensRequestSchema, {
+            id: serviceUserId,
+            orgId
+          }),
+          cardinality: 'finite'
+        });
 
-          const policy: V1Beta1CreatePolicyForProjectBody = {
-            role_id: PERMISSIONS.RoleProjectOwner,
-            principal
-          };
-          await client?.frontierServiceCreatePolicyForProject(
-            data?.project_id,
-            policy
-          );
+        queryClient.setQueryData(
+          listTokensQueryKey,
+          create(ListServiceUserTokensResponseSchema, {
+            tokens: tokenResponse.token ? [tokenResponse.token] : []
+          })
+        );
 
-          const {
-            data: { token }
-          } = await client.frontierServiceCreateServiceUserToken(
-            orgId,
-            serviceuser?.id,
-            { title: DEFAULT_KEY_NAME }
-          );
+        toast.success('Service user created');
 
-          toast.success('Service user created');
-
-          navigate({
-            to: '/api-keys/$id',
-            params: { id: serviceuser?.id ?? '' },
-            state: {
-              token: token
-            }
-          });
-        }
-      } catch (error: any) {
+        navigate({
+          to: '/api-keys/$id',
+          params: { id: serviceUserId }
+        });
+      } catch (error: unknown) {
         toast.error('Something went wrong', {
-          description: error.message
+          description: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     },
-    [client, navigate, orgId]
+    [
+      orgId,
+      createServiceUser,
+      createPolicyForProject,
+      createServiceUserToken,
+      queryClient,
+      transport,
+      navigate
+    ]
   );
-
-  useEffect(() => {
-    async function fetchProjects() {
-      try {
-        setIsProjectsLoading(true);
-        const data = await client?.frontierServiceListOrganizationProjects(
-          orgId
-        );
-        const list = data?.data?.projects?.sort((a, b) =>
-          (a?.title || '') > (b?.title || '') ? 1 : -1
-        );
-        setProjects(list || []);
-      } catch (error: unknown) {
-        console.error(error);
-      } finally {
-        setIsProjectsLoading(false);
-      }
-    }
-    if (orgId) {
-      fetchProjects();
-    }
-  }, [client, orgId]);
-
-  const isDisabled = isSubmitting;
-
-  const isLoading = isProjectsLoading;
 
   return (
     <Dialog open={true}>
@@ -162,7 +219,7 @@ export const AddServiceAccount = () => {
                 interactions on behalf of the{' '}
                 {t.organization({ case: 'lower' })}.
               </Text>
-              {isLoading ? (
+              {isProjectsLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
                 <InputField
@@ -175,7 +232,7 @@ export const AddServiceAccount = () => {
               )}
               <Flex direction="column" gap={2}>
                 <Label>Project</Label>
-                {isLoading ? (
+                {isProjectsLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
                   <Controller
@@ -223,9 +280,9 @@ export const AddServiceAccount = () => {
                 size="normal"
                 type="submit"
                 data-test-id="frontier-sdk-add-service-account-btn"
-                loading={isSubmitting || isLoading}
-                disabled={isDisabled || isLoading}
-                loaderText={isLoading ? 'Loading...' : 'Creating...'}
+                loading={isSubmitting}
+                disabled={isSubmitting || isProjectsLoading}
+                loaderText="Creating..."
               >
                 Create
               </Button>
