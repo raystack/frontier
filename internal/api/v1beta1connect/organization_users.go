@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -22,6 +23,8 @@ type OrgUsersService interface {
 }
 
 func (h *ConnectHandler) SearchOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationUsersRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationUsersResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	var orgUsers []*frontierv1beta1.SearchOrganizationUsersResponse_OrganizationUser
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), orgusers.AggregatedUser{})
@@ -43,6 +46,8 @@ func (h *ConnectHandler) SearchOrganizationUsers(ctx context.Context, request *c
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
+		errorLogger.LogServiceError(ctx, request, "SearchOrganizationUsers.Search", err,
+			zap.String("org_id", request.Msg.GetId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -87,11 +92,15 @@ func transformAggregatedUserToPB(v orgusers.AggregatedUser) *frontierv1beta1.Sea
 }
 
 func (h *ConnectHandler) ExportOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationUsersRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	errorLogger := NewErrorLogger()
+
 	orgUsersDataBytes, contentType, err := h.orgUsersService.Export(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, orgusers.ErrNoContent) {
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
+		errorLogger.LogServiceError(ctx, request, "ExportOrganizationUsers.Export", err,
+			zap.String("org_id", request.Msg.GetId()))
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return streamBytesInChunks(orgUsersDataBytes, contentType, stream)

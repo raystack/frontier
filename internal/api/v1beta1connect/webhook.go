@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,7 +19,7 @@ type WebhookService interface {
 }
 
 func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.CreateWebhookRequest]) (*connect.Response[frontierv1beta1.CreateWebhookResponse], error) {
-	logger := grpczap.Extract(ctx)
+	errorLogger := NewErrorLogger()
 
 	var metaDataMap metadata.Metadata
 	if req.Msg.GetBody().GetMetadata() != nil {
@@ -34,12 +34,13 @@ func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request
 		Metadata:         metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
+		errorLogger.LogUnexpectedError(ctx, req, "CreateWebhook", err,
+			zap.String("url", req.Msg.GetBody().GetUrl()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
 	if err != nil {
-		logger.Error(err.Error())
+		errorLogger.LogTransformError(ctx, req, "CreateWebhook", endpoint.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateWebhookResponse{
@@ -48,14 +49,15 @@ func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request
 }
 
 func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.UpdateWebhookRequest]) (*connect.Response[frontierv1beta1.UpdateWebhookResponse], error) {
-	logger := grpczap.Extract(ctx)
+	errorLogger := NewErrorLogger()
+	webhookID := req.Msg.GetId()
 
 	var metaDataMap metadata.Metadata
 	if req.Msg.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(req.Msg.GetBody().GetMetadata().AsMap())
 	}
 	endpoint, err := h.webhookService.UpdateEndpoint(ctx, webhook.Endpoint{
-		ID:               req.Msg.GetId(),
+		ID:               webhookID,
 		Description:      req.Msg.GetBody().GetDescription(),
 		SubscribedEvents: req.Msg.GetBody().GetSubscribedEvents(),
 		Headers:          req.Msg.GetBody().GetHeaders(),
@@ -64,12 +66,14 @@ func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request
 		Metadata:         metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
+		errorLogger.LogUnexpectedError(ctx, req, "UpdateWebhook", err,
+			zap.String("webhook_id", webhookID),
+			zap.String("url", req.Msg.GetBody().GetUrl()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
 	if err != nil {
-		logger.Error(err.Error())
+		errorLogger.LogTransformError(ctx, req, "UpdateWebhook", endpoint.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.UpdateWebhookResponse{
@@ -78,19 +82,19 @@ func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request
 }
 
 func (h *ConnectHandler) ListWebhooks(ctx context.Context, req *connect.Request[frontierv1beta1.ListWebhooksRequest]) (*connect.Response[frontierv1beta1.ListWebhooksResponse], error) {
-	logger := grpczap.Extract(ctx)
+	errorLogger := NewErrorLogger()
 
 	filter := webhook.EndpointFilter{}
 	endpoints, err := h.webhookService.ListEndpoints(ctx, filter)
 	if err != nil {
-		logger.Error(err.Error())
+		errorLogger.LogUnexpectedError(ctx, req, "ListWebhooks", err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	var webhooks []*frontierv1beta1.Webhook
 	for _, endpoint := range endpoints {
 		endpointPb, err := toProtoWebhookEndpoint(endpoint)
 		if err != nil {
-			logger.Error(err.Error())
+			errorLogger.LogTransformError(ctx, req, "ListWebhooks", endpoint.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		webhooks = append(webhooks, endpointPb)
@@ -101,11 +105,13 @@ func (h *ConnectHandler) ListWebhooks(ctx context.Context, req *connect.Request[
 }
 
 func (h *ConnectHandler) DeleteWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.DeleteWebhookRequest]) (*connect.Response[frontierv1beta1.DeleteWebhookResponse], error) {
-	logger := grpczap.Extract(ctx)
+	errorLogger := NewErrorLogger()
+	webhookID := req.Msg.GetId()
 
-	err := h.webhookService.DeleteEndpoint(ctx, req.Msg.GetId())
+	err := h.webhookService.DeleteEndpoint(ctx, webhookID)
 	if err != nil {
-		logger.Error(err.Error())
+		errorLogger.LogUnexpectedError(ctx, req, "DeleteWebhook", err,
+			zap.String("webhook_id", webhookID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteWebhookResponse{}), nil

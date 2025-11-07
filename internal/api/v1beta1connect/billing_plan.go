@@ -8,11 +8,14 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Request[frontierv1beta1.CreatePlanRequest]) (*connect.Response[frontierv1beta1.CreatePlanResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 	// parse products
 	var products []product.Product
@@ -78,16 +81,24 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 		Products: products,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreatePlan.UpsertPlans", err,
+			zap.String("plan_name", planToCreate.Name),
+			zap.String("plan_title", planToCreate.Title),
+			zap.String("interval", planToCreate.Interval),
+			zap.Int("product_count", len(products)))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	newPlan, err := h.planService.GetByID(ctx, planToCreate.Name)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreatePlan.GetByID", err,
+			zap.String("plan_name", planToCreate.Name))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	planPB, err := transformPlanToPB(newPlan)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "CreatePlan", newPlan.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -95,14 +106,18 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 }
 
 func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListPlansRequest]) (*connect.Response[frontierv1beta1.ListPlansResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	var plans []*frontierv1beta1.Plan
 	planList, err := h.planService.List(ctx, plan.Filter{})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListPlans.List", err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	for _, v := range planList {
 		planPB, err := transformPlanToPB(v)
 		if err != nil {
+			errorLogger.LogTransformError(ctx, request, "ListPlans", v.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		plans = append(plans, planPB)
@@ -112,13 +127,18 @@ func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request
 }
 
 func (h *ConnectHandler) GetPlan(ctx context.Context, request *connect.Request[frontierv1beta1.GetPlanRequest]) (*connect.Response[frontierv1beta1.GetPlanResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	planOb, err := h.planService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "GetPlan.GetByID", err,
+			zap.String("plan_id", request.Msg.GetId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	planPB, err := transformPlanToPB(planOb)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "GetPlan", planOb.ID, err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

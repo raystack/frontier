@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,6 +20,8 @@ type OrgServiceUserCredentialsService interface {
 }
 
 func (h *ConnectHandler) SearchOrganizationServiceUserCredentials(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), svc.AggregatedServiceUserCredential{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
@@ -34,6 +37,8 @@ func (h *ConnectHandler) SearchOrganizationServiceUserCredentials(ctx context.Co
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
+		errorLogger.LogServiceError(ctx, request, "SearchOrganizationServiceUserCredentials.Search", err,
+			zap.String("org_id", request.Msg.GetId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

@@ -16,6 +16,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -33,6 +34,8 @@ type AuditRecordService interface {
 }
 
 func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect.Request[frontierv1beta1.CreateAuditRecordRequest]) (*connect.Response[frontierv1beta1.CreateAuditRecordResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	// Validate the request parameters
 	if err := request.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
@@ -87,17 +90,29 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 		IdempotencyKey: request.Msg.GetIdempotencyKey(),
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateAuditRecord.Create", err,
+			zap.String("event", request.Msg.GetEvent()),
+			zap.String("actor_id", actor.GetId()),
+			zap.String("resource_id", resource.GetId()),
+			zap.String("org_id", request.Msg.GetOrgId()))
+
 		switch {
 		case errors.Is(err, auditrecord.ErrIdempotencyKeyConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, err)
 		case errors.Is(err, auditrecord.ErrActorNotFound):
 			return nil, connect.NewError(connect.CodeNotFound, err)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "CreateAuditRecord", err,
+				zap.String("event", request.Msg.GetEvent()),
+				zap.String("actor_id", actor.GetId()),
+				zap.String("resource_id", resource.GetId()),
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, err
 		}
 	}
 	transformedRecord, err := TransformAuditRecordToPB(record)
 	if err != nil {
+		errorLogger.LogTransformError(ctx, request, "CreateAuditRecord", record.ID, err)
 		return nil, err
 	}
 	response := connect.NewResponse(transformedRecord)
@@ -108,6 +123,8 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 }
 
 func (h *ConnectHandler) ListAuditRecords(ctx context.Context, request *connect.Request[frontierv1beta1.ListAuditRecordsRequest]) (*connect.Response[frontierv1beta1.ListAuditRecordsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	requestQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), auditrecord.AuditRecordRQLSchema{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to transform rql query: %v", err))
@@ -118,12 +135,15 @@ func (h *ConnectHandler) ListAuditRecords(ctx context.Context, request *connect.
 	}
 	records, err := h.auditRecordService.List(ctx, requestQuery)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListAuditRecords.List", err)
+
 		switch {
 		case errors.Is(err, auditrecord.ErrInvalidUUID) || errors.Is(err, auditrecord.ErrRepositoryBadInput):
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		case errors.Is(err, auditrecord.ErrNotFound):
 			return nil, connect.NewError(connect.CodeNotFound, err)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "ListAuditRecords", err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -131,6 +151,7 @@ func (h *ConnectHandler) ListAuditRecords(ctx context.Context, request *connect.
 	for _, auditRecord := range records.AuditRecords {
 		pbRecord, err := TransformAuditRecordToPB(auditRecord)
 		if err != nil {
+			errorLogger.LogTransformError(ctx, request, "ListAuditRecords", auditRecord.ID, err)
 			return nil, err
 		}
 		pbRecords = append(pbRecords, pbRecord.GetAuditRecord())
@@ -162,6 +183,8 @@ func (h *ConnectHandler) ListAuditRecords(ctx context.Context, request *connect.
 }
 
 func (h *ConnectHandler) ExportAuditRecords(ctx context.Context, request *connect.Request[frontierv1beta1.ExportAuditRecordsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
+	errorLogger := NewErrorLogger()
+
 	requestQuery, err := utils.TransformExportProtoToRQL(request.Msg.GetQuery(), auditrecord.AuditRecordRQLSchema{})
 	if err != nil {
 		return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to transform rql query: %v", err))
@@ -172,12 +195,15 @@ func (h *ConnectHandler) ExportAuditRecords(ctx context.Context, request *connec
 	}
 	reader, contentType, err := h.auditRecordService.Export(ctx, requestQuery)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ExportAuditRecords.Export", err)
+
 		switch {
 		case errors.Is(err, auditrecord.ErrInvalidUUID) || errors.Is(err, auditrecord.ErrRepositoryBadInput):
 			return connect.NewError(connect.CodeInvalidArgument, err)
 		case errors.Is(err, auditrecord.ErrNotFound):
 			return connect.NewError(connect.CodeNotFound, err)
 		default:
+			errorLogger.LogUnexpectedError(ctx, request, "ExportAuditRecords", err)
 			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
