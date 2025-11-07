@@ -9,6 +9,7 @@ import {
   Dialog
 } from '@raystack/apsara';
 
+import { useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -53,7 +54,15 @@ export const DeleteDomain = () => {
   const transport = useTransport();
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
-  const { domain, isLoading } = useOrganizationDomain(domainId);
+  const { domain, isLoading, error: domainError } = useOrganizationDomain(domainId);
+
+  useEffect(() => {
+    if (domainError) {
+      toast.error('Something went wrong', {
+        description: (domainError as Error).message
+      });
+    }
+  }, [domainError]);
 
   const { mutateAsync: deleteOrganizationDomain, isPending } = useMutation(
     FrontierServiceQueries.deleteOrganizationDomain,
@@ -102,7 +111,7 @@ export const DeleteDomain = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content width={600} overlayClassname={styles.overlay}>
+      <Dialog.Content width={600} overlayClassName={styles.overlay}>
         <Dialog.Header>
           <Dialog.Title>Verify domain deletion</Dialog.Title>
           <Dialog.CloseButton

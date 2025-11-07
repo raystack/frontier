@@ -9,6 +9,7 @@ import {
   CopyButton
 } from '@raystack/apsara';
 
+import { useEffect } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -29,7 +30,15 @@ export const VerifyDomain = () => {
   const queryClient = useQueryClient();
   const transport = useTransport();
 
-  const { domain, isLoading: isDomainLoading } = useOrganizationDomain(domainId);
+  const { domain, isLoading: isDomainLoading, error: domainError } = useOrganizationDomain(domainId);
+
+  useEffect(() => {
+    if (domainError) {
+      toast.error('Something went wrong', {
+        description: (domainError as Error).message
+      });
+    }
+  }, [domainError]);
 
   const { mutateAsync: verifyOrganizationDomain, isPending: isVerifying } = useMutation(
     FrontierServiceQueries.verifyOrganizationDomain,
