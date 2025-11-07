@@ -1,24 +1,29 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { Button, type DataTableColumnDef, Flex, Text } from '@raystack/apsara';
 import { Link, useNavigate } from '@tanstack/react-router';
-import dayjs from 'dayjs';
-import type { V1Beta1ServiceUser } from '~/api-client';
+import type { ServiceUser } from '~/src';
+import { timestampToDayjs } from '~/utils/timestamp';
+import type { Timestamp } from '@bufbuild/protobuf/wkt';
 
 export const getColumns = ({
   dateFormat
 }: {
   dateFormat: string;
-}): DataTableColumnDef<V1Beta1ServiceUser, unknown>[] => {
+}): DataTableColumnDef<ServiceUser, unknown>[] => {
   return [
     {
       header: 'Name',
       accessorKey: 'title',
       cell: ({ row, getValue }) => {
+        const value = getValue() as string;
         return (
           <Link
             to={`/api-keys/$id`}
             params={{
               id: row.original.id || ''
+            }}
+            state={{
+              enableServiceUserTokensListFetch: true
             }}
             style={{
               textDecoration: 'none',
@@ -26,19 +31,19 @@ export const getColumns = ({
               fontSize: 'var(--rs-font-size-small)'
             }}
           >
-            {getValue()}
+            {value}
           </Link>
         );
       }
     },
     {
       header: 'Created on',
-      accessorKey: 'created_at',
+      accessorKey: 'createdAt',
       cell: ({ row, getValue }) => {
-        const value = getValue();
+        const value = getValue() as Timestamp | undefined;
         return (
           <Flex direction="column">
-            <Text>{dayjs(value).format(dateFormat)}</Text>
+            <Text>{timestampToDayjs(value)?.format(dateFormat) ?? '-'}</Text>
           </Flex>
         );
       }
@@ -48,7 +53,8 @@ export const getColumns = ({
       accessorKey: 'id',
       enableSorting: false,
       cell: ({ row, getValue }) => {
-        return <ServiceAccountDeleteAction id={getValue()} />;
+        const value = getValue() as string;
+        return <ServiceAccountDeleteAction id={value} />;
       }
     }
   ];
