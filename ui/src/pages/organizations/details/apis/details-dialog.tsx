@@ -42,7 +42,7 @@ export const ServiceUserDetailsDialog = ({
   );
 
   const {
-    data: projects,
+    data: projects = [],
     isLoading: isProjectLoading,
     error: projectError,
   } = useQuery(FrontierServiceQueries.listServiceUserProjects, projectsRequest, {
@@ -51,7 +51,7 @@ export const ServiceUserDetailsDialog = ({
   });
 
   const {
-    data: tokens,
+    data: tokens = [],
     isLoading: isTokenLoading,
     error: tokenError,
   } = useQuery(FrontierServiceQueries.listServiceUserTokens, tokensRequest, {
@@ -98,14 +98,14 @@ export const ServiceUserDetailsDialog = ({
             <Tabs.List>
               <Tabs.Trigger value="keys">
                 API keys{" "}
-                {!isTokenLoading && (tokens ?? []).length > 0
-                  ? `(${(tokens ?? []).length})`
+                {!isTokenLoading && tokens.length > 0
+                  ? `(${tokens.length})`
                   : ""}
               </Tabs.Trigger>
               <Tabs.Trigger value="projects">
                 Projects{" "}
-                {!isProjectLoading && (projects ?? []).length > 0
-                  ? `(${(projects ?? []).length})`
+                {!isProjectLoading && projects.length > 0
+                  ? `(${projects.length})`
                   : ""}
               </Tabs.Trigger>
             </Tabs.List>
@@ -118,7 +118,7 @@ export const ServiceUserDetailsDialog = ({
                 />
               ) : (
                 <Flex direction="column">
-                  {(tokens ?? []).map((token) => (
+                  {tokens.map((token) => (
                     <Flex
                       key={token.id}
                       direction="column"
@@ -143,7 +143,7 @@ export const ServiceUserDetailsDialog = ({
                 />
               ) : (
                 <Flex direction="column">
-                  {(projects ?? []).map((project) => (
+                  {projects.map((project) => (
                     <Flex
                       key={project.id}
                       direction="column"
