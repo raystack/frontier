@@ -1,6 +1,5 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
-import { useDebouncedState } from "@raystack/apsara/hooks";
 import styles from "./apis.module.css";
 import { InfoCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -19,7 +18,7 @@ import {
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { RQLRequest } from "@raystack/frontier";
+import { useDebounceValue } from "usehooks-ts";
 
 const NoCredentials = () => {
   return (
@@ -71,15 +70,16 @@ export function OrganizationApisPage() {
   } = search;
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
-  const [query, setQuery] = useDebouncedState<RQLRequest | undefined>(undefined, 200);
 
-  useEffect(() => {
+  const computedQuery = useMemo(() => {
     const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
-    setQuery({
+    return {
       ...tempQuery,
       search: searchQuery || "",
-    });
-  }, [tableQuery, searchQuery, setQuery]);
+    };
+  }, [tableQuery, searchQuery]);
+
+  const [query] = useDebounceValue(computedQuery, 200);
 
   const [selectedServiceUser, setSelectedServiceUser] =
     useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(
