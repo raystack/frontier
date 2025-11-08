@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/utils"
@@ -13,17 +12,25 @@ import (
 )
 
 func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.AddPlatformUserRequest]) (*connect.Response[frontierv1beta1.AddPlatformUserResponse], error) {
+	errorLogger := NewErrorLogger()
 	relationName := req.Msg.GetRelation()
+
 	if !schema.IsPlatformRelation(relationName) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.Sudo(ctx, req.Msg.GetUserId(), relationName); err != nil {
+			errorLogger.LogServiceError(ctx, req, "AddPlatformUser.UserSudo", err,
+				zap.String("user_id", req.Msg.GetUserId()),
+				zap.String("relation", relationName))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
 		if err := h.serviceUserService.Sudo(ctx, req.Msg.GetServiceuserId(), relationName); err != nil {
+			errorLogger.LogServiceError(ctx, req, "AddPlatformUser.ServiceUserSudo", err,
+				zap.String("service_user_id", req.Msg.GetServiceuserId()),
+				zap.String("relation", relationName))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else {
@@ -33,12 +40,18 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.UnSudo(ctx, req.Msg.GetUserId()); err != nil {
+			errorLogger.LogServiceError(ctx, req, "RemovePlatformUser.UserUnSudo", err,
+				zap.String("user_id", req.Msg.GetUserId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
 		if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId()); err != nil {
+			errorLogger.LogServiceError(ctx, req, "RemovePlatformUser.ServiceUserUnSudo", err,
+				zap.String("service_user_id", req.Msg.GetServiceuserId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else {
@@ -48,7 +61,7 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 }
 
 func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Request[frontierv1beta1.ListPlatformUsersRequest]) (*connect.Response[frontierv1beta1.ListPlatformUsersResponse], error) {
-	logger := grpczap.Extract(ctx)
+	errorLogger := NewErrorLogger()
 	relations, err := h.relationService.List(ctx, relation.Filter{
 		Object: relation.Object{
 			ID:        schema.PlatformID,
@@ -56,7 +69,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		},
 	})
 	if err != nil {
-		logger.Error("failed to list relations", zap.Error(err))
+		errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.ListRelations", err)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -73,7 +86,8 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 	if len(userIDs) > 0 {
 		users, err := h.userService.GetByIDs(ctx, userIDs)
 		if err != nil {
-			logger.Error("failed to get users by IDs", zap.Error(err))
+			errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.GetUsersByIDs", err,
+				zap.Strings("user_ids", userIDs))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		for _, u := range users {
@@ -83,7 +97,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			userPB, err := transformUserToPB(u)
 			if err != nil {
-				logger.Error("failed to transform user to PB", zap.Error(err))
+				errorLogger.LogTransformError(ctx, req, "ListPlatformUsers.TransformUser", u.ID, err)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 			userPBs = append(userPBs, userPB)
@@ -101,7 +115,8 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 	if len(serviceUserIDs) > 0 {
 		serviceUsers, err := h.serviceUserService.GetByIDs(ctx, serviceUserIDs)
 		if err != nil {
-			logger.Error("failed to get service users by IDs", zap.Error(err))
+			errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.GetServiceUsersByIDs", err,
+				zap.Strings("service_user_ids", serviceUserIDs))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		for _, u := range serviceUsers {
@@ -111,7 +126,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
-				logger.Error("failed to transform service user to PB", zap.Error(err))
+				errorLogger.LogTransformError(ctx, req, "ListPlatformUsers.TransformServiceUser", u.ID, err)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 			serviceUserPBs = append(serviceUserPBs, serviceUserPB)

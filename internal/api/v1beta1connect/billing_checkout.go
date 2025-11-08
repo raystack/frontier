@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -22,6 +23,8 @@ type CheckoutService interface {
 }
 
 func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCheckoutRequest]) (*connect.Response[frontierv1beta1.CreateCheckoutResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	// check if setup requested
 	if request.Msg.GetSetupBody() != nil && request.Msg.GetSetupBody().GetPaymentMethod() {
 		newCheckout, err := h.checkoutService.CreateSessionForPaymentMethod(ctx, checkout.Checkout{
@@ -30,6 +33,8 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 			CancelUrl:  request.Msg.GetCancelUrl(),
 		})
 		if err != nil {
+			errorLogger.LogServiceError(ctx, request, "CreateCheckout.CreateSessionForPaymentMethod", err,
+				zap.String("billing_id", request.Msg.GetBillingId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 
@@ -49,6 +54,8 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 			if errors.Is(err, checkout.ErrKycCompleted) {
 				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrPortalChangesKycCompleted)
 			}
+			errorLogger.LogServiceError(ctx, request, "CreateCheckout.CreateSessionForCustomerPortal", err,
+				zap.String("billing_id", request.Msg.GetBillingId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 
@@ -90,6 +97,13 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPerSeatLimitReached)
 		}
+		errorLogger.LogServiceError(ctx, request, "CreateCheckout.Create", err,
+			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("plan_id", planID),
+			zap.String("product_id", featureID),
+			zap.Int64("quantity", quantity),
+			zap.Bool("skip_trial", skipTrial),
+			zap.Bool("cancel_after_trial", cancelAfterTrial))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -99,6 +113,8 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.DelegatedCheckoutRequest]) (*connect.Response[frontierv1beta1.DelegatedCheckoutResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	var planID string
 	var skipTrial bool
 	var cancelAfterTrail bool
@@ -125,18 +141,28 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 		ProviderCouponID: providerCouponID,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DelegatedCheckout.Apply", err,
+			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("plan_id", planID),
+			zap.String("product_id", productID),
+			zap.Int64("product_quantity", productQuantity),
+			zap.Bool("skip_trial", skipTrial),
+			zap.Bool("cancel_after_trial", cancelAfterTrail),
+			zap.String("provider_coupon_id", providerCouponID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	var subsPb *frontierv1beta1.Subscription
 	if subs != nil {
 		if subsPb, err = transformSubscriptionToPB(*subs); err != nil {
+			errorLogger.LogTransformError(ctx, request, "DelegatedCheckout", subs.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	var productPb *frontierv1beta1.Product
 	if prod != nil {
 		if productPb, err = transformProductToPB(*prod); err != nil {
+			errorLogger.LogTransformError(ctx, request, "DelegatedCheckout", prod.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -148,6 +174,8 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 }
 
 func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Request[frontierv1beta1.ListCheckoutsRequest]) (*connect.Response[frontierv1beta1.ListCheckoutsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if request.Msg.GetOrgId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -157,6 +185,9 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 		CustomerID: request.Msg.GetBillingId(),
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListCheckouts.List", err,
+			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("org_id", request.Msg.GetOrgId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	for _, v := range checkoutList {
@@ -169,12 +200,17 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) GetCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.GetCheckoutRequest]) (*connect.Response[frontierv1beta1.GetCheckoutResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	if request.Msg.GetOrgId() == "" || request.Msg.GetId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
 	ch, err := h.checkoutService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "GetCheckout.GetByID", err,
+			zap.String("checkout_id", request.Msg.GetId()),
+			zap.String("org_id", request.Msg.GetOrgId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

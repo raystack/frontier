@@ -41,7 +41,7 @@ func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.Un
 		})
 
 		isSuperUser := false
-		err = i.h.IsSuperUser(ctx)
+		err = i.h.IsSuperUser(ctx, req)
 		if err == nil {
 			isSuperUser = true
 		}

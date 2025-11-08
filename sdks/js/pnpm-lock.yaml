@@ -36,12 +36,15 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.6.3
         version: 2.6.3
+      '@connectrpc/connect':
+        specifier: ^2.0.2
+        version: 2.0.2(@bufbuild/protobuf@2.6.3)
       '@connectrpc/connect-query':
         specifier: ^2.1.1
-        version: 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.2(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@connectrpc/connect-web':
         specifier: ^2.0.2
-        version: 2.0.2(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))
+        version: 2.0.2(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.2(@bufbuild/protobuf@2.6.3))
       '@hookform/resolvers':
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.57.0(react@18.3.1))
@@ -145,6 +148,9 @@ importers:
       np:
         specifier: ^7.7.0
         version: 7.7.0
+      patch-package:
+        specifier: ^8.0.1
+        version: 8.0.1
       prettier:
         specifier: ^2.8.8
         version: 2.8.8
@@ -208,13 +214,13 @@ importers:
         version: 10.0.0
       '@vitejs/plugin-react':
         specifier: ^4.7.0
-        version: 4.7.0(vite@7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1))
+        version: 4.7.0(vite@7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1))
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
       vite:
         specifier: ^7.0.6
-        version: 7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1)
+        version: 7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)
 
   tools/eslint-config:
     dependencies:
@@ -574,10 +580,15 @@ packages:
       '@bufbuild/protobuf': ^2.2.0
       '@connectrpc/connect': 2.0.2
 
-  '@connectrpc/connect@2.0.3':
-    resolution: {integrity: sha512-jAbVMHVtDCydGt2P20VpmLjbLtERqSV0RMSyQF3k2zhK8pzQ2QaCAcyVhufClqrOAFZUKL5BqVYtttaxvhmRgg==}
+  '@connectrpc/connect@2.0.2':
+    resolution: {integrity: sha512-xZuylIUNvNlH52e/4eQsZvY4QZyDJRtEFEDnn/yBrv5Xi5ZZI/p8X+GAHH35ucVaBvv9u7OzHZo8+tEh1EFTxA==}
     peerDependencies:
       '@bufbuild/protobuf': ^2.2.0
+
+  '@connectrpc/connect@2.1.0':
+    resolution: {integrity: sha512-xhiwnYlJNHzmFsRw+iSPIwXR/xweTvTw8x5HiwWp10sbVtd4OpOXbRgE7V58xs1EC17fzusF1f5uOAy24OkBuA==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^2.7.0
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2439,6 +2450,9 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
+  '@yarnpkg/lockfile@1.1.0':
+    resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
+
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -3800,6 +3814,9 @@ packages:
   find-yarn-workspace-root2@1.2.16:
     resolution: {integrity: sha512-hr6hb1w8ePMpPVUK39S4RlwJzi+xPLuVuG8XlwXU3KD5Yn3qgBWVfy3AzNlDhWvE1EORCE65/Qm26rFQt3VLVA==}
 
+  find-yarn-workspace-root@2.0.0:
+    resolution: {integrity: sha512-1IMnbjt4KzsQfnhnzNd8wUEgXZ44IzZaZmnLYx7D5FZlaHt2gW20Cri8Q+E/t5tIj4+epTBub+2Zxu/vNILzqQ==}
+
   flat-cache@3.2.0:
     resolution: {integrity: sha512-CYcENa+FtcUKLmhhqyctpclsq7QF38pKjZHsGNiSQF5r4FtoKDWabFDl3hzaEQMvT1LHEysw5twgLvpYYb4vbw==}
     engines: {node: ^10.12.0 || >=12.0.0}
@@ -4809,6 +4826,10 @@ packages:
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
 
+  json-stable-stringify@1.3.0:
+    resolution: {integrity: sha512-qtYiSSFlwot9XHtF9bD9c7rwKjr+RecWT//ZnPvSmEjpV5mmPOCN4j8UjY5hbjNkOwZ/jQv3J6R1/pL7RwgMsg==}
+    engines: {node: '>= 0.4'}
+
   json5@1.0.2:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
     hasBin: true
@@ -4824,6 +4845,9 @@ packages:
   jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
 
+  jsonify@0.0.1:
+    resolution: {integrity: sha512-2/Ki0GcmuqSrgFyelQq9M05y7PS0mEwuIzrf3f1fPqkVDVRvZrPZtVSMHxdgo8Aq0sxAOb/cr2aqqA3LeWHVPg==}
+
   jsx-ast-utils@3.3.5:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
     engines: {node: '>=4.0'}
@@ -4837,6 +4861,9 @@ packages:
   kind-of@6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
+
+  klaw-sync@6.0.0:
+    resolution: {integrity: sha512-nIeuVSzdCCs6TDPTqI8w1Yre34sSq7AkZ4B3sfOBbI2CgVSB4Du4aLQijFU2+lhAFCwt9+42Hel6lQNIv6AntQ==}
 
   kleur@3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
@@ -5622,6 +5649,11 @@ packages:
   pascal-case@2.0.1:
     resolution: {integrity: sha512-qjS4s8rBOJa2Xm0jmxXiyh1+OFf6ekCWOvUaRgAQSktzlTbMotS0nmG9gyYAybCWBcuP4fsBeRCKNwGBnMe2OQ==}
 
+  patch-package@8.0.1:
+    resolution: {integrity: sha512-VsKRIA8f5uqHQ7NGhwIna6Bx6D9s/1iXlA1hthBVBEbkq+t4kXD0HHt+rJhf/Z+Ci0F/HCB2hvn0qLdLG+Qxlw==}
+    engines: {node: '>=14', npm: '>5'}
+    hasBin: true
+
   path-case@2.1.1:
     resolution: {integrity: sha512-Ou0N05MioItesaLr9q8TtHVWmJ6fxWdqKB2RohFmNWVyJ+2zeKIeDNWAN6B/Pe7wpzWChhZX6nONYmOnMeJQ/Q==}
 
@@ -6319,6 +6351,10 @@ packages:
     engines: {node: ^14.0.0 || ^16.0.0 || >=18.0.0}
     hasBin: true
 
+  slash@2.0.0:
+    resolution: {integrity: sha512-ZYKh3Wh2z1PpEXWr0MpSBZ0V6mZHAQfYevttO11c51CaWjGTaadiKZ+wVt1PbMlDV5qhMFslpZCemhwOK7C89A==}
+    engines: {node: '>=6'}
+
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
@@ -6667,6 +6703,10 @@ packages:
 
   tmp@0.2.3:
     resolution: {integrity: sha512-nZD7m9iCPC5g0pYmcaxogYKggSfLsdxl8of3Q/oIbqCqLLIO9IAF0GWjX1z9NZRHPiXv8Wex4yDCaZsgEw0Y8w==}
+    engines: {node: '>=14.14'}
+
+  tmp@0.2.5:
+    resolution: {integrity: sha512-voyz6MApa1rQGUxT3E+BK7/ROe8itEx7vD8/HEvt4xwXucvQ5G5oeEiHkmHZJuBO21RpOf+YYm9MOivj709jow==}
     engines: {node: '>=14.14'}
 
   tmpl@1.0.5:
@@ -7227,6 +7267,11 @@ packages:
     resolution: {integrity: sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==}
     engines: {node: '>= 6'}
 
+  yaml@2.8.1:
+    resolution: {integrity: sha512-lcYcMxX2PO9XMGvAJkJ3OsNMw+/7FKes7/hgerGUYWIoWu5j/+YQqcZr5JnPZWzOsEBgMbSbiSTn/dv/69Mkpw==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yargs-parser@18.1.3:
     resolution: {integrity: sha512-o50j0JeToy/4K6OZcaQmW6lyXXKhq7csREXcDwk2omFPJEwUNOVtJKvmDr9EI1fAJZUyZcRF7kxGBWmRXudrCQ==}
     engines: {node: '>=6'}
@@ -7721,29 +7766,50 @@ snapshots:
       human-id: 1.0.2
       prettier: 2.8.8
 
-  '@connectrpc/connect-query-core@2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)':
+  '@connectrpc/connect-query-core@2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.2(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)':
     dependencies:
       '@bufbuild/protobuf': 2.6.3
-      '@connectrpc/connect': 2.0.3(@bufbuild/protobuf@2.6.3)
+      '@connectrpc/connect': 2.0.2(@bufbuild/protobuf@2.6.3)
       '@tanstack/query-core': 5.83.0
 
-  '@connectrpc/connect-query@2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@connectrpc/connect-query-core@2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)':
     dependencies:
       '@bufbuild/protobuf': 2.6.3
-      '@connectrpc/connect': 2.0.3(@bufbuild/protobuf@2.6.3)
-      '@connectrpc/connect-query-core': 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)
+      '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.6.3)
+      '@tanstack/query-core': 5.83.0
+
+  '@connectrpc/connect-query@2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.2(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@bufbuild/protobuf': 2.6.3
+      '@connectrpc/connect': 2.0.2(@bufbuild/protobuf@2.6.3)
+      '@connectrpc/connect-query-core': 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.2(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)
       '@tanstack/react-query': 5.83.0(react@18.3.1)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     transitivePeerDependencies:
       - '@tanstack/query-core'
 
-  '@connectrpc/connect-web@2.0.2(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))':
+  '@connectrpc/connect-query@2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@bufbuild/protobuf': 2.6.3
-      '@connectrpc/connect': 2.0.3(@bufbuild/protobuf@2.6.3)
+      '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.6.3)
+      '@connectrpc/connect-query-core': 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)
+      '@tanstack/react-query': 5.83.0(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - '@tanstack/query-core'
 
-  '@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3)':
+  '@connectrpc/connect-web@2.0.2(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.2(@bufbuild/protobuf@2.6.3))':
+    dependencies:
+      '@bufbuild/protobuf': 2.6.3
+      '@connectrpc/connect': 2.0.2(@bufbuild/protobuf@2.6.3)
+
+  '@connectrpc/connect@2.0.2(@bufbuild/protobuf@2.6.3)':
+    dependencies:
+      '@bufbuild/protobuf': 2.6.3
+
+  '@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.6.3)':
     dependencies:
       '@bufbuild/protobuf': 2.6.3
 
@@ -9169,8 +9235,8 @@ snapshots:
   '@raystack/proton@0.1.0-fba39927b8b974dc1cc1ae0f05f1390580ec6d58(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@bufbuild/protobuf': 2.6.3
-      '@connectrpc/connect': 2.0.3(@bufbuild/protobuf@2.6.3)
-      '@connectrpc/connect-query': 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.0.3(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@connectrpc/connect': 2.1.0(@bufbuild/protobuf@2.6.3)
+      '@connectrpc/connect-query': 2.1.1(@bufbuild/protobuf@2.6.3)(@connectrpc/connect@2.1.0(@bufbuild/protobuf@2.6.3))(@tanstack/query-core@5.83.0)(@tanstack/react-query@5.83.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@protobuf-ts/runtime': 2.11.1
       '@protobuf-ts/runtime-rpc': 2.11.1
     optionalDependencies:
@@ -9568,7 +9634,7 @@ snapshots:
       '@typescript-eslint/types': 5.62.0
       eslint-visitor-keys: 3.4.3
 
-  '@vitejs/plugin-react@4.7.0(vite@7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1))':
+  '@vitejs/plugin-react@4.7.0(vite@7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1))':
     dependencies:
       '@babel/core': 7.28.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.0)
@@ -9576,9 +9642,11 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1)
+      vite: 7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1)
     transitivePeerDependencies:
       - supports-color
+
+  '@yarnpkg/lockfile@1.1.0': {}
 
   acorn-jsx@5.3.2(acorn@7.4.1):
     dependencies:
@@ -11337,6 +11405,10 @@ snapshots:
       micromatch: 4.0.8
       pkg-dir: 4.2.0
 
+  find-yarn-workspace-root@2.0.0:
+    dependencies:
+      micromatch: 4.0.8
+
   flat-cache@3.2.0:
     dependencies:
       flatted: 3.3.3
@@ -12634,6 +12706,14 @@ snapshots:
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
+  json-stable-stringify@1.3.0:
+    dependencies:
+      call-bind: 1.0.8
+      call-bound: 1.0.4
+      isarray: 2.0.5
+      jsonify: 0.0.1
+      object-keys: 1.1.1
+
   json5@1.0.2:
     dependencies:
       minimist: 1.2.8
@@ -12649,6 +12729,8 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jsonify@0.0.1: {}
 
   jsx-ast-utils@3.3.5:
     dependencies:
@@ -12666,6 +12748,10 @@ snapshots:
       json-buffer: 3.0.1
 
   kind-of@6.0.3: {}
+
+  klaw-sync@6.0.0:
+    dependencies:
+      graceful-fs: 4.2.11
 
   kleur@3.0.3: {}
 
@@ -13528,6 +13614,23 @@ snapshots:
       camel-case: 3.0.0
       upper-case-first: 1.1.2
 
+  patch-package@8.0.1:
+    dependencies:
+      '@yarnpkg/lockfile': 1.1.0
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      cross-spawn: 7.0.6
+      find-yarn-workspace-root: 2.0.0
+      fs-extra: 10.1.0
+      json-stable-stringify: 1.3.0
+      klaw-sync: 6.0.0
+      minimist: 1.2.8
+      open: 7.4.2
+      semver: 7.7.2
+      slash: 2.0.0
+      tmp: 0.2.5
+      yaml: 2.8.1
+
   path-case@2.1.1:
     dependencies:
       no-case: 2.3.2
@@ -13957,7 +14060,7 @@ snapshots:
 
   regexp.prototype.flags@1.5.3:
     dependencies:
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       define-properties: 1.2.1
       es-errors: 1.3.0
       set-function-name: 2.0.2
@@ -14324,7 +14427,7 @@ snapshots:
 
   side-channel@1.0.6:
     dependencies:
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       es-errors: 1.3.0
       get-intrinsic: 1.2.4
       object-inspect: 1.13.2
@@ -14351,6 +14454,8 @@ snapshots:
       lilconfig: 2.1.0
       nanospinner: 1.2.2
       picocolors: 1.1.1
+
+  slash@2.0.0: {}
 
   slash@3.0.0: {}
 
@@ -14748,6 +14853,8 @@ snapshots:
       os-tmpdir: 1.0.2
 
   tmp@0.2.3: {}
+
+  tmp@0.2.5: {}
 
   tmpl@1.0.5: {}
 
@@ -15154,7 +15261,7 @@ snapshots:
 
   validator@13.15.15: {}
 
-  vite@7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1):
+  vite@7.0.6(@types/node@20.19.0)(jiti@2.4.2)(lightningcss@1.30.1)(yaml@2.8.1):
     dependencies:
       esbuild: 0.25.8
       fdir: 6.4.6(picomatch@4.0.3)
@@ -15167,6 +15274,7 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.4.2
       lightningcss: 1.30.1
+      yaml: 2.8.1
 
   walker@1.0.8:
     dependencies:
@@ -15355,6 +15463,8 @@ snapshots:
   yallist@4.0.0: {}
 
   yaml@1.10.2: {}
+
+  yaml@2.8.1: {}
 
   yargs-parser@18.1.3:
     dependencies:

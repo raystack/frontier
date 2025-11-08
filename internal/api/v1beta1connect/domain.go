@@ -8,10 +8,13 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (h *ConnectHandler) CreateOrganizationDomain(ctx context.Context, request *connect.Request[frontierv1beta1.CreateOrganizationDomainRequest]) (*connect.Response[frontierv1beta1.CreateOrganizationDomainResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -20,6 +23,8 @@ func (h *ConnectHandler) CreateOrganizationDomain(ctx context.Context, request *
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "CreateOrganizationDomain.Get", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -33,6 +38,9 @@ func (h *ConnectHandler) CreateOrganizationDomain(ctx context.Context, request *
 		case domain.ErrDuplicateKey:
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrDomainAlreadyExists)
 		default:
+			errorLogger.LogServiceError(ctx, request, "CreateOrganizationDomain.Create", err,
+				zap.String("org_id", request.Msg.GetOrgId()),
+				zap.String("domain_name", request.Msg.GetDomain()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -42,6 +50,8 @@ func (h *ConnectHandler) CreateOrganizationDomain(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) DeleteOrganizationDomain(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteOrganizationDomainRequest]) (*connect.Response[frontierv1beta1.DeleteOrganizationDomainResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -50,6 +60,8 @@ func (h *ConnectHandler) DeleteOrganizationDomain(ctx context.Context, request *
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "DeleteOrganizationDomain.Get", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -59,6 +71,9 @@ func (h *ConnectHandler) DeleteOrganizationDomain(ctx context.Context, request *
 		case domain.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrDomainNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "DeleteOrganizationDomain.Delete", err,
+				zap.String("org_id", request.Msg.GetOrgId()),
+				zap.String("domain_id", request.Msg.GetId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -67,6 +82,8 @@ func (h *ConnectHandler) DeleteOrganizationDomain(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *connect.Request[frontierv1beta1.GetOrganizationDomainRequest]) (*connect.Response[frontierv1beta1.GetOrganizationDomainResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -75,6 +92,8 @@ func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *con
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "GetOrganizationDomain.Get", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -85,6 +104,9 @@ func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *con
 		case domain.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrDomainNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "GetOrganizationDomain.Get", err,
+				zap.String("org_id", request.Msg.GetOrgId()),
+				zap.String("domain_id", request.Msg.GetId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -94,6 +116,8 @@ func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *con
 }
 
 func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.JoinOrganizationRequest]) (*connect.Response[frontierv1beta1.JoinOrganizationResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -102,6 +126,8 @@ func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "JoinOrganization.Get", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -109,6 +135,8 @@ func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.
 	// get current user
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "JoinOrganization.GetLoggedInPrincipal", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
 		return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 	}
 
@@ -117,6 +145,9 @@ func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.
 		case domain.ErrDomainsMisMatch:
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrDomainMismatch)
 		default:
+			errorLogger.LogServiceError(ctx, request, "JoinOrganization.Join", err,
+				zap.String("org_id", request.Msg.GetOrgId()),
+				zap.String("principal_id", principal.ID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -125,6 +156,8 @@ func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.
 }
 
 func (h *ConnectHandler) VerifyOrganizationDomain(ctx context.Context, request *connect.Request[frontierv1beta1.VerifyOrganizationDomainRequest]) (*connect.Response[frontierv1beta1.VerifyOrganizationDomainResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -133,6 +166,8 @@ func (h *ConnectHandler) VerifyOrganizationDomain(ctx context.Context, request *
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "VerifyOrganizationDomain.Get", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -147,6 +182,9 @@ func (h *ConnectHandler) VerifyOrganizationDomain(ctx context.Context, request *
 		case domain.ErrTXTrecordNotFound:
 			return nil, connect.NewError(connect.CodeNotFound, ErrTXTRecordNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "VerifyOrganizationDomain.VerifyDomain", err,
+				zap.String("org_id", request.Msg.GetOrgId()),
+				zap.String("domain_id", request.Msg.GetId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -155,6 +193,8 @@ func (h *ConnectHandler) VerifyOrganizationDomain(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) ListOrganizationDomains(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationDomainsRequest]) (*connect.Response[frontierv1beta1.ListOrganizationDomainsResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -163,12 +203,17 @@ func (h *ConnectHandler) ListOrganizationDomains(ctx context.Context, request *c
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
+			errorLogger.LogServiceError(ctx, request, "ListOrganizationDomains.Get", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	domains, err := h.domainService.List(ctx, domain.Filter{OrgID: orgResp.ID, State: domain.Status(request.Msg.GetState())})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListOrganizationDomains.List", err,
+			zap.String("org_id", request.Msg.GetOrgId()),
+			zap.String("state", request.Msg.GetState()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

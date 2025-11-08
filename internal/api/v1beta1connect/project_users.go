@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 )
 
 type ProjectUsersService interface {
@@ -18,7 +19,9 @@ type ProjectUsersService interface {
 }
 
 func (h *ConnectHandler) SearchProjectUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchProjectUsersRequest]) (*connect.Response[frontierv1beta1.SearchProjectUsersResponse], error) {
+	errorLogger := NewErrorLogger()
 	var projectUsers []*frontierv1beta1.SearchProjectUsersResponse_ProjectUser
+	projectID := request.Msg.GetId()
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), projectusers.AggregatedUser{})
 	if err != nil {
@@ -42,11 +45,16 @@ func (h *ConnectHandler) SearchProjectUsers(ctx context.Context, request *connec
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("sorting is not supported"))
 	}
 
-	projectUsersData, err := h.projectUsersService.Search(ctx, request.Msg.GetId(), rqlQuery)
+	projectUsersData, err := h.projectUsersService.Search(ctx, projectID, rqlQuery)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "SearchProjectUsers", err,
+			zap.String("project_id", projectID))
+
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
+		errorLogger.LogUnexpectedError(ctx, request, "SearchProjectUsers", err,
+			zap.String("project_id", projectID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

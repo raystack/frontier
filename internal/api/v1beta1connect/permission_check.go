@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"go.uber.org/zap"
 )
 
 func logAuditForCheck(ctx context.Context, result bool, objectID string, objectNamespace string) {
@@ -49,6 +50,8 @@ func (h *ConnectHandler) getPermissionName(ctx context.Context, ns, name string)
 }
 
 func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, req *connect.Request[frontierv1beta1.CheckFederatedResourcePermissionRequest]) (*connect.Response[frontierv1beta1.CheckFederatedResourcePermissionResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.Msg.GetResource())
 	if err != nil || objectNamespace == "" || objectID == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -75,6 +78,12 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 		Permission: permissionName,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, req, "CheckFederatedResourcePermission", err,
+			zap.String("object_id", objectID),
+			zap.String("object_namespace", objectNamespace),
+			zap.String("subject_id", principalID),
+			zap.String("subject_namespace", principalNamespace),
+			zap.String("permission", permissionName))
 		return nil, handleAuthErr(err)
 	}
 
@@ -113,6 +122,8 @@ func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectN
 }
 
 func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *connect.Request[frontierv1beta1.CheckResourcePermissionRequest]) (*connect.Response[frontierv1beta1.CheckResourcePermissionResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.Msg.GetResource())
 	if len(req.Msg.GetResource()) == 0 || err != nil {
 		objectNamespace = schema.ParseNamespaceAliasIfRequired(req.Msg.GetObjectNamespace())
@@ -134,6 +145,10 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 		Permission: permissionName,
 	})
 	if err != nil {
+		errorLogger.LogServiceError(ctx, req, "CheckResourcePermission", err,
+			zap.String("object_id", objectID),
+			zap.String("object_namespace", objectNamespace),
+			zap.String("permission", permissionName))
 		return nil, handleAuthErr(err)
 	}
 
@@ -145,6 +160,8 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 }
 
 func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.Request[frontierv1beta1.BatchCheckPermissionRequest]) (*connect.Response[frontierv1beta1.BatchCheckPermissionResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	checks := make([]resource.Check, 0, len(req.Msg.GetBodies()))
 	for _, body := range req.Msg.GetBodies() {
 		objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(body.GetResource())
@@ -166,6 +183,8 @@ func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.
 	}
 	result, err := h.resourceService.BatchCheck(ctx, checks)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, req, "BatchCheckPermission", err,
+			zap.Int("batch_size", len(checks)))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

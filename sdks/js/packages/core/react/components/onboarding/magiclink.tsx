@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Text, Separator, Flex, InputField } from '@raystack/apsara';
 import React, { useCallback, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import isEmail from 'validator/lib/isEmail';
@@ -30,11 +30,10 @@ const emailSchema = yup.object({
   email: yup
     .string()
     .trim()
-    .email()
     .required()
     .test(
       'is-valid',
-      message => `${message.path} is invalid`,
+      () => 'Please enter a valid email address.',
       value =>
         value ? isEmail(value) : new yup.ValidationError('Invalid value')
     )
