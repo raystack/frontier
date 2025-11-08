@@ -299,9 +299,7 @@ export const OrganizationsDetailsNavabar = ({
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
-    if (value.length > 0 && search.onChange) {
-      search.onChange(value);
-    }
+    search.onChange(value);
   }
 
   return (
