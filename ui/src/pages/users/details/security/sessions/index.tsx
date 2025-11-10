@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Flex, Text, Button, Skeleton, toast } from "@raystack/apsara";
+import { Flex, Text, Button, toast } from "@raystack/apsara";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
+import { SessionSkeleton } from "./session-skeleton";
 import { useQuery, useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { AdminServiceQueries, Session } from "@raystack/proton/frontier";
@@ -115,11 +116,7 @@ export const UserSessions = () => {
       <Flex direction="column" gap={9}>
         {renderSessionsHeader()}
         <Flex direction="column" className={styles.sessionsContainer}>
-          <Skeleton 
-            height="32px"
-            containerStyle={{ padding: '1rem 0' }}
-            count={3}
-          />
+          <SessionSkeleton count={3} />
         </Flex>
       </Flex>
     );

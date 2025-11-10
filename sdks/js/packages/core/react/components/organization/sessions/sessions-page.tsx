@@ -5,10 +5,10 @@ import {
   Flex,
   Headline,
   Button,
-  Skeleton,
 } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useSessions } from '../../../hooks/useSessions';
+import { SessionSkeleton } from './session-skeleton';
 import styles from './sessions.module.css';
 
 export const SessionsPage = () => {
@@ -37,11 +37,7 @@ export const SessionsPage = () => {
             {renderSessionsHeader()}
           </Flex>
           <Flex direction="column" className={styles.sessionsList}>
-            <Skeleton 
-              height="60px" 
-              containerStyle={{ padding: '1rem 0' }}
-              count={3}
-            />
+            <SessionSkeleton count={3} />
           </Flex>
         </Flex>
       </Flex>
