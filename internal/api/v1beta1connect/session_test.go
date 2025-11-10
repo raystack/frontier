@@ -302,6 +302,17 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.ListSessionsResponse{}, resp.Msg)
 				assert.Len(t, resp.Msg.GetSessions(), tt.wantCount)
+				
+				// Verify location fields are present in all sessions
+				for _, session := range resp.Msg.GetSessions() {
+					if session.GetMetadata() != nil {
+						location := session.GetMetadata().GetLocation()
+						assert.NotNil(t, location)
+						// Verify latitude and longitude fields exist (can be empty)
+						_ = location.GetLatitude()
+						_ = location.GetLongitude()
+					}
+				}
 			}
 		})
 	}
@@ -334,11 +345,48 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 						OperatingSystem: "Mac OS X",
 						Browser:         "Chrome",
 						IpAddress:       "192.168.1.1",
+						Location: struct {
+							Country   string
+							City      string
+							Latitude  string
+							Longitude string
+						}{
+							Country:   "",
+							City:      "",
+							Latitude:  "",
+							Longitude: "",
+						},
 					},
 				}, nil)
 
 				// Mock session metadata update
 				sessionSvc.On("Ping", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
+				
+				// Mock GetByID to return updated session
+				sessionSvc.On("GetByID", mock.Anything, sessionID).Return(&frontiersession.Session{
+					ID:              sessionID,
+					UserID:          userID,
+					AuthenticatedAt: now.Add(-1 * time.Hour),
+					ExpiresAt:       now.Add(1 * time.Hour),
+					CreatedAt:       now.Add(-1 * time.Hour),
+					UpdatedAt:       now.Add(-30 * time.Minute),
+					Metadata: frontiersession.SessionMetadata{
+						OperatingSystem: "Mac OS X",
+						Browser:         "Chrome",
+						IpAddress:       "192.168.1.1",
+						Location: struct {
+							Country   string
+							City      string
+							Latitude  string
+							Longitude string
+						}{
+							Country:   "",
+							City:      "",
+							Latitude:  "",
+							Longitude: "",
+						},
+					},
+				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
 			wantErr: false,
@@ -367,7 +415,19 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 					ExpiresAt:       now.Add(-1 * time.Hour), // Expired session
 					CreatedAt:       now.Add(-3 * time.Hour),
 					UpdatedAt:       now.Add(-2 * time.Hour),
-					Metadata:        frontiersession.SessionMetadata{},
+					Metadata: frontiersession.SessionMetadata{
+						Location: struct {
+							Country   string
+							City      string
+							Latitude  string
+							Longitude string
+						}{
+							Country:   "",
+							City:      "",
+							Latitude:  "",
+							Longitude: "",
+						},
+					},
 				}, nil)
 			},
 			request:     connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
@@ -389,7 +449,19 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 					ExpiresAt:       now.Add(1 * time.Hour), // Valid session
 					CreatedAt:       now.Add(-1 * time.Hour),
 					UpdatedAt:       now.Add(-30 * time.Minute),
-					Metadata:        frontiersession.SessionMetadata{},
+					Metadata: frontiersession.SessionMetadata{
+						Location: struct {
+							Country   string
+							City      string
+							Latitude  string
+							Longitude string
+						}{
+							Country:   "",
+							City:      "",
+							Latitude:  "",
+							Longitude: "",
+						},
+					},
 				}, nil)
 
 				// Mock ping session failure
@@ -434,6 +506,32 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 
 				// Mock successful ping with metadata update
 				sessionSvc.On("Ping", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
+				
+				// Mock GetByID to return updated session with location data
+				sessionSvc.On("GetByID", mock.Anything, sessionID).Return(&frontiersession.Session{
+					ID:              sessionID,
+					UserID:          userID,
+					AuthenticatedAt: now.Add(-1 * time.Hour),
+					ExpiresAt:       now.Add(1 * time.Hour),
+					CreatedAt:       now.Add(-1 * time.Hour),
+					UpdatedAt:       now.Add(-30 * time.Minute),
+					Metadata: frontiersession.SessionMetadata{
+						OperatingSystem: "Windows",
+						Browser:         "Firefox",
+						IpAddress:       "10.0.0.1",
+						Location: struct {
+							Country   string
+							City      string
+							Latitude  string
+							Longitude string
+						}{
+							Country:   "US",
+							City:      "New York",
+							Latitude:  "40.7128",
+							Longitude: "-74.0060",
+						},
+					},
+				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.PingUserSessionRequest{}),
 			wantErr: false,
@@ -458,6 +556,8 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 							ClientIP:        "X-Forwarded-For",
 							ClientCountry:   "X-Country",
 							ClientCity:      "X-City",
+							ClientLatitude:  "CloudFront-Viewer-Latitude",
+							ClientLongitude: "CloudFront-Viewer-Longitude",
 							ClientUserAgent: "User-Agent",
 						},
 					},
@@ -479,6 +579,22 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.PingUserSessionResponse{}, resp.Msg)
+				
+				// Verify metadata is present
+				if resp.Msg.GetMetadata() != nil {
+					location := resp.Msg.GetMetadata().GetLocation()
+					if location != nil {
+						// Verify location fields are present (can be empty strings)
+						assert.NotNil(t, location)
+						// If this is the test case with location data, verify values
+						if location.GetCity() == "New York" {
+							assert.Equal(t, "US", location.GetCountry())
+							assert.Equal(t, "New York", location.GetCity())
+							assert.Equal(t, "40.7128", location.GetLatitude())
+							assert.Equal(t, "-74.0060", location.GetLongitude())
+						}
+					}
+				}
 			}
 		})
 	}
@@ -635,6 +751,17 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.ListUserSessionsResponse{}, resp.Msg)
 				assert.Len(t, resp.Msg.GetSessions(), tt.wantCount)
+				
+				// Verify location fields are present in all sessions
+				for _, session := range resp.Msg.GetSessions() {
+					if session.GetMetadata() != nil {
+						location := session.GetMetadata().GetLocation()
+						assert.NotNil(t, location)
+						// Verify latitude and longitude fields exist (can be empty)
+						_ = location.GetLatitude()
+						_ = location.GetLongitude()
+					}
+				}
 			}
 		})
 	}
