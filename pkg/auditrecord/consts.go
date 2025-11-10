@@ -17,6 +17,7 @@ const (
 	BillingCheckoutCreatedEvent Event = "billing_checkout.created"
 
 	// Billing Subscription Events
+	BillingSubscriptionCreatedEvent Event = "billing_subscription.created"
 	BillingSubscriptionChangedEvent Event = "billing_subscription.changed"
 
 	// Billing Transaction Events
