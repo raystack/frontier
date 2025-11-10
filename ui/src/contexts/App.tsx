@@ -2,11 +2,9 @@ import * as R from "ramda";
 import React, {
   PropsWithChildren,
   createContext,
-  useCallback,
-  useEffect,
-  useState,
 } from "react";
-import { useQuery } from "@connectrpc/connect-query";
+import { useQuery as useConnectQuery } from "@connectrpc/connect-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   AdminServiceQueries,
   FrontierServiceQueries,
@@ -37,39 +35,29 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   const {
     data: currentUserResponse,
     isLoading: isUserLoading,
-  } = useQuery(FrontierServiceQueries.getCurrentUser, {});
+  } = useConnectQuery(FrontierServiceQueries.getCurrentUser, {});
 
   const user = currentUserResponse?.user;
 
-  const [config, setConfig] = useState<Config>(defaultConfig);
+  const { data: config = defaultConfig } = useQuery({
+    queryKey: ["config"],
+    queryFn: async () => {
+      const resp = await fetch("/configs");
+      return (await resp.json()) as Config;
+    },
+  });
 
-  const { error: adminUserError } = useQuery(
+  const { error: adminUserError } = useConnectQuery(
     AdminServiceQueries.getCurrentAdminUser,
     {},
   );
 
   const isAdmin = Boolean(user?.id) && !adminUserError;
 
-  const fetchConfig = useCallback(async () => {
-    try {
-      const resp = await fetch("/configs");
-      const data = (await resp?.json()) as Config;
-      setConfig(data);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchConfig();
-  }, [fetchConfig]);
-
-  const isLoading = isUserLoading;
-
   return (
     <AppContext.Provider
       value={{
-        isLoading,
+        isLoading: isUserLoading,
         isAdmin,
         config,
         user,
