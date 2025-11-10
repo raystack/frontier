@@ -13,6 +13,10 @@ import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { FrontierServiceQueries, CreateOrganizationDomainRequestSchema, ListOrganizationDomainsRequestSchema } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
@@ -36,31 +40,50 @@ export const AddDomain = () => {
     resolver: yupResolver(domainSchema)
   });
   const navigate = useNavigate({ from: '/domains/modal' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
+
+  const { mutateAsync: createOrganizationDomain } = useMutation(
+    FrontierServiceQueries.createOrganizationDomain,
+    {
+      onSuccess: async (data) => {
+        toast.success('Domain successfully added');
+        // Invalidate domains list to refetch
+        if (organization?.id) {
+          await queryClient.invalidateQueries({
+            queryKey: createConnectQueryKey({
+              schema: FrontierServiceQueries.listOrganizationDomains,
+              transport,
+              input: create(ListOrganizationDomainsRequestSchema, {
+                orgId: organization.id
+              }),
+              cardinality: 'finite'
+            })
+          });
+        }
+        navigate({
+          to: `/domains/$domainId/verify`,
+          params: { domainId: data?.domain?.id ?? '' }
+        });
+      },
+      onError: (error: Error) => {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    }
+  );
 
   async function onSubmit(data: FormData) {
-    if (!client) return;
     if (!organization?.id) return;
 
-    try {
-      const {
-        data: { domain }
-      } = await client.frontierServiceCreateOrganizationDomain(
-        organization?.id,
-        data
-      );
-      toast.success('Domain added');
-
-      navigate({ to: '/domains' });
-      navigate({
-        to: `/domains/$domainId/verify`,
-        params: { domainId: domain?.id ?? '' }
-      });
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
+    await createOrganizationDomain(
+      create(CreateOrganizationDomainRequestSchema, {
+        orgId: organization.id,
+        domain: data.domain
+      })
+    );
   }
 
   return (

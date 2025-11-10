@@ -8,14 +8,15 @@ import {
   Skeleton,
   Text,
   Flex,
-  DataTable
+  DataTable,
+  toast
 } from '@raystack/apsara';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationDomains } from '~/react/hooks/useOrganizationDomains';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import type { V1Beta1Domain } from '~/src';
+import { type Domain as DomainType } from '@raystack/proton/frontier';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
@@ -23,14 +24,16 @@ import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import styles from './domain.module.css';
 
 export default function Domain() {
-  const { isFetching, domains, refetch } = useOrganizationDomains();
+  const { isFetching, domains, error: domainsError } = useOrganizationDomains();
   const { activeOrganization: organization, config } = useFrontier();
 
-  const routerState = useRouterState();
-
-  const isListRoute = useMemo(() => {
-    return routerState.location.pathname === '/domains';
-  }, [routerState.location.pathname]);
+  useEffect(() => {
+    if (domainsError) {
+      toast.error('Something went wrong', {
+        description: (domainsError as Error).message
+      });
+    }
+  }, [domainsError]);
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
@@ -56,12 +59,6 @@ export default function Domain() {
       )
     };
   }, [permissions, resource]);
-
-  useEffect(() => {
-    if (isListRoute) {
-      refetch();
-    }
-  }, [isListRoute, refetch, routerState.location.state.key]);
 
   const isLoading = isFetching || isPermissionsFetching;
 
@@ -105,17 +102,12 @@ const Domains = ({
   canCreateDomain,
   dateFormat
 }: {
-  domains: V1Beta1Domain[];
+  domains: DomainType[];
   isLoading?: boolean;
   canCreateDomain?: boolean;
   dateFormat?: string;
 }) => {
   const navigate = useNavigate({ from: '/domains' });
-  const tableStyle = useMemo(
-    () =>
-      domains?.length ? { width: '100%' } : { width: '100%', height: '100%' },
-    [domains?.length]
-  );
 
   const columns = useMemo(
     () =>
@@ -140,7 +132,7 @@ const Domains = ({
             {isLoading ? (
               <Skeleton height="34px" width="500px" />
             ) : (
-              <DataTable.Search placeholder="Search by name " size="medium" />
+              <DataTable.Search placeholder="Search by name " size="large" />
             )}
           </Flex>
           {isLoading ? (
