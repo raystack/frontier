@@ -94,7 +94,7 @@ export const InviteMember = () => {
     FrontierServiceQueries.createOrganizationInvitation,
     {
       onSuccess: () => {
-        toast.success('members added');
+        toast.success('User(s) invited');
         navigate({ to: '/members' });
       },
       onError: (error: any) => {

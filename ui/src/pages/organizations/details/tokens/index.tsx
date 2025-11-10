@@ -14,12 +14,23 @@ import {
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
 import { getColumns } from "./columns";
-import { useDebouncedState } from "@raystack/apsara/hooks";
+import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+};
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    expiresAt: "expires_at",
+    transactionId: "transaction_id",
+    userId: "user_id",
+    userTitle: "user_title",
+    userAvatar: "user_avatar",
+  },
 };
 
 const NoTokens = () => {
@@ -59,30 +70,19 @@ export function OrganizationTokensPage() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
-    200,
-  );
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const title = `Tokens | ${organization?.title} | Organizations`;
 
-  // Transform the DataTableQuery to RQLRequest format
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-      expiresAt: "expires_at",
-      transactionId: "transaction_id",
-      userId: "user_id",
-      userTitle: "user_title",
-      userAvatar: "user_avatar",
-    },
-  });
+  const computedQuery = useMemo(() => {
+    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
+    return {
+      ...tempQuery,
+      search: searchQuery || "",
+    };
+  }, [tableQuery, searchQuery]);
 
-  // Add search to the query if present
-  if (searchQuery) {
-    query.search = searchQuery;
-  }
+  const [query] = useDebounceValue(computedQuery, 200);
 
   const {
     data: infiniteData,

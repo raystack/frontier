@@ -2,7 +2,7 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import PageTitle from "~/components/page-title";
 import styles from "./members.module.css";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { getColumns } from "./columns";
 import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
@@ -22,12 +22,20 @@ import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { useDebouncedState } from "@raystack/apsara/hooks";
+import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+};
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    orgJoinedAt: "org_joined_at",
+    roleIds: "role_ids",
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+  },
 };
 
 const NoMembers = () => {
@@ -81,25 +89,17 @@ export function OrganizationMembersPage() {
 
   const title = `Members | ${organization?.title} | Organizations`;
 
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
-    200,
-  );
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
-  // Transform the DataTableQuery to RQLRequest format
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      orgJoinedAt: "org_joined_at",
-      roleIds: "role_ids",
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-    },
-  });
+  const computedQuery = useMemo(() => {
+    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
+    return {
+      ...tempQuery,
+      search: searchQuery || "",
+    };
+  }, [tableQuery, searchQuery]);
 
-  // Add search to the query if present
-  if (searchQuery) {
-    query.search = searchQuery;
-  }
+  const [query] = useDebounceValue(computedQuery, 200);
 
   const {
     data: infiniteData,

@@ -1,70 +1,87 @@
-import { Dialog, Flex, Skeleton, Tabs, Text } from "@raystack/apsara";
+import { Dialog, Flex, Skeleton, Tabs, Text, toast } from "@raystack/apsara";
 import styles from "./apis.module.css";
-import { useCallback, useEffect, useState } from "react";
-import { api } from "~/api";
-import type {
-  V1Beta1ServiceUserToken,
-  SearchOrganizationServiceUsersResponseOrganizationServiceUser,
-  Frontierv1Beta1Project,
-} from "~/api/frontier";
+import { useCallback, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
+import { useQuery } from "@connectrpc/connect-query";
+import {
+  FrontierServiceQueries,
+  ListServiceUserProjectsRequestSchema,
+  ListServiceUserTokensRequestSchema,
+  type SearchOrganizationServiceUsersResponse_OrganizationServiceUser
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { timestampToDayjs } from "~/utils/connect-timestamp";
 
 interface ServiceUserDetailsDialogProps {
   onClose: () => void;
-  serviceUser: SearchOrganizationServiceUsersResponseOrganizationServiceUser | null;
+  serviceUser: SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null;
 }
 
 export const ServiceUserDetailsDialog = ({
   serviceUser,
   onClose,
 }: ServiceUserDetailsDialogProps) => {
-  const { id = "", org_id = "", title = "" } = serviceUser || {};
-  const [projects, setProjects] = useState<Frontierv1Beta1Project[]>([]);
-  const [tokens, setTokens] = useState<V1Beta1ServiceUserToken[]>([]);
-  const [isProjectLoading, setIsProjectLoading] = useState(false);
-  const [isTokenLoading, setIsTokenLoading] = useState(false);
+  const { id = "", orgId = "", title = "" } = serviceUser || {};
 
-  const fetchProjects = useCallback(async () => {
-    if (!org_id || !id) return;
-    setIsProjectLoading(true);
-    try {
-      const resp = await api?.frontierServiceListServiceUserProjects(
-        org_id,
-        id,
-      );
-      const list = resp?.data?.projects || [];
-      setProjects(list || []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsProjectLoading(false);
-    }
-  }, [org_id, id]);
+  const projectsRequest = useMemo(
+    () =>
+      create(ListServiceUserProjectsRequestSchema, {
+        orgId: orgId,
+        id: id,
+      }),
+    [orgId, id],
+  );
 
-  const fetchTokens = useCallback(async () => {
-    if (!org_id || !id) return;
-    setIsTokenLoading(true);
-    try {
-      const resp = await api?.frontierServiceListServiceUserTokens(org_id, id);
-      const list = resp?.data?.tokens || [];
-      setTokens(list || []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsTokenLoading(false);
-    }
-  }, [org_id, id]);
+  const tokensRequest = useMemo(
+    () =>
+      create(ListServiceUserTokensRequestSchema, {
+        orgId: orgId,
+        id: id,
+      }),
+    [orgId, id],
+  );
+
+  const {
+    data: projects = [],
+    isLoading: isProjectLoading,
+    error: projectError,
+  } = useQuery(FrontierServiceQueries.listServiceUserProjects, projectsRequest, {
+    enabled: !!orgId && !!id,
+    select: (data) => data?.projects || [],
+  });
+
+  const {
+    data: tokens = [],
+    isLoading: isTokenLoading,
+    error: tokenError,
+  } = useQuery(FrontierServiceQueries.listServiceUserTokens, tokensRequest, {
+    enabled: !!orgId && !!id,
+    select: (data) => data?.tokens || [],
+  });
 
   useEffect(() => {
-    fetchProjects();
-    fetchTokens();
-  }, [fetchProjects, fetchTokens]);
-
-  function onOpenChange(val: boolean) {
-    if (!val) {
-      onClose();
+    if (projectError) {
+      toast.error("Something went wrong", {
+        description: "Unable to fetch projects",
+      });
+      console.error("Unable to fetch projects:", projectError);
     }
-  }
+    if (tokenError) {
+      toast.error("Something went wrong", {
+        description: "Unable to fetch tokens",
+      });
+      console.error("Unable to fetch tokens:", tokenError);
+    }
+  }, [projectError, tokenError]);
+
+  const onOpenChange = useCallback(
+    (val: boolean) => {
+      if (!val) {
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
   return (
     <Dialog open={id !== ""} onOpenChange={onOpenChange}>
@@ -107,7 +124,7 @@ export const ServiceUserDetailsDialog = ({
                     >
                       <Text weight="medium">{token.title}</Text>
                       <Text size="micro">
-                        {dayjs(token.created_at).format("YYYY-MM-DD")}
+                        {timestampToDayjs(token.createdAt)?.format("YYYY-MM-DD")}
                       </Text>
                     </Flex>
                   ))}
