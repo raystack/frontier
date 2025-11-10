@@ -10,14 +10,21 @@ import keyIcon from '~/react/assets/key.svg';
 import { PageHeader } from '~/react/components/common/page-header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getColumns } from './columns';
-import type { V1Beta1ServiceUser } from '~/api-client';
-import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import { useQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  ListOrganizationServiceUsersRequestSchema,
+  type ServiceUser
+} from '@raystack/proton/frontier';
+
 import sharedStyles from '../styles.module.css';
 import styles from './styles.module.css';
 
@@ -117,7 +124,7 @@ const ServiceAccountsTable = ({
   dateFormat
 }: {
   isLoading: boolean;
-  serviceUsers: V1Beta1ServiceUser[];
+  serviceUsers: ServiceUser[];
   dateFormat?: string;
 }) => {
   const columns = getColumns({ dateFormat: dateFormat || DEFAULT_DATE_FORMAT });
@@ -129,7 +136,7 @@ const ServiceAccountsTable = ({
       data={serviceUsers}
       columns={columns}
       isLoading={isLoading}
-      defaultSort={{ name: 'created_at', order: 'desc' }}
+      defaultSort={{ name: 'createdAt', order: 'desc' }}
       mode="client"
     >
       <Flex direction="column" gap={7} className={styles.tableWrapper}>
@@ -166,42 +173,29 @@ const ServiceAccountsTable = ({
 };
 
 export default function ApiKeys() {
-  const [serviceUsers, setServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
-  const [isServiceUsersLoading, setIsServiceUsersLoading] = useState(false);
-  const location = useLocation();
-  const refetch = location?.state?.refetch;
-
   const {
     activeOrganization: organization,
     isActiveOrganizationLoading,
-    config,
-    client
+    config
   } = useFrontier();
 
   const { isPermissionsFetching, canUpdateWorkspace } = useAccess(
     organization?.id
   );
 
-  useEffect(() => {
-    async function getServiceAccounts(orgId: string) {
-      try {
-        setIsServiceUsersLoading(true);
-        const resp = await client?.frontierServiceListOrganizationServiceUsers(
-          orgId
-        );
-        const data = resp?.data?.serviceusers || [];
-        setServiceUsers(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsServiceUsersLoading(false);
-      }
+  const {
+    data: serviceUsers = [],
+    isLoading: isServiceUsersLoading
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationServiceUsers,
+    create(ListOrganizationServiceUsersRequestSchema, {
+      id: organization?.id ?? ''
+    }),
+    {
+      enabled: Boolean(organization?.id) && canUpdateWorkspace,
+      select: data => data?.serviceusers ?? []
     }
-
-    if (organization?.id && canUpdateWorkspace) {
-      getServiceAccounts(organization?.id);
-    }
-  }, [organization?.id, client, canUpdateWorkspace, refetch]);
+  );
 
   const isLoading =
     isActiveOrganizationLoading ||

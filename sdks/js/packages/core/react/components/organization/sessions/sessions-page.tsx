@@ -4,12 +4,12 @@ import {
   Text,
   Flex,
   Button,
-  Skeleton,
 } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useSessions } from '../../../hooks/useSessions';
 import { PageHeader } from '../../common/page-header';
 import sharedStyles from '../styles.module.css';
+import { SessionSkeleton } from './session-skeleton';
 import styles from './sessions.module.css';
 
 export const SessionsPage = () => {
@@ -32,11 +32,7 @@ export const SessionsPage = () => {
             />
           </Flex>
           <Flex direction="column" className={styles.sessionsList}>
-            <Skeleton 
-              height="60px" 
-              containerStyle={{ padding: '1rem 0' }}
-              count={3}
-            />
+            <SessionSkeleton count={3} />
           </Flex>
         </Flex>
       </Flex>

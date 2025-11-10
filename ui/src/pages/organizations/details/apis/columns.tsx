@@ -1,11 +1,11 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import dayjs from "dayjs";
-import type {
-  SearchOrganizationServiceUsersResponseOrganizationServiceUser,
-  V1Beta1SearchOrganizationServiceUsersResponseProject,
-} from "~/api/frontier";
 import { NULL_DATE } from "~/utils/constants";
 import styles from "./apis.module.css";
+import type {
+  SearchOrganizationServiceUsersResponse_OrganizationServiceUser, 
+  SearchOrganizationServiceUsersResponse_Project 
+} from "@raystack/proton/frontier";
 
 interface ColumnOptions {
   groupCountMap: Record<string, Record<string, number>>;
@@ -14,7 +14,7 @@ interface ColumnOptions {
 export function getColumns(
   options: ColumnOptions,
 ): DataTableColumnDef<
-  SearchOrganizationServiceUsersResponseOrganizationServiceUser,
+SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
   unknown
 >[] {
   return [
@@ -36,7 +36,7 @@ export function getColumns(
       header: "Projects",
       cell: ({ getValue }) => {
         const value =
-          getValue() as V1Beta1SearchOrganizationServiceUsersResponseProject[];
+          getValue() as SearchOrganizationServiceUsersResponse_Project[];
         const projectNames = value.map((project) => project.title).join(", ");
         return <Text>{projectNames}</Text>;
       },

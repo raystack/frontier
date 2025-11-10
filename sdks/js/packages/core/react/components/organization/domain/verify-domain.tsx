@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Skeleton,
@@ -10,66 +9,75 @@ import {
   CopyButton
 } from '@raystack/apsara';
 
+import { useEffect } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain } from '~/src';
+import { useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
+import { FrontierServiceQueries,
+  VerifyOrganizationDomainRequestSchema,
+  ListOrganizationDomainsRequestSchema
+} from '@raystack/proton/frontier';
+import { useOrganizationDomain } from '~/react/hooks/useOrganizationDomain';
+import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
 export const VerifyDomain = () => {
   const navigate = useNavigate({ from: '/domains/$domainId/verify' });
   const { domainId } = useParams({ from: '/domains/$domainId/verify' });
-  const { client, activeOrganization: organization } = useFrontier();
-  const [domain, setDomain] = useState<V1Beta1Domain>();
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isDomainLoading, setIsDomainLoading] = useState(false);
+  const { activeOrganization: organization } = useFrontier();
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
-  const fetchDomainDetails = useCallback(async () => {
-    if (!domainId) return;
-    if (!organization?.id) return;
-
-    try {
-      setIsDomainLoading(true);
-      const resp = await client?.frontierServiceGetOrganizationDomain(
-        organization?.id,
-        domainId
-      );
-      const domain = resp?.data.domain;
-      setDomain(domain);
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    } finally {
-      setIsDomainLoading(false);
-    }
-  }, [client, domainId, organization?.id]);
-
-  const verifyDomain = useCallback(async () => {
-    if (!domainId) return;
-    if (!organization?.id) return;
-    setIsVerifying(true);
-
-    try {
-      await client?.frontierServiceVerifyOrganizationDomain(
-        organization?.id,
-        domainId,
-        {}
-      );
-      navigate({ to: '/domains' });
-      toast.success('Domain verified');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    } finally {
-      setIsVerifying(false);
-    }
-  }, [client, domainId, navigate, organization?.id]);
+  const { domain, isLoading: isDomainLoading, error: domainError } = useOrganizationDomain(domainId);
 
   useEffect(() => {
-    fetchDomainDetails();
-  }, [fetchDomainDetails]);
+    if (domainError) {
+      toast.error('Something went wrong', {
+        description: (domainError as Error).message
+      });
+    }
+  }, [domainError]);
+
+  const { mutateAsync: verifyOrganizationDomain, isPending: isVerifying } = useMutation(
+    FrontierServiceQueries.verifyOrganizationDomain,
+    {
+      onSuccess: async () => {
+        toast.success('Domain verified');
+        // Invalidate domains list to refetch
+        if (organization?.id) {
+          await queryClient.invalidateQueries({
+            queryKey: createConnectQueryKey({
+              schema: FrontierServiceQueries.listOrganizationDomains,
+              transport,
+              input: create(ListOrganizationDomainsRequestSchema, {
+                orgId: organization.id
+              }),
+              cardinality: 'finite'
+            })
+          });
+        }
+        navigate({ to: '/domains' });
+      },
+      onError: (error: Error) => {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    }
+  );
+
+  async function handleVerify() {
+    if (!domainId || !organization?.id) return;
+
+    await verifyOrganizationDomain(
+      create(VerifyOrganizationDomainRequestSchema, {
+        orgId: organization.id,
+        id: domainId
+      })
+    );
+  }
 
   return (
     <Dialog open={true}>
@@ -144,7 +152,7 @@ export const VerifyDomain = () => {
               <Skeleton height={'32px'} width={'64px'} />
             ) : (
               <Button
-                onClick={verifyDomain}
+                onClick={handleVerify}
                 loading={isVerifying}
                 loaderText="Verifying..."
                 data-test-id="frontier-sdk-verify-domain-btn"

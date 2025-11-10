@@ -2,7 +2,7 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./invoices.module.css";
 import { FileTextIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { getColumns } from "./columns";
@@ -14,12 +14,24 @@ import {
   DEFAULT_PAGE_SIZE,
   getGroupCountMapFromFirstPage,
 } from "~/utils/connect-pagination";
-import { useDebouncedState } from "@raystack/apsara/hooks";
+import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+};
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    dueDate: "due_date",
+    paidAt: "paid_at",
+    effectiveAt: "effective_at",
+    periodStart: "period_start",
+    periodEnd: "period_end",
+    invoiceLink: "invoice_link",
+  },
 };
 
 const NoInvoices = () => {
@@ -61,31 +73,19 @@ export function OrganizationInvoicesPage() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
-    200,
-  );
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const title = `Invoices | ${organization?.title} | Organizations`;
 
-  // Transform the DataTableQuery to RQLRequest format
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-      dueDate: "due_date",
-      paidAt: "paid_at",
-      effectiveAt: "effective_at",
-      periodStart: "period_start",
-      periodEnd: "period_end",
-      invoiceLink: "invoice_link",
-    },
-  });
+  const computedQuery = useMemo(() => {
+    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
+    return {
+      ...tempQuery,
+      search: searchQuery || "",
+    };
+  }, [tableQuery, searchQuery]);
 
-  // Add search to the query if present
-  if (searchQuery) {
-    query.search = searchQuery;
-  }
+  const [query] = useDebounceValue(computedQuery, 200);
 
   const {
     data: infiniteData,

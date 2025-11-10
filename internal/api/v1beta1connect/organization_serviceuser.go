@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,6 +20,8 @@ type OrgServiceUserService interface {
 }
 
 func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationServiceUsersResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), orgserviceuser.AggregatedServiceUser{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
@@ -29,6 +32,8 @@ func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, req
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
+		errorLogger.LogServiceError(ctx, request, "SearchOrganizationServiceUsers.Search", err,
+			zap.String("org_id", request.Msg.GetId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

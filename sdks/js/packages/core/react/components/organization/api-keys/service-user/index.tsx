@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara';
-import backIcon from '~/react/assets/chevron-left.svg';
 import { PageHeader } from '~/react/components/common/page-header';
 import {
   Outlet,
@@ -9,11 +8,20 @@ import {
   useParams
 } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import type { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import { useQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  GetServiceUserRequestSchema,
+  type ServiceUserToken
+} from '@raystack/proton/frontier';
+import { useServiceUserTokens } from '../hooks/useServiceUserTokens';
+
+import backIcon from '~/react/assets/chevron-left.svg';
 import sharedStyles from '../../styles.module.css';
 import styles from './styles.module.css';
 
@@ -71,7 +79,7 @@ const ServiceUserTokenItem = ({
   isLoading,
   serviceUserId
 }: {
-  token: V1Beta1ServiceUserToken;
+  token: ServiceUserToken;
   isLoading: boolean;
   serviceUserId: string;
 }) => {
@@ -158,13 +166,13 @@ const SerivceUserTokenList = ({
   serviceUserId
 }: {
   isLoading: boolean;
-  tokens: V1Beta1ServiceUserToken[];
+  tokens: ServiceUserToken[];
   serviceUserId: string;
 }) => {
   const tokenList = isLoading
     ? [
         ...new Array(3).map(
-          (_, i) => ({ id: i.toString() } as V1Beta1ServiceUserToken)
+          (_, i) => ({ id: i.toString() } as ServiceUserToken)
         )
       ]
     : tokens;
@@ -185,80 +193,35 @@ const SerivceUserTokenList = ({
 
 export default function ServiceUserPage() {
   let { id } = useParams({ from: '/api-keys/$id' });
-  const { client, activeOrganization } = useFrontier();
+  const { activeOrganization } = useFrontier();
   const navigate = useNavigate({ from: '/api-keys/$id' });
 
-  const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
-  const [isServiceUserLoadning, setIsServiceUserLoading] = useState(false);
-
-  const [serviceUserTokens, setServiceUserTokens] = useState<
-    V1Beta1ServiceUserToken[]
-  >([]);
-
-  const [isServiceUserTokensLoading, setIsServiceUserTokensLoading] =
-    useState(false);
-
   const location = useLocation();
-  const existingToken = location?.state?.token;
-  const refetch = location?.state?.refetch;
   const orgId = activeOrganization?.id || '';
 
-  const getServiceUser = useCallback(
-    async (serviceUserId: string) => {
-      try {
-        setIsServiceUserLoading(true);
-        const resp = await client?.frontierServiceGetServiceUser(
-          orgId,
-          serviceUserId
-        );
-        const data = resp?.data?.serviceuser;
-        setServiceUser(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsServiceUserLoading(false);
-      }
-    },
-    [client, orgId]
-  );
-
-  const getServiceUserTokens = useCallback(
-    async (serviceUserId: string) => {
-      try {
-        setIsServiceUserTokensLoading(true);
-        const resp = await client?.frontierServiceListServiceUserTokens(
-          orgId,
-          serviceUserId
-        );
-        const data = resp?.data?.tokens || [];
-        setServiceUserTokens(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsServiceUserTokensLoading(false);
-      }
-    },
-    [client, orgId]
-  );
-
-  useEffect(() => {
-    if (id) {
-      getServiceUser(id);
-      if (!existingToken?.id) {
-        getServiceUserTokens(id);
-      }
+  const { data: serviceUser, isLoading: isServiceUserLoading } = useQuery(
+    FrontierServiceQueries.getServiceUser,
+    create(GetServiceUserRequestSchema, {
+      id,
+      orgId
+    }),
+    {
+      enabled: Boolean(id) && Boolean(orgId),
+      select: data => data?.serviceuser
     }
-  }, [id, getServiceUser, getServiceUserTokens, existingToken?.id, refetch]);
+  );
 
-  const tokenList = existingToken
-    ? [existingToken, ...serviceUserTokens]
-    : serviceUserTokens;
+  const {
+    tokens: serviceUserTokens,
+    isLoading: isServiceUserTokensLoading,
+    addToken: onAddToken
+  } = useServiceUserTokens({
+    id,
+    orgId,
+    enableFetch: location.state?.enableServiceUserTokensListFetch
+  });
 
-  const isLoading = isServiceUserLoadning || isServiceUserTokensLoading;
-
-  const onAddToken = (token: V1Beta1ServiceUserToken) => {
-    setServiceUserTokens(prev => [token, ...prev]);
-  };
+  const isLoading = isServiceUserLoading || isServiceUserTokensLoading;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -273,8 +236,7 @@ export default function ServiceUserPage() {
               data-test-id="frontier-sdk-api-keys-page-back-link"
             />
             <PageHeader 
-              title="Service Account" 
-              description="Manage service account settings and tokens."
+              title="API" 
             />
           </Flex>
         </Flex>
@@ -288,7 +250,7 @@ export default function ServiceUserPage() {
           <AddServiceUserToken serviceUserId={id} onAddToken={onAddToken} />
           <SerivceUserTokenList
             isLoading={isLoading}
-            tokens={tokenList}
+            tokens={serviceUserTokens}
             serviceUserId={id}
           />
           </Flex>
