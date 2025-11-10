@@ -17,13 +17,15 @@ import { V1Beta1Role } from "@raystack/frontier";
 import { api } from "~/api";
 import { SCOPES, DEFAULT_ROLES } from "~/utils/constants";
 import styles from "./invite-users.module.css";
-import { useAppContext } from "~/contexts/App";
 import Skeleton from "react-loading-skeleton";
-import { useMutation } from "@connectrpc/connect-query";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
+  AdminServiceQueries,
   CreateOrganizationInvitationResponse,
+  SearchOrganizationsRequestSchema,
   FrontierServiceQueries,
 } from "@raystack/proton/frontier";
+import {create} from "@bufbuild/protobuf";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -47,7 +49,17 @@ export const InviteUser = () => {
   const [open, onOpenChange] = useState(false);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [isRolesLoading, setIsRolesLoading] = useState(false);
-  const { organizations, isLoading } = useAppContext();
+
+  const {
+    data: organizations,
+    isLoading: isOrganizationsLoading,
+  } = useQuery(
+    AdminServiceQueries.searchOrganizations, 
+    create(SearchOrganizationsRequestSchema, {query: {}}),
+    {
+      select: (data) => data?.organizations || [],
+    }
+  );
 
   const defaultRoleId = useMemo(
     () => roles?.find(role => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
@@ -195,11 +207,11 @@ export const InviteUser = () => {
                 </Label>
                 <Controller
                   name="organizationId"
-                  disabled={isLoading}
+                  disabled={isOrganizationsLoading}
                   control={control}
                   render={({ field, fieldState: { error } }) => {
                     const { ref, ...rest } = field;
-                    if (isLoading) return <Skeleton height={33} />;
+                    if (isOrganizationsLoading) return <Skeleton height={33} />;
                     return (
                       <>
                         <Select
