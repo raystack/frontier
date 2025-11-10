@@ -278,6 +278,15 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
+
+	// Query to fetch customer name before update
+	getQuery, getParams, err := dialect.From(TABLE_BILLING_CUSTOMERS).
+		Select("name").
+		Where(goqu.Ex{"id": toUpdate.ID}).ToSQL()
+	if err != nil {
+		return customer.Customer{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
 	updateRecord := goqu.Record{
 		"name":     toUpdate.Name,
 		"email":    toUpdate.Email,
@@ -307,23 +316,36 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	var customerModel Customer
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Update", func(ctx context.Context) error {
+			// Fetch customer name before update
+			var customerName string
+			if err := tx.QueryRowContext(ctx, getQuery, getParams...).Scan(&customerName); err != nil {
+				return err
+			}
+
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
 				return err
+			}
+
+			auditMetadata := map[string]interface{}{
+				"email":       customerModel.Email,
+				"currency":    customerModel.Currency,
+				"address":     customerModel.Address,
+				"provider_id": customerModel.ProviderID,
+			}
+
+			if customerName != customerModel.Name {
+				auditMetadata["name"] = customerName
+				auditMetadata["updated_name"] = customerModel.Name
 			}
 
 			auditRecord := BuildAuditRecord(
 				ctx,
 				auditrecord.BillingCustomerUpdatedEvent,
 				AuditResource{
-					ID:   customerModel.ID,
-					Type: auditrecord.BillingCustomerType,
-					Name: customerModel.Name,
-					Metadata: map[string]interface{}{
-						"email":       customerModel.Email,
-						"currency":    customerModel.Currency,
-						"address":     customerModel.Address,
-						"provider_id": customerModel.ProviderID,
-					},
+					ID:       customerModel.ID,
+					Type:     auditrecord.BillingCustomerType,
+					Name:     customerName,
+					Metadata: auditMetadata,
 				},
 				nil,
 				customerModel.OrgID,

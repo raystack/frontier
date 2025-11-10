@@ -277,8 +277,8 @@ func BuildAuditRecord(ctx context.Context, event pkgAuditRecord.Event, resource 
 
 // InsertAuditRecordInTx inserts an audit record within a transaction
 func InsertAuditRecordInTx(ctx context.Context, tx *sqlx.Tx, record AuditRecord) error {
-	// Enrich the organization name from DB
-	if record.OrganizationID != uuid.Nil {
+	// Enrich the organization name from DB only if not already set
+	if record.OrganizationID != uuid.Nil && record.OrganizationName == "" {
 		var orgName string
 		query, params, err := buildOrgNameQuery(record.OrganizationID)
 		if err == nil {
