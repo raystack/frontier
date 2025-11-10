@@ -81,7 +81,7 @@ type Config struct {
 	CorsOrigin []string `yaml:"cors_origin" mapstructure:"cors_origin"`
 	// Cors configuration setup origin value from where we want to allow cors
 	// headers and methods are the list of headers and methods we want to allow
-	Cors interceptors.CorsConfig `yaml:"cors" mapstructure:"cors"`
+	Cors        interceptors.CorsConfig        `yaml:"cors" mapstructure:"cors"`
 	ConnectCors connectinterceptors.CorsConfig `yaml:"cors" mapstructure:"cors"`
 
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
