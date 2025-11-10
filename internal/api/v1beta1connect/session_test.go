@@ -302,7 +302,7 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.ListSessionsResponse{}, resp.Msg)
 				assert.Len(t, resp.Msg.GetSessions(), tt.wantCount)
-				
+
 				// Verify location fields are present in all sessions
 				for _, session := range resp.Msg.GetSessions() {
 					if session.GetMetadata() != nil {
@@ -361,7 +361,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 
 				// Mock session metadata update
 				sessionSvc.On("Ping", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
-				
+
 				// Mock GetByID to return updated session
 				sessionSvc.On("GetByID", mock.Anything, sessionID).Return(&frontiersession.Session{
 					ID:              sessionID,
@@ -506,7 +506,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 
 				// Mock successful ping with metadata update
 				sessionSvc.On("Ping", mock.Anything, sessionID, mock.AnythingOfType("session.SessionMetadata")).Return(nil)
-				
+
 				// Mock GetByID to return updated session with location data
 				sessionSvc.On("GetByID", mock.Anything, sessionID).Return(&frontiersession.Session{
 					ID:              sessionID,
@@ -579,7 +579,7 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.PingUserSessionResponse{}, resp.Msg)
-				
+
 				// Verify metadata is present
 				if resp.Msg.GetMetadata() != nil {
 					location := resp.Msg.GetMetadata().GetLocation()
@@ -751,7 +751,7 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 				assert.NotNil(t, resp)
 				assert.IsType(t, &frontierv1beta1.ListUserSessionsResponse{}, resp.Msg)
 				assert.Len(t, resp.Msg.GetSessions(), tt.wantCount)
-				
+
 				// Verify location fields are present in all sessions
 				for _, session := range resp.Msg.GetSessions() {
 					if session.GetMetadata() != nil {
