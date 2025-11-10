@@ -193,11 +193,15 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 							Browser:         "Chrome",
 							IpAddress:       "192.168.1.1",
 							Location: struct {
-								Country string
-								City    string
+								Country   string
+								City      string
+								Latitude  string
+								Longitude string
 							}{
-								Country: "US",
-								City:    "San Francisco",
+								Country:   "US",
+								City:      "San Francisco",
+								Latitude:  "",
+								Longitude: "",
 							},
 						},
 					},
@@ -213,11 +217,15 @@ func TestConnectHandler_ListSessions(t *testing.T) {
 							Browser:         "Firefox",
 							IpAddress:       "192.168.1.2",
 							Location: struct {
-								Country string
-								City    string
+								Country   string
+								City      string
+								Latitude  string
+								Longitude string
 							}{
-								Country: "US",
-								City:    "New York",
+								Country:   "US",
+								City:      "New York",
+								Latitude:  "",
+								Longitude: "",
 							},
 						},
 					},
@@ -411,11 +419,15 @@ func TestConnectHandler_PingUserSession(t *testing.T) {
 						Browser:         "Firefox",
 						IpAddress:       "10.0.0.1",
 						Location: struct {
-							Country string
-							City    string
+							Country   string
+							City      string
+							Latitude  string
+							Longitude string
 						}{
-							Country: "US",
-							City:    "New York",
+							Country:   "US",
+							City:      "New York",
+							Latitude:  "",
+							Longitude: "",
 						},
 					},
 				}, nil)
@@ -501,11 +513,15 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 							Browser:         "Chrome",
 							IpAddress:       "192.168.1.1",
 							Location: struct {
-								Country string
-								City    string
+								Country   string
+								City      string
+								Latitude  string
+								Longitude string
 							}{
-								Country: "US",
-								City:    "San Francisco",
+								Country:   "US",
+								City:      "San Francisco",
+								Latitude:  "",
+								Longitude: "",
 							},
 						},
 					},
@@ -521,11 +537,15 @@ func TestConnectHandler_ListUserSessions(t *testing.T) {
 							Browser:         "Firefox",
 							IpAddress:       "192.168.1.2",
 							Location: struct {
-								Country string
-								City    string
+								Country   string
+								City      string
+								Latitude  string
+								Longitude string
 							}{
-								Country: "US",
-								City:    "New York",
+								Country:   "US",
+								City:      "New York",
+								Latitude:  "",
+								Longitude: "",
 							},
 						},
 					},
