@@ -238,9 +238,12 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	mux.Handle(connecthealth.NewHandler(checker))
 
 	// Configure and create the server
+	handler := h2c.NewHandler(mux, &http2.Server{})
+	handler = connectinterceptors.WithConnectCORS(handler, cfg.ConnectCors)
+
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Connect.Port),
-		Handler: h2c.NewHandler(mux, &http2.Server{}),
+		Handler: handler,
 	}
 
 	logger.Info("connect server starting", "port", cfg.Connect.Port)

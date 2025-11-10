@@ -5,6 +5,7 @@ import (
 
 	"github.com/raystack/frontier/core/webhook"
 
+	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
 	"github.com/raystack/frontier/pkg/mailer"
@@ -81,6 +82,7 @@ type Config struct {
 	// Cors configuration setup origin value from where we want to allow cors
 	// headers and methods are the list of headers and methods we want to allow
 	Cors interceptors.CorsConfig `yaml:"cors" mapstructure:"cors"`
+	ConnectCors connectinterceptors.CorsConfig `yaml:"cors" mapstructure:"cors"`
 
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
 
