@@ -89,8 +89,7 @@ const AllowedEmailDomains = () => {
           Allowed email domains
         </Text>
         <Text size="regular" variant="secondary">
-          Anyone with an email address at these domains is allowed to sign up
-          for this workspace.
+          Anyone with an email address from these domains can sign up for this workspace.
         </Text>
       </Flex>
     </Flex>
