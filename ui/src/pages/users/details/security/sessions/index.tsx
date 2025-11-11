@@ -26,10 +26,6 @@ const formatLocation = (location?: string | {
 }): string => {
   if (!location) return 'Unknown location';
   
-  // if (typeof location === 'string') {
-  //   return location || 'Unknown location';
-  // }
-  
   const city = location.city?.trim() || '';
   const country = location.country?.trim() || '';
   
