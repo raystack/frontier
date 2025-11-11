@@ -1,13 +1,14 @@
-import { Organization, OrganizationSchema } from "@raystack/proton/frontier";
+import {
+  Organization,
+  OrganizationSchema,
+  type Role,
+  type BillingAccount,
+  type User,
+  type OrganizationKyc,
+  type BillingAccountDetails,
+} from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { createContext } from "react";
-import type {
-  V1Beta1Role,
-  V1Beta1BillingAccount,
-  V1Beta1User,
-  V1Beta1OrganizationKyc,
-  V1Beta1BillingAccountDetails,
-} from "~/api/frontier";
 
 export interface SearchConfig {
   setVisibility: (isVisible: boolean) => void;
@@ -17,34 +18,33 @@ export interface SearchConfig {
 }
 
 interface OrganizationContextType {
-  roles: V1Beta1Role[];
+  roles: Role[];
   organization?: Organization;
   updateOrganization: (organization: Organization) => Promise<void>;
   search: SearchConfig;
-  billingAccount?: V1Beta1BillingAccount;
-  billingAccountDetails?: V1Beta1BillingAccountDetails;
-  setBillingAccountDetails?: (
-    billingAccountDetails: V1Beta1BillingAccountDetails,
-  ) => void;
+  billingAccount?: BillingAccount;
+  billingAccountDetails?: BillingAccountDetails;
+  isBillingAccountLoading: boolean;
+  fetchBillingAccountDetails: () => void;
   tokenBalance: string;
   isTokenBalanceLoading: boolean;
-  fetchTokenBalance: (orgId: string, billingAccountId: string) => Promise<void>;
-  orgMembersMap: Record<string, V1Beta1User>;
+  fetchTokenBalance: () => void;
+  orgMembersMap: Record<string, User>;
   isOrgMembersMapLoading: boolean;
-  updateKYCDetails: (kycDetails: V1Beta1OrganizationKyc) => void;
-  kycDetails?: V1Beta1OrganizationKyc;
+  updateKYCDetails: (kycDetails: OrganizationKyc | undefined) => void;
+  kycDetails?: OrganizationKyc;
   isKYCLoading: boolean;
 }
 
-export const OrganizationContext = createContext<OrganizationContextType>({
+const defaultOrganiztionContextValue = {
   roles: [],
   organization: create(OrganizationSchema),
   updateOrganization: async () => {},
-  setBillingAccountDetails: async () => {},
-  billingAccount: {},
+  isBillingAccountLoading: false,
+  fetchBillingAccountDetails: () => {},
   tokenBalance: "",
   isTokenBalanceLoading: false,
-  fetchTokenBalance: async () => {},
+  fetchTokenBalance: () => {},
   search: {
     setVisibility: () => {},
     isVisible: false,
@@ -53,7 +53,9 @@ export const OrganizationContext = createContext<OrganizationContextType>({
   },
   orgMembersMap: {},
   isOrgMembersMapLoading: false,
-  updateKYCDetails: (kycDetails: V1Beta1OrganizationKyc) => {},
+  updateKYCDetails: () => {},
   kycDetails: undefined,
   isKYCLoading: false,
-});
+};
+
+export const OrganizationContext = createContext<OrganizationContextType>(defaultOrganiztionContextValue);

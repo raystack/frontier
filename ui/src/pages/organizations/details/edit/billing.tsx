@@ -11,16 +11,15 @@ import {
   toast,
 } from "@raystack/apsara";
 import styles from "./edit.module.css";
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Skeleton from "react-loading-skeleton";
-import { useMutation, useQuery } from "@connectrpc/connect-query";
+import { useMutation } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
-  GetBillingAccountDetailsRequestSchema,
   UpdateBillingAccountDetailsRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
@@ -71,10 +70,14 @@ const billingDetailsUpdateSchema = z
 type BillingDetailsForm = z.infer<typeof billingDetailsUpdateSchema>;
 
 export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
-  const { billingAccount, setBillingAccountDetails } =
-    useContext(OrganizationContext);
+  const { 
+    billingAccount,
+    billingAccountDetails,
+    isBillingAccountLoading: isLoading,
+    fetchBillingAccountDetails,
+  } = useContext(OrganizationContext);
 
-  const organizationId = billingAccount?.org_id || "";
+  const organizationId = billingAccount?.orgId || "";
   const billingId = billingAccount?.id || "";
 
   const {
@@ -88,34 +91,17 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     resolver: zodResolver(billingDetailsUpdateSchema),
   });
 
-  const { data: billingDetailsData, isLoading, error, refetch: refetchBillingDetails } = useQuery(
-    AdminServiceQueries.getBillingAccountDetails,
-    create(GetBillingAccountDetailsRequestSchema, {
-      orgId: organizationId,
-      id: billingId,
-    }),
-    {
-      enabled: !!organizationId && !!billingId,
-      select: (data) => {
-        const isPostpaid = data?.creditMin < 0n;
-        const creditMin = isPostpaid ? data.creditMin * BigInt(-1) : data.creditMin;
-        return {
-          tokenPaymentType: isPostpaid ? "postpaid" as const : "prepaid" as const,
-          creditMin: creditMin.toString(),
-          dueInDays: data?.dueInDays.toString(),
-        };
-      },
-    },
-  );
-
-  useEffect(() => {
-    if (error) {
-      toast.error("Something went wrong", {
-        description: "Unable to fetch billing details",
-      });
-      console.error("Unable to fetch billing details:", error);
-    }
-  }, [error]);
+  const billingDetailsData = useMemo(() => {
+    const creditMin = billingAccountDetails?.creditMin || 0n
+    const absoluteCreditMin = creditMin < 0n ? creditMin*BigInt(-1) : creditMin
+    const dueInDays = billingAccountDetails?.dueInDays || 0n
+    const isPostpaid = creditMin < 0n;
+    return {
+      tokenPaymentType: isPostpaid ? "postpaid" as const : "prepaid" as const,
+      creditMin: absoluteCreditMin.toString(),
+      dueInDays: dueInDays.toString(),
+    };
+  }, [billingAccountDetails]);
 
   useEffect(() => {
     if (billingDetailsData) {
@@ -155,14 +141,8 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
         }),
       );
 
-      const getBillingDetailsResp = await refetchBillingDetails();
-      const updatedDetails = getBillingDetailsResp?.data;
-      if (updatedDetails && setBillingAccountDetails) {
-        setBillingAccountDetails({
-          credit_min: updatedDetails.creditMin.toString(),
-          due_in_days: updatedDetails.dueInDays.toString(),
-        });
-      }
+      // Refetch current dialog's billing details
+      fetchBillingAccountDetails()
 
       toast.success("Billing details updated");
     } catch (error) {
