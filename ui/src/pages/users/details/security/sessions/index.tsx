@@ -18,7 +18,7 @@ import styles from "./sessions.module.css";
  * Note: This function also exists in the SDK utils/index.ts file. 
  * If you make any changes here, please update the SDK utils/index.ts file as well.
  */
-const formatLocation = (location?: string | {
+const formatLocation = (location?: {
   city?: string;
   country?: string;
   latitude?: string;
