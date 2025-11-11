@@ -9,7 +9,7 @@ import {
 } from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '~/react/utils/constants';
 import type { Invoice } from '@raystack/proton/frontier';
 import { capitalize } from '~/utils';
 import { timestampToDayjs, type TimeStamp } from '~/utils/timestamp';
@@ -31,9 +31,11 @@ export const getColumns: (
     header: 'Date',
     accessorKey: 'effectiveAt',
     cell: ({ row, getValue }) => {
-      const effectiveAt = getValue() as TimeStamp;
-      const timestamp =
-        effectiveAt || row?.original?.dueDate || row?.original?.createdAt;
+      const value =
+        row.original?.state === INVOICE_STATES.DRAFT
+          ? row?.original?.dueDate
+          : (getValue() as TimeStamp);
+      const timestamp = value || row?.original?.createdAt;
       const date = timestampToDayjs(timestamp);
       return (
         <Flex direction="column">
