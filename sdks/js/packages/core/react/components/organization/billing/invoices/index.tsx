@@ -8,9 +8,8 @@ import {
   Amount
 } from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '~/react/utils/constants';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import type { Invoice } from '@raystack/proton/frontier';
 import { capitalize } from '~/utils';
 import { timestampToDayjs, type TimeStamp } from '~/utils/timestamp';
