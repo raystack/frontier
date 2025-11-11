@@ -10,13 +10,17 @@ import {
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import billingStyles from './billing.module.css';
+import { V1Beta1CheckoutSetupBody } from '~/src';
 import {
-  V1Beta1CheckoutSetupBody,
-  V1Beta1Invoice
-} from '~/src';
-import { BillingAccount } from '@raystack/proton/frontier';
+  BillingAccount,
+  Invoice,
+  ListInvoicesRequestSchema,
+  FrontierServiceQueries
+} from '@raystack/proton/frontier';
+import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
 // import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';
@@ -90,7 +94,7 @@ const BillingDetails = ({
   const isButtonDisabled = isLoading || disabled;
   return (
     <div className={billingStyles.detailsBox}>
-      <Flex align="center" justify="between" style={{ width: '100%' }}>
+      <Flex align="center" justify="between" width="full">
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed ? (
           <Tooltip
@@ -140,35 +144,20 @@ export default function Billing() {
     isOrganizationKycLoading
   } = useFrontier();
 
-  const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
-  const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
   const { isAllowed, isFetching } = useBillingPermission();
 
-  const fetchInvoices = useCallback(
-    async (organizationId: string, billingId: string) => {
-      setIsInvoicesLoading(true);
-      try {
-        const resp = await client?.frontierServiceListInvoices(
-          organizationId,
-          billingId,
-          { nonzero_amount_only: true }
-        );
-        const newInvoices = resp?.data?.invoices || [];
-        setInvoices(newInvoices);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsInvoicesLoading(false);
-      }
-    },
-    [client]
-  );
-
-  useEffect(() => {
-    if (billingAccount?.id && billingAccount?.orgId) {
-      fetchInvoices(billingAccount?.orgId, billingAccount?.id);
+  const { data: invoices = [], isLoading: isInvoicesLoading } = useConnectQuery(
+    FrontierServiceQueries.listInvoices,
+    create(ListInvoicesRequestSchema, {
+      orgId: billingAccount?.orgId || '',
+      billingId: billingAccount?.id || '',
+      nonzeroAmountOnly: true
+    }),
+    {
+      enabled: !!billingAccount?.id && !!billingAccount?.orgId,
+      select: data => data?.invoices || []
     }
-  }, [billingAccount?.id, billingAccount?.orgId, client, fetchInvoices]);
+  );
 
   const onAddDetailsClick = useCallback(async () => {
     const orgId = billingAccount?.orgId || '';
@@ -231,7 +220,7 @@ export default function Billing() {
   const isOrganizationKycCompleted = organizationKyc?.status === true;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
+    <Flex direction="column" width="full">
       <Flex style={styles.header}>
         <Text size="large">Billing</Text>
       </Flex>

@@ -80,7 +80,7 @@ export function ConfirmCycleSwitch() {
             planId: nextPlanId,
             isTrial: false,
             onSuccess: data => {
-              window.location.href = data?.checkout_url as string;
+              window.location.href = data?.checkoutUrl as string;
             }
           });
         } else
