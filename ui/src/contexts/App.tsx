@@ -2,52 +2,26 @@ import * as R from "ramda";
 import React, {
   PropsWithChildren,
   createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
 } from "react";
+import { useQuery as useConnectQuery } from "@connectrpc/connect-query";
+import { useQuery } from "@tanstack/react-query";
 import {
-  V1Beta1ListPlatformUsersResponse,
-  V1Beta1Organization,
-  V1Beta1Plan,
-  V1Beta1User,
-} from "@raystack/frontier";
-import { useMutation, useQuery } from "@connectrpc/connect-query";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+  AdminServiceQueries,
+  FrontierServiceQueries,
+  type User,
+} from "@raystack/proton/frontier";
 import { Config, defaultConfig } from "~/utils/constants";
-import { api } from "~/api";
-
-// TODO: Setting this to 1000 initially till APIs support filters and sorting.
-const page_size = 1000;
-
-type OrgMap = Record<string, V1Beta1Organization>;
 
 interface AppContextValue {
-  orgMap: OrgMap;
   isAdmin: boolean;
   isLoading: boolean;
-  organizations: V1Beta1Organization[];
-  plans: V1Beta1Plan[];
-  platformUsers?: V1Beta1ListPlatformUsersResponse;
-  fetchPlatformUsers: () => void;
-  loadMoreOrganizations: () => void;
   config: Config;
-  user?: V1Beta1User;
+  user?: User;
 }
 
 const AppContextDefaultValue = {
-  orgMap: {},
   isAdmin: false,
   isLoading: false,
-  organizations: [],
-  plans: [],
-  platformUsers: {
-    users: [],
-    serviceusers: [],
-  },
-  fetchPlatformUsers: () => {},
-  loadMoreOrganizations: () => {},
   config: defaultConfig,
 };
 
@@ -55,194 +29,36 @@ export const AppContext = createContext<AppContextValue>(
   AppContextDefaultValue,
 );
 
-export const useAppContext = () => useContext(AppContext);
-
 export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   children,
 }) {
-  const [user, setUser] = useState<V1Beta1User | undefined>();
-  const [isUserLoading, setIsUserLoading] = useState(true);
+  const {
+    data: currentUserResponse,
+    isLoading: isUserLoading,
+  } = useConnectQuery(FrontierServiceQueries.getCurrentUser, {});
 
-  const [isOrgListLoading, setIsOrgListLoading] = useState(false);
-  const [enabledOrganizations, setEnabledOrganizations] = useState<
-    V1Beta1Organization[]
-  >([]);
-  const [disabledOrganizations, setDisabledOrganizations] = useState<
-    V1Beta1Organization[]
-  >([]);
-  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
-  const [isPlansLoading, setIsPlansLoading] = useState(false);
+  const user = currentUserResponse?.user;
 
-  const [isPlatformUsersLoading, setIsPlatformUsersLoading] = useState(false);
-  const [platformUsers, setPlatformUsers] =
-    useState<V1Beta1ListPlatformUsersResponse>();
+  const { data: config = defaultConfig } = useQuery({
+    queryKey: ["config"],
+    queryFn: async () => {
+      const resp = await fetch("/configs");
+      return (await resp.json()) as Config;
+    },
+  });
 
-  const [config, setConfig] = useState<Config>(defaultConfig);
-
-  const [page, setPage] = useState(1);
-  const [enabledOrgHasMoreData, setEnabledOrgHasMoreData] = useState(true);
-  const [disabledOrgHasMoreData, setDisabledOrgHasMoreData] = useState(true);
-
-  const { mutateAsync: listAllOrganizations } = useMutation(
-    AdminServiceQueries.listAllOrganizations,
-  );
-
-  const { error: adminUserError } = useQuery(
+  const { error: adminUserError } = useConnectQuery(
     AdminServiceQueries.getCurrentAdminUser,
     {},
   );
 
   const isAdmin = Boolean(user?.id) && !adminUserError;
 
-  const fetchOrganizations = useCallback(async () => {
-    if (!enabledOrgHasMoreData && !disabledOrgHasMoreData) return;
-
-    setIsOrgListLoading(true);
-    try {
-      const [orgResp, disabledOrgResp] = await Promise.all([
-        listAllOrganizations({
-          pageNum: page,
-          pageSize: page_size,
-        }),
-        listAllOrganizations({
-          state: "disabled",
-          pageNum: page,
-          pageSize: page_size,
-        }),
-      ]);
-
-      if (orgResp?.organizations?.length) {
-        setEnabledOrganizations((prev: V1Beta1Organization[]) => [
-          ...prev,
-          ...(orgResp.organizations || []),
-        ]);
-      } else {
-        setEnabledOrgHasMoreData(false);
-      }
-
-      if (disabledOrgResp?.organizations?.length) {
-        setDisabledOrganizations((prev: V1Beta1Organization[]) => [
-          ...prev,
-          ...(disabledOrgResp.organizations || []),
-        ]);
-      } else {
-        setDisabledOrgHasMoreData(false);
-      }
-    } catch (error) {
-      console.error(error);
-      setEnabledOrgHasMoreData(false);
-      setDisabledOrgHasMoreData(false);
-    } finally {
-      setIsOrgListLoading(false);
-    }
-  }, [
-    page,
-    enabledOrgHasMoreData,
-    disabledOrgHasMoreData,
-    listAllOrganizations,
-  ]);
-
-  const loadMoreOrganizations = () => {
-    if (
-      !isOrgListLoading &&
-      (enabledOrgHasMoreData || disabledOrgHasMoreData)
-    ) {
-      setPage((prevPage: number) => prevPage + 1);
-    }
-  };
-
-  useEffect(() => {
-    async function fetchUser() {
-      setIsUserLoading(true);
-      try {
-        const resp = await api.frontierServiceGetCurrentUser();
-        setUser(resp?.data?.user);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsUserLoading(false);
-      }
-    }
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchOrganizations();
-    }
-  }, [isAdmin, page, fetchOrganizations]);
-
-  const fetchPlatformUsers = useCallback(async () => {
-    setIsPlatformUsersLoading(true);
-    try {
-      const resp = await api?.adminServiceListPlatformUsers();
-      if (resp?.data) {
-        setPlatformUsers(resp?.data);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsPlatformUsersLoading(false);
-    }
-  }, []);
-
-  const fetchConfig = useCallback(async () => {
-    setIsPlatformUsersLoading(true);
-    try {
-      const resp = await fetch("/configs");
-      const data = (await resp?.json()) as Config;
-      setConfig(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsPlatformUsersLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    async function getPlans() {
-      setIsPlansLoading(true);
-      try {
-        const resp = await api?.frontierServiceListPlans();
-        const planList = resp?.data?.plans || [];
-        setPlans(planList);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsPlansLoading(false);
-      }
-    }
-    if (isAdmin) {
-      getPlans();
-      fetchPlatformUsers();
-    }
-    fetchConfig();
-  }, [isAdmin, fetchPlatformUsers, fetchConfig]);
-
-  const isLoading =
-    isOrgListLoading ||
-    isUserLoading ||
-    isPlansLoading ||
-    isPlatformUsersLoading;
-  const organizations = [...enabledOrganizations, ...disabledOrganizations];
-
-  const orgMap = organizations.reduce((acc, org) => {
-    const orgId = org?.id || "";
-    if (orgId) acc[orgId] = org;
-    return acc;
-  }, {} as OrgMap);
-
   return (
     <AppContext.Provider
       value={{
-        orgMap,
-        isLoading,
+        isLoading: isUserLoading,
         isAdmin,
-        organizations,
-        plans,
-        platformUsers,
-        fetchPlatformUsers,
-        loadMoreOrganizations,
         config,
         user,
       }}>
