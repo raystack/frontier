@@ -216,9 +216,12 @@ export const FrontierContextProvider = ({
   const user = currentUserData?.user;
 
   // Track last user activity for session management and get session metadata
-  const sessionMetadata = useLastActiveTracker({
+  const sessionMetadataResult = useLastActiveTracker({
     enabled: Boolean(user?.id)
   });
+  
+  // Extract metadata from the query result
+  const sessionMetadata = sessionMetadataResult?.data?.metadata;
 
   const { data: groupsData } = useConnectQuery(
     FrontierServiceQueries.listCurrentUserGroups,
