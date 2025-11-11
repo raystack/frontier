@@ -314,7 +314,7 @@ export const OrganizationsDetailsNavabar = ({
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
           <Breadcrumb.Item
-            href={`/organigations/${organization?.id}`}
+            href={`/organizations/${organization?.id}`}
             leadingIcon={
               <Avatar
                 color={getAvatarColor(organization?.id || "")}

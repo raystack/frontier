@@ -5,11 +5,12 @@ import { Outlet, useNavigate } from "react-router-dom";
 import styles from "./webhooks.module.css";
 import { useWebhookQueries } from "./hooks/useWebhookQueries";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useAppContext } from "~/contexts/App";
+import { AppContext } from "~/contexts/App";
+import { useContext } from "react";
 
 export default function WebhooksList() {
   const navigate = useNavigate();
-  const { config } = useAppContext();
+  const { config } = useContext(AppContext);
   const {
     listWebhooks: {
       data: webhooksResponse,
