@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState
 } from 'react';
@@ -96,6 +95,18 @@ interface FrontierContextProviderProps {
   isOrganizationKycLoading: boolean;
 
   billingDetails: BillingAccountDetails | undefined;
+
+  sessionMetadata: {
+    browser?: string;
+    operatingSystem?: string;
+    ipAddress?: string;
+    location?: {
+      city?: string;
+      country?: string;
+      latitude?: string;
+      longitude?: string;
+    };
+  } | undefined;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -159,7 +170,9 @@ const initialValues: FrontierContextProviderProps = {
 
   isOrganizationKycLoading: false,
 
-  billingDetails: undefined
+  billingDetails: undefined,
+
+  sessionMetadata: undefined
 };
 
 export const FrontierContext =
@@ -201,6 +214,11 @@ export const FrontierContextProvider = ({
   );
 
   const user = currentUserData?.user;
+
+  // Track last user activity for session management and get session metadata
+  const sessionMetadata = useLastActiveTracker({
+    enabled: Boolean(user?.id)
+  });
 
   const { data: groupsData } = useConnectQuery(
     FrontierServiceQueries.listCurrentUserGroups,
@@ -317,11 +335,6 @@ export const FrontierContextProvider = ({
       : undefined;
   }, [config?.billing?.basePlan]);
 
-  // Track last user activity for session management
-  useLastActiveTracker({
-    enabled: Boolean(user?.id)
-  });
-
   return (
     <FrontierContext.Provider
       value={{
@@ -354,7 +367,8 @@ export const FrontierContextProvider = ({
         basePlan,
         organizationKyc,
         isOrganizationKycLoading,
-        billingDetails
+        billingDetails,
+        sessionMetadata
       }}
     >
       {children}
