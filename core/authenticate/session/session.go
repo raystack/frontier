@@ -11,8 +11,10 @@ import (
 type SessionMetadata struct {
 	IpAddress string
 	Location  struct {
-		Country string
-		City    string
+		Country   string
+		City      string
+		Latitude  string
+		Longitude string
 	}
 	OperatingSystem string
 	Browser         string
@@ -50,8 +52,10 @@ func SetSessionMetadataInContext(ctx context.Context, metadata SessionMetadata) 
 	metadataMap := map[string]interface{}{
 		"IpAddress": metadata.IpAddress,
 		"Location": map[string]interface{}{
-			"Country": metadata.Location.Country,
-			"City":    metadata.Location.City,
+			"Country":   metadata.Location.Country,
+			"City":      metadata.Location.City,
+			"Latitude":  metadata.Location.Latitude,
+			"Longitude": metadata.Location.Longitude,
 		},
 		"OperatingSystem": metadata.OperatingSystem,
 		"Browser":         metadata.Browser,

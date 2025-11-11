@@ -55,24 +55,27 @@ func (h *ConnectHandler) ListSessions(ctx context.Context, request *connect.Requ
 	}), nil
 }
 
+// transformSessionMetadataToPB converts session metadata to protobuf format
+func transformSessionMetadataToPB(metadata frontiersession.SessionMetadata) *frontierv1beta1.Session_Meta {
+	city, country := strings.TrimSpace(metadata.Location.City), strings.TrimSpace(metadata.Location.Country)
+	latitude, longitude := strings.TrimSpace(metadata.Location.Latitude), strings.TrimSpace(metadata.Location.Longitude)
+
+	return &frontierv1beta1.Session_Meta{
+		OperatingSystem: metadata.OperatingSystem,
+		Browser:         metadata.Browser,
+		IpAddress:       metadata.IpAddress,
+		Location: &frontierv1beta1.Session_Meta_Location{
+			City:      city,
+			Country:   country,
+			Latitude:  latitude,
+			Longitude: longitude,
+		},
+	}
+}
+
 // transformSessionToPB converts a domain Session to a protobuf
 func transformSessionToPB(s *frontiersession.Session, currentSessionID string) (*frontierv1beta1.Session, error) {
-	city, country := strings.TrimSpace(s.Metadata.Location.City), strings.TrimSpace(s.Metadata.Location.Country)
-
-	metadata := &frontierv1beta1.Session_Meta{
-		OperatingSystem: s.Metadata.OperatingSystem,
-		Browser:         s.Metadata.Browser,
-		IpAddress:       s.Metadata.IpAddress,
-		Location: func() string {
-			if city == "" && country == "" {
-				return ""
-			}
-			if city != "" && country != "" {
-				return city + ", " + country
-			}
-			return city + country
-		}(),
-	}
+	metadata := transformSessionMetadataToPB(s.Metadata)
 
 	return &frontierv1beta1.Session{
 		Id:               s.ID.String(),
@@ -145,7 +148,20 @@ func (h *ConnectHandler) PingUserSession(ctx context.Context, request *connect.R
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	return connect.NewResponse(&frontierv1beta1.PingUserSessionResponse{}), nil
+	// Fetch updated session to get latest metadata
+	updatedSession, err := h.sessionService.GetByID(ctx, session.ID)
+	if err != nil {
+		errorLogger.LogUnexpectedError(ctx, request, "PingUserSession.GetByID", err,
+			zap.String("session_id", session.ID.String()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	// Convert session metadata to proto format
+	metadata := transformSessionMetadataToPB(updatedSession.Metadata)
+
+	return connect.NewResponse(&frontierv1beta1.PingUserSessionResponse{
+		Metadata: metadata,
+	}), nil
 }
 
 // Admin APIs
