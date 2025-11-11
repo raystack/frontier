@@ -27,6 +27,12 @@ func ExtractSessionMetadata(ctx context.Context, req connect.AnyRequest, headers
 	if city := req.Header().Get(headers.ClientCity); city != "" {
 		metadata.Location.City = city
 	}
+	if latitude := req.Header().Get(headers.ClientLatitude); latitude != "" {
+		metadata.Location.Latitude = latitude
+	}
+	if longitude := req.Header().Get(headers.ClientLongitude); longitude != "" {
+		metadata.Location.Longitude = longitude
+	}
 
 	// OS and Browser (from User-Agent) using uap-go library
 	userAgent := req.Header().Get(headers.ClientUserAgent)

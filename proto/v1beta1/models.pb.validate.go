@@ -11684,7 +11684,34 @@ func (m *Session_Meta) validate(all bool) error {
 
 	// no validation rules for IpAddress
 
-	// no validation rules for Location
+	if all {
+		switch v := interface{}(m.GetLocation()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, Session_MetaValidationError{
+					field:  "Location",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, Session_MetaValidationError{
+					field:  "Location",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLocation()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Session_MetaValidationError{
+				field:  "Location",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return Session_MetaMultiError(errors)
@@ -11762,3 +11789,113 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = Session_MetaValidationError{}
+
+// Validate checks the field values on Session_Meta_Location with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *Session_Meta_Location) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Session_Meta_Location with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// Session_Meta_LocationMultiError, or nil if none found.
+func (m *Session_Meta_Location) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Session_Meta_Location) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for City
+
+	// no validation rules for Country
+
+	// no validation rules for Latitude
+
+	// no validation rules for Longitude
+
+	if len(errors) > 0 {
+		return Session_Meta_LocationMultiError(errors)
+	}
+
+	return nil
+}
+
+// Session_Meta_LocationMultiError is an error wrapping multiple validation
+// errors returned by Session_Meta_Location.ValidateAll() if the designated
+// constraints aren't met.
+type Session_Meta_LocationMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m Session_Meta_LocationMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m Session_Meta_LocationMultiError) AllErrors() []error { return m }
+
+// Session_Meta_LocationValidationError is the validation error returned by
+// Session_Meta_Location.Validate if the designated constraints aren't met.
+type Session_Meta_LocationValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Session_Meta_LocationValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Session_Meta_LocationValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Session_Meta_LocationValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Session_Meta_LocationValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Session_Meta_LocationValidationError) ErrorName() string {
+	return "Session_Meta_LocationValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Session_Meta_LocationValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSession_Meta_Location.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Session_Meta_LocationValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Session_Meta_LocationValidationError{}
