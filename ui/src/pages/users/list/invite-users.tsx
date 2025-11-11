@@ -13,8 +13,6 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { V1Beta1Role } from "@raystack/frontier";
-import { api } from "~/api";
 import { SCOPES, DEFAULT_ROLES } from "~/utils/constants";
 import styles from "./invite-users.module.css";
 import Skeleton from "react-loading-skeleton";
@@ -24,6 +22,7 @@ import {
   CreateOrganizationInvitationResponse,
   SearchOrganizationsRequestSchema,
   FrontierServiceQueries,
+  ListRolesRequestSchema,
 } from "@raystack/proton/frontier";
 import {create} from "@bufbuild/protobuf";
 
@@ -38,49 +37,49 @@ const inviteSchema = z.object({
 
 type InviteSchemaType = z.infer<typeof inviteSchema>;
 
-const getDefaultRoles = async () => {
-  const response = await api.frontierServiceListRoles({
-    scopes: [SCOPES.ORG],
-  });
-  return response.data?.roles ?? [];
-};
-
 export const InviteUser = () => {
   const [open, onOpenChange] = useState(false);
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-  const [isRolesLoading, setIsRolesLoading] = useState(false);
 
   const {
     data: organizations,
     isLoading: isOrganizationsLoading,
+    error: organizationsError,
   } = useQuery(
-    AdminServiceQueries.searchOrganizations, 
+    AdminServiceQueries.searchOrganizations,
     create(SearchOrganizationsRequestSchema, {query: {}}),
     {
       select: (data) => data?.organizations || [],
     }
   );
 
+  const {
+    data: roles,
+    isLoading: isRolesLoading,
+    error: rolesError,
+  } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
+    {
+      select: (data) => data?.roles || [],
+    }
+  );
+
+  useEffect(() => {
+    if (organizationsError) {
+      console.error("Failed to fetch organizations:", organizationsError);
+    }
+  }, [organizationsError]);
+
+  useEffect(() => {
+    if (rolesError) {
+      console.error("Failed to fetch roles:", rolesError);
+    }
+  }, [rolesError]);
+
   const defaultRoleId = useMemo(
     () => roles?.find(role => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
     [roles],
   );
-
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        setIsRolesLoading(true);
-        const data = await getDefaultRoles();
-        setRoles(data);
-      } catch (error) {
-        console.error("Failed to fetch roles:", error);
-      } finally {
-        setIsRolesLoading(false);
-      }
-    };
-
-    fetchRoles();
-  }, []);
 
   const {
     formState: { errors, isSubmitting },
