@@ -3,10 +3,15 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
 import { Button, Skeleton, Text, Flex } from '@raystack/apsara';
 import billingStyles from './billing.module.css';
-import { V1Beta1CheckoutSetupBody } from '~/src';
-import { PaymentMethod as PaymentMethodType } from '@raystack/proton/frontier';
+import {
+  PaymentMethod as PaymentMethodType,
+  FrontierServiceQueries,
+  CreateCheckoutRequestSchema
+} from '@raystack/proton/frontier';
 import { toast } from '@raystack/apsara';
 import { useState } from 'react';
+import { useMutation } from '~hooks';
+import { create } from '@bufbuild/protobuf';
 
 interface PaymentMethodProps {
   paymentMethod?: PaymentMethodType;
@@ -19,8 +24,20 @@ export const PaymentMethod = ({
   isLoading,
   isAllowed
 }: PaymentMethodProps) => {
-  const { client, config, billingAccount } = useFrontier();
+  const { config, billingAccount } = useFrontier();
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const { mutateAsync: createCheckoutMutation } = useMutation(
+    FrontierServiceQueries.createCheckout,
+    {
+      onError: (err: Error) => {
+        console.error(err);
+        toast.error('Something went wrong', {
+          description: err?.message
+        });
+      }
+    }
+  );
   const {
     cardLast4 = '',
     cardExpiryMonth,
@@ -58,22 +75,21 @@ export const PaymentMethod = ({
         const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
         const success_url = `${config?.billing?.successUrl}?${query}`;
 
-        const setup_body: V1Beta1CheckoutSetupBody = {
-          payment_method: true
-        };
-
-        const resp = await client?.frontierServiceCreateCheckout(
-          billingAccount?.orgId || '',
-          billingAccount?.id || '',
-          {
-            cancel_url,
-            success_url,
-            setup_body
-          }
+        const resp = await createCheckoutMutation(
+          create(CreateCheckoutRequestSchema, {
+            orgId: billingAccount?.orgId || '',
+            billingId: billingAccount?.id || '',
+            cancelUrl: cancel_url,
+            successUrl: success_url,
+            setupBody: {
+              paymentMethod: true,
+              customerPortal: false
+            }
+          })
         );
-        const checkout_url = resp?.data?.checkout_session?.checkout_url;
-        if (checkout_url) {
-          window.location.href = checkout_url;
+        const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl;
         }
       } catch (err) {
         console.error(err);

@@ -12,15 +12,16 @@ import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback } from 'react';
 import billingStyles from './billing.module.css';
-import { V1Beta1CheckoutSetupBody } from '~/src';
 import {
   BillingAccount,
   Invoice,
   ListInvoicesRequestSchema,
-  FrontierServiceQueries
+  FrontierServiceQueries,
+  CreateCheckoutRequestSchema
 } from '@raystack/proton/frontier';
 import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
+import { useMutation } from '~hooks';
 // import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';
@@ -135,7 +136,6 @@ export default function Billing() {
   const {
     billingAccount,
     isBillingAccountLoading,
-    client,
     config,
     activeSubscription,
     isActiveSubscriptionLoading,
@@ -156,6 +156,18 @@ export default function Billing() {
     {
       enabled: !!billingAccount?.id && !!billingAccount?.orgId,
       select: data => data?.invoices || []
+    }
+  );
+
+  const { mutateAsync: createCheckoutMutation } = useMutation(
+    FrontierServiceQueries.createCheckout,
+    {
+      onError: (err: Error) => {
+        console.error(err);
+        toast.error('Something went wrong', {
+          description: err?.message
+        });
+      }
     }
   );
 
@@ -180,22 +192,21 @@ export default function Billing() {
         const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
         const success_url = `${config?.billing?.successUrl}?${query}`;
 
-        const setup_body: V1Beta1CheckoutSetupBody = {
-          customer_portal: true
-        };
-
-        const resp = await client?.frontierServiceCreateCheckout(
-          billingAccount?.orgId || '',
-          billingAccount?.id || '',
-          {
-            cancel_url,
-            success_url,
-            setup_body
-          }
+        const resp = await createCheckoutMutation(
+          create(CreateCheckoutRequestSchema, {
+            orgId: billingAccount?.orgId || '',
+            billingId: billingAccount?.id || '',
+            cancelUrl: cancel_url,
+            successUrl: success_url,
+            setupBody: {
+              paymentMethod: false,
+              customerPortal: true
+            }
+          })
         );
-        const checkout_url = resp?.data?.checkout_session?.checkout_url;
-        if (checkout_url) {
-          window.location.href = checkout_url;
+        const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl;
         }
       } catch (err) {
         console.error(err);
@@ -205,7 +216,7 @@ export default function Billing() {
   }, [
     billingAccount?.id,
     billingAccount?.orgId,
-    client,
+    createCheckoutMutation,
     config?.billing?.cancelUrl,
     config?.billing?.successUrl
   ]);
