@@ -63,7 +63,7 @@ type SessionMetadataHeaders struct {
 	ClientIP        string `yaml:"client_ip" mapstructure:"client_ip" default:"x-forwarded-for"`
 	ClientCountry   string `yaml:"client_country" mapstructure:"client_country" default:"x-frontier-country"`
 	ClientCity      string `yaml:"client_city" mapstructure:"client_city" default:"x-frontier-city"`
-	ClientLatitude  string `yaml:"client_latitude" mapstructure:"client_latitude" default:"cloudfront-viewer-latitude"`
+	ClientLatitude  string `yaml:"client_latitude" mapstructure:"client_latitude" default:"x-frontier-latitude"`
 	ClientLongitude string `yaml:"client_longitude" mapstructure:"client_longitude" default:"cloudfront-viewer-longitude"`
 	ClientUserAgent string `yaml:"client_user_agent" mapstructure:"client_user_agent" default:"User-Agent"`
 }
