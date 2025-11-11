@@ -2,10 +2,10 @@ import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
-  Invoice,
   GetUpcomingInvoiceRequestSchema,
   FrontierServiceQueries,
-  ListOrganizationUsersRequestSchema
+  ListOrganizationUsersRequestSchema,
+  Plan
 } from '@raystack/proton/frontier';
 import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
@@ -28,7 +28,6 @@ import { NEGATIVE_BALANCE_TOOLTIP_MESSAGE } from '~/react/utils/constants';
 import { timestampToDayjs } from '~/utils/timestamp';
 import line from '~/react/assets/line.svg';
 import billingStyles from './billing.module.css';
-import { Plan } from '@raystack/proton/frontier';
 
 function LabeledBillingData({
   label,

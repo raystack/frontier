@@ -14,7 +14,6 @@ import { useCallback } from 'react';
 import billingStyles from './billing.module.css';
 import {
   BillingAccount,
-  Invoice,
   ListInvoicesRequestSchema,
   FrontierServiceQueries,
   CreateCheckoutRequestSchema
@@ -22,7 +21,6 @@ import {
 import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import { useMutation } from '~hooks';
-// import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';
 
@@ -89,7 +87,6 @@ const BillingDetails = ({
   isAllowed,
   disabled = false
 }: BillingDetailsProps) => {
-  // const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText =
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
   const isButtonDisabled = isLoading || disabled;

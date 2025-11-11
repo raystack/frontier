@@ -9,7 +9,6 @@ import {
   CreateCheckoutRequestSchema
 } from '@raystack/proton/frontier';
 import { toast } from '@raystack/apsara';
-import { useState } from 'react';
 import { useMutation } from '~hooks';
 import { create } from '@bufbuild/protobuf';
 
@@ -25,19 +24,16 @@ export const PaymentMethod = ({
   isAllowed
 }: PaymentMethodProps) => {
   const { config, billingAccount } = useFrontier();
-  const [isActionLoading, setIsActionLoading] = useState(false);
 
-  const { mutateAsync: createCheckoutMutation } = useMutation(
-    FrontierServiceQueries.createCheckout,
-    {
+  const { mutateAsync: createCheckoutMutation, isPending: isActionLoading } =
+    useMutation(FrontierServiceQueries.createCheckout, {
       onError: (err: Error) => {
         console.error(err);
         toast.error('Something went wrong', {
           description: err?.message
         });
       }
-    }
-  );
+    });
   const {
     cardLast4 = '',
     cardExpiryMonth,
@@ -57,45 +53,37 @@ export const PaymentMethod = ({
     const orgId = billingAccount?.orgId || '';
     const billingAccountId = billingAccount?.id || '';
     if (billingAccountId && orgId) {
-      setIsActionLoading(true);
-      try {
-        const query = qs.stringify(
-          {
-            details: btoa(
-              qs.stringify({
-                billing_id: billingAccount?.id,
-                organization_id: billingAccount?.orgId,
-                type: 'billing'
-              })
-            ),
-            checkout_id: '{{.CheckoutID}}'
-          },
-          { encode: false }
-        );
-        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
-        const success_url = `${config?.billing?.successUrl}?${query}`;
+      const query = qs.stringify(
+        {
+          details: btoa(
+            qs.stringify({
+              billing_id: billingAccount?.id,
+              organization_id: billingAccount?.orgId,
+              type: 'billing'
+            })
+          ),
+          checkout_id: '{{.CheckoutID}}'
+        },
+        { encode: false }
+      );
+      const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+      const success_url = `${config?.billing?.successUrl}?${query}`;
 
-        const resp = await createCheckoutMutation(
-          create(CreateCheckoutRequestSchema, {
-            orgId: billingAccount?.orgId || '',
-            billingId: billingAccount?.id || '',
-            cancelUrl: cancel_url,
-            successUrl: success_url,
-            setupBody: {
-              paymentMethod: true,
-              customerPortal: false
-            }
-          })
-        );
-        const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
-        if (checkoutUrl) {
-          window.location.href = checkoutUrl;
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error('Something went wrong');
-      } finally {
-        setIsActionLoading(false);
+      const resp = await createCheckoutMutation(
+        create(CreateCheckoutRequestSchema, {
+          orgId: billingAccount?.orgId || '',
+          billingId: billingAccount?.id || '',
+          cancelUrl: cancel_url,
+          successUrl: success_url,
+          setupBody: {
+            paymentMethod: true,
+            customerPortal: false
+          }
+        })
+      );
+      const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
       }
     }
   };

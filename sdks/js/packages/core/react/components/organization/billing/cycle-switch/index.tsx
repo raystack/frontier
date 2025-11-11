@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   Button,
   Skeleton,
@@ -13,12 +13,10 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
 import { usePlans } from '../../plans/hooks/usePlans';
-import dayjs from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 import { timestampToDayjs } from '~/utils/timestamp';
-import { Plan } from '@raystack/proton/frontier';
 
 export function ConfirmCycleSwitch() {
   const {
@@ -32,8 +30,6 @@ export function ConfirmCycleSwitch() {
   const navigate = useNavigate({ from: '/billing/cycle-switch/$planId' });
   const { planId } = useParams({ from: '/billing/cycle-switch/$planId' });
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
-
-  const [isCycleSwitching, setCycleSwitching] = useState(false);
 
   const closeModal = useCallback(
     () => navigate({ to: '/billing' }),
@@ -71,45 +67,35 @@ export function ConfirmCycleSwitch() {
   const isLoading = isAllPlansLoading;
 
   async function onConfirm() {
-    setCycleSwitching(true);
-    try {
-      if (nextPlan?.id) {
-        const nextPlanId = nextPlan?.id;
-        if (isPaymentMethodRequired) {
-          checkoutPlan({
-            planId: nextPlanId,
-            isTrial: false,
-            onSuccess: data => {
-              window.location.href = data?.checkoutUrl as string;
-            }
-          });
-        } else
-          changePlan({
-            planId: nextPlanId,
-            onSuccess: async () => {
-              const planPhase = await verifyPlanChange({
-                planId: nextPlanId
+    if (nextPlan?.id) {
+      const nextPlanId = nextPlan?.id;
+      if (isPaymentMethodRequired) {
+        checkoutPlan({
+          planId: nextPlanId,
+          isTrial: false,
+          onSuccess: data => {
+            window.location.href = data?.checkoutUrl as string;
+          }
+        });
+      } else
+        changePlan({
+          planId: nextPlanId,
+          onSuccess: async () => {
+            const planPhase = await verifyPlanChange({
+              planId: nextPlanId
+            });
+            if (planPhase) {
+              closeModal();
+              const changeDate = timestampToDayjs(
+                planPhase?.effectiveAt
+              )?.format(dateFormat);
+              toast.success(`Plan cycle switch successful`, {
+                description: `Your plan cycle will switched to ${nextPlanIntervalName} on ${changeDate}`
               });
-              if (planPhase) {
-                closeModal();
-                const changeDate = timestampToDayjs(
-                  planPhase?.effectiveAt
-                )?.format(dateFormat);
-                toast.success(`Plan cycle switch successful`, {
-                  description: `Your plan cycle will switched to ${nextPlanIntervalName} on ${changeDate}`
-                });
-              }
-            },
-            immediate: isUpgrade
-          });
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error('Something went wrong', {
-        description: err.message
-      });
-    } finally {
-      setCycleSwitching(false);
+            }
+          },
+          immediate: isUpgrade
+        });
     }
   }
 
@@ -126,7 +112,7 @@ export function ConfirmCycleSwitch() {
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <Dialog.Header>
-          <Flex justify="between" align="center" style={{ width: '100%' }}>
+          <Flex justify="between" align="center" width="full">
             <Text size="large" weight="medium">
               Switch billing cycle
             </Text>
@@ -185,9 +171,9 @@ export function ConfirmCycleSwitch() {
               Cancel
             </Button>
             <Button
-              disabled={isLoading || isCycleSwitching || isPlanActionLoading}
+              disabled={isLoading || isPlanActionLoading}
               onClick={onConfirm}
-              loading={isCycleSwitching}
+              loading={isPlanActionLoading}
               loaderText="Switching..."
               data-test-id="frontier-sdk-billing-cycle-switch-submit-button"
             >
