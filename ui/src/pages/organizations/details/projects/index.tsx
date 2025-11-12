@@ -106,6 +106,7 @@ export function OrganizationProjectssPage() {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
+    refetch: refetchOrgProjects,
     isError,
   } = useInfiniteQuery(
     AdminServiceQueries.searchOrganizationProjects,
@@ -139,15 +140,8 @@ export function OrganizationProjectssPage() {
   function handleProjectUpdate(
     project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) {
-    // Invalidate and refetch the query instead of manually updating
-    queryClient.invalidateQueries({
-      queryKey: createConnectQueryKey({
-        schema: AdminServiceQueries.searchOrganizationProjects,
-        transport,
-        input: {},
-        cardinality: "infinite",
-      }),
-    });
+    // Refetch the query instead of manually updating
+    refetchOrgProjects();
   }
 
   useEffect(() => {
@@ -168,6 +162,7 @@ export function OrganizationProjectssPage() {
   }
 
   function handleMemberDialogClose() {
+    refetchOrgProjects();
     setMemberDialogConfig({
       projectId: "",
       open: false,

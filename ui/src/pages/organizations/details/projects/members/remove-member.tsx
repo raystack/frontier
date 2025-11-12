@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SearchProjectUsersResponseProjectUser } from "~/api/frontier";
+import type { SearchProjectUsersResponse_ProjectUser } from "@raystack/proton/frontier";
 import styles from "./members.module.css";
 
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
@@ -7,8 +7,8 @@ import { api } from "~/api";
 
 interface RemoveMemberProps {
   projectId: string;
-  user?: SearchProjectUsersResponseProjectUser;
-  onRemove: (user: SearchProjectUsersResponseProjectUser) => void;
+  user?: SearchProjectUsersResponse_ProjectUser;
+  onRemove: (user: SearchProjectUsersResponse_ProjectUser) => void;
   onClose: () => void;
 }
 

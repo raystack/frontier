@@ -64,7 +64,11 @@ export function RenameProjectDialog({
 
       if (newProject) {
         toast.success("Project renamed successfully");
-        onRename({ ...project, ...newProject });
+        onRename({
+          ...project,
+          title: newProject.title,
+          name: newProject.name,
+        });
       }
     } catch (error) {
       toast.error("Failed to rename project");
