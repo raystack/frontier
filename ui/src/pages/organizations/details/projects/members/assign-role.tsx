@@ -13,7 +13,16 @@ import type {
   SearchProjectUsersResponse_ProjectUser,
   Role,
 } from "@raystack/proton/frontier";
-import { api } from "~/api";
+import {
+  FrontierServiceQueries,
+  FrontierService,
+  ListPoliciesRequestSchema,
+  DeletePolicyRequestSchema,
+  CreatePolicyRequestSchema,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { useMutation, useTransport } from "@connectrpc/connect-query";
+import { createClient } from "@connectrpc/connect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,6 +50,8 @@ export const AssignRole = ({
   onRoleUpdate,
   onClose,
 }: AssignRoleProps) => {
+  const transport = useTransport();
+
   const {
     handleSubmit,
     watch,
@@ -52,6 +63,14 @@ export const AssignRole = ({
     },
     resolver: zodResolver(formSchema),
   });
+
+  const { mutateAsync: deletePolicy } = useMutation(
+    FrontierServiceQueries.deletePolicy,
+  );
+
+  const { mutateAsync: createPolicy } = useMutation(
+    FrontierServiceQueries.createPolicy,
+  );
 
   const roleIds = watch("roleIds");
 
@@ -78,18 +97,23 @@ export const AssignRole = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      const policiesResp = await api?.frontierServiceListPolicies({
-        project_id: projectId,
-        user_id: user?.id,
-      });
-      const policies = policiesResp?.data?.policies || [];
+      const client = createClient(FrontierService, transport);
+      const policiesResp = await client.listPolicies(
+        create(ListPoliciesRequestSchema, {
+          projectId: projectId,
+          userId: user?.id,
+        }),
+      );
+      const policies = policiesResp.policies || [];
 
       const removedRolesPolicies = policies.filter(
-        (policy) => !(policy.role_id && data.roleIds.has(policy.role_id)),
+        (policy) => !(policy.roleId && data.roleIds.has(policy.roleId)),
       );
       await Promise.all(
         removedRolesPolicies.map((policy) =>
-          api?.frontierServiceDeletePolicy(policy.id as string),
+          deletePolicy(
+            create(DeletePolicyRequestSchema, { id: policy.id || "" }),
+          ),
         ),
       );
 
@@ -98,12 +122,16 @@ export const AssignRole = ({
 
       const assignedRolesArr = Array.from(data.roleIds);
       await Promise.all(
-        assignedRolesArr.map((role_id) =>
-          api?.frontierServiceCreatePolicy({
-            role_id,
-            resource: resource,
-            principal: principal,
-          }),
+        assignedRolesArr.map((roleId) =>
+          createPolicy(
+            create(CreatePolicyRequestSchema, {
+              body: {
+                roleId,
+                resource,
+                principal,
+              },
+            }),
+          ),
         ),
       );
 
