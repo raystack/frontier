@@ -21,7 +21,6 @@ import ProductPrices from "./containers/products.list/prices";
 
 import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
-import NewUser from "./containers/users.create";
 
 import { AppContext } from "./contexts/App";
 import { SuperAdminList } from "./containers/super_admins/list";
@@ -79,9 +78,7 @@ export default memo(function AppRoutes() {
           <Route path="tokens" element={<OrganizationTokensPage />} />
           <Route path="apis" element={<OrganizationApisPage />} />
         </Route>
-        <Route path="users" element={<UsersList />}>
-          <Route path="create" element={<NewUser />} />
-        </Route>
+        <Route path="users" element={<UsersList />} />
         <Route path="users/:userId" element={<UserDetails />}>
           <Route index element={<Navigate to="security" />} />
           <Route path="security" element={<UserDetailsSecurityPage />} />
