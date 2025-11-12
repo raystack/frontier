@@ -8,7 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/preference"
-	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
