@@ -6,6 +6,7 @@ import { toast } from '@raystack/apsara';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { timestampToDayjs } from '../../utils/timestamp';
+import { formatLocation } from '../utils';
 
 dayjs.extend(relativeTime);
 
@@ -51,7 +52,7 @@ export const useSessions = () => {
         browser: session.metadata?.browser || 'Unknown',
         operatingSystem: session.metadata?.operatingSystem || 'Unknown',
         ipAddress: session.metadata?.ipAddress || 'Unknown',
-        location: session.metadata?.location || 'Unknown',
+        location: formatLocation(session.metadata?.location),
         lastActive: formatLastActive(session.updatedAt),
         isCurrent: session.isCurrentSession || false,
       }))
