@@ -1,6 +1,6 @@
-import { V1Beta1User } from "~/api/frontier";
+import { User } from "@raystack/proton/frontier";
 
-export const getUserName = (user?: V1Beta1User) =>
+export const getUserName = (user?: User) =>
   user?.title || user?.name || "";
 
 export const USER_STATES = {
