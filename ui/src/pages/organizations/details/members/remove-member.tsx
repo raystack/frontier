@@ -1,8 +1,12 @@
 import { useState } from "react";
 import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
-
+import {
+  FrontierServiceQueries,
+  RemoveOrganizationUserRequestSchema,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { useMutation } from "@connectrpc/connect-query";
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
-import { clients } from "~/connect/clients";
 import { ConnectError } from "@connectrpc/connect";
 
 interface RemoveMemberProps {
@@ -20,15 +24,20 @@ export const RemoveMember = ({
 }: RemoveMemberProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { mutateAsync: removeOrganizationUser } = useMutation(
+    FrontierServiceQueries.removeOrganizationUser,
+  );
+
   async function onSubmit() {
     try {
       if (!user) return;
       setIsSubmitting(true);
-      const client = clients.frontier();
-      await client.removeOrganizationUser({
-        id: organizationId,
-        userId: user?.id || "",
-      });
+      await removeOrganizationUser(
+        create(RemoveOrganizationUserRequestSchema, {
+          id: organizationId,
+          userId: user?.id || "",
+        }),
+      );
       if (onRemove) {
         onRemove(user);
       }
