@@ -15,7 +15,9 @@ import {
   Image,
   EmptyState
 } from '@raystack/apsara';
-import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation, FrontierServiceQueries } from '~hooks';
+import { create } from '@bufbuild/protobuf';
+import { CreateProspectPublicRequestSchema } from '@raystack/proton/frontier';
 
 import checkCircle from '~/react/assets/check-circle.svg';
 import styles from './onboarding.module.css';
@@ -95,7 +97,6 @@ export const Subscribe = ({
   confirmSection = <ConfirmSection />,
   onSubmit
 }: SubscribeProps) => {
-  const { client } = useFrontier();
   const [isSuccess, setIsSuccess] = useState(false);
 
   const {
@@ -106,35 +107,39 @@ export const Subscribe = ({
     resolver: yupResolver(schema)
   });
 
-  async function onFormSubmit(data: FormData) {
-    try {
-      const formData: ExtendedFormData = { ...data, activity };
-      if (medium) {
-        formData.metadata = { ...formData.metadata, medium };
+  const { mutateAsync: createProspect } = useMutation(
+    FrontierServiceQueries.createProspectPublic,
+    {
+      onError: (err: Error) => {
+        console.error('Frontier SDK: Error while submitting the form', err);
+        toast.error('Something went wrong. Please try again.', {
+          description: err?.message
+        });
       }
-      if (source) {
-        formData.source = source;
-      }
+    }
+  );
 
-      const response = await client?.frontierServiceCreateProspectPublic({
+  async function onFormSubmit(data: FormData) {
+    const formData: ExtendedFormData = { ...data, activity };
+    if (medium) {
+      formData.metadata = { ...formData.metadata, medium };
+    }
+    if (source) {
+      formData.source = source;
+    }
+
+    await createProspect(
+      create(CreateProspectPublicRequestSchema, {
         name: formData.name,
         email: formData.email,
         phone: formData?.contactNumber || undefined,
         activity: formData.activity,
         source: formData.source,
         metadata: formData.metadata
-      });
-
-      if (response?.status === 200) {
-        setIsSuccess(true);
-      }
-
-      await onSubmit?.(data);
-    } catch (err) {
-      console.error('Frontier SDK: Error while submitting the form', err);
-      toast.error('Something went wrong. Please try again.');
-      throw err;
-    }
+      })
+    );
+    setIsSuccess(true);
+    onSubmit?.(data);
   }
 
   if (isSuccess) {
