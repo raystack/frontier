@@ -80,7 +80,7 @@ func (_c *SessionService_ExtractFromContext_Call) RunAndReturn(run func(context.
 	return _c
 }
 
-// ListSessions provides a mock function with given fields: ctx, userID
+// List provides a mock function with given fields: ctx, userID
 func (_m *SessionService) List(ctx context.Context, userID string) ([]*session.Session, error) {
 	ret := _m.Called(ctx, userID)
 
@@ -110,12 +110,12 @@ func (_m *SessionService) List(ctx context.Context, userID string) ([]*session.S
 	return r0, r1
 }
 
-// SessionService_ListSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSessions'
+// SessionService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
 type SessionService_List_Call struct {
 	*mock.Call
 }
 
-// ListSessions is a helper method to define mock.On call
+// List is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
 func (_e *SessionService_Expecter) List(ctx interface{}, userID interface{}) *SessionService_List_Call {
