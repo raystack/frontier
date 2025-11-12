@@ -1,7 +1,7 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
@@ -10,7 +10,10 @@ import {
   AdminServiceQueries,
   FrontierServiceQueries,
   SearchOrganizationsResponse_OrganizationResult,
+  type Plan,
+  ListPlansRequestSchema,
 } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 
 import { useNavigate } from "react-router-dom";
 import PageTitle from "~/components/page-title";
@@ -52,15 +55,6 @@ export const OrganizationList = () => {
     200,
   );
 
-  // Fetch plans using ConnectRPC
-  const {
-    data: plans = [],
-    isLoading: isPlansLoading,
-    error: plansError,
-  } = useQuery(FrontierServiceQueries.listPlans, {}, {
-    select: (data) => data?.plans || [],
-  });
-
   // Transform the DataTableQuery to RQLRequest format
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
     fieldNameMapping: {
@@ -93,6 +87,19 @@ export const OrganizationList = () => {
       retryDelay: 1000,
     },
   );
+
+  const { data: plans = [], isLoading: isPlansLoading, error: plansError } = useQuery(
+    FrontierServiceQueries.listPlans,
+    create(ListPlansRequestSchema, {}),
+    {
+      select: (data) => data?.plans || [],
+    },
+  );
+
+  // Log error if it occurs
+  if (plansError) {
+    console.error("Failed to fetch plans:", plansError);
+  }
 
   const data =
     infiniteData?.pages?.flatMap(page => page?.organizations || []) || [];
@@ -130,16 +137,6 @@ export const OrganizationList = () => {
   const columns = getColumns({ plans, groupCountMap });
 
   const loading = isLoading || isPlansLoading || isFetchingNextPage;
-
-  // Error handling
-  useEffect(() => {
-    if (error) {
-      console.error("Failed to fetch organizations:", error);
-    }
-    if (plansError) {
-      console.error("Failed to fetch plans:", plansError);
-    }
-  }, [error, plansError]);
 
   if (isError) {
     return (
