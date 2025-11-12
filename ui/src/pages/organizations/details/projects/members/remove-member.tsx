@@ -59,6 +59,7 @@ export const RemoveMember = ({
 
       toast.success("Member removed successfully");
     } catch (error) {
+      toast.error("Failed to remove member");
       console.error(error);
     } finally {
       setIsSubmitting(false);

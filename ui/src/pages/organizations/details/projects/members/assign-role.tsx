@@ -144,6 +144,7 @@ export const AssignRole = ({
 
       toast.success("Role assigned successfully");
     } catch (error) {
+      toast.error("Failed to assign role");
       console.error(error);
     }
   };
