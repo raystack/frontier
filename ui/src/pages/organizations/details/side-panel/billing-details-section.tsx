@@ -2,7 +2,7 @@ import { CopyButton, Flex, Link, List, Text } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { converBillingAddressToString } from "~/utils/helper";
 import Skeleton from "react-loading-skeleton";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Amount } from "@raystack/apsara";
 import { OrganizationContext } from "../contexts/organization-context";
@@ -17,7 +17,7 @@ export const BillingDetailsSection = () => {
   const organizationId = organization?.id || "";
   const billingAccountId = billingAccount?.id || "";
 
-  const { data: invoiceData, isLoading, error } = useQuery(
+  const { data: upcomingInvoice, isLoading, error } = useQuery(
     FrontierServiceQueries.getUpcomingInvoice,
     create(GetUpcomingInvoiceRequestSchema, {
       orgId: organizationId,
@@ -25,18 +25,19 @@ export const BillingDetailsSection = () => {
     }),
     {
       enabled: !!organizationId && !!billingAccountId,
+      select: (data) => data?.invoice,
     }
   );
 
-  if (error) {
-    console.error("Error fetching upcoming invoice:", error);
-  }
-
-  const upcomingInvoice = invoiceData?.invoice;
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching upcoming invoice:", error);
+    }
+  }, [error]);
   const due_date = upcomingInvoice?.dueDate || upcomingInvoice?.periodEndAt;
 
-  const stripeLink = billingAccount?.provider_id
-    ? "https://dashboard.stripe.com/customers/" + billingAccount?.provider_id
+  const stripeLink = billingAccount?.providerId
+    ? "https://dashboard.stripe.com/customers/" + billingAccount?.providerId
     : "";
 
   return (

@@ -9,8 +9,8 @@ import {
 import type { DataTableColumnDef } from "@raystack/apsara";
 import type {
   SearchOrganizationProjectsResponse_OrganizationProject,
+  User,
 } from "@raystack/proton/frontier";
-import type { V1Beta1User } from "~/api/frontier";
 import styles from "./projects.module.css";
 
 import dayjs from "dayjs";
@@ -46,7 +46,7 @@ interface AddMemberDropdownProps {
   onAddMember: (
     userId: string,
   ) => (e: React.MouseEvent<HTMLDivElement>) => void;
-  eligibleMembers: V1Beta1User[];
+  eligibleMembers: User[];
   isLoading: boolean;
   setSearchQuery: (query: string) => void;
 }
@@ -207,7 +207,7 @@ export const getColumns = ({
   orgMembersMap,
   handleProjectUpdate,
 }: {
-  orgMembersMap: Record<string, V1Beta1User>;
+  orgMembersMap: Record<string, User>;
   handleProjectUpdate: (
     project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
