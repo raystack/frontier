@@ -1,8 +1,8 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type {
   V1Beta1CreatePolicyForProjectBody,
-  V1Beta1User,
 } from "~/api/frontier";
+import type { User } from "@raystack/proton/frontier";
 import { OrganizationContext } from "../contexts/organization-context";
 import { api } from "~/api";
 import { toast } from "@raystack/apsara";
@@ -15,7 +15,7 @@ interface useAddProjectMembersProps {
 export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
   const { orgMembersMap } = useContext(OrganizationContext);
   const [isLoading, setIsLoading] = useState(false);
-  const [nonMembers, setNonMembers] = useState<V1Beta1User[]>([]);
+  const [nonMembers, setNonMembers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const fetchProjectMembers = useCallback(async () => {

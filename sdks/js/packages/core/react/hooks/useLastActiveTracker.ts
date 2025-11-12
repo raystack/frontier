@@ -1,8 +1,18 @@
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, PingUserSessionResponse } from '@raystack/proton/frontier';
 
-export const useLastActiveTracker = ({ enabled = false }) => {
-  useQuery(
+type UseLastActiveTrackerParams = {
+  enabled?: boolean;
+};
+
+type UseLastActiveTrackerReturn = {
+  data: PingUserSessionResponse | undefined;
+  isLoading: boolean;
+  error: Error | null;
+};
+
+export const useLastActiveTracker = ({ enabled = false }: UseLastActiveTrackerParams = {}): UseLastActiveTrackerReturn => {
+  const { data, isLoading, error } = useQuery(
     FrontierServiceQueries.pingUserSession,
     {},
     {
@@ -15,4 +25,5 @@ export const useLastActiveTracker = ({ enabled = false }) => {
       retry: false
     }
   );
+  return { data, isLoading, error };
 };

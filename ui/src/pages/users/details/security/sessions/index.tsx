@@ -11,6 +11,37 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { timestampToDate } from "~/utils/connect-timestamp";
 import styles from "./sessions.module.css";
 
+/**
+ * Formats location from structured object to display string
+ * @param location - Location object with city, country, latitude, longitude, or legacy string format
+ * @returns Formatted string like "City, Country" or "Unknown" if empty
+ * Note: This function also exists in the SDK utils/index.ts file. 
+ * If you make any changes here, please update the SDK utils/index.ts file as well.
+ */
+const formatLocation = (location?: {
+  city?: string;
+  country?: string;
+  latitude?: string;
+  longitude?: string;
+}): string => {
+  if (!location) return 'Unknown';
+  
+  const city = location.city?.trim() || '';
+  const country = location.country?.trim() || '';
+  
+  if (city && country) {
+    return `${city}, ${country}`;
+  }
+  if (city) {
+    return city;
+  }
+  if (country) {
+    return country;
+  }
+  
+  return 'Unknown location';
+};
+
 dayjs.extend(relativeTime);
 
 const getErrorMessage = (error: any): string => {
@@ -79,7 +110,7 @@ export const UserSessions = () => {
       browser: session.metadata?.browser || "Unknown",
       operatingSystem: session.metadata?.operatingSystem || "Unknown",
       ipAddress: session.metadata?.ipAddress || "Unknown",
-      location: session.metadata?.location || "Unknown",
+      location: formatLocation(session.metadata?.location),
       lastActive: formatLastActive(session.updatedAt),
       sessionId: session.id || ""
     });
@@ -153,7 +184,7 @@ export const UserSessions = () => {
                 </Text>
                 <Flex gap={2} align="center">
                   <Text variant="tertiary" size="small">
-                    {session.metadata?.location || "Unknown location"}
+                    {formatLocation(session.metadata?.location)}
                   </Text>
                   <Text variant="tertiary" size="small">•</Text>
                   {session.isCurrentSession ? (

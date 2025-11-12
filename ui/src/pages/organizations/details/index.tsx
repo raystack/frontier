@@ -1,65 +1,36 @@
-import type {
-  V1Beta1BillingAccount,
-  V1Beta1BillingAccountDetails,
-  V1Beta1OrganizationKyc,
-  V1Beta1Role,
-  V1Beta1User,
-} from "~/api/frontier";
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@connectrpc/connect-query";
-import { api } from "~/api";
 import { Outlet, useParams } from "react-router-dom";
 
 import { OrganizationDetailsLayout } from "./layout";
 import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
-import { AxiosError } from "axios";
 import {
   FrontierServiceQueries,
   type Organization,
+  type User,
 } from "@raystack/proton/frontier";
 import { queryClient } from "~/contexts/ConnectProvider";
 
 export const OrganizationDetails = () => {
-  const [orgRoles, setOrgRoles] = useState<V1Beta1Role[]>([]);
-  const [isOrgRolesLoading, setIsOrgRolesLoading] = useState(true);
-
-  const [tokenBalance, setTokenBalance] = useState("0");
-  const [isTokenBalanceLoading, setIsTokenBalanceLoading] = useState(false);
-
-  const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(true);
-  const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
-  const [billingAccountDetails, setBillingAccountDetails] =
-    useState<V1Beta1BillingAccountDetails>();
-
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [isOrgMembersMapLoading, setIsOrgMembersMapLoading] = useState(false);
-  const [orgMembersMap, setOrgMembersMap] = useState<
-    Record<string, V1Beta1User>
-  >({});
-
-  const [kycDetails, setKycDetails] = useState<
-    V1Beta1OrganizationKyc | undefined
-  >();
-  const [isKYCLoading, setIsKYCLoading] = useState(true);
   const { organizationId } = useParams();
 
   // Use Connect RPC for fetching organization
   const {
-    data: organizationResponse,
+    data: organization,
     isLoading: isOrganizationLoading,
-    refetch,
+    error: organizationError,
   } = useQuery(
     FrontierServiceQueries.getOrganization,
     { id: organizationId },
     {
       enabled: !!organizationId,
+      select: (data) => data?.organization,
     },
   );
-
-  const organization = organizationResponse?.organization;
 
   const getOrganizationQueryKey = [
     FrontierServiceQueries.getOrganization,
@@ -70,142 +41,193 @@ export const OrganizationDetails = () => {
     queryClient.setQueryData(getOrganizationQueryKey, { organization: org });
   }
 
-  async function fetchKYCDetails(id: string) {
-    setIsKYCLoading(true);
-    try {
-      const response = await api?.frontierServiceGetOrganizationKyc(id);
-      const kyc = response?.data?.organization_kyc;
-      setKycDetails(kyc);
-    } catch (error: unknown) {
-      if (error instanceof AxiosError && error.response?.status === 404) {
-        console.warn("KYC details not found");
-      } else {
-        console.error("Error fetching KYC details:", error);
-      }
-    } finally {
-      setIsKYCLoading(false);
-    }
-  }
-
-  async function fetchRoles(orgId: string) {
-    try {
-      setIsOrgRolesLoading(true);
-      const [defaultRolesResponse, organizationRolesResponse] =
-        await Promise.all([
-          api?.frontierServiceListRoles({
-            scopes: [ORG_NAMESPACE],
-          }),
-          api?.frontierServiceListOrganizationRoles(orgId, {
-            scopes: [ORG_NAMESPACE],
-          }),
-        ]);
-      const defaultRoles = defaultRolesResponse.data?.roles || [];
-      const organizationRoles = organizationRolesResponse.data?.roles || [];
-      const roles = [...defaultRoles, ...organizationRoles];
-      setOrgRoles(roles);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsOrgRolesLoading(false);
-    }
-  }
-
-  async function fetchOrgMembers(orgId: string) {
-    try {
-      setIsOrgMembersMapLoading(true);
-      const [orgUserResp] = await Promise.all([
-        api?.frontierServiceListOrganizationUsers(orgId),
-      ]);
-      const orgUsers = orgUserResp.data?.users || [];
-      const orgUsersMap = orgUsers.reduce(
-        (acc, user) => {
-          const id = user.id || "";
-          acc[id] = user;
-          return acc;
-        },
-        {} as Record<string, V1Beta1User>,
-      );
-      setOrgMembersMap(orgUsersMap);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsOrgMembersMapLoading(false);
-    }
-  }
-
-  const fetchOrgTokenBalance = useCallback(
-    async (orgId: string, billingAccountId: string) => {
-      try {
-        setIsTokenBalanceLoading(true);
-        const resp = await api.frontierServiceGetBillingBalance(
-          orgId,
-          billingAccountId,
-        );
-        const newBalance = resp.data.balance?.amount || "0";
-        setTokenBalance(newBalance);
-      } catch (error) {
-        console.error("Error fetching organization token balance:", error);
-      } finally {
-        setIsTokenBalanceLoading(false);
-      }
+  // Fetch KYC details
+  const {
+    data: kycDetails,
+    isLoading: isKYCLoading,
+    error: kycError,
+  } = useQuery(
+    FrontierServiceQueries.getOrganizationKyc,
+    { orgId: organizationId || "" },
+    {
+      enabled: !!organizationId,
+      select: (data) => data?.organizationKyc,
     },
-    [],
   );
 
-  const fetchBillingAccount = useCallback(
-    async (orgId: string) => {
-      try {
-        setIsBillingAccountLoading(true);
-        const listBillingResp =
-          await api?.frontierServiceListBillingAccounts(orgId);
-        const firstBillingAccount = listBillingResp.data?.billing_accounts?.[0];
-        const getBillingResp = await api?.frontierServiceGetBillingAccount(
-          orgId,
-          firstBillingAccount?.id || "",
-          { with_billing_details: true },
-        );
-
-        const newBillingAccount = getBillingResp.data?.billing_account;
-        const newBillingAccountDetails = getBillingResp.data.billing_details;
-        setBillingAccountDetails(newBillingAccountDetails);
-        setBillingAccount(newBillingAccount);
-        fetchOrgTokenBalance(orgId, newBillingAccount?.id || "");
-      } catch (error) {
-        console.error("Error fetching billing account:", error);
-      } finally {
-        setIsBillingAccountLoading(false);
-      }
-    },
-    [fetchOrgTokenBalance],
-  );
-
-  function updateKYCDetails(kycDetails: V1Beta1OrganizationKyc) {
-    setKycDetails(kycDetails);
+  function updateKYCDetails(kyc: typeof kycDetails) {
+    if (!organizationId) return;
+    queryClient.setQueryData(
+      [FrontierServiceQueries.getOrganizationKyc, { orgId: organizationId }],
+      { organizationKyc: kyc },
+    );
   }
 
+  // Fetch default roles
+  const {
+    data: defaultRoles = [],
+    isLoading: isDefaultRolesLoading,
+    error: defaultRolesError,
+  } = useQuery(
+    FrontierServiceQueries.listRoles,
+    { scopes: [ORG_NAMESPACE] },
+    {
+      enabled: !!organizationId,
+      select: (data) => data?.roles || [],
+    },
+  );
+
+  // Fetch organization-specific roles
+  const {
+    data: organizationRoles = [],
+    isLoading: isOrgRolesLoading,
+    error: orgRolesError,
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationRoles,
+    { orgId: organizationId || "", scopes: [ORG_NAMESPACE] },
+    {
+      enabled: !!organizationId,
+      select: (data) => data?.roles || [],
+    },
+  );
+
+  const roles = [...defaultRoles, ...organizationRoles];
+
+  // Fetch organization members
+  const {
+    data: orgMembersMap = {},
+    isLoading: isOrgMembersMapLoading,
+    error: orgMembersError,
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    { id: organizationId || "" },
+    {
+      enabled: !!organizationId,
+      select: (data) => {
+        const users = data?.users || [];
+        return users.reduce(
+          (acc, user) => {
+            const id = user.id || "";
+            acc[id] = user;
+            return acc;
+          },
+          {} as Record<string, User>,
+        );
+      },
+    },
+  );
+
+  // Fetch billing accounts list
+  const {
+    data: firstBillingAccountId = "",
+    error: billingAccountsError,
+  } = useQuery(
+    FrontierServiceQueries.listBillingAccounts,
+    { orgId: organizationId || "" },
+    {
+      enabled: !!organizationId,
+      select: (data) => data?.billingAccounts?.[0]?.id || "",
+    },
+  );
+
+  // Fetch billing account details
+  const {
+    data: billingAccountData,
+    isLoading: isBillingAccountLoading,
+    error: billingAccountError,
+    refetch: fetchBillingAccountDetails,
+  } = useQuery(
+    FrontierServiceQueries.getBillingAccount,
+    {
+      orgId: organizationId || "",
+      id: firstBillingAccountId,
+      withBillingDetails: true,
+    },
+    {
+      enabled: !!organizationId && !!firstBillingAccountId,
+      select: (data) => ({
+        billingAccount: data?.billingAccount,
+        billingAccountDetails: data?.billingDetails,
+      }),
+    },
+  );
+
+  const billingAccount = billingAccountData?.billingAccount;
+  const billingAccountDetails = billingAccountData?.billingAccountDetails;
+
+  // Fetch billing balance
+  const {
+    data: tokenBalance = "0",
+    isLoading: isTokenBalanceLoading,
+    error: tokenBalanceError,
+    refetch: fetchTokenBalance
+  } = useQuery(
+    FrontierServiceQueries.getBillingBalance,
+    {
+      orgId: organizationId || "",
+      id: firstBillingAccountId,
+    },
+    {
+      enabled: !!organizationId && !!firstBillingAccountId,
+      select: (data) => String(data?.balance?.amount || "0"),
+    },
+  );
+
+  // Error handling
   useEffect(() => {
-    if (organization?.id) {
-      fetchRoles(organization.id);
-      fetchBillingAccount(organization.id);
-      fetchOrgMembers(organization.id);
-      fetchKYCDetails(organization.id);
+    if (organizationError) {
+      console.error("Failed to fetch organization:", organizationError);
     }
-  }, [organization?.id, fetchBillingAccount]);
+    if (kycError) {
+      console.error("Failed to fetch KYC details:", kycError);
+    }
+    if (defaultRolesError) {
+      console.error("Failed to fetch default roles:", defaultRolesError);
+    }
+    if (orgRolesError) {
+      console.error("Failed to fetch organization roles:", orgRolesError);
+    }
+    if (orgMembersError) {
+      console.error("Failed to fetch organization members:", orgMembersError);
+    }
+    if (billingAccountsError) {
+      console.error("Failed to fetch billing accounts:", billingAccountsError);
+    }
+    if (billingAccountError) {
+      console.error("Failed to fetch billing account details:", billingAccountError);
+    }
+    if (tokenBalanceError) {
+      console.error("Failed to fetch token balance:", tokenBalanceError);
+    }
+  }, [
+    organizationError,
+    kycError,
+    defaultRolesError,
+    orgRolesError,
+    orgMembersError,
+    billingAccountsError,
+    billingAccountError,
+    tokenBalanceError,
+  ]);
 
   const isLoading =
-    isOrganizationLoading || isOrgRolesLoading || isBillingAccountLoading;
+    isOrganizationLoading ||
+    isDefaultRolesLoading ||
+    isOrgRolesLoading ||
+    isBillingAccountLoading;
   return (
     <OrganizationContext.Provider
       value={{
         organization: organization,
         updateOrganization,
-        roles: orgRoles,
+        roles,
         billingAccount,
         billingAccountDetails,
-        setBillingAccountDetails,
-        tokenBalance: tokenBalance,
+        isBillingAccountLoading,
+        fetchBillingAccountDetails,
+        tokenBalance,
         isTokenBalanceLoading,
-        fetchTokenBalance: fetchOrgTokenBalance,
+        fetchTokenBalance,
         orgMembersMap,
         isOrgMembersMapLoading,
         updateKYCDetails,

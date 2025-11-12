@@ -8,8 +8,8 @@ import {
 } from "@raystack/apsara";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
+  Role,
 } from "@raystack/proton/frontier";
-import type { V1Beta1Role } from "~/api/frontier";
 import styles from "./members.module.css";
 import dayjs from "dayjs";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
@@ -25,7 +25,7 @@ const MemberStates = {
 };
 
 interface getColumnsOptions {
-  roles: V1Beta1Role[];
+  roles: Role[];
   handleAssignRoleAction: (
     user: SearchOrganizationUsersResponse_OrganizationUser,
   ) => void;

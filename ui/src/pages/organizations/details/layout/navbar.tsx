@@ -22,19 +22,17 @@ import type React from "react";
 import { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { CollapsableSearch } from "~/components/collapsable-search";
-import { api } from "~/api";
 import type { Organization } from "@raystack/proton/frontier";
+import {
+  ExportOrganizationUsersRequestSchema,
+  ExportOrganizationProjectsRequestSchema,
+  ExportOrganizationTokensRequestSchema,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { clients } from "~/connect/clients";
+import { exportCsvFromStream } from "~/utils/helper";
 
-const downloadFile = (data: File, filename: string) => {
-  const link = document.createElement("a");
-  const downloadUrl = window.URL.createObjectURL(new Blob([data]));
-  link.href = downloadUrl;
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  link.parentNode?.removeChild(link);
-  window.URL.revokeObjectURL(downloadUrl);
-};
+const adminClient = clients.admin({ useBinary: true });
 
 interface navConfig {
   label: string;
@@ -91,13 +89,11 @@ const NavbarActionMenu = ({
     e.preventDefault();
     try {
       setIsMembersDownloading(true);
-      const response = await api.adminServiceExportOrganizationUsers(
-        organizationId,
-        {
-          format: "blob",
-        },
+      await exportCsvFromStream(
+        adminClient.exportOrganizationUsers,
+        create(ExportOrganizationUsersRequestSchema, { id: organizationId }),
+        `${organizationTitle}_members.csv`,
       );
-      downloadFile(response.data, `${organizationTitle}_members.csv`);
     } catch (error) {
       toast.error("Failed to export members");
       console.error(error);
@@ -110,13 +106,11 @@ const NavbarActionMenu = ({
     e.preventDefault();
     try {
       setIsProjectsDownloading(true);
-      const response = await api.adminServiceExportOrganizationProjects(
-        organizationId,
-        {
-          format: "blob",
-        },
+      await exportCsvFromStream(
+        adminClient.exportOrganizationProjects,
+        create(ExportOrganizationProjectsRequestSchema, { id: organizationId }),
+        `${organizationTitle}_projects.csv`,
       );
-      downloadFile(response.data, `${organizationTitle}_projects.csv`);
     } catch (error) {
       toast.error("Failed to export projects");
       console.error(error);
@@ -129,13 +123,11 @@ const NavbarActionMenu = ({
     e.preventDefault();
     try {
       setIsTokensDownloading(true);
-      const response = await api.adminServiceExportOrganizationTokens(
-        organizationId,
-        {
-          format: "blob",
-        },
+      await exportCsvFromStream(
+        adminClient.exportOrganizationTokens,
+        create(ExportOrganizationTokensRequestSchema, { id: organizationId }),
+        `${organizationTitle}_tokens.csv`,
       );
-      downloadFile(response.data, `${organizationTitle}_tokens.csv`);
     } catch (error) {
       toast.error("Failed to export tokens");
       console.error(error);

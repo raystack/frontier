@@ -66,7 +66,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
             cardinality: "infinite",
           }),
         });
-        fetchTokenBalance(organisationId, billingAccountId);
+        fetchTokenBalance();
         toast.success("Tokens added");
         onOpenChange(false);
       },
