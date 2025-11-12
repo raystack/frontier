@@ -7,20 +7,10 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/product"
-	"github.com/raystack/frontier/billing/subscription"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-type CheckoutService interface {
-	Create(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
-	GetByID(ctx context.Context, id string) (checkout.Checkout, error)
-	List(ctx context.Context, filter checkout.Filter) ([]checkout.Checkout, error)
-	Apply(ctx context.Context, ch checkout.Checkout) (*subscription.Subscription, *product.Product, error)
-	CreateSessionForPaymentMethod(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
-	CreateSessionForCustomerPortal(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
-}
 
 func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCheckoutRequest]) (*connect.Response[frontierv1beta1.CreateCheckoutResponse], error) {
 	errorLogger := NewErrorLogger()

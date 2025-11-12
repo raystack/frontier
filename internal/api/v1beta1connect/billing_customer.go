@@ -14,25 +14,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type CustomerService interface {
-	GetByID(ctx context.Context, id string) (customer.Customer, error)
-	Create(ctx context.Context, customer customer.Customer, offline bool) (customer.Customer, error)
-	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
-	Update(ctx context.Context, customer customer.Customer) (customer.Customer, error)
-	Delete(ctx context.Context, id string) error
-	RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error)
-	Disable(ctx context.Context, id string) error
-	Enable(ctx context.Context, id string) error
-	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Details, error)
-	GetDetails(ctx context.Context, customerID string) (customer.Details, error)
-	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
-	UpdateDetails(ctx context.Context, customerID string, details customer.Details) (customer.Details, error)
-}
-
-type CreditService interface {
-	GetBalance(ctx context.Context, id string) (int64, error)
-}
-
 func (h *ConnectHandler) CreateBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.CreateBillingAccountRequest]) (*connect.Response[frontierv1beta1.CreateBillingAccountResponse], error) {
 	errorLogger := NewErrorLogger()
 

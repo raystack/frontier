@@ -18,13 +18,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type PolicyService interface {
-	Get(ctx context.Context, id string) (policy.Policy, error)
-	List(ctx context.Context, f policy.Filter) ([]policy.Policy, error)
-	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
-	Delete(ctx context.Context, id string) error
-}
-
 func (h *ConnectHandler) CreatePolicy(ctx context.Context, request *connect.Request[frontierv1beta1.CreatePolicyRequest]) (*connect.Response[frontierv1beta1.CreatePolicyResponse], error) {
 	errorLogger := NewErrorLogger()
 
