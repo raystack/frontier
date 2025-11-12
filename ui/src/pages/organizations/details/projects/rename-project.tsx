@@ -1,18 +1,19 @@
 import { Button, Dialog, Flex, InputField, toast } from "@raystack/apsara";
-import { api } from "~/api";
 import type {
   SearchOrganizationProjectsResponse_OrganizationProject,
 } from "@raystack/proton/frontier";
-
+import { FrontierServiceQueries, UpdateProjectRequestSchema } from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import React from "react";
+import { useMutation } from "@connectrpc/connect-query";
 
 const projectRenameSchema = z.object({
   title: z.string(),
   name: z.string(),
-  org_id: z.string(),
+  orgId: z.string(),
 });
 
 type ProjectRenameSchema = z.infer<typeof projectRenameSchema>;
@@ -42,18 +43,24 @@ export function RenameProjectDialog({
     defaultValues: {
       title: project?.title,
       name: project?.name,
-      org_id: project?.organizationId,
+      orgId: project?.organizationId,
     },
     resolver: zodResolver(projectRenameSchema),
   });
 
+  const { mutateAsync: updateProject } = useMutation(
+    FrontierServiceQueries.updateProject,
+  );
+
   const submit = async (data: ProjectRenameSchema) => {
     try {
-      const resp = await api?.frontierServiceUpdateProject(
-        project?.id || "",
-        data,
+      const resp = await updateProject(
+        create(UpdateProjectRequestSchema, {
+          id: project?.id || "",
+          body: {...data},
+        }),
       );
-      const newProject = resp.data.project;
+      const newProject = resp.project;
 
       if (newProject) {
         toast.success("Project renamed successfully");
