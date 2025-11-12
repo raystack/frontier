@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AUDIT_LOG_QUERY_KEY } from "../util";
 import { RQLExportRequest } from "@raystack/proton/frontier";
 
-const adminClient = clients.admin({ useBinary: false });
+const adminClient = clients.admin({ useBinary: true });
 
 interface NavbarProps {
   searchQuery?: string;
