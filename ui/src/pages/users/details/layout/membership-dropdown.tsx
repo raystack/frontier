@@ -5,9 +5,9 @@ import { api } from "~/api";
 import {
   type SearchUserOrganizationsResponse_UserOrganization,
   SearchOrganizationUsersResponse_OrganizationUserSchema,
+  type Role,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import type { V1Beta1Role } from "~/api/frontier";
 import { SCOPES } from "~/utils/constants";
 import { AssignRole } from "~/components/assign-role";
 import { useUser } from "../user-context";
@@ -23,7 +23,7 @@ export const MembershipDropdown = ({
   onReset,
 }: MembershipDropdownProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isAssignRoleDialogOpen, setIsAssignRoleDialogOpen] = useState(false);
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const { user } = useUser();
@@ -43,7 +43,7 @@ export const MembershipDropdown = ({
       const defaultRoles = defaultRolesResponse.data?.roles || [];
       const organizationRoles = organizationRolesResponse.data?.roles || [];
       const roles = [...defaultRoles, ...organizationRoles];
-      setRoles(roles);
+      setRoles(roles as Role[]);
     } catch (error) {
       console.error(error);
     } finally {
