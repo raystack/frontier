@@ -1,17 +1,20 @@
 import { Text, DropdownMenu, Skeleton } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   type SearchUserOrganizationsResponse_UserOrganization,
   SearchOrganizationUsersResponse_OrganizationUserSchema,
   type Role,
+  FrontierServiceQueries,
+  ListRolesRequestSchema,
+  ListOrganizationRolesRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { useQuery } from "@connectrpc/connect-query";
 import { SCOPES } from "~/utils/constants";
 import { AssignRole } from "~/components/assign-role";
 import { useUser } from "../user-context";
 import { SuspendUser } from "./suspend-user";
-import { clients } from "~/connect/clients";
 
 interface MembershipDropdownProps {
   data?: SearchUserOrganizationsResponse_UserOrganization;
@@ -22,40 +25,36 @@ export const MembershipDropdown = ({
   data,
   onReset,
 }: MembershipDropdownProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [roles, setRoles] = useState<Role[]>([]);
   const [isAssignRoleDialogOpen, setIsAssignRoleDialogOpen] = useState(false);
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const { user } = useUser();
 
-  const fetchRoles = useCallback(async (orgId: string) => {
-    try {
-      setIsLoading(true);
-      const client = clients.frontier();
-      const [defaultRolesResponse, organizationRolesResponse] =
-        await Promise.all([
-          client.listRoles({
-            scopes: [SCOPES.ORG],
-          }),
-          client.listOrganizationRoles({
-            orgId: orgId,
-            scopes: [SCOPES.ORG],
-          }),
-        ]);
-      const defaultRoles = defaultRolesResponse.roles || [];
-      const organizationRoles = organizationRolesResponse.roles || [];
-      const roles = [...defaultRoles, ...organizationRoles];
-      setRoles(roles);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
+  const { data: defaultRoles = [], isLoading: isDefaultRolesLoading } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
+    {
+      select: (data) => data?.roles || [],
     }
-  }, []);
+  );
 
-  useEffect(() => {
-    if (data?.orgId) fetchRoles(data.orgId);
-  }, [data?.orgId, fetchRoles]);
+  const { data: organizationRoles = [], isLoading: isOrgRolesLoading } = useQuery(
+    FrontierServiceQueries.listOrganizationRoles,
+    create(ListOrganizationRolesRequestSchema, {
+      orgId: data?.orgId || "",
+      scopes: [SCOPES.ORG],
+    }),
+    {
+      enabled: !!data?.orgId,
+      select: (data) => data?.roles || [],
+    }
+  );
+
+  const roles = useMemo(
+    () => [...defaultRoles, ...organizationRoles],
+    [defaultRoles, organizationRoles]
+  );
+
+  const isLoading = isDefaultRolesLoading || isOrgRolesLoading;
 
   const toggleAssignRoleDialog = () => {
     setIsAssignRoleDialogOpen(value => !value);
