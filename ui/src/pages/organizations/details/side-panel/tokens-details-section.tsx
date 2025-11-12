@@ -2,7 +2,7 @@ import { List, Text, Flex } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import CoinIcon from "~/assets/icons/coin.svg?react";
 import CoinColoredIcon from "~/assets/icons/coin-colored.svg?react";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import { OrganizationContext } from "../contexts/organization-context";
 import { useQuery } from "@connectrpc/connect-query";
@@ -21,7 +21,7 @@ export const TokensDetailsSection = () => {
   const organizationId = organization?.id || "";
   const billingAccountId = billingAccount?.id || "";
 
-  const { data: debitedData, isLoading: isTokensLoading, error } = useQuery(
+  const { data: tokensUsed = "0", isLoading: isTokensLoading, error } = useQuery(
     FrontierServiceQueries.totalDebitedTransactions,
     create(TotalDebitedTransactionsRequestSchema, {
       orgId: organizationId,
@@ -29,14 +29,16 @@ export const TokensDetailsSection = () => {
     }),
     {
       enabled: !!organizationId && !!billingAccountId,
+      select: (data) => String(data?.debited?.amount || "0"),
     }
   );
 
-  if (error) {
-    console.error("Error fetching debited transactions:", error);
-  }
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching debited transactions:", error);
+    }
+  }, [error]);
 
-  const tokensUsed = String(debitedData?.debited?.amount || "0");
   const isLoading = isTokensLoading;
 
   return (
@@ -81,7 +83,7 @@ export const TokensDetailsSection = () => {
             <Skeleton />
           ) : (
             <Flex gap={3}>
-              {Number(billingAccountDetails?.credit_min) < 0
+              {Number(billingAccountDetails?.creditMin) < 0
                 ? "Postpaid"
                 : "Prepaid"}
             </Flex>
@@ -97,7 +99,7 @@ export const TokensDetailsSection = () => {
             <Skeleton />
           ) : (
             <Flex gap={3}>
-              {Math.abs(Number(billingAccountDetails?.credit_min))}
+              {Math.abs(Number(billingAccountDetails?.creditMin))}
             </Flex>
           )}
         </List.Value>
@@ -110,7 +112,7 @@ export const TokensDetailsSection = () => {
           {isLoading ? (
             <Skeleton />
           ) : (
-            <Flex gap={3}>{billingAccountDetails?.due_in_days} days</Flex>
+            <Flex gap={3}>{String(billingAccountDetails?.dueInDays || 0)} days</Flex>
           )}
         </List.Value>
       </List.Item>
