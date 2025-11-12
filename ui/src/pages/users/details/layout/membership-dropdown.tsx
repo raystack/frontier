@@ -1,7 +1,6 @@
 import { Text, DropdownMenu, Skeleton } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { api } from "~/api";
 import {
   type SearchUserOrganizationsResponse_UserOrganization,
   SearchOrganizationUsersResponse_OrganizationUserSchema,
@@ -12,6 +11,7 @@ import { SCOPES } from "~/utils/constants";
 import { AssignRole } from "~/components/assign-role";
 import { useUser } from "../user-context";
 import { SuspendUser } from "./suspend-user";
+import { clients } from "~/connect/clients";
 
 interface MembershipDropdownProps {
   data?: SearchUserOrganizationsResponse_UserOrganization;
@@ -31,19 +31,21 @@ export const MembershipDropdown = ({
   const fetchRoles = useCallback(async (orgId: string) => {
     try {
       setIsLoading(true);
+      const client = clients.frontier();
       const [defaultRolesResponse, organizationRolesResponse] =
         await Promise.all([
-          api?.frontierServiceListRoles({
+          client.listRoles({
             scopes: [SCOPES.ORG],
           }),
-          api?.frontierServiceListOrganizationRoles(orgId, {
+          client.listOrganizationRoles({
+            orgId: orgId,
             scopes: [SCOPES.ORG],
           }),
         ]);
-      const defaultRoles = defaultRolesResponse.data?.roles || [];
-      const organizationRoles = organizationRolesResponse.data?.roles || [];
+      const defaultRoles = defaultRolesResponse.roles || [];
+      const organizationRoles = organizationRolesResponse.roles || [];
       const roles = [...defaultRoles, ...organizationRoles];
-      setRoles(roles as Role[]);
+      setRoles(roles);
     } catch (error) {
       console.error(error);
     } finally {
