@@ -24,7 +24,7 @@ const formatLocation = (location?: {
   latitude?: string;
   longitude?: string;
 }): string => {
-  if (!location) return 'Unknown location';
+  if (!location) return 'Unknown';
   
   const city = location.city?.trim() || '';
   const country = location.country?.trim() || '';
