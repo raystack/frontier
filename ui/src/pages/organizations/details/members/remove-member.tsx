@@ -2,8 +2,8 @@ import { useState } from "react";
 import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
 
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
-import { api } from "~/api";
-import { AxiosError } from "axios";
+import { clients } from "~/connect/clients";
+import { ConnectError } from "@connectrpc/connect";
 
 interface RemoveMemberProps {
   organizationId: string;
@@ -24,18 +24,19 @@ export const RemoveMember = ({
     try {
       if (!user) return;
       setIsSubmitting(true);
-      await api?.frontierServiceRemoveOrganizationUser(
-        organizationId,
-        user?.id || "",
-      );
+      const client = clients.frontier();
+      await client.removeOrganizationUser({
+        id: organizationId,
+        userId: user?.id || "",
+      });
       if (onRemove) {
         onRemove(user);
       }
       toast.success("Member removed successfully");
     } catch (error) {
       const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message
+        error instanceof ConnectError
+          ? error.message
           : "Unknown error";
       toast.error(`Failed to remove member: ${message}`);
       console.error(error);
