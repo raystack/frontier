@@ -236,22 +236,6 @@ These APIs require admin privileges and allow administrators to manage sessions 
 Admin APIs are restricted to users with admin privileges and are typically used in administrative interfaces or internal tools for security and support purposes.
 :::
 
-## Best Practices for SDK Integration
-
-1. **Use the built-in session management UI**: The SDK provides ready-to-use components for session management. Integrate them into your application's account settings or security section to give users visibility into their active sessions.
-
-2. **Display session metadata**: Use the `sessionMetadata` from `useFrontier` to show users information about their current session, helping them verify they're on a recognized device.
-
-3. **Educate users about sessions**: Provide clear guidance in your UI about what sessions are and encourage users to review their active sessions regularly, especially from the session management dialog.
-
-4. **Handle session expiration gracefully**: When a session expires, the SDK will automatically redirect to the login flow. Ensure your application handles this transition smoothly without data loss.
-
-5. **Trust the SDK's automatic tracking**: The SDK automatically handles activity tracking and session metadata updates. You don't need to implement additional tracking logic.
-
-6. **Monitor for suspicious activity**: Encourage users to check their session list periodically and revoke any sessions they don't recognize, especially after traveling or using new devices.
-
-7. **Test session flows**: Thoroughly test your application's behavior when sessions expire or are revoked, ensuring users can seamlessly re-authenticate and continue their work.
-
 ## Related Documentation
 
 - [User Authentication](./user.md) - Learn about authentication strategies
