@@ -11,16 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type ProductService interface {
-	GetByID(ctx context.Context, id string) (product.Product, error)
-	Create(ctx context.Context, product product.Product) (product.Product, error)
-	Update(ctx context.Context, product product.Product) (product.Product, error)
-	List(ctx context.Context, filter product.Filter) ([]product.Product, error)
-	UpsertFeature(ctx context.Context, feature product.Feature) (product.Feature, error)
-	GetFeatureByID(ctx context.Context, id string) (product.Feature, error)
-	ListFeatures(ctx context.Context, filter product.Filter) ([]product.Feature, error)
-}
-
 func (h *ConnectHandler) ListProducts(ctx context.Context, request *connect.Request[frontierv1beta1.ListProductsRequest]) (*connect.Response[frontierv1beta1.ListProductsResponse], error) {
 	errorLogger := NewErrorLogger()
 

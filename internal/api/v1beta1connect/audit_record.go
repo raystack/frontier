@@ -27,12 +27,6 @@ const (
 	HttpChunkSize          = 204800 // 200KB
 )
 
-type AuditRecordService interface {
-	Create(ctx context.Context, record auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error)
-	List(ctx context.Context, query *rql.Query) (auditrecord.AuditRecordsList, error)
-	Export(ctx context.Context, query *rql.Query) (io.Reader, string, error)
-}
-
 func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect.Request[frontierv1beta1.CreateAuditRecordRequest]) (*connect.Response[frontierv1beta1.CreateAuditRecordResponse], error) {
 	errorLogger := NewErrorLogger()
 

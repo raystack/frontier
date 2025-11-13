@@ -5,28 +5,12 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
-	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-type SubscriptionService interface {
-	GetByID(ctx context.Context, id string) (subscription.Subscription, error)
-	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
-	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
-	ChangePlan(ctx context.Context, id string, change subscription.ChangeRequest) (subscription.Phase, error)
-	HasUserSubscribedBefore(ctx context.Context, customerID string, planID string) (bool, error)
-}
-
-type PlanService interface {
-	GetByID(ctx context.Context, id string) (plan.Plan, error)
-	Create(ctx context.Context, plan plan.Plan) (plan.Plan, error)
-	List(ctx context.Context, filter plan.Filter) ([]plan.Plan, error)
-	UpsertPlans(ctx context.Context, planFile plan.File) error
-}
 
 func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSubscriptionsRequest]) (*connect.Response[frontierv1beta1.ListSubscriptionsResponse], error) {
 	errorLogger := NewErrorLogger()

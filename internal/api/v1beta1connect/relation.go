@@ -13,13 +13,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type RelationService interface {
-	Get(ctx context.Context, id string) (relation.Relation, error)
-	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
-	List(ctx context.Context, f relation.Filter) ([]relation.Relation, error)
-	Delete(ctx context.Context, rel relation.Relation) error
-}
-
 func (h *ConnectHandler) ListRelations(ctx context.Context, request *connect.Request[frontierv1beta1.ListRelationsRequest]) (*connect.Response[frontierv1beta1.ListRelationsResponse], error) {
 	errorLogger := NewErrorLogger()
 	var err error

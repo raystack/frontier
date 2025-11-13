@@ -7,6 +7,10 @@ packages:
     config:
       dir: "internal/api/v1beta1/mocks"
       all: true
+  github.com/raystack/frontier/internal/api/v1beta1connect:
+    config:
+      dir: "internal/api/v1beta1connect/mocks"
+      all: true
   github.com/raystack/frontier/pkg/mailer:
     config:
       dir: "pkg/mailer/mocks"
