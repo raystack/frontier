@@ -16,11 +16,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type OrgTokensService interface {
-	Search(ctx context.Context, id string, query *rql.Query) (svc.OrganizationTokens, error)
-	Export(ctx context.Context, orgID string) ([]byte, string, error)
-}
-
 func (h *ConnectHandler) SearchOrganizationTokens(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationTokensRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationTokensResponse], error) {
 	errorLogger := NewErrorLogger()
 

@@ -19,14 +19,6 @@ var (
 	groupMetaSchema    = "group"
 )
 
-type MetaSchemaService interface {
-	Get(ctx context.Context, id string) (metaschema.MetaSchema, error)
-	Create(ctx context.Context, toCreate metaschema.MetaSchema) (metaschema.MetaSchema, error)
-	List(ctx context.Context) ([]metaschema.MetaSchema, error)
-	Update(ctx context.Context, id string, toUpdate metaschema.MetaSchema) (metaschema.MetaSchema, error)
-	Delete(ctx context.Context, id string) error
-}
-
 func (h *ConnectHandler) ListMetaSchemas(ctx context.Context, req *connect.Request[frontierv1beta1.ListMetaSchemasRequest]) (*connect.Response[frontierv1beta1.ListMetaSchemasResponse], error) {
 	errorLogger := NewErrorLogger()
 

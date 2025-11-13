@@ -10,14 +10,9 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"github.com/raystack/salt/rql"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-type OrgServiceUserService interface {
-	Search(ctx context.Context, orgID string, query *rql.Query) (orgserviceuser.OrganizationServiceUsers, error)
-}
 
 func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationServiceUsersResponse], error) {
 	errorLogger := NewErrorLogger()

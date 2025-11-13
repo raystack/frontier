@@ -15,14 +15,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type InvoiceService interface {
-	List(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
-	ListAll(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
-	GetUpcoming(ctx context.Context, customerID string) (invoice.Invoice, error)
-	TriggerCreditOverdraftInvoices(ctx context.Context) error
-	SearchInvoices(ctx context.Context, rqlQuery *rql.Query) ([]invoice.InvoiceWithOrganization, error)
-}
-
 func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllInvoicesRequest]) (*connect.Response[frontierv1beta1.ListAllInvoicesResponse], error) {
 	errorLogger := NewErrorLogger()
 

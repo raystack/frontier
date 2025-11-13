@@ -14,10 +14,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type ProjectUsersService interface {
-	Search(ctx context.Context, id string, query *rql.Query) (projectusers.ProjectUsers, error)
-}
-
 func (h *ConnectHandler) SearchProjectUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchProjectUsersRequest]) (*connect.Response[frontierv1beta1.SearchProjectUsersResponse], error) {
 	errorLogger := NewErrorLogger()
 	var projectUsers []*frontierv1beta1.SearchProjectUsersResponse_ProjectUser

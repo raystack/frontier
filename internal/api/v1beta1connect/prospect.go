@@ -16,14 +16,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type ProspectService interface {
-	Create(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
-	List(ctx context.Context, query *rql.Query) (prospect.ListProspects, error)
-	Get(ctx context.Context, prospectId string) (prospect.Prospect, error)
-	Update(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
-	Delete(ctx context.Context, prospectId string) error
-}
-
 func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *connect.Request[frontierv1beta1.CreateProspectPublicRequest]) (*connect.Response[frontierv1beta1.CreateProspectPublicResponse], error) {
 	errorLogger := NewErrorLogger()
 	email := request.Msg.GetEmail()

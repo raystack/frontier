@@ -9,10 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type EventService interface {
-	BillingWebhook(ctx context.Context, event event.ProviderWebhookEvent) error
-}
-
 func (h *ConnectHandler) BillingWebhookCallback(ctx context.Context, request *connect.Request[frontierv1beta1.BillingWebhookCallbackRequest]) (*connect.Response[frontierv1beta1.BillingWebhookCallbackResponse], error) {
 	errorLogger := NewErrorLogger()
 

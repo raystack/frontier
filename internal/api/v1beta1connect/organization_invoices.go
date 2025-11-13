@@ -15,10 +15,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type OrgInvoicesService interface {
-	Search(ctx context.Context, id string, query *rql.Query) (orginvoices.OrganizationInvoices, error)
-}
-
 func (h *ConnectHandler) SearchOrganizationInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationInvoicesResponse], error) {
 	errorLogger := NewErrorLogger()
 
