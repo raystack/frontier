@@ -105,15 +105,18 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 		auditRecord.Actor.Name = user.Name
 		auditRecord.Actor.Title = user.Title
 
+		if auditRecord.Actor.Metadata == nil {
+			auditRecord.Actor.Metadata = make(map[string]any)
+		}
+
+		// enrich with session metadata
+		auditRecord.Actor.Metadata[consts.AuditSessionMetadataKey] = session.Metadata
+
 		// check if the user is a superuser
 		if isSudo, err := s.userService.IsSudo(ctx, user.ID, schema.PlatformSudoPermission); err != nil {
 			return AuditRecord{}, false, err
 		} else if isSudo {
-			if auditRecord.Actor.Metadata == nil {
-				auditRecord.Actor.Metadata = make(map[string]any)
-			}
 			auditRecord.Actor.Metadata[consts.AuditActorSuperUserKey] = true
-			auditRecord.Actor.Metadata[consts.AuditSessionMetadataKey] = session.Metadata
 		}
 
 	case auditRecord.Actor.Type == schema.ServiceUserPrincipal:
