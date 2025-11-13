@@ -3,11 +3,12 @@
 import {
   Text,
   Flex,
-  Headline,
   Button,
 } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useSessions } from '../../../hooks/useSessions';
+import { PageHeader } from '../../common/page-header';
+import sharedStyles from '../styles.module.css';
 import { SessionSkeleton } from './session-skeleton';
 import styles from './sessions.module.css';
 
@@ -20,21 +21,15 @@ export const SessionsPage = () => {
     navigate({ to: '/sessions/revoke', search: { sessionId } });
   };
 
-  const renderSessionsHeader = () => (
-    <Flex direction="column" gap={2}>
-      <Headline size="t1">Sessions</Headline>
-      <Text size="regular" variant="secondary">
-        Devices logged into this account.
-      </Text>
-    </Flex>
-  );
-
   if (isLoading) {
     return (
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
-          <Flex direction="row" justify="between" align="center" className={styles.header}>
-            {renderSessionsHeader()}
+          <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+            <PageHeader 
+              title="Sessions" 
+              description="Devices logged into this account."
+            />
           </Flex>
           <Flex direction="column" className={styles.sessionsList}>
             <SessionSkeleton count={3} />
@@ -48,8 +43,11 @@ export const SessionsPage = () => {
     return (
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
-          <Flex direction="row" justify="between" align="center" className={styles.header}>
-            {renderSessionsHeader()}
+          <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+            <PageHeader 
+              title="Sessions" 
+              description="Devices logged into this account."
+            />
           </Flex>
           <Flex justify="center" align="center" style={{ padding: '2rem' }}>
             <Text variant="danger" size="regular">
@@ -64,8 +62,11 @@ export const SessionsPage = () => {
   return (
     <Flex direction="column" width="full">
       <Flex direction="column" className={styles.container}>
-        <Flex direction="row" justify="between" align="center" className={styles.header}>
-          {renderSessionsHeader()}
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <PageHeader 
+            title="Sessions" 
+            description="Devices logged into this account."
+          />
         </Flex>
         
         <Flex direction="column" className={styles.sessionsList}>

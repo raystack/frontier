@@ -1,0 +1,28 @@
+.header {
+  margin-bottom: var(--rs-space-9);
+}
+
+.container {
+  padding: var(--rs-space-9) var(--rs-space-11);
+  overflow: scroll;
+}
+
+.containerFlex {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.contentWrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pageWrapper {
+  width: 100%;
+  height: 100%;
+}
+

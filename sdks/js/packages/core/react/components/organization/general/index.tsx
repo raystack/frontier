@@ -15,8 +15,9 @@ import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { GeneralOrganization } from './general.workspace';
 import { AuthTooltipMessage } from '~/react/utils';
-import { styles } from '../styles';
 import { useTerminology } from '~/react/hooks/useTerminology';
+import { PageHeader } from '~/react/components/common/page-header';
+import sharedStyles from '../styles.module.css';
 
 export default function GeneralSetting() {
   const { activeOrganization: organization, isActiveOrganizationLoading } =
@@ -59,20 +60,25 @@ export default function GeneralSetting() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
-        <Text size="large">General</Text>
-      </Flex>
-      <Flex direction="column" gap={9} style={styles.container}>
-        <GeneralOrganization
-          organization={organization}
-          canUpdateWorkspace={canUpdateWorkspace}
-          isLoading={isLoading}
-        />
-        <Separator />
-        <GeneralDeleteOrganization
-          isLoading={isLoading}
-          canDelete={canDeleteWorkspace}
-        />
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <PageHeader 
+            title="General" 
+            description="Basic configuration for the organization."
+          />
+        </Flex>
+        <Flex direction="column" gap={9}>
+          <GeneralOrganization
+            organization={organization}
+            canUpdateWorkspace={canUpdateWorkspace}
+            isLoading={isLoading}
+          />
+          <Separator />
+          <GeneralDeleteOrganization
+            isLoading={isLoading}
+            canDelete={canDeleteWorkspace}
+          />
+        </Flex>
       </Flex>
     </Flex>
   );

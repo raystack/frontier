@@ -7,7 +7,6 @@ import {
   Skeleton,
   Flex,
   Button,
-  Text,
   Select,
   DataTable,
   toast
@@ -21,6 +20,8 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './projects.columns';
 import { Project } from '@raystack/proton/frontier';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { PageHeader } from '~/react/components/common/page-header';
+import sharedStyles from '../styles.module.css';
 import styles from './project.module.css';
 
 const projectsSelectOptions = [
@@ -106,19 +107,24 @@ export default function WorkspaceProjects() {
   const isLoading = isPermissionsFetching || isProjectsLoading;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header}>
-        <Text size={6}>Projects</Text>
-      </Flex>
-      <Flex direction="column" gap={9} className={styles.container}>
-        <ProjectsTable
-          projects={projects}
-          isLoading={isLoading}
-          canCreateProject={canCreateProject}
-          userAccessOnProject={userAccessOnProject}
-          onOrgProjectsFilterChange={onOrgProjectsFilterChange}
-          canListOrgProjects={canUpdateOrganization}
-        />
+    <Flex direction="column" className={sharedStyles.pageWrapper}>
+      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <PageHeader 
+            title="Projects" 
+            description="Manage projects in this organization."
+          />
+        </Flex>
+        <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
+          <ProjectsTable
+            projects={projects}
+            isLoading={isLoading}
+            canCreateProject={canCreateProject}
+            userAccessOnProject={userAccessOnProject}
+            onOrgProjectsFilterChange={onOrgProjectsFilterChange}
+            canListOrgProjects={canUpdateOrganization}
+          />
+        </Flex>
       </Flex>
       <Outlet />
     </Flex>
