@@ -198,6 +198,10 @@ Sample flow for email OTP is as follows:
    </Tabs>
 5. Frontier server verifies the OTP and creates a new session.
 
+:::tip
+After authentication, a session is created and stored as a cookie. Learn more about [session management](./session.md) including how to list, revoke, and track sessions.
+:::
+
 ## Request Verification
 
 Once the user is verified and logged in, a session is created using cookies in user's browser. This is how the flow
