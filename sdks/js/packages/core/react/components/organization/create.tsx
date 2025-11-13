@@ -1,12 +1,14 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Text, Headline, Flex, InputField } from '@raystack/apsara';
+import { Button, Text, Headline, Flex, InputField, toast } from '@raystack/apsara';
 import { ComponentPropsWithRef } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
+import { useMutation, FrontierServiceQueries } from '~hooks';
+import { create } from '@bufbuild/protobuf';
+import { CreateOrganizationRequestSchema } from '@raystack/proton/frontier';
 
 // @ts-ignore
 import styles from './organization.module.css';
@@ -32,21 +34,37 @@ export const CreateOrganization = ({
   const t = useTerminology();
   const {
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     register
-  } = useForm({
+  } = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema)
   });
 
-  const { client } = useFrontier();
-  async function onSubmit(data: any) {
-    if (!client) return;
+  const { mutateAsync: createOrganization } = useMutation(
+    FrontierServiceQueries.createOrganization,
+    {
+      onError: (err: Error) => {
+        toast.error('Failed to create organization', {
+          description: err?.message
+        });
+      }
+    }
+  );
 
-    const {
-      data: { organization }
-    } = await client.frontierServiceCreateOrganization(data);
-    // @ts-ignore
-    window.location = `${window.location.origin}/${organization.name}`;
+  async function onSubmit(data: yup.InferType<typeof schema>) {
+    const response = await createOrganization(
+      create(CreateOrganizationRequestSchema, {
+        body: {
+          title: data.title,
+          name: data.name
+        }
+      })
+    );
+    const organization = response.organization;
+    if (organization?.name) {
+      // @ts-ignore
+      window.location = `${window.location.origin}/${organization.name}`;
+    }
   }
 
   return (
@@ -82,6 +100,9 @@ export const CreateOrganization = ({
               style={{ width: '100%' }}
               type="submit"
               data-test-id="frontier-sdk-create-workspace-btn"
+              disabled={isSubmitting}
+              loading={isSubmitting}
+              loaderText="Creating..."
             >
               Create {t.organization({ case: 'lower' })}
             </Button>
