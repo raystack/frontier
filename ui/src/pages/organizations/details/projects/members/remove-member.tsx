@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { SearchProjectUsersResponse_ProjectUser } from "@raystack/proton/frontier";
 import {
   FrontierService,
   FrontierServiceQueries,
   ListPoliciesRequestSchema,
   DeletePolicyRequestSchema,
+  type SearchProjectUsersResponse_ProjectUser,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useMutation, useTransport } from "@connectrpc/connect-query";

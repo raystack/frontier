@@ -2,15 +2,13 @@ import { DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery } from "@raystack/apsara";
 import { useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import type {
-  SearchProjectUsersResponse_ProjectUser,
-  RQLRequest,
-} from "@raystack/proton/frontier";
 import {
   AdminServiceQueries,
   FrontierServiceQueries,
   GetProjectRequestSchema,
   ListRolesRequestSchema,
+  type SearchProjectUsersResponse_ProjectUser,
+  type RQLRequest,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useQuery, useInfiniteQuery } from "@connectrpc/connect-query";

@@ -1,5 +1,4 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
 import { useState } from "react";
 import { OrganizationsNavabar } from "./navbar";

@@ -1,8 +1,9 @@
 import { Button, Dialog, Flex, InputField, toast } from "@raystack/apsara";
-import type {
-  SearchOrganizationProjectsResponse_OrganizationProject,
+import {
+  FrontierServiceQueries,
+  UpdateProjectRequestSchema,
+  type SearchOrganizationProjectsResponse_OrganizationProject,
 } from "@raystack/proton/frontier";
-import { FrontierServiceQueries, UpdateProjectRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
