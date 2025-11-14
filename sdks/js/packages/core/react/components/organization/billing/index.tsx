@@ -10,7 +10,7 @@ import {
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import billingStyles from './billing.module.css';
 import {
   BillingAccount,
@@ -143,7 +143,11 @@ export default function Billing() {
 
   const { isAllowed, isFetching } = useBillingPermission();
 
-  const { data: invoices = [], isLoading: isInvoicesLoading } = useConnectQuery(
+  const {
+    data: invoices = [],
+    isLoading: isInvoicesLoading,
+    error: invoicesError
+  } = useConnectQuery(
     FrontierServiceQueries.listInvoices,
     create(ListInvoicesRequestSchema, {
       orgId: billingAccount?.orgId || '',
@@ -155,6 +159,14 @@ export default function Billing() {
       select: data => data?.invoices || []
     }
   );
+
+  useEffect(() => {
+    if (invoicesError) {
+      toast.error('Failed to load invoices', {
+        description: invoicesError?.message
+      });
+    }
+  }, [invoicesError]);
 
   const { mutateAsync: createCheckoutMutation } = useMutation(
     FrontierServiceQueries.createCheckout,
@@ -171,44 +183,44 @@ export default function Billing() {
   const onAddDetailsClick = useCallback(async () => {
     const orgId = billingAccount?.orgId || '';
     const billingAccountId = billingAccount?.id || '';
-    if (billingAccountId && orgId) {
-      try {
-        const query = qs.stringify(
-          {
-            details: btoa(
-              qs.stringify({
-                billing_id: billingAccount?.id,
-                organization_id: billingAccount?.orgId,
-                type: 'billing'
-              })
-            ),
-            checkout_id: '{{.CheckoutID}}'
-          },
-          { encode: false }
-        );
-        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
-        const success_url = `${config?.billing?.successUrl}?${query}`;
+    if (!billingAccountId || !orgId) return;
 
-        const resp = await createCheckoutMutation(
-          create(CreateCheckoutRequestSchema, {
-            orgId: billingAccount?.orgId || '',
-            billingId: billingAccount?.id || '',
-            cancelUrl: cancel_url,
-            successUrl: success_url,
-            setupBody: {
-              paymentMethod: false,
-              customerPortal: true
-            }
-          })
-        );
-        const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
-        if (checkoutUrl) {
-          window.location.href = checkoutUrl;
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error('Something went wrong');
+    try {
+      const query = qs.stringify(
+        {
+          details: btoa(
+            qs.stringify({
+              billing_id: billingAccount?.id,
+              organization_id: billingAccount?.orgId,
+              type: 'billing'
+            })
+          ),
+          checkout_id: '{{.CheckoutID}}'
+        },
+        { encode: false }
+      );
+      const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+      const success_url = `${config?.billing?.successUrl}?${query}`;
+
+      const resp = await createCheckoutMutation(
+        create(CreateCheckoutRequestSchema, {
+          orgId: billingAccount?.orgId || '',
+          billingId: billingAccount?.id || '',
+          cancelUrl: cancel_url,
+          successUrl: success_url,
+          setupBody: {
+            paymentMethod: false,
+            customerPortal: true
+          }
+        })
+      );
+      const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
       }
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong');
     }
   }, [
     billingAccount?.id,

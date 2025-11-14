@@ -67,36 +67,35 @@ export function ConfirmCycleSwitch() {
   const isLoading = isAllPlansLoading;
 
   async function onConfirm() {
-    if (nextPlan?.id) {
-      const nextPlanId = nextPlan?.id;
-      if (isPaymentMethodRequired) {
-        checkoutPlan({
-          planId: nextPlanId,
-          isTrial: false,
-          onSuccess: data => {
-            window.location.href = data?.checkoutUrl as string;
-          }
-        });
-      } else
-        changePlan({
-          planId: nextPlanId,
-          onSuccess: async () => {
-            const planPhase = await verifyPlanChange({
-              planId: nextPlanId
+    const nextPlanId = nextPlan?.id;
+    if (!nextPlanId) return;
+    if (isPaymentMethodRequired) {
+      checkoutPlan({
+        planId: nextPlanId,
+        isTrial: false,
+        onSuccess: data => {
+          window.location.href = data?.checkoutUrl as string;
+        }
+      });
+    } else
+      changePlan({
+        planId: nextPlanId,
+        onSuccess: async () => {
+          const planPhase = await verifyPlanChange({
+            planId: nextPlanId
+          });
+          if (planPhase) {
+            closeModal();
+            const changeDate = timestampToDayjs(planPhase?.effectiveAt)?.format(
+              dateFormat
+            );
+            toast.success(`Plan cycle switch successful`, {
+              description: `Your plan cycle will switched to ${nextPlanIntervalName} on ${changeDate}`
             });
-            if (planPhase) {
-              closeModal();
-              const changeDate = timestampToDayjs(
-                planPhase?.effectiveAt
-              )?.format(dateFormat);
-              toast.success(`Plan cycle switch successful`, {
-                description: `Your plan cycle will switched to ${nextPlanIntervalName} on ${changeDate}`
-              });
-            }
-          },
-          immediate: isUpgrade
-        });
-    }
+          }
+        },
+        immediate: isUpgrade
+      });
   }
 
   const cycleSwitchDate = activeSubscription?.currentPeriodEndAt

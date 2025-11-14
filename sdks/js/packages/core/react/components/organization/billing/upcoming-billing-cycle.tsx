@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   GetUpcomingInvoiceRequestSchema,
@@ -16,7 +16,8 @@ import {
   Skeleton,
   Text,
   Flex,
-  Amount
+  Amount,
+  toast
 } from '@raystack/apsara';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import {
@@ -108,34 +109,40 @@ export const UpcomingBillingCycle = ({
   } = useFrontier();
   const navigate = useNavigate({ from: '/billing' });
 
-  const { data: upcomingInvoice, isLoading: isInvoiceLoading } =
-    useConnectQuery(
-      FrontierServiceQueries.getUpcomingInvoice,
-      create(GetUpcomingInvoiceRequestSchema, {
-        orgId: billingAccount?.orgId || '',
-        billingId: billingAccount?.id || ''
-      }),
-      {
-        enabled:
-          !!billingAccount?.id &&
-          !!billingAccount?.orgId &&
-          // This is to prevent fetching the upcoming invoice for offline billing accounts
-          !!billingAccount?.providerId,
-        select: data => data?.invoice
-      }
-    );
+  const {
+    data: upcomingInvoice,
+    isLoading: isInvoiceLoading,
+    error: invoiceError
+  } = useConnectQuery(
+    FrontierServiceQueries.getUpcomingInvoice,
+    create(GetUpcomingInvoiceRequestSchema, {
+      orgId: billingAccount?.orgId || '',
+      billingId: billingAccount?.id || ''
+    }),
+    {
+      enabled:
+        !!billingAccount?.id &&
+        !!billingAccount?.orgId &&
+        // This is to prevent fetching the upcoming invoice for offline billing accounts
+        !!billingAccount?.providerId,
+      select: data => data?.invoice
+    }
+  );
 
-  const { data: memberCount = 0, isLoading: isMemberCountLoading } =
-    useConnectQuery(
-      FrontierServiceQueries.listOrganizationUsers,
-      create(ListOrganizationUsersRequestSchema, {
-        id: billingAccount?.orgId || ''
-      }),
-      {
-        enabled: !!billingAccount?.id && !!billingAccount?.orgId,
-        select: data => data?.users?.length || 0
-      }
-    );
+  const {
+    data: memberCount = 0,
+    isLoading: isMemberCountLoading,
+    error: memberCountError
+  } = useConnectQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    create(ListOrganizationUsersRequestSchema, {
+      id: billingAccount?.orgId || ''
+    }),
+    {
+      enabled: !!billingAccount?.id && !!billingAccount?.orgId,
+      select: data => data?.users?.length || 0
+    }
+  );
 
   const { plan, switchablePlan } = useMemo(() => {
     if (activeSubscription?.planId && allPlans.length > 0) {
@@ -179,6 +186,14 @@ export const UpcomingBillingCycle = ({
   const alreadyPhased = activeSubscription?.phases?.find(
     phase => phase.planId === switchablePlan?.id
   );
+
+  const error = memberCountError || invoiceError;
+  useEffect(() => {
+    if (error) {
+      console.error('Failed to get upcoming billing cycle details', error);
+      toast.error('Failed to get upcoming billing cycle details');
+    }
+  }, [error]);
 
   const isLoading =
     isActiveOrganizationLoading ||

@@ -52,39 +52,39 @@ export const PaymentMethod = ({
   const updatePaymentMethod = async () => {
     const orgId = billingAccount?.orgId || '';
     const billingAccountId = billingAccount?.id || '';
-    if (billingAccountId && orgId) {
-      const query = qs.stringify(
-        {
-          details: btoa(
-            qs.stringify({
-              billing_id: billingAccount?.id,
-              organization_id: billingAccount?.orgId,
-              type: 'billing'
-            })
-          ),
-          checkout_id: '{{.CheckoutID}}'
-        },
-        { encode: false }
-      );
-      const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
-      const success_url = `${config?.billing?.successUrl}?${query}`;
+    if (!billingAccountId || !orgId) return;
 
-      const resp = await createCheckoutMutation(
-        create(CreateCheckoutRequestSchema, {
-          orgId: billingAccount?.orgId || '',
-          billingId: billingAccount?.id || '',
-          cancelUrl: cancel_url,
-          successUrl: success_url,
-          setupBody: {
-            paymentMethod: true,
-            customerPortal: false
-          }
-        })
-      );
-      const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
-      if (checkoutUrl) {
-        window.location.href = checkoutUrl;
-      }
+    const query = qs.stringify(
+      {
+        details: btoa(
+          qs.stringify({
+            billing_id: billingAccount?.id,
+            organization_id: billingAccount?.orgId,
+            type: 'billing'
+          })
+        ),
+        checkout_id: '{{.CheckoutID}}'
+      },
+      { encode: false }
+    );
+    const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+    const success_url = `${config?.billing?.successUrl}?${query}`;
+
+    const resp = await createCheckoutMutation(
+      create(CreateCheckoutRequestSchema, {
+        orgId: billingAccount?.orgId || '',
+        billingId: billingAccount?.id || '',
+        cancelUrl: cancel_url,
+        successUrl: success_url,
+        setupBody: {
+          paymentMethod: true,
+          customerPortal: false
+        }
+      })
+    );
+    const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
     }
   };
 
