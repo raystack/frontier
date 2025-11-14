@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from "react";
 import type { DataTableQuery } from "@raystack/apsara";
 import type {
-  V1Beta1RQLQueryPaginationResponse,
-  V1Beta1RQLQueryGroupResponse,
-} from "~/api/frontier";
+  RQLQueryGroupResponse,
+  RQLQueryPaginationResponse
+} from "@raystack/proton/frontier"
 import { useDebounceCallback } from "usehooks-ts";
 
 export interface GroupCountMap {
@@ -17,7 +17,7 @@ interface UseRQLResponse<T> {
   query: DataTableQuery;
   setQuery: (query: DataTableQuery) => void;
   fetchData: (apiQuery?: DataTableQuery) => Promise<void>;
-  group?: V1Beta1RQLQueryGroupResponse;
+  group?: RQLQueryGroupResponse;
   hasMore: boolean;
   onTableQueryChange: (query: DataTableQuery) => void;
   groupCountMap: GroupCountMap;
@@ -78,13 +78,13 @@ export const useRQL = <T extends unknown>({
 
         const pagination = response[
           "pagination"
-        ] as V1Beta1RQLQueryPaginationResponse;
+        ] as RQLQueryPaginationResponse;
         if (pagination) {
           setNextOffset(pagination?.offset || 0);
         }
         setHasMore(items.length !== 0 && items.length === limit);
 
-        const group = response.group as V1Beta1RQLQueryGroupResponse;
+        const group = response.group as RQLQueryGroupResponse;
         // Handle group counts
         if (group?.data && group.name) {
           const groupCount = group.data.reduce(

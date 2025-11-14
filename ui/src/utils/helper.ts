@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import type { TableColumnMetadata } from "~/types/types";
 import { DEFAULT_DATE_FORMAT } from "./constants";
-import { BillingAccountAddress } from "~/api/frontier";
+import { BillingAccount_Address } from "@raystack/proton/frontier";
 
 const currencySymbolMap: Record<string, string> = {
   usd: "$",
@@ -58,11 +58,11 @@ export const getFormattedDateString = (date: string) =>
   date ? dayjs(date).format(DEFAULT_DATE_FORMAT) : "-";
 
 export const converBillingAddressToString = (
-  address?: BillingAccountAddress,
+  address?: BillingAccount_Address,
 ) => {
   if (!address) return "";
-  const { line1, line2, city, state, country, postal_code } = address;
-  return [line1, line2, city, state, country, postal_code]
+  const { line1, line2, city, state, country, postalCode } = address;
+  return [line1, line2, city, state, country, postalCode]
     .filter(v => v)
     .join(", ");
 };

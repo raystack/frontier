@@ -1,5 +1,5 @@
-import { V1Beta1Role } from "@raystack/frontier";
+import type { Role } from "@raystack/proton/frontier";
 
 export type RoleDetailsTypes = {
-  role: V1Beta1Role;
+  role: Role;
 };

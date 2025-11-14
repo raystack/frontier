@@ -1,13 +1,18 @@
 import { DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import type { DataTableQuery } from "@raystack/apsara";
+import { useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import { api } from "~/api";
-import type {
-  SearchProjectUsersResponseProjectUser,
-  Frontierv1Beta1Project,
-  V1Beta1Role,
-} from "~/api/frontier";
+import {
+  AdminServiceQueries,
+  FrontierServiceQueries,
+  GetProjectRequestSchema,
+  ListRolesRequestSchema,
+  type SearchProjectUsersResponse_ProjectUser,
+  type RQLRequest,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { useQuery, useInfiniteQuery } from "@connectrpc/connect-query";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 import styles from "./members.module.css";
 import UserIcon from "~/assets/icons/users.svg?react";
 import { getColumns } from "./columns";
@@ -15,7 +20,11 @@ import { AssignRole } from "./assign-role";
 import { PROJECT_NAMESPACE } from "../../types";
 import { RemoveMember } from "./remove-member";
 import { AddMembersDropdown } from "./add-members-dropdown";
-import { useRQL } from "~/hooks/useRQL";
+import {
+  getConnectNextPageParam,
+  DEFAULT_PAGE_SIZE,
+} from "~/utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 
 const NoMembers = () => {
   return (
@@ -31,7 +40,10 @@ const NoMembers = () => {
   );
 };
 
-const DEFAULT_SORT: DataTableSort = { name: "", order: "desc" };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE,
+};
 
 export const ProjectMembersDialog = ({
   projectId,
@@ -40,86 +52,112 @@ export const ProjectMembersDialog = ({
   projectId: string;
   onClose: () => void;
 }) => {
-  const [project, setProject] = useState<Frontierv1Beta1Project>({});
-  const [isProjectLoading, setIsProjectLoading] = useState<boolean>(false);
-
-  const [projectRoles, setProjectRoles] = useState<V1Beta1Role[]>([]);
-  const [isProjectRolesLoading, setIsProjectRolesLoading] =
-    useState<boolean>(false);
+  const [tableQuery, setTableQuery] = useDebouncedState<{
+    query: DataTableQuery;
+    rqlRequest: RQLRequest;
+  }>(
+    {
+      query: INITIAL_QUERY,
+      rqlRequest: transformDataTableQueryToRQLRequest(INITIAL_QUERY, {}),
+    },
+    200,
+  );
 
   const [assignRoleConfig, setAssignRoleConfig] = useState<{
     isOpen: boolean;
-    user: SearchProjectUsersResponseProjectUser | null;
+    user: SearchProjectUsersResponse_ProjectUser | null;
   }>({ isOpen: false, user: null });
 
   const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
-    user: SearchProjectUsersResponseProjectUser | null;
+    user: SearchProjectUsersResponse_ProjectUser | null;
   }>({ isOpen: false, user: null });
 
-  const fetchProject = useCallback(async (id: string) => {
-    setIsProjectLoading(true);
-    try {
-      const resp = await api?.frontierServiceGetProject(id);
-      const project = resp.data?.project || {};
-      setProject(project);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsProjectLoading(false);
+  const { data: project, isLoading: isProjectLoading, error: projectError } = useQuery(
+    FrontierServiceQueries.getProject,
+    create(GetProjectRequestSchema, { id: projectId }),
+    {
+      enabled: !!projectId,
+      select: (data) => data?.project,
     }
-  }, []);
-
-  const fetchProjectRoles = useCallback(async () => {
-    setIsProjectRolesLoading(true);
-    try {
-      const resp = await api?.frontierServiceListRoles({
-        scopes: [PROJECT_NAMESPACE],
-      });
-      const roles = resp.data?.roles || [];
-      setProjectRoles(roles);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsProjectRolesLoading(false);
-    }
-  }, []);
-
-  const apiCallback = useCallback(
-    async (apiQuery: DataTableQuery = {}) => {
-      apiQuery.sort = undefined;
-      const response = await api?.adminServiceSearchProjectUsers(
-        projectId,
-        apiQuery,
-      );
-      return response.data;
-    },
-    [projectId],
   );
 
-  const { data, setData, loading, query, onTableQueryChange, fetchMore } =
-    useRQL<SearchProjectUsersResponseProjectUser>({
-      initialQuery: { offset: 0 },
-      key: projectId,
-      dataKey: "project_users",
-      fn: apiCallback,
-      onError: (error: Error | unknown) =>
-        console.error("Failed to fetch project users:", error),
-    });
-
-  useEffect(() => {
-    if (projectId) {
-      fetchProject(projectId);
-      fetchProjectRoles();
+  const { data: projectRoles = [], isLoading: isProjectRolesLoading, error: rolesError } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, { scopes: [PROJECT_NAMESPACE] }),
+    {
+      select: (data) => data?.roles || [],
     }
-  }, [projectId, fetchProject, fetchProjectRoles]);
+  );
+
+  // Log errors if they occur
+  if (projectError) {
+    console.error("Failed to fetch project:", projectError);
+  }
+  if (rolesError) {
+    console.error("Failed to fetch project roles:", rolesError);
+  }
+
+  const {
+    data: infiniteData,
+    isLoading: isMembersLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+  } = useInfiniteQuery(
+    AdminServiceQueries.searchProjectUsers,
+    { id: projectId, query: tableQuery.rqlRequest },
+    {
+      pageParamKey: "query",
+      getNextPageParam: (lastPage) =>
+        getConnectNextPageParam(
+          lastPage,
+          { query: tableQuery.rqlRequest },
+          "projectUsers",
+        ),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000,
+    },
+  );
+
+  const data =
+    infiniteData?.pages?.flatMap((page) => page?.projectUsers || []) || [];
+
+  const onTableQueryChange = useCallback((query: DataTableQuery) => {
+    const updatedQuery = {
+      ...query,
+      offset: 0,
+      limit: query.limit || DEFAULT_PAGE_SIZE,
+      sort: undefined, // Remove sort as it's not supported by this endpoint
+    };
+    const updatedRQLRequest = transformDataTableQueryToRQLRequest(
+      updatedQuery,
+      {},
+    );
+    setTableQuery({
+      query: updatedQuery,
+      rqlRequest: updatedRQLRequest,
+    });
+  }, []);
+
+  const handleLoadMore = useCallback(async () => {
+    try {
+      if (!hasNextPage) return;
+      await fetchNextPage();
+    } catch (error) {
+      console.error("Error loading more project members:", error);
+    }
+  }, [hasNextPage, fetchNextPage]);
 
   async function refetchMembers() {
-    onTableQueryChange({ ...query, offset: 0 });
+    await refetch();
   }
 
   const openAssignRoleDialog = useCallback(
-    (user: SearchProjectUsersResponseProjectUser) => {
+    (user: SearchProjectUsersResponse_ProjectUser) => {
       setAssignRoleConfig({ isOpen: true, user });
     },
     [],
@@ -130,7 +168,7 @@ export const ProjectMembersDialog = ({
   }, []);
 
   const openRemoveMemberDialog = useCallback(
-    (user: SearchProjectUsersResponseProjectUser) => {
+    (user: SearchProjectUsersResponse_ProjectUser) => {
       setRemoveMemberConfig({ isOpen: true, user });
     },
     [],
@@ -150,23 +188,17 @@ export const ProjectMembersDialog = ({
     [projectRoles, openAssignRoleDialog, openRemoveMemberDialog],
   );
 
-  async function removeMember(user: SearchProjectUsersResponseProjectUser) {
-    setData((prevMembers) => {
-      return prevMembers.filter((member) => member.id !== user.id);
-    });
+  async function removeMember(user: SearchProjectUsersResponse_ProjectUser) {
+    await refetch();
     setRemoveMemberConfig({ isOpen: false, user: null });
   }
 
-  async function updateMember(user: SearchProjectUsersResponseProjectUser) {
-    setData((prevMembers) => {
-      const updatedMembers = prevMembers.map((member) =>
-        member.id === user.id ? user : member,
-      );
-      return updatedMembers;
-    });
+  async function updateMember(user: SearchProjectUsersResponse_ProjectUser) {
+    await refetch();
     setAssignRoleConfig({ isOpen: false, user: null });
   }
 
+  const loading = isMembersLoading || isFetchingNextPage;
   const isLoading = loading || isProjectLoading || isProjectRolesLoading;
 
   return (
@@ -194,20 +226,20 @@ export const ProjectMembersDialog = ({
             {isProjectLoading ? (
               <Skeleton containerClassName={styles["flex1"]} width={"200px"} />
             ) : (
-              <Dialog.Title>{project.title}</Dialog.Title>
+              <Dialog.Title>{project?.title ?? ""}</Dialog.Title>
             )}
             <Dialog.CloseButton data-test-id="close-button" />
           </Dialog.Header>
           <Dialog.Body className={styles["dialog-body"]}>
             <DataTable
-              query={query}
-              data={data}
+              query={tableQuery.query}
               columns={columns}
+              data={data}
               isLoading={isLoading}
               mode="server"
-              defaultSort={DEFAULT_SORT}
+              defaultSort={{ name: "", order: "desc" }}
               onTableQueryChange={onTableQueryChange}
-              onLoadMore={fetchMore}
+              onLoadMore={handleLoadMore}
             >
               <Flex
                 direction="column"

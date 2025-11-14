@@ -10,16 +10,26 @@ import {
 import { useCallback } from "react";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
+  Role,
+  Policy,
 } from "@raystack/proton/frontier";
-import type { V1Beta1Role } from "~/api/frontier";
-import { api } from "~/api";
+import {
+  FrontierService,
+  FrontierServiceQueries,
+  ListPoliciesRequestSchema,
+  DeletePolicyRequestSchema,
+  CreatePolicyRequestSchema,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { useMutation, useTransport } from "@connectrpc/connect-query";
+import { createClient } from "@connectrpc/connect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 interface AssignRoleProps {
   organizationId: string;
-  roles: V1Beta1Role[];
+  roles: Role[];
   user?: SearchOrganizationUsersResponse_OrganizationUser;
   onRoleUpdate: () => void;
   onClose: () => void;
@@ -40,6 +50,8 @@ export const AssignRole = ({
   onRoleUpdate,
   onClose,
 }: AssignRoleProps) => {
+  const transport = useTransport();
+
   const {
     handleSubmit,
     watch,
@@ -51,6 +63,14 @@ export const AssignRole = ({
     },
     resolver: zodResolver(formSchema),
   });
+
+  const { mutateAsync: deletePolicy } = useMutation(
+    FrontierServiceQueries.deletePolicy,
+  );
+
+  const { mutateAsync: createPolicy } = useMutation(
+    FrontierServiceQueries.createPolicy,
+  );
 
   const roleIds = watch("roleIds");
 
@@ -77,18 +97,23 @@ export const AssignRole = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      const policiesResp = await api?.frontierServiceListPolicies({
-        org_id: organizationId,
-        user_id: user?.id,
-      });
-      const policies = policiesResp?.data?.policies || [];
+      const client = createClient(FrontierService, transport);
+      const policiesResp = await client.listPolicies(
+        create(ListPoliciesRequestSchema, {
+          orgId: organizationId,
+          userId: user?.id,
+        }),
+      );
+      const policies = policiesResp.policies || [];
 
       const removedRolesPolicies = policies.filter(
-        (policy) => !(policy.role_id && data.roleIds.has(policy.role_id)),
+        (policy: Policy) => !(policy.roleId && data.roleIds.has(policy.roleId)),
       );
       await Promise.all(
-        removedRolesPolicies.map((policy) =>
-          api?.frontierServiceDeletePolicy(policy.id as string),
+        removedRolesPolicies.map((policy: Policy) =>
+          deletePolicy(
+            create(DeletePolicyRequestSchema, { id: policy.id || "" }),
+          ),
         ),
       );
 
@@ -97,12 +122,16 @@ export const AssignRole = ({
 
       const assignedRolesArr = Array.from(data.roleIds);
       await Promise.all(
-        assignedRolesArr.map((role_id) =>
-          api?.frontierServiceCreatePolicy({
-            role_id,
-            resource: resource,
-            principal: principal,
-          }),
+        assignedRolesArr.map((roleId) =>
+          createPolicy(
+            create(CreatePolicyRequestSchema, {
+              body: {
+                roleId,
+                resource,
+                principal,
+              },
+            }),
+          ),
         ),
       );
 
@@ -112,6 +141,7 @@ export const AssignRole = ({
 
       toast.success("Role assigned successfully");
     } catch (error) {
+      toast.error("Failed to assign role");
       console.error(error);
     }
   };

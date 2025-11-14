@@ -6,8 +6,10 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
-import { V1Beta1Plan } from "@raystack/frontier";
-import type { SearchOrganizationsResponse_OrganizationResult } from "@raystack/proton/frontier";
+import type {
+  SearchOrganizationsResponse_OrganizationResult,
+  Plan,
+} from "@raystack/proton/frontier";
 import {
   isNullTimestamp,
   TimeStamp,
@@ -27,7 +29,7 @@ export const SUBSCRIPTION_STATES = {
 type SubscriptionState = keyof typeof SUBSCRIPTION_STATES;
 
 interface getColumnsOptions {
-  plans: V1Beta1Plan[];
+  plans: Plan[];
   groupCountMap: Record<string, Record<string, number>>;
 }
 

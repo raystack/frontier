@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
-import { api } from "~/api";
 
 interface SuspendDropdownProps {
   userId: string;
