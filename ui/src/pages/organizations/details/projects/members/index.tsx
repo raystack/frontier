@@ -233,7 +233,7 @@ export const ProjectMembersDialog = ({
           <Dialog.Body className={styles["dialog-body"]}>
             <DataTable
               query={tableQuery.query}
-              columns={columns as any}
+              columns={columns}
               data={data}
               isLoading={isLoading}
               mode="server"
