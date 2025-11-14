@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
 import {
   FrontierServiceQueries,
@@ -22,16 +21,13 @@ export const RemoveMember = ({
   onRemove,
   onClose,
 }: RemoveMemberProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { mutateAsync: removeOrganizationUser } = useMutation(
+  const { mutateAsync: removeOrganizationUser, isPending } = useMutation(
     FrontierServiceQueries.removeOrganizationUser,
   );
 
   async function onSubmit() {
     try {
       if (!user) return;
-      setIsSubmitting(true);
       await removeOrganizationUser(
         create(RemoveOrganizationUserRequestSchema, {
           id: organizationId,
@@ -49,8 +45,6 @@ export const RemoveMember = ({
           : "Unknown error";
       toast.error(`Failed to remove member: ${message}`);
       console.error(error);
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -88,7 +82,7 @@ export const RemoveMember = ({
             type="submit"
             data-test-id="remove-member-submit-button"
             color="danger"
-            loading={isSubmitting}
+            loading={isPending}
             loaderText="Removing..."
             onClick={onSubmit}
           >
