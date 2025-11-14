@@ -10,14 +10,17 @@ import {
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import billingStyles from './billing.module.css';
 import {
-  V1Beta1CheckoutSetupBody,
-  V1Beta1Invoice
-} from '~/src';
-import { BillingAccount } from '@raystack/proton/frontier';
-// import { converBillingAddressToString } from '~/react/utils';
+  BillingAccount,
+  ListInvoicesRequestSchema,
+  FrontierServiceQueries,
+  CreateCheckoutRequestSchema
+} from '@raystack/proton/frontier';
+import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import { useMutation } from '~hooks';
 import Invoices from './invoices';
 import qs from 'query-string';
 
@@ -84,13 +87,12 @@ const BillingDetails = ({
   isAllowed,
   disabled = false
 }: BillingDetailsProps) => {
-  // const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText =
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
   const isButtonDisabled = isLoading || disabled;
   return (
     <div className={billingStyles.detailsBox}>
-      <Flex align="center" justify="between" style={{ width: '100%' }}>
+      <Flex align="center" justify="between" width="full">
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed ? (
           <Tooltip
@@ -131,7 +133,6 @@ export default function Billing() {
   const {
     billingAccount,
     isBillingAccountLoading,
-    client,
     config,
     activeSubscription,
     isActiveSubscriptionLoading,
@@ -140,83 +141,91 @@ export default function Billing() {
     isOrganizationKycLoading
   } = useFrontier();
 
-  const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
-  const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
   const { isAllowed, isFetching } = useBillingPermission();
 
-  const fetchInvoices = useCallback(
-    async (organizationId: string, billingId: string) => {
-      setIsInvoicesLoading(true);
-      try {
-        const resp = await client?.frontierServiceListInvoices(
-          organizationId,
-          billingId,
-          { nonzero_amount_only: true }
-        );
-        const newInvoices = resp?.data?.invoices || [];
-        setInvoices(newInvoices);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsInvoicesLoading(false);
-      }
-    },
-    [client]
+  const {
+    data: invoices = [],
+    isLoading: isInvoicesLoading,
+    error: invoicesError
+  } = useConnectQuery(
+    FrontierServiceQueries.listInvoices,
+    create(ListInvoicesRequestSchema, {
+      orgId: billingAccount?.orgId || '',
+      billingId: billingAccount?.id || '',
+      nonzeroAmountOnly: true
+    }),
+    {
+      enabled: !!billingAccount?.id && !!billingAccount?.orgId,
+      select: data => data?.invoices || []
+    }
   );
 
   useEffect(() => {
-    if (billingAccount?.id && billingAccount?.orgId) {
-      fetchInvoices(billingAccount?.orgId, billingAccount?.id);
+    if (invoicesError) {
+      toast.error('Failed to load invoices', {
+        description: invoicesError?.message
+      });
     }
-  }, [billingAccount?.id, billingAccount?.orgId, client, fetchInvoices]);
+  }, [invoicesError]);
+
+  const { mutateAsync: createCheckoutMutation } = useMutation(
+    FrontierServiceQueries.createCheckout,
+    {
+      onError: (err: Error) => {
+        console.error(err);
+        toast.error('Something went wrong', {
+          description: err?.message
+        });
+      }
+    }
+  );
 
   const onAddDetailsClick = useCallback(async () => {
     const orgId = billingAccount?.orgId || '';
     const billingAccountId = billingAccount?.id || '';
-    if (billingAccountId && orgId) {
-      try {
-        const query = qs.stringify(
-          {
-            details: btoa(
-              qs.stringify({
-                billing_id: billingAccount?.id,
-                organization_id: billingAccount?.orgId,
-                type: 'billing'
-              })
-            ),
-            checkout_id: '{{.CheckoutID}}'
-          },
-          { encode: false }
-        );
-        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
-        const success_url = `${config?.billing?.successUrl}?${query}`;
+    if (!billingAccountId || !orgId) return;
 
-        const setup_body: V1Beta1CheckoutSetupBody = {
-          customer_portal: true
-        };
+    try {
+      const query = qs.stringify(
+        {
+          details: btoa(
+            qs.stringify({
+              billing_id: billingAccount?.id,
+              organization_id: billingAccount?.orgId,
+              type: 'billing'
+            })
+          ),
+          checkout_id: '{{.CheckoutID}}'
+        },
+        { encode: false }
+      );
+      const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+      const success_url = `${config?.billing?.successUrl}?${query}`;
 
-        const resp = await client?.frontierServiceCreateCheckout(
-          billingAccount?.orgId || '',
-          billingAccount?.id || '',
-          {
-            cancel_url,
-            success_url,
-            setup_body
+      const resp = await createCheckoutMutation(
+        create(CreateCheckoutRequestSchema, {
+          orgId: billingAccount?.orgId || '',
+          billingId: billingAccount?.id || '',
+          cancelUrl: cancel_url,
+          successUrl: success_url,
+          setupBody: {
+            paymentMethod: false,
+            customerPortal: true
           }
-        );
-        const checkout_url = resp?.data?.checkout_session?.checkout_url;
-        if (checkout_url) {
-          window.location.href = checkout_url;
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error('Something went wrong');
+        })
+      );
+      const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
       }
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong');
     }
   }, [
     billingAccount?.id,
     billingAccount?.orgId,
-    client,
+    createCheckoutMutation,
     config?.billing?.cancelUrl,
     config?.billing?.successUrl
   ]);
@@ -231,7 +240,7 @@ export default function Billing() {
   const isOrganizationKycCompleted = organizationKyc?.status === true;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
+    <Flex direction="column" width="full">
       <Flex style={styles.header}>
         <Text size="large">Billing</Text>
       </Flex>
