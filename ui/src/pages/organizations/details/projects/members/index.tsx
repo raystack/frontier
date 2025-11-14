@@ -226,7 +226,7 @@ export const ProjectMembersDialog = ({
             {isProjectLoading ? (
               <Skeleton containerClassName={styles["flex1"]} width={"200px"} />
             ) : (
-              <Dialog.Title>{project?.title}</Dialog.Title>
+              <Dialog.Title>{project?.title ?? ""}</Dialog.Title>
             )}
             <Dialog.CloseButton data-test-id="close-button" />
           </Dialog.Header>
