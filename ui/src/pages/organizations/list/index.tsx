@@ -87,13 +87,18 @@ export const OrganizationList = () => {
     },
   );
 
-  const { data: plans = [], isLoading: isPlansLoading } = useQuery(
+  const { data: plans = [], isLoading: isPlansLoading, error: plansError } = useQuery(
     FrontierServiceQueries.listPlans,
     create(ListPlansRequestSchema, {}),
     {
       select: (data) => data?.plans || [],
     },
   );
+
+  // Log error if it occurs
+  if (plansError) {
+    console.error("Failed to fetch plans:", plansError);
+  }
 
   const data =
     infiniteData?.pages?.flatMap(page => page?.organizations || []) || [];

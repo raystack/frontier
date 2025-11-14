@@ -73,7 +73,7 @@ export const ProjectMembersDialog = ({
     user: SearchProjectUsersResponse_ProjectUser | null;
   }>({ isOpen: false, user: null });
 
-  const { data: project, isLoading: isProjectLoading } = useQuery(
+  const { data: project, isLoading: isProjectLoading, error: projectError } = useQuery(
     FrontierServiceQueries.getProject,
     create(GetProjectRequestSchema, { id: projectId }),
     {
@@ -82,13 +82,21 @@ export const ProjectMembersDialog = ({
     }
   );
 
-  const { data: projectRoles = [], isLoading: isProjectRolesLoading } = useQuery(
+  const { data: projectRoles = [], isLoading: isProjectRolesLoading, error: rolesError } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, { scopes: [PROJECT_NAMESPACE] }),
     {
       select: (data) => data?.roles || [],
     }
   );
+
+  // Log errors if they occur
+  if (projectError) {
+    console.error("Failed to fetch project:", projectError);
+  }
+  if (rolesError) {
+    console.error("Failed to fetch project roles:", rolesError);
+  }
 
   const {
     data: infiniteData,

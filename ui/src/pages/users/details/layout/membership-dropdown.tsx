@@ -29,7 +29,7 @@ export const MembershipDropdown = ({
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const { user } = useUser();
 
-  const { data: defaultRoles = [], isLoading: isDefaultRolesLoading } = useQuery(
+  const { data: defaultRoles = [], isLoading: isDefaultRolesLoading, error: defaultRolesError } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
     {
@@ -37,7 +37,7 @@ export const MembershipDropdown = ({
     }
   );
 
-  const { data: organizationRoles = [], isLoading: isOrgRolesLoading } = useQuery(
+  const { data: organizationRoles = [], isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
     FrontierServiceQueries.listOrganizationRoles,
     create(ListOrganizationRolesRequestSchema, {
       orgId: data?.orgId || "",
@@ -48,6 +48,14 @@ export const MembershipDropdown = ({
       select: (data) => data?.roles || [],
     }
   );
+
+  // Log errors if they occur
+  if (defaultRolesError) {
+    console.error("Failed to fetch default roles:", defaultRolesError);
+  }
+  if (orgRolesError) {
+    console.error("Failed to fetch organization roles:", orgRolesError);
+  }
 
   const roles = useMemo(
     () => [...defaultRoles, ...organizationRoles],
