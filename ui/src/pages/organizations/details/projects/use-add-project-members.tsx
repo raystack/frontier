@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { toast } from "@raystack/apsara";
 import { DEFAULT_ROLES } from "~/utils/constants";
