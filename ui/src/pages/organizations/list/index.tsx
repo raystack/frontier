@@ -1,6 +1,6 @@
 import { DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
@@ -96,9 +96,11 @@ export const OrganizationList = () => {
   );
 
   // Log error if it occurs
-  if (plansError) {
-    console.error("Failed to fetch plans:", plansError);
-  }
+  useEffect(() => {
+    if (plansError) {
+      console.error("Failed to fetch plans:", plansError);
+    }
+  }, [plansError]);
 
   const data =
     infiniteData?.pages?.flatMap(page => page?.organizations || []) || [];
