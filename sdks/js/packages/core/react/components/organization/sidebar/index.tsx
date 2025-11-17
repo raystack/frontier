@@ -97,7 +97,7 @@ export const Sidebar = () => {
       collapsible={false}
     >
       <div className={styles.scrollArea}>
-        <Flex direction="column" gap={4} style={{ marginTop: '64px' }}>
+        <Flex direction="column" gap={4} style={{ marginTop: '58px' }}>
           <Search
             size="large"
             value={search}

@@ -6,7 +6,6 @@ import {
   Tooltip,
   EmptyState,
   Skeleton,
-  Text,
   Flex,
   DataTable,
   toast
@@ -21,6 +20,8 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { PageHeader } from '~/react/components/common/page-header';
+import sharedStyles from '../styles.module.css';
 import styles from './domain.module.css';
 
 export default function Domain() {
@@ -63,38 +64,28 @@ export default function Domain() {
   const isLoading = isFetching || isPermissionsFetching;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header}>
-        <Text size="large">Security</Text>
-      </Flex>
-      <Flex direction="column" gap={9} className={styles.container}>
-        <AllowedEmailDomains />
-        <Domains
-          domains={domains}
-          isLoading={isLoading}
-          canCreateDomain={canCreateDomain}
-          dateFormat={config?.dateFormat}
-        />
+    <Flex direction="column" className={sharedStyles.pageWrapper}>
+      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <PageHeader 
+            title="Allowed email domains" 
+            description="Anyone with an email address at these domains is allowed to sign up
+          for this organization."
+          />
+        </Flex>
+        <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
+          <Domains
+            domains={domains}
+            isLoading={isLoading}
+            canCreateDomain={canCreateDomain}
+            dateFormat={config?.dateFormat}
+          />
+        </Flex>
       </Flex>
       <Outlet />
     </Flex>
   );
 }
-
-const AllowedEmailDomains = () => {
-  return (
-    <Flex direction="row" justify="between" align="center">
-      <Flex direction="column" gap={3}>
-        <Text size="large" weight="medium">
-          Allowed email domains
-        </Text>
-        <Text size="regular" variant="secondary">
-          Anyone with an email address from these domains can sign up for this workspace.
-        </Text>
-      </Flex>
-    </Flex>
-  );
-};
 
 const Domains = ({
   domains = [],

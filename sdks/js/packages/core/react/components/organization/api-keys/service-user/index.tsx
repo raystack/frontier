@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara';
-import styles from './styles.module.css';
-import backIcon from '~/react/assets/chevron-left.svg';
+import { PageHeader } from '~/react/components/common/page-header';
 import {
   Outlet,
   useLocation,
@@ -20,7 +20,10 @@ import {
   type ServiceUserToken
 } from '@raystack/proton/frontier';
 import { useServiceUserTokens } from '../hooks/useServiceUserTokens';
-import { useState } from 'react';
+
+import backIcon from '~/react/assets/chevron-left.svg';
+import sharedStyles from '../../styles.module.css';
+import styles from './styles.module.css';
 
 const Headings = ({
   isLoading,
@@ -221,19 +224,24 @@ export default function ServiceUserPage() {
   const isLoading = isServiceUserLoading || isServiceUserTokensLoading;
 
   return (
-    <Flex direction="column" width="full">
-      <Flex className={styles.header} gap={3}>
-        <Image
-          alt="back-icon"
-          style={{ cursor: 'pointer' }}
-          src={backIcon as unknown as string}
-          onClick={() => navigate({ to: '/api-keys' })}
-          data-test-id="frontier-sdk-api-keys-page-back-link"
-        />
-        <Text size="large">API</Text>
-      </Flex>
-      <Flex justify="center" align="center">
-        <Flex className={styles.content} direction="column" gap={9}>
+    <Flex direction="column" style={{ width: '100%' }}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <Flex gap={3} align="center">
+            <Image
+              alt="back-icon"
+              style={{ cursor: 'pointer' }}
+              src={backIcon as unknown as string}
+              onClick={() => navigate({ to: '/api-keys' })}
+              data-test-id="frontier-sdk-api-keys-page-back-link"
+            />
+            <PageHeader 
+              title="API" 
+            />
+          </Flex>
+        </Flex>
+        <Flex justify="center" align="center">
+          <Flex className={styles.content} direction="column" gap={9}>
           <Headings
             isLoading={isLoading}
             name={serviceUser?.title || ''}
@@ -245,6 +253,7 @@ export default function ServiceUserPage() {
             tokens={serviceUserTokens}
             serviceUserId={id}
           />
+          </Flex>
         </Flex>
       </Flex>
       <Outlet />

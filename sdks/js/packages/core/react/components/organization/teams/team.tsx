@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Tabs, Image, Text, Flex, toast } from '@raystack/apsara';
+import { Tabs, Image, Flex, toast } from '@raystack/apsara';
 import {
   Outlet,
   useNavigate,
@@ -14,6 +14,8 @@ import { Members } from './members';
 import { useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, GetGroupRequestSchema, ListGroupUsersRequestSchema, ListRolesRequestSchema, Organization, type Role } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import { PageHeader } from '~/react/components/common/page-header';
+import sharedStyles from '../styles.module.css';
 import styles from './teams.module.css';
 
 export const TeamPage = () => {
@@ -91,17 +93,23 @@ export const TeamPage = () => {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header}>
-        <Image
-          alt="back-icon"
-          style={{ cursor: 'pointer' }}
-          src={backIcon as unknown as string}
-          onClick={() => navigate({ to: '/teams' })}
-          data-test-id="frontier-sdk-team-back-btn"
-        />
-        <Text size="large">Teams</Text>
-      </Flex>
-      <Tabs defaultValue="general" className={styles.container}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <Flex gap={3} align="center">
+            <Image
+              alt="back-icon"
+              style={{ cursor: 'pointer' }}
+              src={backIcon as unknown as string}
+              onClick={() => navigate({ to: '/teams' })}
+              data-test-id="frontier-sdk-team-back-btn"
+            />
+            <PageHeader 
+              title="Team" 
+              description="Manage team settings and members."
+            />
+          </Flex>
+        </Flex>
+        <Tabs defaultValue="general" className={styles.container}>
         <Tabs.List>
           <Tabs.Trigger value="general">General</Tabs.Trigger>
           <Tabs.Trigger value="members">Members</Tabs.Trigger>
@@ -123,7 +131,8 @@ export const TeamPage = () => {
             refetchMembers={refetchMembers}
           />
         </Tabs.Content>
-      </Tabs>
+        </Tabs>
+      </Flex>
       <Outlet />
     </Flex>
   );

@@ -2,13 +2,12 @@ import {
   Flex,
   EmptyState,
   Button,
-  Text,
   Skeleton,
   Image,
   DataTable
 } from '@raystack/apsara';
-import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
+import { PageHeader } from '~/react/components/common/page-header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { useMemo } from 'react';
@@ -25,6 +24,9 @@ import {
   ListOrganizationServiceUsersRequestSchema,
   type ServiceUser
 } from '@raystack/proton/frontier';
+
+import sharedStyles from '../styles.module.css';
+import styles from './styles.module.css';
 
 const NoServiceAccounts = () => {
   const t = useTerminology();
@@ -63,23 +65,27 @@ const NoAccess = () => {
   );
 };
 
-const Headings = ({ isLoading }: { isLoading: boolean }) => {
+interface ApiKeysHeaderProps {
+  isLoading?: boolean;
+}
+
+const ApiKeysHeader = ({ isLoading }: ApiKeysHeaderProps) => {
   const t = useTerminology();
+
+  if (isLoading) {
+    return (
+      <Flex direction="column" gap={2} className={styles.flex1}>
+        <Skeleton />
+        <Skeleton />
+      </Flex>
+    );
+  }
+
   return (
-    <Flex direction="column" gap={3} style={{ width: '100%' }}>
-      {isLoading ? (
-        <Skeleton containerClassName={styles.flex1} />
-      ) : (
-        <Text size="large">Service Accounts</Text>
-      )}
-      {isLoading ? (
-        <Skeleton containerClassName={styles.flex1} />
-      ) : (
-        <Text size="regular" variant="secondary">
-          Create a non-human identity to allow access to {t.appName()} resources
-        </Text>
-      )}
-    </Flex>
+    <PageHeader
+      title="API Keys"
+      description={`Create a non-human identity to allow access to ${t.appName()} resources.`}
+    />
   );
 };
 
@@ -199,26 +205,27 @@ export default function ApiKeys() {
   const serviceAccountsCount: number = serviceUsers?.length;
 
   return (
-    <Flex direction="column" className={styles.container}>
-      <Flex className={styles.header}>
-        <Text size="large">API</Text>
-      </Flex>
-      {canUpdateWorkspace || isLoading ? (
-        serviceAccountsCount > 0 || isLoading ? (
-          <Flex className={styles.content} direction="column" gap={9}>
-            <Headings isLoading={isLoading} />
-            <ServiceAccountsTable
-              isLoading={isLoading}
-              serviceUsers={serviceUsers}
-              dateFormat={config?.dateFormat}
-            />
-          </Flex>
+    <Flex direction="column" className={sharedStyles.pageWrapper}>
+      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <ApiKeysHeader isLoading={isLoading} />
+        </Flex>
+        {canUpdateWorkspace || isLoading ? (
+          serviceAccountsCount > 0 || isLoading ? (
+            <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
+              <ServiceAccountsTable
+                isLoading={isLoading}
+                serviceUsers={serviceUsers}
+                dateFormat={config?.dateFormat}
+              />
+            </Flex>
+          ) : (
+            <NoServiceAccounts />
+          )
         ) : (
-          <NoServiceAccounts />
-        )
-      ) : (
-        <NoAccess />
-      )}
+          <NoAccess />
+        )}
+      </Flex>
       <Outlet />
     </Flex>
   );

@@ -12,12 +12,13 @@ import {
   Headline,
   Select
 } from '@raystack/apsara';
-import bell from '~/react/assets/bell.svg';
 import bellSlash from '~/react/assets/bell-slash.svg';
-import { styles } from '../styles';
+import { PageHeader } from '~/react/components/common/page-header';
 import { PreferencesSelectionTypes } from './preferences.types';
 import { usePreferences } from '~/react/hooks/usePreferences';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
+import bell from '~/react/assets/bell.svg';
+import sharedStyles from '../styles.module.css';
 
 const themeOptions = [
   {
@@ -86,10 +87,14 @@ export default function UserPreferences() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
-        <Text size="large">Preferences</Text>
-      </Flex>
-      <Flex direction="column" gap={9} style={styles.container}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <PageHeader 
+            title="Preferences" 
+            description="Customize your workspace preferences and settings."
+          />
+        </Flex>
+        <Flex direction="column" gap={9}>
         <PreferencesSelection
           label="Theme"
           text="Customise your interface color scheme."
@@ -112,6 +117,7 @@ export default function UserPreferences() {
           }}
         />
         <Separator />
+        </Flex>
       </Flex>
     </Flex>
   );
@@ -119,7 +125,7 @@ export default function UserPreferences() {
 
 export const PreferencesHeader = () => {
   return (
-    <Box style={styles.container}>
+    <Box>
       <Headline size="t3">Preferences</Headline>
       <Text size="regular" variant="secondary">
         Manage your workspace security and how it&apos;s members authenticate
