@@ -16,11 +16,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type OrgProjectsService interface {
-	Search(ctx context.Context, id string, query *rql.Query) (orgprojects.OrgProjects, error)
-	Export(ctx context.Context, orgID string) ([]byte, string, error)
-}
-
 func (h *ConnectHandler) SearchOrganizationProjects(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationProjectsResponse], error) {
 	errorLogger := NewErrorLogger()
 

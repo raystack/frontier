@@ -4,12 +4,11 @@ package mocks
 
 import (
 	context "context"
-
-	auditrecord "github.com/raystack/frontier/core/auditrecord"
-
 	io "io"
 
 	mock "github.com/stretchr/testify/mock"
+
+	models "github.com/raystack/frontier/core/auditrecord/models"
 
 	rql "github.com/raystack/salt/rql"
 )
@@ -28,32 +27,32 @@ func (_m *AuditRecordService) EXPECT() *AuditRecordService_Expecter {
 }
 
 // Create provides a mock function with given fields: ctx, record
-func (_m *AuditRecordService) Create(ctx context.Context, record auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error) {
+func (_m *AuditRecordService) Create(ctx context.Context, record models.AuditRecord) (models.AuditRecord, bool, error) {
 	ret := _m.Called(ctx, record)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 auditrecord.AuditRecord
+	var r0 models.AuditRecord
 	var r1 bool
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.AuditRecord) (models.AuditRecord, bool, error)); ok {
 		return rf(ctx, record)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, auditrecord.AuditRecord) auditrecord.AuditRecord); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.AuditRecord) models.AuditRecord); ok {
 		r0 = rf(ctx, record)
 	} else {
-		r0 = ret.Get(0).(auditrecord.AuditRecord)
+		r0 = ret.Get(0).(models.AuditRecord)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, auditrecord.AuditRecord) bool); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, models.AuditRecord) bool); ok {
 		r1 = rf(ctx, record)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, auditrecord.AuditRecord) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, models.AuditRecord) error); ok {
 		r2 = rf(ctx, record)
 	} else {
 		r2 = ret.Error(2)
@@ -69,24 +68,24 @@ type AuditRecordService_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
-//   - record auditrecord.AuditRecord
+//   - record models.AuditRecord
 func (_e *AuditRecordService_Expecter) Create(ctx interface{}, record interface{}) *AuditRecordService_Create_Call {
 	return &AuditRecordService_Create_Call{Call: _e.mock.On("Create", ctx, record)}
 }
 
-func (_c *AuditRecordService_Create_Call) Run(run func(ctx context.Context, record auditrecord.AuditRecord)) *AuditRecordService_Create_Call {
+func (_c *AuditRecordService_Create_Call) Run(run func(ctx context.Context, record models.AuditRecord)) *AuditRecordService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auditrecord.AuditRecord))
+		run(args[0].(context.Context), args[1].(models.AuditRecord))
 	})
 	return _c
 }
 
-func (_c *AuditRecordService_Create_Call) Return(_a0 auditrecord.AuditRecord, _a1 bool, _a2 error) *AuditRecordService_Create_Call {
+func (_c *AuditRecordService_Create_Call) Return(_a0 models.AuditRecord, _a1 bool, _a2 error) *AuditRecordService_Create_Call {
 	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *AuditRecordService_Create_Call) RunAndReturn(run func(context.Context, auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error)) *AuditRecordService_Create_Call {
+func (_c *AuditRecordService_Create_Call) RunAndReturn(run func(context.Context, models.AuditRecord) (models.AuditRecord, bool, error)) *AuditRecordService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -158,22 +157,22 @@ func (_c *AuditRecordService_Export_Call) RunAndReturn(run func(context.Context,
 }
 
 // List provides a mock function with given fields: ctx, query
-func (_m *AuditRecordService) List(ctx context.Context, query *rql.Query) (auditrecord.AuditRecordsList, error) {
+func (_m *AuditRecordService) List(ctx context.Context, query *rql.Query) (models.AuditRecordsList, error) {
 	ret := _m.Called(ctx, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for List")
 	}
 
-	var r0 auditrecord.AuditRecordsList
+	var r0 models.AuditRecordsList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *rql.Query) (auditrecord.AuditRecordsList, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *rql.Query) (models.AuditRecordsList, error)); ok {
 		return rf(ctx, query)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *rql.Query) auditrecord.AuditRecordsList); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *rql.Query) models.AuditRecordsList); ok {
 		r0 = rf(ctx, query)
 	} else {
-		r0 = ret.Get(0).(auditrecord.AuditRecordsList)
+		r0 = ret.Get(0).(models.AuditRecordsList)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *rql.Query) error); ok {
@@ -204,12 +203,12 @@ func (_c *AuditRecordService_List_Call) Run(run func(ctx context.Context, query 
 	return _c
 }
 
-func (_c *AuditRecordService_List_Call) Return(_a0 auditrecord.AuditRecordsList, _a1 error) *AuditRecordService_List_Call {
+func (_c *AuditRecordService_List_Call) Return(_a0 models.AuditRecordsList, _a1 error) *AuditRecordService_List_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *AuditRecordService_List_Call) RunAndReturn(run func(context.Context, *rql.Query) (auditrecord.AuditRecordsList, error)) *AuditRecordService_List_Call {
+func (_c *AuditRecordService_List_Call) RunAndReturn(run func(context.Context, *rql.Query) (models.AuditRecordsList, error)) *AuditRecordService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

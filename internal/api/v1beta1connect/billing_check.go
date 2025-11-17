@@ -9,11 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type EntitlementService interface {
-	Check(ctx context.Context, customerID, featureID string) (bool, error)
-	CheckPlanEligibility(ctx context.Context, customerID string) error
-}
-
 func (h *ConnectHandler) CheckFeatureEntitlement(ctx context.Context, request *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse], error) {
 	errorLogger := NewErrorLogger()
 

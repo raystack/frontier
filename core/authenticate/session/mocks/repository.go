@@ -26,6 +26,53 @@ func (_m *Repository) EXPECT() *Repository_Expecter {
 	return &Repository_Expecter{mock: &_m.Mock}
 }
 
+// Delete provides a mock function with given fields: ctx, id
+func (_m *Repository) Delete(ctx context.Context, id uuid.UUID) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type Repository_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *Repository_Expecter) Delete(ctx interface{}, id interface{}) *Repository_Delete_Call {
+	return &Repository_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+}
+
+func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID)) *Repository_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *Repository_Delete_Call) Return(_a0 error) *Repository_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *Repository_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteExpiredSessions provides a mock function with given fields: ctx
 func (_m *Repository) DeleteExpiredSessions(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -237,17 +284,17 @@ func (_c *Repository_Set_Call) RunAndReturn(run func(context.Context, *session.S
 	return _c
 }
 
-// Delete provides a mock function with given fields: ctx, id
-func (_m *Repository) Delete(ctx context.Context, id uuid.UUID) error {
-	ret := _m.Called(ctx, id)
+// UpdateSessionMetadata provides a mock function with given fields: ctx, id, metadata, updatedAt
+func (_m *Repository) UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata session.SessionMetadata, updatedAt time.Time) error {
+	ret := _m.Called(ctx, id, metadata, updatedAt)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Delete")
+		panic("no return value specified for UpdateSessionMetadata")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, session.SessionMetadata, time.Time) error); ok {
+		r0 = rf(ctx, id, metadata, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -255,31 +302,33 @@ func (_m *Repository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r0
 }
 
-// Repository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
-type Repository_Delete_Call struct {
+// Repository_UpdateSessionMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSessionMetadata'
+type Repository_UpdateSessionMetadata_Call struct {
 	*mock.Call
 }
 
-// Delete is a helper method to define mock.On call
+// UpdateSessionMetadata is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id uuid.UUID
-func (_e *Repository_Expecter) Delete(ctx interface{}, id interface{}) *Repository_Delete_Call {
-	return &Repository_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+//   - metadata session.SessionMetadata
+//   - updatedAt time.Time
+func (_e *Repository_Expecter) UpdateSessionMetadata(ctx interface{}, id interface{}, metadata interface{}, updatedAt interface{}) *Repository_UpdateSessionMetadata_Call {
+	return &Repository_UpdateSessionMetadata_Call{Call: _e.mock.On("UpdateSessionMetadata", ctx, id, metadata, updatedAt)}
 }
 
-func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID)) *Repository_Delete_Call {
+func (_c *Repository_UpdateSessionMetadata_Call) Run(run func(ctx context.Context, id uuid.UUID, metadata session.SessionMetadata, updatedAt time.Time)) *Repository_UpdateSessionMetadata_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(session.SessionMetadata), args[3].(time.Time))
 	})
 	return _c
 }
 
-func (_c *Repository_Delete_Call) Return(_a0 error) *Repository_Delete_Call {
+func (_c *Repository_UpdateSessionMetadata_Call) Return(_a0 error) *Repository_UpdateSessionMetadata_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *Repository_Delete_Call {
+func (_c *Repository_UpdateSessionMetadata_Call) RunAndReturn(run func(context.Context, uuid.UUID, session.SessionMetadata, time.Time) error) *Repository_UpdateSessionMetadata_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -328,55 +377,6 @@ func (_c *Repository_UpdateValidity_Call) Return(_a0 error) *Repository_UpdateVa
 }
 
 func (_c *Repository_UpdateValidity_Call) RunAndReturn(run func(context.Context, uuid.UUID, time.Duration) error) *Repository_UpdateValidity_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateSessionMetadata provides a mock function with given fields: ctx, id, metadata, updatedAt
-func (_m *Repository) UpdateSessionMetadata(ctx context.Context, id uuid.UUID, metadata session.SessionMetadata, updatedAt time.Time) error {
-	ret := _m.Called(ctx, id, metadata, updatedAt)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateSessionMetadata")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, session.SessionMetadata, time.Time) error); ok {
-		r0 = rf(ctx, id, metadata, updatedAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Repository_UpdateSessionMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSessionMetadata'
-type Repository_UpdateSessionMetadata_Call struct {
-	*mock.Call
-}
-
-// UpdateSessionMetadata is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id uuid.UUID
-//   - metadata session.SessionMetadata
-//   - updatedAt time.Time
-func (_e *Repository_Expecter) UpdateSessionMetadata(ctx interface{}, id interface{}, metadata interface{}, updatedAt interface{}) *Repository_UpdateSessionMetadata_Call {
-	return &Repository_UpdateSessionMetadata_Call{Call: _e.mock.On("UpdateSessionMetadata", ctx, id, metadata, updatedAt)}
-}
-
-func (_c *Repository_UpdateSessionMetadata_Call) Run(run func(ctx context.Context, id uuid.UUID, metadata session.SessionMetadata, updatedAt time.Time)) *Repository_UpdateSessionMetadata_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(session.SessionMetadata), args[3].(time.Time))
-	})
-	return _c
-}
-
-func (_c *Repository_UpdateSessionMetadata_Call) Return(_a0 error) *Repository_UpdateSessionMetadata_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Repository_UpdateSessionMetadata_Call) RunAndReturn(run func(context.Context, uuid.UUID, session.SessionMetadata, time.Time) error) *Repository_UpdateSessionMetadata_Call {
 	_c.Call.Return(run)
 	return _c
 }

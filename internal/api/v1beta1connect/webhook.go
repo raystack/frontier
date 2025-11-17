@@ -11,13 +11,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type WebhookService interface {
-	CreateEndpoint(ctx context.Context, endpoint webhook.Endpoint) (webhook.Endpoint, error)
-	UpdateEndpoint(ctx context.Context, endpoint webhook.Endpoint) (webhook.Endpoint, error)
-	DeleteEndpoint(ctx context.Context, id string) error
-	ListEndpoints(ctx context.Context, filter webhook.EndpointFilter) ([]webhook.Endpoint, error)
-}
-
 func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.CreateWebhookRequest]) (*connect.Response[frontierv1beta1.CreateWebhookResponse], error) {
 	errorLogger := NewErrorLogger()
 

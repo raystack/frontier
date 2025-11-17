@@ -15,10 +15,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type OrgServiceUserCredentialsService interface {
-	Search(ctx context.Context, id string, query *rql.Query) (svc.OrganizationServiceUserCredentials, error)
-}
-
 func (h *ConnectHandler) SearchOrganizationServiceUserCredentials(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
 	errorLogger := NewErrorLogger()
 

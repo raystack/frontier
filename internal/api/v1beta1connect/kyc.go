@@ -13,12 +13,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type KycService interface {
-	GetKyc(context.Context, string) (kyc.KYC, error)
-	SetKyc(context.Context, kyc.KYC) (kyc.KYC, error)
-	ListKycs(context.Context) ([]kyc.KYC, error)
-}
-
 func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connect.Request[frontierv1beta1.SetOrganizationKycRequest]) (*connect.Response[frontierv1beta1.SetOrganizationKycResponse], error) {
 	errorLogger := NewErrorLogger()
 

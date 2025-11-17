@@ -13,11 +13,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type OrgBillingService interface {
-	Search(ctx context.Context, query *rql.Query) (orgbilling.OrgBilling, error)
-	Export(ctx context.Context) ([]byte, string, error)
-}
-
 func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationsResponse], error) {
 	errorLogger := NewErrorLogger()
 

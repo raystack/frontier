@@ -21,14 +21,6 @@ const (
 	orgNameMetadataKey = "org_name"
 )
 
-type RoleService interface {
-	Get(ctx context.Context, id string) (role.Role, error)
-	Upsert(ctx context.Context, toCreate role.Role) (role.Role, error)
-	List(ctx context.Context, f role.Filter) ([]role.Role, error)
-	Update(ctx context.Context, toUpdate role.Role) (role.Role, error)
-	Delete(ctx context.Context, id string) error
-}
-
 func (h *ConnectHandler) CreateRole(ctx context.Context, request *connect.Request[frontierv1beta1.CreateRoleRequest]) (*connect.Response[frontierv1beta1.CreateRoleResponse], error) {
 	errorLogger := NewErrorLogger()
 

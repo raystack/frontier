@@ -11,13 +11,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type NamespaceService interface {
-	Get(ctx context.Context, id string) (namespace.Namespace, error)
-	List(ctx context.Context) ([]namespace.Namespace, error)
-	Upsert(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
-	Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
-}
-
 func (h *ConnectHandler) ListNamespaces(ctx context.Context, request *connect.Request[frontierv1beta1.ListNamespacesRequest]) (*connect.Response[frontierv1beta1.ListNamespacesResponse], error) {
 	errorLogger := NewErrorLogger()
 

@@ -49,7 +49,7 @@ export const usePlans = () => {
     config,
     activeSubscription,
     subscriptions,
-    fetchActiveSubsciption,
+    fetchActiveSubscription,
     allPlans,
     isAllPlansLoading
   } = useFrontier();
@@ -198,7 +198,7 @@ export const usePlans = () => {
 
   const verifyPlanChange = useCallback(
     async ({ planId, onSuccess = () => {} }: verifyPlanChangeOptions) => {
-      const activeSub = await fetchActiveSubsciption();
+      const activeSub = await fetchActiveSubscription();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
           phase => phase?.planId === planId && phase.reason === 'change'
@@ -209,12 +209,12 @@ export const usePlans = () => {
         }
       }
     },
-    [fetchActiveSubsciption]
+    [fetchActiveSubscription]
   );
 
   const verifySubscriptionCancel = useCallback(
     async ({ onSuccess = () => {} }: verifyCancelSubscriptionOptions) => {
-      const activeSub = await fetchActiveSubsciption();
+      const activeSub = await fetchActiveSubscription();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
           phase => phase?.planId === '' && phase.reason === 'cancel'
@@ -225,7 +225,7 @@ export const usePlans = () => {
         }
       }
     },
-    [fetchActiveSubsciption]
+    [fetchActiveSubscription]
   );
 
   const getSubscribedPlans = useCallback(() => {

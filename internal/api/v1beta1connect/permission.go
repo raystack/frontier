@@ -15,17 +15,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type PermissionService interface {
-	Get(ctx context.Context, id string) (permission.Permission, error)
-	List(ctx context.Context, filter permission.Filter) ([]permission.Permission, error)
-	Upsert(ctx context.Context, perm permission.Permission) (permission.Permission, error)
-	Update(ctx context.Context, perm permission.Permission) (permission.Permission, error)
-}
-
-type BootstrapService interface {
-	AppendSchema(ctx context.Context, definition schema.ServiceDefinition) error
-}
-
 func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.Request[frontierv1beta1.CreatePermissionRequest]) (*connect.Response[frontierv1beta1.CreatePermissionResponse], error) {
 	errorLogger := NewErrorLogger()
 

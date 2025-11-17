@@ -84,7 +84,7 @@ interface FrontierContextProviderProps {
   allPlans: Plan[];
   isAllPlansLoading: boolean;
 
-  fetchActiveSubsciption: () => Promise<Subscription | undefined>;
+  fetchActiveSubscription: () => Promise<Subscription | undefined>;
 
   paymentMethod: PaymentMethod | undefined;
 
@@ -160,7 +160,7 @@ const initialValues: FrontierContextProviderProps = {
   allPlans: [],
   isAllPlansLoading: false,
 
-  fetchActiveSubsciption: async () => undefined,
+  fetchActiveSubscription: async () => undefined,
 
   paymentMethod: undefined,
 
@@ -326,7 +326,7 @@ export const FrontierContextProvider = ({
     return allPlans.find(p => p.id === trialSubscription?.planId);
   }, [allPlans, trialSubscription?.planId]);
 
-  const fetchActiveSubsciption = useCallback(async () => {
+  const fetchActiveSubscription = useCallback(async () => {
     const refetchedData = await refetchActiveSubscription();
     const refetchedSubscriptions = refetchedData?.data?.subscriptions || [];
     return getActiveSubscription(refetchedSubscriptions);
@@ -364,7 +364,7 @@ export const FrontierContextProvider = ({
         subscriptions,
         trialPlan,
         activePlan,
-        fetchActiveSubsciption,
+        fetchActiveSubscription,
         allPlans,
         isAllPlansLoading,
         basePlan,

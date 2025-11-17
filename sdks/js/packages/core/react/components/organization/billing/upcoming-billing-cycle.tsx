@@ -1,18 +1,24 @@
 import { useNavigate } from '@tanstack/react-router';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Invoice } from '~/src';
+import {
+  GetUpcomingInvoiceRequestSchema,
+  FrontierServiceQueries,
+  ListOrganizationUsersRequestSchema,
+  Plan
+} from '@raystack/proton/frontier';
+import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
 import {
   Button,
   Tooltip,
   Image,
-  toast,
   Skeleton,
   Text,
   Flex,
-  Amount
+  Amount,
+  toast
 } from '@raystack/apsara';
-import dayjs from 'dayjs';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import {
   getPlanIntervalName,
@@ -20,9 +26,9 @@ import {
   makePlanSlug
 } from '~/react/utils';
 import { NEGATIVE_BALANCE_TOOLTIP_MESSAGE } from '~/react/utils/constants';
+import { timestampToDayjs } from '~/utils/timestamp';
 import line from '~/react/assets/line.svg';
 import billingStyles from './billing.module.css';
-import { Plan } from '@raystack/proton/frontier';
 
 function LabeledBillingData({
   label,
@@ -91,9 +97,7 @@ export const UpcomingBillingCycle = ({
   isAllowed,
   isPermissionLoading
 }: UpcomingBillingCycleProps) => {
-  const [upcomingInvoice, setUpcomingInvoice] = useState<V1Beta1Invoice>();
   const {
-    client,
     billingAccount,
     config,
     activeSubscription,
@@ -103,10 +107,42 @@ export const UpcomingBillingCycle = ({
     allPlans,
     isAllPlansLoading
   } = useFrontier();
-  const [isInvoiceLoading, setIsInvoiceLoading] = useState(false);
-  const [memberCount, setMemberCount] = useState(0);
-  const [isMemberCountLoading, setIsMemberCountLoading] = useState(false);
   const navigate = useNavigate({ from: '/billing' });
+
+  const {
+    data: upcomingInvoice,
+    isLoading: isInvoiceLoading,
+    error: invoiceError
+  } = useConnectQuery(
+    FrontierServiceQueries.getUpcomingInvoice,
+    create(GetUpcomingInvoiceRequestSchema, {
+      orgId: billingAccount?.orgId || '',
+      billingId: billingAccount?.id || ''
+    }),
+    {
+      enabled:
+        !!billingAccount?.id &&
+        !!billingAccount?.orgId &&
+        // This is to prevent fetching the upcoming invoice for offline billing accounts
+        !!billingAccount?.providerId,
+      select: data => data?.invoice
+    }
+  );
+
+  const {
+    data: memberCount = 0,
+    isLoading: isMemberCountLoading,
+    error: memberCountError
+  } = useConnectQuery(
+    FrontierServiceQueries.listOrganizationUsers,
+    create(ListOrganizationUsersRequestSchema, {
+      id: billingAccount?.orgId || ''
+    }),
+    {
+      enabled: !!billingAccount?.id && !!billingAccount?.orgId,
+      select: data => data?.users?.length || 0
+    }
+  );
 
   const { plan, switchablePlan } = useMemo(() => {
     if (activeSubscription?.planId && allPlans.length > 0) {
@@ -121,63 +157,8 @@ export const UpcomingBillingCycle = ({
     return { plan: null, switchablePlan: null };
   }, [activeSubscription?.planId, allPlans]);
 
-  useEffect(() => {
-    async function getMemberCount(orgId: string) {
-      setIsMemberCountLoading(true);
-      try {
-        const resp = await client?.frontierServiceListOrganizationUsers(orgId);
-        const count = resp?.data?.users?.length;
-        if (count) {
-          setMemberCount(count);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsMemberCountLoading(false);
-      }
-    }
-
-    async function getUpcomingInvoice(orgId: string, billingId: string) {
-      setIsInvoiceLoading(true);
-      try {
-        const resp = await client?.frontierServiceGetUpcomingInvoice(
-          orgId,
-          billingId
-        );
-        const invoice = resp?.data?.invoice;
-        if (invoice && invoice.state) {
-          setUpcomingInvoice(invoice);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsInvoiceLoading(false);
-      }
-    }
-
-    if (
-      billingAccount?.id &&
-      billingAccount?.orgId &&
-      billingAccount?.providerId
-    ) {
-      getUpcomingInvoice(billingAccount?.orgId, billingAccount?.id);
-      getMemberCount(billingAccount?.orgId);
-    }
-  }, [
-    client,
-    billingAccount?.orgId,
-    billingAccount?.id,
-    billingAccount?.providerId
-  ]);
-
   const planName = activeSubscription
-    ? getPlanNameWithInterval(plan)
+    ? getPlanNameWithInterval(plan ?? undefined)
     : getPlanNameWithInterval(basePlan);
 
   const planInfo =
@@ -206,6 +187,14 @@ export const UpcomingBillingCycle = ({
     phase => phase.planId === switchablePlan?.id
   );
 
+  const error = memberCountError || invoiceError;
+  useEffect(() => {
+    if (error) {
+      console.error('Failed to get upcoming billing cycle details', error);
+      toast.error('Failed to get upcoming billing cycle details');
+    }
+  }, [error]);
+
   const isLoading =
     isActiveOrganizationLoading ||
     isInvoiceLoading ||
@@ -214,11 +203,11 @@ export const UpcomingBillingCycle = ({
     isPermissionLoading;
 
   const isUserOnlyTrialing = !activeSubscription?.id && trialSubscription?.id;
-  const due_date = upcomingInvoice?.due_date || upcomingInvoice?.period_end_at;
+  const dueDate = upcomingInvoice?.dueDate || upcomingInvoice?.periodEndAt;
 
   return isLoading ? (
     <Skeleton />
-  ) : due_date && !isUserOnlyTrialing ? (
+  ) : dueDate && !isUserOnlyTrialing ? (
     <Flex
       align="center"
       justify="between"
@@ -237,7 +226,7 @@ export const UpcomingBillingCycle = ({
       <Flex gap={5}>
         <LabeledBillingData
           label="Next billing"
-          value={dayjs(due_date).format(config.dateFormat)}
+          value={timestampToDayjs(dueDate)?.format(config.dateFormat) || '-'}
         />
         <Image src={line as unknown as string} alt="line" />
         <LabeledBillingData label="Users" value={memberCount} />

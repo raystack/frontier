@@ -16,11 +16,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type UsageService interface {
-	Report(ctx context.Context, usages []usage.Usage) error
-	Revert(ctx context.Context, accountID, usageID string, amount int64) error
-}
-
 func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.CreateBillingUsageRequest]) (*connect.Response[frontierv1beta1.CreateBillingUsageResponse], error) {
 	errorLogger := NewErrorLogger()
 
