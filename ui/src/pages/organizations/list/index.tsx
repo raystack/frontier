@@ -1,21 +1,20 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
-import { api } from "~/api";
-import { useInfiniteQuery } from "@connectrpc/connect-query";
+import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
+  FrontierServiceQueries,
   SearchOrganizationsResponse_OrganizationResult,
 } from "@raystack/proton/frontier";
 
 import { useNavigate } from "react-router-dom";
 import PageTitle from "~/components/page-title";
 import { CreateOrganizationPanel } from "./create";
-import type { V1Beta1Plan } from "~/api/frontier";
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
@@ -46,15 +45,21 @@ const INITIAL_QUERY: DataTableQuery = {
 };
 
 export const OrganizationList = () => {
-  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
-  const [isPlansLoading, setIsPlansLoading] = useState(false);
-
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
     INITIAL_QUERY,
     200,
   );
+
+  // Fetch plans using ConnectRPC
+  const {
+    data: plans = [],
+    isLoading: isPlansLoading,
+    error: plansError,
+  } = useQuery(FrontierServiceQueries.listPlans, {}, {
+    select: (data) => data?.plans || [],
+  });
 
   // Transform the DataTableQuery to RQLRequest format
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
@@ -112,7 +117,7 @@ export const OrganizationList = () => {
     }
   };
 
-  const naviagte = useNavigate();
+  const navigate = useNavigate();
 
   function closeCreateOrgPanel() {
     setShowCreatePanel(false);
@@ -122,29 +127,21 @@ export const OrganizationList = () => {
     setShowCreatePanel(true);
   }
 
-  const fetchPlans = useCallback(async () => {
-    try {
-      setIsPlansLoading(true);
-      const response = await api.frontierServiceListPlans();
-      const newPlans = response.data.plans || [];
-      setPlans(newPlans);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsPlansLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPlans();
-  }, [fetchPlans]);
-
-  const columns = getColumns({ plans, groupCountMap: groupCountMap });
+  const columns = getColumns({ plans, groupCountMap });
 
   const loading = isLoading || isPlansLoading || isFetchingNextPage;
 
+  // Error handling
+  useEffect(() => {
+    if (error) {
+      console.error("Failed to fetch organizations:", error);
+    }
+    if (plansError) {
+      console.error("Failed to fetch plans:", plansError);
+    }
+  }, [error, plansError]);
+
   if (isError) {
-    console.error("ConnectRPC Error:", error);
     return (
       <>
         <PageTitle title="Organizations" />
@@ -164,7 +161,7 @@ export const OrganizationList = () => {
     data.length || loading ? styles["table"] : styles["table-empty"];
 
   function onRowClick(row: SearchOrganizationsResponse_OrganizationResult) {
-    naviagte(`/organizations/${row.id}`);
+    navigate(`/organizations/${row.id}`);
   }
   return (
     <>
