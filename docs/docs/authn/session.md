@@ -47,7 +47,7 @@ Sessions expire when:
 - The configured validity period has elapsed (e.g., 7 days from creation)
 - The session is manually revoked by the user or admin
 
-When a session expires, the system marks it with a `deleted_at` timestamp (which is `null` by default for active sessions). A cron job runs every 24 hours to permanently delete expired sessions from the database.
+When a session expires, the system marks it with a `deleted_at` timestamp (which is `null` by default for active sessions). A cron job runs daily at midnight UTC to permanently delete sessions from the database that have been expired or soft-deleted for 24+ hours.
 
 ## Session Metadata
 
