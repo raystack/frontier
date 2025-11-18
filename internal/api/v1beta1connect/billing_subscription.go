@@ -3,7 +3,6 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/product"
@@ -14,7 +13,6 @@ import (
 )
 
 func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSubscriptionsRequest]) (*connect.Response[frontierv1beta1.ListSubscriptionsResponse], error) {
-	fmt.Print("_______________call came________________")
 	errorLogger := NewErrorLogger()
 
 	if request.Msg.GetOrgId() == "" {
