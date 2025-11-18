@@ -47,9 +47,9 @@ export const DeleteOrganization = () => {
 
   async function onSubmit(data: any) {
     if (!organization?.id) return;
-    if (data.name !== organization.name)
+    if (data.name !== organization.title)
       return setError('name', {
-        message: `The ${t.organization({ case: 'lower' })} URL is not same`
+        message: `The ${t.organization({ case: 'lower' })} name does not match`
       });
 
     try {
@@ -90,7 +90,7 @@ export const DeleteOrganization = () => {
                 <b>{organization?.title}</b>.
               </Text>
               <InputField
-                label={`Please type the URL of the ${t.organization({
+                label={`Please enter the name of the ${t.organization({
                   case: 'lower'
                 })} to confirm.`}
                 size="large"
@@ -98,7 +98,7 @@ export const DeleteOrganization = () => {
                 {...register('name')}
                 placeholder={`Provide the ${t.organization({
                   case: 'lower'
-                })} URL`}
+                })} name`}
               />
             </Flex>
           </Dialog.Body>
@@ -111,8 +111,7 @@ export const DeleteOrganization = () => {
               />
               <Text size="small">
                 I acknowledge and understand that all of the{' '}
-                {t.organization({ case: 'lower' })} data will be deleted and
-                want to proceed.
+                {t.organization({ case: 'lower' })} data will be deleted and want to proceed.
               </Text>
             </Flex>
 
