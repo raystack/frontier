@@ -1,9 +1,12 @@
-import { useState } from "react";
 import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
-
+import {
+  FrontierServiceQueries,
+  RemoveOrganizationUserRequestSchema,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
+import { useMutation } from "@connectrpc/connect-query";
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
-import { api } from "~/api";
-import { AxiosError } from "axios";
+import { ConnectError } from "@connectrpc/connect";
 
 interface RemoveMemberProps {
   organizationId: string;
@@ -18,15 +21,18 @@ export const RemoveMember = ({
   onRemove,
   onClose,
 }: RemoveMemberProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutateAsync: removeOrganizationUser, isPending } = useMutation(
+    FrontierServiceQueries.removeOrganizationUser,
+  );
 
   async function onSubmit() {
     try {
       if (!user) return;
-      setIsSubmitting(true);
-      await api?.frontierServiceRemoveOrganizationUser(
-        organizationId,
-        user?.id || "",
+      await removeOrganizationUser(
+        create(RemoveOrganizationUserRequestSchema, {
+          id: organizationId,
+          userId: user?.id || "",
+        }),
       );
       if (onRemove) {
         onRemove(user);
@@ -34,13 +40,11 @@ export const RemoveMember = ({
       toast.success("Member removed successfully");
     } catch (error) {
       const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message
+        error instanceof ConnectError
+          ? error.message
           : "Unknown error";
       toast.error(`Failed to remove member: ${message}`);
       console.error(error);
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -78,7 +82,7 @@ export const RemoveMember = ({
             type="submit"
             data-test-id="remove-member-submit-button"
             color="danger"
-            loading={isSubmitting}
+            loading={isPending}
             loaderText="Removing..."
             onClick={onSubmit}
           >

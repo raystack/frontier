@@ -24,7 +24,7 @@ import { RenameProjectDialog } from "./rename-project";
 import { useState } from "react";
 import type React from "react";
 import Skeleton from "react-loading-skeleton";
-import { useAddProjectMembers } from "./useAddProjectMembers";
+import { useAddProjectMembers } from "./use-add-project-members";
 
 const DropdownLoader = () => {
   return (

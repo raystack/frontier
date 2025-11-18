@@ -1,7 +1,7 @@
 import type {
-  SearchProjectUsersResponseProjectUser,
-  V1Beta1Role,
-} from "~/api/frontier";
+  SearchProjectUsersResponse_ProjectUser,
+  Role,
+} from "@raystack/proton/frontier";
 import styles from "./members.module.css";
 import {
   Avatar,
@@ -14,9 +14,9 @@ import type { DataTableColumnDef } from "@raystack/apsara";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 interface getColumnsOptions {
-  roles: V1Beta1Role[];
-  handleAssignRoleAction: (user: SearchProjectUsersResponseProjectUser) => void;
-  handleRemoveAction: (user: SearchProjectUsersResponseProjectUser) => void;
+  roles: Role[];
+  handleAssignRoleAction: (user: SearchProjectUsersResponse_ProjectUser) => void;
+  handleRemoveAction: (user: SearchProjectUsersResponse_ProjectUser) => void;
 }
 
 export const getColumns = ({
@@ -24,7 +24,7 @@ export const getColumns = ({
   handleRemoveAction,
   roles = [],
 }: getColumnsOptions): DataTableColumnDef<
-  SearchProjectUsersResponseProjectUser,
+  SearchProjectUsersResponse_ProjectUser,
   unknown
 >[] => {
   const roleMap = roles.reduce(
@@ -60,7 +60,7 @@ export const getColumns = ({
         );
       },
       enableColumnFilter: true,
-      enableSorting: true,
+      enableSorting: false,
     },
     {
       accessorKey: "email",
@@ -71,11 +71,11 @@ export const getColumns = ({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "role_ids",
+      accessorKey: "roleIds",
       header: "Role",
       cell: ({ getValue }) => {
-        const ids = getValue() as string[];
-        return <Text>{ids.map((id) => roleMap[id]).join(", ")}</Text>;
+        const ids = (getValue() as string[]) || [];
+        return <Text>{ids.map((id) => roleMap[id]).join(", ") || "-"}</Text>;
       },
     },
     {

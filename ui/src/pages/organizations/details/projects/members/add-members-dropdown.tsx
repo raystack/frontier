@@ -9,7 +9,7 @@ import {
 import type React from "react";
 import Skeleton from "react-loading-skeleton";
 import styles from "./members.module.css";
-import { useAddProjectMembers } from "../useAddProjectMembers";
+import { useAddProjectMembers } from "../use-add-project-members";
 
 interface AddMembersDropdownProps {
   projectId: string;
