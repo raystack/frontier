@@ -31,7 +31,7 @@ Sessions are created automatically after successful authentication. The session 
 On each request, Frontier validates the session cookie to verify:
 - The session exists and hasn't been deleted
 - The session hasn't expired (based on the configured validity period)
-- The session is properly authenticated
+- The session has a valid cookie associated with the user account.
 
 ### 3. Activity Tracking
 The session's `updatedAt` timestamp is updated when:
@@ -46,7 +46,8 @@ Updating the `updatedAt` timestamp does **not** extend the session validity. Ses
 Sessions expire when:
 - The configured validity period has elapsed (e.g., 7 days from creation)
 - The session is manually revoked by the user or admin
-- The session is deleted by the system (expired sessions are cleaned up daily)
+
+When a session expires, the system marks it with a `deleted_at` timestamp (which is `null` by default for active sessions). A cron job runs every 24 hours to permanently delete expired sessions from the database.
 
 ## Session Metadata
 
@@ -74,6 +75,42 @@ The metadata is automatically extracted from HTTP headers when the session is cr
 - Security monitoring (detecting suspicious logins from new locations)
 - User experience (showing users where they're logged in)
 - Audit trails (tracking where actions were performed from)
+
+### HTTP Headers Used
+
+Frontier extracts session metadata from the following HTTP headers, all of which are configurable:
+
+| Metadata Field | Header Name (Default) | Description |
+|----------------|----------------------|-------------|
+| IP Address | `x-forwarded-for` | Client's IP address. If the header contains multiple comma-separated values (common with proxies), the first value is used. |
+| Country | `x-frontier-country` | Country code or name from the client's location |
+| City | `x-frontier-city` | City name from the client's location |
+| Latitude | `x-frontier-latitude` | Geographic latitude coordinate |
+| Longitude | `x-frontier-longitude` | Geographic longitude coordinate |
+| Browser & OS | `User-Agent` | Browser and operating system information. Parsed using the `uap-go` library to extract browser family and OS family. |
+
+### Configuring Headers
+
+All header names can be customized through the `authentication.session.headers` configuration section. This is useful when:
+- Using a reverse proxy or CDN (like CloudFront) that sets different header names
+- Integrating with infrastructure that already provides location headers with different names
+- Customizing header names for security or compatibility reasons
+
+Example configuration:
+
+```yaml
+authentication:
+  session:
+    headers:
+      client_ip: "X-Forwarded-For"
+      client_country: "X-Country"
+      client_city: "X-City"
+      client_latitude: "CloudFront-Viewer-Latitude"
+      client_longitude: "CloudFront-Viewer-Longitude"
+      client_user_agent: "User-Agent"
+```
+
+If a header is not present in the request, the corresponding metadata field will be empty. The system gracefully handles missing headers without errors.
 
 ## Viewing Active Sessions
 
