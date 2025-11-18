@@ -53,6 +53,7 @@ module.exports = {
       items: [
         "authn/introduction",
         "authn/user",
+        "authn/session",
         "authn/serviceuser",
         "authn/org-domain",
       ],

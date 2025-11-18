@@ -75,6 +75,7 @@ app:
       secure: false
       # validity of the session
       validity: "720h"
+    # Learn more about session management: ../authn/session.md
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
