@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/product"
@@ -13,6 +14,7 @@ import (
 )
 
 func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSubscriptionsRequest]) (*connect.Response[frontierv1beta1.ListSubscriptionsResponse], error) {
+	fmt.Print("_______________call came________________")
 	errorLogger := NewErrorLogger()
 
 	if request.Msg.GetOrgId() == "" {
@@ -24,9 +26,10 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 	if billingID == "" {
 		customer, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "ListSubscriptions.GetByOrgID", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
-			return nil, connect.NewError(connect.CodeNotFound, errors.New("billing account not found for organization"))
+			// If no billing account exists, return empty list instead of error
+			return connect.NewResponse(&frontierv1beta1.ListSubscriptionsResponse{
+				Subscriptions: []*frontierv1beta1.Subscription{},
+			}), nil
 		}
 		billingID = customer.ID
 	}
