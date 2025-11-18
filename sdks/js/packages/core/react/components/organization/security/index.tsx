@@ -10,7 +10,8 @@ import { FrontierServiceQueries, ListOrganizationPreferencesRequestSchema, Creat
 import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import type { SecurityCheckboxTypes } from './security.types';
-import { styles } from '../styles';
+import { PageHeader } from '~/react/components/common/page-header';
+import sharedStyles from '../styles.module.css';
 
 export default function WorkspaceSecurity() {
   const [socialLogin, setSocialLogin] = useState<boolean>(false);
@@ -125,10 +126,14 @@ export default function WorkspaceSecurity() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
-        <Text size="large">Security</Text>
-      </Flex>
-      <Flex direction="column" gap={9} style={styles.container}>
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <PageHeader 
+            title="Security" 
+            description="Manage your workspace security and how it's members authenticate"
+          />
+        </Flex>
+        <Flex direction="column" gap={9}>
         <SecurityCheckbox
           label="Google"
           text="Allow logins through Google's single sign-on functionality"
@@ -148,6 +153,7 @@ export default function WorkspaceSecurity() {
           onValueChange={onValueChange}
         />
         <Separator />
+        </Flex>
       </Flex>
     </Flex>
   );
@@ -155,7 +161,7 @@ export default function WorkspaceSecurity() {
 
 export const SecurityHeader = () => {
   return (
-    <Box style={styles.container}>
+    <Box>
       <Headline size="t3">Security</Headline>
       <Text size="regular" variant="secondary">
         Manage your workspace security and how it&apos;s members authenticate

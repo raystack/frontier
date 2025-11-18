@@ -1,7 +1,3 @@
-.header {
-  margin-bottom: var(--rs-space-9);
-}
-
 .container {
   padding: var(--rs-space-9) var(--rs-space-11);
   max-height: 80vh;

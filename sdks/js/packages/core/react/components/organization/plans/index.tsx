@@ -8,13 +8,13 @@ import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-pla
 import { PlansHeader } from './header';
 import { PlanPricingColumn } from './pricing-column';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
-import plansStyles from './plans.module.css';
-import { styles } from '../styles';
 import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '~hooks';
 import { create } from '@bufbuild/protobuf';
 import { Feature, ListFeaturesRequestSchema } from '@raystack/proton/frontier';
 import { Plan } from '@raystack/proton/frontier';
+import sharedStyles from '../styles.module.css';
+import plansStyles from './plans.module.css';
 
 const PlansLoader = () => {
   return (
@@ -158,13 +158,14 @@ export default function Plans() {
 
   return (
     <Flex direction="column" style={{ width: '100%', overflow: 'hidden' }}>
-      <Flex style={styles.header}>
-        <Text size="large">Plans</Text>
-      </Flex>
-      <Flex direction="column" gap={7} style={{ ...styles.container }}>
-        <Flex direction="column">
-          <PlansHeader billingSupportEmail={config.billing?.supportEmail} />
+      <Flex direction="column" className={sharedStyles.container}>
+        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+          <PlansHeader 
+            billingSupportEmail={config.billing?.supportEmail}
+            isLoading={isLoading}
+          />
         </Flex>
+        <Flex direction="column" gap={7}>
         <UpcomingPlanChangeBanner
           isLoading={isLoading}
           subscription={activeSubscription}
@@ -180,6 +181,7 @@ export default function Plans() {
             allowAction={canChangePlan}
           />
         )}
+        </Flex>
       </Flex>
       <Outlet />
     </Flex>

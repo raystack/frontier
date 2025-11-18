@@ -13,7 +13,6 @@ import {
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
-import { styles } from '../styles';
 import { useMutation, FrontierServiceQueries } from '~hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { createConnectQueryKey } from '@connectrpc/connect-query';
@@ -75,73 +74,77 @@ export const UpdateProfile = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Flex style={styles.container}>
-        {isLoading ? (
-          <Flex gap={5} direction="column" style={{ width: '100%' }}>
-            <Skeleton
-              width="80px"
-              height="80px"
-              borderRadius={'var(--rs-radius-6)'}
+      <Flex direction="column" gap={9}>
+        <Flex>
+          {isLoading ? (
+            <Flex gap={5} direction="column" style={{ width: '100%' }}>
+              <Skeleton
+                width="80px"
+                height="80px"
+                borderRadius={'var(--rs-radius-6)'}
+              />
+              <Skeleton height="16px" width="100%" />
+            </Flex>
+          ) : (
+            <Controller
+              render={({ field }) => (
+                <AvatarUpload
+                  {...field}
+                  subText="Pick a profile picture for your avatar"
+                />
+              )}
+              control={control}
+              name="avatar"
             />
-            <Skeleton height="16px" width="100%" />
+          )}
+        </Flex>
+        <Separator />
+        <Flex direction="column" gap="large">
+          <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
+            <Box style={{ padding: 'var(--pd-4) 0' }}>
+              {isLoading ? (
+                <Skeleton height={'32px'} />
+              ) : (
+                <InputField
+                  label="Full name"
+                  size="large"
+                  error={errors.title && String(errors.title?.message)}
+                  defaultValue={user?.title || ''}
+                  placeholder="Provide full name"
+                  {...register('title')}
+                  disabled={isLoading}
+                />
+              )}
+            </Box>
+            <Box style={{ padding: 'var(--pd-4) 0' }}>
+              {isLoading ? (
+                <Skeleton height={'32px'} />
+              ) : (
+                <InputField
+                  label="Email Address"
+                  size="large"
+                  error={errors.email && String(errors.email?.message)}
+                  value={user?.email || ''}
+                  type="email"
+                  placeholder="Provide email address"
+                  {...register('email')}
+                  readOnly
+                  disabled
+                />
+              )}
+            </Box>
+            <Button
+              size="normal"
+              type="submit"
+              style={{ width: 'fit-content' }}
+              disabled={isLoading || isSubmitting || !isDirty}
+              loading={isSubmitting}
+              loaderText="Updating..."
+              data-test-id="frontier-sdk-update-user-btn"
+            >
+              Update
+            </Button>
           </Flex>
-        ) : (
-          <Controller
-            render={({ field }) => (
-              <AvatarUpload
-                {...field}
-                subText="Pick a profile picture for your avatar"
-              />
-            )}
-            control={control}
-            name="avatar"
-          />
-        )}
-      </Flex>
-      <Separator />
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
-          <Box style={{ padding: 'var(--pd-4) 0' }}>
-            {isLoading ? (
-              <Skeleton height={'32px'} />
-            ) : (
-              <InputField
-                label="Full name"
-                size="large"
-                error={errors.title && String(errors.title?.message)}
-                defaultValue={user?.title || ''}
-                placeholder="Provide full name"
-                {...register('title')}
-                disabled={isLoading}
-              />
-            )}
-          </Box>
-          <Box style={{ padding: 'var(--pd-4) 0' }}>
-            {isLoading ? (
-              <Skeleton height={'32px'} />
-            ) : (
-              <InputField
-                label="Email Address"
-                size="large"
-                error={errors.email && String(errors.email?.message)}
-                value={user?.email || ''}
-                type="email"
-                placeholder="Provide email address"
-                {...register('email')}
-                readOnly
-                disabled
-              />
-            )}
-          </Box>
-          <Button
-            size="medium"
-            type="submit"
-            style={{ width: 'fit-content' }}
-            disabled={isLoading || isSubmitting || !isDirty}
-            data-test-id="frontier-sdk-update-user-btn"
-          >
-            {isSubmitting ? 'Updating...' : 'Update'}
-          </Button>
         </Flex>
       </Flex>
     </form>
