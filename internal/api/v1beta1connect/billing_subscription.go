@@ -15,9 +15,22 @@ import (
 func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect.Request[frontierv1beta1.ListSubscriptionsRequest]) (*connect.Response[frontierv1beta1.ListSubscriptionsResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if request.Msg.GetOrgId() == "" || request.Msg.GetBillingId() == "" {
+	if request.Msg.GetOrgId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
+
+	// Infer billing_id from org_id if not provided
+	billingID := request.Msg.GetBillingId()
+	if billingID == "" {
+		customer, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+		if err != nil {
+			errorLogger.LogServiceError(ctx, request, "ListSubscriptions.GetByOrgID", err,
+				zap.String("org_id", request.Msg.GetOrgId()))
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("billing account not found for organization"))
+		}
+		billingID = customer.ID
+	}
+
 	planID := request.Msg.GetPlan()
 	if planID != "" {
 		plan, err := h.planService.GetByID(ctx, planID)
@@ -31,13 +44,13 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 
 	var subscriptions []*frontierv1beta1.Subscription
 	subscriptionList, err := h.subscriptionService.List(ctx, subscription.Filter{
-		CustomerID: request.Msg.GetBillingId(),
+		CustomerID: billingID,
 		State:      request.Msg.GetState(),
 		PlanID:     planID,
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListSubscriptions.List", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("billing_id", billingID),
 			zap.String("org_id", request.Msg.GetOrgId()),
 			zap.String("state", request.Msg.GetState()),
 			zap.String("plan_id", planID))

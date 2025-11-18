@@ -5095,7 +5095,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to list subscriptions for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to list subscriptions for
           in: path
           required: true
           type: string
@@ -5157,7 +5159,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the subscription for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to get the subscription for
           in: path
           required: true
           type: string
@@ -5214,7 +5218,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to update the subscription for
           in: path
           required: true
           type: string
@@ -5273,7 +5279,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to update the subscription for
           in: path
           required: true
           type: string
@@ -5332,7 +5340,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to update the subscription for
           in: path
           required: true
           type: string
@@ -6206,7 +6216,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to list subscriptions for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to list subscriptions for
           in: query
           required: false
           type: string
@@ -6273,7 +6285,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the subscription for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to get the subscription for
           in: query
           required: false
           type: string
@@ -6337,7 +6351,9 @@ paths:
             properties:
               billing_id:
                 type: string
-                title: ID of the billing account to update the subscription for
+                title: |-
+                  DEPRECATED: billing_id will be inferred from org_id
+                  ID of the billing account to update the subscription for
               metadata:
                 type: object
       tags:
@@ -6394,7 +6410,9 @@ paths:
             properties:
               billing_id:
                 type: string
-                title: ID of the billing account to update the subscription for
+                title: |-
+                  DEPRECATED: billing_id will be inferred from org_id
+                  ID of the billing account to update the subscription for
               immediate:
                 type: boolean
       tags:
@@ -6451,7 +6469,9 @@ paths:
             properties:
               billing_id:
                 type: string
-                title: ID of the billing account to update the subscription for
+                title: |-
+                  DEPRECATED: billing_id will be inferred from org_id
+                  ID of the billing account to update the subscription for
               plan:
                 type: string
                 title: |-
@@ -11736,6 +11756,17 @@ definitions:
       ip_address:
         type: string
       location:
+        $ref: '#/definitions/SessionMetaLocation'
+  SessionMetaLocation:
+    type: object
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      latitude:
+        type: string
+      longitude:
         type: string
   SubscriptionPhase:
     type: object
@@ -14196,6 +14227,9 @@ definitions:
           Use this instead of using name and namespace fields
   v1beta1PingUserSessionResponse:
     type: object
+    properties:
+      metadata:
+        $ref: '#/definitions/SessionMeta'
   v1beta1Plan:
     type: object
     properties:

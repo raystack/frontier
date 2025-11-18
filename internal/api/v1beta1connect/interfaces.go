@@ -225,6 +225,7 @@ type UserProjectsService interface {
 
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
+	GetByOrgID(ctx context.Context, orgID string) (customer.Customer, error)
 	Create(ctx context.Context, customer customer.Customer, offline bool) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 	Delete(ctx context.Context, id string) error
