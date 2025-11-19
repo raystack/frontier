@@ -4,7 +4,7 @@ TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui compose-up-dev
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "8302d9f00eb8e2f87d25816fd7c713be6e59ae23"
+PROTON_COMMIT := "536197cb523292f41cadd96cd3c17cb99c04d093"
 
 ui:
 	@echo " > generating ui build"

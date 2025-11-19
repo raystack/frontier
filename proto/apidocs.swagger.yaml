@@ -5155,12 +5155,13 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
         - name: billing_id
           description: |-
-            DEPRECATED: billing_id will be inferred from org_id
+            DEPRECATED: billing_id will be inferred from subscription id
             ID of the billing account to get the subscription for
           in: path
           required: true
@@ -5214,12 +5215,13 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
         - name: billing_id
           description: |-
-            DEPRECATED: billing_id will be inferred from org_id
+            DEPRECATED: billing_id will be inferred from subscription id
             ID of the billing account to update the subscription for
           in: path
           required: true
@@ -5275,12 +5277,13 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
         - name: billing_id
           description: |-
-            DEPRECATED: billing_id will be inferred from org_id
+            DEPRECATED: billing_id will be inferred from subscription id
             ID of the billing account to update the subscription for
           in: path
           required: true
@@ -5336,12 +5339,13 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
         - name: billing_id
           description: |-
-            DEPRECATED: billing_id will be inferred from org_id
+            DEPRECATED: billing_id will be inferred from subscription id
             ID of the billing account to update the subscription for
           in: path
           required: true
@@ -6276,6 +6280,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
@@ -6286,7 +6291,7 @@ paths:
           type: string
         - name: billing_id
           description: |-
-            DEPRECATED: billing_id will be inferred from org_id
+            DEPRECATED: billing_id will be inferred from subscription id
             ID of the billing account to get the subscription for
           in: query
           required: false
@@ -6335,6 +6340,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
@@ -6352,7 +6358,7 @@ paths:
               billing_id:
                 type: string
                 title: |-
-                  DEPRECATED: billing_id will be inferred from org_id
+                  DEPRECATED: billing_id will be inferred from subscription id
                   ID of the billing account to update the subscription for
               metadata:
                 type: object
@@ -6394,6 +6400,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
@@ -6411,7 +6418,7 @@ paths:
               billing_id:
                 type: string
                 title: |-
-                  DEPRECATED: billing_id will be inferred from org_id
+                  DEPRECATED: billing_id will be inferred from subscription id
                   ID of the billing account to update the subscription for
               immediate:
                 type: boolean
@@ -6453,6 +6460,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from subscription id'
           in: path
           required: true
           type: string
@@ -6470,7 +6478,7 @@ paths:
               billing_id:
                 type: string
                 title: |-
-                  DEPRECATED: billing_id will be inferred from org_id
+                  DEPRECATED: billing_id will be inferred from subscription id
                   ID of the billing account to update the subscription for
               plan:
                 type: string
