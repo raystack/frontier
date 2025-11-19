@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -19,18 +20,21 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	// Infer billing_id from org_id if not provided
-	billingID := request.Msg.GetBillingId()
-	if billingID == "" {
-		customer, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
-		if err != nil {
-			// If no billing account exists, return empty list instead of error
+	// Always infer billing_id from org_id (ignore billing_id from request for security)
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		// Only return empty list if billing account doesn't exist (ErrNotFound)
+		// For other errors (invalid UUID, database errors, etc.), return error
+		if errors.Is(err, customer.ErrNotFound) {
 			return connect.NewResponse(&frontierv1beta1.ListSubscriptionsResponse{
 				Subscriptions: []*frontierv1beta1.Subscription{},
 			}), nil
 		}
-		billingID = customer.ID
+		errorLogger.LogServiceError(ctx, request, "ListSubscriptions.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
+	billingID := cust.ID
 
 	planID := request.Msg.GetPlan()
 	if planID != "" {
