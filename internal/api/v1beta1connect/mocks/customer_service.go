@@ -278,6 +278,63 @@ func (_c *CustomerService_GetByID_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
+// GetByOrgID provides a mock function with given fields: ctx, orgID
+func (_m *CustomerService) GetByOrgID(ctx context.Context, orgID string) (customer.Customer, error) {
+	ret := _m.Called(ctx, orgID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByOrgID")
+	}
+
+	var r0 customer.Customer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (customer.Customer, error)); ok {
+		return rf(ctx, orgID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) customer.Customer); ok {
+		r0 = rf(ctx, orgID)
+	} else {
+		r0 = ret.Get(0).(customer.Customer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, orgID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CustomerService_GetByOrgID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByOrgID'
+type CustomerService_GetByOrgID_Call struct {
+	*mock.Call
+}
+
+// GetByOrgID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+func (_e *CustomerService_Expecter) GetByOrgID(ctx interface{}, orgID interface{}) *CustomerService_GetByOrgID_Call {
+	return &CustomerService_GetByOrgID_Call{Call: _e.mock.On("GetByOrgID", ctx, orgID)}
+}
+
+func (_c *CustomerService_GetByOrgID_Call) Run(run func(ctx context.Context, orgID string)) *CustomerService_GetByOrgID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CustomerService_GetByOrgID_Call) Return(_a0 customer.Customer, _a1 error) *CustomerService_GetByOrgID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CustomerService_GetByOrgID_Call) RunAndReturn(run func(context.Context, string) (customer.Customer, error)) *CustomerService_GetByOrgID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDetails provides a mock function with given fields: ctx, customerID
 func (_m *CustomerService) GetDetails(ctx context.Context, customerID string) (customer.Details, error) {
 	ret := _m.Called(ctx, customerID)

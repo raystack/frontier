@@ -110,6 +110,29 @@ func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHand
 	}
 }
 
+// GetBillingAccountFromOrgID returns the billing account ID for a given organization
+func (h *ConnectHandler) GetBillingAccountFromOrgID(ctx context.Context, orgID string) (string, error) {
+	customer, err := h.customerService.GetByOrgID(ctx, orgID)
+	if err != nil {
+		return "", err
+	}
+	return customer.ID, nil
+}
+
+// GetOrgIDFromSubscriptionID returns the organization ID for a given subscription
+func (h *ConnectHandler) GetOrgIDFromSubscriptionID(ctx context.Context, subscriptionID string) (string, error) {
+	sub, err := h.subscriptionService.GetByID(ctx, subscriptionID)
+	if err != nil {
+		return "", err
+	}
+	// Get the billing account (customer) to find the org
+	customer, err := h.customerService.GetByID(ctx, sub.CustomerID)
+	if err != nil {
+		return "", err
+	}
+	return customer.OrgID, nil
+}
+
 func ExtractLogger(ctx context.Context) *zap.Logger {
 	if logger, ok := ctx.Value(loggerContextKey).(*zap.Logger); ok {
 		return logger
