@@ -245,7 +245,7 @@ export default function ManageServiceUserProjects() {
   return (
     <Dialog open={true}>
       <Dialog.Content
-        overlayClassname={styles.overlay}
+        overlayClassName={styles.overlay}
         className={styles.manageProjectDialogContent}
       >
         <Dialog.Header>

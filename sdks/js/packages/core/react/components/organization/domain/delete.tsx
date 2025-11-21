@@ -96,7 +96,7 @@ export const DeleteDomain = () => {
     if (!domain?.id || !organization?.id) return;
 
     if (data.domain !== domain.name) {
-      return setError('domain', { message: 'domain name is not same' });
+      return setError('domain', { message: 'Domain name does not match' });
     }
 
     await deleteOrganizationDomain(
@@ -142,11 +142,11 @@ export const DeleteDomain = () => {
                   </Text>
 
                   <InputField
-                    label="Please type the domain name"
+                    label="Please enter the domain name to confirm."
                     size="large"
                     error={errors.domain && String(errors.domain?.message)}
                     {...register('domain')}
-                    placeholder="Provide domain name"
+                    placeholder="Enter the domain name"
                   />
 
                   <Flex gap="small">
@@ -156,7 +156,7 @@ export const DeleteDomain = () => {
                       data-test-id="frontier-sdk-delete-domain-checkbox"
                     />
                     <Text size="small">
-                      I acknowledge I understand that all of the team data will
+                      I acknowledge and understand that all of the domain data will
                       be deleted and want to proceed.
                     </Text>
                   </Flex>
