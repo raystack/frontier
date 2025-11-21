@@ -1162,14 +1162,3 @@ func ensureSubscriptionBelongToOrg(ctx context.Context, handler *v1beta1connect.
 	// Return the inferred org_id for authorization check
 	return orgID, nil
 }
-
-func ensureCheckoutBelongToOrg(ctx context.Context, handler *v1beta1connect.ConnectHandler, billingID, checkoutID string, req connect.AnyRequest) error {
-	checkout, err := handler.GetRawCheckout(ctx, checkoutID, req)
-	if err != nil {
-		return err
-	}
-	if checkout.CustomerID != billingID {
-		return ErrDeniedInvalidArgs
-	}
-	return nil
-}
