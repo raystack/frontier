@@ -24,7 +24,7 @@ import styles from '../organization.module.css';
 
 const projectSchema = yup
   .object({
-    name: yup.string()
+    title: yup.string()
   })
   .required();
 
@@ -74,14 +74,14 @@ export const DeleteProject = () => {
     }
   );
 
-  async function onSubmit(data: { name?: string }) {
+  async function onSubmit(data: { title?: string }) {
     if (!organization?.id || !projectId) return;
-    if (data.name !== project?.title)
-      return setError('name', { message: 'Project title does not match' });
+    if (data.title !== project?.title)
+      return setError('title', { message: 'Project title does not match' });
     await deleteProject(create(DeleteProjectRequestSchema, { id: projectId }));
   }
 
-  const name = watch('name', '');
+  const title = watch('title', '');
   return (
     <Dialog open={true}>
       <Dialog.Content
@@ -125,8 +125,8 @@ export const DeleteProject = () => {
                   <InputField
                     label="Please enter the title of the project to confirm."
                     size="large"
-                    error={errors.name && String(errors.name?.message)}
-                    {...register('name')}
+                    error={errors.title && String(errors.title?.message)}
+                    {...register('title')}
                     placeholder="Enter the project title"
                   />
 
@@ -145,7 +145,7 @@ export const DeleteProject = () => {
                     variant="solid"
                     color="danger"
                     type="submit"
-                    disabled={!name || !isAcknowledged}
+                    disabled={!title || !isAcknowledged}
                     style={{ width: '100%' }}
                     data-test-id="frontier-sdk-delete-project-btn"
                     loading={isSubmitting}

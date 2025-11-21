@@ -24,7 +24,7 @@ import styles from '../organization.module.css';
 
 const teamSchema = yup
   .object({
-    name: yup.string()
+    title: yup.string()
   })
   .required();
 
@@ -75,12 +75,12 @@ export const DeleteTeam = () => {
     }
   });
 
-  function onSubmit(data: { name?: string }) {
+  function onSubmit(data: { title?: string }) {
     if (!organization?.id) return;
     if (!teamId) return;
 
-    if (data.name !== team?.title)
-      return setError('name', { message: 'Team title does not match' });
+    if (data.title !== team?.title)
+      return setError('title', { message: 'Team title does not match' });
 
     const request = create(DeleteGroupRequestSchema, {
       id: teamId,
@@ -90,7 +90,7 @@ export const DeleteTeam = () => {
     deleteTeamMutation.mutate(request);
   }
 
-  const name = watch('name', '');
+  const title = watch('title', '');
   return (
     <Dialog open={true}>
       <Dialog.Content
@@ -139,8 +139,8 @@ export const DeleteTeam = () => {
                   <InputField
                     label="Please enter the title of the team to confirm."
                     size="large"
-                    error={errors.name && String(errors.name?.message)}
-                    {...register('name')}
+                    error={errors.title && String(errors.title?.message)}
+                    {...register('title')}
                     placeholder="Enter the team title"
                   />
 
@@ -158,7 +158,7 @@ export const DeleteTeam = () => {
                   <Button
                     variant="solid"
                     color="danger"
-                    disabled={!name || !isAcknowledged}
+                    disabled={!title || !isAcknowledged}
                     type="submit"
                     style={{ width: '100%' }}
                     data-test-id="frontier-sdk-delete-team-btn-general"

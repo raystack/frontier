@@ -23,7 +23,7 @@ import styles from './general.module.css';
 
 const orgSchema = yup
   .object({
-    name: yup.string()
+    title: yup.string()
   })
   .required();
 
@@ -47,8 +47,8 @@ export const DeleteOrganization = () => {
 
   async function onSubmit(data: any) {
     if (!organization?.id) return;
-    if (data.name !== organization.title)
-      return setError('name', {
+    if (data.title !== organization.title)
+      return setError('title', {
         message: `The ${t.organization({ case: 'lower' })} name does not match`
       });
 
@@ -68,7 +68,7 @@ export const DeleteOrganization = () => {
     }
   }
 
-  const name = watch('name', '');
+  const title = watch('title', '');
   return (
     <Dialog open={true}>
       <Dialog.Content overlayClassName={styles.overlay} width={600}>
@@ -94,8 +94,8 @@ export const DeleteOrganization = () => {
                   case: 'lower'
                 })} to confirm.`}
                 size="large"
-                error={errors.name && String(errors.name?.message)}
-                {...register('name')}
+                error={errors.title && String(errors.title?.message)}
+                {...register('title')}
                 placeholder={`Provide the ${t.organization({
                   case: 'lower'
                 })} name`}
@@ -119,7 +119,7 @@ export const DeleteOrganization = () => {
               variant="solid"
               color="danger"
               type="submit"
-              disabled={!name || !isAcknowledged}
+              disabled={!title || !isAcknowledged}
               style={{ width: '100%' }}
               data-test-id="frontier-sdk-delete-organization-btn"
               loading={isSubmitting}
