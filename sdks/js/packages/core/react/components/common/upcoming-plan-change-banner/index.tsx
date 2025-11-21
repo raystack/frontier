@@ -54,8 +54,7 @@ export function UpcomingPlanChangeBanner({
             schema: FrontierServiceQueries.listSubscriptions,
             transport,
             input: {
-              orgId: activeOrganization?.id ?? '',
-              billingId: billingAccount?.id ?? ''
+              orgId: activeOrganization?.id ?? ''
             },
             cardinality: 'finite'
           })
@@ -102,11 +101,9 @@ export function UpcomingPlanChangeBanner({
   const showLoader = isLoading || isAllPlansLoading;
 
   const onPlanChangeCancel = useCallback(() => {
-    if (activeOrganization?.id && billingAccount?.id && subscription?.id) {
+    if (subscription?.id) {
       cancelUpcomingChange(
         create(ChangeSubscriptionRequestSchema, {
-          orgId: activeOrganization?.id,
-          billingId: billingAccount?.id,
           id: subscription?.id,
           change: {
             case: 'phaseChange',
@@ -117,12 +114,7 @@ export function UpcomingPlanChangeBanner({
         })
       );
     }
-  }, [
-    activeOrganization?.id,
-    billingAccount?.id,
-    subscription?.id,
-    cancelUpcomingChange
-  ]);
+  }, [subscription?.id, cancelUpcomingChange]);
 
   const currentPlanName = getPlanNameWithInterval(activePlan);
   const upcomingPlanName = getPlanNameWithInterval(upcomingPlan || basePlan);

@@ -289,10 +289,9 @@ export const FrontierContextProvider = ({
   } = useConnectQuery(
     FrontierServiceQueries.listSubscriptions,
     create(ListSubscriptionsRequestSchema, {
-      orgId: activeOrganization?.id ?? '',
-      billingId: billingAccount?.id ?? ''
+      orgId: activeOrganization?.id ?? ''
     }),
-    { enabled: !!activeOrganization?.id && !!billingAccount?.id }
+    { enabled: !!activeOrganization?.id }
   );
 
   const subscriptions = (subscriptionsData?.subscriptions ||
