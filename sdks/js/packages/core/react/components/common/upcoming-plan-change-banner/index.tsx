@@ -36,7 +36,6 @@ export function UpcomingPlanChangeBanner({
     config,
     activePlan,
     activeOrganization,
-    billingAccount,
     basePlan,
     allPlans,
     isAllPlansLoading
