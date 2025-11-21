@@ -164,15 +164,9 @@ export const usePlans = () => {
 
   const changePlan = useCallback(
     async ({ planId, onSuccess, immediate = false }: changePlanOptions) => {
-      if (
-        activeOrganization?.id &&
-        billingAccount?.id &&
-        activeSubscription?.id
-      ) {
+      if (activeSubscription?.id) {
         const resp = await changeSubscriptionMutation(
           create(ChangeSubscriptionRequestSchema, {
-            orgId: activeOrganization?.id,
-            billingId: billingAccount?.id,
             id: activeSubscription?.id,
             change: {
               case: 'planChange',
@@ -188,12 +182,7 @@ export const usePlans = () => {
         }
       }
     },
-    [
-      activeOrganization?.id,
-      activeSubscription?.id,
-      billingAccount?.id,
-      changeSubscriptionMutation
-    ]
+    [activeSubscription?.id, changeSubscriptionMutation]
   );
 
   const verifyPlanChange = useCallback(
@@ -286,15 +275,9 @@ export const usePlans = () => {
 
   const cancelSubscription = useCallback(
     async ({ onSuccess }: cancelSubscriptionOptions) => {
-      if (
-        activeOrganization?.id &&
-        billingAccount?.id &&
-        activeSubscription?.id
-      ) {
+      if (activeSubscription?.id) {
         const resp = await cancelSubscriptionMutation(
           create(CancelSubscriptionRequestSchema, {
-            orgId: activeOrganization?.id,
-            billingId: billingAccount?.id,
             id: activeSubscription?.id,
             immediate: false
           })
@@ -304,12 +287,7 @@ export const usePlans = () => {
         }
       }
     },
-    [
-      activeOrganization?.id,
-      billingAccount?.id,
-      activeSubscription?.id,
-      cancelSubscriptionMutation
-    ]
+    [activeSubscription?.id, cancelSubscriptionMutation]
   );
 
   return {
