@@ -15,16 +15,24 @@ import (
 func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCheckoutRequest]) (*connect.Response[frontierv1beta1.CreateCheckoutResponse], error) {
 	errorLogger := NewErrorLogger()
 
+	// Always infer billing_id from org_id (ignore billing_id from request for security)
+	billingID, err := h.GetBillingAccountFromOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateCheckout.GetBillingAccountFromOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
 	// check if setup requested
 	if request.Msg.GetSetupBody() != nil && request.Msg.GetSetupBody().GetPaymentMethod() {
 		newCheckout, err := h.checkoutService.CreateSessionForPaymentMethod(ctx, checkout.Checkout{
-			CustomerID: request.Msg.GetBillingId(),
+			CustomerID: billingID,
 			SuccessUrl: request.Msg.GetSuccessUrl(),
 			CancelUrl:  request.Msg.GetCancelUrl(),
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "CreateCheckout.CreateSessionForPaymentMethod", err,
-				zap.String("billing_id", request.Msg.GetBillingId()))
+				zap.String("billing_id", billingID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 
@@ -36,7 +44,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 	// check if customer portal requested
 	if request.Msg.GetSetupBody() != nil && request.Msg.GetSetupBody().GetCustomerPortal() {
 		newCheckout, err := h.checkoutService.CreateSessionForCustomerPortal(ctx, checkout.Checkout{
-			CustomerID: request.Msg.GetBillingId(),
+			CustomerID: billingID,
 			SuccessUrl: request.Msg.GetSuccessUrl(),
 			CancelUrl:  request.Msg.GetCancelUrl(),
 		})
@@ -45,7 +53,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrPortalChangesKycCompleted)
 			}
 			errorLogger.LogServiceError(ctx, request, "CreateCheckout.CreateSessionForCustomerPortal", err,
-				zap.String("billing_id", request.Msg.GetBillingId()))
+				zap.String("billing_id", billingID))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 
@@ -74,7 +82,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 		quantity = request.Msg.GetProductBody().GetQuantity()
 	}
 	newCheckout, err := h.checkoutService.Create(ctx, checkout.Checkout{
-		CustomerID:       request.Msg.GetBillingId(),
+		CustomerID:       billingID,
 		SuccessUrl:       request.Msg.GetSuccessUrl(),
 		CancelUrl:        request.Msg.GetCancelUrl(),
 		PlanID:           planID,
@@ -88,7 +96,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPerSeatLimitReached)
 		}
 		errorLogger.LogServiceError(ctx, request, "CreateCheckout.Create", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("billing_id", billingID),
 			zap.String("plan_id", planID),
 			zap.String("product_id", featureID),
 			zap.Int64("quantity", quantity),
@@ -104,6 +112,14 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 
 func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.DelegatedCheckoutRequest]) (*connect.Response[frontierv1beta1.DelegatedCheckoutResponse], error) {
 	errorLogger := NewErrorLogger()
+
+	// Always infer billing_id from org_id (ignore billing_id from request for security)
+	billingID, err := h.GetBillingAccountFromOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DelegatedCheckout.GetBillingAccountFromOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
 
 	var planID string
 	var skipTrial bool
@@ -122,7 +138,7 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 		productQuantity = request.Msg.GetProductBody().GetQuantity()
 	}
 	subs, prod, err := h.checkoutService.Apply(ctx, checkout.Checkout{
-		CustomerID:       request.Msg.GetBillingId(),
+		CustomerID:       billingID,
 		PlanID:           planID,
 		ProductID:        productID,
 		Quantity:         productQuantity,
@@ -132,7 +148,7 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DelegatedCheckout.Apply", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("billing_id", billingID),
 			zap.String("plan_id", planID),
 			zap.String("product_id", productID),
 			zap.Int64("product_quantity", productQuantity),
@@ -170,13 +186,21 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
+	// Always infer billing_id from org_id (ignore billing_id from request for security)
+	billingID, err := h.GetBillingAccountFromOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListCheckouts.GetBillingAccountFromOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
 	var checkouts []*frontierv1beta1.CheckoutSession
 	checkoutList, err := h.checkoutService.List(ctx, checkout.Filter{
-		CustomerID: request.Msg.GetBillingId(),
+		CustomerID: billingID,
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListCheckouts.List", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("billing_id", billingID),
 			zap.String("org_id", request.Msg.GetOrgId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -192,15 +216,14 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 func (h *ConnectHandler) GetCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.GetCheckoutRequest]) (*connect.Response[frontierv1beta1.GetCheckoutResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if request.Msg.GetOrgId() == "" || request.Msg.GetId() == "" {
+	if request.Msg.GetId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
 	ch, err := h.checkoutService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetCheckout.GetByID", err,
-			zap.String("checkout_id", request.Msg.GetId()),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			zap.String("checkout_id", request.Msg.GetId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

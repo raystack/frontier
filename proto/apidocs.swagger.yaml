@@ -4899,13 +4899,12 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id is not needed, checkout can be fetched by id alone'
           in: path
           required: true
           type: string
         - name: billing_id
-          description: |-
-            DEPRECATED: billing_id will be inferred from org_id
-            ID of the billing account to get the subscriptions for
+          description: 'DEPRECATED: billing_id is not needed, checkout can be fetched by id alone'
           in: path
           required: true
           type: string
@@ -6076,6 +6075,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id is not needed, checkout can be fetched by id alone'
           in: path
           required: true
           type: string
@@ -6085,9 +6085,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: |-
-            DEPRECATED: billing_id will be inferred from org_id
-            ID of the billing account to get the subscriptions for
+          description: 'DEPRECATED: billing_id is not needed, checkout can be fetched by id alone'
           in: query
           required: false
           type: string

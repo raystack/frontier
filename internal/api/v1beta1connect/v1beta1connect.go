@@ -133,6 +133,20 @@ func (h *ConnectHandler) GetOrgIDFromSubscriptionID(ctx context.Context, subscri
 	return customer.OrgID, nil
 }
 
+// GetOrgIDFromCheckoutID returns the organization ID for a given checkout
+func (h *ConnectHandler) GetOrgIDFromCheckoutID(ctx context.Context, checkoutID string) (string, error) {
+	checkout, err := h.checkoutService.GetByID(ctx, checkoutID)
+	if err != nil {
+		return "", err
+	}
+	// Get the billing account (customer) to find the org
+	customer, err := h.customerService.GetByID(ctx, checkout.CustomerID)
+	if err != nil {
+		return "", err
+	}
+	return customer.OrgID, nil
+}
+
 func ExtractLogger(ctx context.Context) *zap.Logger {
 	if logger, ok := ctx.Value(loggerContextKey).(*zap.Logger); ok {
 		return logger
