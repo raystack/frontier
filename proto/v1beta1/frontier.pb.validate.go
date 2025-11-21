@@ -6620,15 +6620,19 @@ func (m *GetCheckoutRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
-		err := GetCheckoutRequestValidationError{
-			field:  "OrgId",
-			reason: "value length must be at least 3 runes",
+	if m.GetOrgId() != "" {
+
+		if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+			err := GetCheckoutRequestValidationError{
+				field:  "OrgId",
+				reason: "value length must be at least 3 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if m.GetBillingId() != "" {

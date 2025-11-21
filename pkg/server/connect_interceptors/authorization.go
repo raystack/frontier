@@ -857,27 +857,20 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateCheckout": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.CreateCheckoutRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetBillingId()); err != nil {
-			return err
-		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListCheckouts": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.ListCheckoutsRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetBillingId()); err != nil {
-			return err
-		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetCheckout": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.GetCheckoutRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetBillingId()); err != nil {
+		// Infer org_id from checkout_id
+		orgID, err := handler.GetOrgIDFromCheckoutID(ctx, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		if err := ensureCheckoutBelongToOrg(ctx, handler, pbreq.Msg.GetBillingId(), pbreq.Msg.GetId(), req); err != nil {
-			return err
-		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.DeletePermission, req)
 	},
 
 	// plans
@@ -1168,15 +1161,4 @@ func ensureSubscriptionBelongToOrg(ctx context.Context, handler *v1beta1connect.
 
 	// Return the inferred org_id for authorization check
 	return orgID, nil
-}
-
-func ensureCheckoutBelongToOrg(ctx context.Context, handler *v1beta1connect.ConnectHandler, billingID, checkoutID string, req connect.AnyRequest) error {
-	checkout, err := handler.GetRawCheckout(ctx, checkoutID, req)
-	if err != nil {
-		return err
-	}
-	if checkout.CustomerID != billingID {
-		return ErrDeniedInvalidArgs
-	}
-	return nil
 }
