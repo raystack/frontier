@@ -878,7 +878,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to update the subscription for
           in: path
           required: true
           type: string
@@ -1177,7 +1179,9 @@ paths:
             properties:
               billing_id:
                 type: string
-                title: ID of the billing account to update the subscription for
+                title: |-
+                  DEPRECATED: billing_id will be inferred from org_id
+                  ID of the billing account to update the subscription for
               subscription_body:
                 $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
                 title: Subscription to create
@@ -4785,7 +4789,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the subscriptions for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to get the subscriptions for
           in: path
           required: true
           type: string
@@ -4830,7 +4836,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to update the subscription for
           in: path
           required: true
           type: string
@@ -4895,7 +4903,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the subscriptions for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to get the subscriptions for
           in: path
           required: true
           type: string
@@ -5958,7 +5968,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the subscriptions for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to get the subscriptions for
           in: query
           required: false
           type: string
@@ -6010,7 +6022,9 @@ paths:
             properties:
               billing_id:
                 type: string
-                title: ID of the billing account to update the subscription for
+                title: |-
+                  DEPRECATED: billing_id will be inferred from org_id
+                  ID of the billing account to update the subscription for
               success_url:
                 type: string
               cancel_url:
@@ -6071,7 +6085,9 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the subscriptions for
+          description: |-
+            DEPRECATED: billing_id will be inferred from org_id
+            ID of the billing account to get the subscriptions for
           in: query
           required: false
           type: string
