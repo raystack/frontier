@@ -24,7 +24,7 @@ import styles from '../organization.module.css';
 
 const teamSchema = yup
   .object({
-    name: yup.string()
+    title: yup.string()
   })
   .required();
 
@@ -75,12 +75,12 @@ export const DeleteTeam = () => {
     }
   });
 
-  function onSubmit(data: { name?: string }) {
+  function onSubmit(data: { title?: string }) {
     if (!organization?.id) return;
     if (!teamId) return;
 
-    if (data.name !== team?.name)
-      return setError('name', { message: 'team name is not same' });
+    if (data.title !== team?.title)
+      return setError('title', { message: 'Team title does not match' });
 
     const request = create(DeleteGroupRequestSchema, {
       id: teamId,
@@ -90,7 +90,7 @@ export const DeleteTeam = () => {
     deleteTeamMutation.mutate(request);
   }
 
-  const name = watch('name', '');
+  const title = watch('title', '');
   return (
     <Dialog open={true}>
       <Dialog.Content
@@ -137,11 +137,11 @@ export const DeleteTeam = () => {
                   </Text>
 
                   <InputField
-                    label="Please type name of the team to confirm."
+                    label="Please enter the title of the team to confirm."
                     size="large"
-                    error={errors.name && String(errors.name?.message)}
-                    {...register('name')}
-                    placeholder="Provide team name"
+                    error={errors.title && String(errors.title?.message)}
+                    {...register('title')}
+                    placeholder="Enter the team title"
                   />
 
                   <Flex gap="small">
@@ -151,14 +151,14 @@ export const DeleteTeam = () => {
                       data-test-id="frontier-sdk-delete-team-checkbox"
                     />
                     <Text size={2}>
-                      I acknowledge that all of the team data will be deleted
+                      I acknowledge and understand that all of the team data will be deleted
                       and want to proceed.
                     </Text>
                   </Flex>
                   <Button
                     variant="solid"
                     color="danger"
-                    disabled={!name || !isAcknowledged}
+                    disabled={!title || !isAcknowledged}
                     type="submit"
                     style={{ width: '100%' }}
                     data-test-id="frontier-sdk-delete-team-btn-general"
