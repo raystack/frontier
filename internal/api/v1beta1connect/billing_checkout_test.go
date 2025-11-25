@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
@@ -35,7 +36,7 @@ var (
 func TestConnectHandler_CreateCheckout(t *testing.T) {
 	tests := []struct {
 		name        string
-		setup       func(cs *mocks.CheckoutService)
+		setup       func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService)
 		req         *connect.Request[frontierv1beta1.CreateCheckoutRequest]
 		want        *connect.Response[frontierv1beta1.CreateCheckoutResponse]
 		wantErr     bool
@@ -44,7 +45,8 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 	}{
 		{
 			name: "should create payment method setup session successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().CreateSessionForPaymentMethod(mock.Anything, checkout.Checkout{
 					CustomerID: "customer-123",
 					SuccessUrl: "https://example.com/success",
@@ -52,6 +54,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 				}).Return(testCheckout, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -77,7 +80,8 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should create customer portal setup session successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().CreateSessionForCustomerPortal(mock.Anything, checkout.Checkout{
 					CustomerID: "customer-123",
 					SuccessUrl: "https://example.com/success",
@@ -85,6 +89,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 				}).Return(testCheckout, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -110,7 +115,8 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should create subscription checkout session successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().Create(mock.Anything, checkout.Checkout{
 					CustomerID:       "customer-123",
 					SuccessUrl:       "https://example.com/success",
@@ -123,6 +129,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 				}).Return(testCheckout, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -154,7 +161,8 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should create product checkout session successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().Create(mock.Anything, checkout.Checkout{
 					CustomerID:       "customer-123",
 					SuccessUrl:       "https://example.com/success",
@@ -167,6 +175,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 				}).Return(testCheckout, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -193,10 +202,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should return invalid argument error when no body provided",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				// No expectations set since no service call should be made
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -208,10 +219,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should return per seat limit reached error for subscription checkout",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().Create(mock.Anything, mock.Anything).Return(checkout.Checkout{}, product.ErrPerSeatLimitReached)
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -227,10 +240,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should return per seat limit reached error for product checkout",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().Create(mock.Anything, mock.Anything).Return(checkout.Checkout{}, product.ErrPerSeatLimitReached)
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -246,10 +261,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should return internal server error when payment method setup fails",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().CreateSessionForPaymentMethod(mock.Anything, mock.Anything).Return(checkout.Checkout{}, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -264,10 +281,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should return internal server error when customer portal setup fails",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().CreateSessionForCustomerPortal(mock.Anything, mock.Anything).Return(checkout.Checkout{}, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -282,10 +301,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should return internal server error when subscription checkout fails",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().Create(mock.Anything, mock.Anything).Return(checkout.Checkout{}, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -301,10 +322,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		},
 		{
 			name: "should return internal server error when product checkout fails",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().Create(mock.Anything, mock.Anything).Return(checkout.Checkout{}, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+				OrgId:      "org-123",
 				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
@@ -323,10 +346,12 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCheckoutSvc := mocks.NewCheckoutService(t)
-			tt.setup(mockCheckoutSvc)
+			mockCustomerSvc := mocks.NewCustomerService(t)
+			tt.setup(mockCheckoutSvc, mockCustomerSvc)
 
 			h := &ConnectHandler{
 				checkoutService: mockCheckoutSvc,
+				customerService: mockCustomerSvc,
 			}
 
 			got, err := h.CreateCheckout(context.Background(), tt.req)
@@ -356,7 +381,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 	tests := []struct {
 		name        string
-		setup       func(cs *mocks.CheckoutService)
+		setup       func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService)
 		req         *connect.Request[frontierv1beta1.DelegatedCheckoutRequest]
 		want        *connect.Response[frontierv1beta1.DelegatedCheckoutResponse]
 		wantErr     bool
@@ -365,7 +390,8 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 	}{
 		{
 			name: "should delegate subscription checkout successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				testSubs := &subscription.Subscription{
 					ID:         "sub-123",
 					CustomerID: "customer-123",
@@ -386,6 +412,7 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 				}).Return(testSubs, testProd, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.DelegatedCheckoutRequest{
+				OrgId:     "org-123",
 				BillingId: "customer-123",
 				SubscriptionBody: &frontierv1beta1.CheckoutSubscriptionBody{
 					Plan:             "plan-123",
@@ -398,7 +425,8 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 		},
 		{
 			name: "should delegate product checkout successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				testProd := &product.Product{
 					ID:   "product-123",
 					Name: "test-product",
@@ -414,6 +442,7 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 				}).Return(nil, testProd, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.DelegatedCheckoutRequest{
+				OrgId:     "org-123",
 				BillingId: "customer-123",
 				ProductBody: &frontierv1beta1.CheckoutProductBody{
 					Product:  "product-123",
@@ -424,10 +453,12 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 		},
 		{
 			name: "should return internal server error when apply fails",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
 				cs.EXPECT().Apply(mock.Anything, mock.Anything).Return(nil, nil, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.DelegatedCheckoutRequest{
+				OrgId:     "org-123",
 				BillingId: "customer-123",
 				SubscriptionBody: &frontierv1beta1.CheckoutSubscriptionBody{
 					Plan: "plan-123",
@@ -443,10 +474,12 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCheckoutSvc := mocks.NewCheckoutService(t)
-			tt.setup(mockCheckoutSvc)
+			mockCustomerSvc := mocks.NewCustomerService(t)
+			tt.setup(mockCheckoutSvc, mockCustomerSvc)
 
 			h := &ConnectHandler{
 				checkoutService: mockCheckoutSvc,
+				customerService: mockCustomerSvc,
 			}
 
 			got, err := h.DelegatedCheckout(context.Background(), tt.req)
@@ -470,7 +503,7 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 func TestConnectHandler_ListCheckouts(t *testing.T) {
 	tests := []struct {
 		name        string
-		setup       func(cs *mocks.CheckoutService)
+		setup       func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService)
 		req         *connect.Request[frontierv1beta1.ListCheckoutsRequest]
 		want        *connect.Response[frontierv1beta1.ListCheckoutsResponse]
 		wantErr     bool
@@ -479,7 +512,7 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 	}{
 		{
 			name: "should return error if org_id is empty",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.ListCheckoutsRequest{
 				OrgId:     "",
@@ -492,7 +525,8 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 		},
 		{
 			name: "should return error if service returns error",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "test-org-id").Return(customer.Customer{ID: "test-billing-id", OrgID: "test-org-id"}, nil)
 				cs.EXPECT().List(mock.Anything, checkout.Filter{
 					CustomerID: "test-billing-id",
 				}).Return(nil, errors.New("service error"))
@@ -508,7 +542,8 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 		},
 		{
 			name: "should return empty list if no checkouts found",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "test-org-id").Return(customer.Customer{ID: "test-billing-id", OrgID: "test-org-id"}, nil)
 				cs.EXPECT().List(mock.Anything, checkout.Filter{
 					CustomerID: "test-billing-id",
 				}).Return([]checkout.Checkout{}, nil)
@@ -524,7 +559,8 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 		},
 		{
 			name: "should return list of checkouts successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "test-org-id").Return(customer.Customer{ID: "test-billing-id", OrgID: "test-org-id"}, nil)
 				createdAt := time.Now()
 				updatedAt := time.Now()
 				expireAt := time.Now()
@@ -601,11 +637,13 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			checkoutService := mocks.NewCheckoutService(t)
+			customerService := mocks.NewCustomerService(t)
 			if tt.setup != nil {
-				tt.setup(checkoutService)
+				tt.setup(checkoutService, customerService)
 			}
 			h := &ConnectHandler{
 				checkoutService: checkoutService,
+				customerService: customerService,
 			}
 			got, err := h.ListCheckouts(context.Background(), tt.req)
 			if tt.wantErr {
@@ -637,7 +675,7 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 func TestConnectHandler_GetCheckout(t *testing.T) {
 	tests := []struct {
 		name        string
-		setup       func(cs *mocks.CheckoutService)
+		setup       func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService)
 		req         *connect.Request[frontierv1beta1.GetCheckoutRequest]
 		want        *connect.Response[frontierv1beta1.GetCheckoutResponse]
 		wantErr     bool
@@ -646,7 +684,8 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 	}{
 		{
 			name: "should return error if org_id is empty",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
+				cs.EXPECT().GetByID(mock.Anything, "test-checkout-id").Return(checkout.Checkout{}, errors.New("not found"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
 				OrgId: "",
@@ -654,12 +693,12 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 			}),
 			want:        nil,
 			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
-			wantErrMsg:  ErrBadRequest,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  ErrInternalServerError,
 		},
 		{
 			name: "should return error if id is empty",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
 				OrgId: "test-org-id",
@@ -672,7 +711,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 		},
 		{
 			name: "should return error if both org_id and id are empty",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
 				OrgId: "",
@@ -685,7 +724,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 		},
 		{
 			name: "should return error if service returns error",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 				cs.EXPECT().GetByID(mock.Anything, "test-checkout-id").Return(checkout.Checkout{}, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
@@ -699,7 +738,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 		},
 		{
 			name: "should return checkout successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 				createdAt := time.Now()
 				updatedAt := time.Now()
 				expireAt := time.Now()
@@ -743,7 +782,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 		},
 		{
 			name: "should return checkout with product successfully",
-			setup: func(cs *mocks.CheckoutService) {
+			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 				createdAt := time.Now()
 				updatedAt := time.Now()
 				expireAt := time.Now()
@@ -790,11 +829,13 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			checkoutService := mocks.NewCheckoutService(t)
+			customerService := mocks.NewCustomerService(t)
 			if tt.setup != nil {
-				tt.setup(checkoutService)
+				tt.setup(checkoutService, customerService)
 			}
 			h := &ConnectHandler{
 				checkoutService: checkoutService,
+				customerService: customerService,
 			}
 			got, err := h.GetCheckout(context.Background(), tt.req)
 			if tt.wantErr {
