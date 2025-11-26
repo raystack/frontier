@@ -73,7 +73,6 @@ export const PaymentMethod = ({
     const resp = await createCheckoutMutation(
       create(CreateCheckoutRequestSchema, {
         orgId: billingAccount?.orgId || '',
-        billingId: billingAccount?.id || '',
         cancelUrl: cancel_url,
         successUrl: success_url,
         setupBody: {

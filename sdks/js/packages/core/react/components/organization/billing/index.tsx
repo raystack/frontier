@@ -209,7 +209,6 @@ export default function Billing() {
       const resp = await createCheckoutMutation(
         create(CreateCheckoutRequestSchema, {
           orgId: billingAccount?.orgId || '',
-          billingId: billingAccount?.id || '',
           cancelUrl: cancel_url,
           successUrl: success_url,
           setupBody: {

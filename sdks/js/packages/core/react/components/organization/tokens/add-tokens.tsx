@@ -118,7 +118,6 @@ export const AddTokens = () => {
       await createCheckout(
         create(CreateCheckoutRequestSchema, {
           orgId: activeOrganization?.id || '',
-          billingId: billingAccount?.id || '',
           cancelUrl: cancelUrl,
           successUrl: successUrl,
           productBody: {

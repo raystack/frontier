@@ -127,7 +127,6 @@ export const usePlans = () => {
           const resp = await createCheckoutMutation(
             create(CreateCheckoutRequestSchema, {
               orgId: activeOrganization?.id,
-              billingId: billingAccount?.id,
               cancelUrl: cancel_url,
               successUrl: success_url,
               subscriptionBody: {
