@@ -20,7 +20,7 @@
     "@radix-ui/react-icons": "^1.3.0",
     "@raystack/apsara": "^0.53.2",
     "@raystack/frontier": "^0.78.0",
-    "@raystack/proton": "0.1.0-dcceed81ad090604a542bb2a9a12bab7218bc59b",
+    "@raystack/proton": "0.1.0-d7ccfeef8ed0a304b5da3537c1b2bb5e7d99c77c",
     "@stitches/react": "^1.2.8",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-query-devtools": "^5.90.2",
