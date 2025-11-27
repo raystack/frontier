@@ -23,7 +23,7 @@ export const PaymentMethod = ({
   isLoading,
   isAllowed
 }: PaymentMethodProps) => {
-  const { config, billingAccount } = useFrontier();
+  const { config, billingAccount, activeOrganization } = useFrontier();
 
   const { mutateAsync: createCheckoutMutation, isPending: isActionLoading } =
     useMutation(FrontierServiceQueries.createCheckout, {
@@ -50,9 +50,7 @@ export const PaymentMethod = ({
   const isPaymentMethodAvailable = cardLast4 !== '';
 
   const updatePaymentMethod = async () => {
-    const orgId = billingAccount?.orgId || '';
-    const billingAccountId = billingAccount?.id || '';
-    if (!billingAccountId || !orgId) return;
+    const orgId = activeOrganization?.id || '';
 
     const query = qs.stringify(
       {
@@ -72,7 +70,7 @@ export const PaymentMethod = ({
 
     const resp = await createCheckoutMutation(
       create(CreateCheckoutRequestSchema, {
-        orgId: billingAccount?.orgId || '',
+        orgId: activeOrganization?.id || '',
         cancelUrl: cancel_url,
         successUrl: success_url,
         setupBody: {

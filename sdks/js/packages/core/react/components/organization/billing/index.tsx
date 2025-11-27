@@ -142,7 +142,8 @@ export default function Billing() {
     isActiveSubscriptionLoading,
     paymentMethod,
     organizationKyc,
-    isOrganizationKycLoading
+    isOrganizationKycLoading,
+    activeOrganization
   } = useFrontier();
 
   const { isAllowed, isFetching } = useBillingPermission();
@@ -194,8 +195,7 @@ export default function Billing() {
         {
           details: btoa(
             qs.stringify({
-              billing_id: billingAccount?.id,
-              organization_id: billingAccount?.orgId,
+              organization_id: activeOrganization?.id || '',
               type: 'billing'
             })
           ),
@@ -208,7 +208,7 @@ export default function Billing() {
 
       const resp = await createCheckoutMutation(
         create(CreateCheckoutRequestSchema, {
-          orgId: billingAccount?.orgId || '',
+          orgId: activeOrganization?.id || '',
           cancelUrl: cancel_url,
           successUrl: success_url,
           setupBody: {
