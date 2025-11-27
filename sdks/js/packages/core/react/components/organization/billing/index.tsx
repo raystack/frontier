@@ -226,8 +226,7 @@ export default function Billing() {
       toast.error('Something went wrong');
     }
   }, [
-    billingAccount?.id,
-    billingAccount?.orgId,
+    activeOrganization?.id,
     createCheckoutMutation,
     config?.billing?.cancelUrl,
     config?.billing?.successUrl
