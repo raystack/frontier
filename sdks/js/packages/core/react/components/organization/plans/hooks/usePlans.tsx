@@ -101,12 +101,11 @@ export const usePlans = () => {
   const checkoutPlan = useCallback(
     async ({ planId, onSuccess, isTrial }: checkoutPlanOptions) => {
       try {
-        if (activeOrganization?.id && billingAccount?.id) {
+        if (activeOrganization?.id) {
           const query = qs.stringify(
             {
               details: btoa(
                 qs.stringify({
-                  billing_id: billingAccount?.id,
                   organization_id: activeOrganization?.id,
                   type: 'plans',
                   isTrial: isTrial
@@ -127,7 +126,6 @@ export const usePlans = () => {
           const resp = await createCheckoutMutation(
             create(CreateCheckoutRequestSchema, {
               orgId: activeOrganization?.id,
-              billingId: billingAccount?.id,
               cancelUrl: cancel_url,
               successUrl: success_url,
               subscriptionBody: {

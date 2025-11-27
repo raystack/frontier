@@ -142,7 +142,8 @@ export default function Billing() {
     isActiveSubscriptionLoading,
     paymentMethod,
     organizationKyc,
-    isOrganizationKycLoading
+    isOrganizationKycLoading,
+    activeOrganization
   } = useFrontier();
 
   const { isAllowed, isFetching } = useBillingPermission();
@@ -185,17 +186,15 @@ export default function Billing() {
   );
 
   const onAddDetailsClick = useCallback(async () => {
-    const orgId = billingAccount?.orgId || '';
-    const billingAccountId = billingAccount?.id || '';
-    if (!billingAccountId || !orgId) return;
+    const orgId = activeOrganization?.id || '';
+    if (!orgId) return;
 
     try {
       const query = qs.stringify(
         {
           details: btoa(
             qs.stringify({
-              billing_id: billingAccount?.id,
-              organization_id: billingAccount?.orgId,
+              organization_id: activeOrganization?.id || '',
               type: 'billing'
             })
           ),
@@ -208,8 +207,7 @@ export default function Billing() {
 
       const resp = await createCheckoutMutation(
         create(CreateCheckoutRequestSchema, {
-          orgId: billingAccount?.orgId || '',
-          billingId: billingAccount?.id || '',
+          orgId: activeOrganization?.id || '',
           cancelUrl: cancel_url,
           successUrl: success_url,
           setupBody: {
@@ -227,8 +225,7 @@ export default function Billing() {
       toast.error('Something went wrong');
     }
   }, [
-    billingAccount?.id,
-    billingAccount?.orgId,
+    activeOrganization?.id,
     createCheckoutMutation,
     config?.billing?.cancelUrl,
     config?.billing?.successUrl

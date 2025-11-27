@@ -98,12 +98,11 @@ export const AddTokens = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      if (!activeOrganization?.id || !billingAccount?.id) return;
+      if (!activeOrganization?.id) return;
       const query = qs.stringify(
         {
           details: btoa(
             qs.stringify({
-              billing_id: billingAccount?.id,
               organization_id: activeOrganization?.id,
               type: 'tokens'
             })
@@ -118,7 +117,6 @@ export const AddTokens = () => {
       await createCheckout(
         create(CreateCheckoutRequestSchema, {
           orgId: activeOrganization?.id || '',
-          billingId: billingAccount?.id || '',
           cancelUrl: cancelUrl,
           successUrl: successUrl,
           productBody: {
