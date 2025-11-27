@@ -56,8 +56,7 @@ export const PaymentMethod = ({
       {
         details: btoa(
           qs.stringify({
-            billing_id: billingAccount?.id,
-            organization_id: billingAccount?.orgId,
+            organization_id: activeOrganization?.id,
             type: 'billing'
           })
         ),
