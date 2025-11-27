@@ -3516,16 +3516,20 @@ func (m *TotalDebitedTransactionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = TotalDebitedTransactionsRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = TotalDebitedTransactionsRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if len(errors) > 0 {

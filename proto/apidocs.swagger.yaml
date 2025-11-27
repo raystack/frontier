@@ -4955,7 +4955,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account
+          description: 'DEPRECATED: billing_id will be inferred from org_id'
           in: path
           required: true
           type: string
@@ -5001,7 +5001,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to list invoices for
+          description: 'DEPRECATED: billing_id will be inferred from org_id'
           in: path
           required: true
           type: string
@@ -5058,7 +5058,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the upcoming invoice for
+          description: 'DEPRECATED: billing_id will be inferred from org_id'
           in: path
           required: true
           type: string
@@ -5426,7 +5426,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: 'DEPRECATED: billing_id will be inferred from org_id'
           in: path
           required: true
           type: string
@@ -6131,7 +6131,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to list invoices for
+          description: 'DEPRECATED: billing_id will be inferred from org_id'
           in: query
           required: false
           type: string
@@ -6188,7 +6188,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to get the upcoming invoice for
+          description: 'DEPRECATED: billing_id will be inferred from org_id'
           in: query
           required: false
           type: string
@@ -6550,7 +6550,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: 'DEPRECATED: billing_id will be inferred from org_id'
           in: query
           required: false
           type: string
