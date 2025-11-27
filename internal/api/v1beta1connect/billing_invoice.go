@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
@@ -48,13 +49,33 @@ func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.R
 func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.ListInvoicesRequest]) (*connect.Response[frontierv1beta1.ListInvoicesResponse], error) {
 	errorLogger := NewErrorLogger()
 
+	// Always infer billing_id from org_id
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		// Return empty list if billing account doesn't exist
+		if errors.Is(err, customer.ErrNotFound) {
+			return connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
+				Invoices: []*frontierv1beta1.Invoice{},
+			}), nil
+		}
+		// Return bad request for invalid org_id
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		errorLogger.LogServiceError(ctx, request, "ListInvoices.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	billingID := cust.ID
+
 	invoices, err := h.invoiceService.List(ctx, invoice.Filter{
-		CustomerID:  request.Msg.GetBillingId(),
+		CustomerID:  billingID,
 		NonZeroOnly: request.Msg.GetNonzeroAmountOnly(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListInvoices.List", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("org_id", request.Msg.GetOrgId()),
+			zap.String("billing_id", billingID),
 			zap.Bool("nonzero_amount_only", request.Msg.GetNonzeroAmountOnly()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -81,10 +102,30 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	invoice, err := h.invoiceService.GetUpcoming(ctx, request.Msg.GetBillingId())
+	// Always infer billing_id from org_id
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		// Return empty invoice if billing account doesn't exist
+		if errors.Is(err, customer.ErrNotFound) {
+			return connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
+				Invoice: nil,
+			}), nil
+		}
+		// Return bad request for invalid org_id
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		errorLogger.LogServiceError(ctx, request, "GetUpcomingInvoice.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	billingID := cust.ID
+
+	invoice, err := h.invoiceService.GetUpcoming(ctx, billingID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetUpcomingInvoice.GetUpcoming", err,
-			zap.String("billing_id", request.Msg.GetBillingId()))
+			zap.String("org_id", request.Msg.GetOrgId()),
+			zap.String("billing_id", billingID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	invoicePB, err := transformInvoiceToPB(invoice)

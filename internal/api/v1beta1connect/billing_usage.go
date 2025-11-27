@@ -9,6 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/credit"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -57,9 +58,25 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.ListBillingTransactionsRequest]) (*connect.Response[frontierv1beta1.ListBillingTransactionsResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if request.Msg.GetBillingId() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	// Always infer billing_id from org_id
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		// Return empty list if billing account doesn't exist
+		if errors.Is(err, customer.ErrNotFound) {
+			return connect.NewResponse(&frontierv1beta1.ListBillingTransactionsResponse{
+				Transactions: []*frontierv1beta1.BillingTransaction{},
+			}), nil
+		}
+		// Return bad request for invalid org_id
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		errorLogger.LogServiceError(ctx, request, "ListBillingTransactions.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
+	billingID := cust.ID
+
 	var transactions []*frontierv1beta1.BillingTransaction
 	var startRange time.Time
 	if request.Msg.GetSince() != nil {
@@ -74,13 +91,14 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 	}
 
 	transactionsList, err := h.creditService.List(ctx, credit.Filter{
-		CustomerID: request.Msg.GetBillingId(),
+		CustomerID: billingID,
 		StartRange: startRange,
 		EndRange:   endRange,
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListBillingTransactions.List", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("org_id", request.Msg.GetOrgId()),
+			zap.String("billing_id", billingID),
 			zap.Time("start_range", startRange),
 			zap.Time("end_range", endRange))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
@@ -107,14 +125,33 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[frontierv1beta1.TotalDebitedTransactionsResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if request.Msg.GetBillingId() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	// Always infer billing_id from org_id
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		// Return zero amount if billing account doesn't exist
+		if errors.Is(err, customer.ErrNotFound) {
+			return connect.NewResponse(&frontierv1beta1.TotalDebitedTransactionsResponse{
+				Debited: &frontierv1beta1.BillingAccount_Balance{
+					Amount:   0,
+					Currency: "VC",
+				},
+			}), nil
+		}
+		// Return bad request for invalid org_id
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		errorLogger.LogServiceError(ctx, request, "TotalDebitedTransactions.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
+	billingID := cust.ID
 
-	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, request.Msg.GetBillingId())
+	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, billingID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "TotalDebitedTransactions.GetTotalDebitedAmount", err,
-			zap.String("billing_id", request.Msg.GetBillingId()))
+			zap.String("org_id", request.Msg.GetOrgId()),
+			zap.String("billing_id", billingID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
