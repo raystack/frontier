@@ -18,11 +18,10 @@ export const PlanDetailsSection = () => {
   const { data: activeSubscription, isLoading: isSubscriptionLoading, error: subscriptionsError } = useQuery(
     FrontierServiceQueries.listSubscriptions,
     create(ListSubscriptionsRequestSchema, {
-      orgId: organizationId,
-      billingId: billingAccountId,
+      orgId: organizationId
     }),
     {
-      enabled: !!organizationId && !!billingAccountId,
+      enabled: !!organizationId,
       select: (data) => {
         const subscriptions = data?.subscriptions ?? [];
         return subscriptions.find(
