@@ -186,9 +186,8 @@ export default function Billing() {
   );
 
   const onAddDetailsClick = useCallback(async () => {
-    const orgId = billingAccount?.orgId || '';
-    const billingAccountId = billingAccount?.id || '';
-    if (!billingAccountId || !orgId) return;
+    const orgId = activeOrganization?.id || '';
+    if (!orgId) return;
 
     try {
       const query = qs.stringify(
