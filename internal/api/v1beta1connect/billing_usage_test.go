@@ -343,13 +343,13 @@ func TestConnectHandler_ListBillingTransactions(t *testing.T) {
 	}
 
 	tests := []struct {
-		name             string
-		setup            func(cs *mocks.CreditService)
-		customerSetup    func(custSvc *mocks.CustomerService)
-		request          *connect.Request[frontierv1beta1.ListBillingTransactionsRequest]
-		want             *connect.Response[frontierv1beta1.ListBillingTransactionsResponse]
-		wantErr          error
-		errCode          connect.Code
+		name          string
+		setup         func(cs *mocks.CreditService)
+		customerSetup func(custSvc *mocks.CustomerService)
+		request       *connect.Request[frontierv1beta1.ListBillingTransactionsRequest]
+		want          *connect.Response[frontierv1beta1.ListBillingTransactionsResponse]
+		wantErr       error
+		errCode       connect.Code
 	}{
 		{
 			name: "should return empty list when billing account not found",
@@ -607,8 +607,8 @@ func TestConnectHandler_ListBillingTransactions(t *testing.T) {
 				tt.customerSetup(mockCustomerSvc)
 			}
 			h := &ConnectHandler{
-				creditService:    mockCreditSvc,
-				customerService:  mockCustomerSvc,
+				creditService:   mockCreditSvc,
+				customerService: mockCustomerSvc,
 			}
 			got, err := h.ListBillingTransactions(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
