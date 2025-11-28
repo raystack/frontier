@@ -13,9 +13,17 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { createConnectQueryKey, useMutation, useTransport } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useTransport
+} from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
-import { FrontierServiceQueries, UpdateOrganizationRequestSchema, Organization } from '@raystack/proton/frontier';
+import {
+  FrontierServiceQueries,
+  UpdateOrganizationRequestSchema,
+  Organization
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { AuthTooltipMessage } from '~/react/utils';
 import { AvatarUpload } from '../../avatar-upload';
@@ -44,16 +52,17 @@ export const GeneralOrganization = ({
   isLoading,
   canUpdateWorkspace = false
 }: GeneralOrganizationProps) => {
+  const t = useTerminology();
   const { setActiveOrganization } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
   const { mutateAsync: updateOrganization } = useMutation(
     FrontierServiceQueries.updateOrganization,
     {
-      onSuccess: (data) => {
+      onSuccess: data => {
         if (data.organization) {
           setActiveOrganization(data.organization);
-          queryClient.invalidateQueries({ 
+          queryClient.invalidateQueries({
             queryKey: createConnectQueryKey({
               schema: FrontierServiceQueries.getOrganization,
               transport,
@@ -68,10 +77,10 @@ export const GeneralOrganization = ({
         toast.error('Something went wrong', {
           description: error?.message || 'Failed to update'
         });
-      },
+      }
     }
   );
-  const t = useTerminology();
+
   const {
     reset,
     register,
@@ -84,14 +93,14 @@ export const GeneralOrganization = ({
   });
 
   const URL_PREFIX = window?.location?.host + '/';
-  
+
   useEffect(() => {
     reset(organization);
   }, [organization, reset]);
 
   async function onSubmit(data: FormData) {
     if (!organization?.id) return;
-    
+
     try {
       const req = create(UpdateOrganizationRequestSchema, {
         id: organization.id,
@@ -104,7 +113,10 @@ export const GeneralOrganization = ({
       await updateOrganization(req);
     } catch (error: unknown) {
       toast.error('Something went wrong', {
-        description: error instanceof Error ? error.message : 'Failed to update organization'
+        description:
+          error instanceof Error
+            ? error.message
+            : `Failed to update ${t.organization({ case: 'lower' })}`
       });
     }
   }
@@ -120,13 +132,11 @@ export const GeneralOrganization = ({
         ) : (
           <AvatarUpload
             value={watch('avatar')}
-            onChange={(value) => setValue('avatar', value)}
+            onChange={value => setValue('avatar', value)}
             subText={`Pick a logo for your ${t.organization({
               case: 'lower'
             })}.`}
-            initials={getInitials(
-              organization?.title || organization?.name
-            )}
+            initials={getInitials(organization?.title || organization?.name)}
             disabled={!canUpdateWorkspace}
             data-test-id="frontier-sdk-avatar-upload"
           />

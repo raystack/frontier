@@ -23,10 +23,12 @@ import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { PageHeader } from '~/react/components/common/page-header';
 import sharedStyles from '../styles.module.css';
 import styles from './domain.module.css';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 export default function Domain() {
   const { isFetching, domains, error: domainsError } = useOrganizationDomains();
   const { activeOrganization: organization, config } = useFrontier();
+  const t = useTerminology();
 
   useEffect(() => {
     if (domainsError) {
@@ -65,15 +67,27 @@ export default function Domain() {
 
   return (
     <Flex direction="column" className={sharedStyles.pageWrapper}>
-      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
-        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
-          <PageHeader 
-            title="Allowed email domains" 
-            description="Anyone with an email address at these domains is allowed to sign up
-          for this organization."
+      <Flex
+        direction="column"
+        className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}
+      >
+        <Flex
+          direction="row"
+          justify="between"
+          align="center"
+          className={sharedStyles.header}
+        >
+          <PageHeader
+            title="Allowed email domains"
+            description={`Anyone with an email address at these domains is allowed to sign up
+          for this ${t.organization({ case: 'lower' })}.`}
           />
         </Flex>
-        <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
+        <Flex
+          direction="column"
+          gap={9}
+          className={sharedStyles.contentWrapper}
+        >
           <Domains
             domains={domains}
             isLoading={isLoading}

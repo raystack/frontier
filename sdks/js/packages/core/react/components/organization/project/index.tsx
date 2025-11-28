@@ -23,6 +23,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { PageHeader } from '~/react/components/common/page-header';
 import sharedStyles from '../styles.module.css';
 import styles from './project.module.css';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 const projectsSelectOptions = [
   { value: 'my-projects', label: 'My Projects' },
@@ -42,7 +43,7 @@ export default function WorkspaceProjects() {
     withMemberCount: true
   });
   const { activeOrganization: organization } = useFrontier();
-
+  const t = useTerminology();
   const routerState = useRouterState();
 
   const isListRoute = useMemo(() => {
@@ -108,14 +109,28 @@ export default function WorkspaceProjects() {
 
   return (
     <Flex direction="column" className={sharedStyles.pageWrapper}>
-      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
-        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
-          <PageHeader 
-            title="Projects" 
-            description="Manage projects in this organization."
+      <Flex
+        direction="column"
+        className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}
+      >
+        <Flex
+          direction="row"
+          justify="between"
+          align="center"
+          className={sharedStyles.header}
+        >
+          <PageHeader
+            title="Projects"
+            description={`Manage projects in this ${t.organization({
+              case: 'lower'
+            })}.`}
           />
         </Flex>
-        <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
+        <Flex
+          direction="column"
+          gap={9}
+          className={sharedStyles.contentWrapper}
+        >
           <ProjectsTable
             projects={projects}
             isLoading={isLoading}
