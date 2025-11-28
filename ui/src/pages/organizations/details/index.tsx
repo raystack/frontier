@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useQuery } from "@connectrpc/connect-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { Outlet, useParams } from "react-router-dom";
 
 import { OrganizationDetailsLayout } from "./layout";
@@ -17,6 +17,7 @@ export const OrganizationDetails = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { organizationId } = useParams();
+  const transport = useTransport();
 
   // Use Connect RPC for fetching organization
   const {
@@ -43,7 +44,7 @@ export const OrganizationDetails = () => {
 
   // Fetch KYC details
   const {
-    data: kycDetails,
+    data: kycData,
     isLoading: isKYCLoading,
     error: kycError,
   } = useQuery(
@@ -51,14 +52,20 @@ export const OrganizationDetails = () => {
     { orgId: organizationId || "" },
     {
       enabled: !!organizationId,
-      select: (data) => data?.organizationKyc,
     },
   );
+
+  const kycDetails = useMemo(() => kycData?.organizationKyc, [kycData]);
 
   function updateKYCDetails(kyc: typeof kycDetails) {
     if (!organizationId) return;
     queryClient.setQueryData(
-      [FrontierServiceQueries.getOrganizationKyc, { orgId: organizationId }],
+      createConnectQueryKey({
+        schema: FrontierServiceQueries.getOrganizationKyc,
+        transport,
+        input: { orgId: organizationId },
+        cardinality: "finite",
+      }),
       { organizationKyc: kyc },
     );
   }
@@ -118,17 +125,15 @@ export const OrganizationDetails = () => {
   );
 
   // Fetch billing accounts list
-  const {
-    data: firstBillingAccountId = "",
-    error: billingAccountsError,
-  } = useQuery(
-    FrontierServiceQueries.listBillingAccounts,
-    { orgId: organizationId || "" },
-    {
-      enabled: !!organizationId,
-      select: (data) => data?.billingAccounts?.[0]?.id || "",
-    },
-  );
+  const { data: firstBillingAccountId = "", error: billingAccountsError } =
+    useQuery(
+      FrontierServiceQueries.listBillingAccounts,
+      { orgId: organizationId || "" },
+      {
+        enabled: !!organizationId,
+        select: (data) => data?.billingAccounts?.[0]?.id || "",
+      },
+    );
 
   // Fetch billing account details
   const {
@@ -160,7 +165,7 @@ export const OrganizationDetails = () => {
     data: tokenBalance = "0",
     isLoading: isTokenBalanceLoading,
     error: tokenBalanceError,
-    refetch: fetchTokenBalance
+    refetch: fetchTokenBalance,
   } = useQuery(
     FrontierServiceQueries.getBillingBalance,
     {
@@ -194,7 +199,10 @@ export const OrganizationDetails = () => {
       console.error("Failed to fetch billing accounts:", billingAccountsError);
     }
     if (billingAccountError) {
-      console.error("Failed to fetch billing account details:", billingAccountError);
+      console.error(
+        "Failed to fetch billing account details:",
+        billingAccountError,
+      );
     }
     if (tokenBalanceError) {
       console.error("Failed to fetch token balance:", tokenBalanceError);
