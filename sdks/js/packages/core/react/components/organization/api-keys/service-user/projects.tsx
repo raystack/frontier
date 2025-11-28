@@ -10,7 +10,7 @@ import {
   type DataTableColumnDef
 } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
@@ -28,6 +28,7 @@ import {
   Project,
   Policy
 } from '@raystack/proton/frontier';
+import { orderBy } from 'lodash';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
@@ -105,10 +106,7 @@ export default function ManageServiceUserProjects() {
 
   const orgId = organization?.id || '';
 
-  const {
-    data: projects = [],
-    isLoading: isProjectsLoading
-  } = useQuery(
+  const { data: projectsData, isLoading: isProjectsLoading } = useQuery(
     FrontierServiceQueries.listOrganizationProjects,
     create(ListOrganizationProjectsRequestSchema, {
       id: orgId,
@@ -116,32 +114,31 @@ export default function ManageServiceUserProjects() {
       withMemberCount: false
     }),
     {
-      enabled: Boolean(orgId),
-      select: data => {
-        const list = data?.projects ?? [];
-        return list.sort((a, b) =>
-          (a?.title?.toLowerCase() || '') > (b?.title?.toLowerCase() || '')
-            ? 1
-            : -1
-        );
-      }
+      enabled: Boolean(orgId)
     }
   );
 
-  const {
-    data: addedProjects = [],
-    isLoading: isAddedProjectsLoading
-  } = useQuery(
-    FrontierServiceQueries.listServiceUserProjects,
-    create(ListServiceUserProjectsRequestSchema, {
-      id,
-      orgId,
-      withPermissions: []
-    }),
-    {
-      enabled: Boolean(id) && Boolean(orgId),
-      select: data => data?.projects ?? []
-    }
+  const projects = useMemo(() => {
+    const list = projectsData?.projects ?? [];
+    return orderBy(list, ['title'], ['asc']);
+  }, [projectsData]);
+
+  const { data: addedProjectsData, isLoading: isAddedProjectsLoading } =
+    useQuery(
+      FrontierServiceQueries.listServiceUserProjects,
+      create(ListServiceUserProjectsRequestSchema, {
+        id,
+        orgId,
+        withPermissions: []
+      }),
+      {
+        enabled: Boolean(id) && Boolean(orgId)
+      }
+    );
+
+  const addedProjects = useMemo(
+    () => addedProjectsData?.projects ?? [],
+    [addedProjectsData]
   );
 
   // Initialize addedProjectsMap from query data

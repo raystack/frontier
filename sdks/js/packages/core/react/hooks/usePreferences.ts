@@ -2,7 +2,7 @@ import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@con
 import { useQueryClient } from '@tanstack/react-query';
 import { create } from '@bufbuild/protobuf';
 import { FrontierServiceQueries, CreateCurrentUserPreferencesRequestSchema } from '@raystack/proton/frontier';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 type Preference = {
   name?: string;
@@ -39,17 +39,18 @@ export function usePreferences({
   const transport = useTransport();
 
   const {
-    data: preferences,
+    data: preferencesData,
     isLoading: isFetchingPreferences,
     refetch
   } = useQuery(
     FrontierServiceQueries.listCurrentUserPreferences,
     {},
     {
-      enabled: autoFetch,
-      select: (data) => getFormattedData(data?.preferences ?? [])
+      enabled: autoFetch
     }
   );
+
+  const preferences = useMemo(() => getFormattedData(preferencesData?.preferences ?? []), [preferencesData]);
 
   const {
     mutateAsync: updatePreferencesMutation,

@@ -15,7 +15,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { orderBy } from 'lodash';
 import {
   FrontierServiceQueries,
@@ -72,7 +72,7 @@ export const AddServiceAccount = () => {
 
   const orgId = organization?.id || '';
 
-  const { data: projects = [], isLoading: isProjectsLoading } = useQuery(
+  const { data: projectsData, isLoading: isProjectsLoading } = useQuery(
     FrontierServiceQueries.listOrganizationProjects,
     create(ListOrganizationProjectsRequestSchema, {
       id: orgId,
@@ -80,13 +80,14 @@ export const AddServiceAccount = () => {
       withMemberCount: false
     }),
     {
-      enabled: Boolean(orgId),
-      select: data => {
-        const list = data?.projects ?? [];
-        return orderBy(list, ['title'], ['asc']);
-      }
+      enabled: Boolean(orgId)
     }
   );
+
+  const projects = useMemo(() => {
+    const list = projectsData?.projects ?? [];
+    return orderBy(list, ['title'], ['asc']);
+  }, [projectsData]);
 
   const { mutateAsync: createServiceUser } = useMutation(
     FrontierServiceQueries.createServiceUser

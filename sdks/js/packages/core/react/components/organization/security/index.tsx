@@ -22,7 +22,7 @@ export default function WorkspaceSecurity() {
   const transport = useTransport();
 
   const {
-    data: preferences = [],
+    data: preferencesData,
     error: preferencesError
   } = useQuery(
     FrontierServiceQueries.listOrganizationPreferences,
@@ -30,10 +30,11 @@ export default function WorkspaceSecurity() {
       id: organization?.id || ''
     }),
     {
-      enabled: !!organization?.id,
-      select: (d) => d?.preferences ?? []
+      enabled: !!organization?.id
     }
   );
+
+  const preferences = useMemo(() => preferencesData?.preferences ?? [], [preferencesData]);
 
   useEffect(() => {
     if (preferencesError) {

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   DotsHorizontalIcon,
   TrashIcon,
@@ -162,15 +162,17 @@ const MembersActions = ({
     });
   }
 
-  const { data: policies = [], refetch: refetchPolicies, error: policiesError } = useQuery(
+  const { data: policiesData, refetch: refetchPolicies, error: policiesError } = useQuery(
     FrontierServiceQueries.listPolicies,
     create(ListPoliciesRequestSchema, {
       projectId: projectId,
       userId: member.isTeam ? undefined : (member.id as string),
       groupId: member.isTeam ? (member.id as string) : undefined
     }),
-    { enabled: !!projectId && !!member?.id, select: d => d?.policies ?? [] }
+    { enabled: !!projectId && !!member?.id }
   );
+
+  const policies = useMemo(() => policiesData?.policies ?? [], [policiesData]);
 
   const { mutateAsync: deletePolicy } = useMutation(FrontierServiceQueries.deletePolicy, {
     onError: (err: Error) =>

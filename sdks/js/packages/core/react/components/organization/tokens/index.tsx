@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Button,
   Tooltip,
@@ -168,7 +168,7 @@ export default function Tokens() {
   const { tokenBalance, isTokensLoading } = useTokens();
 
   const {
-    data: transactionsData = [],
+    data: transactionsRawData,
     isLoading: isTransactionsListLoading,
     error: transactionsError
   } = useQuery(
@@ -179,10 +179,11 @@ export default function Tokens() {
       billingId: billingAccount?.id ?? ''
     }),
     {
-      enabled: !!activeOrganization?.id && !!billingAccount?.id,
-      select: data => data?.transactions ?? []
+      enabled: !!activeOrganization?.id && !!billingAccount?.id
     }
   );
+
+  const transactionsData = useMemo(() => transactionsRawData?.transactions ?? [], [transactionsRawData]);
 
   useEffect(() => {
     if (transactionsError) {

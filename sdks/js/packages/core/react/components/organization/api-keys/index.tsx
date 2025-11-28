@@ -184,7 +184,7 @@ export default function ApiKeys() {
   );
 
   const {
-    data: serviceUsers = [],
+    data: serviceUsersData,
     isLoading: isServiceUsersLoading
   } = useQuery(
     FrontierServiceQueries.listOrganizationServiceUsers,
@@ -192,10 +192,11 @@ export default function ApiKeys() {
       id: organization?.id ?? ''
     }),
     {
-      enabled: Boolean(organization?.id) && canUpdateWorkspace,
-      select: data => data?.serviceusers ?? []
+      enabled: Boolean(organization?.id) && canUpdateWorkspace
     }
   );
+
+  const serviceUsers = useMemo(() => serviceUsersData?.serviceusers ?? [], [serviceUsersData]);
 
   const isLoading =
     isActiveOrganizationLoading ||

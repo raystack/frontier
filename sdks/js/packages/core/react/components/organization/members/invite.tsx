@@ -47,41 +47,44 @@ export const InviteMember = () => {
   const { activeOrganization: organization } = useFrontier();
   
   // Organization roles query
-  const { data: orgRoles, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
+  const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
     FrontierServiceQueries.listOrganizationRoles,
     create(ListOrganizationRolesRequestSchema, {
       orgId: organization?.id || '',
       scopes: [PERMISSIONS.OrganizationNamespace]
     }),
-    { 
-      enabled: !!organization?.id,
-      select: (data) => data?.roles || []
+    {
+      enabled: !!organization?.id
     }
   );
-  
+
+  const orgRoles = useMemo(() => orgRolesData?.roles || [], [orgRolesData]);
+
   // Global roles query
-  const { data: globalRoles, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
+  const { data: globalRolesData, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       scopes: [PERMISSIONS.OrganizationNamespace]
     }),
-    { 
-      enabled: !!organization?.id,
-      select: (data) => data?.roles || []
+    {
+      enabled: !!organization?.id
     }
   );
-  
+
+  const globalRoles = useMemo(() => globalRolesData?.roles || [], [globalRolesData]);
+
   // Organization groups query
-  const { data: teams, isLoading: isGroupsLoading, error: groupsError } = useQuery(
+  const { data: teamsData, isLoading: isGroupsLoading, error: groupsError } = useQuery(
     FrontierServiceQueries.listOrganizationGroups,
     create(ListOrganizationGroupsRequestSchema, {
       orgId: organization?.id || ''
     }),
-    { 
-      enabled: !!organization?.id,
-      select: (data) => data?.groups || []
+    {
+      enabled: !!organization?.id
     }
   );
+
+  const teams = useMemo(() => teamsData?.groups || [], [teamsData]);
   
   const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
   

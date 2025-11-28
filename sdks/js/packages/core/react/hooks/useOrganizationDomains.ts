@@ -2,6 +2,7 @@ import { useFrontier } from '../contexts/FrontierContext';
 import { useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, ListOrganizationDomainsRequestSchema, type Domain } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import { useMemo } from 'react';
 
 export interface UseOrganizationDomainsReturn {
   isFetching: boolean;
@@ -24,14 +25,15 @@ export const useOrganizationDomains = (): UseOrganizationDomainsReturn => {
       orgId: organization?.id || ''
     }),
     {
-      enabled: !!organization?.id,
-      select: (d) => d?.domains ?? []
+      enabled: !!organization?.id
     }
   );
 
+  const domains = useMemo(() => domainsData?.domains ?? [], [domainsData]);
+
   return {
     isFetching: isDomainsLoading,
-    domains: domainsData || [],
+    domains,
     refetch: refetchDomains,
     error: domainsError
   };

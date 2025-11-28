@@ -10,7 +10,7 @@ import {
 import { Outlet } from '@tanstack/react-router';
 import { PageHeader } from '~/react/components/common/page-header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   BillingAccount,
   ListInvoicesRequestSchema,
@@ -149,7 +149,7 @@ export default function Billing() {
   const { isAllowed, isFetching } = useBillingPermission();
 
   const {
-    data: invoices = [],
+    data: invoicesData,
     isLoading: isInvoicesLoading,
     error: invoicesError
   } = useConnectQuery(
@@ -160,10 +160,11 @@ export default function Billing() {
       nonzeroAmountOnly: true
     }),
     {
-      enabled: !!billingAccount?.id && !!billingAccount?.orgId,
-      select: data => data?.invoices || []
+      enabled: !!billingAccount?.id && !!billingAccount?.orgId
     }
   );
+
+  const invoices = useMemo(() => invoicesData?.invoices || [], [invoicesData]);
 
   useEffect(() => {
     if (invoicesError) {

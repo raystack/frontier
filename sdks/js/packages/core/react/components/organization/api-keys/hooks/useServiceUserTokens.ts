@@ -3,6 +3,7 @@ import {
   createConnectQueryKey,
   useTransport
 } from '@connectrpc/connect-query';
+import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -26,17 +27,18 @@ export const useServiceUserTokens = ({
   const queryClient = useQueryClient();
   const transport = useTransport();
 
-  const { data: tokens = [], isLoading } = useQuery(
+  const { data: tokensData, isLoading } = useQuery(
     FrontierServiceQueries.listServiceUserTokens,
     create(ListServiceUserTokensRequestSchema, {
       id,
       orgId
     }),
     {
-      enabled: Boolean(id) && Boolean(orgId) && Boolean(enableFetch),
-      select: data => data?.tokens ?? []
+      enabled: Boolean(id) && Boolean(orgId) && Boolean(enableFetch)
     }
   );
+
+  const tokens = useMemo(() => tokensData?.tokens ?? [], [tokensData]);
 
   const getQueryKey = () => {
     return createConnectQueryKey({
