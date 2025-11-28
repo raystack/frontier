@@ -28,6 +28,7 @@ import {
   Project,
   Policy
 } from '@raystack/proton/frontier';
+import { orderBy } from 'lodash';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
@@ -105,10 +106,7 @@ export default function ManageServiceUserProjects() {
 
   const orgId = organization?.id || '';
 
-  const {
-    data: projectsData,
-    isLoading: isProjectsLoading
-  } = useQuery(
+  const { data: projectsData, isLoading: isProjectsLoading } = useQuery(
     FrontierServiceQueries.listOrganizationProjects,
     create(ListOrganizationProjectsRequestSchema, {
       id: orgId,
@@ -122,29 +120,26 @@ export default function ManageServiceUserProjects() {
 
   const projects = useMemo(() => {
     const list = projectsData?.projects ?? [];
-    return list.sort((a, b) =>
-      (a?.title?.toLowerCase() || '') > (b?.title?.toLowerCase() || '')
-        ? 1
-        : -1
-    );
+    return orderBy(list, ['title'], ['asc']);
   }, [projectsData]);
 
-  const {
-    data: addedProjectsData,
-    isLoading: isAddedProjectsLoading
-  } = useQuery(
-    FrontierServiceQueries.listServiceUserProjects,
-    create(ListServiceUserProjectsRequestSchema, {
-      id,
-      orgId,
-      withPermissions: []
-    }),
-    {
-      enabled: Boolean(id) && Boolean(orgId)
-    }
-  );
+  const { data: addedProjectsData, isLoading: isAddedProjectsLoading } =
+    useQuery(
+      FrontierServiceQueries.listServiceUserProjects,
+      create(ListServiceUserProjectsRequestSchema, {
+        id,
+        orgId,
+        withPermissions: []
+      }),
+      {
+        enabled: Boolean(id) && Boolean(orgId)
+      }
+    );
 
-  const addedProjects = useMemo(() => addedProjectsData?.projects ?? [], [addedProjectsData]);
+  const addedProjects = useMemo(
+    () => addedProjectsData?.projects ?? [],
+    [addedProjectsData]
+  );
 
   // Initialize addedProjectsMap from query data
   useEffect(() => {
