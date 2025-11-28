@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -22,15 +23,19 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 	emptyStruct, _ := structpb.NewStruct(map[string]interface{}{})
 
 	tests := []struct {
-		name    string
-		setup   func(is *mocks.InvoiceService)
-		request *connect.Request[frontierv1beta1.ListInvoicesRequest]
-		want    *connect.Response[frontierv1beta1.ListInvoicesResponse]
-		wantErr error
-		errCode connect.Code
+		name          string
+		setup         func(is *mocks.InvoiceService)
+		customerSetup func(custSvc *mocks.CustomerService)
+		request       *connect.Request[frontierv1beta1.ListInvoicesRequest]
+		want          *connect.Response[frontierv1beta1.ListInvoicesResponse]
+		wantErr       error
+		errCode       connect.Code
 	}{
 		{
 			name: "should return internal server error when invoice service returns error",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("List", mock.Anything, invoice.Filter{
 					CustomerID:  "customer-id",
@@ -38,7 +43,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				}).Return(nil, errors.New("service error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListInvoicesRequest{
-				BillingId:         "customer-id",
+				OrgId:             "org-123",
 				NonzeroAmountOnly: false,
 			}),
 			want:    nil,
@@ -47,6 +52,9 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 		},
 		{
 			name: "should successfully list invoices with empty result",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("List", mock.Anything, invoice.Filter{
 					CustomerID:  "customer-id",
@@ -54,7 +62,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				}).Return([]invoice.Invoice{}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListInvoicesRequest{
-				BillingId:         "customer-id",
+				OrgId:             "org-123",
 				NonzeroAmountOnly: false,
 			}),
 			want: connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
@@ -63,6 +71,9 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 		},
 		{
 			name: "should successfully list invoices with basic invoice data",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("List", mock.Anything, invoice.Filter{
 					CustomerID:  "customer-id",
@@ -82,7 +93,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListInvoicesRequest{
-				BillingId:         "customer-id",
+				OrgId:             "org-123",
 				NonzeroAmountOnly: false,
 			}),
 			want: connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
@@ -103,6 +114,9 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 		},
 		{
 			name: "should successfully list invoices with nonzero_amount_only filter",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("List", mock.Anything, invoice.Filter{
 					CustomerID:  "customer-id",
@@ -123,7 +137,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListInvoicesRequest{
-				BillingId:         "customer-id",
+				OrgId:             "org-123",
 				NonzeroAmountOnly: true,
 			}),
 			want: connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
@@ -145,6 +159,9 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 		},
 		{
 			name: "should successfully list multiple invoices with all timestamp fields",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("List", mock.Anything, invoice.Filter{
 					CustomerID:  "customer-id",
@@ -179,7 +196,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListInvoicesRequest{
-				BillingId:         "customer-id",
+				OrgId:             "org-123",
 				NonzeroAmountOnly: false,
 			}),
 			want: connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
@@ -214,23 +231,24 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 			}),
 		},
 		{
-			name: "should handle empty billing_id gracefully",
-			setup: func(is *mocks.InvoiceService) {
-				is.On("List", mock.Anything, invoice.Filter{
-					CustomerID:  "",
-					NonZeroOnly: false,
-				}).Return([]invoice.Invoice{}, nil)
+			name: "should return empty list when billing account not found",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{}, customer.ErrNotFound)
 			},
+			setup: func(is *mocks.InvoiceService) {},
 			request: connect.NewRequest(&frontierv1beta1.ListInvoicesRequest{
-				BillingId:         "",
+				OrgId:             "org-123",
 				NonzeroAmountOnly: false,
 			}),
 			want: connect.NewResponse(&frontierv1beta1.ListInvoicesResponse{
-				Invoices: nil,
+				Invoices: []*frontierv1beta1.Invoice{},
 			}),
 		},
 		{
 			name: "should return internal error when transformInvoiceToPB fails due to metadata error",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				// Create invoice with metadata that will fail ToStructPB conversion
 				invalidMetadata := metadata.Metadata{"invalid": make(chan int)} // channels can't be converted to protobuf
@@ -252,7 +270,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListInvoicesRequest{
-				BillingId:         "customer-id",
+				OrgId:             "org-123",
 				NonzeroAmountOnly: false,
 			}),
 			want:    nil,
@@ -264,12 +282,17 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockInvoiceService := &mocks.InvoiceService{}
+			mockCustomerService := &mocks.CustomerService{}
 			if tt.setup != nil {
 				tt.setup(mockInvoiceService)
 			}
+			if tt.customerSetup != nil {
+				tt.customerSetup(mockCustomerService)
+			}
 
 			handler := &ConnectHandler{
-				invoiceService: mockInvoiceService,
+				invoiceService:  mockInvoiceService,
+				customerService: mockCustomerService,
 			}
 
 			got, err := handler.ListInvoices(context.Background(), tt.request)
@@ -292,20 +315,24 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 	emptyStruct, _ := structpb.NewStruct(map[string]interface{}{})
 
 	tests := []struct {
-		name    string
-		setup   func(is *mocks.InvoiceService)
-		request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]
-		want    *connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse]
-		wantErr error
-		errCode connect.Code
+		name          string
+		setup         func(is *mocks.InvoiceService)
+		customerSetup func(custSvc *mocks.CustomerService)
+		request       *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]
+		want          *connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse]
+		wantErr       error
+		errCode       connect.Code
 	}{
 		{
 			name: "should return internal server error when invoice service returns error",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{}, errors.New("service error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
-				BillingId: "customer-id",
+				OrgId: "org-123",
 			}),
 			want:    nil,
 			wantErr: ErrInternalServerError,
@@ -313,6 +340,9 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 		},
 		{
 			name: "should successfully get upcoming invoice with basic data",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{
 					ID:         "upcoming-invoice-1",
@@ -327,7 +357,7 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
-				BillingId: "customer-id",
+				OrgId: "org-123",
 			}),
 			want: connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
 				Invoice: &frontierv1beta1.Invoice{
@@ -345,6 +375,9 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 		},
 		{
 			name: "should successfully get upcoming invoice with all timestamp fields",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{
 					ID:            "upcoming-invoice-2",
@@ -363,7 +396,7 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
-				BillingId: "customer-id",
+				OrgId: "org-123",
 			}),
 			want: connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
 				Invoice: &frontierv1beta1.Invoice{
@@ -384,19 +417,25 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 			}),
 		},
 		{
-			name: "should handle empty billing_id gracefully",
-			setup: func(is *mocks.InvoiceService) {
-				is.On("GetUpcoming", mock.Anything, "").Return(invoice.Invoice{}, errors.New("billing id required"))
+			name: "should return empty invoice when billing account not found",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{}, customer.ErrNotFound)
 			},
+			setup: func(is *mocks.InvoiceService) {},
 			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
-				BillingId: "",
+				OrgId: "org-123",
 			}),
-			want:    nil,
-			wantErr: ErrInternalServerError,
-			errCode: connect.CodeInternal,
+			want: connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
+				Invoice: nil,
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
 		},
 		{
 			name: "should successfully get zero amount upcoming invoice",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On("GetUpcoming", mock.Anything, "customer-id").Return(invoice.Invoice{
 					ID:         "upcoming-invoice-3",
@@ -411,7 +450,7 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
-				BillingId: "customer-id",
+				OrgId: "org-123",
 			}),
 			want: connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
 				Invoice: &frontierv1beta1.Invoice{
@@ -429,6 +468,9 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 		},
 		{
 			name: "should return internal error when transformInvoiceToPB fails due to metadata error",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
 			setup: func(is *mocks.InvoiceService) {
 				// Create invoice with metadata that will fail ToStructPB conversion
 				invalidMetadata := metadata.Metadata{"invalid": make(chan int)} // channels can't be converted to protobuf
@@ -445,7 +487,7 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetUpcomingInvoiceRequest{
-				BillingId: "customer-id",
+				OrgId: "org-123",
 			}),
 			want:    nil,
 			wantErr: ErrInternalServerError,
@@ -456,12 +498,17 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockInvoiceService := &mocks.InvoiceService{}
+			mockCustomerService := &mocks.CustomerService{}
 			if tt.setup != nil {
 				tt.setup(mockInvoiceService)
 			}
+			if tt.customerSetup != nil {
+				tt.customerSetup(mockCustomerService)
+			}
 
 			handler := &ConnectHandler{
-				invoiceService: mockInvoiceService,
+				invoiceService:  mockInvoiceService,
+				customerService: mockCustomerService,
 			}
 
 			got, err := handler.GetUpcomingInvoice(context.Background(), tt.request)
