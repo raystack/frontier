@@ -15,7 +15,10 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, DeleteOrganizationRequestSchema } from '@raystack/proton/frontier';
+import {
+  FrontierServiceQueries,
+  DeleteOrganizationRequestSchema
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { useTerminology } from '~/react/hooks/useTerminology';
 
@@ -41,7 +44,7 @@ export const DeleteOrganization = () => {
   const t = useTerminology();
   const { activeOrganization: organization } = useFrontier();
   const { mutateAsync: deleteOrganization } = useMutation(
-    FrontierServiceQueries.deleteOrganization,
+    FrontierServiceQueries.deleteOrganization
   );
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
@@ -63,7 +66,9 @@ export const DeleteOrganization = () => {
       window.location = window.location.origin;
     } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error?.message || 'Failed to delete organization'
+        description:
+          error?.message ||
+          `Failed to delete ${t.organization({ case: 'capital' })}`
       });
     }
   }
@@ -111,7 +116,8 @@ export const DeleteOrganization = () => {
               />
               <Text size="small">
                 I acknowledge and understand that all of the{' '}
-                {t.organization({ case: 'lower' })} data will be deleted and want to proceed.
+                {t.organization({ case: 'lower' })} data will be deleted and
+                want to proceed.
               </Text>
             </Flex>
 

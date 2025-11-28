@@ -20,6 +20,7 @@ import { PageHeader } from '~/react/components/common/page-header';
 import sharedStyles from '../styles.module.css';
 
 export default function GeneralSetting() {
+  const t = useTerminology();
   const { activeOrganization: organization, isActiveOrganizationLoading } =
     useFrontier();
 
@@ -61,10 +62,17 @@ export default function GeneralSetting() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex direction="column" className={sharedStyles.container}>
-        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
-          <PageHeader 
-            title="General" 
-            description="Basic configuration for the organization."
+        <Flex
+          direction="row"
+          justify="between"
+          align="center"
+          className={sharedStyles.header}
+        >
+          <PageHeader
+            title="General"
+            description={`Basic configuration for the ${t.organization({
+              case: 'lower'
+            })}.`}
           />
         </Flex>
         <Flex direction="column" gap={9}>

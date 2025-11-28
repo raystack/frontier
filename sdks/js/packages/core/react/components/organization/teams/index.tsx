@@ -23,6 +23,7 @@ import { AuthTooltipMessage } from '~/react/utils';
 import { PageHeader } from '~/react/components/common/page-header';
 import sharedStyles from '../styles.module.css';
 import styles from './teams.module.css';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 const teamsSelectOptions = [
   { value: 'my-teams', label: 'My Teams' },
@@ -40,7 +41,7 @@ interface WorkspaceTeamProps {
 
 export default function WorkspaceTeams() {
   const [showOrgTeams, setShowOrgTeams] = useState(false);
-
+  const t = useTerminology();
   const routerState = useRouterState();
 
   const isListRoute = useMemo(() => {
@@ -110,14 +111,28 @@ export default function WorkspaceTeams() {
 
   return (
     <Flex direction="column" className={sharedStyles.pageWrapper}>
-      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
-        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
-          <PageHeader 
-            title="Teams" 
-            description="Manage teams in this organization."
+      <Flex
+        direction="column"
+        className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}
+      >
+        <Flex
+          direction="row"
+          justify="between"
+          align="center"
+          className={sharedStyles.header}
+        >
+          <PageHeader
+            title="Teams"
+            description={`Manage teams in this ${t.organization({
+              case: 'lower'
+            })}.`}
           />
         </Flex>
-        <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
+        <Flex
+          direction="column"
+          gap={9}
+          className={sharedStyles.contentWrapper}
+        >
           <TeamsTable
             teams={teams}
             isLoading={isLoading}
