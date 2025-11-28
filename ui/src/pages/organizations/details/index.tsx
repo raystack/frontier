@@ -1,5 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { useEffect, useMemo, useState } from "react";
+import {
+  useQuery,
+  createConnectQueryKey,
+  useTransport,
+} from "@connectrpc/connect-query";
 import { Outlet, useParams } from "react-router-dom";
 
 import { OrganizationDetailsLayout } from "./layout";
@@ -7,10 +11,12 @@ import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
 import {
   FrontierServiceQueries,
+  GetOrganizationKycResponseSchema,
   type Organization,
   type User,
 } from "@raystack/proton/frontier";
 import { queryClient } from "~/contexts/ConnectProvider";
+import { create } from "@bufbuild/protobuf";
 
 export const OrganizationDetails = () => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -66,7 +72,7 @@ export const OrganizationDetails = () => {
         input: { orgId: organizationId },
         cardinality: "finite",
       }),
-      { organizationKyc: kyc },
+      create(GetOrganizationKycResponseSchema, { organizationKyc: kyc }),
     );
   }
 
