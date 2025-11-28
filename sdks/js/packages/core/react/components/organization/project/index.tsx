@@ -173,7 +173,7 @@ const ProjectsTable = ({
     <DataTable
       data={projects ?? []}
       isLoading={isLoading}
-      defaultSort={{ name: 'name', order: 'asc' }}
+      defaultSort={{ name: 'title', order: 'asc' }}
       columns={columns}
       mode="client"
     >

@@ -41,7 +41,7 @@ export const getColumns: (
   // },
   {
     header: 'Members',
-    accessorKey: 'members_count',
+    accessorKey: 'membersCount',
     cell: ({ row, getValue }) => {
       const value = getValue() as string;
       return value ? <Text>{value} members</Text> : null;
