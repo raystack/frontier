@@ -180,11 +180,13 @@ const AddMemberDropdown = ({
     setShowTeam(prev => !prev);
   };
 
-  const { data: orgUsersResp, isLoading: isOrgUsersLoading, error: orgUsersError } = useQuery(
+  const { data: orgUsersData, isLoading: isOrgUsersLoading, error: orgUsersError } = useQuery(
     FrontierServiceQueries.listOrganizationUsers,
     create(ListOrganizationUsersRequestSchema, { id: organization?.id || '' }),
-    { enabled: !!organization?.id && canUpdateProject, select: d => d?.users ?? [] }
+    { enabled: !!organization?.id && canUpdateProject }
   );
+
+  const orgUsersResp = useMemo(() => orgUsersData?.users ?? [], [orgUsersData]);
 
   useEffect(() => {
     if (orgUsersError) {

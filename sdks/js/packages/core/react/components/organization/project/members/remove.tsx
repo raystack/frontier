@@ -1,6 +1,6 @@
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries, ListPoliciesRequestSchema, DeletePolicyRequestSchema, ListProjectUsersRequestSchema, ListProjectGroupsRequestSchema } from '@raystack/proton/frontier';
@@ -19,14 +19,16 @@ export const RemoveProjectMember = () => {
     from: '/projects/$projectId/$membertype/$memberId/remove'
   });
 
-  const { data: policies = [], error: policiesError } = useQuery(
+  const { data: policiesData, error: policiesError } = useQuery(
     FrontierServiceQueries.listPolicies,
     create(ListPoliciesRequestSchema, {
       projectId: projectId || '',
       userId: memberId || ''
     }),
-    { enabled: !!projectId && !!memberId, select: d => d?.policies ?? [] }
+    { enabled: !!projectId && !!memberId }
   );
+
+  const policies = useMemo(() => policiesData?.policies ?? [], [policiesData]);
 
   useEffect(() => {
     if (policiesError) {

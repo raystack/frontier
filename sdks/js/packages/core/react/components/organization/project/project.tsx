@@ -51,7 +51,7 @@ export const ProjectPage = () => {
   }, [routeState.matches]);
 
   const {
-    data: projectGroups = { groups: [], groupRoles: {} },
+    data: projectGroupsData,
     isLoading: isTeamsLoading,
     error: projectGroupsError,
     refetch: refetchProjectGroups
@@ -62,17 +62,18 @@ export const ProjectPage = () => {
       withRoles: true
     }),
     {
-      enabled: !!organization?.id && !!projectId && !isDeleteRoute,
-      select: d => ({
-        groups: d?.groups ?? [],
-        groupRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, gr: ProjectGroupRolePair) => {
-          const key = gr.groupId ?? gr.group_id;
-          if (key) acc[key] = gr.roles;
-          return acc;
-        }, {})
-      })
+      enabled: !!organization?.id && !!projectId && !isDeleteRoute
     }
   );
+
+  const projectGroups = useMemo(() => ({
+    groups: projectGroupsData?.groups ?? [],
+    groupRoles: (projectGroupsData?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, gr: ProjectGroupRolePair) => {
+      const key = gr.groupId ?? gr.group_id;
+      if (key) acc[key] = gr.roles;
+      return acc;
+    }, {})
+  }), [projectGroupsData]);
 
   useEffect(() => {
     if (projectGroupsError) {
@@ -83,7 +84,7 @@ export const ProjectPage = () => {
   }, [projectGroupsError]);
 
   const {
-    data: projectUsers = { users: [], memberRoles: {} },
+    data: projectUsersData,
     isLoading: isMembersLoadingQuery,
     refetch: refetchProjectUsers
   } = useQuery(
@@ -93,17 +94,18 @@ export const ProjectPage = () => {
       withRoles: true
     }),
     {
-      enabled: !!organization?.id && !!projectId && !isDeleteRoute,
-      select: d => ({
-        users: d?.users ?? [],
-        memberRoles: (d?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, mr: ProjectUserRolePair) => {
-          const key = mr.userId ?? mr.user_id;
-          if (key) acc[key] = mr.roles;
-          return acc;
-        }, {})
-      })
+      enabled: !!organization?.id && !!projectId && !isDeleteRoute
     }
   );
+
+  const projectUsers = useMemo(() => ({
+    users: projectUsersData?.users ?? [],
+    memberRoles: (projectUsersData?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, mr: ProjectUserRolePair) => {
+      const key = mr.userId ?? mr.user_id;
+      if (key) acc[key] = mr.roles;
+      return acc;
+    }, {})
+  }), [projectUsersData]);
 
   const {
     data: project,
@@ -114,7 +116,7 @@ export const ProjectPage = () => {
     create(GetProjectRequestSchema, { id: projectId || '' }),
     {
       enabled: !!organization?.id && !!projectId && !isDeleteRoute,
-      select: (d) => d?.project
+      select: d => d?.project
     }
   );
 
@@ -125,7 +127,7 @@ export const ProjectPage = () => {
   }, [projectError]);
 
   const {
-    data: roles = [],
+    data: rolesData,
     isLoading: isProjectRoleLoadingQuery,
     error: rolesError
   } = useQuery(
@@ -135,10 +137,11 @@ export const ProjectPage = () => {
       scopes: [PERMISSIONS.ProjectNamespace]
     }),
     {
-      enabled: !!organization?.id && !!projectId && !isDeleteRoute,
-      select: d => (d?.roles ?? [])
+      enabled: !!organization?.id && !!projectId && !isDeleteRoute
     }
   );
+
+  const roles = useMemo(() => rolesData?.roles ?? [], [rolesData]);
 
   useEffect(() => {
     if (rolesError) {

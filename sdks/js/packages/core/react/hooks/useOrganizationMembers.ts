@@ -47,17 +47,18 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
     }
   }, [organizationUsersData]);
 
-  const { data: roles, isLoading: isRolesLoading, error: rolesError, refetch: refetchRoles } = useQuery(
+  const { data: rolesData, isLoading: isRolesLoading, error: rolesError, refetch: refetchRoles } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       state: 'enabled',
       scopes: [PERMISSIONS.OrganizationNamespace]
     }),
-    { 
-      enabled: !!organization?.id,
-      select: (data) => data?.roles || []
+    {
+      enabled: !!organization?.id
     }
   );
+
+  const roles = useMemo(() => rolesData?.roles || [], [rolesData]);
 
   const { data: invitationsData, isLoading: isInvitationsLoading, error: invitationsError, refetch: refetchInvitations } = useQuery(
     FrontierServiceQueries.listOrganizationInvitations,
