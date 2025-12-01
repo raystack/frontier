@@ -2,6 +2,7 @@ package audit
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/raystack/frontier/pkg/server/consts"
 )
@@ -11,6 +12,7 @@ import (
 func GetService(ctx context.Context) *Service {
 	u, ok := ctx.Value(consts.AuditServiceContextKey).(*Service)
 	if !ok {
+		fmt.Println("err: no audit log service found inside context")
 		return NewService("default", NewNoopRepository(), NewNoopWebhookService())
 	}
 	return u
