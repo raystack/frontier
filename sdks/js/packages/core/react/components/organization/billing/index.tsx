@@ -155,11 +155,11 @@ export default function Billing() {
   } = useConnectQuery(
     FrontierServiceQueries.listInvoices,
     create(ListInvoicesRequestSchema, {
-      orgId: billingAccount?.orgId || '',
+      orgId: activeOrganization?.id || '',
       nonzeroAmountOnly: true
     }),
     {
-      enabled: !!billingAccount?.orgId
+      enabled: !!activeOrganization?.id
     }
   );
 

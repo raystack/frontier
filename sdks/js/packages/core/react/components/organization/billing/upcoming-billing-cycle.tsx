@@ -105,7 +105,8 @@ export const UpcomingBillingCycle = ({
     isActiveOrganizationLoading,
     basePlan,
     allPlans,
-    isAllPlansLoading
+    isAllPlansLoading,
+    activeOrganization
   } = useFrontier();
   const navigate = useNavigate({ from: '/billing' });
 
@@ -116,11 +117,11 @@ export const UpcomingBillingCycle = ({
   } = useConnectQuery(
     FrontierServiceQueries.getUpcomingInvoice,
     create(GetUpcomingInvoiceRequestSchema, {
-      orgId: billingAccount?.orgId || ''
+      orgId: activeOrganization?.id || ''
     }),
     {
       enabled:
-        !!billingAccount?.orgId &&
+        !!activeOrganization?.id &&
         // This is to prevent fetching the upcoming invoice for offline billing accounts
         !!billingAccount?.providerId,
       select: data => data?.invoice
