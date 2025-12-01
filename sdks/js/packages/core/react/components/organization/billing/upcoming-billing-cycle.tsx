@@ -116,12 +116,10 @@ export const UpcomingBillingCycle = ({
   } = useConnectQuery(
     FrontierServiceQueries.getUpcomingInvoice,
     create(GetUpcomingInvoiceRequestSchema, {
-      orgId: billingAccount?.orgId || '',
-      billingId: billingAccount?.id || ''
+      orgId: billingAccount?.orgId || ''
     }),
     {
       enabled:
-        !!billingAccount?.id &&
         !!billingAccount?.orgId &&
         // This is to prevent fetching the upcoming invoice for offline billing accounts
         !!billingAccount?.providerId,
