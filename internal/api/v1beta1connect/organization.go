@@ -158,10 +158,13 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	audit.GetAuditor(ctx, newOrg.ID).LogWithAttrs(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID), map[string]string{
+	if err := audit.GetAuditor(ctx, newOrg.ID).LogWithAttrs(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID), map[string]string{
 		"title": newOrg.Title,
 		"name":  newOrg.Name,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateOrganization.AuditLog", err,
+			zap.String("org_id", newOrg.ID))
+	}
 	return connect.NewResponse(&frontierv1beta1.CreateOrganizationResponse{Organization: orgPB}), nil
 }
 

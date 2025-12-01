@@ -197,6 +197,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService, cfg.Authentication.Session.Headers)
 	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
 	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
+	auditInterceptor := connectinterceptors.NewAuditInterceptor(deps.AuditService)
 
 	interceptors := connect.WithInterceptors(
 		otelInterceptor,
@@ -205,6 +206,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		sessionInterceptor,
 		authNInterceptor,
 		authZInterceptor,
+		auditInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 
 	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors, connect.WithCodec(connectCodec{}))
