@@ -7,6 +7,9 @@ export {
   createConnectQueryKey
 } from '@connectrpc/connect-query';
 
+// Re-export Connect utilities
+export { ConnectError, Code } from '@connectrpc/connect';
+
 // Re-export Frontier service queries for convenience
 export { FrontierServiceQueries } from '@raystack/proton/frontier';
 
