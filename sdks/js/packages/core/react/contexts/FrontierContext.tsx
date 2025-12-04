@@ -96,17 +96,19 @@ interface FrontierContextProviderProps {
 
   billingDetails: BillingAccountDetails | undefined;
 
-  sessionMetadata: {
-    browser?: string;
-    operatingSystem?: string;
-    ipAddress?: string;
-    location?: {
-      city?: string;
-      country?: string;
-      latitude?: string;
-      longitude?: string;
-    };
-  } | undefined;
+  sessionMetadata:
+    | {
+        browser?: string;
+        operatingSystem?: string;
+        ipAddress?: string;
+        location?: {
+          city?: string;
+          country?: string;
+          latitude?: string;
+          longitude?: string;
+        };
+      }
+    | undefined;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -219,7 +221,7 @@ export const FrontierContextProvider = ({
   const sessionMetadataResult = useLastActiveTracker({
     enabled: Boolean(user?.id)
   });
-  
+
   // Extract metadata from the query result
   const sessionMetadata = sessionMetadataResult?.data?.metadata;
 
@@ -262,16 +264,17 @@ export const FrontierContextProvider = ({
 
   const billingAccountId = billingAccountsData?.billingAccounts?.[0]?.id || '';
 
-  const { data: billingAccountData } = useConnectQuery(
-    FrontierServiceQueries.getBillingAccount,
-    create(GetBillingAccountRequestSchema, {
-      id: billingAccountId,
-      orgId: activeOrganization?.id ?? '',
-      withPaymentMethods: true,
-      withBillingDetails: true
-    }),
-    { enabled: !!activeOrganization?.id && !!billingAccountId }
-  );
+  const { data: billingAccountData, isLoading: isBillingAccountLoading } =
+    useConnectQuery(
+      FrontierServiceQueries.getBillingAccount,
+      create(GetBillingAccountRequestSchema, {
+        id: billingAccountId,
+        orgId: activeOrganization?.id ?? '',
+        withPaymentMethods: true,
+        withBillingDetails: true
+      }),
+      { enabled: !!activeOrganization?.id && !!billingAccountId }
+    );
 
   const billingAccount = billingAccountData?.billingAccount;
   const billingDetails = billingAccountData?.billingDetails;
@@ -356,7 +359,7 @@ export const FrontierContextProvider = ({
         isUserLoading,
         billingAccount,
         paymentMethod,
-        isBillingAccountLoading: false,
+        isBillingAccountLoading,
         isActiveSubscriptionLoading,
         trialSubscription,
         activeSubscription,
