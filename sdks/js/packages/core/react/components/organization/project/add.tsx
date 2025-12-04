@@ -15,23 +15,20 @@ import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, CreateProjectRequestSchema } from '@raystack/proton/frontier';
+import {
+  FrontierServiceQueries,
+  CreateProjectRequestSchema
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
+import slugify from 'slugify';
+import { generateHashFromString } from '~/react/utils';
+import { ConnectError, Code } from '@connectrpc/connect';
 
 const projectSchema = yup
   .object({
     title: yup.string().required(),
-    name: yup
-      .string()
-      .required('name is a required field')
-      .min(3, 'name is not valid, Min 3 characters allowed')
-      .max(50, 'name is not valid, Max 50 characters allowed')
-      .matches(
-        /^[a-zA-Z0-9_-]{3,50}$/,
-        "Only numbers, letters, '-', and '_' are allowed. Spaces are not allowed."
-      ),
     org_id: yup.string().required()
   })
   .required();
@@ -61,32 +58,38 @@ export const AddProject = () => {
       onSuccess: () => {
         toast.success('Project added');
         navigate({ to: '/projects' });
-      },
-      onError: (error: Error) => {
-        if (error instanceof Response && error?.status === 409) {
-          setError('name', {
-            message: 'Project name already exists. Please enter a unique name.'
-          });
-        } else {
-          toast.error('Something went wrong', {
-            description: error.message || 'Failed to create project'
-          });
-        }
       }
     }
   );
 
   async function onSubmit(data: FormData) {
     if (!organization?.id) return;
-    await createProject(
-      create(CreateProjectRequestSchema, {
-        body: {
-          title: data.title,
-          name: data.name,
-          orgId: organization.id
-        }
-      })
-    );
+    const slug = slugify(data.title, { lower: true, strict: true });
+    const suffix = generateHashFromString(organization.id);
+    const name = `${slug}-${suffix}`;
+    try {
+      await createProject(
+        create(CreateProjectRequestSchema, {
+          body: {
+            title: data.title,
+            name,
+            orgId: organization.id
+          }
+        })
+      );
+    } catch (error) {
+      if (error instanceof ConnectError && error.code === Code.AlreadyExists) {
+        setError('title', {
+          message:
+            'A project with a similar title already exist. Please tweak the title and try again.'
+        });
+      } else {
+        toast.error('Something went wrong', {
+          description:
+            error instanceof Error ? error.message : 'Failed to create project'
+        });
+      }
+    }
   }
 
   return (
@@ -121,13 +124,6 @@ export const AddProject = () => {
                 error={errors.title && String(errors.title?.message)}
                 {...register('title')}
                 placeholder="Provide project title"
-              />
-              <InputField
-                label="Project name"
-                size="large"
-                error={errors.name && String(errors.name?.message)}
-                {...register('name')}
-                placeholder="Provide project name"
               />
             </Flex>
           </Dialog.Body>
