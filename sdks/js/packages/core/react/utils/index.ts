@@ -216,6 +216,27 @@ export const enrichBasePlan = (plan?: BasePlan): Plan | undefined => {
 export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
   fetch(...fetchParams);
 
+export function generateHashFromString(
+  input: string,
+  hashLength = 6
+): string {
+  if (!input || input.length === 0) {
+    throw new Error('Input string cannot be empty');
+  }
+  if (hashLength < 1 || hashLength > 12) {
+    throw new Error('Hash length must be between 1 and 12');
+  }
+
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 33) ^ input.charCodeAt(i);
+  }
+  return Math.abs(hash)
+    .toString(36)
+    .padStart(hashLength, '0')
+    .substring(0, hashLength);
+}
+
 export interface HttpErrorResponse extends Response {
   data: unknown;
   error: GooglerpcStatus;
