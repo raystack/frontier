@@ -15,13 +15,13 @@ import (
 
 func TestConnectHandler_CheckFeatureEntitlement(t *testing.T) {
 	tests := []struct {
-		name           string
-		customerSetup  func(cs *mocks.CustomerService)
-		setup          func(es *mocks.EntitlementService)
-		request        *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]
-		want           *connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse]
-		wantErr        error
-		errCode        connect.Code
+		name          string
+		customerSetup func(cs *mocks.CustomerService)
+		setup         func(es *mocks.EntitlementService)
+		request       *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]
+		want          *connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse]
+		wantErr       error
+		errCode       connect.Code
 	}{
 		{
 			name: "should return internal server error when entitlement service returns error",
@@ -84,8 +84,8 @@ func TestConnectHandler_CheckFeatureEntitlement(t *testing.T) {
 			customerSetup: func(cs *mocks.CustomerService) {
 				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{}, customer.ErrNotFound)
 			},
-			setup: func(es *mocks.EntitlementService) {},
-			want: connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{}),
+			setup:   func(es *mocks.EntitlementService) {},
+			want:    connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{}),
 			wantErr: nil,
 			errCode: connect.Code(0),
 		},
