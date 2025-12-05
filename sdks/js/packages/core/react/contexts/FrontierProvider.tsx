@@ -7,29 +7,24 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TransportProvider } from '@connectrpc/connect-query';
 import { createConnectTransport } from '@connectrpc/connect-web';
 import { useMemo } from 'react';
+import { createFetchWithCreds } from '../utils/fetch';
 
 export const multipleFrontierProvidersError =
   "Frontier: You've added multiple <FrontierProvider> components in your React component tree. Wrap your components in a single <FrontierProvider>.";
 
-const fetchWithCreds: typeof fetch = (input, init) => {
-  return fetch(input, {
-    ...init,
-    credentials: 'include'
-  });
-};
-
 export const queryClient = new QueryClient();
 
 export const FrontierProvider = (props: FrontierProviderProps) => {
-  const { children, initialState, config, theme, ...options } = props;
+  const { children, initialState, config, theme, customHeaders, ...options } =
+    props;
 
   const transport = useMemo(
     () =>
       createConnectTransport({
         baseUrl: config.connectEndpoint || '/frontier-connect',
-        fetch: fetchWithCreds
+        fetch: createFetchWithCreds(customHeaders)
       }),
-    [config.connectEndpoint]
+    [config.connectEndpoint, customHeaders]
   );
 
   return (
