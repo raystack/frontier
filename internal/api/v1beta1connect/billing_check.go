@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/customer"
@@ -12,10 +13,25 @@ import (
 func (h *ConnectHandler) CheckFeatureEntitlement(ctx context.Context, request *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	checkStatus, err := h.entitlementService.Check(ctx, request.Msg.GetBillingId(), request.Msg.GetFeature())
+	// Always infer billing_id from org_id
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		if errors.Is(err, customer.ErrNotFound) {
+			return connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{}), nil
+		}
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		errorLogger.LogServiceError(ctx, request, "CheckFeatureEntitlement.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	checkStatus, err := h.entitlementService.Check(ctx, cust.ID, request.Msg.GetFeature())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CheckFeatureEntitlement", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("billing_id", cust.ID),
+			zap.String("org_id", request.Msg.GetOrgId()),
 			zap.String("feature", request.Msg.GetFeature()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}

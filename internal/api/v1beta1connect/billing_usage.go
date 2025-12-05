@@ -20,6 +20,20 @@ import (
 func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.CreateBillingUsageRequest]) (*connect.Response[frontierv1beta1.CreateBillingUsageResponse], error) {
 	errorLogger := NewErrorLogger()
 
+	// Always infer billing_id from org_id
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		if errors.Is(err, customer.ErrNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		}
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		errorLogger.LogServiceError(ctx, request, "CreateBillingUsage.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
 	createRequests := make([]usage.Usage, 0, len(request.Msg.GetUsages()))
 	for _, v := range request.Msg.GetUsages() {
 		usageType := usage.CreditType
@@ -29,7 +43,7 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 
 		createRequests = append(createRequests, usage.Usage{
 			ID:          v.GetId(),
-			CustomerID:  request.Msg.GetBillingId(),
+			CustomerID:  cust.ID,
 			Type:        usageType,
 			Amount:      v.GetAmount(),
 			Source:      strings.ToLower(v.GetSource()), // source in lower case looks nicer
@@ -47,7 +61,8 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrAlreadyApplied)
 		}
 		errorLogger.LogServiceError(ctx, request, "CreateBillingUsage.Report", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("billing_id", cust.ID),
+			zap.String("org_id", request.Msg.GetOrgId()),
 			zap.Int("usage_count", len(createRequests)))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -185,7 +200,21 @@ func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTra
 func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.RevertBillingUsageRequest]) (*connect.Response[frontierv1beta1.RevertBillingUsageResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if err := h.usageService.Revert(ctx, request.Msg.GetBillingId(),
+	// Always infer billing_id from org_id
+	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
+	if err != nil {
+		if errors.Is(err, customer.ErrNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		}
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		errorLogger.LogServiceError(ctx, request, "RevertBillingUsage.GetByOrgID", err,
+			zap.String("org_id", request.Msg.GetOrgId()))
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	if err := h.usageService.Revert(ctx, cust.ID,
 		request.Msg.GetUsageId(), request.Msg.GetAmount()); err != nil {
 		if errors.Is(err, usage.ErrRevertAmountExceeds) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
@@ -199,7 +228,8 @@ func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "RevertBillingUsage.Revert", err,
-			zap.String("billing_id", request.Msg.GetBillingId()),
+			zap.String("billing_id", cust.ID),
+			zap.String("org_id", request.Msg.GetOrgId()),
 			zap.String("usage_id", request.Msg.GetUsageId()),
 			zap.Int64("amount", request.Msg.GetAmount()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
