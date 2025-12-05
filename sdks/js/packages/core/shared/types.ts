@@ -54,10 +54,13 @@ export interface InitialState {
   sessionId?: string | null;
 }
 
+export type CustomHeaderValue = string | (() => string);
+
 export interface FrontierProviderProps {
   config: FrontierClientOptions;
   children: React.ReactNode;
   initialState?: InitialState;
   customFetch?: (activeOrg?: V1Beta1Organization) => CustomFetch;
+  customHeaders?: Record<string, CustomHeaderValue>;
   theme?: ThemeProviderProps;
 }
