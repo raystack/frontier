@@ -175,11 +175,10 @@ export default function Tokens() {
     FrontierServiceQueries.listBillingTransactions,
     create(ListBillingTransactionsRequestSchema, {
       orgId: activeOrganization?.id ?? '',
-      expand: ['user'],
-      billingId: billingAccount?.id ?? ''
+      expand: ['user']
     }),
     {
-      enabled: !!activeOrganization?.id && !!billingAccount?.id
+      enabled: !!activeOrganization?.id
     }
   );
 
