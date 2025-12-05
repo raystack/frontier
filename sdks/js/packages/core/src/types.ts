@@ -88,7 +88,7 @@ export interface IntervalPricingWithPlan extends IntervalPricing {
   interval: IntervalKeys;
   weightage: number;
   features: Record<string, Feature>;
-  trial_days: string;
+  trialDays: string;
   productNames: string[];
 }
 

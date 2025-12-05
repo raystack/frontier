@@ -326,7 +326,7 @@ export const PlanPricingColumn = ({
     _.isEmpty(paymentMethod) && selectedIntervalPricing?.amount > 0;
 
   const planHasTrial = useMemo(
-    () => plans.some(p => Number(p.trial_days) > 0),
+    () => plans.some(p => Number(p.trialDays) > 0),
     [plans]
   );
   const planIds = useMemo(() => plans.map(p => p.planId), [plans]);

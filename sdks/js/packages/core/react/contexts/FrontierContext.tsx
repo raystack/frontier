@@ -15,8 +15,6 @@ import {
   FrontierProviderProps
 } from '../../shared/types';
 
-import { V1Beta1 } from '../../api-client/V1Beta1';
-import { V1Beta1Organization } from '../../api-client/data-contracts';
 import {
   User,
   Group,
@@ -38,7 +36,6 @@ import {
   getActiveSubscription,
   getDefaultPaymentMethod,
   enrichBasePlan,
-  defaultFetch,
   getTrialingSubscription
 } from '../utils';
 import {
@@ -49,7 +46,6 @@ import { useLastActiveTracker } from '../hooks/useLastActiveTracker';
 
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
-  client: V1Beta1<unknown> | undefined;
 
   organizations: Organization[];
 
@@ -57,10 +53,8 @@ interface FrontierContextProviderProps {
 
   user: User | undefined;
 
-  activeOrganization: V1Beta1Organization | undefined;
-  setActiveOrganization: Dispatch<
-    SetStateAction<V1Beta1Organization | undefined>
-  >;
+  activeOrganization: Organization | undefined;
+  setActiveOrganization: Dispatch<SetStateAction<Organization | undefined>>;
 
   isActiveOrganizationLoading: boolean;
   setIsActiveOrganizationLoading: Dispatch<SetStateAction<boolean>>;
@@ -129,7 +123,6 @@ const defaultConfig: FrontierClientOptions = {
 
 const initialValues: FrontierContextProviderProps = {
   config: defaultConfig,
-  client: undefined,
 
   organizations: [],
 
@@ -183,28 +176,11 @@ FrontierContext.displayName = 'FrontierContext ';
 
 export const FrontierContextProvider = ({
   children,
-  config,
-  customFetch
+  config
 }: FrontierProviderProps) => {
-  const [activeOrganization, setActiveOrganization] =
-    useState<V1Beta1Organization>();
+  const [activeOrganization, setActiveOrganization] = useState<Organization>();
   const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
     useState(false);
-
-  const frontierClient = useMemo(
-    () =>
-      new V1Beta1({
-        customFetch: customFetch
-          ? customFetch(activeOrganization)
-          : defaultFetch,
-        baseUrl: config.endpoint,
-        baseApiParams: {
-          credentials: 'include'
-        }
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeOrganization?.id, config.endpoint]
-  );
 
   const { data: currentUserData, isLoading: isUserLoading } = useConnectQuery(
     FrontierServiceQueries.getCurrentUser,
@@ -348,7 +324,6 @@ export const FrontierContextProvider = ({
           ...config,
           billing: { ...defaultConfig.billing, ...config.billing }
         },
-        client: frontierClient,
         organizations,
         groups,
         user,

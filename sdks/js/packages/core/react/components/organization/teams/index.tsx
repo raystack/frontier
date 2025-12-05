@@ -16,7 +16,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import type { V1Beta1Group } from '~/src';
+import type { Group } from '@raystack/proton/frontier';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './teams.columns';
 import { AuthTooltipMessage } from '~/react/utils';
@@ -31,7 +31,7 @@ const teamsSelectOptions = [
 ];
 
 interface WorkspaceTeamProps {
-  teams: V1Beta1Group[];
+  teams: Group[];
   isLoading?: boolean;
   canCreateGroup?: boolean;
   userAccessOnTeam: Record<string, string[]>;

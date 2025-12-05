@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { transformConnectOrgToV1Beta1 } from '../../../shared/utils/organization';
 import {
   Outlet,
   createRoute,
@@ -115,11 +114,7 @@ const RootRouter = () => {
 
   useEffect(() => {
     if (organizationId) {
-      setActiveOrganization(
-        organizationData?.organization
-          ? transformConnectOrgToV1Beta1(organizationData.organization)
-          : undefined
-      );
+      setActiveOrganization(organizationData?.organization);
     } else {
       setActiveOrganization(undefined);
     }

@@ -27,13 +27,11 @@ import styles from './project.module.css';
 
 interface ProjectGroupRolePair {
   groupId?: string;
-  group_id?: string;
   roles: ProtoRole[];
 }
 
 interface ProjectUserRolePair {
   userId?: string;
-  user_id?: string;
   roles: ProtoRole[];
 }
 
@@ -69,7 +67,7 @@ export const ProjectPage = () => {
   const projectGroups = useMemo(() => ({
     groups: projectGroupsData?.groups ?? [],
     groupRoles: (projectGroupsData?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, gr: ProjectGroupRolePair) => {
-      const key = gr.groupId ?? gr.group_id;
+      const key = gr.groupId;
       if (key) acc[key] = gr.roles;
       return acc;
     }, {})
@@ -101,7 +99,7 @@ export const ProjectPage = () => {
   const projectUsers = useMemo(() => ({
     users: projectUsersData?.users ?? [],
     memberRoles: (projectUsersData?.rolePairs ?? []).reduce((acc: Record<string, ProtoRole[]>, mr: ProjectUserRolePair) => {
-      const key = mr.userId ?? mr.user_id;
+      const key = mr.userId;
       if (key) acc[key] = mr.roles;
       return acc;
     }, {})

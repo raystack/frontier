@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
-import { V1Beta1User, V1Beta1Role, V1Beta1Invitation } from '~/src';
+import { User, Role, Invitation } from '@raystack/proton/frontier';
 import { PERMISSIONS } from '~/utils';
 import { useFrontier } from '../contexts/FrontierContext';
 import { useQuery } from '@connectrpc/connect-query';
@@ -7,22 +7,24 @@ import { FrontierServiceQueries, ListOrganizationUsersRequestSchema, ListRolesRe
 import { create } from '@bufbuild/protobuf';
 
 
-export type MemberWithInvite = V1Beta1User & V1Beta1Invitation & {invited?: boolean}
+export type MemberWithInvite = User & Invitation & { invited?: boolean };
 
 export interface UseOrganizationMembersReturn {
   isFetching: boolean;
   members: MemberWithInvite[];
-  memberRoles: Record<string, V1Beta1Role[]>;
-  roles: V1Beta1Role[];
+  memberRoles: Record<string, Role[]>;
+  roles: Role[];
   refetch: () => void;
   error: unknown;
 }
 
-export const useOrganizationMembers = ({ showInvitations = false }): UseOrganizationMembersReturn => {
-  const [users, setUsers] = useState<V1Beta1User[]>([]);
+export const useOrganizationMembers = ({
+  showInvitations = false
+}): UseOrganizationMembersReturn => {
+  const [users, setUsers] = useState<User[]>([]);
   const [invitations, setInvitations] = useState<MemberWithInvite[]>([]);
 
-  const [memberRoles, setMemberRoles] = useState<Record<string, V1Beta1Role[]>>({});
+  const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
 
   const { activeOrganization: organization } = useFrontier();
 
@@ -40,9 +42,12 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
       const { users, rolePairs } = organizationUsersData;
       setUsers(users || []);
       setMemberRoles(
-        (rolePairs || []).reduce((previous: Record<string, V1Beta1Role[]>, mr: { userId: string; roles: V1Beta1Role[] }) => {
-          return { ...previous, [mr.userId]: mr.roles };
-        }, {})
+        (rolePairs || []).reduce(
+          (previous: Record<string, Role[]>, mr: { userId: string; roles: Role[] }) => {
+            return { ...previous, [mr.userId]: mr.roles };
+          },
+          {}
+        )
       );
     }
   }, [organizationUsersData]);
@@ -70,7 +75,7 @@ export const useOrganizationMembers = ({ showInvitations = false }): UseOrganiza
 
   useEffect(() => {
     if (invitationsData) {
-      const invitedUsers: MemberWithInvite[] = (invitationsData.invitations || []).map((user: V1Beta1User) => ({
+      const invitedUsers: MemberWithInvite[] = (invitationsData.invitations || []).map((user: User) => ({
         ...user,
         invited: true
       }));
