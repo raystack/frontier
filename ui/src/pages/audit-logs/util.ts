@@ -5,12 +5,15 @@ import {
   AuditRecordSchema,
 } from "@raystack/proton/frontier";
 
+const SUPER_USER_NAME_SUFFIX = "sa_pixxel_co_in";
+
 export const getAuditLogActorName = (actor?: AuditRecordActor) => {
   if (actor?.type === ACTOR_TYPES.SYSTEM) return "System";
 
   const name = actor?.title || actor?.name || "-";
 
-  if (actor?.metadata?.["is_super_user"] === true) return name + " (Admin)";
+  if (actor?.metadata?.["is_super_user"] === true)
+    return name.split(SUPER_USER_NAME_SUFFIX)[0] + " (Admin)";
 
   return name;
 };
