@@ -26,7 +26,6 @@
 
 .name-column {
   padding-left: var(--rs-space-7);
-  max-width: 200px;
 }
 .org-column {
   max-width: 200px;
