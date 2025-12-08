@@ -1,8 +1,8 @@
 import { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
-import {  V1Beta1User, V1Beta1Role } from '~/src';
+import { User, Role } from '@raystack/proton/frontier';
 
 export type MembersType = {
-  users: V1Beta1User[];
+  users: User[];
 };
 
 export enum MemberActionmethods {
@@ -15,7 +15,7 @@ export type MembersTableType = {
   organizationId: string;
   canCreateInvite?: boolean;
   canDeleteUser?: boolean;
-  memberRoles: Record<string, V1Beta1Role[]>;
-  roles: V1Beta1Role[];
+  memberRoles: Record<string, Role[]>;
+  roles: Role[];
   refetch?: () => void;
 };

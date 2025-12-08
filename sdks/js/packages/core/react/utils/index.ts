@@ -213,13 +213,7 @@ export const enrichBasePlan = (plan?: BasePlan): Plan | undefined => {
     : undefined;
 };
 
-export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
-  fetch(...fetchParams);
-
-export function generateHashFromString(
-  input: string,
-  hashLength = 6
-): string {
+export function generateHashFromString(input: string, hashLength = 6): string {
   if (!input || input.length === 0) {
     throw new Error('Input string cannot be empty');
   }
@@ -255,7 +249,7 @@ export const handleSelectValueChange = (onChange: (value: string) => void) => {
  * Formats location from structured object to display string
  * @param location - Location object with city, country, latitude, longitude
  * @returns Formatted string like "City, Country" or "Unknown" if empty
- * Note: This function also exists in the Admin UI sessions/index.ts file. 
+ * Note: This function also exists in the Admin UI sessions/index.ts file.
  * If you make any changes here, please update the Admin UI sessions/index.ts file as well.
  */
 export const formatLocation = (location?: {
@@ -265,10 +259,10 @@ export const formatLocation = (location?: {
   longitude?: string;
 }): string => {
   if (!location) return 'Unknown';
-  
+
   const city = location.city?.trim() || '';
   const country = location.country?.trim() || '';
-  
+
   if (city && country) {
     return `${city}, ${country}`;
   }
@@ -278,6 +272,6 @@ export const formatLocation = (location?: {
   if (country) {
     return country;
   }
-  
+
   return 'Unknown';
 };

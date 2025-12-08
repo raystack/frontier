@@ -1,4 +1,4 @@
-import { V1Beta1User } from '~/src';
+import { User } from '@raystack/proton/frontier';
 
 export const hasWindow = (): boolean => typeof window !== 'undefined';
 
@@ -16,10 +16,7 @@ export const getInitials = function (name: string = '') {
   return initials;
 };
 
-export const filterUsersfromUsers = (
-  arr: V1Beta1User[] = [],
-  exclude: V1Beta1User[] = []
-) => {
+export const filterUsersfromUsers = (arr: User[] = [], exclude: User[] = []) => {
   const excludeIds = exclude.map(e => e.id);
   return arr
     .filter(user => !excludeIds.includes(user.id))

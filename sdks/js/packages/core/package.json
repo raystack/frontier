@@ -10,7 +10,6 @@
     "dist/**/*",
     "react/dist/**/*",
     "hooks/dist/**/*",
-    "api-client/dist/**/*",
     "README.md"
   ],
   "scripts": {
@@ -22,9 +21,7 @@
     "release:ci": "release-it --ci --no-increment --npm.ignoreVersion",
     "release:dry": "release-it --dry-run --npm.ignoreVersion",
     "release": "release-it",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "gen:client": "npx swagger-typescript-api -p ../../../../proto/apidocs.swagger.yaml -o api-client --modular",
-    "build:client": "node scripts/gen-swagger-client.mjs"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "author": "pyadav9678@gmail.com",
   "license": "Apache-2.0",
@@ -58,12 +55,6 @@
       "import": "./hooks/dist/index.mjs",
       "module": "./hooks/dist/index.mjs",
       "require": "./hooks/dist/index.js"
-    },
-    "./api-client": {
-      "types": "./api-client/dist/index.d.ts",
-      "import": "./api-client/dist/index.mjs",
-      "module": "./api-client/dist/index.mjs",
-      "require": "./api-client/dist/index.js"
     }
   },
   "devDependencies": {
@@ -90,7 +81,6 @@
     "release-it": "^16.3.0",
     "semver": "^7.7.2",
     "size-limit": "^8.2.6",
-    "swagger-typescript-api": "^13.2.1",
     "ts-jest": "^29.3.4",
     "tsup": "^6.7.0",
     "typescript": "^5.8.3"

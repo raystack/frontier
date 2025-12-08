@@ -5,12 +5,12 @@ import {
 } from '@radix-ui/react-icons';
 import { Text, DropdownMenu, DataTableColumnDef } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
-import type { V1Beta1Group } from '~/src';
+import type { Group } from '@raystack/proton/frontier';
 import styles from '../organization.module.css';
 
 export const getColumns: (
   userAccessOnTeam: Record<string, string[]>
-) => DataTableColumnDef<V1Beta1Group, unknown>[] = userAccessOnTeam => [
+) => DataTableColumnDef<Group, unknown>[] = userAccessOnTeam => [
   {
     header: 'Title',
     accessorKey: 'title',
@@ -44,7 +44,7 @@ export const getColumns: (
     enableSorting: false,
     cell: ({ row, getValue }) => (
       <TeamActions
-        team={row.original as V1Beta1Group}
+        team={row.original as Group}
         userAccessOnTeam={userAccessOnTeam}
       />
     )
@@ -55,7 +55,7 @@ const TeamActions = ({
   team,
   userAccessOnTeam
 }: {
-  team: V1Beta1Group;
+  team: Group;
   userAccessOnTeam: Record<string, string[]>;
 }) => {
   const canUpdateTeam = (userAccessOnTeam[team.id!] ?? []).includes('update');

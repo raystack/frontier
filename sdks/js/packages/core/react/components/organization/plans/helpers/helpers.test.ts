@@ -145,7 +145,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'year',
             weightage: 0,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           },
           month: {
@@ -156,7 +156,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'month',
             weightage: 0,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           }
         },
@@ -176,7 +176,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'month',
             weightage: 0,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           }
         },
@@ -331,7 +331,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'year',
             weightage: 1,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           },
           month: {
@@ -342,7 +342,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'month',
             weightage: 2,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           }
         },
@@ -362,7 +362,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'month',
             weightage: 5,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           }
         },
@@ -525,7 +525,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'year',
             weightage: 1,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           },
           month: {
@@ -536,7 +536,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'month',
             weightage: 2,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           },
           week: {
@@ -547,7 +547,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             interval: 'week',
             weightage: 5,
             productNames: ['', ''],
-            trial_days: '',
+            trialDays: '',
             features: {}
           }
         },
