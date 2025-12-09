@@ -7,10 +7,15 @@ import KeyIcon from "~/assets/icons/key.svg?react";
 type ActorCellProps = {
   size?: "large" | "small";
   value: AuditRecordActor;
+  maxLength?: number;
 };
 
-export default function ActorCell({ size = "large", value }: ActorCellProps) {
-  const name = getAuditLogActorName(value);
+export default function ActorCell({
+  size = "large",
+  value,
+  maxLength,
+}: ActorCellProps) {
+  const name = getAuditLogActorName(value, maxLength);
   const isSystem = value.type === ACTOR_TYPES.SYSTEM;
   const isServiceUser = value.type === ACTOR_TYPES.SERVICE_USER;
 

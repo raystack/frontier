@@ -5,12 +5,18 @@ import {
   AuditRecordSchema,
 } from "@raystack/proton/frontier";
 
-export const getAuditLogActorName = (actor?: AuditRecordActor) => {
+export const getAuditLogActorName = (
+  actor?: AuditRecordActor,
+  maxLength = 15,
+) => {
   if (actor?.type === ACTOR_TYPES.SYSTEM) return "System";
 
   const name = actor?.title || actor?.name || "-";
 
-  if (actor?.metadata?.["is_super_user"] === true) return name + " (Admin)";
+  if (actor?.metadata?.["is_super_user"] === true)
+    if (name.length > maxLength)
+      return name.substring(0, maxLength) + "..." + " (Admin)";
+    else return name + " (Admin)";
 
   return name;
 };
