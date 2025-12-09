@@ -69,7 +69,7 @@ export default function SidePanelDetails({
             href={`/users/${actor?.id}`}
             label="Actor"
             data-test-id="actor-link">
-            <ActorCell value={actor!} size="small" />
+            <ActorCell value={actor!} size="small" maxLength={12} />
           </SidepanelListItemLink>
           <SidepanelListItemLink
             isLink={!!orgId && !isZeroUUID(orgId)}
