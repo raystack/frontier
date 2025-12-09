@@ -21,17 +21,18 @@ import (
 
 func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 	tests := []struct {
-		name    string
-		setup   func(us *mocks.UsageService)
-		request *connect.Request[frontierv1beta1.CreateBillingUsageRequest]
-		want    *connect.Response[frontierv1beta1.CreateBillingUsageResponse]
-		wantErr error
-		errCode connect.Code
+		name          string
+		customerSetup func(cs *mocks.CustomerService)
+		setup         func(us *mocks.UsageService)
+		request       *connect.Request[frontierv1beta1.CreateBillingUsageRequest]
+		want          *connect.Response[frontierv1beta1.CreateBillingUsageResponse]
+		wantErr       error
+		errCode       connect.Code
 	}{
 		{
 			name: "should return internal server error when usage service returns generic error",
 			request: connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
-				BillingId: "billing-123",
+				OrgId: "org-123",
 				Usages: []*frontierv1beta1.Usage{
 					{
 						Id:          "usage-1",
@@ -44,6 +45,9 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 					},
 				},
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(us *mocks.UsageService) {
 				expectedUsages := []usage.Usage{
 					{
@@ -66,7 +70,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 		{
 			name: "should return invalid argument error when insufficient credits",
 			request: connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
-				BillingId: "billing-123",
+				OrgId: "org-123",
 				Usages: []*frontierv1beta1.Usage{
 					{
 						Id:          "usage-1",
@@ -79,6 +83,9 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 					},
 				},
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(us *mocks.UsageService) {
 				expectedUsages := []usage.Usage{
 					{
@@ -101,7 +108,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 		{
 			name: "should return already exists error when usage already applied",
 			request: connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
-				BillingId: "billing-123",
+				OrgId: "org-123",
 				Usages: []*frontierv1beta1.Usage{
 					{
 						Id:          "usage-1",
@@ -114,6 +121,9 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 					},
 				},
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(us *mocks.UsageService) {
 				expectedUsages := []usage.Usage{
 					{
@@ -136,7 +146,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 		{
 			name: "should successfully create billing usage with default credit type",
 			request: connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
-				BillingId: "billing-123",
+				OrgId: "org-123",
 				Usages: []*frontierv1beta1.Usage{
 					{
 						Id:          "usage-1",
@@ -148,6 +158,9 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 					},
 				},
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(us *mocks.UsageService) {
 				expectedUsages := []usage.Usage{
 					{
@@ -170,7 +183,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 		{
 			name: "should successfully create billing usage with custom type",
 			request: connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
-				BillingId: "billing-123",
+				OrgId: "org-123",
 				Usages: []*frontierv1beta1.Usage{
 					{
 						Id:          "usage-1",
@@ -183,6 +196,9 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 					},
 				},
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(us *mocks.UsageService) {
 				expectedUsages := []usage.Usage{
 					{
@@ -205,7 +221,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 		{
 			name: "should successfully create multiple billing usages",
 			request: connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
-				BillingId: "billing-123",
+				OrgId: "org-123",
 				Usages: []*frontierv1beta1.Usage{
 					{
 						Id:          "usage-1",
@@ -227,6 +243,9 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 					},
 				},
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(us *mocks.UsageService) {
 				expectedUsages := []usage.Usage{
 					{
@@ -259,7 +278,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 		{
 			name: "should handle empty source by lowercasing",
 			request: connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
-				BillingId: "billing-123",
+				OrgId: "org-123",
 				Usages: []*frontierv1beta1.Usage{
 					{
 						Id:          "usage-1",
@@ -271,6 +290,9 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 					},
 				},
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(us *mocks.UsageService) {
 				expectedUsages := []usage.Usage{
 					{
@@ -293,12 +315,17 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockCustomerSvc := new(mocks.CustomerService)
 			mockUsageSvc := new(mocks.UsageService)
+			if tt.customerSetup != nil {
+				tt.customerSetup(mockCustomerSvc)
+			}
 			if tt.setup != nil {
 				tt.setup(mockUsageSvc)
 			}
 			h := &ConnectHandler{
-				usageService: mockUsageSvc,
+				customerService: mockCustomerSvc,
+				usageService:    mockUsageSvc,
 			}
 			got, err := h.CreateBillingUsage(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
