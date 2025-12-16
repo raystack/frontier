@@ -463,7 +463,8 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 func (r OrganizationRepository) SetState(ctx context.Context, id string, state organization.State) error {
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
-			"state": state.String(),
+			"state":      state.String(),
+			"updated_at": goqu.L("now()"),
 		}).Where(
 		goqu.Ex{
 			"id": id,
