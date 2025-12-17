@@ -46,6 +46,11 @@ const (
 	RoleCreatedEvent Event = "role.created"
 	RoleUpdatedEvent Event = "role.updated"
 
+	// Policy Events
+	PolicyCreatedEvent Event = "policy.created"
+	PolicyUpdatedEvent Event = "policy.updated"
+	PolicyDeletedEvent Event = "policy.deleted"
+
 	// Session Events
 	SessionRevokedEvent Event = "session.revoked"
 
@@ -53,8 +58,11 @@ const (
 
 	// Entity Types (used in Resource.Type and Target.Type)
 	OrganizationType        EntityType = "organization"
+	ProjectType             EntityType = "project"
+	GroupType               EntityType = "group"
 	UserType                EntityType = "user"
 	RoleType                EntityType = "role"
+	PolicyType              EntityType = "policy"
 	ServiceUserType         EntityType = "serviceuser"
 	InvitationType          EntityType = "invitation"
 	KycType                 EntityType = "kyc"
