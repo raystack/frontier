@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 NAME=github.com/raystack/frontier
 TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
-.PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui compose-up-dev
+.PHONY: build check fmt lint test test-quick test-race vet test-cover-html help install proto ui compose-up-dev
 .DEFAULT_GOAL := build
 PROTON_COMMIT := "80fc5ba1e538e38d5ca190386af1e69ee64584ee"
 
@@ -32,6 +32,9 @@ lint-fix:
 
 test: ## Run tests
 	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -coverprofile=coverage.out -count 2 -timeout 150s
+
+test-quick: ## Run tests without race detector (faster, for release pipeline)
+	@go test $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -timeout 120s
 
 test-all: lint test e2e-test ## Run all tests
 

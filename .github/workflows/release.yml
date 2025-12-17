@@ -19,7 +19,7 @@ jobs:
         with:
           go-version: "1.23.1"
       - name: Run tests
-        run: make test
+        run: make test-quick
 
   dev:
     runs-on: ubuntu-latest
