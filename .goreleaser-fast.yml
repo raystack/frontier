@@ -50,6 +50,15 @@ dockers:
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
 
+nfpms:
+  - maintainer: Raystack
+    description: Identity and authorization system
+    homepage: https://github.com/raystack/frontier
+    license: Apache 2.0
+    formats:
+      - deb
+      - rpm
+
 # Skip changelog - full release will generate it
 changelog:
   disable: true
