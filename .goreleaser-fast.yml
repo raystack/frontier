@@ -1,0 +1,55 @@
+project_name: frontier
+
+release:
+  prerelease: auto
+
+before:
+  hooks:
+    - make ui
+
+builds:
+  - id: "frontier"
+    goos:
+      - linux
+    goarch:
+      - amd64
+    binary: frontier
+    main: ./main.go
+    ldflags:
+      - -s -w -X github.com/raystack/frontier/config.Version={{.Tag}}
+      - -X github.com/raystack/frontier/config.BuildCommit={{.FullCommit}}
+      - -X github.com/raystack/frontier/config.BuildDate={{.Date}}
+    env:
+      - CGO_ENABLED=0
+
+archives:
+  - id: "frontier-archive"
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+checksum:
+  name_template: "checksums-linux-amd64.txt"
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+dockers:
+  - goos: linux
+    goarch: amd64
+    ids:
+      - frontier
+    dockerfile: Dockerfile
+    image_templates:
+      - "docker.io/raystack/{{.ProjectName}}:latest"
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}"
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
+
+# Skip changelog - full release will generate it
+changelog:
+  disable: true
