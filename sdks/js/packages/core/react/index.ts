@@ -22,6 +22,7 @@ export { useBillingPermission } from './hooks/useBillingPermission';
 export { useConnectQueryPolling } from './hooks/useConnectQueryPolling';
 export { usePreferences } from './hooks/usePreferences';
 export { Layout } from './components/Layout';
+export { PageHeader } from './components/common/page-header';
 
 export type {
   FrontierClientOptions,
