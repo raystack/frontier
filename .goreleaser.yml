@@ -60,15 +60,29 @@ dockers:
       - frontier
     dockerfile: Dockerfile
     image_templates:
-      - "docker.io/raystack/{{.ProjectName}}:latest"
-      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
   - goos: linux
     goarch: arm64
     ids:
       - frontier
     dockerfile: Dockerfile
     image_templates:
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+
+docker_manifests:
+  - name_template: "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}"
+    image_templates:
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-arm64"
+  - name_template: "docker.io/raystack/{{.ProjectName}}:latest"
+    image_templates:
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-arm64"
 
 nfpms:
