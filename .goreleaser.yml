@@ -35,9 +35,9 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format_overrides:
-      - goos: windows
-        format: zip
+    # format_overrides:
+    #   - goos: windows
+    #     format: zip
 
 changelog:
   sort: asc
@@ -80,13 +80,13 @@ nfpms:
       - deb
       - rpm
 
-scoops:
-  - homepage: "https://github.com/raystack/frontier"
-    description: "Identity and authorization system"
-    license: Apache 2.0
-    repository:
-      owner: raystack
-      name: scoop-bucket
+# scoops:
+#   - homepage: "https://github.com/raystack/frontier"
+#     description: "Identity and authorization system"
+#     license: Apache 2.0
+#     repository:
+#       owner: raystack
+#       name: scoop-bucket
 
 brews:
   - name: frontier
