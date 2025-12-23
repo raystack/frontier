@@ -2,10 +2,11 @@ project_name: frontier
 
 release:
   prerelease: auto
+  # Append to the release created by fast releaser
+  mode: append
 
 before:
   hooks:
-    - make test
     - make ui
 
 builds:
@@ -17,6 +18,10 @@ builds:
     goarch:
       - amd64
       - arm64
+    # Skip linux/amd64 - already built by fast releaser
+    ignore:
+      - goos: linux
+        goarch: amd64
     binary: frontier
     main: ./main.go
     ldflags:
@@ -55,15 +60,7 @@ snapshot:
   name_template: "{{ .Tag }}-next"
 
 dockers:
-  - goos: linux
-    goarch: amd64
-    ids:
-      - frontier
-    dockerfile: Dockerfile
-    image_templates:
-      - "docker.io/raystack/{{.ProjectName}}:latest"
-      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}"
-      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
+  # linux/amd64 Docker image is built by fast releaser
   - goos: linux
     goarch: arm64
     ids:
