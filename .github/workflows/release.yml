@@ -53,6 +53,6 @@ jobs:
         with:
           distribution: goreleaser
           version: "~> v1"
-          args: release --clean
+          args: release --clean --parallelism=8
         env:
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_TOKEN }}
