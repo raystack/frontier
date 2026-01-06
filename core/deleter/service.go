@@ -91,6 +91,10 @@ type InvoiceService interface {
 	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
 }
 
+type CheckoutService interface {
+	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
+}
+
 type Service struct {
 	projService       ProjectService
 	orgService        OrganizationService
@@ -103,6 +107,7 @@ type Service struct {
 	customerService   CustomerService
 	subService        SubscriptionService
 	invoiceService    InvoiceService
+	checkoutService   CheckoutService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
@@ -110,7 +115,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	policyService PolicyService, roleService RoleService,
 	invitationService InvitationService, userService UserService,
 	customerService CustomerService, subService SubscriptionService,
-	invoiceService InvoiceService) *Service {
+	invoiceService InvoiceService, checkoutService CheckoutService) *Service {
 	return &Service{
 		projService:       projService,
 		orgService:        orgService,
@@ -123,6 +128,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		customerService:   customerService,
 		subService:        subService,
 		invoiceService:    invoiceService,
+		checkoutService:   checkoutService,
 	}
 }
 
@@ -239,6 +245,10 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 			// delete all invoices
 			if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
 				return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
+			}
+			// delete all checkouts
+			if err := d.checkoutService.DeleteByCustomer(ctx, c); err != nil {
+				return fmt.Errorf("failed to delete org while deleting a billing account checkouts[%s]: %w", c.ID, err)
 			}
 		}
 

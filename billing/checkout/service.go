@@ -65,6 +65,7 @@ type Repository interface {
 	Create(ctx context.Context, ch Checkout) (Checkout, error)
 	UpdateByID(ctx context.Context, ch Checkout) (Checkout, error)
 	List(ctx context.Context, filter Filter) ([]Checkout, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type CustomerService interface {
@@ -1063,4 +1064,20 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 		return ErrNotFound
 	}
 	return s.SyncWithProvider(ctx, checkouts[0].CustomerID)
+}
+
+func (s *Service) DeleteByCustomer(ctx context.Context, c customer.Customer) error {
+	checkouts, err := s.repository.List(ctx, Filter{
+		CustomerID: c.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, checkout := range checkouts {
+		if err := s.repository.Delete(ctx, checkout.ID); err != nil {
+			return err
+		}
+	}
+	return nil
 }

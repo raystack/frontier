@@ -338,3 +338,21 @@ func (r BillingCheckoutRepository) List(ctx context.Context, flt checkout.Filter
 	}
 	return checkouts, nil
 }
+
+func (r BillingCheckoutRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := dialect.Delete(TABLE_BILLING_CHECKOUTS).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	return r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "Delete", func(ctx context.Context) error {
+		if _, err := r.dbc.ExecContext(ctx, query, params...); err != nil {
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+		return nil
+	})
+}
