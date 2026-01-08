@@ -19,6 +19,7 @@ const (
 	MailOTPAuthMethod  = AuthMethod(strategy.MailOTPAuthMethod)
 	MailLinkAuthMethod = AuthMethod(strategy.MailLinkAuthMethod)
 	PassKeyAuthMethod  = AuthMethod(strategy.PasskeyAuthMethod)
+	OIDCAuthMethod = AuthMethod(strategy.OIDCAuthMethod)
 )
 
 func (m AuthMethod) String() string {
