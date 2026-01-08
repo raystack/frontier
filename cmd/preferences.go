@@ -7,7 +7,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"github.com/raystack/salt/printer"
+	"github.com/raystack/salt/cli/printer"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )
