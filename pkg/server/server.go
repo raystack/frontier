@@ -17,7 +17,7 @@ import (
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/raystack/salt/spa"
+	"github.com/raystack/salt/server/spa"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -56,7 +56,7 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/salt/mux"
+	"github.com/raystack/salt/server/mux"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -68,7 +68,7 @@ import (
 const (
 	grpcDialTimeout = 5 * time.Second
 
-	// keeping it in sync with https://github.com/raystack/salt/blob/v0.3.8/mux/mux.go#L15
+	// keeping it in sync with https://github.com/raystack/salt/blob/v0.6.2/server/mux/mux.go#L15
 	// which is being used in GRPC server shutdown
 	connectServerGracePeriod = 10 * time.Second
 )

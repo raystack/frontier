@@ -9,7 +9,7 @@ import (
 	"github.com/raystack/frontier/pkg/file"
 	"github.com/raystack/frontier/pkg/str"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"github.com/raystack/salt/printer"
+	"github.com/raystack/salt/cli/printer"
 	cli "github.com/spf13/cobra"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raystack/salt/cmdx"
+	"github.com/raystack/salt/config"
 	"github.com/spf13/cobra"
 )
 
@@ -13,12 +13,12 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	var config Config
+	var cfg Config
 
-	cfg := cmdx.SetConfig("frontier")
-	err := cfg.Load(&config)
+	loader := config.NewLoader(config.WithAppConfig("frontier"))
+	err := loader.Load(&cfg)
 
-	return &config, err
+	return &cfg, err
 }
 
 func configCommand() *cobra.Command {
@@ -47,13 +47,13 @@ func configInitCommand() *cobra.Command {
 			"group": "core",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := cmdx.SetConfig("frontier")
+			loader := config.NewLoader(config.WithAppConfig("frontier"))
 
-			if err := cfg.Init(&Config{}); err != nil {
+			if err := loader.Init(&Config{}); err != nil {
 				return err
 			}
 
-			fmt.Printf("config created: %v\n", cfg.File())
+			fmt.Println("config created")
 			return nil
 		},
 	}
@@ -70,9 +70,9 @@ func configListCommand() *cobra.Command {
 			"group": "core",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := cmdx.SetConfig("frontier")
+			loader := config.NewLoader(config.WithAppConfig("frontier"))
 
-			data, err := cfg.Read()
+			data, err := loader.View()
 			if err != nil {
 				return ErrClientConfigNotFound
 			}

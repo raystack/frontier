@@ -5,7 +5,7 @@ import (
 
 	"github.com/raystack/frontier/config"
 
-	"github.com/raystack/salt/version"
+	"github.com/raystack/salt/cli/releaser"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +22,7 @@ func versionCommand() *cobra.Command {
 			}
 			fmt.Println("Frontier: A secure and easy-to-use Authentication & Authorization Server")
 			fmt.Printf("Version: %s\nBuild date: %s\nCommit: %s", config.Version, config.BuildDate, config.BuildCommit)
-			fmt.Println(version.UpdateNotice(config.Version, "raystack/frontier"))
+			fmt.Println(releaser.CheckForUpdate(config.Version, "raystack/frontier"))
 			return nil
 		},
 	}

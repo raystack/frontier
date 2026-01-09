@@ -1,10 +1,7 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/raystack/frontier/billing"
 
@@ -37,20 +34,8 @@ type NewRelic struct {
 func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 	conf := &Frontier{}
 
-	var options []config.LoaderOption
-	options = append(options, config.WithName("config"))
-	options = append(options, config.WithEnvKeyReplacer(".", "_"))
+	var options []config.Option
 	options = append(options, config.WithEnvPrefix("FRONTIER"))
-	if p, err := os.Getwd(); err == nil {
-		options = append(options, config.WithPath(p))
-	}
-	if execPath, err := os.Executable(); err == nil {
-		options = append(options, config.WithPath(filepath.Dir(execPath)))
-	}
-	if currentHomeDir, err := os.UserHomeDir(); err == nil {
-		options = append(options, config.WithPath(currentHomeDir))
-		options = append(options, config.WithPath(filepath.Join(currentHomeDir, ".config")))
-	}
 
 	// override all config sources and prioritize one from file
 	if serverConfigFileFromFlag != "" {
@@ -59,9 +44,7 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 
 	l := config.NewLoader(options...)
 	if err := l.Load(conf); err != nil {
-		if !errors.As(err, &config.ConfigFileNotFoundError{}) {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	// backward compatibility

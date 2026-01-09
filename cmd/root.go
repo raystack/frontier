@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raystack/salt/cmdx"
+	"github.com/raystack/salt/cli/commander"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )
@@ -54,10 +54,12 @@ func New(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(PreferencesCommand(cliConfig))
 
 	// Help topics
-	cmdx.SetHelp(cmd)
-	cmd.AddCommand(cmdx.SetCompletionCmd("frontier"))
-	cmd.AddCommand(cmdx.SetHelpTopicCmd("environment", envHelp))
-	cmd.AddCommand(cmdx.SetHelpTopicCmd("auth", authHelp))
-	cmd.AddCommand(cmdx.SetRefCmd(cmd))
+	manager := commander.New(cmd,
+		commander.WithTopics([]commander.HelpTopic{
+			{Name: "environment", Short: envHelp["short"], Long: envHelp["long"]},
+			{Name: "auth", Short: authHelp["short"], Long: authHelp["long"]},
+		}),
+	)
+	manager.Init()
 	return cmd
 }
