@@ -35,7 +35,9 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 	conf := &Frontier{}
 
 	var options []config.Option
-	options = append(options, config.WithEnvPrefix("FRONTIER"))
+	// use FRONTIER_SERVICE_ prefix to avoid collision with K8s service env vars
+	// K8s auto-creates env vars like FRONTIER_APP_PORT for service named frontier-app
+	options = append(options, config.WithEnvPrefix("FRONTIER_SERVICE"))
 
 	// override all config sources and prioritize one from file
 	if serverConfigFileFromFlag != "" {
