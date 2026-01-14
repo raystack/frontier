@@ -899,10 +899,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 
 	// usage
 	"/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		pbReq := req.(*connect.Request[frontierv1beta1.CreateBillingUsageRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.Msg.GetOrgId(), pbReq.Msg.GetBillingId()); err != nil {
-			return err
-		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.PlatformNamespace, ID: schema.PlatformID}, schema.PlatformCheckPermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {

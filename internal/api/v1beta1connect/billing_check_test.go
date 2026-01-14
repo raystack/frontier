@@ -15,19 +15,23 @@ import (
 
 func TestConnectHandler_CheckFeatureEntitlement(t *testing.T) {
 	tests := []struct {
-		name    string
-		setup   func(es *mocks.EntitlementService)
-		request *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]
-		want    *connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse]
-		wantErr error
-		errCode connect.Code
+		name          string
+		customerSetup func(cs *mocks.CustomerService)
+		setup         func(es *mocks.EntitlementService)
+		request       *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]
+		want          *connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse]
+		wantErr       error
+		errCode       connect.Code
 	}{
 		{
 			name: "should return internal server error when entitlement service returns error",
 			request: connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
-				BillingId: "billing-123",
-				Feature:   "feature-abc",
+				OrgId:   "org-123",
+				Feature: "feature-abc",
 			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(es *mocks.EntitlementService) {
 				es.EXPECT().Check(mock.Anything, "billing-123", "feature-abc").Return(false, errors.New("service error"))
 			},
@@ -37,13 +41,16 @@ func TestConnectHandler_CheckFeatureEntitlement(t *testing.T) {
 		},
 		{
 			name: "should return false when feature is not entitled",
+			request: connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
+				OrgId:   "org-123",
+				Feature: "feature-abc",
+			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(es *mocks.EntitlementService) {
 				es.EXPECT().Check(mock.Anything, "billing-123", "feature-abc").Return(false, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
-				BillingId: "billing-123",
-				Feature:   "feature-abc",
-			}),
 			want: connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{
 				Status: false,
 			}),
@@ -52,13 +59,16 @@ func TestConnectHandler_CheckFeatureEntitlement(t *testing.T) {
 		},
 		{
 			name: "should return true when feature is entitled",
+			request: connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
+				OrgId:   "org-123",
+				Feature: "feature-abc",
+			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "billing-123"}, nil)
+			},
 			setup: func(es *mocks.EntitlementService) {
 				es.EXPECT().Check(mock.Anything, "billing-123", "feature-abc").Return(true, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
-				BillingId: "billing-123",
-				Feature:   "feature-abc",
-			}),
 			want: connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{
 				Status: true,
 			}),
@@ -66,43 +76,46 @@ func TestConnectHandler_CheckFeatureEntitlement(t *testing.T) {
 			errCode: connect.Code(0),
 		},
 		{
-			name: "should handle empty billing id",
-			setup: func(es *mocks.EntitlementService) {
-				es.EXPECT().Check(mock.Anything, "", "feature-abc").Return(false, nil)
-			},
+			name: "should return empty response when billing account not found",
 			request: connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
-				BillingId: "",
-				Feature:   "feature-abc",
+				OrgId:   "org-123",
+				Feature: "feature-abc",
 			}),
-			want: connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{
-				Status: false,
-			}),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{}, customer.ErrNotFound)
+			},
+			setup:   func(es *mocks.EntitlementService) {},
+			want:    connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{}),
 			wantErr: nil,
 			errCode: connect.Code(0),
 		},
 		{
-			name: "should handle empty feature",
-			setup: func(es *mocks.EntitlementService) {
-				es.EXPECT().Check(mock.Anything, "billing-123", "").Return(false, nil)
-			},
+			name: "should return invalid argument when org_id is invalid",
 			request: connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
-				BillingId: "billing-123",
-				Feature:   "",
+				OrgId:   "",
+				Feature: "feature-abc",
 			}),
-			want: connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{
-				Status: false,
-			}),
-			wantErr: nil,
-			errCode: connect.Code(0),
+			customerSetup: func(cs *mocks.CustomerService) {
+				cs.EXPECT().GetByOrgID(mock.Anything, "").Return(customer.Customer{}, customer.ErrInvalidUUID)
+			},
+			setup:   func(es *mocks.EntitlementService) {},
+			want:    nil,
+			wantErr: customer.ErrInvalidUUID,
+			errCode: connect.CodeInvalidArgument,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockCustomerSvc := new(mocks.CustomerService)
 			mockEntitlementSvc := new(mocks.EntitlementService)
+			if tt.customerSetup != nil {
+				tt.customerSetup(mockCustomerSvc)
+			}
 			if tt.setup != nil {
 				tt.setup(mockEntitlementSvc)
 			}
 			h := &ConnectHandler{
+				customerService:    mockCustomerSvc,
 				entitlementService: mockEntitlementSvc,
 			}
 			got, err := h.CheckFeatureEntitlement(context.Background(), tt.request)
