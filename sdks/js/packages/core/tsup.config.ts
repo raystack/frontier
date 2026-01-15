@@ -34,5 +34,21 @@ export default defineConfig(() => [
     format: ['cjs', 'esm'],
     external: ['react'],
     dts: true
+  },
+  // Admin APIs
+  {
+    entry: ['admin/index.ts'],
+    outDir: 'admin/dist',
+    banner: {
+      js: "'use client'"
+    },
+    format: ['cjs', 'esm'],
+    external: ['react', 'svelte', 'vue', 'solid-js'],
+    dts: true,
+    loader: {
+      '.svg': 'dataurl',
+      '.png': 'dataurl'
+    },
+    esbuildPlugins: [cssModulesPlugin()]
   }
 ]);

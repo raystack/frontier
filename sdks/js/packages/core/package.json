@@ -9,6 +9,7 @@
   "files": [
     "dist/**/*",
     "react/dist/**/*",
+    "admin/dist/**/*",
     "hooks/dist/**/*",
     "README.md"
   ],
@@ -49,6 +50,12 @@
       "import": "./react/dist/index.mjs",
       "module": "./react/dist/index.mjs",
       "require": "./react/dist/index.js"
+    },
+    "./admin": {
+      "types": "./admin/dist/index.d.ts",
+      "import": "./admin/dist/index.mjs",
+      "module": "./admin/dist/index.mjs",
+      "require": "./admin/dist/index.js"
     },
     "./hooks": {
       "types": "./hooks/dist/index.d.ts",
