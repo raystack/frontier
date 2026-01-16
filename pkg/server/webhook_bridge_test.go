@@ -79,7 +79,6 @@ func TestWebhookBridgeHandler_HTTPMethods(t *testing.T) {
 	}
 }
 
-
 func TestWebhookBridgeHandler_PathParsing(t *testing.T) {
 	tests := []struct {
 		name          string

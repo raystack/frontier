@@ -91,10 +91,10 @@ func (i *AuthenticationInterceptor) WrapStreamingHandler(next connect.StreamingH
 
 // authenticationSkipList stores path to skip authentication, by default its enabled for all requests
 var authenticationSkipList = map[string]bool{
-	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies":      true,
-	"/raystack.frontier.v1beta1.FrontierService/Authenticate":            true,
-	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":            true,
-	"/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas":         true,
-	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":           true,
+	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies":     true,
+	"/raystack.frontier.v1beta1.FrontierService/Authenticate":           true,
+	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":           true,
+	"/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas":        true,
+	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":          true,
 	"/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback": true,
 }
