@@ -216,6 +216,10 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	mux := http.NewServeMux()
 	mux.Handle(frontierPath, frontierHandler)
 	mux.Handle(adminPath, adminHandler)
+
+	// Register webhook bridge handler to allow Stripe to call with provider in path
+	// This uses frontierHandler which has all interceptors (auth, logging, audit, etc.) applied
+	mux.HandleFunc("/billing/webhooks/callback/", WebhookBridgeHandler(frontierHandler))
 	reflector := grpcreflect.NewStaticReflector(
 		"raystack.frontier.v1beta1.FrontierService",
 		"raystack.frontier.v1beta1.AdminService") // protoc-gen-connect-go generates package-level constants
