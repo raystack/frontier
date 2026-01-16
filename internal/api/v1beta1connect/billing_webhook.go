@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/core/event"
+	"github.com/raystack/frontier/pkg/server/consts"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"go.uber.org/zap"
 )
@@ -14,6 +16,12 @@ func (h *ConnectHandler) BillingWebhookCallback(ctx context.Context, request *co
 
 	if request.Msg.GetProvider() != "stripe" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBillingProviderNotSupported)
+	}
+
+	// Extract Stripe webhook signature from headers and add to context
+	// This is required for webhook signature verification in the event service
+	if webhookSignature := request.Header().Get(consts.StripeWebhookSignature); webhookSignature != "" {
+		ctx = customer.SetStripeWebhookSignatureInContext(ctx, webhookSignature)
 	}
 
 	if err := h.eventService.BillingWebhook(ctx, event.ProviderWebhookEvent{
