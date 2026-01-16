@@ -3,7 +3,7 @@ FROM node:18-alpine3.18 as ui-builder
 RUN apk add --no-cache make
 WORKDIR /app
 
-COPY ui ./ui
+COPY web/apps/admin-ui ./web/apps/admin-ui
 COPY Makefile .
 RUN make ui
 
@@ -16,7 +16,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY --from=ui-builder /app/ui/dist /app/ui/dist
+COPY --from=ui-builder /app/web/apps/admin-ui/dist/admin-ui /app/web/apps/admin-ui/dist/admin-ui
 
 RUN make build
 

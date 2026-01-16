@@ -1,4 +1,4 @@
-package ui
+package adminui
 
 import (
 	"embed"

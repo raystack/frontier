@@ -8,7 +8,7 @@ PROTON_COMMIT := "4144445eb0f9cbd1a801a3d0aa5cfce4cc0ea551"
 
 ui:
 	@echo " > generating ui build"
-	@cd ui && $(MAKE) build
+	@cd web/apps/admin-ui && $(MAKE) build
 
 install:
 	@echo "Clean up imports..."
@@ -31,7 +31,7 @@ lint-fix:
 	golangci-lint run --fix
 
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -coverprofile=coverage.out -count 2 -timeout 150s
+	@go test -race $(shell go list ./... | grep -v /web/apps/admin-ui | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -coverprofile=coverage.out -count 2 -timeout 150s
 
 test-all: lint test e2e-test ## Run all tests
 
@@ -52,7 +52,7 @@ coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.out
 
 clean :
-	rm -rf ui/dist/ui
+	rm -rf web/apps/admin-ui/dist/admin-ui
 
 proto: ## Generate the protobuf files
 	@echo " > generating protobuf from raystack/proton"
