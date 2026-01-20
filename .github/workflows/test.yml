@@ -44,19 +44,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: "1.23.1"
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20.x
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8.6.9
-      - name: Build UI for embed
-        run: |
-          cd web/apps/admin-ui
-          pnpm install
-          pnpm run build
       - name: install dependencies
         run: go mod tidy
       - name: install spicedb binary
@@ -80,19 +67,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: "1.23.1"
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20.x
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8.6.9
-      - name: Build UI for embed
-        run: |
-          cd web/apps/admin-ui
-          pnpm install
-          pnpm run build
       - name: install dependencies
         run: go mod tidy
       - name: run regression tests
