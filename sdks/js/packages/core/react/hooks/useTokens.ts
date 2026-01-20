@@ -22,11 +22,10 @@ export const useTokens = (): UseTokensReturn => {
   } = useQuery(
     FrontierServiceQueries.getBillingBalance,
     create(GetBillingBalanceRequestSchema, {
-      orgId: billingAccount?.orgId ?? '',
       id: billingAccount?.id ?? ''
     }),
     {
-      enabled: !!billingAccount?.orgId && !!billingAccount?.id,
+      enabled: !!billingAccount?.id,
       retry: false
     }
   );
@@ -44,7 +43,7 @@ export const useTokens = (): UseTokensReturn => {
     [data?.balance?.amount]
   );
 
-  return { 
+  return {
     tokenBalance,
     isTokensLoading,
     fetchTokenBalance: refetch
