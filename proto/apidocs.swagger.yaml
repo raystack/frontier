@@ -5547,6 +5547,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from billing account id'
           in: path
           required: true
           type: string
@@ -5607,6 +5608,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from billing account id'
           in: path
           required: true
           type: string
@@ -5652,6 +5654,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from billing account id'
           in: path
           required: true
           type: string
@@ -5707,6 +5710,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from billing account id'
           in: path
           required: true
           type: string
@@ -5753,6 +5757,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from billing account id'
           in: path
           required: true
           type: string
@@ -5804,6 +5809,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from billing account id'
           in: path
           required: true
           type: string
@@ -5855,11 +5861,15 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from plan_id'
           in: path
           required: true
           type: string
         - name: id
-          description: ID of the billing account to check
+          description: |-
+            ID of the billing account to check
+
+            DEPRECATED: billing_id will be inferred from plan_id
           in: path
           required: true
           type: string
@@ -5906,6 +5916,7 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
         - name: org_id
+          description: 'DEPRECATED: org_id will be inferred from billing account id'
           in: path
           required: true
           type: string

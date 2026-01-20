@@ -105,9 +105,9 @@ func (h *ConnectHandler) UpdateBillingAccount(ctx context.Context, request *conn
 		}
 	}
 
+	// Ignore org_id from request - it will be inferred from billing account ID
 	updatedCustomer, err := h.customerService.Update(ctx, customer.Customer{
 		ID:       request.Msg.GetId(),
-		OrgID:    request.Msg.GetOrgId(),
 		Name:     request.Msg.GetBody().GetName(),
 		Email:    request.Msg.GetBody().GetEmail(),
 		Phone:    request.Msg.GetBody().GetPhone(),
@@ -119,7 +119,6 @@ func (h *ConnectHandler) UpdateBillingAccount(ctx context.Context, request *conn
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateBillingAccount.Update", err,
 			zap.String("customer_id", request.Msg.GetId()),
-			zap.String("org_id", request.Msg.GetOrgId()),
 			zap.String("customer_name", request.Msg.GetBody().GetName()),
 			zap.String("customer_email", request.Msg.GetBody().GetEmail()),
 			zap.String("currency", request.Msg.GetBody().GetCurrency()))
@@ -447,14 +446,17 @@ func (h *ConnectHandler) UpdateBillingAccountDetails(ctx context.Context, reques
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	// Add audit log
-	audit.GetAuditor(ctx, request.Msg.GetOrgId()).LogWithAttrs(audit.BillingAccountDetailsUpdatedEvent, audit.Target{
-		ID:   request.Msg.GetId(),
-		Type: "billing_account",
-	}, map[string]string{
-		"credit_min":  fmt.Sprintf("%d", details.CreditMin),
-		"due_in_days": fmt.Sprintf("%d", details.DueInDays),
-	})
+	// Add audit log - infer org_id from billing account
+	customerOb, err := h.customerService.GetByID(ctx, request.Msg.GetId())
+	if err == nil {
+		audit.GetAuditor(ctx, customerOb.OrgID).LogWithAttrs(audit.BillingAccountDetailsUpdatedEvent, audit.Target{
+			ID:   request.Msg.GetId(),
+			Type: "billing_account",
+		}, map[string]string{
+			"credit_min":  fmt.Sprintf("%d", details.CreditMin),
+			"due_in_days": fmt.Sprintf("%d", details.DueInDays),
+		})
+	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountDetailsResponse{}), nil
 }
