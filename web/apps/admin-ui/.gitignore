@@ -9,7 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist/*
-!dist/.gitkeep
+!dist/admin-ui/.gitkeep
 *.local
 
 # Editor directories and files
