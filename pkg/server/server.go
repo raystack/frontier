@@ -29,13 +29,6 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/raystack/frontier/pkg/server/consts"
-	"github.com/raystack/frontier/pkg/server/health"
-	"github.com/raystack/frontier/web/apps/admin-ui"
-
-	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
-	"github.com/raystack/frontier/pkg/server/interceptors"
-
 	"connectrpc.com/connect"
 	connecthealth "connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
@@ -53,8 +46,13 @@ import (
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1"
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
+	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
+	"github.com/raystack/frontier/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/health"
+	"github.com/raystack/frontier/pkg/server/interceptors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
+	adminui "github.com/raystack/frontier/web/apps/admin-ui"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/server/mux"
 	"go.uber.org/zap"
