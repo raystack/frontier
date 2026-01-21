@@ -31,7 +31,7 @@ linters:
       - third_party$
       - builtin$
       - examples$
-      - web/apps/admin-ui/embed.go$
+      - web/apps/admin/embed.go$
 severity:
   default: error
 formatters:
