@@ -67,6 +67,14 @@ func TestHandler_UpdateBillingAccountDetails(t *testing.T) {
 			if tt.request.Msg.GetDueInDays() >= 0 {
 				mockCustomerService.EXPECT().UpdateDetails(mock.Anything, tt.request.Msg.GetId(), mock.Anything).
 					Return(tt.mockUpdateDetails, tt.mockUpdateError)
+				// Mock GetByID call used for fetching org_id for audit log (only called if UpdateDetails succeeds)
+				if tt.mockUpdateError == nil {
+					mockCustomerService.EXPECT().GetByID(mock.Anything, tt.request.Msg.GetId()).
+						Return(customer.Customer{
+							ID:    tt.request.Msg.GetId(),
+							OrgID: "test-org-id",
+						}, nil)
+				}
 			}
 
 			handler := &ConnectHandler{
