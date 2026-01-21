@@ -52,7 +52,7 @@ import (
 	"github.com/raystack/frontier/pkg/server/interceptors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
-	adminui "github.com/raystack/frontier/web/apps/admin-ui"
+	adminui "github.com/raystack/frontier/web/apps/admin"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/server/mux"
 	"go.uber.org/zap"
@@ -91,7 +91,7 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		return
 	}
 
-	spaHandler, err := spa.Handler(adminui.Assets, "dist/admin-ui", "index.html", false)
+	spaHandler, err := spa.Handler(adminui.Assets, "dist/admin", "index.html", false)
 	if err != nil {
 		logger.Warn("failed to load ui", "err", err)
 		return

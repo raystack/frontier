@@ -10,7 +10,7 @@ export default defineConfig(() => {
   return {
     base: "/",
     build: {
-      outDir: "dist/admin-ui",
+      outDir: "dist/admin",
     },
     server: {
       proxy: {
