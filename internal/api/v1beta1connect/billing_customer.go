@@ -456,6 +456,9 @@ func (h *ConnectHandler) UpdateBillingAccountDetails(ctx context.Context, reques
 			"credit_min":  fmt.Sprintf("%d", details.CreditMin),
 			"due_in_days": fmt.Sprintf("%d", details.DueInDays),
 		})
+	} else {
+		errorLogger.LogServiceError(ctx, request, "UpdateBillingAccountDetails.GetByID", err,
+			zap.String("customer_id", request.Msg.GetId()))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountDetailsResponse{}), nil
