@@ -22,7 +22,7 @@ export default function PageHeader({
       align="center"
       justify="between"
       className={className}
-      style={{ padding: "16px 24px", ...style } as any}
+      style={{ padding: "16px 24px", ...style }}
       {...props}
     >
       <Flex align="center" gap="medium">
