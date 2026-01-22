@@ -762,17 +762,19 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetBillingAccount": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.GetBillingAccountRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId()); err != nil {
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.GetPermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetBillingBalance": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.GetBillingBalanceRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId()); err != nil {
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.GetPermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CheckCreditEntitlement": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.CheckCreditEntitlementRequest])
@@ -780,42 +782,51 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.UpdateBillingAccountRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId()); err != nil {
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.DeletePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.DeleteBillingAccountRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId()); err != nil {
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.DeletePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableBillingAccount": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.EnableBillingAccountRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId()); err != nil {
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.DeletePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DisableBillingAccount": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.DisableBillingAccountRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId()); err != nil {
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.DeletePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/HasTrialed": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.HasTrialedRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId()); err != nil {
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.GetPermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/RegisterBillingAccount": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.RegisterBillingAccountRequest])
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.DeletePermission, req)
+		orgID, err := getOrgForBillingAccount(ctx, handler, pbreq.Msg.GetId())
+		if err != nil {
+			return err
+		}
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.DeletePermission, req)
 	},
 
 	// subscriptions - org_id and billing_id are now inferred from subscription_id
@@ -1052,14 +1063,16 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.AdminService/GetBillingAccountDetails": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbReq := req.(*connect.Request[frontierv1beta1.GetBillingAccountDetailsRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.Msg.GetOrgId(), pbReq.Msg.GetId()); err != nil {
+		_, err := getOrgForBillingAccount(ctx, handler, pbReq.Msg.GetId())
+		if err != nil {
 			return err
 		}
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountDetails": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbReq := req.(*connect.Request[frontierv1beta1.UpdateBillingAccountDetailsRequest])
-		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.Msg.GetOrgId(), pbReq.Msg.GetId()); err != nil {
+		_, err := getOrgForBillingAccount(ctx, handler, pbReq.Msg.GetId())
+		if err != nil {
 			return err
 		}
 		return handler.IsSuperUser(ctx, req)
@@ -1122,18 +1135,14 @@ func ensureRoleBelongToOrg(ctx context.Context, handler *v1beta1connect.ConnectH
 	return nil
 }
 
-func ensureBillingAccountBelongToOrg(ctx context.Context, handler *v1beta1connect.ConnectHandler, orgID, billingID string) error {
-	acc, err := handler.GetBillingAccount(ctx, connect.NewRequest(&frontierv1beta1.GetBillingAccountRequest{
-		OrgId: orgID,
-		Id:    billingID,
-	}))
+func getOrgForBillingAccount(ctx context.Context, handler *v1beta1connect.ConnectHandler, billingID string) (string, error) {
+	// Infer org_id from billing_id (don't trust org_id from request for security)
+	orgID, err := handler.GetOrgIDFromBillingAccountID(ctx, billingID)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if acc.Msg.GetBillingAccount().GetOrgId() != orgID {
-		return ErrDeniedInvalidArgs
-	}
-	return nil
+	// Return the inferred org_id for authorization check
+	return orgID, nil
 }
 
 func ensureSubscriptionBelongToOrg(ctx context.Context, handler *v1beta1connect.ConnectHandler, subID string) (string, error) {

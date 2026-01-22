@@ -167,6 +167,9 @@ func (s *Service) Update(ctx context.Context, customer Customer) (Customer, erro
 		return Customer{}, err
 	}
 
+	// Always infer org_id from existing customer (ignore from request for security)
+	customer.OrgID = existingCustomer.OrgID
+
 	// update a customer in stripe
 	stripeCustomer, err := s.stripeClient.Customers.Update(existingCustomer.ProviderID, &stripe.CustomerParams{
 		Params: stripe.Params{
@@ -184,7 +187,7 @@ func (s *Service) Update(ctx context.Context, customer Customer) (Customer, erro
 		Name:  &customer.Name,
 		Phone: &customer.Phone,
 		Metadata: map[string]string{
-			"org_id":     customer.OrgID,
+			"org_id":     existingCustomer.OrgID,
 			"managed_by": "frontier",
 		},
 	})
