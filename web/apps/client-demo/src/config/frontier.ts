@@ -9,7 +9,7 @@ const config: FrontierClientOptions = {
   },
   customization: {
     terminology: {
-      appName: 'SDK Demo',
+      appName: 'Client Demo',
       organization: { singular: 'Workspace', plural: 'Workspaces' }
     }
   }
