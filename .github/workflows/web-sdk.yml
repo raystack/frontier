@@ -1,4 +1,4 @@
-name: js-sdk
+name: web-sdk
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: ./sdks/js
+        working-directory: ./web
 
     steps:
       - name: Checkout 🛎️
@@ -45,19 +45,19 @@ jobs:
           cat << EOF > "$HOME/.npmrc"
             //registry.npmjs.org/:_authToken=$NPM_TOKEN
           EOF
-        working-directory: ./sdks/js/packages/core
+        working-directory: ./web/packages/core
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Bump Package Version
         run: npm run bump-version
-        working-directory: ./sdks/js/packages/core
+        working-directory: ./web/packages/core
         env:
           GIT_REFNAME: ${{ github.ref_name }}
 
       - name: Run Semantic Release 🚀
         run: npm run release:ci
-        working-directory: ./sdks/js/packages/core
+        working-directory: ./web/packages/core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

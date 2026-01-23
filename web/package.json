@@ -1,5 +1,5 @@
 {
-  "name": "sdks",
+  "name": "frontier-web",
   "private": true,
   "scripts": {
     "build": "turbo run build",

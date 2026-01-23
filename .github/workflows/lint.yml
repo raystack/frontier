@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: ./sdks/js
+        working-directory: ./web
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
