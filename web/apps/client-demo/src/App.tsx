@@ -6,7 +6,7 @@ import Router from './Router';
 import { v4 as uuid } from 'uuid';
 
 const customHeaders = {
-  'X-Request-ID': () => `sdk-demo:${uuid()}`
+  'X-Request-ID': () => `client-demo:${uuid()}`
 };
 
 function App() {

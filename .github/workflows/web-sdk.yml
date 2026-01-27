@@ -45,19 +45,19 @@ jobs:
           cat << EOF > "$HOME/.npmrc"
             //registry.npmjs.org/:_authToken=$NPM_TOKEN
           EOF
-        working-directory: ./web/packages/core
+        working-directory: ./web/lib
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Bump Package Version
         run: npm run bump-version
-        working-directory: ./web/packages/core
+        working-directory: ./web/lib
         env:
           GIT_REFNAME: ${{ github.ref_name }}
 
       - name: Run Semantic Release 🚀
         run: npm run release:ci
-        working-directory: ./web/packages/core
+        working-directory: ./web/lib
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
