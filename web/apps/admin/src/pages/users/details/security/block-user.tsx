@@ -15,6 +15,13 @@ import { useQueryClient } from "@tanstack/react-query";
 
 type ButtonColorType = ComponentProps<typeof Button>["color"];
 
+type SearchUsersQueryData = {
+  users: Array<{
+    id: string;
+    state?: string;
+  }>;
+};
+
 export const BlockUserDialog = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { user, reset } = useUser();
@@ -26,19 +33,19 @@ export const BlockUserDialog = () => {
 
   const optimisticUpdateState = useCallback(
     (state: string) => {
-      queryClient.setQueryData(
+      queryClient.setQueryData<SearchUsersQueryData>(
         createConnectQueryKey({
           schema: AdminServiceQueries.searchUsers,
           transport,
-          input: { query: { search: user?.id } },
+          input: { query: { search: user?.id || "" } },
           cardinality: "finite",
         }),
         oldData => {
           if (!oldData) return oldData;
           return {
             ...oldData,
-            users: oldData.users.map(user =>
-              user.id === user?.id ? { ...user, state } : user,
+            users: oldData.users.map(u =>
+              u.id === user?.id ? { ...u, state } : u,
             ),
           };
         },
