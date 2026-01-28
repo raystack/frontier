@@ -1,11 +1,11 @@
 # Build the UI
-FROM node:18-alpine3.18 as ui-builder
+FROM node:18-alpine3.18 as admin-builder
 RUN apk add --no-cache make
 WORKDIR /app
 
-COPY ui ./ui
+COPY web/apps/admin ./web/apps/admin
 COPY Makefile .
-RUN make ui
+RUN make admin
 
 # Build the Go binary
 FROM golang:1.23.1-alpine3.20 as builder
@@ -16,7 +16,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY --from=ui-builder /app/ui/dist /app/ui/dist
+COPY --from=admin-builder /app/web/apps/admin/dist /app/web/apps/admin/dist
 
 RUN make build
 

@@ -24,7 +24,7 @@ make install
 Optional: build frontier admin ui
 
 ```
-make ui
+make admin
 ```
 
 Build frontier binary file

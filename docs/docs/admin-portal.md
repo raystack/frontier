@@ -19,17 +19,18 @@ _Many of these features are still in development and represents an exhautive lis
 
 > Make sure you have the Frontier server up and running. For details refer [installations](./installation.md) and [configurations](./configurations.md)
 
-Change the current working directory to ui in Frontier
+Change the current working directory to the admin app in Frontier
 
 ```bash
-$ cd ui
+$ cd web/apps/admin
 ```
 
-Create a **.env** file or export **`SHILD_API_URL`** environment variable for communication with the Frontier server.
+Create a **.env** file (or export env vars) for communication with the Frontier server.
 
 ```bash title=.env
-# provide the frontier server url
-SHILD_API_URL=http://localhost:8000
+# provide the frontier server urls
+FRONTIER_API_URL=http://localhost:8000
+FRONTIER_CONNECTRPC_URL=http://localhost:8002
 ```
 
 Finally, to start the Admin portal, run the following commands:

@@ -2,13 +2,13 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 NAME=github.com/raystack/frontier
 TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
-.PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui compose-up-dev
+.PHONY: build check fmt lint test test-race vet test-cover-html help install proto admin compose-up-dev
 .DEFAULT_GOAL := build
 PROTON_COMMIT := "b1687af73f994fa9612a023c850aa97c35735af8"
 
-ui:
-	@echo " > generating ui build"
-	@cd ui && $(MAKE) build
+admin:
+	@echo " > generating admin build"
+	@cd web/apps/admin && $(MAKE) build
 
 install:
 	@echo "Clean up imports..."
@@ -31,7 +31,7 @@ lint-fix:
 	golangci-lint run --fix
 
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -coverprofile=coverage.out -count 2 -timeout 150s
+	@go test -race $(shell go list ./... | grep -v /web/apps/admin | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -coverprofile=coverage.out -count 2 -timeout 150s
 
 test-all: lint test e2e-test ## Run all tests
 
@@ -52,7 +52,7 @@ coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.out
 
 clean :
-	rm -rf ui/dist/ui
+	rm -rf web/apps/admin/dist/admin
 
 proto: ## Generate the protobuf files
 	@echo " > generating protobuf from raystack/proton"
