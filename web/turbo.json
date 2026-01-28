@@ -1,5 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "FRONTIER_API_URL",
+    "FRONTIER_CONNECTRPC_URL",
+    "NEXT_PUBLIC_FRONTIER_URL",
+    "NEXT_PUBLIC_FRONTIER_CONNECT_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
