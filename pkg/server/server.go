@@ -31,7 +31,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/server/health"
-	"github.com/raystack/frontier/ui"
+	"github.com/raystack/frontier/web/apps/admin"
 
 	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
 	"github.com/raystack/frontier/pkg/server/interceptors"
@@ -93,7 +93,7 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		return
 	}
 
-	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
+	spaHandler, err := spa.Handler(admin.Assets, "dist/admin", "index.html", false)
 	if err != nil {
 		logger.Warn("failed to load ui", "err", err)
 		return
