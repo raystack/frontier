@@ -2,11 +2,11 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 NAME=github.com/raystack/frontier
 TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
-.PHONY: build check fmt lint test test-race vet test-cover-html help install proto admin compose-up-dev
+.PHONY: build check fmt lint test test-race vet test-cover-html help install proto admin-app compose-up-dev
 .DEFAULT_GOAL := build
 PROTON_COMMIT := "b1687af73f994fa9612a023c850aa97c35735af8"
 
-admin:
+admin-app:
 	@echo " > generating admin build"
 	@cd web/apps/admin && $(MAKE) build
 
