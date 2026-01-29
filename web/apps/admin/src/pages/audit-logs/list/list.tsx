@@ -22,9 +22,9 @@ import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
+  transformDataTableQueryToRQLRequest,
+} from "@raystack/frontier/admin";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import SidePanelDetails from "./sidepanel-details";
 import { useQueryClient } from "@tanstack/react-query";
 import { AUDIT_LOG_QUERY_KEY } from "../util";

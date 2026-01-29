@@ -15,7 +15,7 @@ import styles from "./sidebar.module.css";
 import { OrganizationIcon } from "@raystack/apsara/icons";
 import IAMIcon from "~/assets/icons/iam.svg?react";
 import UserIcon from "~/assets/icons/users.svg?react";
-import InvoicesIcon from "~/assets/icons/invoices.svg?react";
+import { InvoicesIcon } from "@raystack/frontier/admin";
 import RolesIcon from "~/assets/icons/roles.svg?react";
 import ProductsIcon from "~/assets/icons/products.svg?react";
 import PlansIcon from "~/assets/icons/plans.svg?react";

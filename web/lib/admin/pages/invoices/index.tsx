@@ -6,19 +6,19 @@ import {
   Flex,
 } from "@raystack/apsara";
 import { useMemo, useState } from "react";
-import PageTitle from "~/components/page-title";
+import { PageTitle } from "../../components/PageTitle";
 import { InvoicesNavabar } from "./navbar";
-import styles from "./list.module.css";
-import InvoicesIcon from "~/assets/icons/invoices.svg?react";
+import styles from "./invoices.module.css";
+import { InvoicesIcon } from "../../assets/icons/InvoicesIcon";
 import { getColumns } from "./columns";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
+} from "../../utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import { transformDataTableQueryToRQLRequest } from "../../utils/transform-query";
 
 const NoInvoices = () => {
   return (
@@ -40,7 +40,9 @@ const INITIAL_QUERY: DataTableQuery = {
   limit: DEFAULT_PAGE_SIZE,
 };
 
-export const InvoicesList = () => {
+export type InvoicesPageProps = { appName?: string };
+
+export default function InvoicesPage({ appName }: InvoicesPageProps = {}) {
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
@@ -98,7 +100,7 @@ export const InvoicesList = () => {
     console.error("ConnectRPC Error:", error);
     return (
       <>
-        <PageTitle title="Invoices" />
+        <PageTitle title="Invoices" appName={appName} />
         <EmptyState
           icon={<ExclamationTriangleIcon />}
           heading="Error Loading Invoices"
@@ -116,7 +118,7 @@ export const InvoicesList = () => {
 
   return (
     <>
-      <PageTitle title="Invoices" />
+      <PageTitle title="Invoices" appName={appName} />
       <DataTable
         query={tableQuery}
         columns={columns}

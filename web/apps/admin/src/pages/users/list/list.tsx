@@ -13,9 +13,9 @@ import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
+  transformDataTableQueryToRQLRequest,
+} from "@raystack/frontier/admin";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useDebouncedState } from "@raystack/apsara/hooks";
 
 const NoUsers = () => {
