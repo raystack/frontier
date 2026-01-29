@@ -3,10 +3,10 @@
 build: dep dist
 
 dist:
-	@npm run build
+	@pnpm run build
 
 test:
-	@npm run test
+	@pnpm run test
 
 dep:
-	@npm install --legacy-peer-deps -f
+	@pnpm install --legacy-peer-deps -f

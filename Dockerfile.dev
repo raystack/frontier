@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY web/apps/admin ./web/apps/admin
 COPY Makefile .
-RUN make admin
+RUN make admin-app
 
 # Build the Go binary
 FROM golang:1.23.1-alpine3.20 as builder

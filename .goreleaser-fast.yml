@@ -5,7 +5,7 @@ release:
 
 before:
   hooks:
-    - make admin
+    - make admin-app
 
 builds:
   - id: "frontier"
