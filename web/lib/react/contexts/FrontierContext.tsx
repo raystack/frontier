@@ -248,7 +248,7 @@ export const FrontierContextProvider = ({
         withPaymentMethods: true,
         withBillingDetails: true
       }),
-      { enabled: !!activeOrganization?.id && !!billingAccountId }
+      { enabled: !!billingAccountId }
     );
 
   const billingAccount = billingAccountData?.billingAccount;
