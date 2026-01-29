@@ -126,15 +126,25 @@ export const checkSimilarPlans = (
 
 export function getFormattedNumberString(num: Number = 0) {
   const numString = num.toString();
-  const length = numString.length;
+  const isNegative = numString.startsWith('-');
+  const sign = isNegative ? '-' : '';
+  const withoutSign = isNegative ? numString.slice(1) : numString;
+  const [integerPart, decimalPart] = withoutSign.split('.');
 
-  return numString.split('').reduce((acc, val, i) => {
+  const length = integerPart.length;
+  const formattedInteger = integerPart.split('').reduce((acc, val, i) => {
     const diff = length - i;
     if (diff % 3 === 0 && diff < length) {
       return acc + ',' + val;
     }
     return acc + val;
   }, '');
+
+  return (
+    sign +
+    formattedInteger +
+    (decimalPart !== undefined ? '.' + decimalPart : '')
+  );
 }
 
 interface getPlanNameWithIntervalOptions {
