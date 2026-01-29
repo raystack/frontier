@@ -28,7 +28,13 @@ export const getColumns: () => DataTableColumnDef<Role, unknown>[] = () => {
       classNames: {
         cell: styles.permissionsColumn,
       },
-      cell: info => <Flex>{(info.getValue() as string[]).join(", ")}</Flex>,
+      cell: info => (
+        <Flex direction="column" gap={1} className={styles.permissionsColumn}>
+          {((info.getValue() as string[]) || []).map((p, i) => (
+            <span key={i}>{p}</span>
+          ))}
+        </Flex>
+      ),
       footer: props => props.column.id,
     },
   ];
