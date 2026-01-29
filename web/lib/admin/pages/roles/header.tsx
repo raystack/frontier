@@ -1,10 +1,10 @@
 import { DataTable } from "@raystack/apsara";
-import PageHeader from "~/components/page-header";
+import { PageHeader } from "../../components/PageHeader";
 import styles from "./roles.module.css";
 
 const pageHeader = {
   title: "Roles",
-  breadcrumb: [],
+  breadcrumb: [] as { name: string; href?: string }[],
 };
 
 export const RolesHeader = () => {
