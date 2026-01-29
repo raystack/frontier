@@ -1,9 +1,7 @@
 import { Flex, Text, Grid } from "@raystack/apsara";
-import { useRole } from ".";
+import type { Role } from "@raystack/proton/frontier";
 
-export default function RoleDetails() {
-  const { role } = useRole();
-
+export default function RoleDetails({ role }: { role: Role | null }) {
   return (
     <Flex direction="column" gap={9}>
       <Text size={4}>{role?.name}</Text>
