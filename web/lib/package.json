@@ -10,6 +10,7 @@
     "dist/**/*",
     "react/dist/**/*",
     "hooks/dist/**/*",
+    "admin/dist/**/*",
     "README.md"
   ],
   "scripts": {
@@ -55,6 +56,12 @@
       "import": "./hooks/dist/index.mjs",
       "module": "./hooks/dist/index.mjs",
       "require": "./hooks/dist/index.js"
+    },
+    "./admin": {
+      "types": "./admin/dist/index.d.ts",
+      "import": "./admin/dist/index.mjs",
+      "module": "./admin/dist/index.mjs",
+      "require": "./admin/dist/index.js"
     }
   },
   "devDependencies": {

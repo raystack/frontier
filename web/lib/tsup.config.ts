@@ -34,5 +34,16 @@ export default defineConfig(() => [
     format: ['cjs', 'esm'],
     external: ['react'],
     dts: true
+  },
+  // Admin APIs
+  {
+    entry: ['admin/index.ts'],
+    outDir: 'admin/dist',
+    banner: {
+      js: "'use client'"
+    },
+    format: ['cjs', 'esm'],
+    external: ['react'],
+    dts: true
   }
 ]);
