@@ -13,12 +13,14 @@ type Preference struct {
 	Value        string    `db:"value"`
 	ResourceType string    `db:"resource_type"`
 	ResourceID   string    `db:"resource_id"`
+	ScopeType    string    `db:"scope_type"`
+	ScopeID      string    `db:"scope_id"`
 	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
 }
 
 func (from Preference) transformToPreference() preference.Preference {
-	return preference.Preference{
+	pref := preference.Preference{
 		ID:           from.ID.String(),
 		Name:         from.Name,
 		Value:        from.Value,
@@ -27,4 +29,12 @@ func (from Preference) transformToPreference() preference.Preference {
 		CreatedAt:    from.CreatedAt,
 		UpdatedAt:    from.UpdatedAt,
 	}
+	// Convert zero values back to empty strings for API layer
+	if from.ScopeType != preference.ScopeTypeGlobal {
+		pref.ScopeType = from.ScopeType
+	}
+	if from.ScopeID != preference.ScopeIDGlobal {
+		pref.ScopeID = from.ScopeID
+	}
+	return pref
 }
