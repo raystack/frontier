@@ -55,8 +55,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.2(react@18.3.1)
       '@raystack/apsara':
-        specifier: ^0.53.2
-        version: 0.53.6(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.56.0
+        version: 0.56.2(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
         specifier: workspace:^
         version: link:../../lib
@@ -2247,17 +2247,6 @@ packages:
 
   '@raystack/apsara@0.52.0':
     resolution: {integrity: sha512-iWFnDGUI52Z+KwQaJsx+g1JC/cTK1yf86eScxA3HbSR1M1yhR+mFBxkJ8+GMSXIjUKGABA0P+mXyNryDn1Ta4g==}
-    engines: {node: '>=22'}
-    peerDependencies:
-      '@types/react': ^18 || ^19
-      react: ^18 || ^19
-      react-dom: ^18 || ^19
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-
-  '@raystack/apsara@0.53.6':
-    resolution: {integrity: sha512-JbrZbGX0OUujiBok0zBdX8nlbH6g7FB7WFHShDhN8Yav63yQOW5ZTu5a2TOwf95sXCwcdJBPonvn4aUeCzLJUg==}
     engines: {node: '>=22'}
     peerDependencies:
       '@types/react': ^18 || ^19
@@ -9602,28 +9591,6 @@ snapshots:
       cmdk: 1.1.1(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       color: 5.0.3
       dayjs: 1.11.19
-      radix-ui: 1.4.3(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react: 18.3.1
-      react-day-picker: 9.13.0(react@18.3.1)
-      react-dom: 18.3.1(react@18.3.1)
-      sonner: 2.0.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-    optionalDependencies:
-      '@types/react': 18.3.27
-    transitivePeerDependencies:
-      - '@types/react-dom'
-
-  '@raystack/apsara@0.53.6(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@ariakit/react': 0.4.21(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@radix-ui/react-icons': 1.3.2(react@18.3.1)
-      '@tanstack/match-sorter-utils': 8.19.4
-      '@tanstack/react-table': 8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/table-core': 8.21.3
-      class-variance-authority: 0.7.1
-      cmdk: 1.1.1(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      color: 5.0.3
-      dayjs: 1.11.19
-      prism-react-renderer: 2.4.1(react@18.3.1)
       radix-ui: 1.4.3(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
       react-day-picker: 9.13.0(react@18.3.1)
