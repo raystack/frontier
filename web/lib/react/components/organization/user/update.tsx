@@ -20,7 +20,19 @@ import { createConnectQueryKey } from '@connectrpc/connect-query';
 const generalSchema = yup
   .object({
     avatar: yup.string().optional(),
-    title: yup.string().required('Name is required'),
+    title: yup
+      .string()
+      .required('Name is required')
+      .min(2, 'Name must be at least 2 characters')
+      .matches(
+        /^[a-zA-Z\s'-]+$/,
+        'Name can only contain letters, spaces, hyphens, and apostrophes'
+      )
+      .test('has-two-words', 'Please enter both first and last name', value => {
+        if (!value) return false;
+        const words = value.trim().split(/\s+/);
+        return words.length >= 2 && words.every(word => word.length > 0);
+      }),
     email: yup.string().email().required()
   })
   .required();
