@@ -89,6 +89,8 @@ type Preference struct {
 	Value        string    `json:"value"`
 	ResourceID   string    `json:"resource_id"`
 	ResourceType string    `json:"resource_type"`
+	ScopeType    string    `json:"scope_type"`
+	ScopeID      string    `json:"scope_id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
