@@ -44,6 +44,11 @@ const (
 	// user default traits
 	UserFirstName  = "first_name"
 	UserNewsletter = "newsletter"
+
+	// Zero values for global/unscoped preferences
+	// Used instead of NULL for PostgreSQL 14 compatibility
+	ScopeTypeGlobal = "app/platform"
+	ScopeIDGlobal   = "00000000-0000-0000-0000-000000000000"
 )
 
 type Trait struct {
