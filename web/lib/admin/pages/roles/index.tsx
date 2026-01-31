@@ -1,25 +1,43 @@
 import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
-import {
-  Outlet,
-  useNavigate,
-  useOutletContext,
-  useParams,
-} from "react-router-dom";
+import { useCallback, useState } from "react";
 
-import { reduceByKey } from "~/utils/helper";
+import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
 import { RolesHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import PageTitle from "~/components/page-title";
+import { PageTitle } from "../../components/PageTitle";
 import styles from "./roles.module.css";
-import { SheetHeader } from "~/components/sheet/header";
+import { SheetHeader } from "../../components/SheetHeader";
 import { FrontierServiceQueries, Role } from "@raystack/proton/frontier";
 import { useQuery } from "@connectrpc/connect-query";
 
-type ContextType = { role: Role | null };
-export default function RoleList() {
-  const { roleId } = useParams();
-  const navigate = useNavigate();
+import RoleDetails from "./details";
+
+export type RolesPageProps = {
+  selectedRoleId?: string;
+  onSelectRole?: (roleId: string) => void;
+  onCloseDetail?: () => void;
+  appName?: string;
+};
+
+export default function RolesPage({
+  selectedRoleId: controlledRoleId,
+  onSelectRole,
+  onCloseDetail,
+  appName,
+}: RolesPageProps = {}) {
+  const [internalRoleId, setInternalRoleId] = useState<string | undefined>();
+
+  const selectedRoleId = controlledRoleId ?? internalRoleId;
+  const handleClose = useCallback(
+    () => (onCloseDetail ? onCloseDetail() : setInternalRoleId(undefined)),
+    [onCloseDetail]
+  );
+  const handleRowClick = useCallback(
+    (role: Role) =>
+      onSelectRole ? onSelectRole(role.id ?? "") : setInternalRoleId(role.id ?? undefined),
+    [onSelectRole]
+  );
 
   const {
     data: roles = [],
@@ -35,12 +53,6 @@ export default function RoleList() {
   );
   const roleMapByName = reduceByKey(roles ?? [], "id");
 
-  function onClose() {
-    navigate("/roles");
-  }
-  function onRowClick(role: Role) {
-    navigate(`${encodeURIComponent(role.id ?? "")}`);
-  }
   if (isError) {
     console.error("ConnectRPC Error:", error);
     return (
@@ -58,14 +70,14 @@ export default function RoleList() {
   const columns = getColumns();
   return (
     <DataTable
-      onRowClick={onRowClick}
+      onRowClick={handleRowClick}
       data={roles}
       columns={columns}
       mode="client"
       defaultSort={{ name: "title", order: "asc" }}
       isLoading={isLoading}>
       <Flex direction="column">
-        <PageTitle title="Roles" />
+        <PageTitle title="Roles" appName={appName} />
         <RolesHeader />
         <DataTable.Content
           emptyState={noDataChildren}
@@ -74,18 +86,16 @@ export default function RoleList() {
             table: styles.table,
           }}
         />
-        <Sheet open={roleId !== undefined}>
+        <Sheet open={selectedRoleId !== undefined}>
           <Sheet.Content className={styles.sheetContent}>
             <SheetHeader
               title="Role Details"
-              onClick={onClose}
-              data-test-id="role-details-header"
+              onClick={handleClose}
+              data-testid="role-details-header"
             />
             <Flex className={styles.sheetContentBody}>
-              <Outlet
-                context={{
-                  role: roleId ? roleMapByName[roleId] : null,
-                }}
+              <RoleDetails
+                role={selectedRoleId ? roleMapByName[selectedRoleId] ?? null : null}
               />
             </Flex>
           </Sheet.Content>
@@ -93,10 +103,6 @@ export default function RoleList() {
       </Flex>
     </DataTable>
   );
-}
-
-export function useRole() {
-  return useOutletContext<ContextType>();
 }
 
 export const noDataChildren = (

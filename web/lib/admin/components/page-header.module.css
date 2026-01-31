@@ -1,0 +1,42 @@
+.breadcrumb {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  font-size: 16px;
+}
+
+.breadcrumb a {
+  text-decoration: none;
+  color: #007bff;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.breadcrumb a::before {
+  content: ">";
+  color: #666;
+}
+
+.breadcrumb a:first-child::before {
+  content: "";
+}
+
+.breadcrumb a:last-child {
+  margin-right: 0;
+}
+
+.breadcrumbItem {
+  margin-right: 5px;
+}
+
+.breadcrumbItem::before {
+  content: ">";
+  color: #666;
+  margin-right: 5px;
+}
+
+.breadcrumbItem:first-of-type::before {
+  content: "";
+  margin-right: 0;
+}

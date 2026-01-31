@@ -19,8 +19,7 @@ import ProductList from "./containers/products.list";
 import ProductDetails from "./containers/products.list/details";
 import ProductPrices from "./containers/products.list/prices";
 
-import Roles from "./containers/roles.list";
-import RoleDetails from "./containers/roles.list/details";
+import { RolesPageWithRouter } from "./pages/roles/RolesPageWithRouter";
 
 import { AppContext } from "./contexts/App";
 import { SuperAdminList } from "./containers/super_admins/list";
@@ -90,9 +89,9 @@ export default memo(function AppRoutes() {
           <Route path=":planId" element={<PlanDetails />} />
         </Route>
 
-        <Route path="roles" element={<Roles />}>
-          <Route path=":roleId" element={<RoleDetails />} />
-        </Route>
+        <Route path="roles" element={<RolesPageWithRouter />} />
+        <Route path="roles/:roleId" element={<RolesPageWithRouter />} />
+        
         <Route path="products" element={<ProductList />}>
           <Route path=":productId" element={<ProductDetails />} />
         </Route>
