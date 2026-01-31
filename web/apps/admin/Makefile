@@ -9,4 +9,4 @@ test:
 	@pnpm run test
 
 dep:
-	@pnpm install --legacy-peer-deps -f
+	@pnpm install
