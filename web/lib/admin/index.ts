@@ -2,7 +2,6 @@
 
 export { default as RolesPage } from "./pages/roles";
 export { default as InvoicesPage } from "./pages/invoices";
-export { InvoicesIcon } from "./assets/icons/InvoicesIcon";
 export {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
