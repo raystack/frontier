@@ -1,7 +1,9 @@
 "use client";
 
+// pages exports
 export { default as RolesPage } from "./pages/roles";
 export { default as InvoicesPage } from "./pages/invoices";
+export { ProductsPage, ProductPricesPage } from "./pages/products/exports";
 
 // utils exports
 export {
