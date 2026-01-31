@@ -8,9 +8,9 @@ export {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
   getGroupCountMapFromFirstPage,
+  type ConnectRPCPaginatedResponse,
 } from "./utils/connect-pagination";
-export type { ConnectRPCPaginatedResponse } from "./utils/connect-pagination";
 export {
   transformDataTableQueryToRQLRequest,
+  type TransformOptions,
 } from "./utils/transform-query";
-export type { TransformOptions } from "./utils/transform-query";
