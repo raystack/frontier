@@ -2,6 +2,8 @@
 
 export { default as RolesPage } from "./pages/roles";
 export { default as InvoicesPage } from "./pages/invoices";
+
+// utils exports
 export {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
