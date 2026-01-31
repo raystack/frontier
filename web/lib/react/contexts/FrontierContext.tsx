@@ -245,11 +245,10 @@ export const FrontierContextProvider = ({
       FrontierServiceQueries.getBillingAccount,
       create(GetBillingAccountRequestSchema, {
         id: billingAccountId,
-        orgId: activeOrganization?.id ?? '',
         withPaymentMethods: true,
         withBillingDetails: true
       }),
-      { enabled: !!activeOrganization?.id && !!billingAccountId }
+      { enabled: !!billingAccountId }
     );
 
   const billingAccount = billingAccountData?.billingAccount;

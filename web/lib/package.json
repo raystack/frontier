@@ -98,7 +98,7 @@
     "@connectrpc/connect-query": "^2.1.1",
     "@connectrpc/connect-web": "^2.0.2",
     "@hookform/resolvers": "^3.10.0",
-    "@raystack/proton": "0.1.0-80fc5ba1e538e38d5ca190386af1e69ee64584ee",
+    "@raystack/proton": "0.1.0-b1687af73f994fa9612a023c850aa97c35735af8",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "1.58.17",
     "axios": "^1.9.0",

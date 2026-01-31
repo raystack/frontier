@@ -1,6 +1,7 @@
 # Build the UI
-FROM node:18-alpine3.18 as admin-builder
-RUN apk add --no-cache make
+FROM node:20-alpine as admin-builder
+RUN apk add --no-cache make git
+RUN npm install -g pnpm@9.3.0
 WORKDIR /app
 
 COPY web/apps/admin ./web/apps/admin
