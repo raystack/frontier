@@ -73,6 +73,8 @@ func (t Trait) GetValidator() PreferenceValidator {
 		return NewBooleanValidator()
 	case TraitInputText, TraitInputTextarea:
 		return NewTextValidator()
+	case TraitInputSelect, TraitInputCombobox:
+		return NewSelectValidator(t.InputHints)
 	default:
 		return NewTextValidator()
 	}
