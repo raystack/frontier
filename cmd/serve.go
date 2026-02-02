@@ -326,7 +326,12 @@ func buildAPIDependencies(
 	resourceBlobRepository *blob.ResourcesRepository,
 	planBlobRepository *blob.PlanRepository,
 ) (api.Deps, error) {
-	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
+	// Load custom traits from config file if specified
+	traits, err := preference.LoadTraitsFromFile(cfg.App.CustomTraitsPath)
+	if err != nil {
+		return api.Deps{}, fmt.Errorf("failed to load custom traits: %w", err)
+	}
+	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc), traits)
 
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
