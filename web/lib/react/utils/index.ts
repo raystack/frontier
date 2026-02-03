@@ -124,6 +124,13 @@ export const checkSimilarPlans = (
   return plan1Slug === plan2Slug;
 };
 
+/**
+ * Formats a number or bigint as a locale-aware string (e.g. with thousand separators).
+ * Uses the runtime's default locale (e.g. the user's browser/system language).
+ *
+ * @param num - The number or bigint to format. Defaults to 0.
+ * @returns The formatted string (e.g. "1,234,567" in user's locale).
+ */
 export function getFormattedNumberString(num: number | bigint = 0) {
   return num.toLocaleString();
 }
