@@ -13,19 +13,19 @@ import { useQuery } from "@connectrpc/connect-query";
 
 import RoleDetails from "./details";
 
-export type RolesPageProps = {
+export type RolesViewProps = {
   selectedRoleId?: string;
   onSelectRole?: (roleId: string) => void;
   onCloseDetail?: () => void;
   appName?: string;
 };
 
-export default function RolesPage({
+export default function RolesView({
   selectedRoleId: controlledRoleId,
   onSelectRole,
   onCloseDetail,
   appName,
-}: RolesPageProps = {}) {
+}: RolesViewProps = {}) {
   const [internalRoleId, setInternalRoleId] = useState<string | undefined>();
 
   const selectedRoleId = controlledRoleId ?? internalRoleId;
