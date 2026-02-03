@@ -104,7 +104,7 @@ export const exportCsvFromStream = async <T>(
     }
   }
 
-  const blob = new Blob(chunks, { type: "text/csv" });
+  const blob = new Blob(chunks as BlobPart[], { type: "text/csv" });
   downloadFile(blob, filename);
 };
 
