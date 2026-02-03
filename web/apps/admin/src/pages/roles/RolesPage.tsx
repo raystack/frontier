@@ -1,7 +1,7 @@
 import { RolesView } from "@raystack/frontier/admin";
 import { useParams, useNavigate } from "react-router-dom";
 
-export function RolesPageWithRouter() {
+export function RolesPage() {
   const { roleId } = useParams();
   const navigate = useNavigate();
 
