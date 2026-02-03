@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { Flex, Text } from "@raystack/apsara";
 
@@ -22,7 +23,7 @@ export function SheetHeader({ title, onClick, "data-testid": dataTestId }: Sheet
   );
 }
 
-const styles: { header: React.CSSProperties } = {
+const styles: { header: CSSProperties } = {
   header: {
     padding: "18px 32px",
     borderBottom: "1px solid var(--rs-color-border-base-primary)",
