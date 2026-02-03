@@ -44,6 +44,11 @@ const (
 	// user default traits
 	UserFirstName  = "first_name"
 	UserNewsletter = "newsletter"
+
+	// Zero values for global/unscoped preferences
+	// Used instead of NULL for PostgreSQL 14 compatibility
+	ScopeTypeGlobal = "app/platform"
+	ScopeIDGlobal   = "00000000-0000-0000-0000-000000000000"
 )
 
 type Trait struct {
@@ -84,6 +89,8 @@ type Preference struct {
 	Value        string    `json:"value"`
 	ResourceID   string    `json:"resource_id"`
 	ResourceType string    `json:"resource_type"`
+	ScopeType    string    `json:"scope_type"`
+	ScopeID      string    `json:"scope_id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
