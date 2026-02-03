@@ -29,6 +29,15 @@ func (s *PreferenceRepository) Set(ctx context.Context, pref preference.Preferen
 	if pref.ID == "" {
 		pref.ID = uuid.New().String()
 	}
+	// Use zero values for scope if not provided (global/unscoped preference)
+	scopeType := pref.ScopeType
+	if scopeType == "" {
+		scopeType = preference.ScopeTypeGlobal
+	}
+	scopeID := pref.ScopeID
+	if scopeID == "" {
+		scopeID = preference.ScopeIDGlobal
+	}
 	query, params, err := dialect.Insert(TABLE_PREFERENCES).Rows(
 		goqu.Record{
 			"id":            pref.ID,
@@ -36,8 +45,10 @@ func (s *PreferenceRepository) Set(ctx context.Context, pref preference.Preferen
 			"value":         pref.Value,
 			"resource_type": pref.ResourceType,
 			"resource_id":   pref.ResourceID,
+			"scope_type":    scopeType,
+			"scope_id":      scopeID,
 			"updated_at":    goqu.L("NOW()"),
-		}).OnConflict(goqu.DoUpdate("resource_type, resource_id, name",
+		}).OnConflict(goqu.DoUpdate("resource_type, resource_id, scope_type, scope_id, name",
 		goqu.Record{
 			"value":      pref.Value,
 			"updated_at": time.Now().UTC(),
