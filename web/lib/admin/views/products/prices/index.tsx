@@ -1,8 +1,7 @@
-import { DataTable } from "@raystack/apsara";
-import { Flex, EmptyState } from "@raystack/apsara";
+import type { ReactNode } from "react";
+import { Flex, EmptyState, DataTable } from "@raystack/apsara";
 import { useQuery } from "@connectrpc/connect-query";
-import { FrontierServiceQueries } from "@raystack/proton/frontier";
-import type { Product } from "@raystack/proton/frontier";
+import { FrontierServiceQueries, type Product } from "@raystack/proton/frontier";
 import { ProductsHeader } from "../header";
 import { getColumns } from "./columns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
@@ -85,6 +84,6 @@ export const noDataChildren = (
   <EmptyState icon={<ExclamationTriangleIcon />} heading="0 prices found" />
 );
 
-export const TableDetailContainer = ({ children }: { children: React.ReactNode }) => (
+export const TableDetailContainer = ({ children }: { children: ReactNode }) => (
   <div>{children}</div>
 );
