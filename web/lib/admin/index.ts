@@ -1,6 +1,6 @@
 "use client";
 
-export { default as RolesPage } from "./pages/roles";
+export { default as RolesView } from "./views/roles";
 export { default as InvoicesPage } from "./pages/invoices";
 
 // utils exports
