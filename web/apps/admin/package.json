@@ -19,7 +19,7 @@
     "@radix-ui/react-form": "^0.0.2",
     "@radix-ui/react-icons": "^1.3.0",
     "@raystack/apsara": "^0.53.2",
-    "@raystack/frontier": "^0.78.0",
+    "@raystack/frontier": "workspace:^",
     "@raystack/proton": "0.1.0-b1687af73f994fa9612a023c850aa97c35735af8",
     "@stitches/react": "^1.2.8",
     "@tanstack/react-query": "^5.83.0",

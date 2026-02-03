@@ -19,12 +19,17 @@ type Repository interface {
 }
 
 type Service struct {
-	repo Repository
+	repo   Repository
+	traits []Trait
 }
 
-func NewService(repo Repository) *Service {
+func NewService(repo Repository, traits []Trait) *Service {
+	if traits == nil {
+		traits = DefaultTraits
+	}
 	return &Service{
-		repo: repo,
+		repo:   repo,
+		traits: traits,
 	}
 }
 
@@ -60,7 +65,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Preference, error)
 }
 
 func (s *Service) Describe(ctx context.Context) []Trait {
-	return DefaultTraits
+	return s.traits
 }
 
 // LoadPlatformPreferences loads platform preferences from the database
@@ -84,7 +89,7 @@ func (s *Service) LoadPlatformPreferences(ctx context.Context) (map[string]strin
 	}
 
 	// load default platform config if not set in preferences already
-	for _, t := range DefaultTraits {
+	for _, t := range s.traits {
 		if t.ResourceType == schema.PlatformNamespace && prefs[t.Name] == "" {
 			prefs[t.Name] = t.Default
 		}
