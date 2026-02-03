@@ -44,27 +44,32 @@ const (
 	// user default traits
 	UserFirstName  = "first_name"
 	UserNewsletter = "newsletter"
+
+	// Zero values for global/unscoped preferences
+	// Used instead of NULL for PostgreSQL 14 compatibility
+	ScopeTypeGlobal = "app/platform"
+	ScopeIDGlobal   = "00000000-0000-0000-0000-000000000000"
 )
 
 type Trait struct {
 	// Level at which the trait is applicable (say "platform", "organization", "user")
-	ResourceType string `json:"resource_type"`
+	ResourceType string `json:"resource_type" yaml:"resource_type"`
 	// Name of the trait (say "disable_orgs_on_create", "disable_orgs_listing", "disable_users_listing", "invite_with_roles", "invite_mail_template_subject", "invite_mail_template_body")
-	Name string `json:"name"`
+	Name string `json:"name" yaml:"name"`
 	// Readable name of the trait (say "Disable Orgs On Create", "Disable Orgs Listing")
-	Title           string `json:"title"`
-	Description     string `json:"description"`
-	LongDescription string `json:"long_description"`
-	Heading         string `json:"heading"`
-	SubHeading      string `json:"sub_heading"`
+	Title           string `json:"title" yaml:"title"`
+	Description     string `json:"description" yaml:"description"`
+	LongDescription string `json:"long_description" yaml:"long_description"`
+	Heading         string `json:"heading" yaml:"heading"`
+	SubHeading      string `json:"sub_heading" yaml:"sub_heading"`
 	// Breadcrumb to be used to group the trait with other traits (say "Platform.Settings.Authentication", "Platform.Settings.Invitation")
-	Breadcrumb string `json:"breadcrumb"`
+	Breadcrumb string `json:"breadcrumb" yaml:"breadcrumb"`
 	// Type of input to be used to collect the value for the trait (say "text", "select", "checkbox", etc.)
-	Input TraitInput `json:"input"`
+	Input TraitInput `json:"input" yaml:"input"`
 	// Acceptable values to be provided in the input (say "true,false") for a TraitInput of type Checkbox
-	InputHints string `json:"input_hints"`
+	InputHints string `json:"input_hints" yaml:"input_hints"`
 	// Default value to be used for the trait if the preference is not set (say "true" for a TraitInput of type Checkbox)
-	Default string `json:"default"`
+	Default string `json:"default" yaml:"default"`
 }
 
 func (t Trait) GetValidator() PreferenceValidator {
@@ -73,6 +78,8 @@ func (t Trait) GetValidator() PreferenceValidator {
 		return NewBooleanValidator()
 	case TraitInputText, TraitInputTextarea:
 		return NewTextValidator()
+	case TraitInputSelect, TraitInputCombobox:
+		return NewSelectValidator(t.InputHints)
 	default:
 		return NewTextValidator()
 	}
@@ -84,6 +91,8 @@ type Preference struct {
 	Value        string    `json:"value"`
 	ResourceID   string    `json:"resource_id"`
 	ResourceType string    `json:"resource_type"`
+	ScopeType    string    `json:"scope_type"`
+	ScopeID      string    `json:"scope_id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }

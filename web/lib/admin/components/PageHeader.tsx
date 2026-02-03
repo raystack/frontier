@@ -1,4 +1,4 @@
-import React from "react";
+import type { CSSProperties, PropsWithChildren } from "react";
 import { Flex, Text } from "@raystack/apsara";
 import styles from "./page-header.module.css";
 
@@ -8,7 +8,7 @@ export type PageHeaderTypes = {
   // eslint-disable-next-line no-unused-vars -- callback param name is for type documentation
   onBreadcrumbClick?: (item: { name: string; href?: string }) => void;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
 export function PageHeader({
@@ -19,7 +19,7 @@ export function PageHeader({
   className,
   style = {},
   ...props
-}: React.PropsWithChildren<PageHeaderTypes>) {
+}: PropsWithChildren<PageHeaderTypes>) {
   return (
     <Flex
       align="center"
