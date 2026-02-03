@@ -1,7 +1,7 @@
 import { ProductsView } from "@raystack/frontier/admin";
 import { useParams, useNavigate } from "react-router-dom";
 
-export function ProductsPageWithRouter() {
+export function ProductsPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
 

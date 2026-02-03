@@ -15,9 +15,10 @@ import MagicLink from "./containers/magiclink";
 import PreferencesList from "./containers/preferences.list";
 import PreferenceDetails from "./containers/preferences.list/details";
 import PreferencesLayout from "./containers/preferences.list/layout";
-import { RolesPageWithRouter } from "./pages/roles/RolesPageWithRouter";
-import { ProductsPageWithRouter } from "./pages/products/ProductsPageWithRouter";
-import { ProductPricesPageWithRouter } from "./pages/products/ProductPricesPageWithRouter";
+import { ProductsPage } from "./pages/products/ProductsPage";
+import { ProductPricesPage } from "./pages/products/ProductPricesPage";
+
+import { RolesPage } from "./pages/roles/RolesPage";
 
 import { AppContext } from "./contexts/App";
 import { SuperAdminList } from "./containers/super_admins/list";
@@ -39,7 +40,7 @@ import { UsersList } from "./pages/users/list";
 import { UserDetails } from "./pages/users/details";
 import { UserDetailsSecurityPage } from "./pages/users/details/security";
 
-import { InvoicesPageWithRouter } from "./pages/invoices/InvoicesPageWithRouter";
+import { InvoicesPage } from "./pages/invoices/InvoicesPage";
 import { AuditLogsList } from "./pages/audit-logs/list";
 
 export default memo(function AppRoutes() {
@@ -87,19 +88,19 @@ export default memo(function AppRoutes() {
           <Route path=":planId" element={<PlanDetails />} />
         </Route>
 
-        <Route path="roles" element={<RolesPageWithRouter />} />
-        <Route path="roles/:roleId" element={<RolesPageWithRouter />} />
+        <Route path="roles" element={<RolesPage />} />
+        <Route path="roles/:roleId" element={<RolesPage />} />
         
-        <Route path="products" element={<ProductsPageWithRouter />} />
-        <Route path="products/:productId" element={<ProductsPageWithRouter />} />
-        <Route path="products/:productId/prices" element={<ProductPricesPageWithRouter />} />
+        <Route path="products" element={<ProductsPage />} />
+        <Route path="products/:productId" element={<ProductsPage />} />
+        <Route path="products/:productId/prices" element={<ProductPricesPage />} />
 
         <Route path="preferences" element={<PreferencesLayout />}>
           <Route path="" element={<PreferencesList />} />
           <Route path=":name" element={<PreferenceDetails />} />
         </Route>
 
-        <Route path="invoices" element={<InvoicesPageWithRouter />} />
+        <Route path="invoices" element={<InvoicesPage />} />
         <Route path="super-admins" element={<SuperAdminList />} />
         <Route path="webhooks" element={<WebhooksList />}>
           <Route path="create" element={<CreateWebhooks />} />
