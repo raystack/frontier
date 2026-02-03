@@ -143,4 +143,4 @@ export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
       </DataTable>
     </>
   );
-};
+}
