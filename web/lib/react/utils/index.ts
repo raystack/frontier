@@ -129,10 +129,11 @@ export const checkSimilarPlans = (
  * Uses the runtime's default locale (e.g. the user's browser/system language).
  *
  * @param num - The number or bigint to format. Defaults to 0.
- * @returns The formatted string (e.g. "1,234,567" in user's locale).
+ * @param locale - The locale to use for formatting. Defaults to the runtime's default locale.
+ * @returns The formatted string (e.g. "1,234,567" in given locale).
  */
-export function getFormattedNumberString(num: number | bigint = 0) {
-  return num.toLocaleString();
+export function getFormattedNumberString(num: number | bigint = 0, locale?: string) {
+  return num.toLocaleString(locale);
 }
 
 interface getPlanNameWithIntervalOptions {

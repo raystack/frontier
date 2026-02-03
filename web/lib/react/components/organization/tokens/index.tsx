@@ -84,7 +84,8 @@ function BalancePanel({
   onAddTokenClick,
   canUpdateWorkspace
 }: BalancePanelProps) {
-  const formattedBalance = getFormattedNumberString(balance);
+  const { config } = useFrontier();
+  const formattedBalance = getFormattedNumberString(balance, config?.locale);
   const disableAddTokensBtn = isLoading || !canUpdateWorkspace;
   return (
     <Flex className={tokenStyles.balancePanel} justify="between">
