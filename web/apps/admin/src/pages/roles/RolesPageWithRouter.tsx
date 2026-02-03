@@ -1,4 +1,4 @@
-import { RolesPage } from "@raystack/frontier/admin";
+import { RolesView } from "@raystack/frontier/admin";
 import { useParams, useNavigate } from "react-router-dom";
 
 export function RolesPageWithRouter() {
@@ -6,7 +6,7 @@ export function RolesPageWithRouter() {
   const navigate = useNavigate();
 
   return (
-    <RolesPage
+    <RolesView
       selectedRoleId={roleId}
       onSelectRole={(id) => navigate(`/roles/${encodeURIComponent(id)}`)}
       onCloseDetail={() => navigate("/roles")}

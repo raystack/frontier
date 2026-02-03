@@ -1,3 +1,3 @@
 "use client";
 
-export { default as RolesPage } from "./pages/roles";
+export { default as RolesView } from "./views/roles";
