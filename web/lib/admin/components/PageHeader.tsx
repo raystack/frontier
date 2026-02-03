@@ -1,3 +1,4 @@
+import type { CSSProperties, PropsWithChildren } from "react";
 import { Flex, Text } from "@raystack/apsara";
 import styles from "./page-header.module.css";
 
@@ -5,7 +6,7 @@ export type PageHeaderTypes = {
   title: string;
   breadcrumb: { name: string; href?: string }[];
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
 export function PageHeader({
@@ -15,7 +16,7 @@ export function PageHeader({
   className,
   style = {},
   ...props
-}: React.PropsWithChildren<PageHeaderTypes>) {
+}: PropsWithChildren<PageHeaderTypes>) {
   return (
     <Flex
       align="center"
