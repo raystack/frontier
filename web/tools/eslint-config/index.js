@@ -1,7 +1,6 @@
 /* eslint-disable strict */
 const extendsList = [
   'next',
-  ...(process.env.ESLINT_SKIP_TURBO === '1' ? [] : ['turbo']),
   'prettier',
   "eslint:recommended",
   'plugin:test-selectors/recommended'
