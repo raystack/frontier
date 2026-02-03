@@ -41,7 +41,7 @@ import { UsersList } from "./pages/users/list";
 import { UserDetails } from "./pages/users/details";
 import { UserDetailsSecurityPage } from "./pages/users/details/security";
 
-import { InvoicesPageWithRouter } from "./pages/invoices/InvoicesPageWithRouter";
+import { InvoicesPage } from "./pages/invoices/InvoicesPage";
 import { AuditLogsList } from "./pages/audit-logs/list";
 
 export default memo(function AppRoutes() {
@@ -103,7 +103,7 @@ export default memo(function AppRoutes() {
           <Route path=":name" element={<PreferenceDetails />} />
         </Route>
 
-        <Route path="invoices" element={<InvoicesPageWithRouter />} />
+        <Route path="invoices" element={<InvoicesPage />} />
         <Route path="super-admins" element={<SuperAdminList />} />
         <Route path="webhooks" element={<WebhooksList />}>
           <Route path="create" element={<CreateWebhooks />} />

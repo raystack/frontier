@@ -1,5 +1,5 @@
 import { InvoicesView } from "@raystack/frontier/admin";
 
-export function InvoicesPageWithRouter() {
+export function InvoicesPage() {
   return <InvoicesView />;
 }
