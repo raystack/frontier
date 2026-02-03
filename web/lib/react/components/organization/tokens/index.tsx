@@ -72,7 +72,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
 };
 
 interface BalancePanelProps {
-  balance: number;
+  balance: bigint;
   isLoading: boolean;
   onAddTokenClick: () => void;
   canUpdateWorkspace: boolean;
@@ -132,7 +132,7 @@ function BalancePanel({
 }
 
 interface TokenInfoBoxProps {
-  balance: number;
+  balance: bigint;
   isLoading: boolean;
   canUpdateWorkspace: boolean;
 }

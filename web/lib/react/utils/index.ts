@@ -124,27 +124,8 @@ export const checkSimilarPlans = (
   return plan1Slug === plan2Slug;
 };
 
-export function getFormattedNumberString(num: Number = 0) {
-  const numString = num.toString();
-  const isNegative = numString.startsWith('-');
-  const sign = isNegative ? '-' : '';
-  const withoutSign = isNegative ? numString.slice(1) : numString;
-  const [integerPart, decimalPart] = withoutSign.split('.');
-
-  const length = integerPart.length;
-  const formattedInteger = integerPart.split('').reduce((acc, val, i) => {
-    const diff = length - i;
-    if (diff % 3 === 0 && diff < length) {
-      return acc + ',' + val;
-    }
-    return acc + val;
-  }, '');
-
-  return (
-    sign +
-    formattedInteger +
-    (decimalPart !== undefined ? '.' + decimalPart : '')
-  );
+export function getFormattedNumberString(num: number | bigint = 0) {
+  return num.toLocaleString('en-US');
 }
 
 interface getPlanNameWithIntervalOptions {
