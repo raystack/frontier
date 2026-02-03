@@ -172,11 +172,11 @@ func (s *PreferenceRepositoryTestSuite) TestListWithScopeFilter() {
 	s.Require().NoError(err)
 
 	type testCase struct {
-		Description     string
-		Filter          preference.Filter
-		ExpectedCount   int
-		ExpectedValue   string
-		ExpectedName    string
+		Description   string
+		Filter        preference.Filter
+		ExpectedCount int
+		ExpectedValue string
+		ExpectedName  string
 	}
 
 	var testCases = []testCase{
