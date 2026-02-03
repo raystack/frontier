@@ -125,7 +125,7 @@ export const checkSimilarPlans = (
 };
 
 export function getFormattedNumberString(num: number | bigint = 0) {
-  return num.toLocaleString('en-US');
+  return num.toLocaleString();
 }
 
 interface getPlanNameWithIntervalOptions {
