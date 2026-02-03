@@ -5,7 +5,7 @@ import {
   EmptyState,
   Flex,
 } from "@raystack/apsara";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { PageTitle } from "../../components/PageTitle";
 import { InvoicesNavabar } from "./navbar";
 import styles from "./invoices.module.css";
@@ -40,9 +40,9 @@ const INITIAL_QUERY: DataTableQuery = {
   limit: DEFAULT_PAGE_SIZE,
 };
 
-export type InvoicesPageProps = { appName?: string };
+export type InvoicesViewProps = { appName?: string };
 
-export default function InvoicesPage({ appName }: InvoicesPageProps = {}) {
+export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
