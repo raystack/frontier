@@ -1,4 +1,4 @@
-import { ProductsPage } from "@raystack/frontier/admin";
+import { ProductsView } from "@raystack/frontier/admin";
 import { useParams, useNavigate } from "react-router-dom";
 
 export function ProductsPageWithRouter() {
@@ -6,7 +6,7 @@ export function ProductsPageWithRouter() {
   const navigate = useNavigate();
 
   return (
-    <ProductsPage
+    <ProductsView
       selectedProductId={productId}
       onSelectProduct={(id) => navigate(`/products/${encodeURIComponent(id)}`)}
       onCloseDetail={() => navigate("/products")}

@@ -10,7 +10,7 @@ import styles from "./products.module.css";
 import { PageTitle } from "../../components/PageTitle";
 import ProductDetails from "./details";
 
-export type ProductsPageProps = {
+export type ProductsViewProps = {
   selectedProductId?: string;
   onSelectProduct?: (productId: string) => void;
   onCloseDetail?: () => void;
@@ -18,13 +18,13 @@ export type ProductsPageProps = {
   appName?: string;
 };
 
-export default function ProductsPage({
+export default function ProductsView({
   selectedProductId,
   onSelectProduct,
   onCloseDetail,
   onNavigateToPrices,
   appName,
-}: ProductsPageProps = {}) {
+}: ProductsViewProps = {}) {
   const {
     data: productsResponse,
     isLoading: isProductsLoading,

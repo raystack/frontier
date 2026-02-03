@@ -8,17 +8,17 @@ import { getColumns } from "./columns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { PageTitle } from "../../../components/PageTitle";
 
-export type ProductPricesPageProps = {
+export type ProductPricesViewProps = {
   productId: string;
   appName?: string;
   onBreadcrumbClick?: (item: { name: string; href?: string }) => void;
 };
 
-export default function ProductPricesPage({
+export default function ProductPricesView({
   productId,
   appName,
   onBreadcrumbClick,
-}: ProductPricesPageProps) {
+}: ProductPricesViewProps) {
   const {
     data: productResponse,
     isLoading: isProductLoading,

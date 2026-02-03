@@ -1,4 +1,4 @@
-import { ProductPricesPage } from "@raystack/frontier/admin";
+import { ProductPricesView } from "@raystack/frontier/admin";
 import { useParams, useNavigate } from "react-router-dom";
 
 export function ProductPricesPageWithRouter() {
@@ -6,7 +6,7 @@ export function ProductPricesPageWithRouter() {
   const navigate = useNavigate();
 
   return (
-    <ProductPricesPage
+    <ProductPricesView
       productId={productId ?? ""}
       onBreadcrumbClick={(item) => {
         if (item.href) navigate(item.href);

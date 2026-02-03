@@ -1,9 +1,9 @@
 "use client";
 
-// pages exports
+// views exports
 export { default as RolesView } from "./views/roles";
 export { default as InvoicesView } from "./views/invoices";
-export { ProductsPage, ProductPricesPage } from "./pages/products/exports";
+export { ProductsView, ProductPricesView } from "./views/products/exports";
 
 // utils exports
 export {
