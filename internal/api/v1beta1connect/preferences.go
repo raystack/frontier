@@ -152,9 +152,10 @@ func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect
 func (h *ConnectHandler) ListUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListUserPreferencesRequest]) (*connect.Response[frontierv1beta1.ListUserPreferencesResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	// LoadUserPreferences handles the scope-based behavior:
-	// - With scope: returns complete preference set (DB values + trait defaults)
-	// - Without scope: returns only DB preferences
+	// LoadUserPreferences returns complete preference set with priority:
+	// 1. Scoped DB values (if scope provided)
+	// 2. Global DB values
+	// 3. Trait defaults
 	prefs, err := h.preferenceService.LoadUserPreferences(ctx, preference.Filter{
 		UserID:    req.Msg.GetId(),
 		ScopeType: req.Msg.GetScopeType(),
@@ -222,9 +223,10 @@ func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *co
 		return nil, err
 	}
 
-	// LoadUserPreferences handles the scope-based behavior:
-	// - With scope: returns complete preference set (DB values + trait defaults)
-	// - Without scope: returns only DB preferences
+	// LoadUserPreferences returns complete preference set with priority:
+	// 1. Scoped DB values (if scope provided)
+	// 2. Global DB values
+	// 3. Trait defaults
 	prefs, err := h.preferenceService.LoadUserPreferences(ctx, preference.Filter{
 		UserID:    principal.ID,
 		ScopeType: req.Msg.GetScopeType(),
