@@ -10988,6 +10988,22 @@ paths:
           in: path
           required: true
           type: string
+        - name: scope_type
+          description: |-
+            scope_type filters preferences by context type (e.g., "app/organization")
+            If empty, returns all user preferences (global + all scoped)
+            If set with scope_id, returns preferences for the specific scope,
+            with trait defaults for any unset preferences
+          in: query
+          required: false
+          type: string
+        - name: scope_id
+          description: |-
+            scope_id filters preferences by scope identifier (e.g., organization ID)
+            Only applicable when scope_type is set
+          in: query
+          required: false
+          type: string
       tags:
         - Preference
     post:

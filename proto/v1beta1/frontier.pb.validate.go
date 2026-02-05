@@ -43482,6 +43482,10 @@ func (m *ListUserPreferencesRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for ScopeType
+
+	// no validation rules for ScopeId
+
 	if len(errors) > 0 {
 		return ListUserPreferencesRequestMultiError(errors)
 	}
