@@ -107,8 +107,6 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUser":              true,
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByCurrentUser": true,
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser":      true,
-	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences":   true,
-	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":     true,
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations":     true,
 
 	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization":   true,
@@ -741,6 +739,28 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListUserPreferences": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.CreateCurrentUserPreferencesRequest])
+		// If scope is organization, verify user has access to the org.
+		// Other scope types (or invalid scopes) are validated by the handler against trait's AllowedScopes.
+		for _, body := range pbreq.Msg.GetBodies() {
+			if body.GetScopeType() == schema.OrganizationNamespace {
+				if err := handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: body.GetScopeId()}, schema.GetPermission, req); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.ListCurrentUserPreferencesRequest])
+		// If scope is organization, verify user has access to the org.
+		// Other scope types (or invalid scopes) are validated by the handler against trait's AllowedScopes.
+		if pbreq.Msg.GetScopeType() == schema.OrganizationNamespace {
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetScopeId()}, schema.GetPermission, req)
+		}
+		return nil
 	},
 
 	// metaschemas
