@@ -199,6 +199,7 @@ type PreferenceService interface {
 	Describe(ctx context.Context) []preference.Trait
 	List(ctx context.Context, filter preference.Filter) ([]preference.Preference, error)
 	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
+	LoadUserPreferences(ctx context.Context, filter preference.Filter) ([]preference.Preference, error)
 }
 
 type PolicyService interface {

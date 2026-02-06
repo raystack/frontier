@@ -58,6 +58,7 @@ var (
 	ErrInvalidPreferenceFilter     = errors.New("invalid preference filter set")
 	ErrTraitNotFound               = errors.New("preference trait not found, preferences can only be created with valid trait")
 	ErrInvalidPreferenceValue      = errors.New("invalid value for preference")
+	ErrInvalidPreferenceScope      = errors.New("invalid scope: trait does not support scoping or scope_type/scope_id must be provided together")
 	ErrMetaschemaNotFound          = errors.New("metaschema doesn't exist")
 	ErrSessionNotFound             = errors.New("session doesn't exist")
 	ErrInvalidSessionID            = errors.New("invalid session_id format: must be a valid UUID")
