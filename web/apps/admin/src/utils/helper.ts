@@ -104,7 +104,9 @@ export const exportCsvFromStream = async <T>(
     }
   }
 
-  const blob = new Blob(chunks, { type: "text/csv" });
+  // BlobPart is a DOM global type; no-undef doesn't recognize type-only refs
+  // eslint-disable-next-line no-undef
+  const blob = new Blob(chunks as BlobPart[], { type: "text/csv" });
   downloadFile(blob, filename);
 };
 
