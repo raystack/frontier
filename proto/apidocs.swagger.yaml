@@ -10988,6 +10988,22 @@ paths:
           in: path
           required: true
           type: string
+        - name: scope_type
+          description: |-
+            scope_type filters preferences by context type (e.g., "app/organization")
+            If empty, returns all user preferences (global + all scoped)
+            If set with scope_id, returns preferences for the specific scope,
+            with trait defaults for any unset preferences
+          in: query
+          required: false
+          type: string
+        - name: scope_id
+          description: |-
+            scope_id filters preferences by scope identifier (e.g., organization ID)
+            Only applicable when scope_type is set
+          in: query
+          required: false
+          type: string
       tags:
         - Preference
     post:
@@ -11320,6 +11336,23 @@ paths:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: scope_type
+          description: |-
+            scope_type filters preferences by context type (e.g., "app/organization")
+            If empty, returns all user preferences (global + all scoped)
+            If set with scope_id, returns global preferences + preferences for the specific scope,
+            with trait defaults for any unset preferences
+          in: query
+          required: false
+          type: string
+        - name: scope_id
+          description: |-
+            scope_id filters preferences by scope identifier (e.g., organization ID)
+            Only applicable when scope_type is set
+          in: query
+          required: false
+          type: string
       tags:
         - Preference
     post:
@@ -14373,6 +14406,16 @@ definitions:
         type: string
       resource_type:
         type: string
+      scope_type:
+        type: string
+        title: |-
+          scope_type defines the context type for scoped preferences (e.g., "app/organization")
+          If empty, the preference is global (not scoped to any context)
+      scope_id:
+        type: string
+        title: |-
+          scope_id is the identifier of the scope context (e.g., organization ID)
+          Only applicable when scope_type is set
       created_at:
         type: string
         format: date-time
@@ -14390,6 +14433,16 @@ definitions:
         type: string
       value:
         type: string
+      scope_type:
+        type: string
+        title: |-
+          scope_type defines the context type for scoped preferences (e.g., "app/organization")
+          If empty, the preference is global (not scoped to any context)
+      scope_id:
+        type: string
+        title: |-
+          scope_id is the identifier of the scope context (e.g., organization ID)
+          Only applicable when scope_type is set
   v1beta1PreferenceTrait:
     type: object
     properties:

@@ -72,7 +72,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
 };
 
 interface BalancePanelProps {
-  balance: number;
+  balance: bigint;
   isLoading: boolean;
   onAddTokenClick: () => void;
   canUpdateWorkspace: boolean;
@@ -84,7 +84,8 @@ function BalancePanel({
   onAddTokenClick,
   canUpdateWorkspace
 }: BalancePanelProps) {
-  const formattedBalance = getFormattedNumberString(balance);
+  const { config } = useFrontier();
+  const formattedBalance = getFormattedNumberString(balance, config?.locale);
   const disableAddTokensBtn = isLoading || !canUpdateWorkspace;
   return (
     <Flex className={tokenStyles.balancePanel} justify="between">
@@ -132,7 +133,7 @@ function BalancePanel({
 }
 
 interface TokenInfoBoxProps {
-  balance: number;
+  balance: bigint;
   isLoading: boolean;
   canUpdateWorkspace: boolean;
 }

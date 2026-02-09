@@ -124,17 +124,16 @@ export const checkSimilarPlans = (
   return plan1Slug === plan2Slug;
 };
 
-export function getFormattedNumberString(num: Number = 0) {
-  const numString = num.toString();
-  const length = numString.length;
-
-  return numString.split('').reduce((acc, val, i) => {
-    const diff = length - i;
-    if (diff % 3 === 0 && diff < length) {
-      return acc + ',' + val;
-    }
-    return acc + val;
-  }, '');
+/**
+ * Formats a number or bigint as a locale-aware string (e.g. with thousand separators).
+ * Uses the runtime's default locale (e.g. the user's browser/system language).
+ *
+ * @param num - The number or bigint to format. Defaults to 0.
+ * @param locale - The locale to use for formatting. Defaults to the runtime's default locale.
+ * @returns The formatted string (e.g. "1,234,567" in given locale).
+ */
+export function getFormattedNumberString(num: number | bigint = 0, locale?: string) {
+  return num.toLocaleString(locale);
 }
 
 interface getPlanNameWithIntervalOptions {

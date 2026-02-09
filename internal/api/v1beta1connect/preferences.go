@@ -126,6 +126,8 @@ func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect
 			Value:        prefBody.GetValue(),
 			ResourceID:   req.Msg.GetId(),
 			ResourceType: schema.UserPrincipal,
+			ScopeType:    prefBody.GetScopeType(),
+			ScopeID:      prefBody.GetScopeId(),
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreateUserPreferences", err,
@@ -150,8 +152,14 @@ func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect
 func (h *ConnectHandler) ListUserPreferences(ctx context.Context, req *connect.Request[frontierv1beta1.ListUserPreferencesRequest]) (*connect.Response[frontierv1beta1.ListUserPreferencesResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	prefs, err := h.preferenceService.List(ctx, preference.Filter{
-		UserID: req.Msg.GetId(),
+	// LoadUserPreferences returns complete preference set with priority:
+	// 1. Scoped DB values (if scope provided)
+	// 2. Global DB values
+	// 3. Trait defaults
+	prefs, err := h.preferenceService.LoadUserPreferences(ctx, preference.Filter{
+		UserID:    req.Msg.GetId(),
+		ScopeType: req.Msg.GetScopeType(),
+		ScopeID:   req.Msg.GetScopeId(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListUserPreferences", err,
@@ -184,6 +192,8 @@ func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *
 			Value:        prefBody.GetValue(),
 			ResourceID:   principal.ID,
 			ResourceType: schema.UserPrincipal,
+			ScopeType:    prefBody.GetScopeType(),
+			ScopeID:      prefBody.GetScopeId(),
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreateCurrentUserPreferences", err,
@@ -213,8 +223,14 @@ func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *co
 		return nil, err
 	}
 
-	prefs, err := h.preferenceService.List(ctx, preference.Filter{
-		UserID: principal.ID,
+	// LoadUserPreferences returns complete preference set with priority:
+	// 1. Scoped DB values (if scope provided)
+	// 2. Global DB values
+	// 3. Trait defaults
+	prefs, err := h.preferenceService.LoadUserPreferences(ctx, preference.Filter{
+		UserID:    principal.ID,
+		ScopeType: req.Msg.GetScopeType(),
+		ScopeID:   req.Msg.GetScopeId(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListCurrentUserPreferences", err,
@@ -254,6 +270,8 @@ func transformPreferenceToPB(pref preference.Preference) *frontierv1beta1.Prefer
 		Value:        pref.Value,
 		ResourceId:   pref.ResourceID,
 		ResourceType: pref.ResourceType,
+		ScopeType:    pref.ScopeType,
+		ScopeId:      pref.ScopeID,
 		CreatedAt:    timestamppb.New(pref.CreatedAt),
 		UpdatedAt:    timestamppb.New(pref.UpdatedAt),
 	}
@@ -299,6 +317,8 @@ func handlePreferenceError(err error) *connect.Error {
 		return connect.NewError(connect.CodeInvalidArgument, ErrTraitNotFound)
 	case errors.Is(err, preference.ErrInvalidValue):
 		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidPreferenceValue)
+	case errors.Is(err, preference.ErrInvalidScope):
+		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidPreferenceScope)
 	default:
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}

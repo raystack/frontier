@@ -45,6 +45,25 @@ func (s *Service) Create(ctx context.Context, preference Preference) (Preference
 	if matchedTrait == nil {
 		return Preference{}, ErrTraitNotFound
 	}
+
+	// validate scope
+	hasScope := preference.ScopeType != "" || preference.ScopeID != ""
+	traitRequiresScope := len(matchedTrait.AllowedScopes) > 0
+
+	if traitRequiresScope {
+		// Trait requires scope - must provide both scope_type and scope_id
+		if preference.ScopeType == "" || preference.ScopeID == "" {
+			return Preference{}, ErrInvalidScope
+		}
+		// Scope type must be in the trait's allowed scopes
+		if !matchedTrait.IsValidScope(preference.ScopeType) {
+			return Preference{}, ErrInvalidScope
+		}
+	} else if hasScope {
+		// Trait is global-only but scope was provided
+		return Preference{}, ErrInvalidScope
+	}
+
 	validator := matchedTrait.GetValidator()
 	if !validator.Validate(preference.Value) {
 		return Preference{}, ErrInvalidValue
@@ -66,6 +85,71 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Preference, error)
 
 func (s *Service) Describe(ctx context.Context) []Trait {
 	return s.traits
+}
+
+// LoadUserPreferences loads user preferences and merges them with trait defaults.
+// Always returns a complete preference set with priority:
+//  1. Org-scoped DB values (if scope provided, highest priority)
+//  2. Global DB values (fallback)
+//  3. Trait defaults (for anything not in DB)
+func (s *Service) LoadUserPreferences(ctx context.Context, filter Filter) ([]Preference, error) {
+	hasScope := filter.ScopeType != "" && filter.ScopeID != ""
+
+	// Fetch global preferences
+	globalPrefs, err := s.repo.List(ctx, Filter{
+		UserID: filter.UserID,
+		// No scope = global preferences (repo will use ScopeTypeGlobal/ScopeIDGlobal)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Build preference map starting with global preferences
+	prefMap := make(map[string]Preference)
+	for _, pref := range globalPrefs {
+		prefMap[pref.Name] = pref
+	}
+
+	// If scope provided, fetch scoped preferences and override globals
+	if hasScope {
+		scopedPrefs, err := s.repo.List(ctx, filter)
+		if err != nil {
+			return nil, err
+		}
+		for _, pref := range scopedPrefs {
+			prefMap[pref.Name] = pref
+		}
+	}
+
+	// Build result with trait ordering, filling in defaults for missing preferences
+	var result []Preference
+	for _, trait := range s.traits {
+		if trait.ResourceType != schema.UserPrincipal {
+			continue
+		}
+		if pref, exists := prefMap[trait.Name]; exists {
+			result = append(result, pref)
+			delete(prefMap, trait.Name) // mark as processed
+		} else if trait.Default != "" {
+			// Add default preference for unset trait
+			result = append(result, Preference{
+				Name:         trait.Name,
+				Value:        trait.Default,
+				ResourceID:   filter.UserID,
+				ResourceType: schema.UserPrincipal,
+				ScopeType:    filter.ScopeType,
+				ScopeID:      filter.ScopeID,
+			})
+		}
+	}
+
+	// Add any remaining preferences that don't have a matching trait
+	// (shouldn't happen normally but handles edge cases)
+	for _, pref := range prefMap {
+		result = append(result, pref)
+	}
+
+	return result, nil
 }
 
 // LoadPlatformPreferences loads platform preferences from the database

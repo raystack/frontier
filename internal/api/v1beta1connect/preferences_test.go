@@ -595,7 +595,7 @@ func TestConnectHandler_ListUserPreferences(t *testing.T) {
 		{
 			name: "should list user preferences on success",
 			setup: func(m *mocks.PreferenceService) {
-				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+				m.EXPECT().LoadUserPreferences(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
 					UserID: "user_123",
 				}).Return([]preference.Preference{
 					{
@@ -628,7 +628,7 @@ func TestConnectHandler_ListUserPreferences(t *testing.T) {
 		{
 			name: "should return empty list when no preferences found",
 			setup: func(m *mocks.PreferenceService) {
-				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+				m.EXPECT().LoadUserPreferences(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
 					UserID: "user_empty",
 				}).Return([]preference.Preference{}, nil)
 			},
@@ -643,7 +643,7 @@ func TestConnectHandler_ListUserPreferences(t *testing.T) {
 		{
 			name: "should return internal error when service fails",
 			setup: func(m *mocks.PreferenceService) {
-				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+				m.EXPECT().LoadUserPreferences(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
 					UserID: "user_error",
 				}).Return(nil, errors.New("database connection failed"))
 			},
@@ -656,7 +656,7 @@ func TestConnectHandler_ListUserPreferences(t *testing.T) {
 		{
 			name: "should list multiple user preferences successfully",
 			setup: func(m *mocks.PreferenceService) {
-				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
+				m.EXPECT().LoadUserPreferences(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
 					UserID: "user_multi",
 				}).Return([]preference.Preference{
 					{
@@ -960,7 +960,7 @@ func TestConnectHandler_ListCurrentUserPreferences(t *testing.T) {
 					ID:   "test-user-id",
 					Type: "user",
 				}, nil)
-				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+				preferenceService.EXPECT().LoadUserPreferences(mock.Anything, preference.Filter{
 					UserID: "test-user-id",
 				}).Return([]preference.Preference{
 					{
@@ -996,7 +996,7 @@ func TestConnectHandler_ListCurrentUserPreferences(t *testing.T) {
 					ID:   "test-user-id",
 					Type: "user",
 				}, nil)
-				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+				preferenceService.EXPECT().LoadUserPreferences(mock.Anything, preference.Filter{
 					UserID: "test-user-id",
 				}).Return([]preference.Preference{}, nil)
 			},
@@ -1021,7 +1021,7 @@ func TestConnectHandler_ListCurrentUserPreferences(t *testing.T) {
 					ID:   "test-user-id",
 					Type: "user",
 				}, nil)
-				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+				preferenceService.EXPECT().LoadUserPreferences(mock.Anything, preference.Filter{
 					UserID: "test-user-id",
 				}).Return(nil, errors.New("database error"))
 			},
@@ -1035,7 +1035,7 @@ func TestConnectHandler_ListCurrentUserPreferences(t *testing.T) {
 					ID:   "test-user-id",
 					Type: "user",
 				}, nil)
-				preferenceService.EXPECT().List(mock.Anything, preference.Filter{
+				preferenceService.EXPECT().LoadUserPreferences(mock.Anything, preference.Filter{
 					UserID: "test-user-id",
 				}).Return([]preference.Preference{
 					{

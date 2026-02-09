@@ -126,6 +126,20 @@ func (s *PreferenceRepository) List(ctx context.Context, flt preference.Filter) 
 		return nil, preference.ErrInvalidFilter
 	}
 
+	// Apply scope filter if provided, otherwise use global scope
+	scopeType := flt.ScopeType
+	if scopeType == "" {
+		scopeType = preference.ScopeTypeGlobal
+	}
+	scopeID := flt.ScopeID
+	if scopeID == "" {
+		scopeID = preference.ScopeIDGlobal
+	}
+	stmt = stmt.Where(goqu.Ex{
+		"scope_type": scopeType,
+		"scope_id":   scopeID,
+	})
+
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)

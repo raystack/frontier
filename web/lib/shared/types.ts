@@ -37,6 +37,7 @@ export interface FrontierClientCustomizationOptions {
 
 export interface FrontierClientOptions {
   endpoint: string;
+  locale?: string;
   connectEndpoint?: string;
   redirectSignup?: string;
   redirectLogin?: string;
