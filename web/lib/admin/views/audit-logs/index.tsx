@@ -219,4 +219,4 @@ export default function AuditLogsView({ appName, onExportCsv }: AuditLogsViewPro
       </DataTable>
     </>
   );
-};
+}
