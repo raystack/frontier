@@ -26,7 +26,11 @@
 
 .name-column {
   padding-left: var(--rs-space-7);
-  max-width: 200px;
+  min-width: 300px;
+}
+
+.creator-column {
+  min-width: 300px;
 }
 
 .country-column {
@@ -35,8 +39,8 @@
 
 .table-wrapper {
   /* Navbar Height + Toolbar height */
-  max-height: calc(100vh - 90px);
-  overflow: scroll;
+  height: calc(100vh - 90px);
+  overflow: auto;
 }
 
 .table-header {

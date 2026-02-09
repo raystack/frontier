@@ -195,13 +195,15 @@ export const AuditLogsList = () => {
           <Navbar searchQuery={tableQuery.query.search} />
           <DataTable.Toolbar />
           <Flex className={styles["table-content-container"]}>
-            <DataTable.Content
+            <DataTable.VirtualizedContent
               classNames={{
                 root: styles["table-wrapper"],
                 table: tableClassName,
                 header: styles["table-header"],
               }}
               emptyState={<NoAuditLogs />}
+              rowHeight={60}
+              groupHeaderHeight={48}
             />
             {sidePanelOpen && (
               <SidePanelDetails
