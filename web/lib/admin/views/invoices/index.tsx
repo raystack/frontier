@@ -131,13 +131,15 @@ export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
         <Flex direction="column" style={{ width: "100%" }}>
           <InvoicesNavabar searchQuery={tableQuery.search || ""} />
           <DataTable.Toolbar />
-          <DataTable.Content
+          <DataTable.VirtualizedContent
             classNames={{
               root: styles["table-wrapper"],
               table: tableClassName,
               header: styles["table-header"],
             }}
             emptyState={<NoInvoices />}
+            rowHeight={48}
+            groupHeaderHeight={48}
           />
         </Flex>
       </DataTable>
