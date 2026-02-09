@@ -21,8 +21,8 @@
 
 .table-wrapper {
   /* Navbar Height + Toolbar height */
-  max-height: calc(100vh - 90px);
-  overflow: scroll;
+  height: calc(100vh - 90px);
+  overflow: auto;
 }
 
 .table-header {
