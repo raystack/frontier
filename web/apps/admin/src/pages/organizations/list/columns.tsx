@@ -136,9 +136,6 @@ export const getColumns = ({
         return getValue();
       },
       enableHiding: true,
-      classNames: {
-        cell: styles["country-column"],
-      },
     },
     {
       accessorKey: "paymentMode",
