@@ -183,13 +183,17 @@ export const OrganizationList = () => {
             openCreatePanel={openCreateOrgPanel}
           />
           <DataTable.Toolbar />
-          <DataTable.Content
+          <DataTable.VirtualizedContent
             classNames={{
               root: styles["table-wrapper"],
               table: tableClassName,
               header: styles["table-header"],
             }}
             emptyState={<NoOrganizations />}
+            rowHeight={48}
+            groupHeaderHeight={48}
+            loadMoreOffset={1200}
+            overscan={1}
           />
         </Flex>
       </DataTable>

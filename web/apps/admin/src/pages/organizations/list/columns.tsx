@@ -54,8 +54,12 @@ export const getColumns = ({
       accessorKey: "title",
       header: "Name",
       classNames: {
-        cell: styles["name-column"],
-        header: styles["name-column"],
+        cell: styles['name-column'],
+        header: styles['name-column']
+      },
+      styles: {
+        cell: { flex: '0 0 300px' },
+        header: { flex: '0 0 300px' }
       },
       cell: ({ row }) => {
         const avatarColor = getAvatarColor(row?.original?.id || "");
@@ -74,15 +78,27 @@ export const getColumns = ({
       enableSorting: true,
     },
     {
-      accessorKey: "createdBy",
-      header: "Creator",
+      accessorKey: 'createdBy',
+      header: 'Creator',
+      classNames: {
+        cell: styles['creator-column'],
+        header: styles['creator-column']
+      },
+      styles: {
+        cell: { flex: '0 0 300px' },
+        header: { flex: '0 0 300px' }
+      },
       cell: ({ getValue }) => {
         return getValue();
       },
     },
     {
-      accessorKey: "planName",
-      header: "Plan",
+      accessorKey: 'planName',
+      header: 'Plan',
+      styles: {
+        cell: { flex: '0 0 250px' },
+        header: { flex: '0 0 250px' }
+      },
       cell: ({ getValue }) => {
         return planMap[getValue() as string];
       },
