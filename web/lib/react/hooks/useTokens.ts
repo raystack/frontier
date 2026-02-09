@@ -6,7 +6,7 @@ import { useFrontier } from '../contexts/FrontierContext';
 import { toast } from '@raystack/apsara';
 
 interface UseTokensReturn {
-  tokenBalance: number;
+  tokenBalance: bigint;
   isTokensLoading: boolean;
   fetchTokenBalance: () => Promise<any>;
 }
@@ -39,7 +39,7 @@ export const useTokens = (): UseTokensReturn => {
   }, [error]);
 
   const tokenBalance = useMemo(
-    () => Number(data?.balance?.amount || '0'),
+    () => BigInt(data?.balance?.amount || '0'),
     [data?.balance?.amount]
   );
 
