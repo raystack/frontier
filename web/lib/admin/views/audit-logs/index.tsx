@@ -8,10 +8,10 @@ import {
 import { useDebouncedState } from "@raystack/apsara/hooks";
 import { useCallback, useMemo, useState } from "react";
 import Navbar from "./navbar";
-import styles from "./list.module.css";
+import styles from "./audit-logs.module.css";
 import { getColumns } from "./columns";
-import PageTitle from "~/components/page-title";
-import CpuChipIcon from "~/assets/icons/cpu-chip.svg?react";
+import { PageTitle } from "../../components/PageTitle";
+import { CpuChipIcon } from "../../assets/icons/CpuChipIcon";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
@@ -27,7 +27,7 @@ import {
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import SidePanelDetails from "./sidepanel-details";
 import { useQueryClient } from "@tanstack/react-query";
-import { AUDIT_LOG_QUERY_KEY } from "../util";
+import { AUDIT_LOG_QUERY_KEY } from "./util";
 
 const NoAuditLogs = () => {
   return (
@@ -60,7 +60,12 @@ const TRANSFORM_OPTIONS = {
   },
 };
 
-export const AuditLogsList = () => {
+export type AuditLogsViewProps = {
+  appName?: string;
+  onExportCsv?: (query: RQLRequest) => Promise<void>;
+};
+
+export default function AuditLogsView({ appName, onExportCsv }: AuditLogsViewProps = {}) {
   const queryClient = useQueryClient();
   const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;
@@ -162,7 +167,7 @@ export const AuditLogsList = () => {
     console.error("ConnectRPC Error:", error);
     return (
       <>
-        <PageTitle title="Audit Logs" />
+        <PageTitle title="Audit Logs" appName={appName} />
         <EmptyState
           icon={<ExclamationTriangleIcon />}
           heading="Error Loading Audit Logs"
@@ -180,7 +185,7 @@ export const AuditLogsList = () => {
 
   return (
     <>
-      <PageTitle title="Audit Logs" />
+      <PageTitle title="Audit Logs" appName={appName} />
       <DataTable
         query={tableQuery.query}
         columns={columns}
@@ -192,7 +197,7 @@ export const AuditLogsList = () => {
         onLoadMore={handleLoadMore}
         onRowClick={onRowClick}>
         <Flex direction="column" style={{ width: "100%" }}>
-          <Navbar searchQuery={tableQuery.query.search} />
+          <Navbar searchQuery={tableQuery.query.search} onExportCsv={onExportCsv} />
           <DataTable.Toolbar />
           <Flex className={styles["table-content-container"]}>
             <DataTable.Content
