@@ -139,13 +139,15 @@ export const UsersList = () => {
         <Flex direction="column" style={{ width: "100%" }}>
           <Navbar searchQuery={tableQuery.search} />
           <DataTable.Toolbar />
-          <DataTable.Content
+          <DataTable.VirtualizedContent
             classNames={{
               root: styles["table-wrapper"],
               table: tableClassName,
               header: styles["table-header"],
             }}
             emptyState={<NoUsers />}
+            rowHeight={48}
+            groupHeaderHeight={48}
           />
         </Flex>
       </DataTable>
