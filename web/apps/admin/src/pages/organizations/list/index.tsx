@@ -192,8 +192,6 @@ export const OrganizationList = () => {
             emptyState={<NoOrganizations />}
             rowHeight={48}
             groupHeaderHeight={48}
-            loadMoreOffset={1200}
-            overscan={1}
           />
         </Flex>
       </DataTable>
