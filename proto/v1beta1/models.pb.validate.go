@@ -4354,6 +4354,10 @@ func (m *Preference) validate(all bool) error {
 
 	// no validation rules for ResourceType
 
+	// no validation rules for ScopeType
+
+	// no validation rules for ScopeId
+
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -8331,6 +8335,10 @@ func (m *PreferenceRequestBody) validate(all bool) error {
 	}
 
 	// no validation rules for Value
+
+	// no validation rules for ScopeType
+
+	// no validation rules for ScopeId
 
 	if len(errors) > 0 {
 		return PreferenceRequestBodyMultiError(errors)

@@ -244,6 +244,65 @@ func (_c *PreferenceService_LoadPlatformPreferences_Call) RunAndReturn(run func(
 	return _c
 }
 
+// LoadUserPreferences provides a mock function with given fields: ctx, filter
+func (_m *PreferenceService) LoadUserPreferences(ctx context.Context, filter preference.Filter) ([]preference.Preference, error) {
+	ret := _m.Called(ctx, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LoadUserPreferences")
+	}
+
+	var r0 []preference.Preference
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, preference.Filter) ([]preference.Preference, error)); ok {
+		return rf(ctx, filter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, preference.Filter) []preference.Preference); ok {
+		r0 = rf(ctx, filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]preference.Preference)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, preference.Filter) error); ok {
+		r1 = rf(ctx, filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PreferenceService_LoadUserPreferences_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoadUserPreferences'
+type PreferenceService_LoadUserPreferences_Call struct {
+	*mock.Call
+}
+
+// LoadUserPreferences is a helper method to define mock.On call
+//   - ctx context.Context
+//   - filter preference.Filter
+func (_e *PreferenceService_Expecter) LoadUserPreferences(ctx interface{}, filter interface{}) *PreferenceService_LoadUserPreferences_Call {
+	return &PreferenceService_LoadUserPreferences_Call{Call: _e.mock.On("LoadUserPreferences", ctx, filter)}
+}
+
+func (_c *PreferenceService_LoadUserPreferences_Call) Run(run func(ctx context.Context, filter preference.Filter)) *PreferenceService_LoadUserPreferences_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(preference.Filter))
+	})
+	return _c
+}
+
+func (_c *PreferenceService_LoadUserPreferences_Call) Return(_a0 []preference.Preference, _a1 error) *PreferenceService_LoadUserPreferences_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *PreferenceService_LoadUserPreferences_Call) RunAndReturn(run func(context.Context, preference.Filter) ([]preference.Preference, error)) *PreferenceService_LoadUserPreferences_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewPreferenceService creates a new instance of PreferenceService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPreferenceService(t interface {

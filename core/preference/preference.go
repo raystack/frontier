@@ -13,6 +13,7 @@ var (
 	ErrInvalidFilter = fmt.Errorf("invalid preference filter set")
 	ErrTraitNotFound = fmt.Errorf("preference trait not found, preferences can only be created with valid trait")
 	ErrInvalidValue  = fmt.Errorf("invalid value for preference")
+	ErrInvalidScope  = fmt.Errorf("invalid scope: trait does not support scoping or scope_type/scope_id mismatch")
 )
 
 type TraitInput string
@@ -70,6 +71,20 @@ type Trait struct {
 	InputHints string `json:"input_hints" yaml:"input_hints"`
 	// Default value to be used for the trait if the preference is not set (say "true" for a TraitInput of type Checkbox)
 	Default string `json:"default" yaml:"default"`
+	// AllowedScopes specifies which scope types are valid for this trait
+	// e.g., ["app/organization"] allows org-scoped preferences
+	// Empty means the trait is global only (no scoping allowed)
+	AllowedScopes []string `json:"allowed_scopes" yaml:"allowed_scopes"`
+}
+
+// IsValidScope checks if the given scope type is allowed for this trait
+func (t Trait) IsValidScope(scopeType string) bool {
+	for _, allowed := range t.AllowedScopes {
+		if allowed == scopeType {
+			return true
+		}
+	}
+	return false
 }
 
 func (t Trait) GetValidator() PreferenceValidator {
