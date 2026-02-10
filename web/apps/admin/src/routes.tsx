@@ -7,8 +7,7 @@ import LoadingState from "./components/states/Loading";
 import UnauthorizedState from "./components/states/Unauthorized";
 
 import App from "./App";
-import PlanList from "./containers/billingplans.list";
-import PlanDetails from "./containers/billingplans.list/details";
+import { PlansPage } from "./pages/plans/PlansPage";
 import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
 
@@ -84,9 +83,8 @@ export default memo(function AppRoutes() {
 
         <Route path="audit-logs" element={<AuditLogsPage />} />
 
-        <Route path="plans" element={<PlanList />}>
-          <Route path=":planId" element={<PlanDetails />} />
-        </Route>
+        <Route path="plans" element={<PlansPage />} />
+        <Route path="plans/:planId" element={<PlansPage />} />
 
         <Route path="roles" element={<RolesPage />} />
         <Route path="roles/:roleId" element={<RolesPage />} />
