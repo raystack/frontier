@@ -21,7 +21,7 @@ import { ProductPricesPage } from "./pages/products/ProductPricesPage";
 import { RolesPage } from "./pages/roles/RolesPage";
 
 import { AppContext } from "./contexts/App";
-import { SuperAdminList } from "./containers/super_admins/list";
+import { AdminsPage } from "./pages/admins/AdminsPage";
 import WebhooksList from "./containers/webhooks";
 import CreateWebhooks from "./containers/webhooks/create";
 import UpdateWebhooks from "./containers/webhooks/update";
@@ -101,7 +101,7 @@ export default memo(function AppRoutes() {
         </Route>
 
         <Route path="invoices" element={<InvoicesPage />} />
-        <Route path="super-admins" element={<SuperAdminList />} />
+        <Route path="super-admins" element={<AdminsPage />} />
         <Route path="webhooks" element={<WebhooksList />}>
           <Route path="create" element={<CreateWebhooks />} />
           <Route path=":webhookId" element={<UpdateWebhooks />} />

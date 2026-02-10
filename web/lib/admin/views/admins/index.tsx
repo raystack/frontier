@@ -1,10 +1,10 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { getColumns } from "./columns";
-import styles from "./super_admins.module.css";
+import styles from "./admins.module.css";
 import { useQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import PageHeader from "~/components/page-header";
+import { PageHeader } from "../../components/PageHeader";
 
 const pageHeader = {
   title: "Super Admins",
@@ -21,7 +21,7 @@ const NoAdmins = () => {
   );
 };
 
-export function SuperAdminList() {
+export default function AdminsView() {
   const {
     data: platformUsersData,
     isLoading,
