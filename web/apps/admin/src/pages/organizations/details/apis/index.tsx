@@ -12,12 +12,12 @@ import {
   AdminServiceQueries,
   type SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
 } from "@raystack/proton/frontier";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import {
+  transformDataTableQueryToRQLRequest,
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
+} from "@raystack/frontier/admin";
 import { useDebounceValue } from "usehooks-ts";
 
 const NoCredentials = () => {

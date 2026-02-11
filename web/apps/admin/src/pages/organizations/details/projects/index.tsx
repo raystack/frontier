@@ -20,11 +20,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { OrganizationContext } from "../contexts/organization-context";
 import { FileIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProjectMembersDialog } from "./members";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import {
+  transformDataTableQueryToRQLRequest,
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
+} from "@raystack/frontier/admin";
 import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };

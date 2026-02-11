@@ -5,7 +5,7 @@ import {
   isNullTimestamp,
   TimeStamp,
   timestampToDate,
-} from "~/utils/connect-timestamp";
+} from "../../utils/connect-timestamp";
 
 export const getColumns = (): DataTableColumnDef<
   SearchInvoicesResponse_Invoice,

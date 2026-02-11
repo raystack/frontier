@@ -23,8 +23,8 @@ import { AddMembersDropdown } from "./add-members-dropdown";
 import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+  transformDataTableQueryToRQLRequest,
+} from "@raystack/frontier/admin";
 
 const NoMembers = () => {
   return (

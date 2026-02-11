@@ -17,11 +17,11 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { OrganizationContext } from "../contexts/organization-context";
 import { AssignRole } from "~/components/assign-role";
 import { RemoveMember } from "./remove-member";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import {
+  transformDataTableQueryToRQLRequest,
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
+} from "@raystack/frontier/admin";
 import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
