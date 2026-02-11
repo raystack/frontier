@@ -68,7 +68,13 @@ func (s *Service) Create(ctx context.Context, preference Preference) (Preference
 	if !validator.Validate(preference.Value) {
 		return Preference{}, ErrInvalidValue
 	}
-	return s.repo.Set(ctx, preference)
+	created, err := s.repo.Set(ctx, preference)
+	if err != nil {
+		return Preference{}, err
+	}
+	// Populate ValueTitle from trait's InputOptions
+	created.ValueTitle = matchedTrait.GetValueTitle(created.Value)
+	return created, nil
 }
 
 func (s *Service) Get(ctx context.Context, id string) (Preference, error) {
