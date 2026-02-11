@@ -52,6 +52,14 @@ const (
 	ScopeIDGlobal   = "00000000-0000-0000-0000-000000000000"
 )
 
+// InputHintOption represents a selectable option with machine-readable name and user-friendly title
+type InputHintOption struct {
+	// Machine-readable identifier (e.g., "sq_km", "megagram")
+	Name string `json:"name" yaml:"name"`
+	// User-friendly display title (e.g., "Square Kilometers", "Megagram (Mg)")
+	Title string `json:"title" yaml:"title"`
+}
+
 type Trait struct {
 	// Level at which the trait is applicable (say "platform", "organization", "user")
 	ResourceType string `json:"resource_type" yaml:"resource_type"`
@@ -68,7 +76,11 @@ type Trait struct {
 	// Type of input to be used to collect the value for the trait (say "text", "select", "checkbox", etc.)
 	Input TraitInput `json:"input" yaml:"input"`
 	// Acceptable values to be provided in the input (say "true,false") for a TraitInput of type Checkbox
+	// Deprecated: Use InputOptions for structured options with name and title
 	InputHints string `json:"input_hints" yaml:"input_hints"`
+	// Structured input options with name and title for select/combobox/multiselect inputs
+	// Takes precedence over InputHints when both are provided
+	InputOptions []InputHintOption `json:"input_options" yaml:"input_options"`
 	// Default value to be used for the trait if the preference is not set (say "true" for a TraitInput of type Checkbox)
 	Default string `json:"default" yaml:"default"`
 	// AllowedScopes specifies which scope types are valid for this trait
@@ -93,7 +105,11 @@ func (t Trait) GetValidator() PreferenceValidator {
 		return NewBooleanValidator()
 	case TraitInputText, TraitInputTextarea:
 		return NewTextValidator()
-	case TraitInputSelect, TraitInputCombobox:
+	case TraitInputSelect, TraitInputCombobox, TraitInputMultiselect:
+		// Use InputOptions if available, otherwise fall back to InputHints
+		if len(t.InputOptions) > 0 {
+			return NewSelectValidatorFromOptions(t.InputOptions)
+		}
 		return NewSelectValidator(t.InputHints)
 	default:
 		return NewTextValidator()

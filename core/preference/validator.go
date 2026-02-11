@@ -56,6 +56,20 @@ func NewSelectValidator(inputHints string) *SelectValidator {
 	}
 }
 
+// NewSelectValidatorFromOptions creates a SelectValidator from InputHintOptions
+// It extracts the Name field from each option as the allowed value
+func NewSelectValidatorFromOptions(options []InputHintOption) *SelectValidator {
+	var allowed []string
+	for _, opt := range options {
+		if opt.Name != "" {
+			allowed = append(allowed, opt.Name)
+		}
+	}
+	return &SelectValidator{
+		allowedValues: allowed,
+	}
+}
+
 func (v *SelectValidator) Validate(value string) bool {
 	// If no allowed values are configured, accept any non-empty value
 	if len(v.allowedValues) == 0 {
