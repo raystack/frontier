@@ -83,8 +83,9 @@ export default memo(function AppRoutes() {
 
         <Route path="audit-logs" element={<AuditLogsPage />} />
 
-        <Route path="plans" element={<PlansPage />} />
-        <Route path="plans/:planId" element={<PlansPage />} />
+        <Route path="plans" element={<PlansPage />}>
+          <Route path=":planId" element={<PlansPage />} />
+        </Route>
 
         <Route path="roles" element={<RolesPage />} />
         <Route path="roles/:roleId" element={<RolesPage />} />
