@@ -1,13 +1,11 @@
 import type { Price as PriceType } from "@raystack/proton/frontier";
-import { Price } from "~/components/Price";
+import { Amount } from "@raystack/apsara";
 import type { DataTableColumnDef } from "@raystack/apsara";
-import { timestampToDate, TimeStamp } from "~/utils/connect-timestamp";
+import { timestampToDate, TimeStamp } from "../../../utils/connect-timestamp";
 
-export const getColumns: (
-  prices: PriceType[],
-) => DataTableColumnDef<PriceType, unknown>[] = (
-  prices: PriceType[],
-) => {
+export const getColumns = (
+  prices: PriceType[]
+): DataTableColumnDef<PriceType, unknown>[] => {
   return [
     {
       header: "Id",
@@ -39,16 +37,17 @@ export const getColumns: (
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },
-
     {
       header: "Amount",
       accessorKey: "amount",
       cell: ({ row }) => (
-        <Price value={row.original.amount?.toString() ?? '0'} currency={row.original.currency} />
+        <Amount
+          value={Number(row.original.amount ?? 0)}
+          currency={row.original.currency}
+        />
       ),
       filterVariant: "text",
     },
-
     {
       header: "creation date",
       accessorKey: "createdAt",
