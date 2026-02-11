@@ -1,9 +1,8 @@
 import { Flex, Text, Grid } from "@raystack/apsara";
-import { usePlan } from ".";
-import { timestampToDate } from "~/utils/connect-timestamp";
+import type { Plan } from "@raystack/proton/frontier";
+import { timestampToDate } from "../../utils/connect-timestamp";
 
-export default function PlanDetails() {
-  const { plan } = usePlan();
+export default function PlanDetails({ plan }: { plan: Plan | null }) {
 
   return (
     <Flex direction="column" gap={9}>

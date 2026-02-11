@@ -1,29 +1,32 @@
 import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
-import {
-  Outlet,
-  useNavigate,
-  useOutletContext,
-  useParams,
-} from "react-router-dom";
-
 import type { Plan } from "@raystack/proton/frontier";
-import { reduceByKey } from "~/utils/helper";
+import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
 import { PlanHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import styles from "./plans.module.css";
-import PageTitle from "~/components/page-title";
-import { SheetHeader } from "~/components/sheet/header";
+import { PageTitle } from "../../components/PageTitle";
+import { SheetHeader } from "../../components/SheetHeader";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
+import PlanDetails from "./details";
 
 const pageHeader = {
   title: "Plans",
   breadcrumb: [],
 };
 
-type ContextType = { plan: Plan | null };
-export default function PlanList() {
+export type PlansViewProps = {
+  selectedPlanId?: string;
+  onCloseDetail?: () => void;
+  appName?: string;
+};
+
+export default function PlansView({
+  selectedPlanId,
+  onCloseDetail,
+  appName,
+}: PlansViewProps = {}) {
   const {
     data: plansResponse,
     isLoading: isPlansLoading,
@@ -34,18 +37,8 @@ export default function PlanList() {
   });
 
   const plans = plansResponse?.plans || [];
-
-  let { planId } = useParams();
-
   const planMapById = reduceByKey(plans ?? [], "id");
-
   const columns = getColumns();
-
-  const navigate = useNavigate();
-
-  function onClose() {
-    navigate("/plans");
-  }
 
   if (isError) {
     console.error("ConnectRPC Error:", error);
@@ -70,31 +63,25 @@ export default function PlanList() {
       defaultSort={{ name: "title", order: "asc" }}
     >
       <Flex direction="column">
-        <PageTitle title="Plans" />
+        <PageTitle title="Plans" appName={appName} />
         <PlanHeader header={pageHeader} />
         <DataTable.Content
           emptyState={noDataChildren}
           classNames={{ root: styles.tableRoot, table: styles.table }}
         />
       </Flex>
-      <Sheet open={planId !== undefined}>
+      <Sheet open={selectedPlanId !== undefined}>
         <Sheet.Content className={styles.sheetContent}>
-          <SheetHeader title="Plan Details" onClick={onClose} />
+          <SheetHeader title="Plan Details" onClick={onCloseDetail ?? (() => {})} />
           <Flex className={styles.sheetContentBody}>
-            <Outlet
-              context={{
-                plan: planId ? planMapById[planId] : null,
-              }}
+            <PlanDetails
+              plan={selectedPlanId ? planMapById[selectedPlanId] ?? null : null}
             />
           </Flex>
         </Sheet.Content>
       </Sheet>
     </DataTable>
   );
-}
-
-export function usePlan() {
-  return useOutletContext<ContextType>();
 }
 
 export const noDataChildren = (

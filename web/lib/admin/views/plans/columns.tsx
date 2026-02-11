@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { type DataTableColumnDef } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
-import { timestampToDate, TimeStamp } from "~/utils/connect-timestamp";
+import { timestampToDate, type TimeStamp } from "../../utils/connect-timestamp";
 
 export const getColumns: () => DataTableColumnDef<
   Plan,

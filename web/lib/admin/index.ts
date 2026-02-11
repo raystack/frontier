@@ -6,6 +6,7 @@ export { default as InvoicesView } from "./views/invoices";
 export { ProductsView, ProductPricesView } from "./views/products/exports";
 export { default as AuditLogsView } from "./views/audit-logs";
 export { default as AdminsView } from "./views/admins";
+export { default as PlansView } from "./views/plans";
 
 // utils exports
 export {
