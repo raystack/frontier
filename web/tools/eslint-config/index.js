@@ -1,13 +1,14 @@
 /* eslint-disable strict */
+const extendsList = [
+  'next',
+  'prettier',
+  "eslint:recommended",
+  'plugin:test-selectors/recommended'
+];
+
 module.exports = {
   plugins: ["test-selectors"],
-  extends: [
-    'next',
-    'turbo',
-    'prettier',
-    "eslint:recommended",
-    'plugin:test-selectors/recommended'
-  ],
+  extends: extendsList,
   rules: {
     '@next/next/no-html-link-for-pages': 'off',
     "no-unused-vars": "warn",
