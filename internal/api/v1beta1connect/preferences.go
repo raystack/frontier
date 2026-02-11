@@ -268,6 +268,7 @@ func transformPreferenceToPB(pref preference.Preference) *frontierv1beta1.Prefer
 		Id:           pref.ID,
 		Name:         pref.Name,
 		Value:        pref.Value,
+		ValueTitle:   pref.ValueTitle,
 		ResourceId:   pref.ResourceID,
 		ResourceType: pref.ResourceType,
 		ScopeType:    pref.ScopeType,
@@ -290,6 +291,15 @@ func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.Prefer
 		InputHints:      pref.InputHints,
 		Default:         pref.Default,
 	}
+
+	// Convert InputOptions to proto
+	for _, opt := range pref.InputOptions {
+		pbTrait.InputOptions = append(pbTrait.InputOptions, &frontierv1beta1.InputHintOption{
+			Name:  opt.Name,
+			Title: opt.Title,
+		})
+	}
+
 	switch pref.Input {
 	case preference.TraitInputText:
 		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_TEXT
