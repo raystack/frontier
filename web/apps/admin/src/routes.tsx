@@ -41,7 +41,7 @@ import { UserDetails } from "./pages/users/details";
 import { UserDetailsSecurityPage } from "./pages/users/details/security";
 
 import { InvoicesPage } from "./pages/invoices/InvoicesPage";
-import { AuditLogsList } from "./pages/audit-logs/list";
+import { AuditLogsPage } from "./pages/audit-logs/AuditLogsPage";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -82,7 +82,7 @@ export default memo(function AppRoutes() {
           <Route path="security" element={<UserDetailsSecurityPage />} />
         </Route>
 
-        <Route path="audit-logs" element={<AuditLogsList />} />
+        <Route path="audit-logs" element={<AuditLogsPage />} />
 
         <Route path="plans" element={<PlanList />}>
           <Route path=":planId" element={<PlanDetails />} />

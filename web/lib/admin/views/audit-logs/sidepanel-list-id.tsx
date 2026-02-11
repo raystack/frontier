@@ -1,5 +1,5 @@
 import { CopyButton, Flex, List, Text, Tooltip } from "@raystack/apsara";
-import styles from "./list.module.css";
+import styles from "./audit-logs.module.css";
 
 export default function SidepanelListId({ id = "-" }: { id?: string }) {
   return (

@@ -1,8 +1,8 @@
 import { Avatar, Flex, getAvatarColor, Text } from "@raystack/apsara";
 import { AuditRecordActor } from "@raystack/proton/frontier";
-import { ACTOR_TYPES, getAuditLogActorName } from "../util";
-import systemIcon from "~/assets/images/system.jpg";
-import KeyIcon from "~/assets/icons/key.svg?react";
+import { ACTOR_TYPES, getAuditLogActorName } from "./util";
+import systemIcon from "../../assets/images/system.jpg";
+import { KeyIcon } from "../../assets/icons/KeyIcon";
 
 type ActorCellProps = {
   size?: "large" | "small";

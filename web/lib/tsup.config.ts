@@ -22,7 +22,7 @@ export default defineConfig(() => [
       '.svg': 'dataurl',
       '.png': 'dataurl'
     },
-    esbuildPlugins: [cssModulesPlugin()]
+    esbuildPlugins: [cssModulesPlugin({ localsConvention: 'camelCase' })]
   },
   // Hooks APIs
   {
@@ -43,8 +43,12 @@ export default defineConfig(() => [
       js: "'use client'"
     },
     format: ['cjs', 'esm'],
-    external: ['react'],
+    external: ['react', 'react-router-dom'],
     dts: true,
-    esbuildPlugins: [cssModulesPlugin()]
+    loader: {
+      '.jpg': 'dataurl',
+      '.png': 'dataurl'
+    },
+    esbuildPlugins: [cssModulesPlugin({ localsConvention: 'camelCase' })]
   }
 ]);
