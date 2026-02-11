@@ -120,12 +120,23 @@ type Preference struct {
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
 	Value        string    `json:"value"`
+	ValueTitle   string    `json:"value_title"`
 	ResourceID   string    `json:"resource_id"`
 	ResourceType string    `json:"resource_type"`
 	ScopeType    string    `json:"scope_type"`
 	ScopeID      string    `json:"scope_id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// GetValueTitle returns the human-readable title for a value from InputOptions
+func (t Trait) GetValueTitle(value string) string {
+	for _, opt := range t.InputOptions {
+		if opt.Name == value {
+			return opt.Title
+		}
+	}
+	return ""
 }
 
 var DefaultTraits = []Trait{

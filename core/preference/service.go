@@ -128,6 +128,8 @@ func (s *Service) LoadUserPreferences(ctx context.Context, filter Filter) ([]Pre
 			continue
 		}
 		if pref, exists := prefMap[trait.Name]; exists {
+			// Populate ValueTitle from trait's InputOptions
+			pref.ValueTitle = trait.GetValueTitle(pref.Value)
 			result = append(result, pref)
 			delete(prefMap, trait.Name) // mark as processed
 		} else if trait.Default != "" {
@@ -135,6 +137,7 @@ func (s *Service) LoadUserPreferences(ctx context.Context, filter Filter) ([]Pre
 			result = append(result, Preference{
 				Name:         trait.Name,
 				Value:        trait.Default,
+				ValueTitle:   trait.GetValueTitle(trait.Default),
 				ResourceID:   filter.UserID,
 				ResourceType: schema.UserPrincipal,
 				ScopeType:    filter.ScopeType,
