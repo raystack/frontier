@@ -105,7 +105,7 @@ func (t Trait) GetValidator() PreferenceValidator {
 		return NewBooleanValidator()
 	case TraitInputText, TraitInputTextarea:
 		return NewTextValidator()
-	case TraitInputSelect, TraitInputCombobox, TraitInputMultiselect:
+	case TraitInputSelect, TraitInputCombobox:
 		// Use InputOptions if available, otherwise fall back to InputHints
 		if len(t.InputOptions) > 0 {
 			return NewSelectValidatorFromOptions(t.InputOptions)
