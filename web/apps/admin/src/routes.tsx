@@ -88,11 +88,14 @@ export default memo(function AppRoutes() {
           <Route path=":planId" element={<PlanDetails />} />
         </Route>
 
-        <Route path="roles" element={<RolesPage />} />
-        <Route path="roles/:roleId" element={<RolesPage />} />
+        <Route path="roles" element={<RolesPage />}>
+          <Route path=":roleId" element={<RolesPage />} />
+        </Route>
         
-        <Route path="products" element={<ProductsPage />} />
-        <Route path="products/:productId" element={<ProductsPage />} />
+        <Route path="products" element={<ProductsPage />}>
+          <Route path=":productId" element={<ProductsPage />} />
+        </Route>
+
         <Route path="products/:productId/prices" element={<ProductPricesPage />} />
 
         <Route path="preferences" element={<PreferencesLayout />}>
