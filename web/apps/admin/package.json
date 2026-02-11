@@ -26,7 +26,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-table": "^8.9.3",
     "@tanstack/table-core": "^8.21.3",
-    "axios": "^1.8.4",
+    "axios": "^1.13.5",
     "dayjs": "^1.11.10",
     "dotenv": "^16.0.3",
     "ramda": "^0.29.0",
