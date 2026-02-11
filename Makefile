@@ -8,7 +8,7 @@ PROTON_COMMIT := "e806c3a6f5ae280a23d02480becddc2818661715"
 
 admin-app:
 	@echo " > generating admin build"
-	@cd web && pnpm install && pnpm exec turbo run build --filter=admin
+	@cd web && $(MAKE) build-admin
 
 install:
 	@echo "Clean up imports..."
