@@ -68,7 +68,13 @@ func (s *Service) Create(ctx context.Context, preference Preference) (Preference
 	if !validator.Validate(preference.Value) {
 		return Preference{}, ErrInvalidValue
 	}
-	return s.repo.Set(ctx, preference)
+	created, err := s.repo.Set(ctx, preference)
+	if err != nil {
+		return Preference{}, err
+	}
+	// Populate ValueTitle from trait's InputOptions
+	created.ValueTitle = matchedTrait.GetValueTitle(created.Value)
+	return created, nil
 }
 
 func (s *Service) Get(ctx context.Context, id string) (Preference, error) {
@@ -128,6 +134,8 @@ func (s *Service) LoadUserPreferences(ctx context.Context, filter Filter) ([]Pre
 			continue
 		}
 		if pref, exists := prefMap[trait.Name]; exists {
+			// Populate ValueTitle from trait's InputOptions
+			pref.ValueTitle = trait.GetValueTitle(pref.Value)
 			result = append(result, pref)
 			delete(prefMap, trait.Name) // mark as processed
 		} else if trait.Default != "" {
@@ -135,6 +143,7 @@ func (s *Service) LoadUserPreferences(ctx context.Context, filter Filter) ([]Pre
 			result = append(result, Preference{
 				Name:         trait.Name,
 				Value:        trait.Default,
+				ValueTitle:   trait.GetValueTitle(trait.Default),
 				ResourceID:   filter.UserID,
 				ResourceType: schema.UserPrincipal,
 				ScopeType:    filter.ScopeType,
