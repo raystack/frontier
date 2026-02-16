@@ -1,6 +1,7 @@
 .tableRoot {
     width: 100%;
 }
+
 .tableWrapper {
     width: 100%;
 }
@@ -21,4 +22,14 @@
 
 .sheetContentBody {
     padding: var(--rs-space-5);
+}
+
+.linkButton {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    font: inherit;
+    color: inherit;
 }

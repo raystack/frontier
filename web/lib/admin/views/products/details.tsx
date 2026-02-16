@@ -1,17 +1,19 @@
 import { Flex, Text, Grid, Sheet } from "@raystack/apsara";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useProduct } from ".";
+import type { Product } from "@raystack/proton/frontier";
 import styles from "./products.module.css";
-import { SheetHeader } from "~/components/sheet/header";
+import { SheetHeader } from "../../components/SheetHeader";
 
-export default function ProductDetails() {
-  const { product } = useProduct();
-  const navigate = useNavigate();
+type ProductDetailsProps = {
+  product: Product;
+  onClose: () => void;
+  onNavigateToPrices: (productId: string) => void;
+};
 
-  function onClose() {
-    navigate("/products");
-  }
-
+export default function ProductDetails({
+  product,
+  onClose,
+  onNavigateToPrices,
+}: ProductDetailsProps) {
   return (
     <Sheet open>
       <Sheet.Content className={styles.sheetContent}>
@@ -26,9 +28,14 @@ export default function ProductDetails() {
             <Grid columns={2} gap="small">
               <Text size={1}>Prices</Text>
               <Text size={1}>
-                <NavLink to={`/products/${product?.id}/prices`}>
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  data-test-id="product-details-prices-link"
+                  onClick={() => product?.id && onNavigateToPrices(product.id)}
+                >
                   Go to prices
-                </NavLink>
+                </button>
               </Text>
             </Grid>
           </Flex>

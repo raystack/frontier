@@ -1,13 +1,10 @@
-import { Flex, Image, type DataTableColumnDef } from "@raystack/apsara";
+import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara";
 import type { Product } from "@raystack/proton/frontier";
-import { Link, NavLink } from "react-router-dom";
-import { Price } from "~/components/Price";
-import { timestampToDate, TimeStamp } from "~/utils/connect-timestamp";
+import { timestampToDate, TimeStamp } from "../../utils/connect-timestamp";
 
-export const getColumns: () => DataTableColumnDef<
-  Product,
-  unknown
->[] = () => {
+export const getColumns = (
+  onNavigateToPrices?: (productId: string) => void
+): DataTableColumnDef<Product, unknown>[] => {
   return [
     {
       accessorKey: "id",
@@ -34,17 +31,36 @@ export const getColumns: () => DataTableColumnDef<
       accessorKey: "title",
       cell: ({ row }) => {
         const prices = row?.original?.prices;
+        const productId = row?.original?.id;
 
         const priceComp =
           prices?.length === 1 ? (
-            <Price value={prices[0].amount?.toString() ?? '0'} currency={prices[0].currency} />
-          ) : (
-            <NavLink
-              to={`/products/${row?.original?.id}/prices`}
-              onClick={(e) => e.stopPropagation()}
+            <Amount
+              value={Number(prices[0].amount ?? 0)}
+              currency={prices[0].currency}
+            />
+          ) : onNavigateToPrices && productId ? (
+            <button
+              data-test-id="products-table-prices-link"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigateToPrices(productId);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                textDecoration: "underline",
+                font: "inherit",
+                color: "inherit",
+              }}
             >
               {prices?.length} prices
-            </NavLink>
+            </button>
+          ) : (
+            <span>{prices?.length ?? 0} prices</span>
           );
 
         return (
@@ -61,7 +77,6 @@ export const getColumns: () => DataTableColumnDef<
       filterVariant: "text",
       cell: (info) => info.getValue(),
     },
-
     {
       header: "Created on",
       accessorKey: "createdAt",
