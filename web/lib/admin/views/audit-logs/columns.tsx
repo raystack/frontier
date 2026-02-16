@@ -1,6 +1,6 @@
 import { Badge, DataTableColumnDef, Flex, Text } from "@raystack/apsara";
 import dayjs from "dayjs";
-import styles from "./list.module.css";
+import styles from "./audit-logs.module.css";
 import {
   AuditRecord,
   AuditRecordActor,
@@ -10,8 +10,8 @@ import {
   isNullTimestamp,
   TimeStamp,
   timestampToDate,
-} from "~/utils/connect-timestamp";
-import { ACTOR_TYPES, getActionBadgeColor } from "../util";
+} from "../../utils/connect-timestamp";
+import { ACTOR_TYPES, getActionBadgeColor } from "./util";
 import { ComponentPropsWithoutRef } from "react";
 import ActorCell from "./actor-cell";
 

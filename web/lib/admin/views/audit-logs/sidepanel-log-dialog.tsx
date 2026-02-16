@@ -1,8 +1,8 @@
 import { Dialog, IconButton, CodeBlock } from "@raystack/apsara";
-import styles from "./list.module.css";
+import styles from "./audit-logs.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
-import { auditLogToJson } from "../util";
-import JsonIcon from "~/assets/icons/json.svg?react";
+import { auditLogToJson } from "./util";
+import { JsonIcon } from "../../assets/icons/JsonIcon";
 
 export default function SidePanelLogDialog(props: Partial<AuditRecord>) {
   return (

@@ -1,21 +1,18 @@
 import { DataTable, Flex, Text, IconButton, Spinner } from "@raystack/apsara";
-import CpuChipIcon from "~/assets/icons/cpu-chip.svg?react";
-import styles from "./list.module.css";
+import { CpuChipIcon } from "../../assets/icons/CpuChipIcon";
+import styles from "./audit-logs.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import React, { useCallback, useState } from "react";
-import { clients } from "~/connect/clients";
-import { exportCsvFromStream } from "~/utils/helper";
 import { useQueryClient } from "@tanstack/react-query";
-import { AUDIT_LOG_QUERY_KEY } from "../util";
-import { RQLExportRequest } from "@raystack/proton/frontier";
-
-const adminClient = clients.admin({ useBinary: true });
+import { AUDIT_LOG_QUERY_KEY } from "./util";
+import { RQLRequest } from "@raystack/proton/frontier";
 
 interface NavbarProps {
   searchQuery?: string;
+  onExportCsv?: (query: RQLRequest) => Promise<void>;
 }
 
-const Navbar = ({ searchQuery }: NavbarProps) => {
+const Navbar = ({ searchQuery, onExportCsv }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
   const queryClient = useQueryClient();
@@ -32,23 +29,19 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
   }, []);
 
   const onDownloadClick = useCallback(async () => {
+    if (!onExportCsv) return;
     try {
       setIsDownloading(true);
       const query = queryClient.getQueryData(
         AUDIT_LOG_QUERY_KEY,
-      ) as RQLExportRequest;
-
-      await exportCsvFromStream(
-        adminClient.exportAuditRecords,
-        { query },
-        "audit-logs.csv",
-      );
+      ) as RQLRequest;
+      await onExportCsv(query);
     } catch (error) {
       console.error(error);
     } finally {
       setIsDownloading(false);
     }
-  }, [queryClient]);
+  }, [queryClient, onExportCsv]);
 
   return (
     <nav className={styles.navbar}>
@@ -75,6 +68,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
             <MagnifyingGlassIcon />
           </IconButton>
         )}
+        {onExportCsv && (
         <IconButton
           size={3}
           aria-label="Download"
@@ -83,6 +77,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
           disabled={isDownloading}>
           {isDownloading ? <Spinner /> : <DownloadIcon />}
         </IconButton>
+        )}
       </Flex>
     </nav>
   );

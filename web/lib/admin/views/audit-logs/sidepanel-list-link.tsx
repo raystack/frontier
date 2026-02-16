@@ -1,7 +1,7 @@
 import { Button, List } from "@raystack/apsara";
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import styles from "./list.module.css";
+import styles from "./audit-logs.module.css";
 
 type SidepanelListItemLinkProps = {
   isLink: boolean;
