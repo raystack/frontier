@@ -12,5 +12,4 @@ export function isNullTimestamp(timestamp?: Timestamp): boolean {
   if (!timestamp) return true;
   return Number(timestamp.seconds) <= 0;
 }
-
 export type TimeStamp = Timestamp;
