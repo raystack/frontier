@@ -8,11 +8,11 @@ import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import {
+  transformDataTableQueryToRQLRequest,
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
-} from "~/utils/connect-pagination";
+} from "@raystack/frontier/admin";
 import { getColumns } from "./columns";
 import { useDebounceValue } from "usehooks-ts";
 

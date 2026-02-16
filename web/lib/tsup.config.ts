@@ -22,7 +22,7 @@ export default defineConfig(() => [
       '.svg': 'dataurl',
       '.png': 'dataurl'
     },
-    esbuildPlugins: [cssModulesPlugin()]
+    esbuildPlugins: [cssModulesPlugin({ localsConvention: 'camelCase' })]
   },
   // Hooks APIs
   {
@@ -34,5 +34,21 @@ export default defineConfig(() => [
     format: ['cjs', 'esm'],
     external: ['react'],
     dts: true
+  },
+  // Admin APIs
+  {
+    entry: ['admin/index.ts'],
+    outDir: 'admin/dist',
+    banner: {
+      js: "'use client'"
+    },
+    format: ['cjs', 'esm'],
+    external: ['react', 'react-router-dom'],
+    dts: true,
+    loader: {
+      '.jpg': 'dataurl',
+      '.png': 'dataurl'
+    },
+    esbuildPlugins: [cssModulesPlugin({ localsConvention: 'camelCase' })]
   }
 ]);

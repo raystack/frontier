@@ -1,54 +1,53 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
-import Navbar from "./navbar";
-import styles from "./list.module.css";
+import {
+  DataTable,
+  type DataTableQuery,
+  type DataTableSort,
+  EmptyState,
+  Flex,
+} from "@raystack/apsara";
+import { useState } from "react";
+import { PageTitle } from "../../components/PageTitle";
+import { InvoicesNavabar } from "./navbar";
+import styles from "./invoices.module.css";
+import { InvoicesIcon } from "../../assets/icons/InvoicesIcon";
 import { getColumns } from "./columns";
-import { useNavigate } from "react-router-dom";
-import PageTitle from "~/components/page-title";
-import UserIcon from "~/assets/icons/users.svg?react";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
-import { AdminServiceQueries, type User } from "@raystack/proton/frontier";
+import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
-  getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-  transformDataTableQueryToRQLRequest,
-} from "@raystack/frontier/admin";
+} from "../../utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useDebouncedState } from "@raystack/apsara/hooks";
+import { transformDataTableQueryToRQLRequest } from "../../utils/transform-query";
 
-const NoUsers = () => {
+const NoInvoices = () => {
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No Users Found"
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
-      icon={<UserIcon />}
+      heading="No invoices found"
+      subHeading="Start billing to organizations to populate the table"
+      icon={<InvoicesIcon />}
     />
   );
 };
 
-const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const DEFAULT_SORT: DataTableSort = { name: "createdAt", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
 };
 
-export const UsersList = () => {
-  const navigate = useNavigate();
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
-    200,
-  );
+export type InvoicesViewProps = { appName?: string };
 
-  // Transform the DataTableQuery to RQLRequest format
+export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
     fieldNameMapping: {
       createdAt: "created_at",
-      updatedAt: "updated_at",
     },
   });
 
@@ -59,13 +58,14 @@ export const UsersList = () => {
     fetchNextPage,
     error,
     isError,
+    hasNextPage,
   } = useInfiniteQuery(
-    AdminServiceQueries.searchUsers,
-    { query: query },
+    AdminServiceQueries.searchInvoices,
+    { query },
     {
       pageParamKey: "query",
       getNextPageParam: lastPage =>
-        getConnectNextPageParam(lastPage, { query: query }, "users"),
+        getConnectNextPageParam(lastPage, { query: query }, "invoices"),
       staleTime: 0,
       refetchOnWindowFocus: false,
       retry: 1,
@@ -73,11 +73,7 @@ export const UsersList = () => {
     },
   );
 
-  const data = infiniteData?.pages?.flatMap(page => page?.users || []) || [];
-
-  const groupCountMap = infiniteData
-    ? getGroupCountMapFromFirstPage(infiniteData)
-    : {};
+  const data = infiniteData?.pages?.flatMap(page => page?.invoices || []) || [];
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery({
@@ -89,31 +85,28 @@ export const UsersList = () => {
 
   const handleLoadMore = async () => {
     try {
+      if (!hasNextPage) return;
       await fetchNextPage();
     } catch (error) {
-      console.error("Error loading more users:", error);
+      console.error("Error loading more invoices:", error);
     }
   };
 
-  const columns = getColumns({ groupCountMap });
+  const columns = getColumns();
 
   const loading = isLoading || isFetchingNextPage;
-
-  const onRowClick = (row: User) => {
-    navigate(`/users/${row.id}`);
-  };
 
   if (isError) {
     console.error("ConnectRPC Error:", error);
     return (
       <>
-        <PageTitle title="Users" />
+        <PageTitle title="Invoices" appName={appName} />
         <EmptyState
           icon={<ExclamationTriangleIcon />}
-          heading="Error Loading Users"
+          heading="Error Loading Invoices"
           subHeading={
             error?.message ||
-            "Something went wrong while loading users. Please try again."
+            "Something went wrong while loading invoices. Please try again."
           }
         />
       </>
@@ -125,7 +118,7 @@ export const UsersList = () => {
 
   return (
     <>
-      <PageTitle title="Users" />
+      <PageTitle title="Invoices" appName={appName} />
       <DataTable
         query={tableQuery}
         columns={columns}
@@ -134,10 +127,9 @@ export const UsersList = () => {
         defaultSort={DEFAULT_SORT}
         onTableQueryChange={onTableQueryChange}
         mode="server"
-        onLoadMore={handleLoadMore}
-        onRowClick={onRowClick}>
+        onLoadMore={handleLoadMore}>
         <Flex direction="column" style={{ width: "100%" }}>
-          <Navbar searchQuery={tableQuery.search} />
+          <InvoicesNavabar searchQuery={tableQuery.search || ""} />
           <DataTable.Toolbar />
           <DataTable.Content
             classNames={{
@@ -145,10 +137,10 @@ export const UsersList = () => {
               table: tableClassName,
               header: styles["table-header"],
             }}
-            emptyState={<NoUsers />}
+            emptyState={<NoInvoices />}
           />
         </Flex>
       </DataTable>
     </>
   );
-};
+}
