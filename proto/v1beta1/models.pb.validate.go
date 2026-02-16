@@ -4224,7 +4224,7 @@ func (m *InputHintOption) validate(all bool) error {
 
 	// no validation rules for Name
 
-	// no validation rules for Title
+	// no validation rules for Description
 
 	if len(errors) > 0 {
 		return InputHintOptionMultiError(errors)
@@ -4496,7 +4496,7 @@ func (m *Preference) validate(all bool) error {
 
 	// no validation rules for ScopeId
 
-	// no validation rules for ValueTitle
+	// no validation rules for ValueDescription
 
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {

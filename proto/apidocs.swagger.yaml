@@ -13330,10 +13330,10 @@ definitions:
       name:
         type: string
         title: Machine-readable identifier (e.g., "sq_km", "megagram")
-      title:
+      description:
         type: string
-        title: User-friendly display title (e.g., "Square Kilometers", "Megagram (Mg)")
-    title: InputHintOption represents a selectable option with a machine-readable name and user-friendly title
+        title: User-friendly display description (e.g., "Square Kilometers", "Megagram (Mg)")
+    title: InputHintOption represents a selectable option with a machine-readable name and user-friendly description
   v1beta1Invitation:
     type: object
     properties:
@@ -14426,11 +14426,11 @@ definitions:
         title: |-
           scope_id is the identifier of the scope context (e.g., organization ID)
           Only applicable when scope_type is set
-      value_title:
+      value_description:
         type: string
         title: |-
-          value_title is the human-readable display title for the value
-          Populated from InputHintOption.title when the trait has input_options configured
+          value_description is the human-readable display description for the value
+          Populated from InputHintOption.description when the trait has input_options configured
       created_at:
         type: string
         format: date-time
@@ -14489,7 +14489,7 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1InputHintOption'
         title: |-
-          Structured input options with name and title for select/combobox/multiselect inputs
+          Structured input options with name and description for select/combobox/multiselect inputs
           Takes precedence over input_hints when both are provided
     title: |-
       PreferenceTrait is a trait that can be used to add preferences to a resource
