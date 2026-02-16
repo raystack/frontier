@@ -72,8 +72,8 @@ func (s *Service) Create(ctx context.Context, preference Preference) (Preference
 	if err != nil {
 		return Preference{}, err
 	}
-	// Populate ValueTitle from trait's InputOptions
-	created.ValueTitle = matchedTrait.GetValueTitle(created.Value)
+	// Populate ValueDescription from trait's InputOptions
+	created.ValueDescription = matchedTrait.GetValueDescription(created.Value)
 	return created, nil
 }
 
@@ -134,20 +134,20 @@ func (s *Service) LoadUserPreferences(ctx context.Context, filter Filter) ([]Pre
 			continue
 		}
 		if pref, exists := prefMap[trait.Name]; exists {
-			// Populate ValueTitle from trait's InputOptions
-			pref.ValueTitle = trait.GetValueTitle(pref.Value)
+			// Populate ValueDescription from trait's InputOptions
+			pref.ValueDescription = trait.GetValueDescription(pref.Value)
 			result = append(result, pref)
 			delete(prefMap, trait.Name) // mark as processed
 		} else if trait.Default != "" {
 			// Add default preference for unset trait
 			result = append(result, Preference{
-				Name:         trait.Name,
-				Value:        trait.Default,
-				ValueTitle:   trait.GetValueTitle(trait.Default),
-				ResourceID:   filter.UserID,
-				ResourceType: schema.UserPrincipal,
-				ScopeType:    filter.ScopeType,
-				ScopeID:      filter.ScopeID,
+				Name:             trait.Name,
+				Value:            trait.Default,
+				ValueDescription: trait.GetValueDescription(trait.Default),
+				ResourceID:       filter.UserID,
+				ResourceType:     schema.UserPrincipal,
+				ScopeType:        filter.ScopeType,
+				ScopeID:          filter.ScopeID,
 			})
 		}
 	}

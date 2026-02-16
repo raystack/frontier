@@ -62,23 +62,23 @@ func TestLoadUserPreferences(t *testing.T) {
 		},
 	}
 
-	// Define test traits with InputOptions for ValueTitle testing
+	// Define test traits with InputOptions for ValueDescription testing
 	testTraitsWithOptions := []Trait{
 		{
 			ResourceType: schema.UserPrincipal,
 			Name:         "unit_area",
 			Default:      "sq_km",
 			InputOptions: []InputHintOption{
-				{Name: "sq_km", Title: "Square Kilometers"},
-				{Name: "sq_ft", Title: "Square Feet"},
-				{Name: "acres", Title: "Acres"},
+				{Name: "sq_km", Description: "Square Kilometers"},
+				{Name: "sq_ft", Description: "Square Feet"},
+				{Name: "acres", Description: "Acres"},
 			},
 		},
 		{
 			ResourceType: schema.UserPrincipal,
 			Name:         "theme",
 			Default:      "light",
-			// No InputOptions - ValueTitle should be empty
+			// No InputOptions - ValueDescription should be empty
 		},
 	}
 
@@ -251,7 +251,7 @@ func TestLoadUserPreferences(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("ValueTitle is populated from trait InputOptions for DB preferences", func(t *testing.T) {
+	t.Run("ValueDescription is populated from trait InputOptions for DB preferences", func(t *testing.T) {
 		mockRepo := new(MockRepository)
 		svc := NewService(mockRepo, testTraitsWithOptions)
 
@@ -271,18 +271,18 @@ func TestLoadUserPreferences(t *testing.T) {
 			resultMap[p.Name] = p
 		}
 
-		// unit_area should have ValueTitle populated from InputOptions
+		// unit_area should have ValueDescription populated from InputOptions
 		assert.Equal(t, "sq_ft", resultMap["unit_area"].Value)
-		assert.Equal(t, "Square Feet", resultMap["unit_area"].ValueTitle)
+		assert.Equal(t, "Square Feet", resultMap["unit_area"].ValueDescription)
 
-		// theme has no InputOptions, so ValueTitle should be empty
+		// theme has no InputOptions, so ValueDescription should be empty
 		assert.Equal(t, "light", resultMap["theme"].Value)
-		assert.Equal(t, "", resultMap["theme"].ValueTitle)
+		assert.Equal(t, "", resultMap["theme"].ValueDescription)
 
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("ValueTitle is populated for default preferences", func(t *testing.T) {
+	t.Run("ValueDescription is populated for default preferences", func(t *testing.T) {
 		mockRepo := new(MockRepository)
 		svc := NewService(mockRepo, testTraitsWithOptions)
 
@@ -300,9 +300,9 @@ func TestLoadUserPreferences(t *testing.T) {
 			resultMap[p.Name] = p
 		}
 
-		// unit_area default should have ValueTitle from InputOptions
+		// unit_area default should have ValueDescription from InputOptions
 		assert.Equal(t, "sq_km", resultMap["unit_area"].Value)
-		assert.Equal(t, "Square Kilometers", resultMap["unit_area"].ValueTitle)
+		assert.Equal(t, "Square Kilometers", resultMap["unit_area"].ValueDescription)
 
 		mockRepo.AssertExpectations(t)
 	})
@@ -319,14 +319,14 @@ func TestCreate(t *testing.T) {
 			Input:        TraitInputSelect,
 			Default:      "sq_km",
 			InputOptions: []InputHintOption{
-				{Name: "sq_km", Title: "Square Kilometers"},
-				{Name: "sq_ft", Title: "Square Feet"},
-				{Name: "acres", Title: "Acres"},
+				{Name: "sq_km", Description: "Square Kilometers"},
+				{Name: "sq_ft", Description: "Square Feet"},
+				{Name: "acres", Description: "Acres"},
 			},
 		},
 	}
 
-	t.Run("Create populates ValueTitle from InputOptions", func(t *testing.T) {
+	t.Run("Create populates ValueDescription from InputOptions", func(t *testing.T) {
 		mockRepo := new(MockRepository)
 		svc := NewService(mockRepo, testTraits)
 
@@ -350,7 +350,7 @@ func TestCreate(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, "sq_ft", result.Value)
-		assert.Equal(t, "Square Feet", result.ValueTitle) // Should be populated from trait
+		assert.Equal(t, "Square Feet", result.ValueDescription) // Should be populated from trait
 		mockRepo.AssertExpectations(t)
 	})
 }

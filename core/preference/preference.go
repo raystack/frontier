@@ -52,12 +52,12 @@ const (
 	ScopeIDGlobal   = "00000000-0000-0000-0000-000000000000"
 )
 
-// InputHintOption represents a selectable option with machine-readable name and user-friendly title
+// InputHintOption represents a selectable option with machine-readable name and user-friendly description
 type InputHintOption struct {
 	// Machine-readable identifier (e.g., "sq_km", "megagram")
 	Name string `json:"name" yaml:"name"`
-	// User-friendly display title (e.g., "Square Kilometers", "Megagram (Mg)")
-	Title string `json:"title" yaml:"title"`
+	// User-friendly display description (e.g., "Square Kilometers", "Megagram (Mg)")
+	Description string `json:"description" yaml:"description"`
 }
 
 type Trait struct {
@@ -117,23 +117,23 @@ func (t Trait) GetValidator() PreferenceValidator {
 }
 
 type Preference struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Value        string    `json:"value"`
-	ValueTitle   string    `json:"value_title"`
-	ResourceID   string    `json:"resource_id"`
-	ResourceType string    `json:"resource_type"`
-	ScopeType    string    `json:"scope_type"`
-	ScopeID      string    `json:"scope_id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID               string    `json:"id"`
+	Name             string    `json:"name"`
+	Value            string    `json:"value"`
+	ValueDescription string    `json:"value_description"`
+	ResourceID       string    `json:"resource_id"`
+	ResourceType     string    `json:"resource_type"`
+	ScopeType        string    `json:"scope_type"`
+	ScopeID          string    `json:"scope_id"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
 
-// GetValueTitle returns the human-readable title for a value from InputOptions
-func (t Trait) GetValueTitle(value string) string {
+// GetValueDescription returns the human-readable description for a value from InputOptions
+func (t Trait) GetValueDescription(value string) string {
 	for _, opt := range t.InputOptions {
 		if opt.Name == value {
-			return opt.Title
+			return opt.Description
 		}
 	}
 	return ""
