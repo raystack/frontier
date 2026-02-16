@@ -30,11 +30,6 @@ jobs:
 
   smoke:
     runs-on: ubuntu-latest
-    services:
-      dind:
-        image: docker:24.0.2-dind-rootless
-        ports:
-          - 2375:2375
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,18 +41,11 @@ jobs:
           go-version: "1.23.1"
       - name: install dependencies
         run: go mod tidy
-      - name: install spicedb binary
-        uses: authzed/action-spicedb@v1
       - name: run smoke tests
         run: make e2e-smoke-test
 
   regression:
     runs-on: ubuntu-latest
-    services:
-      dind:
-        image: docker:24.0.2-dind-rootless
-        ports:
-          - 2375:2375
     steps:
       - name: Checkout
         uses: actions/checkout@v3
