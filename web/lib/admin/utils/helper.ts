@@ -17,3 +17,7 @@ export function isZeroUUID(uuid: string) {
   if (typeof uuid !== "string") return false;
   return uuid.toLowerCase() === ZERO_UUID;
 }
+
+export function capitalizeFirstLetter(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

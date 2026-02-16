@@ -9,8 +9,8 @@ import { Flex, Select, Switch, Text, InputField } from "@raystack/apsara";
 import React, { CSSProperties } from "react";
 
 import { Control, Controller, UseFormRegister } from "react-hook-form";
-import { capitalizeFirstLetter } from "~/utils/helper";
-import { MultiSelect } from "./multiselect";
+import { capitalizeFirstLetter } from "../utils/helper";
+import { MultiSelect } from "./multiselect/multiselect";
 import Skeleton from "react-loading-skeleton";
 
 type CustomFieldNameProps = {
@@ -121,7 +121,7 @@ export const CustomFieldName = ({
                         {...rest}
                         options={options}
                         onSelect={onChange}
-                        selected={value || props?.defaultValue}
+                        selected={value || props?.defaultValue || []}
                       />
                     );
                   }

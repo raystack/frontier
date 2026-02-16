@@ -43,7 +43,16 @@ export default defineConfig(() => [
       js: "'use client'"
     },
     format: ['cjs', 'esm'],
-    external: ['react', 'react-router-dom'],
+    external: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'zod',
+      '@radix-ui/react-form',
+      'sonner',
+      'react-loading-skeleton',
+      '@stitches/react'
+    ],
     dts: true,
     loader: {
       '.jpg': 'dataurl',

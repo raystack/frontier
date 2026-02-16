@@ -21,9 +21,7 @@ import { RolesPage } from "./pages/roles/RolesPage";
 
 import { AppContext } from "./contexts/App";
 import { AdminsPage } from "./pages/admins/AdminsPage";
-import WebhooksList from "./containers/webhooks";
-import CreateWebhooks from "./containers/webhooks/create";
-import UpdateWebhooks from "./containers/webhooks/update";
+import { WebhooksPage } from "./pages/webhooks/WebhooksPage";
 import AuthLayout from "./layout/auth";
 
 import { OrganizationList } from "./pages/organizations/list";
@@ -104,9 +102,9 @@ export default memo(function AppRoutes() {
 
         <Route path="invoices" element={<InvoicesPage />} />
         <Route path="super-admins" element={<AdminsPage />} />
-        <Route path="webhooks" element={<WebhooksList />}>
-          <Route path="create" element={<CreateWebhooks />} />
-          <Route path=":webhookId" element={<UpdateWebhooks />} />
+        <Route path="webhooks" element={<WebhooksPage />}>
+          <Route path="create" element={<WebhooksPage />} />
+          <Route path=":webhookId" element={<WebhooksPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/organizations" />} />
       </Route>

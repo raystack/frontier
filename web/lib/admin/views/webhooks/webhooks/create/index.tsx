@@ -1,14 +1,14 @@
 import { useCallback } from "react";
 import { Button, Flex, Sheet } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
-import { SheetHeader } from "~/components/sheet/header";
+import { SheetHeader } from "../../../../components/SheetHeader";
+import { SheetFooter } from "../../../../components/SheetFooter";
 import * as z from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { CustomFieldName } from "~/components/CustomField";
-import events from "~/utils/webhook_events";
-import { SheetFooter } from "~/components/sheet/footer";
+import { CustomFieldName } from "../../../../components/CustomField";
+import events from "../../../../utils/webhook-events";
 import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import {
@@ -31,13 +31,18 @@ const NewWebookSchema = z.object({
 
 export type NewWebhook = z.infer<typeof NewWebookSchema>;
 
-export default function CreateWebhooks() {
+export type CreateWebhooksProps = {
+  onClose?: () => void;
+};
+
+export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksProps = {}) {
   const navigate = useNavigate();
   const { invalidateWebhooksList } = useWebhookQueries();
 
   const onOpenChange = useCallback(() => {
-    navigate("/webhooks");
-  }, [navigate]);
+    if (onCloseProp) onCloseProp();
+    else navigate("/webhooks");
+  }, [navigate, onCloseProp]);
 
   const { mutateAsync: createWebhook, isPending: isSubmitting } = useMutation(
     AdminServiceQueries.createWebhook,
@@ -88,7 +93,7 @@ export default function CreateWebhooks() {
             <SheetHeader
               title="Add new Webhook"
               onClick={onOpenChange}
-              data-test-id="admin-add-new-webhook-btn"
+              data-testid="admin-add-new-webhook-btn"
             />
             <Flex direction="column" gap={9} style={styles.main}>
               <CustomFieldName
@@ -110,7 +115,7 @@ export default function CreateWebhooks() {
                 register={methods.register}
                 control={methods.control}
                 variant="multiselect"
-                options={events.map((e) => ({ label: e, value: e }))}
+                options={events.map((e: string) => ({ label: e, value: e }))}
               />
               <CustomFieldName
                 name="state"

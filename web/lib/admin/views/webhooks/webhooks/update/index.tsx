@@ -1,14 +1,14 @@
 import { useCallback, useEffect } from "react";
 import { Button, Flex, Sheet } from "@raystack/apsara";
 import { useNavigate, useParams } from "react-router-dom";
-import { SheetHeader } from "~/components/sheet/header";
+import { SheetHeader } from "../../../../components/SheetHeader";
+import { SheetFooter } from "../../../../components/SheetFooter";
 import * as z from "zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { CustomFieldName } from "~/components/CustomField";
-import events from "~/utils/webhook_events";
-import { SheetFooter } from "~/components/sheet/footer";
+import { CustomFieldName } from "../../../../components/CustomField";
+import events from "../../../../utils/webhook-events";
 import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import {
@@ -31,8 +31,16 @@ const UpdateWebhookSchema = z.object({
 
 export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;
 
-export default function UpdateWebhooks() {
+export type UpdateWebhooksProps = {
+  webhookId?: string;
+  onClose?: () => void;
+};
+
+export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCloseProp }: UpdateWebhooksProps = {}) {
   const navigate = useNavigate();
+  const { webhookId: webhookIdParam } = useParams();
+  const webhookId = webhookIdProp ?? webhookIdParam ?? "";
+
   const {
     listWebhooks: {
       data: webhooksResponse,
@@ -41,11 +49,10 @@ export default function UpdateWebhooks() {
     invalidateWebhooksList,
   } = useWebhookQueries();
 
-  const { webhookId = "" } = useParams();
-
   const onClose = useCallback(() => {
-    navigate("/webhooks");
-  }, [navigate]);
+    if (onCloseProp) onCloseProp();
+    else navigate("/webhooks");
+  }, [navigate, onCloseProp]);
 
   const methods = useForm<UpdateWebhook>({
     resolver: zodResolver(UpdateWebhookSchema),
@@ -114,7 +121,7 @@ export default function UpdateWebhooks() {
             <SheetHeader
               title="Update Webhook"
               onClick={onClose}
-              data-test-id="admin-update-webhook-close-btn"
+              data-testid="admin-update-webhook-close-btn"
             />
             <Flex
               direction="column"
@@ -146,7 +153,7 @@ export default function UpdateWebhooks() {
                 register={methods.register}
                 control={methods.control}
                 variant="multiselect"
-                options={events.map((e) => ({ label: e, value: e }))}
+                options={events.map((e: string) => ({ label: e, value: e }))}
                 isLoading={isWebhookLoading}
               />
               <CustomFieldName

@@ -7,6 +7,7 @@ export { ProductsView, ProductPricesView } from "./views/products/exports";
 export { default as AuditLogsView } from "./views/audit-logs";
 export { default as AdminsView } from "./views/admins";
 export { default as PlansView } from "./views/plans";
+export { default as WebhooksView } from "./views/webhooks/webhooks";
 
 // utils exports
 export {

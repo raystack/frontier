@@ -10,8 +10,8 @@ import { type Webhook } from "@raystack/proton/frontier";
 import {
   timestampToDate,
   isNullTimestamp,
-  TimeStamp,
-} from "~/utils/connect-timestamp";
+  type TimeStamp,
+} from "../../../utils/connect-timestamp";
 import dayjs from "dayjs";
 import { useState } from "react";
 import type { useMutation } from "@connectrpc/connect-query";

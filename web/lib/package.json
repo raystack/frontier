@@ -90,7 +90,12 @@
     "size-limit": "^8.2.6",
     "ts-jest": "^29.3.4",
     "tsup": "^6.7.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@radix-ui/react-form": "^0.0.2",
+    "@stitches/react": "^1.2.8",
+    "react-loading-skeleton": "^3.4.0",
+    "sonner": "^1.4.41",
+    "zod": "^3.22.3"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.11.0",

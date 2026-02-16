@@ -2,15 +2,22 @@ import { PlusIcon } from "@radix-ui/react-icons";
 
 import { Button, Flex, DataTable } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
-import PageHeader from "~/components/page-header";
+import { PageHeader } from "../../../components/PageHeader";
 import styles from "./webhooks.module.css";
 
 const pageHeader = {
   title: "Webhooks",
-  breadcrumb: [],
+  breadcrumb: [] as { name: string; href?: string }[],
 };
-export const WebhooksHeader = ({ header = pageHeader }: any) => {
+
+export type WebhooksHeaderProps = {
+  header?: typeof pageHeader;
+  onOpenCreate?: () => void;
+};
+
+export const WebhooksHeader = ({ header = pageHeader, onOpenCreate }: WebhooksHeaderProps) => {
   const navigate = useNavigate();
+  const handleCreate = () => (onOpenCreate ? onOpenCreate() : navigate("/webhooks/create"));
 
   return (
     <PageHeader
@@ -25,7 +32,7 @@ export const WebhooksHeader = ({ header = pageHeader }: any) => {
         color="neutral"
         leadingIcon={<PlusIcon />}
         data-test-id="admin-create-webhook-btn"
-        onClick={() => navigate("/webhooks/create")}
+        onClick={handleCreate}
       >
         New Webhook
       </Button>
