@@ -1,4 +1,4 @@
-import PageHeader from "~/components/page-header";
+import { PageHeader } from "../../components/PageHeader";
 import {
   Grid,
   Button,
@@ -9,7 +9,6 @@ import {
   InputField,
 } from "@raystack/apsara";
 import { useCallback, useEffect, useState } from "react";
-import { useOutletContext, useParams } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import { toast } from "sonner";
@@ -19,16 +18,6 @@ import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystac
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { useQueryClient } from "@tanstack/react-query";
 import { create } from "@bufbuild/protobuf";
-
-interface ContextType {
-  preferences: Preference[];
-  traits: PreferenceTrait[];
-  isLoading: boolean;
-}
-
-export function usePreferences() {
-  return useOutletContext<ContextType>();
-}
 
 interface PreferenceValueProps {
   trait: PreferenceTrait;
@@ -62,11 +51,23 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
   }
 }
 
-export default function PreferenceDetails() {
-  const { name } = useParams();
+export type PreferenceDetailsProps = {
+  selectedName: string;
+  preferences: Preference[];
+  traits: PreferenceTrait[];
+  isLoading: boolean;
+  onCloseDetail?: () => void;
+};
+
+export default function PreferenceDetails({
+  selectedName: name,
+  preferences,
+  traits,
+  isLoading,
+  onCloseDetail,
+}: PreferenceDetailsProps) {
   const [value, setValue] = useState("");
   const [originalValue, setOriginalValue] = useState("");
-  const { preferences, traits, isLoading } = usePreferences();
   const preference = preferences?.find((p) => p.name === name);
   const trait = traits?.find((t) => t.name === name);
 
@@ -118,14 +119,8 @@ export default function PreferenceDetails() {
   const pageHeader = {
     title: "Preference",
     breadcrumb: [
-      {
-        href: `/preferences`,
-        name: `Preferences`,
-      },
-      {
-        href: `/preferences/${trait?.name}`,
-        name: `${trait?.title}`,
-      },
+      { name: "Preferences", href: "#" },
+      { name: trait?.title ?? name },
     ],
   };
 
@@ -200,6 +195,7 @@ export default function PreferenceDetails() {
       <PageHeader
         title={pageHeader.title}
         breadcrumb={pageHeader.breadcrumb}
+        onBreadcrumbClick={onCloseDetail ? (item) => { if (item.name === "Preferences") onCloseDetail(); } : undefined}
         style={{
           borderBottom: "1px solid var(--rs-color-border-base-primary)",
           gap: "16px",
@@ -230,12 +226,11 @@ export default function PreferenceDetails() {
           </Text>
         )}
         {trait ? (
-          <Flex direction="column" gap={"medium"}>
+          <Flex direction="column" gap={"medium"} data-test-id="preference-value-save">
             <PreferenceValue
               trait={trait}
               value={value}
               onChange={setValue}
-              data-test-id="preference-value-save"
             />
             <Button
               onClick={onSave}

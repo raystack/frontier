@@ -1,30 +1,26 @@
 import { EmptyState, DataTable, Flex } from "@raystack/apsara";
 import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
-
-import PageHeader from "~/components/page-header";
+import { PageHeader } from "../../components/PageHeader";
 import { getColumns } from "./columns";
-import { useOutletContext } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import styles from "./preferences.module.css";
 
 const pageHeader = {
   title: "Preferences",
-  breadcrumb: [],
+  breadcrumb: [] as { name: string; href?: string }[],
 };
 
-interface ContextType {
+export type PreferencesListProps = {
   preferences: Preference[];
   traits: PreferenceTrait[];
-  isPreferencesLoading: boolean;
-}
+  isLoading: boolean;
+};
 
-export function usePreferences() {
-  return useOutletContext<ContextType>();
-}
-
-export default function PreferencesList() {
-  const { preferences, traits, isPreferencesLoading } = usePreferences();
-
+export default function PreferencesList({
+  preferences,
+  traits,
+  isLoading,
+}: PreferencesListProps) {
   const columns = getColumns({
     traits,
     preferences,
@@ -36,7 +32,7 @@ export default function PreferencesList() {
       columns={columns}
       mode="client"
       defaultSort={{ name: "title", order: "asc" }}
-      isLoading={isPreferencesLoading}
+      isLoading={isLoading}
     >
       <Flex direction="column" className={styles.tableWrapper}>
         <PageHeader

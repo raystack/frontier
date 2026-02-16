@@ -1,6 +1,5 @@
 import type { DataTableColumnDef } from "@raystack/apsara";
 import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
-
 import { Link } from "react-router-dom";
 import styles from "./preferences.module.css";
 
