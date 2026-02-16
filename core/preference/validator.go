@@ -61,8 +61,9 @@ func NewSelectValidator(inputHints string) *SelectValidator {
 func NewSelectValidatorFromOptions(options []InputHintOption) *SelectValidator {
 	var allowed []string
 	for _, opt := range options {
-		if opt.Name != "" {
-			allowed = append(allowed, opt.Name)
+		trimmed := strings.TrimSpace(opt.Name)
+		if trimmed != "" {
+			allowed = append(allowed, trimmed)
 		}
 	}
 	return &SelectValidator{
