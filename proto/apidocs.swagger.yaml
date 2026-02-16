@@ -14488,9 +14488,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1InputHintOption'
-        title: |-
-          Structured input options with name and description for select/combobox/multiselect inputs
-          Takes precedence over input_hints when both are provided
+        title: Structured input options with name and description for select/combobox/multiselect inputs
     title: |-
       PreferenceTrait is a trait that can be used to add preferences to a resource
       it explains what preferences are available for a resource

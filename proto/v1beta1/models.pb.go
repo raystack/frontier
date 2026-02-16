@@ -2368,7 +2368,6 @@ type PreferenceTrait struct {
 	InputHints      string                    `protobuf:"bytes,19,opt,name=input_hints,json=inputHints,proto3" json:"input_hints,omitempty"`
 	InputType       PreferenceTrait_InputType `protobuf:"varint,27,opt,name=input_type,json=inputType,proto3,enum=raystack.frontier.v1beta1.PreferenceTrait_InputType" json:"input_type,omitempty"`
 	// Structured input options with name and description for select/combobox/multiselect inputs
-	// Takes precedence over input_hints when both are provided
 	InputOptions []*InputHintOption `protobuf:"bytes,28,rep,name=input_options,json=inputOptions,proto3" json:"input_options,omitempty"`
 }
 
