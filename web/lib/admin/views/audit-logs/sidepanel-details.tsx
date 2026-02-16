@@ -6,16 +6,16 @@ import {
   TransformIcon,
 } from "@radix-ui/react-icons";
 import { List } from "@raystack/apsara";
-import styles from "./list.module.css";
+import styles from "./audit-logs.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
-import { ACTOR_TYPES } from "../util";
-import { timestampToDate } from "~/utils/connect-timestamp";
+import { ACTOR_TYPES } from "./util";
+import { timestampToDate } from "../../utils/connect-timestamp";
 import dayjs from "dayjs";
-import MapIcon from "~/assets/icons/map.svg?react";
+import { MapIcon } from "../../assets/icons/MapIcon";
 import SidePanelLogDialog from "./sidepanel-log-dialog";
 import ActorCell from "./actor-cell";
 import SidepanelListItemLink from "./sidepanel-list-link";
-import { isZeroUUID } from "~/utils/helper";
+import { isZeroUUID } from "../../utils/helper";
 import SidepanelListId from "./sidepanel-list-id";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {

@@ -5,4 +5,11 @@ export function timestampToDate(timestamp?: Timestamp): Date | null {
   return timestampDate(timestamp);
 }
 
+/**
+ * Checks if a ConnectRPC Timestamp is the null time (0001-01-01T00:00:00Z)
+ */
+export function isNullTimestamp(timestamp?: Timestamp): boolean {
+  if (!timestamp) return true;
+  return Number(timestamp.seconds) <= 0;
+}
 export type TimeStamp = Timestamp;
