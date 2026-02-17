@@ -7,12 +7,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// TraitsConfig represents the YAML config file structure for custom traits
+// TraitsConfig represents the YAML config file structure for additional traits
 type TraitsConfig struct {
 	Traits []Trait `yaml:"traits"`
 }
 
-// LoadTraitsFromFile loads custom traits from a YAML configuration file
+// LoadTraitsFromFile loads additional traits from a YAML configuration file
 // and merges them with DefaultTraits
 func LoadTraitsFromFile(path string) ([]Trait, error) {
 	if path == "" {
@@ -29,23 +29,23 @@ func LoadTraitsFromFile(path string) ([]Trait, error) {
 		return nil, fmt.Errorf("parse traits file: %w", err)
 	}
 
-	// Merge custom traits with default traits
-	// Custom traits with same resource_type and name override defaults
+	// Merge additional traits with default traits
+	// Additional traits with same resource_type and name override defaults
 	traits := make([]Trait, 0, len(DefaultTraits)+len(config.Traits))
 	traits = append(traits, DefaultTraits...)
 
-	for _, customTrait := range config.Traits {
-		// Check if custom trait overrides a default trait
+	for _, additionalTrait := range config.Traits {
+		// Check if additional trait overrides a default trait
 		found := false
 		for i, defaultTrait := range traits {
-			if defaultTrait.ResourceType == customTrait.ResourceType && defaultTrait.Name == customTrait.Name {
-				traits[i] = customTrait
+			if defaultTrait.ResourceType == additionalTrait.ResourceType && defaultTrait.Name == additionalTrait.Name {
+				traits[i] = additionalTrait
 				found = true
 				break
 			}
 		}
 		if !found {
-			traits = append(traits, customTrait)
+			traits = append(traits, additionalTrait)
 		}
 	}
 

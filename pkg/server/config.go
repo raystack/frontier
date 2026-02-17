@@ -90,7 +90,7 @@ type Config struct {
 
 	Webhook webhook.Config `yaml:"webhook" mapstructure:"webhook"`
 
-	// CustomTraitsPath is a file path to a YAML file containing custom preference traits
+	// AdditionalTraitsPath is a file path to a YAML file containing additional preference traits
 	// These traits are merged with DefaultTraits at startup
-	CustomTraitsPath string `yaml:"custom_traits_path" mapstructure:"custom_traits_path"`
+	AdditionalTraitsPath string `yaml:"additional_traits_path" mapstructure:"additional_traits_path"`
 }
