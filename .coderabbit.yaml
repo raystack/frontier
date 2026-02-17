@@ -20,13 +20,13 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
-pre_merge_checks:
-  docstrings:
-    mode: "off"
-  title:
-    mode: "off"
-  description:
-    mode: "off"
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+    title:
+      mode: "off"
+    description:
+      mode: "off"
 chat:
   auto_reply: true
   art: false
