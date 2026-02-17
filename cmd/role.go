@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -69,23 +70,20 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			ctx := setCtxHeader(cmd.Context(), header)
-
-			res, err := client.CreateOrganizationRole(ctx, &frontierv1beta1.CreateOrganizationRoleRequest{
+			res, err := client.CreateOrganizationRole(cmd.Context(), newRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
 				Body: &reqBody,
-			})
+			}, header))
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully created role %s with id %s\n", res.GetRole().GetName(), res.GetRole().GetId())
+			fmt.Printf("successfully created role %s with id %s\n", res.Msg.GetRole().GetName(), res.Msg.GetRole().GetId())
 			return nil
 		},
 	}
@@ -125,17 +123,16 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			roleID := args[0]
-			_, err = client.UpdateOrganizationRole(cmd.Context(), &frontierv1beta1.UpdateOrganizationRoleRequest{
+			_, err = client.UpdateOrganizationRole(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:   roleID,
 				Body: &reqBody,
-			})
+			}))
 			if err != nil {
 				return err
 			}
@@ -169,23 +166,22 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			roleID := args[0]
-			res, err := client.GetOrganizationRole(cmd.Context(), &frontierv1beta1.GetOrganizationRoleRequest{
+			res, err := client.GetOrganizationRole(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetOrganizationRoleRequest{
 				Id: roleID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			role := res.GetRole()
+			role := res.Msg.GetRole()
 
 			spinner.Stop()
 
@@ -239,19 +235,18 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.ListRoles(cmd.Context(), &frontierv1beta1.ListRolesRequest{})
+			res, err := client.ListRoles(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListRolesRequest{}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			roles := res.GetRoles()
+			roles := res.Msg.GetRoles()
 
 			spinner.Stop()
 

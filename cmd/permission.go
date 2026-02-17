@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -68,22 +69,20 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createAdminClient(cmd.Context(), cliConfig.Host)
+			client, err := createAdminClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+			res, err := client.CreatePermission(cmd.Context(), newRequest(&frontierv1beta1.CreatePermissionRequest{
 				Bodies: []*frontierv1beta1.PermissionRequestBody{&reqBody},
-			})
+			}, header))
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully created permissions %d\n", len(res.GetPermissions()))
+			fmt.Printf("successfully created permissions %d\n", len(res.Msg.GetPermissions()))
 			return nil
 		},
 	}
@@ -123,17 +122,16 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createAdminClient(cmd.Context(), cliConfig.Host)
+			client, err := createAdminClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			permissionID := args[0]
-			_, err = client.UpdatePermission(cmd.Context(), &frontierv1beta1.UpdatePermissionRequest{
+			_, err = client.UpdatePermission(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id:   permissionID,
 				Body: &reqBody,
-			})
+			}))
 			if err != nil {
 				return err
 			}
@@ -165,23 +163,22 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			permissionID := args[0]
-			res, err := client.GetPermission(cmd.Context(), &frontierv1beta1.GetPermissionRequest{
+			res, err := client.GetPermission(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetPermissionRequest{
 				Id: permissionID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			action := res.GetPermission()
+			action := res.Msg.GetPermission()
 
 			spinner.Stop()
 
@@ -215,19 +212,18 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.ListPermissions(cmd.Context(), &frontierv1beta1.ListPermissionsRequest{})
+			res, err := client.ListPermissions(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			permissions := res.GetPermissions()
+			permissions := res.Msg.GetPermissions()
 
 			spinner.Stop()
 
