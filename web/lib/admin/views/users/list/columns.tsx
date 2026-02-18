@@ -6,6 +6,7 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
+import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import { getUserName, USER_STATES, UserState } from "../util";
@@ -14,7 +15,7 @@ import {
   isNullTimestamp,
   TimeStamp,
   timestampToDate,
-} from "~/utils/connect-timestamp";
+} from "../../../utils/connect-timestamp";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
@@ -34,15 +35,18 @@ export const getColumns = ({
       cell: ({ row }) => {
         const avatarColor = getAvatarColor(row?.original?.id || "");
         const name = getUserName(row.original);
+        const userId = row.original.id;
         return (
-          <Flex gap={4} align="center">
-            <Avatar
-              src={row.original.avatar}
-              fallback={name?.[0]?.toUpperCase()}
-              color={avatarColor}
-            />
-            <Text>{name}</Text>
-          </Flex>
+          <Link to={userId ? `/users/${userId}/security` : "#"} style={{ textDecoration: "none", color: "inherit" }}>
+            <Flex gap={4} align="center">
+              <Avatar
+                src={row.original.avatar}
+                fallback={name?.[0]?.toUpperCase()}
+                color={avatarColor}
+              />
+              <Text>{name}</Text>
+            </Flex>
+          </Link>
         );
       },
       enableColumnFilter: true,

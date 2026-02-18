@@ -13,7 +13,7 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SCOPES, DEFAULT_ROLES } from "~/utils/constants";
+import { SCOPES, DEFAULT_ROLES } from "../../../utils/constants";
 import styles from "./invite-users.module.css";
 import Skeleton from "react-loading-skeleton";
 import { useMutation, useQuery } from "@connectrpc/connect-query";

@@ -6,21 +6,18 @@ import {
   IconButton,
   Spinner,
 } from "@raystack/apsara";
-import UserIcon from "~/assets/icons/users.svg?react";
 import styles from "./list.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import UserIcon from "../../../assets/icons/UsersIcon";
 import React, { useState } from "react";
-import { clients } from "~/connect/clients";
-import { exportCsvFromStream } from "~/utils/helper";
 import { InviteUser } from "./invite-users";
-
-const adminClient = clients.admin({ useBinary: true });
 
 interface NavbarProps {
   searchQuery?: string;
+  onExportUsers?: () => Promise<void>;
 }
 
-const Navbar = ({ searchQuery }: NavbarProps) => {
+const Navbar = ({ searchQuery, onExportUsers }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -36,9 +33,10 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
   }
 
   async function onDownloadClick() {
+    if (!onExportUsers) return;
     try {
       setIsDownloading(true);
-      await exportCsvFromStream(adminClient.exportUsers, {}, "users.csv");
+      await onExportUsers();
     } catch (error) {
       console.error(error);
     } finally {
@@ -79,7 +77,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
           aria-label="Download"
           data-test-id="admin-download-users-list-btn"
           onClick={onDownloadClick}
-          disabled={isDownloading}
+          disabled={isDownloading || !onExportUsers}
         >
           {isDownloading ? <Spinner /> : <DownloadIcon />}
         </IconButton>

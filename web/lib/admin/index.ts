@@ -9,6 +9,7 @@ export { default as AdminsView } from "./views/admins";
 export { default as PlansView } from "./views/plans";
 export { default as WebhooksView } from "./views/webhooks/webhooks";
 export { default as PreferencesView } from "./views/preferences/PreferencesView";
+export { default as UsersView } from "./views/users/UsersView";
 
 // utils exports
 export {

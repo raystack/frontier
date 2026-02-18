@@ -11,8 +11,8 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useQuery } from "@connectrpc/connect-query";
-import { SCOPES } from "~/utils/constants";
-import { AssignRole } from "~/components/assign-role";
+import { SCOPES } from "../../../../utils/constants";
+import { AssignRole } from "../../../../components/AssignRole";
 import { useUser } from "../user-context";
 import { SuspendUser } from "./suspend-user";
 

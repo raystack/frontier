@@ -31,9 +31,7 @@ import { OrganizationInvoicesPage } from "./pages/organizations/details/invoices
 import { OrganizationTokensPage } from "./pages/organizations/details/tokens";
 import { OrganizationApisPage } from "./pages/organizations/details/apis";
 
-import { UsersList } from "./pages/users/list";
-import { UserDetails } from "./pages/users/details";
-import { UserDetailsSecurityPage } from "./pages/users/details/security";
+import { UsersPage } from "./pages/users/UsersPage";
 
 import { InvoicesPage } from "./pages/invoices/InvoicesPage";
 import { AuditLogsPage } from "./pages/audit-logs/AuditLogsPage";
@@ -71,10 +69,9 @@ export default memo(function AppRoutes() {
           <Route path="tokens" element={<OrganizationTokensPage />} />
           <Route path="apis" element={<OrganizationApisPage />} />
         </Route>
-        <Route path="users" element={<UsersList />} />
-        <Route path="users/:userId" element={<UserDetails />}>
-          <Route index element={<Navigate to="security" />} />
-          <Route path="security" element={<UserDetailsSecurityPage />} />
+        <Route path="users" element={<UsersPage />}>
+          <Route path=":userId" element={<UsersPage />} />
+          <Route path=":userId/security" element={<UsersPage />} />
         </Route>
 
         <Route path="audit-logs" element={<AuditLogsPage />} />

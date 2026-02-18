@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AdminServiceQueries, Session } from "@raystack/proton/frontier";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { timestampToDate } from "~/utils/connect-timestamp";
+import { timestampToDate } from "../../../../../utils/connect-timestamp";
 import styles from "./sessions.module.css";
 
 /**

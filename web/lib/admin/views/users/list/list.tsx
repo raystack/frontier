@@ -3,17 +3,16 @@ import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import Navbar from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
-import { useNavigate } from "react-router-dom";
-import PageTitle from "~/components/page-title";
-import UserIcon from "~/assets/icons/users.svg?react";
+import { PageTitle } from "../../../components/PageTitle";
+import UserIcon from "../../../assets/icons/UsersIcon";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries, type User } from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-  transformDataTableQueryToRQLRequest,
-} from "@raystack/frontier/admin";
+} from "../../../utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "../../../utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useDebouncedState } from "@raystack/apsara/hooks";
 
@@ -37,8 +36,12 @@ const INITIAL_QUERY: DataTableQuery = {
   limit: DEFAULT_PAGE_SIZE,
 };
 
-export const UsersList = () => {
-  const navigate = useNavigate();
+interface UsersListProps {
+  onExportUsers?: () => Promise<void>;
+  onNavigateToUser?: (userId: string) => void;
+}
+
+export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) => {
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
     INITIAL_QUERY,
     200,
@@ -100,7 +103,7 @@ export const UsersList = () => {
   const loading = isLoading || isFetchingNextPage;
 
   const onRowClick = (row: User) => {
-    navigate(`/users/${row.id}`);
+    onNavigateToUser?.(row.id);
   };
 
   if (isError) {
@@ -137,7 +140,7 @@ export const UsersList = () => {
         onLoadMore={handleLoadMore}
         onRowClick={onRowClick}>
         <Flex direction="column" style={{ width: "100%" }}>
-          <Navbar searchQuery={tableQuery.search} />
+          <Navbar searchQuery={tableQuery.search} onExportUsers={onExportUsers} />
           <DataTable.Toolbar />
           <DataTable.VirtualizedContent
             classNames={{
