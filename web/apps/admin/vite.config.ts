@@ -1,13 +1,14 @@
 import react from "@vitejs/plugin-react-swc";
 import dotenv from "dotenv";
+import { createRequire } from "module";
 import path from "path";
-import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import svgr from "vite-plugin-svgr";
 dotenv.config();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const reactRouterDomPath = path.dirname(require.resolve("react-router-dom/package.json"));
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
@@ -36,7 +37,7 @@ export default defineConfig(() => {
     },
     resolve: {
       alias: {
-        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
+        "react-router-dom": reactRouterDomPath,
       },
     },
     plugins: [react(), svgr(), tsconfigPaths()],
