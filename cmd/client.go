@@ -27,7 +27,7 @@ func ensureHTTPScheme(host string) string {
 	if strings.HasPrefix(host, "http://") || strings.HasPrefix(host, "https://") {
 		return host
 	}
-	return fmt.Sprintf("http://%s", host)
+	return fmt.Sprintf("https://%s", host)
 }
 
 func isClientCLI(cmd *cobra.Command) bool {
