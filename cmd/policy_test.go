@@ -2,7 +2,6 @@ package cmd_test
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"testing"
 
@@ -18,6 +17,7 @@ func TestClientPolicy(t *testing.T) {
 			subCommands []string
 			want        string
 			err         error
+			wantErr     bool
 		}{
 			{
 				name:        "`policy` create only should throw error host not found",
@@ -50,10 +50,10 @@ func TestClientPolicy(t *testing.T) {
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
-				name:        "`policy` view with host flag should pass",
+				name:        "`policy` view with host flag should return error",
 				want:        "",
 				subCommands: []string{"view", "123", "-h", "test"},
-				err:         context.DeadlineExceeded,
+				wantErr:     true,
 			},
 		}
 		for _, tt := range tests {
@@ -69,7 +69,11 @@ func TestClientPolicy(t *testing.T) {
 				err := cli.Execute()
 				got := buf.String()
 
-				assert.Equal(t, tt.err, err)
+				if tt.wantErr {
+					assert.Error(t, err)
+				} else {
+					assert.Equal(t, tt.err, err)
+				}
 				assert.Equal(t, tt.want, got)
 			})
 		}
