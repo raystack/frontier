@@ -265,15 +265,16 @@ func (h *ConnectHandler) ListPlatformPreferences(ctx context.Context) (map[strin
 
 func transformPreferenceToPB(pref preference.Preference) *frontierv1beta1.Preference {
 	return &frontierv1beta1.Preference{
-		Id:           pref.ID,
-		Name:         pref.Name,
-		Value:        pref.Value,
-		ResourceId:   pref.ResourceID,
-		ResourceType: pref.ResourceType,
-		ScopeType:    pref.ScopeType,
-		ScopeId:      pref.ScopeID,
-		CreatedAt:    timestamppb.New(pref.CreatedAt),
-		UpdatedAt:    timestamppb.New(pref.UpdatedAt),
+		Id:               pref.ID,
+		Name:             pref.Name,
+		Value:            pref.Value,
+		ValueDescription: pref.ValueDescription,
+		ResourceId:       pref.ResourceID,
+		ResourceType:     pref.ResourceType,
+		ScopeType:        pref.ScopeType,
+		ScopeId:          pref.ScopeID,
+		CreatedAt:        timestamppb.New(pref.CreatedAt),
+		UpdatedAt:        timestamppb.New(pref.UpdatedAt),
 	}
 }
 
@@ -290,6 +291,15 @@ func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.Prefer
 		InputHints:      pref.InputHints,
 		Default:         pref.Default,
 	}
+
+	// Convert InputOptions to proto
+	for _, opt := range pref.InputOptions {
+		pbTrait.InputOptions = append(pbTrait.InputOptions, &frontierv1beta1.InputHintOption{
+			Name:        opt.Name,
+			Description: opt.Description,
+		})
+	}
+
 	switch pref.Input {
 	case preference.TraitInputText:
 		pbTrait.InputType = frontierv1beta1.PreferenceTrait_INPUT_TYPE_TEXT

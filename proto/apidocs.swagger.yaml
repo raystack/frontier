@@ -13324,6 +13324,16 @@ definitions:
       trialed:
         type: boolean
         title: Has the billing account trialed the plan
+  v1beta1InputHintOption:
+    type: object
+    properties:
+      name:
+        type: string
+        title: Machine-readable identifier (e.g., "sq_km", "megagram")
+      description:
+        type: string
+        title: User-friendly display description (e.g., "Square Kilometers", "Megagram (Mg)")
+    title: InputHintOption represents a selectable option with a machine-readable name and user-friendly description
   v1beta1Invitation:
     type: object
     properties:
@@ -14416,6 +14426,11 @@ definitions:
         title: |-
           scope_id is the identifier of the scope context (e.g., organization ID)
           Only applicable when scope_type is set
+      value_description:
+        type: string
+        title: |-
+          value_description is the human-readable display description for the value
+          Populated from InputHintOption.description when the trait has input_options configured
       created_at:
         type: string
         format: date-time
@@ -14468,6 +14483,12 @@ definitions:
         type: string
       input_type:
         $ref: '#/definitions/PreferenceTraitInputType'
+      input_options:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1InputHintOption'
+        title: Structured input options with name and description for select/combobox/multiselect inputs
     title: |-
       PreferenceTrait is a trait that can be used to add preferences to a resource
       it explains what preferences are available for a resource
