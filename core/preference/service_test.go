@@ -8,6 +8,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 type MockRepository struct {
@@ -58,6 +59,26 @@ func TestLoadUserPreferences(t *testing.T) {
 			ResourceType: schema.OrganizationNamespace, // Should be ignored for user prefs
 			Name:         "org_setting",
 			Default:      "default",
+		},
+	}
+
+	// Define test traits with InputOptions for ValueDescription testing
+	testTraitsWithOptions := []Trait{
+		{
+			ResourceType: schema.UserPrincipal,
+			Name:         "unit_area",
+			Default:      "sq_km",
+			InputOptions: []InputHintOption{
+				{Name: "sq_km", Description: "Square Kilometers"},
+				{Name: "sq_ft", Description: "Square Feet"},
+				{Name: "acres", Description: "Acres"},
+			},
+		},
+		{
+			ResourceType: schema.UserPrincipal,
+			Name:         "theme",
+			Default:      "light",
+			// No InputOptions - ValueDescription should be empty
 		},
 	}
 
@@ -227,6 +248,109 @@ func TestLoadUserPreferences(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Equal(t, ErrInvalidFilter, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("ValueDescription is populated from trait InputOptions for DB preferences", func(t *testing.T) {
+		mockRepo := new(MockRepository)
+		svc := NewService(mockRepo, testTraitsWithOptions)
+
+		filter := Filter{UserID: userID}
+		dbPrefs := []Preference{
+			{ID: "1", Name: "unit_area", Value: "sq_ft", ResourceType: schema.UserPrincipal, ResourceID: userID},
+		}
+		mockRepo.On("List", ctx, filter).Return(dbPrefs, nil)
+
+		result, err := svc.LoadUserPreferences(ctx, filter)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 2) // unit_area from DB + theme default
+
+		resultMap := make(map[string]Preference)
+		for _, p := range result {
+			resultMap[p.Name] = p
+		}
+
+		// unit_area should have ValueDescription populated from InputOptions
+		assert.Equal(t, "sq_ft", resultMap["unit_area"].Value)
+		assert.Equal(t, "Square Feet", resultMap["unit_area"].ValueDescription)
+
+		// theme has no InputOptions, so ValueDescription should be empty
+		assert.Equal(t, "light", resultMap["theme"].Value)
+		assert.Equal(t, "", resultMap["theme"].ValueDescription)
+
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("ValueDescription is populated for default preferences", func(t *testing.T) {
+		mockRepo := new(MockRepository)
+		svc := NewService(mockRepo, testTraitsWithOptions)
+
+		filter := Filter{UserID: userID}
+		// No DB preferences - should get defaults
+		mockRepo.On("List", ctx, filter).Return([]Preference{}, nil)
+
+		result, err := svc.LoadUserPreferences(ctx, filter)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 2) // unit_area default + theme default
+
+		resultMap := make(map[string]Preference)
+		for _, p := range result {
+			resultMap[p.Name] = p
+		}
+
+		// unit_area default should have ValueDescription from InputOptions
+		assert.Equal(t, "sq_km", resultMap["unit_area"].Value)
+		assert.Equal(t, "Square Kilometers", resultMap["unit_area"].ValueDescription)
+
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestCreate(t *testing.T) {
+	ctx := context.Background()
+	userID := "user-123"
+
+	testTraits := []Trait{
+		{
+			ResourceType: schema.UserPrincipal,
+			Name:         "unit_area",
+			Input:        TraitInputSelect,
+			Default:      "sq_km",
+			InputOptions: []InputHintOption{
+				{Name: "sq_km", Description: "Square Kilometers"},
+				{Name: "sq_ft", Description: "Square Feet"},
+				{Name: "acres", Description: "Acres"},
+			},
+		},
+	}
+
+	t.Run("Create populates ValueDescription from InputOptions", func(t *testing.T) {
+		mockRepo := new(MockRepository)
+		svc := NewService(mockRepo, testTraits)
+
+		pref := Preference{
+			Name:         "unit_area",
+			Value:        "sq_ft",
+			ResourceID:   userID,
+			ResourceType: schema.UserPrincipal,
+		}
+
+		// Mock repo returns the preference as-is (like a real DB would)
+		mockRepo.On("Set", ctx, pref).Return(Preference{
+			ID:           "pref-123",
+			Name:         "unit_area",
+			Value:        "sq_ft",
+			ResourceID:   userID,
+			ResourceType: schema.UserPrincipal,
+		}, nil)
+
+		result, err := svc.Create(ctx, pref)
+
+		require.NoError(t, err)
+		assert.Equal(t, "sq_ft", result.Value)
+		assert.Equal(t, "Square Feet", result.ValueDescription) // Should be populated from trait
 		mockRepo.AssertExpectations(t)
 	})
 }

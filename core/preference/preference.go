@@ -52,6 +52,14 @@ const (
 	ScopeIDGlobal   = "00000000-0000-0000-0000-000000000000"
 )
 
+// InputHintOption represents a selectable option with machine-readable name and user-friendly description
+type InputHintOption struct {
+	// Machine-readable identifier (e.g., "sq_km", "megagram")
+	Name string `json:"name" yaml:"name"`
+	// User-friendly display description (e.g., "Square Kilometers", "Megagram (Mg)")
+	Description string `json:"description" yaml:"description"`
+}
+
 type Trait struct {
 	// Level at which the trait is applicable (say "platform", "organization", "user")
 	ResourceType string `json:"resource_type" yaml:"resource_type"`
@@ -68,7 +76,11 @@ type Trait struct {
 	// Type of input to be used to collect the value for the trait (say "text", "select", "checkbox", etc.)
 	Input TraitInput `json:"input" yaml:"input"`
 	// Acceptable values to be provided in the input (say "true,false") for a TraitInput of type Checkbox
+	// Deprecated: Use InputOptions for structured options with name and title
 	InputHints string `json:"input_hints" yaml:"input_hints"`
+	// Structured input options with name and title for select/combobox/multiselect inputs
+	// Takes precedence over InputHints when both are provided
+	InputOptions []InputHintOption `json:"input_options" yaml:"input_options"`
 	// Default value to be used for the trait if the preference is not set (say "true" for a TraitInput of type Checkbox)
 	Default string `json:"default" yaml:"default"`
 	// AllowedScopes specifies which scope types are valid for this trait
@@ -94,6 +106,10 @@ func (t Trait) GetValidator() PreferenceValidator {
 	case TraitInputText, TraitInputTextarea:
 		return NewTextValidator()
 	case TraitInputSelect, TraitInputCombobox:
+		// Use InputOptions if available, otherwise fall back to InputHints
+		if len(t.InputOptions) > 0 {
+			return NewSelectValidatorFromOptions(t.InputOptions)
+		}
 		return NewSelectValidator(t.InputHints)
 	default:
 		return NewTextValidator()
@@ -101,15 +117,26 @@ func (t Trait) GetValidator() PreferenceValidator {
 }
 
 type Preference struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Value        string    `json:"value"`
-	ResourceID   string    `json:"resource_id"`
-	ResourceType string    `json:"resource_type"`
-	ScopeType    string    `json:"scope_type"`
-	ScopeID      string    `json:"scope_id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID               string    `json:"id"`
+	Name             string    `json:"name"`
+	Value            string    `json:"value"`
+	ValueDescription string    `json:"value_description"`
+	ResourceID       string    `json:"resource_id"`
+	ResourceType     string    `json:"resource_type"`
+	ScopeType        string    `json:"scope_type"`
+	ScopeID          string    `json:"scope_id"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+// GetValueDescription returns the human-readable description for a value from InputOptions
+func (t Trait) GetValueDescription(value string) string {
+	for _, opt := range t.InputOptions {
+		if opt.Name == value {
+			return opt.Description
+		}
+	}
+	return ""
 }
 
 var DefaultTraits = []Trait{

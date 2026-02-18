@@ -9,8 +9,24 @@ reviews:
   poem: false
   review_status: true
   review_details: false
+  sequence_diagrams: false
+  in_progress_fortune: false
+  enable_prompt_for_ai_agents: false
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
   auto_review:
     enabled: true
     drafts: false
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+    title:
+      mode: "off"
+    description:
+      mode: "off"
 chat:
   auto_reply: true
+  art: false
