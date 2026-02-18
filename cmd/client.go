@@ -4,23 +4,28 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/spf13/cobra"
 )
 
+var httpClient = &http.Client{
+	Timeout: 30 * time.Second,
+}
+
 func createClient(host string) (frontierv1beta1connect.FrontierServiceClient, error) {
 	if host == "" {
 		return nil, ErrClientConfigHostNotFound
 	}
-	return frontierv1beta1connect.NewFrontierServiceClient(http.DefaultClient, ensureHTTPScheme(host)), nil
+	return frontierv1beta1connect.NewFrontierServiceClient(httpClient, ensureHTTPScheme(host)), nil
 }
 
 func createAdminClient(host string) (frontierv1beta1connect.AdminServiceClient, error) {
 	if host == "" {
 		return nil, ErrClientConfigHostNotFound
 	}
-	return frontierv1beta1connect.NewAdminServiceClient(http.DefaultClient, ensureHTTPScheme(host)), nil
+	return frontierv1beta1connect.NewAdminServiceClient(httpClient, ensureHTTPScheme(host)), nil
 }
 
 func ensureHTTPScheme(host string) string {
