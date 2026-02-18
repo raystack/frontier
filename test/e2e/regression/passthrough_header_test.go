@@ -8,10 +8,10 @@ import (
 	"path"
 	"testing"
 
+	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/pkg/server"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/pkg/logger"
@@ -34,6 +34,8 @@ func (s *PassthroughEmailRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	grpcPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
+	connectPort, err := testbench.GetFreePort()
+	s.Require().NoError(err)
 	s.apiPort = apiPort
 
 	appConfig := &config.Frontier{
@@ -43,6 +45,9 @@ func (s *PassthroughEmailRegressionTestSuite) SetupSuite() {
 		App: server.Config{
 			Host: "localhost",
 			Port: apiPort,
+			Connect: server.ConnectConfig{
+				Port: connectPort,
+			},
 			GRPC: server.GRPCConfig{
 				Port:           grpcPort,
 				MaxRecvMsgSize: 2 << 10,
@@ -72,16 +77,16 @@ func (s *PassthroughEmailRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *PassthroughEmailRegressionTestSuite) TestWithoutHeader() {
-	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	})
 	s.Run("1. passing no context header should fail", func() {
 		ctx := context.Background()
-		_, err := s.testBench.Client.GetCurrentUser(ctx, &frontierv1beta1.GetCurrentUserRequest{})
+		_, err := s.testBench.Client.GetCurrentUser(ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().Error(err)
 	})
 	s.Run("2. passing context with header should fail if not configured", func() {
-		_, err := s.testBench.Client.GetCurrentUser(ctxOrgAdminAuth, &frontierv1beta1.GetCurrentUserRequest{})
+		_, err := s.testBench.Client.GetCurrentUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().Error(err)
 	})
 	s.Run("3. passing context with header should fail if not configured", func() {

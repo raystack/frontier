@@ -9,7 +9,7 @@ import (
 	"github.com/raystack/frontier/pkg/server"
 
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/metadata"
+	"connectrpc.com/connect"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/config"
@@ -32,14 +32,17 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	grpcPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
+	connectPort, err := testbench.GetFreePort()
+	s.Require().NoError(err)
 
 	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
 		App: server.Config{
-			Host: "localhost",
-			Port: apiPort,
+			Host:    "localhost",
+			Port:    apiPort,
+			Connect: server.ConnectConfig{Port: connectPort},
 			GRPC: server.GRPCConfig{
 				Port:           grpcPort,
 				MaxRecvMsgSize: 2 << 10,
@@ -66,12 +69,12 @@ func (s *ServiceRegistrationRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
-	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+	ctx := testbench.ContextWithHeaders(context.Background(), map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	})
 
 	s.Run("1. register a new service with custom permissions", func() {
-		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Name:      "get",
@@ -93,22 +96,22 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 					},
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(3, len(createPermResp.GetPermissions()))
+		s.Assert().Equal(3, len(createPermResp.Msg.GetPermissions()))
 
-		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
+		listPermResp, err := s.testBench.Client.ListPermissions(ctx, connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(listPermResp.GetPermissions())
+		s.Assert().NotNil(listPermResp.Msg.GetPermissions())
 		// check if list contains newly created permissions
-		for _, perm := range createPermResp.GetPermissions() {
-			s.Assert().Contains(listPermResp.GetPermissions(), perm)
+		for _, perm := range createPermResp.Msg.GetPermissions() {
+			s.Assert().Contains(listPermResp.Msg.GetPermissions(), perm)
 		}
 		// length of list should be greater than number of permissions created
-		s.Assert().GreaterOrEqual(len(listPermResp.GetPermissions()), len(createPermResp.GetPermissions()))
+		s.Assert().GreaterOrEqual(len(listPermResp.Msg.GetPermissions()), len(createPermResp.Msg.GetPermissions()))
 	})
 	s.Run("2. registering a new service should not remove existing permissions", func() {
-		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Name:      "update",
@@ -125,21 +128,21 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 					},
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(2, len(createPermResp.GetPermissions()))
+		s.Assert().Equal(2, len(createPermResp.Msg.GetPermissions()))
 
-		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
+		listPermResp, err := s.testBench.Client.ListPermissions(ctx, connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(listPermResp.GetPermissions())
+		s.Assert().NotNil(listPermResp.Msg.GetPermissions())
 		// check if list contains newly created permissions
-		for _, perm := range createPermResp.GetPermissions() {
-			s.Assert().Contains(listPermResp.GetPermissions(), perm)
+		for _, perm := range createPermResp.Msg.GetPermissions() {
+			s.Assert().Contains(listPermResp.Msg.GetPermissions(), perm)
 		}
 		// list should contain permissions created in previous step
 		var lastPermCount int
 		for _, perm := range []string{"get", "update", "delete"} {
-			for _, listPerm := range listPermResp.GetPermissions() {
+			for _, listPerm := range listPermResp.Msg.GetPermissions() {
 				if listPerm.GetName() == perm && listPerm.GetNamespace() == "database/instance" {
 					lastPermCount++
 				}

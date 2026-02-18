@@ -10,12 +10,12 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
+	"connectrpc.com/connect"
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -33,14 +33,17 @@ func (s *OnboardingRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	grpcPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
+	connectPort, err := testbench.GetFreePort()
+	s.Require().NoError(err)
 
 	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
 		App: server.Config{
-			Host: "localhost",
-			Port: apiPort,
+			Host:    "localhost",
+			Port:    apiPort,
+			Connect: server.ConnectConfig{Port: connectPort},
 			GRPC: server.GRPCConfig{
 				Port:           grpcPort,
 				MaxRecvMsgSize: 2 << 10,
@@ -67,9 +70,9 @@ func (s *OnboardingRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
-	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+	ctx := testbench.ContextWithHeaders(context.Background(), map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	})
 
 	var orgID = ""
 	var projectID = ""
@@ -80,7 +83,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	var roleToLookFor = "app_project_owner"
 	var roleID = ""
 	s.Run("1. a user should successfully create a new org and become its admin", func() {
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org acme 1",
 				Name:  "org-acme-1",
@@ -90,20 +93,20 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 					},
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		orgID = createOrgResp.GetOrganization().GetId()
+		orgID = createOrgResp.Msg.GetOrganization().GetId()
 
-		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctx, &frontierv1beta1.ListOrganizationUsersRequest{
+		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctx, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
 			Id: orgID,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
-		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].GetEmail())
-		adminID = orgUsersResp.GetUsers()[0].GetId()
+		s.Assert().Equal(1, len(orgUsersResp.Msg.GetUsers()))
+		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.Msg.GetUsers()[0].GetEmail())
+		adminID = orgUsersResp.Msg.GetUsers()[0].GetId()
 	})
 	s.Run("2. org admin should be able to create a new project", func() {
-		projResponse, err := s.testBench.Client.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
+		projResponse, err := s.testBench.Client.CreateProject(ctx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "new-project",
 				OrgId: orgID,
@@ -113,211 +116,211 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 					},
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		projectID = projResponse.GetProject().GetId()
+		projectID = projResponse.Msg.GetProject().GetId()
 	})
 	s.Run("3. org admin should be able to create a new resource inside project", func() {
-		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctx, &frontierv1beta1.CreateProjectResourceRequest{
+		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctx, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
 			ProjectId: projectID,
 			Body: &frontierv1beta1.ResourceRequestBody{
 				Name:      "res-1",
 				Namespace: computeOrderNamespace,
 				Principal: adminID,
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createResourceResp)
-		resourceID = createResourceResp.GetResource().GetId()
+		resourceID = createResourceResp.Msg.GetResource().GetId()
 	})
 	s.Run("4. org admin should have access to the resource created", func() {
-		createResourceResp, err := s.testBench.Client.CheckResourcePermission(ctx, &frontierv1beta1.CheckResourcePermissionRequest{
+		createResourceResp, err := s.testBench.Client.CheckResourcePermission(ctx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
 			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createResourceResp)
-		s.Assert().True(createResourceResp.GetStatus())
+		s.Assert().True(createResourceResp.Msg.GetStatus())
 	})
 	s.Run("5. list all predefined roles/permissions successfully", func() {
-		listRolesResp, err := s.testBench.Client.ListRoles(ctx, &frontierv1beta1.ListRolesRequest{})
+		listRolesResp, err := s.testBench.Client.ListRoles(ctx, connect.NewRequest(&frontierv1beta1.ListRolesRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
-		s.Assert().Len(listRolesResp.GetRoles(), 13)
-		for _, r := range listRolesResp.GetRoles() {
+		s.Assert().Len(listRolesResp.Msg.GetRoles(), 13)
+		for _, r := range listRolesResp.Msg.GetRoles() {
 			if r.GetName() == roleToLookFor {
 				roleID = r.GetId()
 			}
 		}
 
-		listPermissionsResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
+		listPermissionsResp, err := s.testBench.Client.ListPermissions(ctx, connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listPermissionsResp)
-		s.Assert().Len(listPermissionsResp.GetPermissions(), 33)
+		s.Assert().Len(listPermissionsResp.Msg.GetPermissions(), 33)
 	})
 	s.Run("6. creating role with bad body should fail", func() {
-		_, err := s.testBench.Client.CreateOrganizationRole(ctx, &frontierv1beta1.CreateOrganizationRoleRequest{
+		_, err := s.testBench.Client.CreateOrganizationRole(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
 			OrgId: orgID,
 			Body: &frontierv1beta1.RoleRequestBody{
 				Name:        "should-fail-without-permission",
 				Permissions: nil,
 			},
-		})
+		}))
 		s.Assert().Error(err)
 
-		_, err = s.testBench.Client.CreateOrganizationRole(ctx, &frontierv1beta1.CreateOrganizationRoleRequest{
+		_, err = s.testBench.Client.CreateOrganizationRole(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
 			OrgId: orgID,
 			Body: &frontierv1beta1.RoleRequestBody{
 				Name:        "should-fail",
 				Permissions: []string{"unknown-permission"},
 			},
-		})
+		}))
 		s.Assert().Error(err)
 	})
 	s.Run("7. list all custom roles successfully", func() {
-		createRoleResp, err := s.testBench.Client.CreateOrganizationRole(ctx, &frontierv1beta1.CreateOrganizationRoleRequest{
+		createRoleResp, err := s.testBench.Client.CreateOrganizationRole(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
 			OrgId: orgID,
 			Body: &frontierv1beta1.RoleRequestBody{
 				Name:        "something_owner",
 				Permissions: []string{"app_organization_get"},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createRoleResp)
 
-		listRolesResp, err := s.testBench.Client.ListOrganizationRoles(ctx, &frontierv1beta1.ListOrganizationRolesRequest{
+		listRolesResp, err := s.testBench.Client.ListOrganizationRoles(ctx, connect.NewRequest(&frontierv1beta1.ListOrganizationRolesRequest{
 			OrgId: orgID,
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
-		s.Assert().Len(listRolesResp.GetRoles(), 1)
+		s.Assert().Len(listRolesResp.Msg.GetRoles(), 1)
 	})
 	s.Run("8. create a new user and create a policy to make it a project manager", func() {
-		createUserResp, err := s.testBench.Client.CreateUser(ctx, &frontierv1beta1.CreateUserRequest{
+		createUserResp, err := s.testBench.Client.CreateUser(ctx, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
 			Body: &frontierv1beta1.UserRequestBody{
 				Title: "new user for org 1",
 				Email: "user-1-for-org-1@raystack.org",
 				Name:  "user_1_for_org_1_raystack_io",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
-		newUserID = createUserResp.GetUser().GetId()
-		newUserEmail = createUserResp.GetUser().GetEmail()
+		newUserID = createUserResp.Msg.GetUser().GetId()
+		newUserEmail = createUserResp.Msg.GetUser().GetEmail()
 
 		// make user member of the org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctx, &frontierv1beta1.AddOrganizationUsersRequest{
+		_, err = s.testBench.Client.AddOrganizationUsers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
 			Id:      orgID,
 			UserIds: []string{newUserID},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// assign new user as project admin
-		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{Body: &frontierv1beta1.PolicyRequestBody{
+		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{Body: &frontierv1beta1.PolicyRequestBody{
 			RoleId:    roleID,
 			Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID),
 			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, newUserID),
-		}})
+		}}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPolicyResp)
 	})
 	s.Run("9. new user should have access to that project it is managing and all of its resources", func() {
-		userCtx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		userCtx := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			testbench.IdentityHeader: newUserEmail,
-		}))
+		})
 
-		checkUpdateProjectResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
+		checkUpdateProjectResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        projectID,
 			ObjectNamespace: schema.ProjectNamespace,
 			Permission:      schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateProjectResp)
-		s.Assert().True(checkUpdateProjectResp.GetStatus())
+		s.Assert().True(checkUpdateProjectResp.Msg.GetStatus())
 
 		// resources under the project
-		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
+		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
 			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateResourceResp)
-		s.Assert().True(checkUpdateResourceResp.GetStatus())
+		s.Assert().True(checkUpdateResourceResp.Msg.GetStatus())
 	})
 	s.Run("10. new user should not have access to update the parent organization it is part of", func() {
-		userCtx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		userCtx := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			testbench.IdentityHeader: newUserEmail,
-		}))
-		checkUpdateOrgResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
+		})
+		checkUpdateOrgResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        orgID,
 			ObjectNamespace: schema.OrganizationNamespace,
 			Permission:      schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateOrgResp)
-		s.Assert().False(checkUpdateOrgResp.GetStatus())
+		s.Assert().False(checkUpdateOrgResp.Msg.GetStatus())
 	})
 	s.Run("11. a role assigned at org level for a resource should have access across projects", func() {
-		createUserResp, err := s.testBench.Client.CreateUser(ctx, &frontierv1beta1.CreateUserRequest{
+		createUserResp, err := s.testBench.Client.CreateUser(ctx, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
 			Body: &frontierv1beta1.UserRequestBody{
 				Title: "new user for org 1",
 				Email: "user-2-for-org-1@raystack.org",
 				Name:  "user_2_for_org_1_raystack_io",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
 
 		// make user member of the org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctx, &frontierv1beta1.AddOrganizationUsersRequest{
+		_, err = s.testBench.Client.AddOrganizationUsers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
 			Id:      orgID,
-			UserIds: []string{createUserResp.GetUser().GetId()},
-		})
+			UserIds: []string{createUserResp.Msg.GetUser().GetId()},
+		}))
 		s.Assert().NoError(err)
 
 		resourceViewerRole := ""
-		listRolesResp, err := s.testBench.Client.ListRoles(ctx, &frontierv1beta1.ListRolesRequest{})
+		listRolesResp, err := s.testBench.Client.ListRoles(ctx, connect.NewRequest(&frontierv1beta1.ListRolesRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
-		for _, r := range listRolesResp.GetRoles() {
+		for _, r := range listRolesResp.Msg.GetRoles() {
 			if r.GetName() == computeViewerRoleName {
 				resourceViewerRole = r.GetId()
 			}
 		}
 
 		// assign new user resource role across org
-		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{Body: &frontierv1beta1.PolicyRequestBody{
+		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{Body: &frontierv1beta1.PolicyRequestBody{
 			RoleId:    resourceViewerRole,
 			Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
-			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-		}})
+			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
+		}}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPolicyResp)
 
 		// items under the org > project > resources
-		userCtx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			testbench.IdentityHeader: createUserResp.GetUser().GetEmail(),
-		}))
+		userCtx := testbench.ContextWithHeaders(context.Background(), map[string]string{
+			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
+		})
 
-		checkGetResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
+		checkGetResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
 			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.GetPermission,
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkGetResourceResp)
-		s.Assert().True(checkGetResourceResp.GetStatus())
+		s.Assert().True(checkGetResourceResp.Msg.GetStatus())
 
-		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
+		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
 			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateResourceResp)
-		s.Assert().False(checkUpdateResourceResp.GetStatus())
+		s.Assert().False(checkUpdateResourceResp.Msg.GetStatus())
 	})
 }
 
