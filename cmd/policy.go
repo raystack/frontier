@@ -72,9 +72,13 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			_, err = client.CreatePolicy(cmd.Context(), newRequest(&frontierv1beta1.CreatePolicyRequest{
+			req, err := newRequest(&frontierv1beta1.CreatePolicyRequest{
 				Body: &reqBody,
-			}, header))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.CreatePolicy(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

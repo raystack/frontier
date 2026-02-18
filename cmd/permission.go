@@ -74,9 +74,13 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.CreatePermission(cmd.Context(), newRequest(&frontierv1beta1.CreatePermissionRequest{
+			req, err := newRequest(&frontierv1beta1.CreatePermissionRequest{
 				Bodies: []*frontierv1beta1.PermissionRequestBody{&reqBody},
-			}, header))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreatePermission(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

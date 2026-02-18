@@ -75,9 +75,13 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.CreateOrganization(cmd.Context(), newRequest(&frontierv1beta1.CreateOrganizationRequest{
+			req, err := newRequest(&frontierv1beta1.CreateOrganizationRequest{
 				Body: &reqBody,
-			}, header))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateOrganization(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

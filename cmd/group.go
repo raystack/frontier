@@ -74,9 +74,13 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.CreateGroup(cmd.Context(), newRequest(&frontierv1beta1.CreateGroupRequest{
+			req, err := newRequest(&frontierv1beta1.CreateGroupRequest{
 				Body: &reqBody,
-			}, header))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateGroup(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

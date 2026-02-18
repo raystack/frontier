@@ -79,9 +79,13 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.CreateUser(cmd.Context(), newRequest(&frontierv1beta1.CreateUserRequest{
+			req, err := newRequest(&frontierv1beta1.CreateUserRequest{
 				Body: &reqBody,
-			}, header))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateUser(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

@@ -74,9 +74,13 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.CreateProject(cmd.Context(), newRequest(&frontierv1beta1.CreateProjectRequest{
+			req, err := newRequest(&frontierv1beta1.CreateProjectRequest{
 				Body: &reqBody,
-			}, header))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateProject(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

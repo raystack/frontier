@@ -75,9 +75,13 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.CreateOrganizationRole(cmd.Context(), newRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
+			req, err := newRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
 				Body: &reqBody,
-			}, header))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateOrganizationRole(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

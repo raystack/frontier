@@ -56,7 +56,11 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 				return err
 			}
 
-			res, err := adminClient.ListPreferences(cmd.Context(), newRequest(&frontierv1beta1.ListPreferencesRequest{}, header))
+			req, err := newRequest(&frontierv1beta1.ListPreferencesRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := adminClient.ListPreferences(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -116,7 +120,11 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 				return err
 			}
 
-			res, err := client.CreatePreferences(cmd.Context(), newRequest(&reqBody, header))
+			req, err := newRequest(&reqBody, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreatePreferences(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -158,7 +166,11 @@ func preferencesGetCommand(cliConfig *Config) *cobra.Command {
 				return err
 			}
 
-			res, err := client.DescribePreferences(cmd.Context(), newRequest(&frontierv1beta1.DescribePreferencesRequest{}, header))
+			req, err := newRequest(&frontierv1beta1.DescribePreferencesRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.DescribePreferences(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
