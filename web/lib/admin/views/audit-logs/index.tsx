@@ -63,9 +63,10 @@ const TRANSFORM_OPTIONS = {
 export type AuditLogsViewProps = {
   appName?: string;
   onExportCsv?: (query: RQLRequest) => Promise<void>;
+  onNavigate?: (path: string) => void;
 };
 
-export default function AuditLogsView({ appName, onExportCsv }: AuditLogsViewProps = {}) {
+export default function AuditLogsView({ appName, onExportCsv, onNavigate }: AuditLogsViewProps = {}) {
   const queryClient = useQueryClient();
   const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;
@@ -214,6 +215,7 @@ export default function AuditLogsView({ appName, onExportCsv }: AuditLogsViewPro
               <SidePanelDetails
                 {...selectedAuditLog}
                 onClose={() => setSidePanelOpen(false)}
+                onNavigate={onNavigate}
               />
             )}
           </Flex>
