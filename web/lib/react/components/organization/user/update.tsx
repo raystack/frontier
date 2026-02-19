@@ -28,26 +28,14 @@ const generalSchema = yup
         /^[a-zA-Z\s.'\-]+$/,
         'Name can only contain letters, spaces, periods, hyphens, and apostrophes'
       )
-      .matches(
-        /^[a-zA-Z]/,
-        'Name must start with a letter'
-      )
+      .matches(/^[a-zA-Z]/, 'Name must start with a letter')
       .matches(
         /^[a-zA-Z][a-zA-Z\s.'\-]*[a-zA-Z]$|^[a-zA-Z]$/,
         'Name must end with a letter'
       )
-      .matches(
-        /^(?!.*\s\s).*$/,
-        'Name cannot have consecutive spaces'
-      )
-      .matches(
-        /^(?!.*\s[^a-zA-Z]).*$/,
-        'Spaces must be followed by a letter'
-      )
-      .matches(
-        /^(?!.*-[^a-zA-Z]).*$/,
-        'Hyphens must be followed by a letter'
-      )
+      .matches(/^(?!.*\s\s).*$/, 'Name cannot have consecutive spaces')
+      .matches(/^(?!.*\s[^a-zA-Z]).*$/, 'Spaces must be followed by a letter')
+      .matches(/^(?!.*-[^a-zA-Z]).*$/, 'Hyphens must be followed by a letter')
       .matches(
         /^(?!.*'[^a-zA-Z]).*$/,
         'Apostrophes must be followed by a letter'
