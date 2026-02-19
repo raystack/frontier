@@ -95,6 +95,7 @@
     "@stitches/react": "^1.2.8",
     "react-loading-skeleton": "^3.4.0",
     "sonner": "^1.4.41",
+    "usehooks-ts": "^3.1.1",
     "zod": "^3.22.3"
   },
   "dependencies": {

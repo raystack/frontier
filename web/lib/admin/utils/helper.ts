@@ -21,3 +21,11 @@ export function isZeroUUID(uuid: string) {
 export function capitalizeFirstLetter(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function converBillingAddressToString(
+  address?: { line1?: string; line2?: string; city?: string; state?: string; country?: string; postalCode?: string },
+) {
+  if (!address) return "";
+  const { line1, line2, city, state, country, postalCode } = address;
+  return [line1, line2, city, state, country, postalCode].filter(Boolean).join(", ");
+}

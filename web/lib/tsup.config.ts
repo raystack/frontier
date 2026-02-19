@@ -43,6 +43,7 @@ export default defineConfig(() => [
       js: "'use client'"
     },
     format: ['cjs', 'esm'],
+    target: 'es2020',
     external: [
       'react',
       'react-dom',
@@ -51,7 +52,8 @@ export default defineConfig(() => [
       '@radix-ui/react-form',
       'sonner',
       'react-loading-skeleton',
-      '@stitches/react'
+      '@stitches/react',
+      'usehooks-ts'
     ],
     dts: true,
     loader: {
