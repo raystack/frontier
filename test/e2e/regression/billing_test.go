@@ -1070,6 +1070,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 
 		usageID := uuid.New().String()
 		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			ProjectId: creteProjectResp.Msg.GetProject().GetId(),
 			Usages: []*frontierv1beta1.Usage{
 				{
@@ -1087,6 +1088,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		s.Assert().NoError(err)
 
 		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			ProjectId: creteProjectResp.Msg.GetProject().GetId(),
 			UsageId:   usageID,
 			Amount:    5,
@@ -1121,6 +1123,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		usageID := uuid.New().String()
 		// go overdraft
 		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			ProjectId: creteProjectResp.Msg.GetProject().GetId(),
 			Usages: []*frontierv1beta1.Usage{
 				{
@@ -1147,6 +1150,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 
 		// can't go over overdraft
 		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			ProjectId: creteProjectResp.Msg.GetProject().GetId(),
 			Usages: []*frontierv1beta1.Usage{
 				{
@@ -1165,6 +1169,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 
 		// revert usage
 		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			ProjectId: creteProjectResp.Msg.GetProject().GetId(),
 			UsageId:   usageID,
 			Amount:    beforeBalance + 10,
@@ -1293,6 +1298,7 @@ func (s *BillingRegressionTestSuite) TestInvoiceAPI() {
 
 		// go overdraft
 		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			ProjectId: creteProjectResp.Msg.GetProject().GetId(),
 			Usages: []*frontierv1beta1.Usage{
 				{
@@ -1358,7 +1364,7 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 	s.Assert().NoError(err)
 
 	// create dummy project
-	createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+	_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 		Body: &frontierv1beta1.ProjectRequestBody{
 			Name:  "project-entitlement-1",
 			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
@@ -1439,10 +1445,10 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 		s.Assert().NoError(err)
 		s.Assert().True(status.Msg.GetStatus())
 
-		// should infer org and billing account automatically
+		// should also work with org_id directly
 		status, err = s.testBench.Client.CheckFeatureEntitlement(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFeatureEntitlementRequest{
-			ProjectId: createProjResp.Msg.GetProject().GetId(),
-			Feature:   "test-feature-entitlement-1",
+			OrgId:   createOrgResp.Msg.GetOrganization().GetId(),
+			Feature: "test-feature-entitlement-1",
 		}))
 		s.Assert().NoError(err)
 		s.Assert().True(status.Msg.GetStatus())
@@ -1461,7 +1467,8 @@ func (s *BillingRegressionTestSuite) TestBillingWebhookCallbackAPI() {
 			Provider: "stripe",
 			Body:     eventBytes,
 		}))
-		s.Assert().ErrorContains(err, "webhook has invalid Stripe-Signature header")
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeInternal, connect.CodeOf(err))
 	})
 }
 
