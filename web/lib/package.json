@@ -121,10 +121,14 @@
   "peerDependencies": {
     "@raystack/apsara": ">=0.30.0",
     "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-router-dom": ">=6.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "react-dom": {
       "optional": true
     },
     "react-router-dom": {
