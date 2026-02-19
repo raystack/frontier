@@ -12,7 +12,7 @@ import {
   Label,
 } from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { AvatarUpload } from "@raystack/frontier/react";
+import { AvatarUpload } from "../../../../react/components/avatar-upload";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
