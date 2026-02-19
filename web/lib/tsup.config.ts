@@ -46,6 +46,7 @@ export default defineConfig(() => [
   {
     entry: ['admin/index.ts'],
     outDir: 'admin/dist',
+    target: 'es2020',
     banner: {
       js: "'use client'"
     },
