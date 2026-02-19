@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -66,16 +67,18 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			ctx := setCtxHeader(cmd.Context(), header)
-			_, err = client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{
+			req, err := newRequest(&frontierv1beta1.CreatePolicyRequest{
 				Body: &reqBody,
-			})
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.CreatePolicy(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -121,17 +124,16 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			policyID := args[0]
-			_, err = client.UpdatePolicy(cmd.Context(), &frontierv1beta1.UpdatePolicyRequest{
+			_, err = client.UpdatePolicy(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdatePolicyRequest{
 				Id:   policyID,
 				Body: &reqBody,
-			})
+			}))
 			if err != nil {
 				return err
 			}
@@ -163,23 +165,22 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			policyID := args[0]
-			res, err := client.GetPolicy(cmd.Context(), &frontierv1beta1.GetPolicyRequest{
+			res, err := client.GetPolicy(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetPolicyRequest{
 				Id: policyID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			policy := res.GetPolicy()
+			policy := res.Msg.GetPolicy()
 
 			spinner.Stop()
 

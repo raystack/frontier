@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/config"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/raystack/salt/cli/printer"
 	cli "github.com/spf13/cobra"
 )
@@ -61,25 +63,23 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 				}
 				header = appConfig.App.IdentityProxyHeader
 			}
-			header := fmt.Sprintf("%s:%s", header, sampleSeedEmail)
-			ctx := setCtxHeader(cmd.Context(), header)
-			adminClient, cancel, err := createAdminClient(ctx, cliConfig.Host)
+			headerStr := fmt.Sprintf("%s:%s", header, sampleSeedEmail)
+
+			adminClient, err := createAdminClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			if err := createCustomRolesAndPermissions(ctx, adminClient); err != nil {
+			if err := createCustomRolesAndPermissions(cmd.Context(), adminClient, headerStr); err != nil {
 				return fmt.Errorf("failed to create custom permissions: %w", err)
 			}
 
-			client, cancel, err := createClient(ctx, cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			if err := bootstrapData(ctx, client); err != nil {
+			if err := bootstrapData(cmd.Context(), client, headerStr); err != nil {
 				return fmt.Errorf("failed to bootstrap data: %w", err)
 			}
 			fmt.Println("initialized sample data in frontier successfully")
@@ -94,15 +94,19 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 }
 
 // create sample platform wide custom permissions and roles
-func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1.AdminServiceClient) error {
+func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1connect.AdminServiceClient, header string) error {
 	var permissionBodies []*frontierv1beta1.PermissionRequestBody
 	if err := json.Unmarshal(mockCustomPermissions, &permissionBodies); err != nil {
 		return fmt.Errorf("failed to unmarshal custom permissions: %w", err)
 	}
 
-	if _, err := client.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+	req, err := newRequest(&frontierv1beta1.CreatePermissionRequest{
 		Bodies: permissionBodies,
-	}); err != nil {
+	}, header)
+	if err != nil {
+		return err
+	}
+	if _, err := client.CreatePermission(ctx, req); err != nil {
 		return fmt.Errorf("failed to create custom permission: %w", err)
 	}
 
@@ -119,15 +123,18 @@ func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1
 	}
 
 	str = "created custom roles :"
-	var roleResp *frontierv1beta1.CreateRoleResponse
-	var err error
+	var roleResp *connect.Response[frontierv1beta1.CreateRoleResponse]
 	for _, role := range roles {
-		if roleResp, err = client.CreateRole(ctx, &frontierv1beta1.CreateRoleRequest{
+		roleReq, err := newRequest(&frontierv1beta1.CreateRoleRequest{
 			Body: role,
-		}); err != nil {
+		}, header)
+		if err != nil {
+			return err
+		}
+		if roleResp, err = client.CreateRole(ctx, roleReq); err != nil {
 			return fmt.Errorf("failed to create custom role: %w", err)
 		}
-		roleIDs = append(roleIDs, roleResp.GetRole().GetId())
+		roleIDs = append(roleIDs, roleResp.Msg.GetRole().GetId())
 		str = fmt.Sprintf("%s %s", str, role.GetName())
 	}
 
@@ -135,7 +142,7 @@ func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1
 	return nil
 }
 
-func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceClient) error {
+func bootstrapData(ctx context.Context, client frontierv1beta1connect.FrontierServiceClient, header string) error {
 	var userBodies []*frontierv1beta1.UserRequestBody
 	if err := json.Unmarshal(mockHumanUser, &userBodies); err != nil {
 		return fmt.Errorf("failed to unmarshal user body: %w", err)
@@ -180,107 +187,135 @@ func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceCl
 	reportPolicy = append(reportPolicy, []string{"CREATED_FOR", "ROLE", "RESOURCE"})
 
 	for idx, orgBody := range orgBodies {
-		userResp, err := client.CreateUser(ctx, &frontierv1beta1.CreateUserRequest{
+		userReq, err := newRequest(&frontierv1beta1.CreateUserRequest{
 			Body: userBodies[idx],
-		})
+		}, header)
+		if err != nil {
+			return err
+		}
+		userResp, err := client.CreateUser(ctx, userReq)
 		if err != nil {
 			return fmt.Errorf("failed to create sample user: %w", err)
 		}
 		reportUser = append(reportUser, []string{
-			userResp.GetUser().GetId(),
-			userResp.GetUser().GetName(),
-			userResp.GetUser().GetEmail(),
-			userResp.GetUser().GetTitle(),
+			userResp.Msg.GetUser().GetId(),
+			userResp.Msg.GetUser().GetName(),
+			userResp.Msg.GetUser().GetEmail(),
+			userResp.Msg.GetUser().GetTitle(),
 		})
 
-		orgResp, err := client.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
+		orgReq, err := newRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: orgBody,
-		})
+		}, header)
+		if err != nil {
+			return err
+		}
+		orgResp, err := client.CreateOrganization(ctx, orgReq)
 		if err != nil {
 			return fmt.Errorf("failed to create sample organization: %w", err)
 		}
 		reportOrg = append(reportOrg, []string{
-			orgResp.GetOrganization().GetId(),
-			orgResp.GetOrganization().GetName(),
+			orgResp.Msg.GetOrganization().GetId(),
+			orgResp.Msg.GetOrganization().GetName(),
 			sampleSeedEmail,
 		})
 
 		// create service user for an org
-		serviceUserResp, err := client.CreateServiceUser(ctx, &frontierv1beta1.CreateServiceUserRequest{
+		suReq, err := newRequest(&frontierv1beta1.CreateServiceUserRequest{
 			Body:  &frontierv1beta1.ServiceUserRequestBody{Title: "sample service user"},
-			OrgId: orgResp.GetOrganization().GetId(),
-		})
+			OrgId: orgResp.Msg.GetOrganization().GetId(),
+		}, header)
+		if err != nil {
+			return err
+		}
+		serviceUserResp, err := client.CreateServiceUser(ctx, suReq)
 		if err != nil {
 			return fmt.Errorf("failed to create sample service user: %w", err)
 		}
 		reportServiceUser = append(reportServiceUser, []string{
-			serviceUserResp.GetServiceuser().GetId(),
-			orgResp.GetOrganization().GetId(),
-			serviceUserResp.GetServiceuser().GetTitle(),
+			serviceUserResp.Msg.GetServiceuser().GetId(),
+			orgResp.Msg.GetOrganization().GetId(),
+			serviceUserResp.Msg.GetServiceuser().GetTitle(),
 		})
 		// create service user credentials for an org
-		serviceUserCredentialResp, err := client.CreateServiceUserCredential(ctx, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    serviceUserResp.GetServiceuser().GetId(),
+		suCredReq, err := newRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    serviceUserResp.Msg.GetServiceuser().GetId(),
 			Title: "service user id and pass",
-		})
+		}, header)
+		if err != nil {
+			return err
+		}
+		serviceUserCredentialResp, err := client.CreateServiceUserCredential(ctx, suCredReq)
 		if err != nil {
 			return fmt.Errorf("failed to generate sample service user password: %w", err)
 		}
 		reportServiceUserCred = append(reportServiceUserCred, []string{
-			serviceUserCredentialResp.GetSecret().GetId(),
-			serviceUserResp.GetServiceuser().GetId(),
-			serviceUserCredentialResp.GetSecret().GetSecret(),
+			serviceUserCredentialResp.Msg.GetSecret().GetId(),
+			serviceUserResp.Msg.GetServiceuser().GetId(),
+			serviceUserCredentialResp.Msg.GetSecret().GetSecret(),
 		})
 
 		// create project inside org
-		projBodies[idx].OrgId = orgResp.GetOrganization().GetId()
-		projResp, err := client.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
+		projBodies[idx].OrgId = orgResp.Msg.GetOrganization().GetId()
+		projReq, err := newRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: projBodies[idx],
-		})
+		}, header)
+		if err != nil {
+			return err
+		}
+		projResp, err := client.CreateProject(ctx, projReq)
 		if err != nil {
 			return fmt.Errorf("failed to create sample project: %w", err)
 		}
 		reportProject = append(reportProject, []string{
-			projResp.GetProject().GetId(),
-			projResp.GetProject().GetName(),
-			projResp.GetProject().GetTitle(),
-			orgResp.GetOrganization().GetName(),
+			projResp.Msg.GetProject().GetId(),
+			projResp.Msg.GetProject().GetName(),
+			projResp.Msg.GetProject().GetTitle(),
+			orgResp.Msg.GetOrganization().GetName(),
 		})
 
 		// create resource inside project
-		resourceBodies[idx].Principal = userResp.GetUser().GetId()
-		resrcResp, err := client.CreateProjectResource(ctx, &frontierv1beta1.CreateProjectResourceRequest{
-			ProjectId: projResp.GetProject().GetId(),
+		resourceBodies[idx].Principal = userResp.Msg.GetUser().GetId()
+		resrcReq, err := newRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projResp.Msg.GetProject().GetId(),
 			Body:      resourceBodies[idx],
-		})
+		}, header)
+		if err != nil {
+			return err
+		}
+		resrcResp, err := client.CreateProjectResource(ctx, resrcReq)
 		if err != nil {
 			return fmt.Errorf("failed to create sample resource: %w", err)
 		}
 		reportResource = append(reportResource, []string{
-			resrcResp.GetResource().GetId(),
-			resrcResp.GetResource().GetName(),
-			resrcResp.GetResource().GetNamespace(),
-			projResp.GetProject().GetName(),
+			resrcResp.Msg.GetResource().GetId(),
+			resrcResp.Msg.GetResource().GetName(),
+			resrcResp.Msg.GetResource().GetNamespace(),
+			projResp.Msg.GetProject().GetName(),
 		})
 
 		// create sample policy
-		resource := fmt.Sprintf("%s:%s", samplePolicyNamespace[idx], resrcResp.GetResource().GetId())
-		user := fmt.Sprintf("%s:%s", "app/user", userResp.GetUser().GetId())
-		policyResp, err := client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{
+		resource := fmt.Sprintf("%s:%s", samplePolicyNamespace[idx], resrcResp.Msg.GetResource().GetId())
+		user := fmt.Sprintf("%s:%s", "app/user", userResp.Msg.GetUser().GetId())
+		policyReq, err := newRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    samplePolicyRole[idx],
 				Resource:  resource,
 				Principal: user,
 				Title:     "Sample Policy",
 			},
-		})
+		}, header)
+		if err != nil {
+			return err
+		}
+		policyResp, err := client.CreatePolicy(ctx, policyReq)
 		if err != nil {
 			return fmt.Errorf("failed to create sample policy %w", err)
 		}
 		reportPolicy = append(reportPolicy, []string{
-			policyResp.GetPolicy().GetPrincipal(),
-			policyResp.GetPolicy().GetRoleId(),
-			policyResp.GetPolicy().GetResource(),
+			policyResp.Msg.GetPolicy().GetPrincipal(),
+			policyResp.Msg.GetPolicy().GetRoleId(),
+			policyResp.Msg.GetPolicy().GetResource(),
 		})
 	}
 	fmt.Printf("\n")
