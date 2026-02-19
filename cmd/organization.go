@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -69,22 +70,24 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
+			req, err := newRequest(&frontierv1beta1.CreateOrganizationRequest{
 				Body: &reqBody,
-			})
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateOrganization(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully created organization %s with id %s\n", res.GetOrganization().GetName(), res.GetOrganization().GetId())
+			fmt.Printf("successfully created organization %s with id %s\n", res.Msg.GetOrganization().GetName(), res.Msg.GetOrganization().GetId())
 			return nil
 		},
 	}
@@ -124,17 +127,16 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.UpdateOrganization(cmd.Context(), &frontierv1beta1.UpdateOrganizationRequest{
+			_, err = client.UpdateOrganization(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
 				Id:   organizationID,
 				Body: &reqBody,
-			})
+			}))
 			if err != nil {
 				return err
 			}
@@ -168,23 +170,22 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.GetOrganization(cmd.Context(), &frontierv1beta1.GetOrganizationRequest{
+			res, err := client.GetOrganization(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 				Id: organizationID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			organization := res.GetOrganization()
+			organization := res.Msg.GetOrganization()
 
 			spinner.Stop()
 
@@ -236,19 +237,18 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.ListOrganizations(cmd.Context(), &frontierv1beta1.ListOrganizationsRequest{})
+			res, err := client.ListOrganizations(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			organizations := res.GetOrganizations()
+			organizations := res.Msg.GetOrganizations()
 
 			spinner.Stop()
 
@@ -290,22 +290,21 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.ListOrganizationAdmins(cmd.Context(), &frontierv1beta1.ListOrganizationAdminsRequest{
+			res, err := client.ListOrganizationAdmins(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: organizationID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			admins := res.GetUsers()
+			admins := res.Msg.GetUsers()
 
 			spinner.Stop()
 
