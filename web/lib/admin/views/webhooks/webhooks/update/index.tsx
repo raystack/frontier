@@ -121,7 +121,7 @@ export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCl
             <SheetHeader
               title="Update Webhook"
               onClick={onClose}
-              data-testid="admin-update-webhook-close-btn"
+              data-test-id="admin-update-webhook-close-btn"
             />
             <Flex
               direction="column"
