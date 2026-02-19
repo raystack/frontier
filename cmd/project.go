@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -68,22 +69,24 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
+			req, err := newRequest(&frontierv1beta1.CreateProjectRequest{
 				Body: &reqBody,
-			})
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateProject(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully created project %s with id %s\n", res.GetProject().GetName(), res.GetProject().GetId())
+			fmt.Printf("successfully created project %s with id %s\n", res.Msg.GetProject().GetName(), res.Msg.GetProject().GetId())
 			return nil
 		},
 	}
@@ -123,17 +126,16 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			projectID := args[0]
-			_, err = client.UpdateProject(cmd.Context(), &frontierv1beta1.UpdateProjectRequest{
+			_, err = client.UpdateProject(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
 				Id:   projectID,
 				Body: &reqBody,
-			})
+			}))
 			if err != nil {
 				return err
 			}
@@ -167,23 +169,22 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			projectID := args[0]
-			res, err := client.GetProject(cmd.Context(), &frontierv1beta1.GetProjectRequest{
+			res, err := client.GetProject(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetProjectRequest{
 				Id: projectID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			project := res.GetProject()
+			project := res.Msg.GetProject()
 
 			spinner.Stop()
 
@@ -236,21 +237,20 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.ListOrganizationProjects(cmd.Context(), &frontierv1beta1.ListOrganizationProjectsRequest{
+			res, err := client.ListOrganizationProjects(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
 				Id: args[0],
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			projects := res.GetProjects()
+			projects := res.Msg.GetProjects()
 
 			spinner.Stop()
 

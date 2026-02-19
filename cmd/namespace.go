@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/cli/printer"
@@ -51,23 +52,22 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			namespaceID := args[0]
-			res, err := client.GetNamespace(cmd.Context(), &frontierv1beta1.GetNamespaceRequest{
+			res, err := client.GetNamespace(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetNamespaceRequest{
 				Id: namespaceID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			namespace := res.GetNamespace()
+			namespace := res.Msg.GetNamespace()
 
 			spinner.Stop()
 
@@ -79,8 +79,6 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 				namespace.GetUpdatedAt().AsTime().String(),
 			})
 			printer.Table(os.Stdout, report)
-
-			spinner.Stop()
 
 			return nil
 		},
@@ -104,19 +102,18 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.ListNamespaces(cmd.Context(), &frontierv1beta1.ListNamespacesRequest{})
+			res, err := client.ListNamespaces(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListNamespacesRequest{}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			namespaces := res.GetNamespaces()
+			namespaces := res.Msg.GetNamespaces()
 
 			spinner.Stop()
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -68,21 +69,24 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.CreateGroup(setCtxHeader(cmd.Context(), header), &frontierv1beta1.CreateGroupRequest{
+			req, err := newRequest(&frontierv1beta1.CreateGroupRequest{
 				Body: &reqBody,
-			})
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateGroup(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully created group %s with id %s\n", res.GetGroup().GetName(), res.GetGroup().GetId())
+			fmt.Printf("successfully created group %s with id %s\n", res.Msg.GetGroup().GetName(), res.Msg.GetGroup().GetId())
 			return nil
 		},
 	}
@@ -122,17 +126,16 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			groupID := args[0]
-			_, err = client.UpdateGroup(cmd.Context(), &frontierv1beta1.UpdateGroupRequest{
+			_, err = client.UpdateGroup(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
 				Id:   groupID,
 				Body: &reqBody,
-			})
+			}))
 			if err != nil {
 				return err
 			}
@@ -166,25 +169,24 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			orgID := args[0]
 			groupID := args[1]
-			res, err := client.GetGroup(cmd.Context(), &frontierv1beta1.GetGroupRequest{
+			res, err := client.GetGroup(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetGroupRequest{
 				Id:    groupID,
 				OrgId: orgID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			group := res.GetGroup()
+			group := res.Msg.GetGroup()
 
 			spinner.Stop()
 
@@ -237,21 +239,20 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.ListOrganizationGroups(cmd.Context(), &frontierv1beta1.ListOrganizationGroupsRequest{
+			res, err := client.ListOrganizationGroups(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationGroupsRequest{
 				OrgId: args[0],
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			groups := res.GetGroups()
+			groups := res.Msg.GetGroups()
 
 			spinner.Stop()
 
