@@ -185,7 +185,9 @@ export const OrganizationList = () => {
           <DataTable.Toolbar />
           <DataTable.VirtualizedContent
             classNames={{
-              root: styles["table-wrapper"]
+              root: styles["table-wrapper"],
+              table: tableClassName,
+              header: styles["table-header"],
             }}
             emptyState={<NoOrganizations />}
             rowHeight={48}
