@@ -25,12 +25,12 @@ const generalSchema = yup
       .required('Name is required')
       .min(2, 'Name must be at least 2 characters')
       .matches(
-        /^[\p{L}\s.'\-]+$/u,
+        /^[\p{L}\s.'-]+$/u,
         'Name can only contain letters, spaces, periods, hyphens, and apostrophes'
       )
       .matches(/^\p{L}/u, 'Name must start with a letter')
       .matches(
-        /^\p{L}[\p{L}\s.'\-]*\p{L}$|^\p{L}$/u,
+        /^\p{L}[\p{L}\s.'-]*\p{L}$|^\p{L}$/u,
         'Name must end with a letter'
       )
       .matches(/^(?!.*\s\s).*$/, 'Name cannot have consecutive spaces')
