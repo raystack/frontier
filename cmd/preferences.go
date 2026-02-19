@@ -51,21 +51,21 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody frontierv1beta1.ListPreferencesRequest
-
-			adminClient, cancel, err := createAdminClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := adminClient.ListPreferences(ctx, &reqBody)
+			adminClient, err := createAdminClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
 
-			if len(res.GetPreferences()) == 0 {
+			req, err := newRequest(&frontierv1beta1.ListPreferencesRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := adminClient.ListPreferences(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			if len(res.Msg.GetPreferences()) == 0 {
 				spinner.Stop()
 				fmt.Println("No preferences set")
 				return nil
@@ -73,7 +73,7 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 
 			report := [][]string{}
 			report = append(report, []string{"Name", "Value", "ResourceType", "ResourceID"})
-			for _, preference := range res.GetPreferences() {
+			for _, preference := range res.Msg.GetPreferences() {
 				report = append(report, []string{preference.GetName(), preference.GetValue(), preference.GetResourceType(), preference.GetResourceId()})
 			}
 			spinner.Stop()
@@ -115,20 +115,22 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 				Value: value,
 			})
 
-			client, cancel, err := createAdminClient(cmd.Context(), cliConfig.Host)
+			client, err := createAdminClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.CreatePreferences(ctx, &reqBody)
+			req, err := newRequest(&reqBody, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreatePreferences(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("Preference %s set successfully with value: %s \n", res.GetPreference()[0].GetName(), res.GetPreference()[0].GetValue())
+			fmt.Printf("Preference %s set successfully with value: %s \n", res.Msg.GetPreference()[0].GetName(), res.Msg.GetPreference()[0].GetValue())
 
 			return nil
 		},
@@ -159,22 +161,22 @@ func preferencesGetCommand(cliConfig *Config) *cobra.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody frontierv1beta1.DescribePreferencesRequest
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.DescribePreferences(ctx, &reqBody)
+			req, err := newRequest(&frontierv1beta1.DescribePreferencesRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.DescribePreferences(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Println(prettyPrint(res.GetTraits()))
+			fmt.Println(prettyPrint(res.Msg.GetTraits()))
 
 			return nil
 		},

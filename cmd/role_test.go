@@ -2,7 +2,6 @@ package cmd_test
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"testing"
 
@@ -18,6 +17,7 @@ func TestClientRole(t *testing.T) {
 			subCommands []string
 			want        string
 			err         error
+			wantErr     bool
 		}{
 			{
 				name:        "`role` list only should throw error host not found",
@@ -26,10 +26,10 @@ func TestClientRole(t *testing.T) {
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
-				name:        "`role` list with host flag should pass",
+				name:        "`role` list with host flag should return error",
 				want:        "",
 				subCommands: []string{"list", "-h", "test"},
-				err:         context.DeadlineExceeded,
+				wantErr:     true,
 			},
 			{
 				name:        "`role` create only should throw error host not found",
@@ -62,10 +62,10 @@ func TestClientRole(t *testing.T) {
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
-				name:        "`role` view with host flag should pass",
+				name:        "`role` view with host flag should return error",
 				want:        "",
 				subCommands: []string{"view", "123", "-h", "test"},
-				err:         context.DeadlineExceeded,
+				wantErr:     true,
 			},
 		}
 		for _, tt := range tests {
@@ -81,7 +81,11 @@ func TestClientRole(t *testing.T) {
 				err := cli.Execute()
 				got := buf.String()
 
-				assert.Equal(t, tt.err, err)
+				if tt.wantErr {
+					assert.Error(t, err)
+				} else {
+					assert.Equal(t, tt.err, err)
+				}
 				assert.Equal(t, tt.want, got)
 			})
 		}

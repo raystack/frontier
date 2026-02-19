@@ -1,63 +1,38 @@
 package cmd
 
 import (
-	"context"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
-
-	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 )
 
-func createConnection(ctx context.Context, host string, caCertFile string) (*grpc.ClientConn, error) {
-	creds := insecure.NewCredentials()
-	if caCertFile != "" {
-		tlsCreds, err := credentials.NewClientTLSFromFile(caCertFile, "")
-		if err != nil {
-			return nil, err
-		}
-		creds = tlsCreds
-	}
-	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(creds),
-		grpc.WithBlock(),
-	}
-	return grpc.DialContext(ctx, host, opts...)
+var httpClient = &http.Client{
+	Timeout: 30 * time.Second,
 }
 
-func createClient(ctx context.Context, host string) (frontierv1beta1.FrontierServiceClient, func(), error) {
-	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
-	conn, err := createConnection(dialTimeoutCtx, host, "")
-	if err != nil {
-		dialCancel()
-		return nil, nil, err
+func createClient(host string) (frontierv1beta1connect.FrontierServiceClient, error) {
+	if host == "" {
+		return nil, ErrClientConfigHostNotFound
 	}
-	cancel := func() {
-		dialCancel()
-		conn.Close()
-	}
-
-	client := frontierv1beta1.NewFrontierServiceClient(conn)
-	return client, cancel, nil
+	return frontierv1beta1connect.NewFrontierServiceClient(httpClient, ensureHTTPScheme(host)), nil
 }
 
-func createAdminClient(ctx context.Context, host string) (frontierv1beta1.AdminServiceClient, func(), error) {
-	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
-	conn, err := createConnection(dialTimeoutCtx, host, "")
-	if err != nil {
-		dialCancel()
-		return nil, nil, err
+func createAdminClient(host string) (frontierv1beta1connect.AdminServiceClient, error) {
+	if host == "" {
+		return nil, ErrClientConfigHostNotFound
 	}
-	cancel := func() {
-		dialCancel()
-		conn.Close()
-	}
+	return frontierv1beta1connect.NewAdminServiceClient(httpClient, ensureHTTPScheme(host)), nil
+}
 
-	client := frontierv1beta1.NewAdminServiceClient(conn)
-	return client, cancel, nil
+func ensureHTTPScheme(host string) string {
+	if strings.HasPrefix(host, "http://") || strings.HasPrefix(host, "https://") {
+		return host
+	}
+	return fmt.Sprintf("https://%s", host)
 }
 
 func isClientCLI(cmd *cobra.Command) bool {

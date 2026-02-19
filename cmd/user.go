@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
+	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	"github.com/raystack/frontier/pkg/str"
@@ -74,22 +74,24 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 				reqBody.Name = str.GenerateUserSlug(reqBody.GetEmail())
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.CreateUser(setCtxHeader(ctx, header), &frontierv1beta1.CreateUserRequest{
+			req, err := newRequest(&frontierv1beta1.CreateUserRequest{
 				Body: &reqBody,
-			})
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.CreateUser(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully created user %s with id %s\n", res.GetUser().GetName(), res.GetUser().GetId())
+			fmt.Printf("successfully created user %s with id %s\n", res.Msg.GetUser().GetName(), res.Msg.GetUser().GetId())
 			return nil
 		},
 	}
@@ -130,18 +132,16 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			userID := args[0]
-			_, err = client.UpdateUser(ctx, &frontierv1beta1.UpdateUserRequest{
+			_, err = client.UpdateUser(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
 				Id:   userID,
 				Body: &reqBody,
-			})
+			}))
 			if err != nil {
 				return err
 			}
@@ -176,24 +176,22 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
 			userID := args[0]
-			res, err := client.GetUser(ctx, &frontierv1beta1.GetUserRequest{
+			res, err := client.GetUser(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetUserRequest{
 				Id: userID,
-			})
+			}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
 
-			user := res.GetUser()
+			user := res.Msg.GetUser()
 
 			spinner.Stop()
 
@@ -242,20 +240,18 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, err := createClient(cliConfig.Host)
 			if err != nil {
 				return err
 			}
-			defer cancel()
 
-			res, err := client.ListUsers(ctx, &frontierv1beta1.ListUsersRequest{})
+			res, err := client.ListUsers(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListUsersRequest{}))
 			if err != nil {
 				return err
 			}
 
 			report := [][]string{}
-			users := res.GetUsers()
+			users := res.Msg.GetUsers()
 
 			spinner.Stop()
 
