@@ -169,7 +169,7 @@ export const Subscribe = ({
             label="Name"
             placeholder="Enter name"
             error={errors.name?.message}
-            data-testid="subscribe-name-input"
+            data-test-id="subscribe-name-input"
           />
           <InputField
             {...register('email')}
@@ -177,7 +177,7 @@ export const Subscribe = ({
             type="email"
             placeholder="Enter email"
             error={errors.email?.message}
-            data-testid="subscribe-email-input"
+            data-test-id="subscribe-email-input"
           />
           <InputField
             {...register('contactNumber')}
@@ -186,7 +186,7 @@ export const Subscribe = ({
             placeholder="Enter contact"
             error={errors.contactNumber?.message}
             helperText="Add country code at the start"
-            data-testid="subscribe-contact-input"
+            data-test-id="subscribe-contact-input"
           />
           <Button
             style={{ width: '100%' }}

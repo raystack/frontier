@@ -1,5 +1,11 @@
 import cssModulesPlugin from 'esbuild-css-modules-plugin';
 import { defineConfig } from 'tsup';
+import pkg from './package.json';
+
+const externalDeps = [
+  ...Object.keys(pkg.dependencies ?? {}),
+  ...Object.keys(pkg.peerDependencies ?? {})
+];
 
 export default defineConfig(() => [
   // Core API
@@ -20,7 +26,8 @@ export default defineConfig(() => [
     dts: true,
     loader: {
       '.svg': 'dataurl',
-      '.png': 'dataurl'
+      '.png': 'dataurl',
+      '.jpg': 'dataurl'
     },
     esbuildPlugins: [cssModulesPlugin({ localsConvention: 'camelCase' })]
   },
@@ -43,20 +50,12 @@ export default defineConfig(() => [
       js: "'use client'"
     },
     format: ['cjs', 'esm'],
-    external: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      'zod',
-      '@radix-ui/react-form',
-      'sonner',
-      'react-loading-skeleton',
-      '@stitches/react'
-    ],
+    external: externalDeps,
     dts: true,
     loader: {
-      '.jpg': 'dataurl',
-      '.png': 'dataurl'
+      '.svg': 'dataurl',
+      '.png': 'dataurl',
+      '.jpg': 'dataurl'
     },
     esbuildPlugins: [cssModulesPlugin({ localsConvention: 'camelCase' })]
   }

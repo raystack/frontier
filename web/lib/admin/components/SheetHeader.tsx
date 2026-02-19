@@ -5,10 +5,10 @@ import { Flex, Text } from "@raystack/apsara";
 type SheetHeaderProps = {
   title: string;
   onClick: () => void;
-  "data-testid"?: string;
+  "data-test-id"?: string;
 };
 
-export function SheetHeader({ title, onClick, "data-testid": dataTestId }: SheetHeaderProps) {
+export function SheetHeader({ title, onClick, "data-test-id": dataTestId }: SheetHeaderProps) {
   return (
     <Flex justify="between" style={styles.header}>
       <Text size={4} style={{ fontWeight: "500" }}>
@@ -17,7 +17,7 @@ export function SheetHeader({ title, onClick, "data-testid": dataTestId }: Sheet
       <Cross1Icon
         onClick={onClick}
         style={{ cursor: "pointer" }}
-        data-testid={dataTestId ?? "admin-close-btn"}
+        data-test-id={dataTestId ?? "admin-close-btn"}
       />
     </Flex>
   );
