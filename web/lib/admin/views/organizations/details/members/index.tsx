@@ -17,11 +17,8 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { OrganizationContext } from "../contexts/organization-context";
 import { AssignRole } from "../../../../components/AssignRole";
 import { RemoveMember } from "./remove-member";
-import {
-  transformDataTableQueryToRQLRequest,
-  getConnectNextPageParam,
-  DEFAULT_PAGE_SIZE,
-} from "@raystack/frontier/admin";
+import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "../../../../utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };

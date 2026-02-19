@@ -20,8 +20,8 @@ import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-  transformDataTableQueryToRQLRequest,
-} from "@raystack/frontier/admin";
+} from "../../../utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "../../../utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useDebouncedState } from "@raystack/apsara/hooks";
 

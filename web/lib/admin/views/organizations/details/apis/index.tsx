@@ -13,11 +13,11 @@ import {
   type SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
 } from "@raystack/proton/frontier";
 import {
-  transformDataTableQueryToRQLRequest,
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-} from "@raystack/frontier/admin";
+} from "../../../../utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { useDebounceValue } from "usehooks-ts";
 
 const NoCredentials = () => {

@@ -9,11 +9,11 @@ import { getColumns } from "./columns";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import {
-  transformDataTableQueryToRQLRequest,
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
   getGroupCountMapFromFirstPage,
-} from "@raystack/frontier/admin";
+} from "../../../../utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { useDebounceValue } from "usehooks-ts";
 
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };

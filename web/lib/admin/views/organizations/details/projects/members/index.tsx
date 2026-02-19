@@ -20,11 +20,8 @@ import { AssignRole } from "./assign-role";
 import { PROJECT_NAMESPACE } from "../../types";
 import { RemoveMember } from "./remove-member";
 import { AddMembersDropdown } from "./add-members-dropdown";
-import {
-  getConnectNextPageParam,
-  DEFAULT_PAGE_SIZE,
-  transformDataTableQueryToRQLRequest,
-} from "@raystack/frontier/admin";
+import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "../../../../../utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "../../../../../utils/transform-query";
 
 const NoMembers = () => {
   return (
