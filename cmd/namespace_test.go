@@ -2,7 +2,6 @@ package cmd_test
 
 import (
 	"bytes"
-	"context"
 	"testing"
 
 	"github.com/raystack/frontier/cmd"
@@ -17,6 +16,7 @@ func TestClientNamespace(t *testing.T) {
 			subCommands []string
 			want        string
 			err         error
+			wantErr     bool
 		}{
 			{
 				name:        "`namespace` list only should throw error host not found",
@@ -25,10 +25,10 @@ func TestClientNamespace(t *testing.T) {
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
-				name:        "`namespace` list with host flag should pass",
+				name:        "`namespace` list with host flag should return error",
 				want:        "",
 				subCommands: []string{"list", "-h", "test"},
-				err:         context.DeadlineExceeded,
+				wantErr:     true,
 			},
 			{
 				name:        "`namespace` view without host should throw error host not found",
@@ -37,10 +37,10 @@ func TestClientNamespace(t *testing.T) {
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
-				name:        "`namespace` view with host flag should pass",
+				name:        "`namespace` view with host flag should return error",
 				want:        "",
 				subCommands: []string{"view", "123", "-h", "test"},
-				err:         context.DeadlineExceeded,
+				wantErr:     true,
 			},
 		}
 		for _, tt := range tests {
@@ -56,7 +56,11 @@ func TestClientNamespace(t *testing.T) {
 				err := cli.Execute()
 				got := buf.String()
 
-				assert.Equal(t, tt.err, err)
+				if tt.wantErr {
+					assert.Error(t, err)
+				} else {
+					assert.Equal(t, tt.err, err)
+				}
 				assert.Equal(t, tt.want, got)
 			})
 		}

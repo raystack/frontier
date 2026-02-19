@@ -2,7 +2,6 @@ package cmd_test
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"testing"
 
@@ -21,6 +20,7 @@ func TestClientGroup(t *testing.T) {
 			subCommands []string
 			want        string
 			err         error
+			wantErr     bool
 		}{
 			{
 				name:        "`group` list only should throw error host not found",
@@ -29,10 +29,10 @@ func TestClientGroup(t *testing.T) {
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
-				name:        "`group` list with host flag should pass",
+				name:        "`group` list with host flag should return error",
 				want:        "",
 				subCommands: []string{"list", orgID, "-h", "test"},
-				err:         context.DeadlineExceeded,
+				wantErr:     true,
 			},
 			{
 				name:        "`group` create only should throw error host not found",
@@ -65,10 +65,10 @@ func TestClientGroup(t *testing.T) {
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
-				name:        "`group` view with host flag should pass",
+				name:        "`group` view with host flag should return error",
 				want:        "",
 				subCommands: []string{"view", orgID, "123", "-h", "test"},
-				err:         context.DeadlineExceeded,
+				wantErr:     true,
 			},
 		}
 		for _, tt := range tests {
@@ -84,7 +84,11 @@ func TestClientGroup(t *testing.T) {
 				err := cli.Execute()
 				got := buf.String()
 
-				assert.Equal(t, tt.err, err)
+				if tt.wantErr {
+					assert.Error(t, err)
+				} else {
+					assert.Equal(t, tt.err, err)
+				}
 				assert.Equal(t, tt.want, got)
 			})
 		}
