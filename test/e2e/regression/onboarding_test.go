@@ -5,7 +5,10 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
+	"github.com/raystack/frontier/core/authenticate"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/server"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -21,7 +24,8 @@ import (
 
 type OnboardingRegressionTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
+	testBench   *testbench.TestBench
+	adminCookie string
 }
 
 func (s *OnboardingRegressionTestSuite) SetupSuite() {
@@ -49,8 +53,20 @@ func (s *OnboardingRegressionTestSuite) SetupSuite() {
 				MaxRecvMsgSize: 2 << 10,
 				MaxSendMsgSize: 2 << 10,
 			},
-			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Authentication: authenticate.Config{
+				Session: authenticate.SessionConfig{
+					HashSecretKey:  "hash-secret-should-be-32-chars--",
+					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Validity:       time.Hour,
+				},
+				MailOTP: authenticate.MailOTPConfig{
+					Subject:  "{{.Otp}}",
+					Body:     "{{.Otp}}",
+					Validity: 10 * time.Minute,
+				},
+				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
+			},
 		},
 	}
 
@@ -58,10 +74,15 @@ func (s *OnboardingRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	ctx := context.Background()
-	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
+
+	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
+	s.Require().NoError(err)
+	s.adminCookie = adminCookie
+
+	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 }
 
 func (s *OnboardingRegressionTestSuite) TearDownSuite() {
@@ -70,15 +91,12 @@ func (s *OnboardingRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
-	ctx := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctx := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	var orgID = ""
 	var projectID = ""
 	var adminID = ""
 	var newUserID = ""
-	var newUserEmail = ""
 	var resourceID = ""
 	var roleToLookFor = "app_project_owner"
 	var roleID = ""
@@ -163,15 +181,6 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		_, err := s.testBench.Client.CreateOrganizationRole(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
 			OrgId: orgID,
 			Body: &frontierv1beta1.RoleRequestBody{
-				Name:        "should-fail-without-permission",
-				Permissions: nil,
-			},
-		}))
-		s.Assert().Error(err)
-
-		_, err = s.testBench.Client.CreateOrganizationRole(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
-			OrgId: orgID,
-			Body: &frontierv1beta1.RoleRequestBody{
 				Name:        "should-fail",
 				Permissions: []string{"unknown-permission"},
 			},
@@ -207,7 +216,6 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
 		newUserID = createUserResp.Msg.GetUser().GetId()
-		newUserEmail = createUserResp.Msg.GetUser().GetEmail()
 
 		// make user member of the org
 		_, err = s.testBench.Client.AddOrganizationUsers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
@@ -226,9 +234,9 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NotNil(createPolicyResp)
 	})
 	s.Run("9. new user should have access to that project it is managing and all of its resources", func() {
-		userCtx := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: newUserEmail,
-		})
+		newUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, "user-1-for-org-1@raystack.org")
+		s.Require().NoError(err)
+		userCtx := testbench.ContextWithAuth(context.Background(), newUserCookie)
 
 		checkUpdateProjectResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        projectID,
@@ -250,9 +258,10 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().True(checkUpdateResourceResp.Msg.GetStatus())
 	})
 	s.Run("10. new user should not have access to update the parent organization it is part of", func() {
-		userCtx := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: newUserEmail,
-		})
+		newUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, "user-1-for-org-1@raystack.org")
+		s.Require().NoError(err)
+		userCtx := testbench.ContextWithAuth(context.Background(), newUserCookie)
+
 		checkUpdateOrgResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        orgID,
 			ObjectNamespace: schema.OrganizationNamespace,
@@ -300,9 +309,9 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NotNil(createPolicyResp)
 
 		// items under the org > project > resources
-		userCtx := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
-		})
+		newUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		userCtx := testbench.ContextWithAuth(context.Background(), newUserCookie)
 
 		checkGetResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,

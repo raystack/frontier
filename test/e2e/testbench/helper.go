@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/authenticate/strategy"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 )
@@ -26,8 +28,8 @@ var (
 )
 
 const (
-	OrgAdminEmail  = "admin1-group1-org1@raystack.org"
-	IdentityHeader = "X-Frontier-Email"
+	OrgAdminEmail = "admin1-group1-org1@raystack.org"
+	TestOTP       = "123456"
 )
 
 // headersKey is the context key for storing headers to be sent with ConnectRPC requests.
@@ -38,6 +40,13 @@ type headersKey struct{}
 // by the headerInterceptor.
 func ContextWithHeaders(ctx context.Context, headers map[string]string) context.Context {
 	return context.WithValue(ctx, headersKey{}, headers)
+}
+
+// ContextWithAuth returns a context that carries the session cookie for authentication.
+func ContextWithAuth(ctx context.Context, cookieStr string) context.Context {
+	return ContextWithHeaders(ctx, map[string]string{
+		"Cookie": cookieStr,
+	})
 }
 
 // HeadersFromContext returns headers stored in the context, if any.
@@ -61,6 +70,39 @@ func headerInterceptor() connect.UnaryInterceptorFunc {
 			return next(ctx, req)
 		})
 	})
+}
+
+// AuthenticateUser authenticates a user via mail OTP using the test_users config
+// (which skips SMTP) and returns the session cookie string (e.g. "sid=<encrypted>").
+func AuthenticateUser(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, email string) (string, error) {
+	// start mail OTP flow
+	authResp, err := cl.Authenticate(ctx, connect.NewRequest(&frontierv1beta1.AuthenticateRequest{
+		StrategyName:    strategy.MailOTPAuthMethod,
+		RedirectOnstart: false,
+		Email:           email,
+	}))
+	if err != nil {
+		return "", fmt.Errorf("authenticate: %w", err)
+	}
+
+	// complete OTP verification with the fixed test OTP
+	callbackResp, err := cl.AuthCallback(ctx, connect.NewRequest(&frontierv1beta1.AuthCallbackRequest{
+		StrategyName: strategy.MailOTPAuthMethod,
+		Code:         TestOTP,
+		State:        authResp.Msg.GetState(),
+	}))
+	if err != nil {
+		return "", fmt.Errorf("auth callback: %w", err)
+	}
+
+	// extract session cookie from Set-Cookie header
+	setCookie := callbackResp.Header().Get("Set-Cookie")
+	if setCookie == "" {
+		return "", fmt.Errorf("no Set-Cookie header in auth callback response")
+	}
+	// take only the cookie name=value part (before the first ";")
+	cookie := strings.SplitN(setCookie, ";", 2)[0]
+	return cookie, nil
 }
 
 func GetFreePort() (int, error) {
@@ -93,17 +135,15 @@ func CreateAdminClient(host string) (frontierv1beta1connect.AdminServiceClient, 
 	), nil
 }
 
-func BootstrapUsers(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, creatorEmail string) error {
+func BootstrapUsers(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, sessionCookie string) error {
 	var data []*frontierv1beta1.UserRequestBody
 	if err := json.Unmarshal(mockUserFixture, &data); err != nil {
 		return err
 	}
 
 	for _, d := range data {
-		ctx = ContextWithHeaders(ctx, map[string]string{
-			IdentityHeader: creatorEmail,
-		})
-		if _, err := cl.CreateUser(ctx, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+		authCtx := ContextWithAuth(ctx, sessionCookie)
+		if _, err := cl.CreateUser(authCtx, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
 			Body: d,
 		})); err != nil {
 			return err
@@ -111,7 +151,8 @@ func BootstrapUsers(ctx context.Context, cl frontierv1beta1connect.FrontierServi
 	}
 
 	// validate
-	uRes, err := cl.ListUsers(ctx, connect.NewRequest(&frontierv1beta1.ListUsersRequest{}))
+	authCtx := ContextWithAuth(ctx, sessionCookie)
+	uRes, err := cl.ListUsers(authCtx, connect.NewRequest(&frontierv1beta1.ListUsersRequest{}))
 	if err != nil {
 		return err
 	}
@@ -122,17 +163,15 @@ func BootstrapUsers(ctx context.Context, cl frontierv1beta1connect.FrontierServi
 	return nil
 }
 
-func BootstrapOrganizations(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, creatorEmail string) error {
+func BootstrapOrganizations(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, sessionCookie string) error {
 	var data []*frontierv1beta1.OrganizationRequestBody
 	if err := json.Unmarshal(mockOrganizationFixture, &data); err != nil {
 		return err
 	}
 
 	for _, d := range data {
-		ctx = ContextWithHeaders(ctx, map[string]string{
-			IdentityHeader: creatorEmail,
-		})
-		if _, err := cl.CreateOrganization(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		authCtx := ContextWithAuth(ctx, sessionCookie)
+		if _, err := cl.CreateOrganization(authCtx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: d,
 		})); err != nil {
 			return err
@@ -140,7 +179,8 @@ func BootstrapOrganizations(ctx context.Context, cl frontierv1beta1connect.Front
 	}
 
 	// validate
-	uRes, err := cl.ListOrganizations(ctx, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
+	authCtx := ContextWithAuth(ctx, sessionCookie)
+	uRes, err := cl.ListOrganizations(authCtx, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
 	if err != nil {
 		return err
 	}
@@ -150,8 +190,9 @@ func BootstrapOrganizations(ctx context.Context, cl frontierv1beta1connect.Front
 	return nil
 }
 
-func BootstrapProject(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, creatorEmail string) error {
-	orgResp, err := cl.ListOrganizations(ctx, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
+func BootstrapProject(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, sessionCookie string) error {
+	authCtx := ContextWithAuth(ctx, sessionCookie)
+	orgResp, err := cl.ListOrganizations(authCtx, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
 	if err != nil {
 		return err
 	}
@@ -167,10 +208,8 @@ func BootstrapProject(ctx context.Context, cl frontierv1beta1connect.FrontierSer
 
 	for _, d := range data {
 		d.OrgId = orgResp.Msg.GetOrganizations()[0].GetId()
-		ctx = ContextWithHeaders(ctx, map[string]string{
-			IdentityHeader: creatorEmail,
-		})
-		if _, err := cl.CreateProject(ctx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		authCtx = ContextWithAuth(ctx, sessionCookie)
+		if _, err := cl.CreateProject(authCtx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: d,
 		})); err != nil {
 			return err
@@ -178,7 +217,8 @@ func BootstrapProject(ctx context.Context, cl frontierv1beta1connect.FrontierSer
 	}
 
 	// validate
-	uRes, err := cl.ListOrganizationProjects(ctx, connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+	authCtx = ContextWithAuth(ctx, sessionCookie)
+	uRes, err := cl.ListOrganizationProjects(authCtx, connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
 		Id: orgResp.Msg.GetOrganizations()[0].GetId(),
 	}))
 	if err != nil {
@@ -190,8 +230,9 @@ func BootstrapProject(ctx context.Context, cl frontierv1beta1connect.FrontierSer
 	return nil
 }
 
-func BootstrapGroup(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, creatorEmail string) error {
-	orgResp, err := cl.ListOrganizations(ctx, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
+func BootstrapGroup(ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, sessionCookie string) error {
+	authCtx := ContextWithAuth(ctx, sessionCookie)
+	orgResp, err := cl.ListOrganizations(authCtx, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
 	if err != nil {
 		return err
 	}
@@ -206,10 +247,8 @@ func BootstrapGroup(ctx context.Context, cl frontierv1beta1connect.FrontierServi
 	}
 
 	for _, d := range data {
-		ctx = ContextWithHeaders(ctx, map[string]string{
-			IdentityHeader: creatorEmail,
-		})
-		if _, err := cl.CreateGroup(ctx, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+		authCtx = ContextWithAuth(ctx, sessionCookie)
+		if _, err := cl.CreateGroup(authCtx, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
 			Body:  d,
 			OrgId: orgResp.Msg.GetOrganizations()[0].GetId(),
 		})); err != nil {
@@ -218,7 +257,8 @@ func BootstrapGroup(ctx context.Context, cl frontierv1beta1connect.FrontierServi
 	}
 
 	// validate
-	uRes, err := cl.ListOrganizationGroups(ctx, connect.NewRequest(&frontierv1beta1.ListOrganizationGroupsRequest{
+	authCtx = ContextWithAuth(ctx, sessionCookie)
+	uRes, err := cl.ListOrganizationGroups(authCtx, connect.NewRequest(&frontierv1beta1.ListOrganizationGroupsRequest{
 		OrgId: orgResp.Msg.GetOrganizations()[0].GetId(),
 	}))
 	if err != nil {

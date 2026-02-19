@@ -20,6 +20,8 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/core/authenticate"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/server"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
@@ -31,7 +33,8 @@ import (
 
 type BillingRegressionTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
+	testBench   *testbench.TestBench
+	adminCookie string
 }
 
 func (s *BillingRegressionTestSuite) SetupSuite() {
@@ -60,8 +63,20 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 				MaxRecvMsgSize: 2 << 10,
 				MaxSendMsgSize: 2 << 10,
 			},
-			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Authentication: authenticate.Config{
+				Session: authenticate.SessionConfig{
+					HashSecretKey:  "hash-secret-should-be-32-chars--",
+					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Validity:       time.Hour,
+				},
+				MailOTP: authenticate.MailOTPConfig{
+					Subject:  "{{.Otp}}",
+					Body:     "{{.Otp}}",
+					Validity: 10 * time.Minute,
+				},
+				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
+			},
 		},
 		Billing: billing.Config{
 			StripeKey:       "sk_test_mock",
@@ -82,10 +97,14 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 
 	ctx := context.Background()
 
-	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
+	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
+	s.Require().NoError(err)
+	s.adminCookie = adminCookie
+
+	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 }
 
 func (s *BillingRegressionTestSuite) TearDownSuite() {
@@ -94,9 +113,7 @@ func (s *BillingRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *BillingRegressionTestSuite) TestBillingCustomerAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. creating multiple active billing account shouldn't be allowed", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
@@ -301,9 +318,7 @@ func (s *BillingRegressionTestSuite) TestBillingCustomerAPI() {
 }
 
 func (s *BillingRegressionTestSuite) TestPlansAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. fetch existing plans successfully", func() {
 		listPlansResp, err := s.testBench.Client.ListPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlansRequest{}))
 		s.Assert().NoError(err)
@@ -348,9 +363,7 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 }
 
 func (s *BillingRegressionTestSuite) TestProductsAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create a credit buying product successfully", func() {
 		createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProductRequest{
 			Body: &frontierv1beta1.ProductRequestBody{
@@ -495,9 +508,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 }
 
 func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	// create dummy org
 	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
@@ -628,9 +639,7 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 }
 
 func (s *BillingRegressionTestSuite) TestUsageAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	// create dummy org
 	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
@@ -1225,9 +1234,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 }
 
 func (s *BillingRegressionTestSuite) TestInvoiceAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	// create dummy org
 	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
@@ -1340,9 +1347,7 @@ func (s *BillingRegressionTestSuite) TestInvoiceAPI() {
 }
 
 func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	// create dummy org
 	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{

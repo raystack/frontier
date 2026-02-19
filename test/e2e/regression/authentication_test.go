@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/raystack/frontier/core/authenticate/strategy"
 	"github.com/raystack/frontier/pkg/mailer"
@@ -252,12 +251,12 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 			State:        authResp.Msg.GetState(),
 		}))
 		s.Assert().NoError(err)
-		s.Assert().NotEmpty(authCallbackResp.Header().Get(consts.SessionIDGatewayKey))
+		setCookie := authCallbackResp.Header().Get("Set-Cookie")
+		s.Assert().NotEmpty(setCookie)
+		cookie := strings.SplitN(setCookie, ";", 2)[0]
 
-		// Create context with session header for subsequent calls
-		ctxWithSession := testbench.ContextWithHeaders(ctx, map[string]string{
-			consts.SessionIDGatewayKey: authCallbackResp.Header().Get(consts.SessionIDGatewayKey),
-		})
+		// Create context with session cookie for subsequent calls
+		ctxWithSession := testbench.ContextWithAuth(ctx, cookie)
 		getUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSession, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(mockoidc.DefaultUser().Email, getUserResp.Msg.GetUser().GetEmail())
@@ -312,7 +311,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 
 		// verify if the jwt token works
 		ctxWithJWT := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			consts.UserTokenGatewayKey: jwtTokenResp.Msg.GetAccessToken(),
+			"Authorization": "Bearer " + jwtTokenResp.Msg.GetAccessToken(),
 		})
 		getCurrentUserResp, err = s.testBench.Client.GetCurrentUser(ctxWithJWT, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)

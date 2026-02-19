@@ -5,11 +5,14 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
+	"github.com/raystack/frontier/core/authenticate"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/server"
 
-	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"connectrpc.com/connect"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/config"
@@ -20,7 +23,8 @@ import (
 
 type ServiceRegistrationRegressionTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
+	testBench   *testbench.TestBench
+	adminCookie string
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
@@ -48,8 +52,20 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 				MaxRecvMsgSize: 2 << 10,
 				MaxSendMsgSize: 2 << 10,
 			},
-			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Authentication: authenticate.Config{
+				Session: authenticate.SessionConfig{
+					HashSecretKey:  "hash-secret-should-be-32-chars--",
+					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Validity:       time.Hour,
+				},
+				MailOTP: authenticate.MailOTPConfig{
+					Subject:  "{{.Otp}}",
+					Body:     "{{.Otp}}",
+					Validity: 10 * time.Minute,
+				},
+				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
+			},
 		},
 	}
 
@@ -57,10 +73,15 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	ctx := context.Background()
-	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
+
+	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
+	s.Require().NoError(err)
+	s.adminCookie = adminCookie
+
+	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) TearDownSuite() {
@@ -69,9 +90,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
-	ctx := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctx := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	s.Run("1. register a new service with custom permissions", func() {
 		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{

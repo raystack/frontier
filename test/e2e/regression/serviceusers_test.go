@@ -22,6 +22,7 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/raystack/frontier/core/authenticate"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/server"
 
 	"github.com/raystack/frontier/config"
@@ -32,8 +33,9 @@ import (
 
 type ServiceUsersRegressionTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
-	apiPort   int
+	testBench   *testbench.TestBench
+	apiPort     int
+	adminCookie string
 }
 
 func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
@@ -62,17 +64,23 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 				MaxRecvMsgSize: 2 << 10,
 				MaxSendMsgSize: 2 << 10,
 			},
-			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
 					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Validity:       time.Hour,
 				},
 				Token: authenticate.TokenConfig{
 					RSAPath: "testdata/jwks.json",
 					Issuer:  "frontier",
 				},
+				MailOTP: authenticate.MailOTPConfig{
+					Subject:  "{{.Otp}}",
+					Body:     "{{.Otp}}",
+					Validity: 10 * time.Minute,
+				},
+				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
 			},
 		},
 	}
@@ -81,10 +89,15 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	ctx := context.Background()
-	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
+
+	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
+	s.Require().NoError(err)
+	s.adminCookie = adminCookie
+
+	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 }
 
 func (s *ServiceUsersRegressionTestSuite) TearDownSuite() {
@@ -93,9 +106,7 @@ func (s *ServiceUsersRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	/*
 		{
 		  "alg": "HS256",
@@ -244,9 +255,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().True(checkPermAfterResp.Msg.GetStatus())
 	})
 	s.Run("8. a service account should not have access to modify another service account", func() {
-		ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: testbench.OrgAdminEmail,
-		})
+		ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
 		}))
@@ -293,9 +302,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 	var svUserSecret *frontierv1beta1.SecretCredential
 	var svKeySecret string
 	var existingOrgID string
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create a service user in an org and generate a secret", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
@@ -682,9 +689,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create a service user in an org and make it platform superuser", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
@@ -951,9 +956,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 	var svKeyToken string
 	var svUserID string
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create a service user in an org and generate a token", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",

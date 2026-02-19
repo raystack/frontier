@@ -14,8 +14,8 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/consts"
 
-	"github.com/raystack/frontier/core/invitation"
-
+	"github.com/raystack/frontier/core/authenticate"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/webhook"
 
 	"github.com/raystack/frontier/core/organization"
@@ -50,7 +50,8 @@ const (
 
 type APIRegressionTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
+	testBench   *testbench.TestBench
+	adminCookie string
 }
 
 func (s *APIRegressionTestSuite) SetupSuite() {
@@ -79,8 +80,20 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 				MaxRecvMsgSize: 2 << 10,
 				MaxSendMsgSize: 2 << 10,
 			},
-			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Authentication: authenticate.Config{
+				Session: authenticate.SessionConfig{
+					HashSecretKey:  "hash-secret-should-be-32-chars--",
+					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Validity:       time.Hour,
+				},
+				MailOTP: authenticate.MailOTPConfig{
+					Subject:  "{{.Otp}}",
+					Body:     "{{.Otp}}",
+					Validity: 10 * time.Minute,
+				},
+				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
+			},
 		},
 	}
 
@@ -89,10 +102,14 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 
 	ctx := context.Background()
 
-	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
+	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
+	s.Require().NoError(err)
+	s.adminCookie = adminCookie
+
+	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 }
 
 func (s *APIRegressionTestSuite) TearDownSuite() {
@@ -101,9 +118,7 @@ func (s *APIRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *APIRegressionTestSuite) TestOrganizationAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	s.Run("1. a user should successfully create a new org and become its admin", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
@@ -310,9 +325,9 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(disabledOrgs)
 
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: "normaluser@acme.org",
-		})
+		normalUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, "normaluser@raystack.org")
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), normalUserCookie)
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org acme 5",
@@ -399,12 +414,10 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 func (s *APIRegressionTestSuite) TestProjectAPI() {
 	var newProject *frontierv1beta1.Project
 
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	// get my org
-	res, err := s.testBench.Client.ListOrganizations(context.Background(), connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
+	res, err := s.testBench.Client.ListOrganizations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
 	s.Require().NoError(err)
 	s.Require().Greater(len(res.Msg.GetOrganizations()), 0)
 	myOrg := res.Msg.GetOrganizations()[0]
@@ -550,9 +563,9 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
-		createUserRespAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
-		})
+		createdUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		createUserRespAuth := testbench.ContextWithAuth(context.Background(), createdUserCookie)
 
 		// add user to project
 		_, err = s.testBench.Client.CreatePolicyForProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -627,9 +640,9 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUser2Resp)
 
-		ctxForUser2 := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUser2Resp.Msg.GetUser().GetEmail(),
-		})
+		user2Cookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUser2Resp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxForUser2 := testbench.ContextWithAuth(context.Background(), user2Cookie)
 
 		// add user to group
 		_, err = s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
@@ -692,12 +705,10 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 
 func (s *APIRegressionTestSuite) TestGroupAPI() {
 	var newGroup *frontierv1beta1.Group
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	// get my org
-	res, err := s.testBench.Client.ListOrganizations(context.Background(), connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
+	res, err := s.testBench.Client.ListOrganizations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
 	s.Require().NoError(err)
 	s.Require().Greater(len(res.Msg.GetOrganizations()), 0)
 	myOrg := res.Msg.GetOrganizations()[0]
@@ -884,9 +895,9 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
-		})
+		orgUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), orgUserCookie)
 
 		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
 			OrgId: myOrg.GetId(),
@@ -1021,9 +1032,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 func (s *APIRegressionTestSuite) TestUserAPI() {
 	var newUser *frontierv1beta1.User
 
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	s.Run("1. org admin create a new user with empty auth email should return unauthenticated error", func() {
 		_, err := s.testBench.Client.CreateUser(context.Background(), connect.NewRequest(&frontierv1beta1.CreateUserRequest{
@@ -1123,9 +1132,9 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 	})
 
-	ctxCurrentUser := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: newUser.GetEmail(),
-	})
+	currentUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, newUser.GetEmail())
+	s.Require().NoError(err)
+	ctxCurrentUser := testbench.ContextWithAuth(context.Background(), currentUserCookie)
 
 	s.Run("6. update current user with empty email should return invalid argument error", func() {
 		_, err := s.testBench.Client.UpdateCurrentUser(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.UpdateCurrentUserRequest{
@@ -1366,9 +1375,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 }
 
 func (s *APIRegressionTestSuite) TestRelationAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	s.Run("1. creating a new relation between org and user should give access to the org", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
@@ -1398,9 +1405,9 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		}}))
 		s.Assert().NoError(err)
 
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
-		})
+		relUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), relUserCookie)
 		checkPermission, err := s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 			Permission: schema.DeletePermission,
@@ -1430,9 +1437,9 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		}}))
 		s.Assert().NoError(err)
 
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
-		})
+		relUser2Cookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), relUser2Cookie)
 		checkViewPermResp, err := s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 			Permission: schema.GetPermission,
@@ -1470,9 +1477,9 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		}}))
 		s.Assert().NoError(err)
 
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
-		})
+		relUser3Cookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), relUser3Cookie)
 		checkBeforeDeletePermission, err := s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 			Permission: schema.DeletePermission,
@@ -1497,9 +1504,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 }
 
 func (s *APIRegressionTestSuite) TestResourceAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	s.Run("1. creating a resource under a project/org successfully", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
@@ -1942,9 +1947,9 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		s.Assert().False(checkCreatePermResp.Msg.GetStatus())
 
 		// if a user is owner of an org doesn't mean it will get access to other resources
-		ctxOrgUser2Auth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: user2Resp.Msg.GetUser().GetEmail(),
-		})
+		user2AuthCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, user2Resp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxOrgUser2Auth := testbench.ContextWithAuth(context.Background(), user2AuthCookie)
 		createUser2OrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgUser2Auth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org 3",
@@ -1966,9 +1971,7 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 }
 
 func (s *APIRegressionTestSuite) TestPolicyAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	s.Run("1. adding an org member via policy should work successfully", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
@@ -2007,9 +2010,7 @@ func (s *APIRegressionTestSuite) TestPolicyAPI() {
 }
 
 func (s *APIRegressionTestSuite) TestInvitationAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	// enable invite user with roles
 	_, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
 		Preferences: []*frontierv1beta1.PreferenceRequestBody{
@@ -2059,9 +2060,9 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().NoError(err)
 
 		// check if the user already has permission in group
-		ctxCurrentUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: "new-user-for-invite-1@raystack.org",
-		})
+		inviteUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, "new-user-for-invite-1@raystack.org")
+		s.Require().NoError(err)
+		ctxCurrentUserAuth := testbench.ContextWithAuth(context.Background(), inviteUserCookie)
 		checkResp, err := s.testBench.Client.CheckResourcePermission(ctxCurrentUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 			Permission: schema.GroupCreatePermission,
@@ -2117,9 +2118,9 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().Len(listGroupUsersBeforeAccept.Msg.GetUsers(), 1)
 
 		// accept invite should add user to org and delete it
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: createUserResp.Msg.GetUser().GetEmail(),
-		})
+		invitedUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), invitedUserCookie)
 		_, err = s.testBench.Client.AcceptOrganizationInvitation(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.AcceptOrganizationInvitationRequest{
 			Id:    createdInvite.GetId(),
 			OrgId: existingOrg.Msg.GetOrganization().GetId(),
@@ -2183,19 +2184,19 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 			UserIds: []string{createUserResp.Msg.GetUser().GetEmail()},
 		}))
 		s.Assert().Error(err)
-		s.Assert().ErrorContains(err, invitation.ErrAlreadyMember.Error())
+		s.Assert().Equal(connect.CodeAlreadyExists, connect.CodeOf(err))
 	})
 	s.Run("3. org owner should have access to invite users", func() {
-		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+		_, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 			Title: "owner 1",
 			Email: "user-org-invitation-3@raystack.org",
 			Name:  "user_org_invitation_3",
 		}}))
 		s.Assert().NoError(err)
 
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: userResp.Msg.GetUser().GetEmail(),
-		})
+		orgOwnerCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, "user-org-invitation-3@raystack.org")
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), orgOwnerCookie)
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org 3",
@@ -2251,9 +2252,9 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		ctxOrgUserAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			testbench.IdentityHeader: userResp.Msg.GetUser().GetEmail(),
-		})
+		inviterCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, userResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), inviterCookie)
 		createInviteResp, err := s.testBench.Client.CreateOrganizationInvitation(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationInvitationRequest{
 			OrgId:   createOrgResp.Msg.GetOrganization().GetId(),
 			UserIds: []string{randomUserResp.Msg.GetUser().GetEmail()},
@@ -2317,9 +2318,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 }
 
 func (s *APIRegressionTestSuite) TestRolesAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. list all platform roles successfully", func() {
 		platformRoles, err := s.testBench.Client.ListRoles(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRolesRequest{}))
 		s.Assert().NoError(err)
@@ -2361,9 +2360,7 @@ func (s *APIRegressionTestSuite) TestRolesAPI() {
 }
 
 func (s *APIRegressionTestSuite) TestPreferencesAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. list all preference traits successfully", func() {
 		prefTraitResp, err := s.testBench.Client.DescribePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DescribePreferencesRequest{}))
 		s.Assert().NoError(err)
@@ -2485,9 +2482,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 }
 
 func (s *APIRegressionTestSuite) TestOrganizationDomainsAPI() {
-	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	})
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create and fetch organization domains successfully", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
@@ -2523,8 +2518,8 @@ func (s *APIRegressionTestSuite) TestOrganizationDomainsAPI() {
 
 func (s *APIRegressionTestSuite) TestWebhookAPI() {
 	ctxOrgAdminAuth := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-		consts.RequestIDHeader:   "test-request-id",
+		"Cookie":               s.adminCookie,
+		consts.RequestIDHeader: "test-request-id",
 	})
 	s.Run("1. create and list webhooks successfully", func() {
 		createWebhookResp, err := s.testBench.AdminClient.CreateWebhook(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateWebhookRequest{
