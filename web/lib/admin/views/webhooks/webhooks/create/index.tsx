@@ -93,7 +93,7 @@ export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksP
             <SheetHeader
               title="Add new Webhook"
               onClick={onOpenChange}
-              data-testid="admin-add-new-webhook-btn"
+              data-test-id="admin-add-new-webhook-btn"
             />
             <Flex direction="column" gap={9} style={styles.main}>
               <CustomFieldName

@@ -91,7 +91,7 @@ export default function RolesView({
             <SheetHeader
               title="Role Details"
               onClick={handleClose}
-              data-testid="role-details-header"
+              data-test-id="role-details-header"
             />
             <Flex className={styles.sheetContentBody}>
               <RoleDetails
