@@ -1,7 +1,6 @@
 package testbench
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -12,7 +11,7 @@ import (
 	"gopkg.in/dnaeon/go-vcr.v3/recorder"
 
 	"github.com/raystack/frontier/pkg/logger"
-	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 
 	"github.com/google/uuid"
 	"github.com/ory/dockertest/v3"
@@ -35,8 +34,8 @@ type TestBench struct {
 	Pool        *dockertest.Pool
 	Network     *docker.Network
 	Resources   []*dockertest.Resource
-	Client      frontierv1beta1.FrontierServiceClient
-	AdminClient frontierv1beta1.AdminServiceClient
+	Client      frontierv1beta1connect.FrontierServiceClient
+	AdminClient frontierv1beta1connect.AdminServiceClient
 	close       func() error
 }
 
@@ -112,14 +111,15 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 
 	StartFrontier(logger, appConfig)
 
-	// create fixtures
-	sClient, sClose, err := CreateClient(context.Background(), net.JoinHostPort(appConfig.App.Host, strconv.Itoa(appConfig.App.GRPC.Port)))
+	// create ConnectRPC clients using the connect port
+	connectHost := net.JoinHostPort(appConfig.App.Host, strconv.Itoa(appConfig.App.Connect.Port))
+	sClient, err := CreateClient(connectHost)
 	if err != nil {
 		return nil, err
 	}
 	te.Client = sClient
 
-	adClient, adClose, err := CreateAdminClient(context.Background(), net.JoinHostPort(appConfig.App.Host, strconv.Itoa(appConfig.App.GRPC.Port)))
+	adClient, err := CreateAdminClient(connectHost)
 	if err != nil {
 		return nil, err
 	}
@@ -128,10 +128,8 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 	te.close = func() error {
 		err1 := pgResource.Close()
 		err2 := spiceDBClose()
-		err3 := sClose()
-		err4 := adClose()
-		err5 := stripeClose()
-		return errors.Join(err1, err2, err3, err4, err5)
+		err3 := stripeClose()
+		return errors.Join(err1, err2, err3)
 	}
 
 	// let frontier start

@@ -5,11 +5,14 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
+	"github.com/raystack/frontier/core/authenticate"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/server"
 
+	"connectrpc.com/connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/config"
@@ -20,7 +23,8 @@ import (
 
 type ServiceRegistrationRegressionTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
+	testBench   *testbench.TestBench
+	adminCookie string
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
@@ -32,21 +36,36 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	grpcPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
+	connectPort, err := testbench.GetFreePort()
+	s.Require().NoError(err)
 
 	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
 		App: server.Config{
-			Host: "localhost",
-			Port: apiPort,
+			Host:    "localhost",
+			Port:    apiPort,
+			Connect: server.ConnectConfig{Port: connectPort},
 			GRPC: server.GRPCConfig{
 				Port:           grpcPort,
 				MaxRecvMsgSize: 2 << 10,
 				MaxSendMsgSize: 2 << 10,
 			},
-			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Authentication: authenticate.Config{
+				Session: authenticate.SessionConfig{
+					HashSecretKey:  "hash-secret-should-be-32-chars--",
+					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Validity:       time.Hour,
+				},
+				MailOTP: authenticate.MailOTPConfig{
+					Subject:  "{{.Otp}}",
+					Body:     "{{.Otp}}",
+					Validity: 10 * time.Minute,
+				},
+				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
+			},
 		},
 	}
 
@@ -54,10 +73,15 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	ctx := context.Background()
-	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
+
+	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
+	s.Require().NoError(err)
+	s.adminCookie = adminCookie
+
+	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) TearDownSuite() {
@@ -66,12 +90,10 @@ func (s *ServiceRegistrationRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
-	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	ctx := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	s.Run("1. register a new service with custom permissions", func() {
-		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Name:      "get",
@@ -93,22 +115,22 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 					},
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(3, len(createPermResp.GetPermissions()))
+		s.Assert().Equal(3, len(createPermResp.Msg.GetPermissions()))
 
-		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
+		listPermResp, err := s.testBench.Client.ListPermissions(ctx, connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(listPermResp.GetPermissions())
+		s.Assert().NotNil(listPermResp.Msg.GetPermissions())
 		// check if list contains newly created permissions
-		for _, perm := range createPermResp.GetPermissions() {
-			s.Assert().Contains(listPermResp.GetPermissions(), perm)
+		for _, perm := range createPermResp.Msg.GetPermissions() {
+			s.Assert().Contains(listPermResp.Msg.GetPermissions(), perm)
 		}
 		// length of list should be greater than number of permissions created
-		s.Assert().GreaterOrEqual(len(listPermResp.GetPermissions()), len(createPermResp.GetPermissions()))
+		s.Assert().GreaterOrEqual(len(listPermResp.Msg.GetPermissions()), len(createPermResp.Msg.GetPermissions()))
 	})
 	s.Run("2. registering a new service should not remove existing permissions", func() {
-		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Name:      "update",
@@ -125,21 +147,21 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 					},
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(2, len(createPermResp.GetPermissions()))
+		s.Assert().Equal(2, len(createPermResp.Msg.GetPermissions()))
 
-		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
+		listPermResp, err := s.testBench.Client.ListPermissions(ctx, connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(listPermResp.GetPermissions())
+		s.Assert().NotNil(listPermResp.Msg.GetPermissions())
 		// check if list contains newly created permissions
-		for _, perm := range createPermResp.GetPermissions() {
-			s.Assert().Contains(listPermResp.GetPermissions(), perm)
+		for _, perm := range createPermResp.Msg.GetPermissions() {
+			s.Assert().Contains(listPermResp.Msg.GetPermissions(), perm)
 		}
 		// list should contain permissions created in previous step
 		var lastPermCount int
 		for _, perm := range []string{"get", "update", "delete"} {
-			for _, listPerm := range listPermResp.GetPermissions() {
+			for _, listPerm := range listPermResp.Msg.GetPermissions() {
 				if listPerm.GetName() == perm && listPerm.GetNamespace() == "database/instance" {
 					lastPermCount++
 				}
