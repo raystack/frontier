@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -19,9 +20,9 @@ import (
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/raystack/frontier/core/authenticate"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/server"
 
 	"github.com/raystack/frontier/config"
@@ -32,8 +33,9 @@ import (
 
 type ServiceUsersRegressionTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
-	apiPort   int
+	testBench   *testbench.TestBench
+	apiPort     int
+	adminCookie string
 }
 
 func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
@@ -45,6 +47,8 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	grpcPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
+	connectPort, err := testbench.GetFreePort()
+	s.Require().NoError(err)
 	s.apiPort = apiPort
 
 	appConfig := &config.Frontier{
@@ -52,24 +56,31 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 			Level: "error",
 		},
 		App: server.Config{
-			Host: "localhost",
-			Port: apiPort,
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
+			Port:    apiPort,
 			GRPC: server.GRPCConfig{
 				Port:           grpcPort,
 				MaxRecvMsgSize: 2 << 10,
 				MaxSendMsgSize: 2 << 10,
 			},
-			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
 					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Validity:       time.Hour,
 				},
 				Token: authenticate.TokenConfig{
 					RSAPath: "testdata/jwks.json",
 					Issuer:  "frontier",
 				},
+				MailOTP: authenticate.MailOTPConfig{
+					Subject:  "{{.Otp}}",
+					Body:     "{{.Otp}}",
+					Validity: 10 * time.Minute,
+				},
+				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
 			},
 		},
 	}
@@ -78,10 +89,15 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	ctx := context.Background()
-	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
+
+	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
+	s.Require().NoError(err)
+	s.adminCookie = adminCookie
+
+	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 }
 
 func (s *ServiceUsersRegressionTestSuite) TearDownSuite() {
@@ -90,9 +106,7 @@ func (s *ServiceUsersRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
-	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	/*
 		{
 		  "alg": "HS256",
@@ -111,24 +125,24 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 	var svUserKey *frontierv1beta1.KeyCredential
 	var svKeyToken []byte
 	s.Run("1. create a service user in an org and generate a key", func() {
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserJWKResp, err := s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserJWKRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUserJWKResp, err := s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserJWKResp)
-		svUserKey = createServiceUserJWKResp.GetKey()
+		svUserKey = createServiceUserJWKResp.Msg.GetKey()
 
 		// generate a token out of key
 		rsaKey, err := jwk.ParseKey([]byte(svUserKey.GetPrivateKey()), jwk.WithPEM(true))
@@ -142,30 +156,30 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().NotNil(svKeyToken)
 	})
 	s.Run("2. fetch current profile and ensure request is authenticated using service user key", func() {
-		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Bearer " + string(svKeyToken),
-		}))
+		})
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &frontierv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
-		s.Assert().Equal(svUserKey.GetPrincipalId(), getCurrentUserResp.GetServiceuser().GetId())
+		s.Assert().Equal(svUserKey.GetPrincipalId(), getCurrentUserResp.Msg.GetServiceuser().GetId())
 	})
 	s.Run("3. ensure request is authenticated using service user key with user-token header", func() {
-		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			consts.UserTokenRequestKey: string(svKeyToken),
-		}))
+		})
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &frontierv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
-		s.Assert().Equal(svUserKey.GetPrincipalId(), getCurrentUserResp.GetServiceuser().GetId())
+		s.Assert().Equal(svUserKey.GetPrincipalId(), getCurrentUserResp.Msg.GetServiceuser().GetId())
 	})
 	s.Run("4. passing invalid type of jwt should fail", func() {
-		ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctx := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			consts.UserTokenRequestKey: sampleHMACJwt,
-		}))
-		_, err := s.testBench.Client.GetCurrentUser(ctx, &frontierv1beta1.GetCurrentUserRequest{})
+		})
+		_, err := s.testBench.Client.GetCurrentUser(ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().Error(err)
 	})
 	s.Run("5. fetch current profile and pass additional headers via rest", func() {
@@ -179,110 +193,108 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().NotNil(currentUserResp.Body)
 	})
 	s.Run("6. service user should be able to create an organization with full permission", func() {
-		_, err := s.testBench.Client.CreateOrganization(context.Background(), &frontierv1beta1.CreateOrganizationRequest{
+		_, err := s.testBench.Client.CreateOrganization(context.Background(), connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-su-test-1",
 			},
-		})
+		}))
 		s.Assert().Error(err)
 
-		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Bearer " + string(svKeyToken),
-		}))
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxWithKey, &frontierv1beta1.CreateOrganizationRequest{
+		})
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxWithKey, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-su-test-1",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createOrgResp)
 
-		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        createOrgResp.GetOrganization().GetId(),
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			ObjectId:        createOrgResp.Msg.GetOrganization().GetId(),
 			ObjectNamespace: "organization",
 			Permission:      schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkPermResp.GetStatus())
+		s.Assert().True(checkPermResp.Msg.GetStatus())
 	})
 	s.Run("7. service user should be allowed to assign role", func() {
-		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Bearer " + string(svKeyToken),
-		}))
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxWithKey, &frontierv1beta1.GetOrganizationRequest{
-			Id: "org-sv-user-1",
 		})
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxWithKey, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
+			Id: "org-sv-user-1",
+		}))
 		s.Assert().NoError(err)
 
 		// by default, it should not have any permission
-		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.GetOrganization().GetId()),
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.Msg.GetOrganization().GetId()),
 			Permission: schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkPermResp.GetStatus())
+		s.Assert().False(checkPermResp.Msg.GetStatus())
 
 		// assign role
-		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    schema.RoleOrganizationManager,
-				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, svUserKey.GetPrincipalId()),
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        existingOrg.GetOrganization().GetId(),
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			ObjectId:        existingOrg.Msg.GetOrganization().GetId(),
 			ObjectNamespace: "organization",
 			Permission:      schema.UpdatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkPermAfterResp.GetStatus())
+		s.Assert().True(checkPermAfterResp.Msg.GetStatus())
 	})
 	s.Run("8. a service account should not have access to modify another service account", func() {
-		ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			testbench.IdentityHeader: testbench.OrgAdminEmail,
-		}))
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+		ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// create another service user
-		createServiceUser2Resp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUser2Resp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUser2Resp)
-		createServiceUser2KeyResp, err := s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserJWKRequest{
-			Id:    createServiceUser2Resp.GetServiceuser().GetId(),
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUser2KeyResp, err := s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+			Id:    createServiceUser2Resp.Msg.GetServiceuser().GetId(),
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUser2KeyResp)
 
 		// generate a token out of key
-		rsaKey, err := jwk.ParseKey([]byte(createServiceUser2KeyResp.GetKey().GetPrivateKey()), jwk.WithPEM(true))
+		rsaKey, err := jwk.ParseKey([]byte(createServiceUser2KeyResp.Msg.GetKey().GetPrivateKey()), jwk.WithPEM(true))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(rsaKey)
-		_ = rsaKey.Set(jwk.KeyIDKey, createServiceUser2KeyResp.GetKey().GetKid())
+		_ = rsaKey.Set(jwk.KeyIDKey, createServiceUser2KeyResp.Msg.GetKey().GetKid())
 
 		sv2KeyToken, err := utils.BuildToken(rsaKey, "custom", svUserKey.GetPrincipalId(),
 			time.Minute*5, nil)
 		s.Assert().NoError(err)
 		s.Assert().NotNil(sv2KeyToken)
-		ctxWithKey2 := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithKey2 := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Bearer " + string(sv2KeyToken),
-		}))
+		})
 
 		// by default it should not have any permission
-		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey2, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey2, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 			Permission: schema.ServiceUserManagePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkPermAfterResp.GetStatus())
+		s.Assert().False(checkPermAfterResp.Msg.GetStatus())
 	})
 }
 
@@ -290,94 +302,92 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 	var svUserSecret *frontierv1beta1.SecretCredential
 	var svKeySecret string
 	var existingOrgID string
-	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create a service user in an org and generate a secret", func() {
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
-		})
+		}))
 		s.Assert().NoError(err)
-		existingOrgID = existingOrg.GetOrganization().GetId()
+		existingOrgID = existingOrg.Msg.GetOrganization().GetId()
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
-		svUserSecret = createServiceUserCredentialResp.GetSecret()
+		svUserSecret = createServiceUserCredentialResp.Msg.GetSecret()
 		svKeySecret = fmt.Sprintf("%s:%s", svUserSecret.GetId(),
 			svUserSecret.GetSecret())
 		svKeySecret = base64.StdEncoding.EncodeToString([]byte(svKeySecret))
 
 		// list service user secrets
-		listServiceUserCredentialResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		listServiceUserCredentialResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listServiceUserCredentialResp)
 	})
 	s.Run("2. fetch current profile and ensure request is authenticated using service user key", func() {
-		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + svKeySecret,
-		}))
+		})
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, &frontierv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 	})
 	s.Run("3. passing invalid type of jwt should fail", func() {
-		ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctx := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic randomsecret",
-		}))
-		_, err := s.testBench.Client.GetCurrentUser(ctx, &frontierv1beta1.GetCurrentUserRequest{})
+		})
+		_, err := s.testBench.Client.GetCurrentUser(ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().Error(err)
 	})
 	s.Run("4. service user should support organization roles", func() {
 		testNamespace := "compute/machine"
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-2",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		projectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+		projectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "project-sv-user-1",
-				OrgId: createOrgResp.GetOrganization().GetId(),
+				OrgId: createOrgResp.Msg.GetOrganization().GetId(),
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(projectResp)
 
 		// create a service account
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
-		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.GetSecret().GetId(),
-				createServiceUserCredentialResp.GetSecret().GetSecret()))),
-		}))
+		ctxWithSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
+			"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
+				createServiceUserCredentialResp.Msg.GetSecret().GetSecret()))),
+		})
 
 		// create dummy permissions
-		_, err = s.testBench.AdminClient.CreatePermission(ctxOrgAdminAuth, &frontierv1beta1.CreatePermissionRequest{
+		_, err = s.testBench.AdminClient.CreatePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Key: "compute.machine.get",
@@ -389,11 +399,11 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 					Key: "compute.machine.delete",
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// create role without delete permission
-		createdRoleResponse, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, &frontierv1beta1.CreateRoleRequest{
+		createdRoleResponse, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateRoleRequest{
 			Body: &frontierv1beta1.RoleRequestBody{
 				Name: "compute_machine_manager",
 				Permissions: []string{
@@ -401,55 +411,55 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 					"compute.machine.create",
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// create compute machine resource
-		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectResourceRequest{
-			ProjectId: projectResp.GetProject().GetId(),
+		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectResp.Msg.GetProject().GetId(),
 			Body: &frontierv1beta1.ResourceRequestBody{
 				Name:      "resource1",
 				Namespace: testNamespace,
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createResourceResp)
 
 		// by default, it should not have any permission
-		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().GetId()),
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.Msg.GetResource().GetId()),
 			Permission: schema.GetPermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkPermResp.GetStatus())
+		s.Assert().False(checkPermResp.Msg.GetStatus())
 
 		// create policy binding
-		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
-				RoleId:    createdRoleResponse.GetRole().GetId(),
-				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectResp.GetProject().GetId()),
-				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+				RoleId:    createdRoleResponse.Msg.GetRole().GetId(),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectResp.Msg.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.Msg.GetServiceuser().GetId()),
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// it will have get permission but not delete
-		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().GetId()),
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.Msg.GetResource().GetId()),
 			Permission: schema.GetPermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkPermAfterResp.GetStatus())
-		checkPermAfterRespWithDelete, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().GetId()),
+		s.Assert().True(checkPermAfterResp.Msg.GetStatus())
+		checkPermAfterRespWithDelete, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.Msg.GetResource().GetId()),
 			Permission: schema.DeletePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkPermAfterRespWithDelete.GetStatus())
+		s.Assert().False(checkPermAfterRespWithDelete.Msg.GetStatus())
 
 		// update role in place to add delete permission
-		_, err = s.testBench.AdminClient.UpdateRole(ctxOrgAdminAuth, &frontierv1beta1.UpdateRoleRequest{
-			Id: createdRoleResponse.GetRole().GetId(),
+		_, err = s.testBench.AdminClient.UpdateRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateRoleRequest{
+			Id: createdRoleResponse.Msg.GetRole().GetId(),
 			Body: &frontierv1beta1.RoleRequestBody{
 				Name: "compute_machine_manager",
 				Permissions: []string{
@@ -458,20 +468,20 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 					"compute.machine.delete",
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// should have permission now
-		checkPermAfterDelete, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().GetId()),
+		checkPermAfterDelete, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.Msg.GetResource().GetId()),
 			Permission: schema.DeletePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkPermAfterDelete.GetStatus())
+		s.Assert().True(checkPermAfterDelete.Msg.GetStatus())
 
 		// update role in place to remove delete permission again
-		_, err = s.testBench.AdminClient.UpdateRole(ctxOrgAdminAuth, &frontierv1beta1.UpdateRoleRequest{
-			Id: createdRoleResponse.GetRole().GetId(),
+		_, err = s.testBench.AdminClient.UpdateRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateRoleRequest{
+			Id: createdRoleResponse.Msg.GetRole().GetId(),
 			Body: &frontierv1beta1.RoleRequestBody{
 				Name: "compute_machine_manager",
 				Permissions: []string{
@@ -479,198 +489,198 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 					"compute.machine.create",
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// removing of permission should also reflect
-		checkPermAfterDeleteRemoved, err := s.testBench.Client.BatchCheckPermission(ctxWithSecret, &frontierv1beta1.BatchCheckPermissionRequest{
+		checkPermAfterDeleteRemoved, err := s.testBench.Client.BatchCheckPermission(ctxWithSecret, connect.NewRequest(&frontierv1beta1.BatchCheckPermissionRequest{
 			Bodies: []*frontierv1beta1.BatchCheckPermissionBody{
 				{
-					Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().GetId()),
+					Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.Msg.GetResource().GetId()),
 					Permission: schema.DeletePermission,
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkPermAfterDeleteRemoved.GetPairs()[0].GetStatus())
+		s.Assert().False(checkPermAfterDeleteRemoved.Msg.GetPairs()[0].GetStatus())
 	})
 	s.Run("5. service user should be allowed to create resources for projects", func() {
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-svuser-1",
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createSVUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: existingOrg.GetOrganization().GetId(),
+		createSVUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
 			Body: &frontierv1beta1.ServiceUserRequestBody{
 				Title: "org-svuser-1-sv-user-1",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createSVUserResp)
 
-		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createSVUserResp.GetServiceuser().GetId(),
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createSVUserResp.Msg.GetServiceuser().GetId(),
 			Title: "org-svuser-1-sv-user-1-key-1",
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
 
-		createdSVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.GetSecret().GetId(),
-			createServiceUserCredentialResp.GetSecret().GetSecret())))
-		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		createdSVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
+			createServiceUserCredentialResp.Msg.GetSecret().GetSecret())))
+		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + createdSVKey,
-		}))
+		})
 
 		// by default, it should not have any permission
-		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.GetOrganization().GetId()),
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.Msg.GetOrganization().GetId()),
 			Permission: schema.ProjectCreatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkPermResp.GetStatus())
+		s.Assert().False(checkPermResp.Msg.GetStatus())
 
 		// assign role
-		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    "app_project_manager",
-				Resource:  schema.JoinNamespaceAndResourceID("organization", existingOrg.GetOrganization().GetId()),
-				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createSVUserResp.GetServiceuser().GetId()),
+				Resource:  schema.JoinNamespaceAndResourceID("organization", existingOrg.Msg.GetOrganization().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createSVUserResp.Msg.GetServiceuser().GetId()),
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        existingOrg.GetOrganization().GetId(),
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			ObjectId:        existingOrg.Msg.GetOrganization().GetId(),
 			ObjectNamespace: "organization",
 			Permission:      schema.ProjectCreatePermission,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkPermAfterResp.GetStatus())
+		s.Assert().True(checkPermAfterResp.Msg.GetStatus())
 
 		// create a project
-		createProjectResp, err := s.testBench.Client.CreateProject(ctxWithKey, &frontierv1beta1.CreateProjectRequest{
+		createProjectResp, err := s.testBench.Client.CreateProject(ctxWithKey, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Title: "org-svuser-1-sv-user-1-project-1",
-				OrgId: existingOrg.GetOrganization().GetId(),
+				OrgId: existingOrg.Msg.GetOrganization().GetId(),
 				Name:  "proj1",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createProjectResp)
 
 		// register a new service using custom permission
-		createServiceResp, err := s.testBench.AdminClient.CreatePermission(ctxOrgAdminAuth, &frontierv1beta1.CreatePermissionRequest{
+		createServiceResp, err := s.testBench.AdminClient.CreatePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Key: "resource.workflow.run",
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceResp)
 
 		// check if service user has permission to create workflow
-		checkPermAfterResp, err = s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   "project:" + createProjectResp.GetProject().GetId(),
+		checkPermAfterResp, err = s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   "project:" + createProjectResp.Msg.GetProject().GetId(),
 			Permission: "resource_workflow_run",
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkPermAfterResp.GetStatus())
+		s.Assert().True(checkPermAfterResp.Msg.GetStatus())
 	})
 	s.Run("6. listing serviceuser secrets only list it for that service user", func() {
 		// first org
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-6-1",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
-		createServiceUserCredentialResp2, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserCredentialResp2, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp2)
 
 		// list service user secrets
-		listServiceUserCredentialResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		listServiceUserCredentialResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Len(listServiceUserCredentialResp.GetSecrets(), 2)
+		s.Assert().Len(listServiceUserCredentialResp.Msg.GetSecrets(), 2)
 
 		// first org su key
-		createdOrg1SVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.GetSecret().GetId(),
-			createServiceUserCredentialResp.GetSecret().GetSecret())))
-		ctxOrg1SVUWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		createdOrg1SVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
+			createServiceUserCredentialResp.Msg.GetSecret().GetSecret())))
+		ctxOrg1SVUWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + createdOrg1SVKey,
-		}))
+		})
 
 		// second org
-		createOrg2Resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrg2Resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-6-2",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserRespOrg2, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrg2Resp.GetOrganization().GetId(),
-		})
+		createServiceUserRespOrg2, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrg2Resp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserRespOrg2)
 
-		createServiceUser2SecretResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserRespOrg2.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUser2SecretResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserRespOrg2.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUser2SecretResp)
 
 		// list service user secrets should only get 1
-		listServiceUser2SecretResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id:    createServiceUserRespOrg2.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		listServiceUser2SecretResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+			Id:    createServiceUserRespOrg2.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Len(listServiceUser2SecretResp.GetSecrets(), 1)
+		s.Assert().Len(listServiceUser2SecretResp.Msg.GetSecrets(), 1)
 
 		// org 1 should not list secrets for org 2
-		_, err = s.testBench.Client.ListServiceUserCredentials(ctxOrg1SVUWithKey, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		_, err = s.testBench.Client.ListServiceUserCredentials(ctxOrg1SVUWithKey, connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().Error(err)
 	})
 	s.Run("7. fetch auth token using service account user key", func() {
-		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + svKeySecret,
-		}))
-
-		authTokenResp, err := s.testBench.Client.AuthToken(ctxWithSecret, &frontierv1beta1.AuthTokenRequest{
-			GrantType: "client_credentials",
 		})
+
+		authTokenResp, err := s.testBench.Client.AuthToken(ctxWithSecret, connect.NewRequest(&frontierv1beta1.AuthTokenRequest{
+			GrantType: "client_credentials",
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(authTokenResp)
-		s.Assert().NotNil(authTokenResp.GetAccessToken())
-		s.Assert().NotNil(authTokenResp.GetTokenType())
-		insecureToken, err := jwt.ParseInsecure([]byte(authTokenResp.GetAccessToken()))
+		s.Assert().NotNil(authTokenResp.Msg.GetAccessToken())
+		s.Assert().NotNil(authTokenResp.Msg.GetTokenType())
+		insecureToken, err := jwt.ParseInsecure([]byte(authTokenResp.Msg.GetAccessToken()))
 		s.Assert().NoError(err)
 		orgIDs, ok := insecureToken.Get("org_ids")
 		s.Assert().True(ok)
@@ -679,378 +689,374 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
-	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create a service user in an org and make it platform superuser", func() {
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-pl-1",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
 
-		ctxWithKey := getSVUCtx(createServiceUserCredentialResp.GetSecret())
+		ctxWithKey := getSVUCtx(createServiceUserCredentialResp.Msg.GetSecret())
 
 		// before giving access, it should return error
-		_, err = s.testBench.AdminClient.ListRelations(ctxWithKey, &frontierv1beta1.ListRelationsRequest{})
+		_, err = s.testBench.AdminClient.ListRelations(ctxWithKey, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{}))
 		s.Assert().Error(err)
 
 		// make service user platform admin
-		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
-			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.Msg.GetServiceuser().GetId(),
 			Relation:      schema.AdminRelationName,
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// check if we have su permissions by listing relations
-		listRelationsResp, err := s.testBench.AdminClient.ListRelations(ctxWithKey, &frontierv1beta1.ListRelationsRequest{
-			Subject: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+		listRelationsResp, err := s.testBench.AdminClient.ListRelations(ctxWithKey, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{
+			Subject: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.Msg.GetServiceuser().GetId()),
 			Object:  schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Len(listRelationsResp.GetRelations(), 1)
+		s.Assert().Len(listRelationsResp.Msg.GetRelations(), 1)
 	})
 	s.Run("2. create a service user in an org and make it platform member", func() {
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-pl-2",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
 
-		ctxWithKey := getSVUCtx(createServiceUserCredentialResp.GetSecret())
+		ctxWithKey := getSVUCtx(createServiceUserCredentialResp.Msg.GetSecret())
 
 		// make service user platform member
-		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
-			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.Msg.GetServiceuser().GetId(),
 			Relation:      schema.MemberRelationName,
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// check if we have su permissions by checking federated resource permission
 
 		// this should be false as we are a member
 		checkResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth,
-			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
-				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+			connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.Msg.GetServiceuser().GetId()),
 				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
 				Permission: schema.PlatformSudoPermission,
-			})
+			}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkResp.GetStatus())
+		s.Assert().False(checkResp.Msg.GetStatus())
 
 		// should return true as we are a member
 		checkResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxWithKey,
-			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
-				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+			connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.Msg.GetServiceuser().GetId()),
 				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
 				Permission: schema.PlatformCheckPermission,
-			})
+			}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkResp.GetStatus())
+		s.Assert().True(checkResp.Msg.GetStatus())
 	})
 	s.Run("3. list users & service users of platform", func() {
 		// create a service user
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-pl-3",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
 		// check if we have su permissions by listing users
-		listUsersBeforeResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, &frontierv1beta1.ListPlatformUsersRequest{})
+		listUsersBeforeResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlatformUsersRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().False(utils.ContainsFunc(listUsersBeforeResp.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
-			return user.GetId() == createServiceUserResp.GetServiceuser().GetId()
+		s.Assert().False(utils.ContainsFunc(listUsersBeforeResp.Msg.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
+			return user.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
 		}))
 
 		// make service user platform member
-		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
-			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.Msg.GetServiceuser().GetId(),
 			Relation:      schema.MemberRelationName,
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// check if we have su permissions by listing users
-		listUsersResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, &frontierv1beta1.ListPlatformUsersRequest{})
+		listUsersResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlatformUsersRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listUsersResp)
-		s.Assert().Len(listUsersResp.GetUsers(), 1)
-		s.Assert().True(utils.ContainsFunc(listUsersResp.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
-			return user.GetId() == createServiceUserResp.GetServiceuser().GetId()
+		s.Assert().Len(listUsersResp.Msg.GetUsers(), 1)
+		s.Assert().True(utils.ContainsFunc(listUsersResp.Msg.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
+			return user.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
 		}))
 	})
 	s.Run("4. remove a service user in an org which was platform member", func() {
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-pl-4",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
 
-		ctxWithKey := getSVUCtx(createServiceUserCredentialResp.GetSecret())
+		ctxWithKey := getSVUCtx(createServiceUserCredentialResp.Msg.GetSecret())
 
 		// make service user platform member
-		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
-			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.Msg.GetServiceuser().GetId(),
 			Relation:      schema.MemberRelationName,
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// check if we have su permissions by checking federated resource permission
 
 		// should return true as we are a member
 		checkResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxWithKey,
-			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
-				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+			connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.Msg.GetServiceuser().GetId()),
 				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
 				Permission: schema.PlatformCheckPermission,
-			})
+			}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkResp.GetStatus())
+		s.Assert().True(checkResp.Msg.GetStatus())
 
 		// remove service user from platform
-		removeResp, err := s.testBench.AdminClient.RemovePlatformUser(ctxOrgAdminAuth, &frontierv1beta1.RemovePlatformUserRequest{
-			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
-		})
+		removeResp, err := s.testBench.AdminClient.RemovePlatformUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RemovePlatformUserRequest{
+			ServiceuserId: createServiceUserResp.Msg.GetServiceuser().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(removeResp)
 
 		// should return false as we are no longer member
 		checkResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth,
-			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
-				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+			connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.Msg.GetServiceuser().GetId()),
 				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
 				Permission: schema.PlatformCheckPermission,
-			})
+			}))
 		s.Assert().NoError(err)
-		s.Assert().False(checkResp.GetStatus())
+		s.Assert().False(checkResp.Msg.GetStatus())
 	})
 	s.Run("5. list super users & service users of platform in non admin APIs", func() {
 		// create a service user
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-pl-5",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
 		// make service user platform su
-		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
-			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.Msg.GetServiceuser().GetId(),
 			Relation:      schema.AdminRelationName,
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// create another org to verify su permissions
-		createOrg2Resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createOrg2Resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-sv-user-pl-5a",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// check if su can delete another org
 		checkResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth,
-			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
-				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
-				Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrg2Resp.GetOrganization().GetId()),
+			connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.Msg.GetServiceuser().GetId()),
+				Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrg2Resp.Msg.GetOrganization().GetId()),
 				Permission: schema.DeletePermission,
-			})
+			}))
 		s.Assert().NoError(err)
-		s.Assert().True(checkResp.GetStatus())
+		s.Assert().True(checkResp.Msg.GetStatus())
 
 		// check if we have su permissions by listing platform users
-		listUsersResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, &frontierv1beta1.ListPlatformUsersRequest{})
+		listUsersResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlatformUsersRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listUsersResp)
-		s.Assert().True(utils.ContainsFunc(listUsersResp.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
-			return user.GetId() == createServiceUserResp.GetServiceuser().GetId()
+		s.Assert().True(utils.ContainsFunc(listUsersResp.Msg.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
+			return user.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
 		}))
 
 		// superusers shouldn't be listed in non admin calls even if they have access
-		orgServiceUsersResp, err := s.testBench.Client.ListServiceUsers(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUsersRequest{
-			OrgId: createOrg2Resp.GetOrganization().GetId(),
-		})
+		orgServiceUsersResp, err := s.testBench.Client.ListServiceUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListServiceUsersRequest{
+			OrgId: createOrg2Resp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(orgServiceUsersResp)
-		s.Assert().Len(orgServiceUsersResp.GetServiceusers(), 0)
+		s.Assert().Len(orgServiceUsersResp.Msg.GetServiceusers(), 0)
 		// create a project in it to verify as well
-		createProjectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+		createProjectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "project-sv-user-pl-3a",
-				OrgId: createOrg2Resp.GetOrganization().GetId(),
+				OrgId: createOrg2Resp.Msg.GetOrganization().GetId(),
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		projectServiceUsersResp, err := s.testBench.Client.ListProjectServiceUsers(ctxOrgAdminAuth, &frontierv1beta1.ListProjectServiceUsersRequest{
-			Id: createProjectResp.GetProject().GetId(),
-		})
+		projectServiceUsersResp, err := s.testBench.Client.ListProjectServiceUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListProjectServiceUsersRequest{
+			Id: createProjectResp.Msg.GetProject().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(projectServiceUsersResp)
-		s.Assert().Len(projectServiceUsersResp.GetServiceusers(), 0)
+		s.Assert().Len(projectServiceUsersResp.Msg.GetServiceusers(), 0)
 	})
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 	var svKeyToken string
 	var svUserID string
-	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		testbench.IdentityHeader: testbench.OrgAdminEmail,
-	}))
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	s.Run("1. create a service user in an org and generate a token", func() {
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
-		})
+		}))
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserTokenResp, err := s.testBench.Client.CreateServiceUserToken(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserTokenRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		createServiceUserTokenResp, err := s.testBench.Client.CreateServiceUserToken(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserTokenResp)
-		svUserID = createServiceUserResp.GetServiceuser().GetId()
-		svUserToken := createServiceUserTokenResp.GetToken()
+		svUserID = createServiceUserResp.Msg.GetServiceuser().GetId()
+		svUserToken := createServiceUserTokenResp.Msg.GetToken()
 		svKeyToken = fmt.Sprintf("%s:%s", svUserToken.GetId(),
 			svUserToken.GetToken())
 		svKeyToken = base64.StdEncoding.EncodeToString([]byte(svKeyToken))
 
 		// list service user secrets
-		listServiceUserTokenResp, err := s.testBench.Client.ListServiceUserTokens(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserTokensRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: existingOrg.GetOrganization().GetId(),
-		})
+		listServiceUserTokenResp, err := s.testBench.Client.ListServiceUserTokens(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListServiceUserTokensRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listServiceUserTokenResp)
 	})
 	s.Run("2. fetch current profile and ensure request is authenticated using service user token", func() {
-		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + svKeyToken,
-		}))
+		})
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, &frontierv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 	})
 	s.Run("3. should fail to fetch current profile with invalid service user token", func() {
-		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + svKeyToken + "00",
-		}))
+		})
 
-		_, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, &frontierv1beta1.GetCurrentUserRequest{})
+		_, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().Error(err)
 	})
 	s.Run("4. give permission to create project in an org to service user", func() {
 		// create a role to grant project creation
-		projectOwnerRoleResp, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, &frontierv1beta1.CreateRoleRequest{
+		projectOwnerRoleResp, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateRoleRequest{
 			Body: &frontierv1beta1.RoleRequestBody{
 				Name: "project_owner_custom",
 				Permissions: []string{
 					"app_organization_projectcreate",
 				},
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(projectOwnerRoleResp)
 
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
-		})
+		}))
 		s.Assert().NoError(err)
 
-		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + svKeyToken,
-		}))
+		})
 
 		// check the user can't create project by default
-		projectCreateResp, err := s.testBench.Client.CreateProject(ctxWithSecret, &frontierv1beta1.CreateProjectRequest{
+		projectCreateResp, err := s.testBench.Client.CreateProject(ctxWithSecret, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "sv-token-project-1",
-				OrgId: existingOrg.GetOrganization().GetId(),
+				OrgId: existingOrg.Msg.GetOrganization().GetId(),
 			},
-		})
+		}))
 		s.Assert().Error(err)
 		s.Assert().Empty(projectCreateResp)
 
 		// assign permission to sv user
-		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
-				RoleId:    projectOwnerRoleResp.GetRole().GetId(),
+				RoleId:    projectOwnerRoleResp.Msg.GetRole().GetId(),
 				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, svUserID),
-				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 
 		// creating project should work
-		projectCreateResp, err = s.testBench.Client.CreateProject(ctxWithSecret, &frontierv1beta1.CreateProjectRequest{
+		projectCreateResp, err = s.testBench.Client.CreateProject(ctxWithSecret, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "sv-token-project-1",
-				OrgId: existingOrg.GetOrganization().GetId(),
+				OrgId: existingOrg.Msg.GetOrganization().GetId(),
 			},
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(projectCreateResp.GetProject().GetId())
+		s.Assert().NotNil(projectCreateResp.Msg.GetProject().GetId())
 	})
 }
 
@@ -1059,9 +1065,9 @@ func TestEndToEndServiceUsersRegressionTestSuite(t *testing.T) {
 }
 
 func getSVUCtx(cred *frontierv1beta1.SecretCredential) context.Context {
-	ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+	ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 		"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cred.GetId(),
 			cred.GetSecret()))),
-	}))
+	})
 	return ctxWithKey
 }

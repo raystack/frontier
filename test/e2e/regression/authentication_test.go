@@ -12,13 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/frontier/pkg/server/consts"
+	"connectrpc.com/connect"
 
 	"github.com/raystack/frontier/core/authenticate/strategy"
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/raystack/frontier/pkg/server"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/golang/protobuf/jsonpb"
 
@@ -51,6 +49,8 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	grpcPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
+	connectPort, err := testbench.GetFreePort()
+	s.Require().NoError(err)
 	s.apiPort = apiPort
 	callbackPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
@@ -81,6 +81,9 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 		App: server.Config{
 			Host: "localhost",
 			Port: apiPort,
+			Connect: server.ConnectConfig{
+				Port: connectPort,
+			},
 			GRPC: server.GRPCConfig{
 				Port:           grpcPort,
 				MaxRecvMsgSize: 2 << 10,
@@ -139,23 +142,23 @@ func (s *AuthenticationRegressionTestSuite) TearDownSuite() {
 func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 	ctx := context.Background()
 	s.Run("1. return authenticate strategies of oidc", func() {
-		authStrategyResp, err := s.testBench.Client.ListAuthStrategies(ctx, &frontierv1beta1.ListAuthStrategiesRequest{})
+		authStrategyResp, err := s.testBench.Client.ListAuthStrategies(ctx, connect.NewRequest(&frontierv1beta1.ListAuthStrategiesRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().Equal("mock", authStrategyResp.GetStrategies()[0].GetName())
+		s.Assert().Equal("mock", authStrategyResp.Msg.GetStrategies()[0].GetName())
 	})
 	s.Run("2. authenticate a user successfully using oidc and create a session via cookies", func() {
 		// start registration flow
-		authResp, err := s.testBench.Client.Authenticate(ctx, &frontierv1beta1.AuthenticateRequest{
+		authResp, err := s.testBench.Client.Authenticate(ctx, connect.NewRequest(&frontierv1beta1.AuthenticateRequest{
 			StrategyName:    "mock",
 			RedirectOnstart: false,
 			ReturnTo:        "",
 			Email:           mockoidc.DefaultUser().Email,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(authResp.GetEndpoint())
+		s.Assert().NotNil(authResp.Msg.GetEndpoint())
 
 		// mock oidc code
-		parsedEndpoint, err := url.Parse(authResp.GetEndpoint())
+		parsedEndpoint, err := url.Parse(authResp.Msg.GetEndpoint())
 		s.Assert().NoError(err)
 		mockAuth0Code := "012345"
 		s.mockOIDCServer.QueueCode(mockAuth0Code)
@@ -182,7 +185,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		}()
 
 		// start session in oidc server
-		endpointRes, err := http.Get(authResp.GetEndpoint())
+		endpointRes, err := http.Get(authResp.Msg.GetEndpoint())
 		s.Assert().NoError(err)
 		s.Assert().Equal(http.StatusOK, endpointRes.StatusCode)
 
@@ -208,14 +211,14 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 	var mailOTPCtx context.Context
 	s.Run("3. authenticate a user successfully using mailotp", func() {
 		// start registration flow
-		authResp, err := s.testBench.Client.Authenticate(ctx, &frontierv1beta1.AuthenticateRequest{
+		authResp, err := s.testBench.Client.Authenticate(ctx, connect.NewRequest(&frontierv1beta1.AuthenticateRequest{
 			StrategyName:    strategy.MailOTPAuthMethod,
 			RedirectOnstart: false,
 			ReturnTo:        "",
 			Email:           mockoidc.DefaultUser().Email,
-		})
+		}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(authResp.GetState())
+		s.Assert().NotNil(authResp.Msg.GetState())
 
 		// check if mail is sent
 		messages := s.smtpServer.Messages()
@@ -232,86 +235,85 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		s.Assert().NotEmpty(emailOTP)
 
 		// verify incorrect otp
-		// extract grpc headers
-		md := metadata.MD{}
-		_, err = s.testBench.Client.AuthCallback(ctx, &frontierv1beta1.AuthCallbackRequest{
+		// For the error case - we don't get response headers on error with connect
+		_, err = s.testBench.Client.AuthCallback(ctx, connect.NewRequest(&frontierv1beta1.AuthCallbackRequest{
 			StrategyName: strategy.MailOTPAuthMethod,
 			Code:         "123456",
-			State:        authResp.GetState(),
-		}, grpc.Header(&md))
+			State:        authResp.Msg.GetState(),
+		}))
 		s.Assert().Error(err)
-		s.Assert().Empty(md[consts.SessionIDGatewayKey])
 
 		// verify correct otp
-		// extract grpc headers
-		md = metadata.MD{}
-		_, err = s.testBench.Client.AuthCallback(ctx, &frontierv1beta1.AuthCallbackRequest{
+		// For the success case - get headers from connect response
+		authCallbackResp, err := s.testBench.Client.AuthCallback(ctx, connect.NewRequest(&frontierv1beta1.AuthCallbackRequest{
 			StrategyName: strategy.MailOTPAuthMethod,
 			Code:         emailOTP,
-			State:        authResp.GetState(),
-		}, grpc.Header(&md))
+			State:        authResp.Msg.GetState(),
+		}))
 		s.Assert().NoError(err)
-		s.Assert().NotEmpty(md[consts.SessionIDGatewayKey])
+		setCookie := authCallbackResp.Header().Get("Set-Cookie")
+		s.Assert().NotEmpty(setCookie)
+		cookie := strings.SplitN(setCookie, ";", 2)[0]
 
-		// get user profile by authenticating user via session
-		ctxWithSession := metadata.NewOutgoingContext(ctx, md)
-		getUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSession, &frontierv1beta1.GetCurrentUserRequest{})
+		// Create context with session cookie for subsequent calls
+		ctxWithSession := testbench.ContextWithAuth(ctx, cookie)
+		getUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSession, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(mockoidc.DefaultUser().Email, getUserResp.GetUser().GetEmail())
+		s.Assert().Equal(mockoidc.DefaultUser().Email, getUserResp.Msg.GetUser().GetEmail())
 		mailOTPCtx = ctxWithSession
 	})
 	s.Run("4. authenticate a service user successfully using jwt", func() {
 		// create organization via session
-		createOrgResp, err := s.testBench.Client.CreateOrganization(mailOTPCtx, &frontierv1beta1.CreateOrganizationRequest{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(mailOTPCtx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-svuser-1",
 			},
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createOrgResp)
 
 		// create service user and it's opaque token to authenticate using it
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(mailOTPCtx, &frontierv1beta1.CreateServiceUserRequest{
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(mailOTPCtx, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserTokenResp, err := s.testBench.Client.CreateServiceUserToken(mailOTPCtx, &frontierv1beta1.CreateServiceUserTokenRequest{
-			Id:    createServiceUserResp.GetServiceuser().GetId(),
-			OrgId: createOrgResp.GetOrganization().GetId(),
-		})
+		createServiceUserTokenResp, err := s.testBench.Client.CreateServiceUserToken(mailOTPCtx, connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+			Id:    createServiceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserTokenResp)
-		svUserToken := createServiceUserTokenResp.GetToken()
+		svUserToken := createServiceUserTokenResp.Msg.GetToken()
 		svKeyToken := fmt.Sprintf("%s:%s", svUserToken.GetId(),
 			svUserToken.GetToken())
 		svKeyToken = base64.StdEncoding.EncodeToString([]byte(svKeyToken))
 
-		ctxWithSVSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithSVSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + svKeyToken,
-		}))
+		})
 
 		// verify sv user token works
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSVSecret, &frontierv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSVSecret, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 
 		// generate jwt token using sv user authenticator
-		jwtTokenResp, err := s.testBench.Client.AuthToken(ctxWithSVSecret, &frontierv1beta1.AuthTokenRequest{
+		jwtTokenResp, err := s.testBench.Client.AuthToken(ctxWithSVSecret, connect.NewRequest(&frontierv1beta1.AuthTokenRequest{
 			GrantType:    "client_credentials",
 			ClientId:     svUserToken.GetId(),
 			ClientSecret: svUserToken.GetToken(),
 			Assertion:    "",
-		})
+		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(jwtTokenResp)
 
 		// verify if the jwt token works
-		ctxWithJWT := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			consts.UserTokenGatewayKey: jwtTokenResp.GetAccessToken(),
-		}))
-		getCurrentUserResp, err = s.testBench.Client.GetCurrentUser(ctxWithJWT, &frontierv1beta1.GetCurrentUserRequest{})
+		ctxWithJWT := testbench.ContextWithHeaders(context.Background(), map[string]string{
+			"Authorization": "Bearer " + jwtTokenResp.Msg.GetAccessToken(),
+		})
+		getCurrentUserResp, err = s.testBench.Client.GetCurrentUser(ctxWithJWT, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 	})
