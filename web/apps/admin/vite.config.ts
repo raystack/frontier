@@ -5,6 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import svgr from "vite-plugin-svgr";
 dotenv.config();
 
+
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
