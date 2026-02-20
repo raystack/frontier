@@ -20,6 +20,7 @@ import SidepanelListId from "./sidepanel-list-id";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
+  onNavigate?: (path: string) => void;
 };
 
 type AuditSessionContext = {
@@ -34,6 +35,7 @@ type AuditSessionContext = {
 
 export default function SidePanelDetails({
   onClose,
+  onNavigate,
   ...rest
 }: SidePanelDetailsProps) {
   const { actor, event, resource, occurredAt, id, orgId, orgName, target } =
@@ -68,6 +70,7 @@ export default function SidePanelDetails({
             isLink={actor?.type !== ACTOR_TYPES.SYSTEM}
             href={`/users/${actor?.id}`}
             label="Actor"
+            onNavigate={onNavigate}
             data-test-id="actor-link">
             <ActorCell value={actor!} size="small" maxLength={12} />
           </SidepanelListItemLink>
@@ -75,6 +78,7 @@ export default function SidePanelDetails({
             isLink={!!orgId && !isZeroUUID(orgId)}
             href={`/organizations/${orgId}`}
             label="Organization"
+            onNavigate={onNavigate}
             data-test-id="actor-link">
             {orgName || "-"}
           </SidepanelListItemLink>
