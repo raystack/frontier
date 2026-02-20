@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/internal/api"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"go.uber.org/zap"
@@ -59,9 +60,11 @@ type ConnectHandler struct {
 	userOrgsService                  UserOrgsService
 	userProjectsService              UserProjectsService
 	auditRecordService               AuditRecordService
+	userPATService                   UserPATService
+	patConfig                        userpat.Config
 }
 
-func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHandler {
+func NewConnectHandler(deps api.Deps, authConf authenticate.Config, patConf userpat.Config) *ConnectHandler {
 	return &ConnectHandler{
 		authConfig:                       authConf,
 		orgService:                       deps.OrgService,
@@ -107,6 +110,8 @@ func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHand
 		userOrgsService:                  deps.UserOrgsService,
 		userProjectsService:              deps.UserProjectsService,
 		auditRecordService:               deps.AuditRecordService,
+		userPATService:                   deps.UserPATService,
+		patConfig:                        patConf,
 	}
 }
 

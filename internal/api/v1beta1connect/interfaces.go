@@ -45,6 +45,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -394,4 +395,8 @@ type AuditRecordService interface {
 	Create(ctx context.Context, record auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error)
 	List(ctx context.Context, query *rql.Query) (auditrecord.AuditRecordsList, error)
 	Export(ctx context.Context, query *rql.Query) (io.Reader, string, error)
+}
+
+type UserPATService interface {
+	Create(ctx context.Context, req userpat.CreateRequest) (userpat.PersonalAccessToken, string, error)
 }

@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 
 	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
@@ -89,6 +90,7 @@ type Config struct {
 	Mailer mailer.Config `yaml:"mailer" mapstructure:"mailer"`
 
 	Webhook webhook.Config `yaml:"webhook" mapstructure:"webhook"`
+	PAT     userpat.Config `yaml:"pat" mapstructure:"pat"`
 
 	// AdditionalTraitsPath is a file path to a YAML file containing additional preference traits
 	// These traits are merged with DefaultTraits at startup

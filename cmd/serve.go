@@ -26,6 +26,7 @@ import (
 
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"
+	"github.com/raystack/frontier/core/userpat"
 
 	"golang.org/x/exp/slices"
 
@@ -387,6 +388,8 @@ func buildAPIDependencies(
 	prospectRepository := postgres.NewProspectRepository(dbc)
 	prospectService := prospect.NewService(prospectRepository)
 
+	userPATRepo := postgres.NewUserPATRepository(dbc)
+
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
 	serviceUserService := serviceuser.NewService(svUserRepo, scUserCredRepo, relationService)
@@ -429,6 +432,8 @@ func buildAPIDependencies(
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository)
+
+	userPATService := userpat.NewService(userPATRepo, cfg.App.PAT, organizationService, auditRecordRepository)
 
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
@@ -621,6 +626,7 @@ func buildAPIDependencies(
 		UserOrgsService:                  userOrgsService,
 		UserProjectsService:              userProjectsService,
 		AuditRecordService:               auditRecordService,
+		UserPATService:                   userPATService,
 	}
 	return dependencies, nil
 }
