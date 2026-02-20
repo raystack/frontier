@@ -59,7 +59,7 @@ importers:
         version: 0.56.2(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
         specifier: workspace:^
-        version: link:../../lib
+        version: link:../../sdk
       '@raystack/proton':
         specifier: 0.1.0-b1687af73f994fa9612a023c850aa97c35735af8
         version: 0.1.0-b1687af73f994fa9612a023c850aa97c35735af8(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.20(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -168,7 +168,7 @@ importers:
         version: 0.52.0(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
         specifier: workspace:^
-        version: link:../../lib
+        version: link:../../sdk
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -207,7 +207,7 @@ importers:
         specifier: ^7.0.6
         version: 7.3.1(@types/node@20.19.31)(jiti@2.6.1)(lightningcss@1.31.1)(yaml@2.8.2)
 
-  lib:
+  sdk:
     dependencies:
       '@bufbuild/protobuf':
         specifier: ^2.11.0
@@ -366,6 +366,9 @@ importers:
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
+      usehooks-ts:
+        specifier: ^3.1.1
+        version: 3.1.1(react@18.3.1)
       zod:
         specifier: ^3.22.3
         version: 3.25.76
