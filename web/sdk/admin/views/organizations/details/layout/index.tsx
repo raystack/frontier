@@ -63,8 +63,8 @@ export const OrganizationDetailsLayout = ({
   const title = `${organization?.title} | Organizations`;
 
   return isLoading ? (
-    <Flex align="center" justify="center" style={{ minHeight: "200px" }}>
-      <Spinner />
+    <Flex align="center" justify="center" style={{ minHeight: "200px", width: "100%" }}>
+      <Spinner size={6} />
     </Flex>
   ) : organization ? (
     <Flex direction="column" className={styles.page}>

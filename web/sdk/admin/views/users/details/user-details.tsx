@@ -44,7 +44,7 @@ export const UserDetailsByUserId = ({ userId }: UserDetailsByUserIdProps) => {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" style={{ height: "100vh", width: "100%" }}>
-        <Spinner size="large" />
+        <Spinner size={6} />
       </Flex>
     );
   }
