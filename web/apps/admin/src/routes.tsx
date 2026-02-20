@@ -22,14 +22,16 @@ import { AdminsPage } from "./pages/admins/AdminsPage";
 import { WebhooksPage } from "./pages/webhooks/WebhooksPage";
 import AuthLayout from "./layout/auth";
 
-import { OrganizationList } from "./pages/organizations/list";
-import { OrganizationDetails } from "./pages/organizations/details";
-import { OrganizationSecurity } from "./pages/organizations/details/security";
-import { OrganizationMembersPage } from "./pages/organizations/details/members";
-import { OrganizationProjectssPage } from "./pages/organizations/details/projects";
-import { OrganizationInvoicesPage } from "./pages/organizations/details/invoices";
-import { OrganizationTokensPage } from "./pages/organizations/details/tokens";
-import { OrganizationApisPage } from "./pages/organizations/details/apis";
+import { OrganizationListPage } from "./pages/organizations/list";
+import { OrganizationDetailsPage } from "./pages/organizations/details";
+import {
+  OrganizationSecurity,
+  OrganizationMembersPage,
+  OrganizationProjectssPage,
+  OrganizationInvoicesPage,
+  OrganizationTokensPage,
+  OrganizationApisPage,
+} from "@raystack/frontier/admin";
 
 import { UsersPage } from "./pages/users/UsersPage";
 
@@ -57,10 +59,10 @@ export default memo(function AppRoutes() {
     <Routes>
       <Route path="/" element={<App />}>
         <Route index element={<Navigate to="/organizations" />} />
-        <Route path="organizations" element={<OrganizationList />} />
+        <Route path="organizations" element={<OrganizationListPage />} />
         <Route
           path="organizations/:organizationId"
-          element={<OrganizationDetails />}>
+          element={<OrganizationDetailsPage />}>
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
