@@ -702,6 +702,12 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.PlatformNamespace, ID: schema.PlatformID}, schema.PlatformCheckPermission, req)
 	},
 
+	// personal access tokens
+	frontierv1beta1connect.FrontierServiceCreateCurrentUserPersonalTokenProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.CreateCurrentUserPersonalTokenRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+	},
+
 	frontierv1beta1connect.AdminServiceListAuditRecordsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
 	},

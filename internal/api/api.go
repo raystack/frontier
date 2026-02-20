@@ -43,6 +43,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/internal/bootstrap"
 )
@@ -97,4 +98,5 @@ type Deps struct {
 	ProspectService *prospect.Service
 
 	AuditRecordService *auditrecord.Service
+	UserPATService     *userpat.Service
 }
