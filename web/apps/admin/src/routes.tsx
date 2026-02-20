@@ -7,14 +7,11 @@ import LoadingState from "./components/states/Loading";
 import UnauthorizedState from "./components/states/Unauthorized";
 
 import App from "./App";
-import PlanList from "./containers/billingplans.list";
-import PlanDetails from "./containers/billingplans.list/details";
+import { PlansPage } from "./pages/plans/PlansPage";
 import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
 
-import PreferencesList from "./containers/preferences.list";
-import PreferenceDetails from "./containers/preferences.list/details";
-import PreferencesLayout from "./containers/preferences.list/layout";
+import { PreferencesPage } from "./pages/preferences/PreferencesPage";
 import { ProductsPage } from "./pages/products/ProductsPage";
 import { ProductPricesPage } from "./pages/products/ProductPricesPage";
 
@@ -22,23 +19,21 @@ import { RolesPage } from "./pages/roles/RolesPage";
 
 import { AppContext } from "./contexts/App";
 import { AdminsPage } from "./pages/admins/AdminsPage";
-import WebhooksList from "./containers/webhooks";
-import CreateWebhooks from "./containers/webhooks/create";
-import UpdateWebhooks from "./containers/webhooks/update";
+import { WebhooksPage } from "./pages/webhooks/WebhooksPage";
 import AuthLayout from "./layout/auth";
 
-import { OrganizationList } from "./pages/organizations/list";
-import { OrganizationDetails } from "./pages/organizations/details";
-import { OrganizationSecurity } from "./pages/organizations/details/security";
-import { OrganizationMembersPage } from "./pages/organizations/details/members";
-import { OrganizationProjectssPage } from "./pages/organizations/details/projects";
-import { OrganizationInvoicesPage } from "./pages/organizations/details/invoices";
-import { OrganizationTokensPage } from "./pages/organizations/details/tokens";
-import { OrganizationApisPage } from "./pages/organizations/details/apis";
+import { OrganizationListPage } from "./pages/organizations/list";
+import { OrganizationDetailsPage } from "./pages/organizations/details";
+import {
+  OrganizationSecurity,
+  OrganizationMembersPage,
+  OrganizationProjectssPage,
+  OrganizationInvoicesPage,
+  OrganizationTokensPage,
+  OrganizationApisPage,
+} from "@raystack/frontier/admin";
 
-import { UsersList } from "./pages/users/list";
-import { UserDetails } from "./pages/users/details";
-import { UserDetailsSecurityPage } from "./pages/users/details/security";
+import { UsersPage } from "./pages/users/UsersPage";
 
 import { InvoicesPage } from "./pages/invoices/InvoicesPage";
 import { AuditLogsPage } from "./pages/audit-logs/AuditLogsPage";
@@ -64,10 +59,10 @@ export default memo(function AppRoutes() {
     <Routes>
       <Route path="/" element={<App />}>
         <Route index element={<Navigate to="/organizations" />} />
-        <Route path="organizations" element={<OrganizationList />} />
+        <Route path="organizations" element={<OrganizationListPage />} />
         <Route
           path="organizations/:organizationId"
-          element={<OrganizationDetails />}>
+          element={<OrganizationDetailsPage />}>
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
@@ -76,16 +71,15 @@ export default memo(function AppRoutes() {
           <Route path="tokens" element={<OrganizationTokensPage />} />
           <Route path="apis" element={<OrganizationApisPage />} />
         </Route>
-        <Route path="users" element={<UsersList />} />
-        <Route path="users/:userId" element={<UserDetails />}>
-          <Route index element={<Navigate to="security" />} />
-          <Route path="security" element={<UserDetailsSecurityPage />} />
+        <Route path="users" element={<UsersPage />}>
+          <Route path=":userId" element={<UsersPage />} />
+          <Route path=":userId/security" element={<UsersPage />} />
         </Route>
 
         <Route path="audit-logs" element={<AuditLogsPage />} />
 
-        <Route path="plans" element={<PlanList />}>
-          <Route path=":planId" element={<PlanDetails />} />
+        <Route path="plans" element={<PlansPage />}>
+          <Route path=":planId" element={<PlansPage />} />
         </Route>
 
         <Route path="roles" element={<RolesPage />}>
@@ -98,16 +92,15 @@ export default memo(function AppRoutes() {
 
         <Route path="products/:productId/prices" element={<ProductPricesPage />} />
 
-        <Route path="preferences" element={<PreferencesLayout />}>
-          <Route path="" element={<PreferencesList />} />
-          <Route path=":name" element={<PreferenceDetails />} />
+        <Route path="preferences" element={<PreferencesPage />}>
+          <Route path=":name" element={<PreferencesPage />} />
         </Route>
 
         <Route path="invoices" element={<InvoicesPage />} />
         <Route path="super-admins" element={<AdminsPage />} />
-        <Route path="webhooks" element={<WebhooksList />}>
-          <Route path="create" element={<CreateWebhooks />} />
-          <Route path=":webhookId" element={<UpdateWebhooks />} />
+        <Route path="webhooks" element={<WebhooksPage />}>
+          <Route path="create" element={<WebhooksPage />} />
+          <Route path=":webhookId" element={<WebhooksPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/organizations" />} />
       </Route>
