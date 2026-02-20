@@ -2,6 +2,7 @@ export const SCOPES = {
   ORG: "app/organization",
   PROJECT: "app/project",
   GROUP: "app/group",
+  USER: "app/user",
 } as const;
 
 export const DEFAULT_ROLES = {

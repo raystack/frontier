@@ -26,6 +26,7 @@ import { createClient } from "@connectrpc/connect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SCOPES } from "../utils/constants";
 
 interface AssignRoleProps {
   organizationId: string;
@@ -117,8 +118,8 @@ export const AssignRole = ({
         ),
       );
 
-      const resource = `app/organization:${organizationId}`;
-      const principal = `app/user:${user?.id}`;
+      const resource = `${SCOPES.ORG}:${organizationId}`;
+      const principal = `${SCOPES.USER}:${user?.id}`;
 
       const assignedRolesArr = Array.from(data.roleIds);
       await Promise.all(
