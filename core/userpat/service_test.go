@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/userpat/mocks"
+	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -61,7 +62,7 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(repo, userpat.Config{
+				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
 					Enabled: false,
 				}, orgSvc, auditRepo)
 			},
@@ -83,7 +84,7 @@ func TestService_Create(t *testing.T) {
 					Return(int64(0), errors.New("db connection failed"))
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 		},
 		{
@@ -103,7 +104,7 @@ func TestService_Create(t *testing.T) {
 					Return(int64(50), nil)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 		},
 		{
@@ -123,7 +124,7 @@ func TestService_Create(t *testing.T) {
 					Return(int64(55), nil)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 		},
 		{
@@ -145,7 +146,7 @@ func TestService_Create(t *testing.T) {
 					Return(userpat.PersonalAccessToken{}, errors.New("insert failed"))
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 		},
 		{
@@ -167,7 +168,7 @@ func TestService_Create(t *testing.T) {
 					Return(userpat.PersonalAccessToken{}, userpat.ErrConflict)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 		},
 		{
@@ -200,7 +201,7 @@ func TestService_Create(t *testing.T) {
 						if pat.SecretHash == "" {
 							t.Error("Create() SecretHash should not be empty")
 						}
-						if diff := cmp.Diff(map[string]any(pat.Metadata), map[string]any{"env": "staging"}); diff != "" {
+						if diff := cmp.Diff(map[string]any{"env": "staging"}, map[string]any(pat.Metadata)); diff != "" {
 							t.Errorf("Create() Metadata mismatch (-want +got):\n%s", diff)
 						}
 						if !pat.ExpiresAt.Equal(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)) {
@@ -217,7 +218,7 @@ func TestService_Create(t *testing.T) {
 						CreatedAt: time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC),
 					}, nil)
 				orgSvc, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
 				t.Helper()
@@ -249,7 +250,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
 					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
 				t.Helper()
@@ -286,7 +287,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
 					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
 				t.Helper()
@@ -316,7 +317,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
 					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(repo, userpat.Config{
+				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
 					Enabled:                true,
 					TokenPrefix:            "custom",
 					MaxTokensPerUserPerOrg: 50,
@@ -347,7 +348,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
 					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 		},
 		{
@@ -367,7 +368,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
 					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 			},
 		},
 	}
@@ -402,7 +403,7 @@ func TestService_Create_UniqueTokens(t *testing.T) {
 		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil).Times(2)
 
 	orgSvc, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 
 	req := userpat.CreateRequest{
 		UserID:    "user-1",
@@ -437,7 +438,7 @@ func TestService_Create_HashVerification(t *testing.T) {
 		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
 
 	orgSvc, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(repo, defaultConfig, orgSvc, auditRepo)
+	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, auditRepo)
 
 	_, tokenValue, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",

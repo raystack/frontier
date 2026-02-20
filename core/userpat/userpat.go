@@ -12,7 +12,7 @@ type PersonalAccessToken struct {
 	UserID     string `rql:"name=user_id,type=string"`
 	OrgID      string `rql:"name=org_id,type=string"`
 	Title      string `rql:"name=title,type=string"`
-	SecretHash string
+	SecretHash string `json:"-"`
 	Metadata   metadata.Metadata
 	LastUsedAt *time.Time `rql:"name=last_used_at,type=datetime"`
 	ExpiresAt  time.Time  `rql:"name=expires_at,type=datetime"`
