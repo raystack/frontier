@@ -433,7 +433,7 @@ func buildAPIDependencies(
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository)
 
-	userPATService := userpat.NewService(userPATRepo, cfg.App.PAT, organizationService, auditRecordRepository)
+	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, auditRecordRepository)
 
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 

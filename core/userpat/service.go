@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/salt/log"
 )
 
 type OrganizationService interface {
@@ -27,14 +28,16 @@ type AuditRecordRepository interface {
 type Service struct {
 	repo                  Repository
 	config                Config
+	logger                log.Logger
 	orgService            OrganizationService
 	auditRecordRepository AuditRecordRepository
 }
 
-func NewService(repo Repository, config Config, orgService OrganizationService, auditRecordRepository AuditRecordRepository) *Service {
+func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repo:                  repo,
 		config:                config,
+		logger:                logger,
 		orgService:            orgService,
 		auditRecordRepository: auditRecordRepository,
 	}
@@ -87,25 +90,28 @@ func (s Service) Create(ctx context.Context, req CreateRequest) (PersonalAccessT
 
 	// TODO: create policies for roles + project_ids
 
-	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATCreatedEvent, created, map[string]any{
+	// TODO: move audit record creation into the same transaction as token creation
+	// to avoid partial state where token exists but audit record doesn't.
+	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATCreatedEvent, created, created.CreatedAt, map[string]any{
 		"roles":       req.Roles,
 		"project_ids": req.ProjectIDs,
 	}); err != nil {
-		return PersonalAccessToken{}, "", err
+		s.logger.Error("failed to create audit record for PAT", "pat_id", created.ID, "error", err)
 	}
 
 	return created, tokenValue, nil
 }
 
 // createAuditRecord logs a PAT lifecycle event with org context and token metadata.
-func (s Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat PersonalAccessToken, targetMetadata map[string]any) error {
+func (s Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat PersonalAccessToken, occurredAt time.Time, targetMetadata map[string]any) error {
 	orgName := ""
 	if org, err := s.orgService.GetRaw(ctx, pat.OrgID); err == nil {
 		orgName = org.Title
 	}
 
-	metadata := map[string]any{"user_id": pat.UserID}
+	metadata := make(map[string]any, len(targetMetadata)+1)
 	maps.Copy(metadata, targetMetadata)
+	metadata["user_id"] = pat.UserID
 
 	if _, err := s.auditRecordRepository.Create(ctx, models.AuditRecord{
 		Event: event,
@@ -121,7 +127,7 @@ func (s Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Eve
 			Metadata: metadata,
 		},
 		OrgID:      pat.OrgID,
-		OccurredAt: pat.UpdatedAt,
+		OccurredAt: occurredAt,
 	}); err != nil {
 		return fmt.Errorf("creating audit record: %w", err)
 	}
