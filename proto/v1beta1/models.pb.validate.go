@@ -3659,6 +3659,263 @@ var _ interface {
 	ErrorName() string
 } = ServiceUserTokenValidationError{}
 
+// Validate checks the field values on PersonalAccessToken with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PersonalAccessToken) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PersonalAccessToken with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PersonalAccessTokenMultiError, or nil if none found.
+func (m *PersonalAccessToken) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PersonalAccessToken) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	// no validation rules for UserId
+
+	// no validation rules for OrgId
+
+	// no validation rules for Token
+
+	if all {
+		switch v := interface{}(m.GetExpiresAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "ExpiresAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "ExpiresAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExpiresAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PersonalAccessTokenValidationError{
+				field:  "ExpiresAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetLastUsedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "LastUsedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "LastUsedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLastUsedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PersonalAccessTokenValidationError{
+				field:  "LastUsedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PersonalAccessTokenValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PersonalAccessTokenValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PersonalAccessTokenValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PersonalAccessTokenMultiError(errors)
+	}
+
+	return nil
+}
+
+// PersonalAccessTokenMultiError is an error wrapping multiple validation
+// errors returned by PersonalAccessToken.ValidateAll() if the designated
+// constraints aren't met.
+type PersonalAccessTokenMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PersonalAccessTokenMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PersonalAccessTokenMultiError) AllErrors() []error { return m }
+
+// PersonalAccessTokenValidationError is the validation error returned by
+// PersonalAccessToken.Validate if the designated constraints aren't met.
+type PersonalAccessTokenValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PersonalAccessTokenValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PersonalAccessTokenValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PersonalAccessTokenValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PersonalAccessTokenValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PersonalAccessTokenValidationError) ErrorName() string {
+	return "PersonalAccessTokenValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PersonalAccessTokenValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPersonalAccessToken.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PersonalAccessTokenValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PersonalAccessTokenValidationError{}
+
 // Validate checks the field values on JSONWebKey with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

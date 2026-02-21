@@ -12645,6 +12645,11 @@ definitions:
       checkout_session:
         $ref: '#/definitions/v1beta1CheckoutSession'
         title: Checkout session
+  v1beta1CreateCurrentUserPersonalTokenResponse:
+    type: object
+    properties:
+      token:
+        $ref: '#/definitions/v1beta1PersonalAccessToken'
   v1beta1CreateCurrentUserPreferencesRequest:
     type: object
     properties:
@@ -14291,6 +14296,48 @@ definitions:
         title: |-
           key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
           Use this instead of using name and namespace fields
+  v1beta1PersonalAccessToken:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+      org_id:
+        type: string
+      token:
+        type: string
+        title: |-
+          token will only be returned once as part of the create process
+          this value is never persisted in the system so if lost, can't be recovered
+        readOnly: true
+      expires_at:
+        type: string
+        format: date-time
+        example: "2024-06-07T05:39:56.961Z"
+        description: The time when the token expires.
+      last_used_at:
+        type: string
+        format: date-time
+        example: "2024-06-07T05:39:56.961Z"
+        description: The time when the token was last used.
+        readOnly: true
+      created_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the token was created.
+        readOnly: true
+      updated_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the token was last updated.
+        readOnly: true
+      metadata:
+        type: object
   v1beta1PingUserSessionResponse:
     type: object
     properties:

@@ -187,6 +187,7 @@ const (
 	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
 	FrontierService_CreateProspectPublic_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic"
 	FrontierService_CreateAuditRecord_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateAuditRecord"
+	FrontierService_CreateCurrentUserPersonalToken_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPersonalToken"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -391,6 +392,8 @@ type FrontierServiceClient interface {
 	CreateProspectPublic(ctx context.Context, in *CreateProspectPublicRequest, opts ...grpc.CallOption) (*CreateProspectPublicResponse, error)
 	// Audit Records
 	CreateAuditRecord(ctx context.Context, in *CreateAuditRecordRequest, opts ...grpc.CallOption) (*CreateAuditRecordResponse, error)
+	// Personal Access Token
+	CreateCurrentUserPersonalToken(ctx context.Context, in *CreateCurrentUserPersonalTokenRequest, opts ...grpc.CallOption) (*CreateCurrentUserPersonalTokenResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1913,6 +1916,15 @@ func (c *frontierServiceClient) CreateAuditRecord(ctx context.Context, in *Creat
 	return out, nil
 }
 
+func (c *frontierServiceClient) CreateCurrentUserPersonalToken(ctx context.Context, in *CreateCurrentUserPersonalTokenRequest, opts ...grpc.CallOption) (*CreateCurrentUserPersonalTokenResponse, error) {
+	out := new(CreateCurrentUserPersonalTokenResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateCurrentUserPersonalToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -2115,6 +2127,8 @@ type FrontierServiceServer interface {
 	CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error)
 	// Audit Records
 	CreateAuditRecord(context.Context, *CreateAuditRecordRequest) (*CreateAuditRecordResponse, error)
+	// Personal Access Token
+	CreateCurrentUserPersonalToken(context.Context, *CreateCurrentUserPersonalTokenRequest) (*CreateCurrentUserPersonalTokenResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2625,6 +2639,9 @@ func (UnimplementedFrontierServiceServer) CreateProspectPublic(context.Context, 
 }
 func (UnimplementedFrontierServiceServer) CreateAuditRecord(context.Context, *CreateAuditRecordRequest) (*CreateAuditRecordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAuditRecord not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateCurrentUserPersonalToken(context.Context, *CreateCurrentUserPersonalTokenRequest) (*CreateCurrentUserPersonalTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCurrentUserPersonalToken not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -5663,6 +5680,24 @@ func _FrontierService_CreateAuditRecord_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CreateCurrentUserPersonalToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCurrentUserPersonalTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateCurrentUserPersonalToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateCurrentUserPersonalToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateCurrentUserPersonalToken(ctx, req.(*CreateCurrentUserPersonalTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -6341,6 +6376,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateAuditRecord",
 			Handler:    _FrontierService_CreateAuditRecord_Handler,
+		},
+		{
+			MethodName: "CreateCurrentUserPersonalToken",
+			Handler:    _FrontierService_CreateCurrentUserPersonalToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
