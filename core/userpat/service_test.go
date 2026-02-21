@@ -2,7 +2,6 @@ package userpat_test
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -17,6 +16,7 @@ import (
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/sha3"
 )
 
 var defaultConfig = userpat.Config{
@@ -271,7 +271,7 @@ func TestService_Create(t *testing.T) {
 			},
 		},
 		{
-			name: "should hash the full token string including prefix with sha256",
+			name: "should hash the raw secret bytes with sha3-256",
 			req: userpat.CreateRequest{
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -291,12 +291,19 @@ func TestService_Create(t *testing.T) {
 			},
 			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
 				t.Helper()
-				// we can't directly access the hash passed to repo from here,
-				// but we verify the token is well-formed and hashable
-				hash := sha256.Sum256([]byte(tokenValue))
+				// extract the raw secret from the token and verify sha3-256 produces a valid hash
+				parts := strings.SplitN(tokenValue, "_", 2)
+				if len(parts) != 2 {
+					t.Fatal("token should have format prefix_secret")
+				}
+				secretBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+				if err != nil {
+					t.Fatalf("failed to decode secret: %v", err)
+				}
+				hash := sha3.Sum256(secretBytes)
 				hashStr := hex.EncodeToString(hash[:])
 				if len(hashStr) != 64 {
-					t.Errorf("sha256 hash should be 64 hex chars, got %d", len(hashStr))
+					t.Errorf("sha3-256 hash should be 64 hex chars, got %d", len(hashStr))
 				}
 			},
 		},
@@ -451,10 +458,19 @@ func TestService_Create_HashVerification(t *testing.T) {
 		t.Fatalf("Create() error = %v", err)
 	}
 
-	expectedHash := sha256.Sum256([]byte(tokenValue))
+	// extract the raw secret bytes from the token value
+	parts := strings.SplitN(tokenValue, "_", 2)
+	if len(parts) != 2 {
+		t.Fatal("token should have format prefix_secret")
+	}
+	secretBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		t.Fatalf("failed to decode secret: %v", err)
+	}
+	expectedHash := sha3.Sum256(secretBytes)
 	expectedHashStr := hex.EncodeToString(expectedHash[:])
 	if capturedHash != expectedHashStr {
-		t.Errorf("Create() hash mismatch: stored %v, expected sha256(%v) = %v", capturedHash, tokenValue, expectedHashStr)
+		t.Errorf("Create() hash mismatch: stored %v, expected sha3-256(secret) = %v", capturedHash, expectedHashStr)
 	}
 }
 

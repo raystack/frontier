@@ -215,9 +215,12 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 						len(req.Roles) == 1 && req.Roles[0] == "role-1"
 				})).Return(userpat.PersonalAccessToken{
 					ID:        "pat-1",
+					UserID:    testUserID,
+					OrgID:     testOrgID,
 					Title:     "my-token",
 					ExpiresAt: testTime,
 					CreatedAt: testCreatedAt,
+					UpdatedAt: testCreatedAt,
 				}, "fpt_abc123", nil)
 			},
 			patConfig: defaultPATConfig,
@@ -230,10 +233,13 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 			want: &frontierv1beta1.CreateCurrentUserPersonalTokenResponse{
 				Token: &frontierv1beta1.PersonalAccessToken{
 					Id:        "pat-1",
+					UserId:    testUserID,
+					OrgId:     testOrgID,
 					Title:     "my-token",
 					Token:     "fpt_abc123",
 					ExpiresAt: timestamppb.New(testTime),
 					CreatedAt: timestamppb.New(testCreatedAt),
+					UpdatedAt: timestamppb.New(testCreatedAt),
 				},
 			},
 			wantErr: nil,
@@ -249,9 +255,12 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
 					Return(userpat.PersonalAccessToken{
 						ID:        "pat-1",
+						UserID:    testUserID,
+						OrgID:     testOrgID,
 						Title:     "my-token",
 						ExpiresAt: testTime,
 						CreatedAt: testCreatedAt,
+						UpdatedAt: testCreatedAt,
 						Metadata:  metadata.Metadata{"env": "staging"},
 					}, "fpt_xyz789", nil)
 			},
@@ -270,10 +279,13 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 			want: &frontierv1beta1.CreateCurrentUserPersonalTokenResponse{
 				Token: &frontierv1beta1.PersonalAccessToken{
 					Id:        "pat-1",
+					UserId:    testUserID,
+					OrgId:     testOrgID,
 					Title:     "my-token",
 					Token:     "fpt_xyz789",
 					ExpiresAt: timestamppb.New(testTime),
 					CreatedAt: timestamppb.New(testCreatedAt),
+					UpdatedAt: timestamppb.New(testCreatedAt),
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"env": structpb.NewStringValue("staging"),
@@ -336,50 +348,68 @@ func TestTransformPATToPB(t *testing.T) {
 			name: "should transform minimal PAT",
 			pat: userpat.PersonalAccessToken{
 				ID:        "pat-1",
+				UserID:    "user-1",
+				OrgID:     "org-1",
 				Title:     "my-token",
 				ExpiresAt: testTime,
 				CreatedAt: testCreatedAt,
+				UpdatedAt: testCreatedAt,
 			},
 			tokenValue: "",
 			want: &frontierv1beta1.PersonalAccessToken{
 				Id:        "pat-1",
+				UserId:    "user-1",
+				OrgId:     "org-1",
 				Title:     "my-token",
 				ExpiresAt: timestamppb.New(testTime),
 				CreatedAt: timestamppb.New(testCreatedAt),
+				UpdatedAt: timestamppb.New(testCreatedAt),
 			},
 		},
 		{
 			name: "should include token value when provided",
 			pat: userpat.PersonalAccessToken{
 				ID:        "pat-1",
+				UserID:    "user-1",
+				OrgID:     "org-1",
 				Title:     "my-token",
 				ExpiresAt: testTime,
 				CreatedAt: testCreatedAt,
+				UpdatedAt: testCreatedAt,
 			},
 			tokenValue: "fpt_abc123",
 			want: &frontierv1beta1.PersonalAccessToken{
 				Id:        "pat-1",
+				UserId:    "user-1",
+				OrgId:     "org-1",
 				Title:     "my-token",
 				Token:     "fpt_abc123",
 				ExpiresAt: timestamppb.New(testTime),
 				CreatedAt: timestamppb.New(testCreatedAt),
+				UpdatedAt: timestamppb.New(testCreatedAt),
 			},
 		},
 		{
 			name: "should include last_used_at when set",
 			pat: userpat.PersonalAccessToken{
 				ID:         "pat-1",
+				UserID:     "user-1",
+				OrgID:      "org-1",
 				Title:      "my-token",
 				ExpiresAt:  testTime,
 				CreatedAt:  testCreatedAt,
+				UpdatedAt:  testCreatedAt,
 				LastUsedAt: &testLastUsed,
 			},
 			tokenValue: "",
 			want: &frontierv1beta1.PersonalAccessToken{
 				Id:         "pat-1",
+				UserId:     "user-1",
+				OrgId:      "org-1",
 				Title:      "my-token",
 				ExpiresAt:  timestamppb.New(testTime),
 				CreatedAt:  timestamppb.New(testCreatedAt),
+				UpdatedAt:  timestamppb.New(testCreatedAt),
 				LastUsedAt: timestamppb.New(testLastUsed),
 			},
 		},
@@ -387,18 +417,24 @@ func TestTransformPATToPB(t *testing.T) {
 			name: "should include metadata when set",
 			pat: userpat.PersonalAccessToken{
 				ID:        "pat-1",
+				UserID:    "user-1",
+				OrgID:     "org-1",
 				Title:     "my-token",
 				ExpiresAt: testTime,
 				CreatedAt: testCreatedAt,
+				UpdatedAt: testCreatedAt,
 				Metadata:  metadata.Metadata{"env": "prod"},
 			},
 			tokenValue: "fpt_xyz",
 			want: &frontierv1beta1.PersonalAccessToken{
 				Id:        "pat-1",
+				UserId:    "user-1",
+				OrgId:     "org-1",
 				Title:     "my-token",
 				Token:     "fpt_xyz",
 				ExpiresAt: timestamppb.New(testTime),
 				CreatedAt: timestamppb.New(testCreatedAt),
+				UpdatedAt: timestamppb.New(testCreatedAt),
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"env": structpb.NewStringValue("prod"),

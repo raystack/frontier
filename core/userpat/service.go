@@ -3,7 +3,6 @@ package userpat
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/salt/log"
+	"golang.org/x/crypto/sha3"
 )
 
 type OrganizationService interface {
@@ -55,12 +55,15 @@ type CreateRequest struct {
 
 // Create generates a new personal access token and returns it with the plaintext token value.
 // The plaintext token is only available at creation time.
-func (s Service) Create(ctx context.Context, req CreateRequest) (PersonalAccessToken, string, error) {
+func (s *Service) Create(ctx context.Context, req CreateRequest) (PersonalAccessToken, string, error) {
 	if !s.config.Enabled {
 		return PersonalAccessToken{}, "", ErrDisabled
 	}
 
-	// check active token count
+	// NOTE: CountActive + Create is not atomic (TOCTOU race). Two concurrent requests
+	// could both read count=49 (assuming max limit is 50), pass the check, and create tokens exceeding the limit.
+	// Acceptable for now given low concurrency on this endpoint. If this becomes an issue,
+	// use an atomic INSERT ... SELECT with a count subquery in the WHERE clause.
 	count, err := s.repo.CountActive(ctx, req.UserID, req.OrgID)
 	if err != nil {
 		return PersonalAccessToken{}, "", fmt.Errorf("counting active tokens: %w", err)
@@ -90,8 +93,7 @@ func (s Service) Create(ctx context.Context, req CreateRequest) (PersonalAccessT
 
 	// TODO: create policies for roles + project_ids
 
-	// TODO: move audit record creation into the same transaction as token creation
-	// to avoid partial state where token exists but audit record doesn't.
+	// TODO: move audit record creation into the same transaction as token creation to avoid partial state where token exists but audit record doesn't.
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATCreatedEvent, created, created.CreatedAt, map[string]any{
 		"roles":       req.Roles,
 		"project_ids": req.ProjectIDs,
@@ -103,7 +105,7 @@ func (s Service) Create(ctx context.Context, req CreateRequest) (PersonalAccessT
 }
 
 // createAuditRecord logs a PAT lifecycle event with org context and token metadata.
-func (s Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat PersonalAccessToken, occurredAt time.Time, targetMetadata map[string]any) error {
+func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat PersonalAccessToken, occurredAt time.Time, targetMetadata map[string]any) error {
 	orgName := ""
 	if org, err := s.orgService.GetRaw(ctx, pat.OrgID); err == nil {
 		orgName = org.Title
@@ -135,8 +137,10 @@ func (s Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Eve
 }
 
 // generateToken creates a random token string with the configured prefix and returns
-// the plaintext token value along with its SHA-256 hash for storage.
-func (s Service) generateToken() (tokenValue, secretHash string, err error) {
+// the plaintext token value along with its SHA3-256 hash for storage.
+// The hash is computed over the raw secret bytes (not the formatted token string)
+// to avoid coupling the stored hash to the token prefix configuration.
+func (s *Service) generateToken() (tokenValue, secretHash string, err error) {
 	secretBytes := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, secretBytes); err != nil {
 		return "", "", fmt.Errorf("generating secret: %w", err)
@@ -144,7 +148,7 @@ func (s Service) generateToken() (tokenValue, secretHash string, err error) {
 
 	tokenValue = s.config.TokenPrefix + "_" + base64.RawURLEncoding.EncodeToString(secretBytes)
 
-	hash := sha256.Sum256([]byte(tokenValue))
+	hash := sha3.Sum256(secretBytes)
 	secretHash = hex.EncodeToString(hash[:])
 
 	return tokenValue, secretHash, nil
