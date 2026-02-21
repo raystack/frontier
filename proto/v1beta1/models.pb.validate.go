@@ -3685,6 +3685,10 @@ func (m *PersonalAccessToken) validate(all bool) error {
 
 	// no validation rules for Title
 
+	// no validation rules for UserId
+
+	// no validation rules for OrgId
+
 	// no validation rules for Token
 
 	if all {
@@ -3768,6 +3772,35 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return PersonalAccessTokenValidationError{
 				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PersonalAccessTokenValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PersonalAccessTokenValidationError{
+				field:  "UpdatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

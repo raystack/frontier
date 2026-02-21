@@ -72,8 +72,11 @@ func transformPATToPB(pat userpat.PersonalAccessToken, tokenValue string) *front
 	pbPAT := &frontierv1beta1.PersonalAccessToken{
 		Id:        pat.ID,
 		Title:     pat.Title,
+		UserId:    pat.UserID,
+		OrgId:     pat.OrgID,
 		ExpiresAt: timestamppb.New(pat.ExpiresAt),
 		CreatedAt: timestamppb.New(pat.CreatedAt),
+		UpdatedAt: timestamppb.New(pat.UpdatedAt),
 	}
 	if tokenValue != "" {
 		pbPAT.Token = tokenValue

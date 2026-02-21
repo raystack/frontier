@@ -19,6 +19,8 @@ CREATE UNIQUE INDEX idx_user_tokens_unique_title ON user_tokens(user_id, org_id,
 
 CREATE INDEX idx_user_tokens_org_active ON user_tokens(org_id) WHERE deleted_at IS NULL;
 
+CREATE INDEX idx_user_tokens_user_org_active ON user_tokens(user_id, org_id) WHERE deleted_at IS NULL;
+
 CREATE INDEX idx_user_tokens_expires_active ON user_tokens(expires_at) WHERE deleted_at IS NULL;
 
 -- Create a function to handle 'updated_at' timestamp

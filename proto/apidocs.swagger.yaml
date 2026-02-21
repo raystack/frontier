@@ -14303,6 +14303,10 @@ definitions:
         type: string
       title:
         type: string
+      user_id:
+        type: string
+      org_id:
+        type: string
       token:
         type: string
         title: |-
@@ -14319,11 +14323,19 @@ definitions:
         format: date-time
         example: "2024-06-07T05:39:56.961Z"
         description: The time when the token was last used.
+        readOnly: true
       created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the token was created.
+        readOnly: true
+      updated_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the token was last updated.
+        readOnly: true
       metadata:
         type: object
   v1beta1PingUserSessionResponse:
