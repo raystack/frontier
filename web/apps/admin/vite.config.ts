@@ -31,6 +31,9 @@ export default defineConfig(() => {
         allow: [".."],
       },
     },
+    resolve: {
+      dedupe: ["react", "react-dom", "react-router-dom", "react-router"],
+    },
     plugins: [react(), svgr(), tsconfigPaths()],
     define: {
       "process.env": process.env,
