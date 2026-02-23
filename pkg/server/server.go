@@ -192,6 +192,13 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 
 	mux.Handle(connecthealth.NewHandler(checker))
 
+	// simple ping endpoint for liveness checks
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "SERVING"})
+	})
+
 	// Configure and create the server
 	handler := h2c.NewHandler(mux, &http2.Server{})
 	handler = connectinterceptors.WithConnectCORS(handler, cfg.ConnectCors)
