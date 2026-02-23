@@ -9,13 +9,12 @@ import {
 import styles from "./security.module.css";
 import { CheckCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { FrontierServiceQueries, DeleteOrganizationDomainRequestSchema, Domain } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { OutletContext } from "../types";
-import { useOutletContext } from "react-router-dom";
+import { OrganizationContext } from "../contexts/organization-context";
 
 interface DeleteDomainDialogProps {
   domain: Domain;
@@ -24,7 +23,7 @@ interface DeleteDomainDialogProps {
 const DeleteDomainDialog = ({
   domain,
 }: DeleteDomainDialogProps) => {
-  const {organization} = useOutletContext<OutletContext>();
+  const {organization} = useContext(OrganizationContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const transport = useTransport();

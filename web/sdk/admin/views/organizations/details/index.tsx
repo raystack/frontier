@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Outlet } from "react-router-dom";
 import {
   useQuery,
   createConnectQueryKey,
@@ -9,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { create } from "@bufbuild/protobuf";
 
 import { OrganizationDetailsLayout } from "./layout";
-import { ORG_NAMESPACE, type OutletContext } from "./types";
+import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
 import {
   FrontierServiceQueries,
@@ -29,6 +28,7 @@ export type OrganizationDetailsProps = {
   organizationTypes?: string[];
   currentPath: string;
   onNavigate: (path: string) => void;
+  children?: React.ReactNode;
 };
 
 export const OrganizationDetails = ({
@@ -42,6 +42,7 @@ export const OrganizationDetails = ({
   organizationTypes,
   currentPath,
   onNavigate,
+  children,
 }: OrganizationDetailsProps) => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -291,9 +292,7 @@ export const OrganizationDetails = ({
         currentPath={currentPath}
         onNavigate={onNavigate}
       >
-        {organization?.id ? (
-          <Outlet context={{ organization } satisfies OutletContext} />
-        ) : null}
+        {children}
       </OrganizationDetailsLayout>
     </OrganizationContext.Provider>
   );
