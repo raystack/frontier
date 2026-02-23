@@ -31,6 +31,8 @@ export const getColumns: (
         return (
           <Text
             style={{ cursor: "pointer" }}
+            data-test-id="admin-edit-preference-btn"
+            role="button"
             onClick={() => onSelectPreference?.(name)}
           >
             Edit
