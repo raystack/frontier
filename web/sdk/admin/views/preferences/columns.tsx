@@ -1,11 +1,11 @@
-import type { DataTableColumnDef } from "@raystack/apsara";
+import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
-import { Link } from "react-router-dom";
 import styles from "./preferences.module.css";
 
 interface getColumnsOptions {
   traits: PreferenceTrait[];
   preferences: Preference[];
+  onSelectPreference?: (name: string) => void;
 }
 
 export const getColumns: (
@@ -13,6 +13,7 @@ export const getColumns: (
 ) => DataTableColumnDef<PreferenceTrait, unknown>[] = ({
   traits,
   preferences,
+  onSelectPreference,
 }) => {
   return [
     {
@@ -25,7 +26,17 @@ export const getColumns: (
     {
       header: "Action",
       accessorKey: "name",
-      cell: (info) => <Link to={`/preferences/${info.getValue()}`}>Edit</Link>,
+      cell: (info) => {
+        const name = info.getValue() as string;
+        return (
+          <Text
+            style={{ cursor: "pointer" }}
+            onClick={() => onSelectPreference?.(name)}
+          >
+            Edit
+          </Text>
+        );
+      },
       footer: (props) => props.column.id,
     },
     {

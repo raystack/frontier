@@ -98,7 +98,7 @@ export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) =
     }
   };
 
-  const columns = getColumns({ groupCountMap });
+  const columns = getColumns({ groupCountMap, onNavigateToUser });
 
   const loading = isLoading || isFetchingNextPage;
 

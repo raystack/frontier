@@ -17,11 +17,13 @@ import PreferenceDetails from "./details";
 export type PreferencesViewProps = {
   selectedPreferenceName?: string;
   onCloseDetail?: () => void;
+  onSelectPreference?: (name: string) => void;
 };
 
 export default function PreferencesView({
   selectedPreferenceName,
   onCloseDetail,
+  onSelectPreference,
 }: PreferencesViewProps = {}) {
   const transport = useTransport();
 
@@ -80,6 +82,7 @@ export default function PreferencesView({
         preferences={preferences}
         traits={traits}
         isLoading={isLoading}
+        onSelectPreference={onSelectPreference}
       />
     </Flex>
   );

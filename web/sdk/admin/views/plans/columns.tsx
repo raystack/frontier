@@ -1,20 +1,29 @@
-import { Link } from "react-router-dom";
-import { type DataTableColumnDef } from "@raystack/apsara";
+import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
 import { timestampToDate, type TimeStamp } from "../../utils/connect-timestamp";
 
-export const getColumns: () => DataTableColumnDef<
+export const getColumns: (options?: {
+  onSelectPlan?: (planId: string) => void;
+}) => DataTableColumnDef<
   Plan,
   unknown
->[] = () => {
+>[] = ({ onSelectPlan } = {}) => {
   return [
     {
       header: "ID",
       accessorKey: "id",
       filterVariant: "text",
-      cell: ({ row, getValue }) => (
-        <Link to={`/plans/${row.getValue("id")}`}>{getValue() as string}</Link>
-      ),
+      cell: ({ getValue }) => {
+        const id = getValue() as string;
+        return (
+          <Text
+            style={{ cursor: "pointer" }}
+            onClick={() => onSelectPlan?.(id)}
+          >
+            {id}
+          </Text>
+        );
+      },
     },
     {
       header: "Title",

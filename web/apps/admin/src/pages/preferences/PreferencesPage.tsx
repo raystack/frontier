@@ -9,6 +9,7 @@ export function PreferencesPage() {
     <PreferencesView
       selectedPreferenceName={name}
       onCloseDetail={() => navigate("/preferences")}
+      onSelectPreference={(prefName: string) => navigate(`/preferences/${prefName}`)}
     />
   );
 }

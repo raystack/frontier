@@ -1,7 +1,6 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 
 import { Button, Flex, DataTable } from "@raystack/apsara";
-import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../../components/PageHeader";
 import styles from "./webhooks.module.css";
 
@@ -16,8 +15,7 @@ export type WebhooksHeaderProps = {
 };
 
 export const WebhooksHeader = ({ header = pageHeader, onOpenCreate }: WebhooksHeaderProps) => {
-  const navigate = useNavigate();
-  const handleCreate = () => (onOpenCreate ? onOpenCreate() : navigate("/webhooks/create"));
+  const handleCreate = () => onOpenCreate?.();
 
   return (
     <PageHeader

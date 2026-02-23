@@ -1,11 +1,12 @@
-import type { DataTableColumnDef } from "@raystack/apsara";
+import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
-import { Link } from "react-router-dom";
 
-export const getColumns: () => DataTableColumnDef<
+export const getColumns: (options?: {
+  onNavigateToOrg?: (orgId: string) => void;
+}) => DataTableColumnDef<
   User | ServiceUser,
   unknown
->[] = () => {
+>[] = ({ onNavigateToOrg } = {}) => {
   return [
     {
       header: "Title",
@@ -40,7 +41,12 @@ export const getColumns: () => DataTableColumnDef<
       cell: (info) => {
         const org_id = info.getValue() as string;
         return org_id ? (
-          <Link to={`/organizations/${org_id}`}>{org_id}</Link>
+          <Text
+            style={{ cursor: "pointer" }}
+            onClick={() => onNavigateToOrg?.(org_id)}
+          >
+            {org_id}
+          </Text>
         ) : (
           "-"
         );

@@ -6,6 +6,8 @@ export type UsersViewProps = {
   onCloseDetail?: () => void;
   onExportUsers?: () => Promise<void>;
   onNavigateToUser?: (userId: string) => void;
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
 };
 
 export default function UsersView({
@@ -13,9 +15,11 @@ export default function UsersView({
   onCloseDetail,
   onExportUsers,
   onNavigateToUser,
+  currentPath,
+  onNavigate,
 }: UsersViewProps = {}) {
   if (selectedUserId) {
-    return <UserDetailsByUserId userId={selectedUserId} />;
+    return <UserDetailsByUserId userId={selectedUserId} currentPath={currentPath} onNavigate={onNavigate} />;
   }
 
   return (

@@ -1,6 +1,6 @@
 import { UsersView } from "@raystack/frontier/admin";
 import { useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { clients } from "~/connect/clients";
 import { exportCsvFromStream } from "~/utils/helper";
 
@@ -9,6 +9,7 @@ const adminClient = clients.admin({ useBinary: true });
 export function UsersPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const onExportUsers = useCallback(async () => {
     await exportCsvFromStream(adminClient.exportUsers, {}, "users.csv");
@@ -27,6 +28,8 @@ export function UsersPage() {
       onCloseDetail={() => navigate("/users")}
       onExportUsers={onExportUsers}
       onNavigateToUser={onNavigateToUser}
+      currentPath={location.pathname}
+      onNavigate={navigate}
     />
   );
 }
