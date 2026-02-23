@@ -15,7 +15,6 @@ import {
 
 import styles from "./layout.module.css";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";
 import { AddTokensDialog } from "./add-tokens-dialog";
 import type React from "react";
@@ -218,17 +217,21 @@ const NavbarActionMenu = ({
   );
 };
 
-const NavLinks = ({ organizationId }: { organizationId: string }) => {
-  const location = useLocation();
-  const currentPath = location.pathname;
-
+const NavLinks = ({
+  organizationId,
+  currentPath,
+  onNavigate,
+}: {
+  organizationId: string;
+  currentPath: string;
+  onNavigate: (path: string) => void;
+}) => {
   const links = [
     { name: "Members", path: `/organizations/${organizationId}/members` },
     { name: "Projects", path: `/organizations/${organizationId}/projects` },
     { name: "Invoices", path: `/organizations/${organizationId}/invoices` },
     { name: "Tokens", path: `/organizations/${organizationId}/tokens` },
     { name: "API", path: `/organizations/${organizationId}/apis` },
-    // { name: "Audit log", path: `/organizations/${organizationId}/#` },
     { name: "Security", path: `/organizations/${organizationId}/security` },
   ];
 
@@ -241,15 +244,15 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
       {links.map((link, i) => {
         const isActive = checkActive(link.path);
         return (
-          <NavLink to={link.path} key={link.path + i}>
-            <Chip
-              data-state={isActive ? "active" : ""}
-              variant={"filled"}
-              className={styles["nav-chip"]}
-            >
-              {link.name}
-            </Chip>
-          </NavLink>
+          <Chip
+            key={link.path + i}
+            data-state={isActive ? "active" : ""}
+            variant={"filled"}
+            className={styles["nav-chip"]}
+            onClick={() => onNavigate(link.path)}
+          >
+            {link.name}
+          </Chip>
         );
       })}
     </Flex>
@@ -265,6 +268,8 @@ interface OrganizationDetailsNavbarProps {
   onExportMembers?: () => Promise<void>;
   onExportProjects?: () => Promise<void>;
   onExportTokens?: () => Promise<void>;
+  currentPath: string;
+  onNavigate: (path: string) => void;
 }
 
 export const OrganizationsDetailsNavabar = ({
@@ -276,6 +281,8 @@ export const OrganizationsDetailsNavabar = ({
   onExportMembers,
   onExportProjects,
   onExportTokens,
+  currentPath,
+  onNavigate,
 }: OrganizationDetailsNavbarProps) => {
   const { search } = useContext(OrganizationContext);
 
@@ -319,7 +326,11 @@ export const OrganizationsDetailsNavabar = ({
           onExportProjects={onExportProjects}
           onExportTokens={onExportTokens}
         />
-        <NavLinks organizationId={organization?.id || ""} />
+        <NavLinks
+          organizationId={organization?.id || ""}
+          currentPath={currentPath}
+          onNavigate={onNavigate}
+        />
       </Flex>
       <Flex align="center" gap={4}>
         {search.isVisible ? (

@@ -17,6 +17,8 @@ interface OrganizationDetailsLayoutProps {
   onExportMembers?: () => Promise<void>;
   onExportProjects?: () => Promise<void>;
   onExportTokens?: () => Promise<void>;
+  currentPath: string;
+  onNavigate: (path: string) => void;
 }
 
 export const OrganizationDetailsLayout = ({
@@ -26,6 +28,8 @@ export const OrganizationDetailsLayout = ({
   onExportMembers,
   onExportProjects,
   onExportTokens,
+  currentPath,
+  onNavigate,
 }: OrganizationDetailsLayoutProps) => {
   const [showSidePanel, setShowSidePanel] = useState(true);
   const [showKYCPanel, setShowKYCPanel] = useState(false);
@@ -78,6 +82,8 @@ export const OrganizationDetailsLayout = ({
         onExportMembers={onExportMembers}
         onExportProjects={onExportProjects}
         onExportTokens={onExportTokens}
+        currentPath={currentPath}
+        onNavigate={onNavigate}
       />
       <Flex justify="between" style={{ height: "100%" }}>
         <Flex

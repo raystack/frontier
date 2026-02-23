@@ -27,6 +27,8 @@ export type OrganizationDetailsProps = {
   tokenProductId?: string;
   countries?: string[];
   organizationTypes?: string[];
+  currentPath: string;
+  onNavigate: (path: string) => void;
 };
 
 export const OrganizationDetails = ({
@@ -38,6 +40,8 @@ export const OrganizationDetails = ({
   tokenProductId,
   countries,
   organizationTypes,
+  currentPath,
+  onNavigate,
 }: OrganizationDetailsProps) => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -284,6 +288,8 @@ export const OrganizationDetails = ({
         onExportMembers={onExportMembers}
         onExportProjects={onExportProjects}
         onExportTokens={onExportTokens}
+        currentPath={currentPath}
+        onNavigate={onNavigate}
       >
         {organization?.id ? (
           <Outlet context={{ organization } satisfies OutletContext} />

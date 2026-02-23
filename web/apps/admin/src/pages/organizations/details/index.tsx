@@ -2,7 +2,7 @@ import {
   OrganizationDetails,
 } from "@raystack/frontier/admin";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "~/contexts/App";
 import { clients } from "~/connect/clients";
 import { exportCsvFromStream } from "~/utils/helper";
@@ -16,6 +16,8 @@ async function loadCountries(): Promise<string[]> {
 
 export function OrganizationDetailsPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { config } = useContext(AppContext);
   const [countries, setCountries] = useState<string[]>([]);
 
@@ -60,6 +62,8 @@ export function OrganizationDetailsPage() {
       onExportMembers={onExportMembers}
       onExportProjects={onExportProjects}
       onExportTokens={onExportTokens}
+      currentPath={location.pathname}
+      onNavigate={navigate}
     />
   );
 }
