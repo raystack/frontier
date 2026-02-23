@@ -33,7 +33,7 @@ import (
 type AuthenticationRegressionTestSuite struct {
 	suite.Suite
 	testBench      *testbench.TestBench
-	apiPort        int
+	connectPort    int
 	mockOIDCServer *mockoidc.MockOIDC
 	callbackPort   int
 
@@ -45,13 +45,9 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 	s.Require().Nil(err)
 	testDataPath := path.Join("file://", wd, fixturesDir)
 
-	apiPort, err := testbench.GetFreePort()
-	s.Require().NoError(err)
-	grpcPort, err := testbench.GetFreePort()
-	s.Require().NoError(err)
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
-	s.apiPort = apiPort
+	s.connectPort = connectPort
 	callbackPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 	s.callbackPort = callbackPort
@@ -80,14 +76,8 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 		},
 		App: server.Config{
 			Host: "localhost",
-			Port: apiPort,
 			Connect: server.ConnectConfig{
 				Port: connectPort,
-			},
-			GRPC: server.GRPCConfig{
-				Port:           grpcPort,
-				MaxRecvMsgSize: 2 << 10,
-				MaxSendMsgSize: 2 << 10,
 			},
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 			Authentication: authenticate.Config{
@@ -191,13 +181,13 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 
 		// callback to frontier and get valid cookies
 		authCallbackFinalResp, err := http.Get(fmt.Sprintf("http://localhost:%d/v1beta1/auth/callback?code=%s&state=%s",
-			s.apiPort, mockAuth0Code, parsedEndpoint.Query().Get("state")))
+			s.connectPort, mockAuth0Code, parsedEndpoint.Query().Get("state")))
 		s.Assert().NoError(err)
 		s.Assert().Equal(http.StatusOK, authCallbackFinalResp.StatusCode)
 		s.Assert().Equal("sid", authCallbackFinalResp.Cookies()[0].Name)
 
 		// verify if session is created
-		getUserReq, _ := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/v1beta1/users/self", s.apiPort), nil)
+		getUserReq, _ := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/v1beta1/users/self", s.connectPort), nil)
 		getUserReq.AddCookie(authCallbackFinalResp.Cookies()[0])
 
 		userResp, err := http.DefaultClient.Do(getUserReq)

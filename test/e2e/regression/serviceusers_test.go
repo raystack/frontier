@@ -34,7 +34,7 @@ import (
 type ServiceUsersRegressionTestSuite struct {
 	suite.Suite
 	testBench   *testbench.TestBench
-	apiPort     int
+	connectPort int
 	adminCookie string
 }
 
@@ -43,27 +43,17 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 	s.Require().Nil(err)
 	testDataPath := path.Join("file://", wd, fixturesDir)
 
-	apiPort, err := testbench.GetFreePort()
-	s.Require().NoError(err)
-	grpcPort, err := testbench.GetFreePort()
-	s.Require().NoError(err)
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
-	s.apiPort = apiPort
+	s.connectPort = connectPort
 
 	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
 		App: server.Config{
-			Host:    "localhost",
-			Connect: server.ConnectConfig{Port: connectPort},
-			Port:    apiPort,
-			GRPC: server.GRPCConfig{
-				Port:           grpcPort,
-				MaxRecvMsgSize: 2 << 10,
-				MaxSendMsgSize: 2 << 10,
-			},
+			Host:                "localhost",
+			Connect:             server.ConnectConfig{Port: connectPort},
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
@@ -183,7 +173,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().Error(err)
 	})
 	s.Run("5. fetch current profile and pass additional headers via rest", func() {
-		profileRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/v1beta1/users/self", s.apiPort), nil)
+		profileRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d/v1beta1/users/self", s.connectPort), nil)
 		s.Assert().NoError(err)
 		profileRequest.Header.Set("Authorization", "Bearer 123")
 		profileRequest.Header.Set(consts.UserTokenRequestKey, string(svKeyToken))

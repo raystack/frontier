@@ -1,12 +1,9 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/raystack/frontier/core/webhook"
 
 	connectinterceptors "github.com/raystack/frontier/pkg/server/connect_interceptors"
-	"github.com/raystack/frontier/pkg/server/interceptors"
 
 	"github.com/raystack/frontier/pkg/mailer"
 
@@ -14,17 +11,6 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 )
-
-type GRPCConfig struct {
-	Port            int    `mapstructure:"port" default:"8081"`
-	MaxRecvMsgSize  int    `mapstructure:"max_recv_msg_size" default:"33554432"`
-	MaxSendMsgSize  int    `mapstructure:"max_send_msg_size" default:"33554432"`
-	TLSCertFile     string `mapstructure:"tls_cert_file" default:""`
-	TLSKeyFile      string `mapstructure:"tls_key_file" default:""`
-	TLSClientCAFile string `mapstructure:"tls_client_ca_file" default:""`
-}
-
-func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
 
 type WebhooksConfig struct {
 	EnableDelete bool `yaml:"enable_delete" mapstructure:"enable_delete" default:"false"`
@@ -48,11 +34,6 @@ type ConnectConfig struct {
 type Config struct {
 	// Connect server config
 	Connect ConnectConfig `yaml:"connect" mapstructure:"connect"`
-	// port to listen HTTP requests on
-	Port int `yaml:"port" mapstructure:"port" default:"8080"`
-
-	// GRPC Config
-	GRPC GRPCConfig `mapstructure:"grpc"`
 
 	// metrics port
 	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
@@ -77,11 +58,8 @@ type Config struct {
 
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
 
-	// Deprecated: use Cors instead
-	CorsOrigin []string `yaml:"cors_origin" mapstructure:"cors_origin"`
 	// Cors configuration setup origin value from where we want to allow cors
 	// headers and methods are the list of headers and methods we want to allow
-	Cors        interceptors.CorsConfig        `yaml:"cors" mapstructure:"cors"`
 	ConnectCors connectinterceptors.CorsConfig `yaml:"cors" mapstructure:"cors"`
 
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
