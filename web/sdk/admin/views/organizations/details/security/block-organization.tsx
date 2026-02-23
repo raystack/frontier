@@ -1,7 +1,7 @@
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
-import { useState } from "react";
-import { useOutletContext } from "react-router-dom";
-import { OutletContext, OrganizationStatus } from "../types";
+import { useContext, useState } from "react";
+import { OrganizationStatus } from "../types";
+import { OrganizationContext } from "../contexts/organization-context";
 import { createConnectQueryKey, useMutation, useTransport } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, DisableOrganizationRequestSchema, EnableOrganizationRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
@@ -19,7 +19,7 @@ interface componentConfigType {
 }
 
 const BlockOrganizationDialog = () => {
-  const { organization } = useOutletContext<OutletContext>();
+  const { organization } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
 
@@ -33,7 +33,7 @@ const BlockOrganizationDialog = () => {
           queryKey: createConnectQueryKey({
             schema: FrontierServiceQueries.getOrganization,
             transport,
-            input: { id: organization.id },
+            input: { id: organization?.id },
             cardinality: "finite",
           }),
         });
@@ -57,7 +57,7 @@ const BlockOrganizationDialog = () => {
           queryKey: createConnectQueryKey({
             schema: FrontierServiceQueries.getOrganization,
             transport,
-            input: { id: organization.id },
+            input: { id: organization?.id },
             cardinality: "finite",
           }),
         });
@@ -76,7 +76,7 @@ const BlockOrganizationDialog = () => {
   async function onBlockOrganization() {
     await disableOrganization(
       create(DisableOrganizationRequestSchema, {
-        id: organization.id || "",
+        id: organization?.id || "",
       }),
     );
   }
@@ -84,7 +84,7 @@ const BlockOrganizationDialog = () => {
   async function onUnblockOrganization() {
     await enableOrganization(
       create(EnableOrganizationRequestSchema, {
-        id: organization.id || "",
+        id: organization?.id || "",
       }),
     );
   }

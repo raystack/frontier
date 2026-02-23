@@ -1,11 +1,9 @@
-import {
-  OrganizationDetails,
-} from "@raystack/frontier/admin";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { AppContext } from "~/contexts/App";
-import { clients } from "~/connect/clients";
-import { exportCsvFromStream } from "~/utils/helper";
+import { OrganizationDetails } from '@raystack/frontier/admin';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams, Outlet } from 'react-router-dom';
+import { AppContext } from '~/contexts/App';
+import { clients } from '~/connect/clients';
+import { exportCsvFromStream } from '~/utils/helper';
 
 const adminClient = clients.admin({ useBinary: true });
 
@@ -64,6 +62,8 @@ export function OrganizationDetailsPage() {
       onExportTokens={onExportTokens}
       currentPath={location.pathname}
       onNavigate={navigate}
-    />
+    >
+      <Outlet />
+    </OrganizationDetails>
   );
 }

@@ -1,8 +1,4 @@
-import { type Organization } from "@raystack/proton/frontier";
-
-export interface OutletContext {
-  organization: Organization;
-}
+import { type Organization } from '@raystack/proton/frontier';
 
 export const OrganizationStatus = {
   enabled: "enabled",
