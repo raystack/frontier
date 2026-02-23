@@ -33,6 +33,11 @@
     "arrowParens": "avoid",
     "trailingComma": "none"
   },
+  "pnpm": {
+    "overrides": {
+      "@connectrpc/connect-query-core": "2.1.1"
+    }
+  },
   "engines": {
     "node": ">=20.6.1"
   }
