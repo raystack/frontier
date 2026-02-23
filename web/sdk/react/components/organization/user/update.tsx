@@ -33,7 +33,7 @@ const generalSchema = yup
         /^\p{L}[\p{L} .'-]*\p{L}$|^\p{L}$/u,
         'Name must end with a letter'
       )
-      .matches(/^(?!.*  ).*$/, 'Name cannot have consecutive spaces')
+      .matches(/^(?!.* {2}).*$/, 'Name cannot have consecutive spaces')
       .matches(/^(?!.* [^\p{L}]).*$/u, 'Spaces must be followed by a letter')
       .matches(/^(?!.*-[^\p{L}]).*$/u, 'Hyphens must be followed by a letter')
       .matches(
