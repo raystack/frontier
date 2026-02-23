@@ -18,8 +18,6 @@ import (
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/raystack/frontier/pkg/server"
 
-	"github.com/golang/protobuf/jsonpb"
-
 	smtpmock "github.com/mocktools/go-smtp-mock/v2"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/raystack/frontier/config"
@@ -179,24 +177,21 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(http.StatusOK, endpointRes.StatusCode)
 
-		// callback to frontier and get valid cookies
-		authCallbackFinalResp, err := http.Get(fmt.Sprintf("http://localhost:%d/v1beta1/auth/callback?code=%s&state=%s",
-			s.connectPort, mockAuth0Code, parsedEndpoint.Query().Get("state")))
+		// callback to frontier via ConnectRPC and get valid session cookie
+		authCallbackResp, err := s.testBench.Client.AuthCallback(ctx, connect.NewRequest(&frontierv1beta1.AuthCallbackRequest{
+			Code:  mockAuth0Code,
+			State: parsedEndpoint.Query().Get("state"),
+		}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(http.StatusOK, authCallbackFinalResp.StatusCode)
-		s.Assert().Equal("sid", authCallbackFinalResp.Cookies()[0].Name)
+		setCookie := authCallbackResp.Header().Get("Set-Cookie")
+		s.Assert().NotEmpty(setCookie)
+		cookie := strings.SplitN(setCookie, ";", 2)[0]
 
 		// verify if session is created
-		getUserReq, _ := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/v1beta1/users/self", s.connectPort), nil)
-		getUserReq.AddCookie(authCallbackFinalResp.Cookies()[0])
-
-		userResp, err := http.DefaultClient.Do(getUserReq)
+		ctxWithSession := testbench.ContextWithAuth(ctx, cookie)
+		getUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSession, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().Equal(http.StatusOK, userResp.StatusCode)
-
-		user := &frontierv1beta1.GetCurrentUserResponse{}
-		s.Assert().NoError(jsonpb.Unmarshal(userResp.Body, user))
-		s.Assert().Equal(mockoidc.DefaultUser().Email, user.GetUser().GetEmail())
+		s.Assert().Equal(mockoidc.DefaultUser().Email, getUserResp.Msg.GetUser().GetEmail())
 	})
 	var mailOTPCtx context.Context
 	s.Run("3. authenticate a user successfully using mailotp", func() {
