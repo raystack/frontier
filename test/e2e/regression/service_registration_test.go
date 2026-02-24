@@ -32,10 +32,6 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 	s.Require().Nil(err)
 	testDataPath := path.Join("file://", wd, fixturesDir)
 
-	apiPort, err := testbench.GetFreePort()
-	s.Require().NoError(err)
-	grpcPort, err := testbench.GetFreePort()
-	s.Require().NoError(err)
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 
@@ -44,14 +40,8 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 			Level: "error",
 		},
 		App: server.Config{
-			Host:    "localhost",
-			Port:    apiPort,
-			Connect: server.ConnectConfig{Port: connectPort},
-			GRPC: server.GRPCConfig{
-				Port:           grpcPort,
-				MaxRecvMsgSize: 2 << 10,
-				MaxSendMsgSize: 2 << 10,
-			},
+			Host:                "localhost",
+			Connect:             server.ConnectConfig{Port: connectPort},
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{

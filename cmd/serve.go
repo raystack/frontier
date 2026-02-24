@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -84,7 +83,6 @@ import (
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/metaschema"
@@ -108,7 +106,6 @@ import (
 
 	"github.com/pkg/profile"
 	"github.com/raystack/salt/log"
-	"google.golang.org/grpc/codes"
 )
 
 var ruleCacheRefreshDelay = time.Minute * 2
@@ -159,11 +156,6 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	}
 	billingPlanRepository := blob.NewPlanRepository(billingBlobFS)
 
-	// setup telemetry
-	nrApp, err := setupNewRelic(cfg.NewRelic, logger)
-	if err != nil {
-		return err
-	}
 	promRegistry := prometheus.NewRegistry()
 	promMetrics := prometheusmiddleware.NewClientMetrics(
 		prometheusmiddleware.WithClientHandlingTimeHistogram(),
@@ -307,15 +299,8 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
-	// start connect server
-	go func() {
-		if err := server.ServeConnect(ctx, logger, cfg.App, deps, promRegistry); err != nil {
-			logger.Fatal("connect server failed", "err", err.Error())
-		}
-	}()
-
-	// serving grpc server
-	return server.Serve(ctx, logger, cfg.App, nrApp, deps, promRegistry)
+	// start connect server (blocking)
+	return server.ServeConnect(ctx, logger, cfg.App, deps, promRegistry)
 }
 
 func buildAPIDependencies(
@@ -674,28 +659,6 @@ func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
 		logger.Info("stripe client created")
 	}
 	return stripeClient
-}
-
-func setupNewRelic(cfg config.NewRelic, logger log.Logger) (newrelic.Application, error) {
-	nrCfg := newrelic.NewConfig(cfg.AppName, cfg.License)
-	nrCfg.Enabled = cfg.Enabled
-	nrCfg.ErrorCollector.IgnoreStatusCodes = []int{
-		http.StatusNotFound,
-		http.StatusUnauthorized,
-		int(codes.Unauthenticated),
-		int(codes.PermissionDenied),
-		int(codes.InvalidArgument),
-		int(codes.AlreadyExists),
-	}
-
-	if nrCfg.Enabled {
-		nrApp, err := newrelic.NewApplication(nrCfg)
-		if err != nil {
-			return nil, errors.New("failed to load Newrelic Application")
-		}
-		return nrApp, nil
-	}
-	return nil, nil
 }
 
 func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {

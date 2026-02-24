@@ -59,8 +59,5 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 }
 
 func postHook(conf *Frontier) *Frontier {
-	if len(conf.App.CorsOrigin) != 0 {
-		conf.App.Cors.AllowedOrigins = conf.App.CorsOrigin
-	}
 	return conf
 }

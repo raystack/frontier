@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { Button, Flex, Sheet } from "@raystack/apsara";
-import { useNavigate } from "react-router-dom";
 import { SheetHeader } from "../../../../components/SheetHeader";
 import { SheetFooter } from "../../../../components/SheetFooter";
 import * as z from "zod";
@@ -36,13 +35,11 @@ export type CreateWebhooksProps = {
 };
 
 export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksProps = {}) {
-  const navigate = useNavigate();
   const { invalidateWebhooksList } = useWebhookQueries();
 
   const onOpenChange = useCallback(() => {
-    if (onCloseProp) onCloseProp();
-    else navigate("/webhooks");
-  }, [navigate, onCloseProp]);
+    onCloseProp?.();
+  }, [onCloseProp]);
 
   const { mutateAsync: createWebhook, isPending: isSubmitting } = useMutation(
     AdminServiceQueries.createWebhook,

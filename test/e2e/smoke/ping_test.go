@@ -23,9 +23,8 @@ const (
 type PingSmokeTestSuite struct {
 	suite.Suite
 
-	close     func() error
-	apiPort   int
-	proxyPort int
+	close       func() error
+	connectPort int
 }
 
 func (s *PingSmokeTestSuite) SetupSuite() {
@@ -33,27 +32,17 @@ func (s *PingSmokeTestSuite) SetupSuite() {
 	s.Assert().NoError(err)
 	testDataPath := path.Join("file://", wd, fixturesDir)
 
-	apiPort, err := testbench.GetFreePort()
+	connectPort, err := testbench.GetFreePort()
 	s.Assert().NoError(err)
-	s.apiPort = apiPort
-	grpcPort, err := testbench.GetFreePort()
-	s.Assert().NoError(err)
-	proxyPort, err := testbench.GetFreePort()
-	s.Assert().NoError(err)
-	s.proxyPort = proxyPort
+	s.connectPort = connectPort
 
 	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "fatal",
 		},
 		App: server.Config{
-			Host: "localhost",
-			Port: apiPort,
-			GRPC: server.GRPCConfig{
-				Port:           grpcPort,
-				MaxRecvMsgSize: 2 << 10,
-				MaxSendMsgSize: 2 << 10,
-			},
+			Host:                "localhost",
+			Connect:             server.ConnectConfig{Port: connectPort},
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 		},
 	}
@@ -73,7 +62,7 @@ func (s *PingSmokeTestSuite) TearDownSuite() {
 
 func (s *PingSmokeTestSuite) TestPing() {
 	s.Run("should be able to ping frontier", func() {
-		url := fmt.Sprintf("http://localhost:%d/ping", s.apiPort)
+		url := fmt.Sprintf("http://localhost:%d/ping", s.connectPort)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
 

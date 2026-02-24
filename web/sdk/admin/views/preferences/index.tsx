@@ -14,16 +14,19 @@ export type PreferencesListProps = {
   preferences: Preference[];
   traits: PreferenceTrait[];
   isLoading: boolean;
+  onSelectPreference?: (name: string) => void;
 };
 
 export default function PreferencesList({
   preferences,
   traits,
   isLoading,
+  onSelectPreference,
 }: PreferencesListProps) {
   const columns = getColumns({
     traits,
     preferences,
+    onSelectPreference,
   });
 
   return (

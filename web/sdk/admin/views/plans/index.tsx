@@ -19,12 +19,14 @@ const pageHeader = {
 export type PlansViewProps = {
   selectedPlanId?: string;
   onCloseDetail?: () => void;
+  onSelectPlan?: (planId: string) => void;
   appName?: string;
 };
 
 export default function PlansView({
   selectedPlanId,
   onCloseDetail,
+  onSelectPlan,
   appName,
 }: PlansViewProps = {}) {
   const {
@@ -38,7 +40,7 @@ export default function PlansView({
 
   const plans = plansResponse?.plans || [];
   const planMapById = reduceByKey(plans ?? [], "id");
-  const columns = getColumns();
+  const columns = getColumns({ onSelectPlan });
 
   if (isError) {
     console.error("ConnectRPC Error:", error);

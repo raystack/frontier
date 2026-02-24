@@ -8,17 +8,20 @@ import {
   toast,
 } from "@raystack/apsara";
 
-import styles from "./security.module.css";
-import { PlusIcon } from "@radix-ui/react-icons";
-import { useOutletContext } from "react-router-dom";
-import { OutletContext } from "../types";
-import { BlockOrganizationSection } from "./block-organization";
-import { DomainsList } from "./domains-list";
-import { PageTitle } from "../../../../components/PageTitle";
-import { useQuery } from "@connectrpc/connect-query";
-import { FrontierServiceQueries, ListOrganizationDomainsRequestSchema } from "@raystack/proton/frontier";
-import { create } from "@bufbuild/protobuf";
-import { useEffect } from "react";
+import styles from './security.module.css';
+import { PlusIcon } from '@radix-ui/react-icons';
+import { useContext } from 'react';
+import { OrganizationContext } from '../contexts/organization-context';
+import { BlockOrganizationSection } from './block-organization';
+import { DomainsList } from './domains-list';
+import { PageTitle } from '../../../../components/PageTitle';
+import { useQuery } from '@connectrpc/connect-query';
+import {
+  FrontierServiceQueries,
+  ListOrganizationDomainsRequestSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import { useEffect } from 'react';
 
 const AddDomainSection = () => {
   return (
@@ -47,17 +50,17 @@ const AddDomainSection = () => {
 };
 
 export const OrganizationSecurity = () => {
-  const { organization } = useOutletContext<OutletContext>();
+  const { organization } = useContext(OrganizationContext);
 
   const { data: domains, isLoading, error } = useQuery(
     FrontierServiceQueries.listOrganizationDomains,
     create(ListOrganizationDomainsRequestSchema, {
-      orgId: organization.id,
+      orgId: organization?.id
     }),
     {
-      enabled: !!organization.id,
-      select: (data) => data?.domains || [],
-    },
+      enabled: !!organization?.id,
+      select: data => data?.domains || []
+    }
   );
 
   useEffect(() => {
@@ -69,7 +72,7 @@ export const OrganizationSecurity = () => {
     }
   }, [error]);
 
-  const title = `Security | ${organization.title} | Organizations`;
+  const title = `Security | ${organization?.title} | Organizations`;
 
   return (
     <Flex justify="center" className={styles["container"]}>

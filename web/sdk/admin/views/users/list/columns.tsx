@@ -6,7 +6,6 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
-import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import { getUserName, USER_STATES, UserState } from "../util";
@@ -19,10 +18,12 @@ import {
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
+  onNavigateToUser?: (userId: string) => void;
 }
 
 export const getColumns = ({
   groupCountMap,
+  onNavigateToUser,
 }: getColumnsOptions): DataTableColumnDef<User, unknown>[] => {
   return [
     {
@@ -37,16 +38,19 @@ export const getColumns = ({
         const name = getUserName(row.original);
         const userId = row.original.id;
         return (
-          <Link to={userId ? `/users/${userId}/security` : "#"} style={{ textDecoration: "none", color: "inherit" }}>
-            <Flex gap={4} align="center">
-              <Avatar
-                src={row.original.avatar}
-                fallback={name?.[0]?.toUpperCase()}
-                color={avatarColor}
-              />
-              <Text>{name}</Text>
-            </Flex>
-          </Link>
+          <Flex
+            gap={4}
+            align="center"
+            style={{ cursor: "pointer" }}
+            onClick={() => userId && onNavigateToUser?.(userId)}
+          >
+            <Avatar
+              src={row.original.avatar}
+              fallback={name?.[0]?.toUpperCase()}
+              color={avatarColor}
+            />
+            <Text>{name}</Text>
+          </Flex>
         );
       },
       enableColumnFilter: true,
