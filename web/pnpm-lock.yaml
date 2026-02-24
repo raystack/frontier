@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@connectrpc/connect-query-core': 2.1.1
+
 importers:
 
   .:
@@ -40,7 +43,7 @@ importers:
         specifier: ^2.1.0
         version: 2.1.1(@bufbuild/protobuf@2.11.0)
       '@connectrpc/connect-query':
-        specifier: ^2.1.1
+        specifier: 2.1.1
         version: 2.1.1(@bufbuild/protobuf@2.11.0)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.11.0))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.20(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@connectrpc/connect-web':
         specifier: ^2.1.0
@@ -216,7 +219,7 @@ importers:
         specifier: ^2.0.2
         version: 2.1.1(@bufbuild/protobuf@2.11.0)
       '@connectrpc/connect-query':
-        specifier: ^2.1.1
+        specifier: 2.1.1
         version: 2.1.1(@bufbuild/protobuf@2.11.0)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.11.0))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.20(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@connectrpc/connect-web':
         specifier: ^2.0.2
@@ -260,9 +263,6 @@ importers:
       react-image-crop:
         specifier: ^10.1.8
         version: 10.1.8(react@18.3.1)
-      react-router-dom:
-        specifier: '>=6.0.0'
-        version: 7.13.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       slugify:
         specifier: ^1.6.6
         version: 1.6.6
