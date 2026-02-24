@@ -1,12 +1,14 @@
 import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { UseMutationResult, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import { create } from '@bufbuild/protobuf';
-import { FrontierServiceQueries, CreateCurrentUserPreferencesRequestSchema } from '@raystack/proton/frontier';
+import { FrontierServiceQueries, CreateCurrentUserPreferencesRequestSchema, ListCurrentUserPreferencesRequestSchema } from '@raystack/proton/frontier';
 import { useCallback, useMemo } from 'react';
 
 type Preference = {
   name?: string;
   value?: string;
+  scopeType?: string;
+  scopeId?: string;
   [key: string]: any;
 };
 
@@ -21,6 +23,8 @@ export interface UsePreferences {
   updatePreferences: (
     preferences: Preference[]
   ) => Promise<void>;
+  fetchPreferencesStatus: UseQueryResult['status'];
+  updatePreferencesStatus: UseMutationResult['status'];
 }
 
 function getFormattedData(preferences: Preference[] = []): Preferences {
@@ -31,9 +35,13 @@ function getFormattedData(preferences: Preference[] = []): Preferences {
 }
 
 export function usePreferences({
-  autoFetch = true
+  autoFetch = true,
+  scopeType,
+  scopeId
 }: {
   autoFetch?: boolean;
+  scopeType?: string;
+  scopeId?: string;
 } = {}): UsePreferences {
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -41,10 +49,14 @@ export function usePreferences({
   const {
     data: preferencesData,
     isLoading: isFetchingPreferences,
-    refetch
+    refetch,
+    status: fetchPreferencesStatus
   } = useQuery(
     FrontierServiceQueries.listCurrentUserPreferences,
-    {},
+create(ListCurrentUserPreferencesRequestSchema, {
+      scopeType,
+      scopeId
+    }),
     {
       enabled: autoFetch
     }
@@ -54,14 +66,14 @@ export function usePreferences({
 
   const {
     mutateAsync: updatePreferencesMutation,
-    isPending: isUpdatingPreferences
+    isPending: isUpdatingPreferences,
+    status: updatePreferencesStatus
   } = useMutation(FrontierServiceQueries.createCurrentUserPreferences, {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: createConnectQueryKey({
           schema: FrontierServiceQueries.listCurrentUserPreferences,
           transport,
-          input: {},
           cardinality: 'finite'
         })
       });
@@ -101,6 +113,8 @@ export function usePreferences({
     isLoading: isUpdatingPreferences,
     isFetching: isFetchingPreferences,
     fetchPreferences: refetch,
-    updatePreferences
+    updatePreferences,
+    updatePreferencesStatus,
+    fetchPreferencesStatus
   };
 }
