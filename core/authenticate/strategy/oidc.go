@@ -14,6 +14,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	OIDCAuthMethod string = "OIDC"
+)
+
 type OIDC struct {
 	Client   *http.Client
 	config   *oauth2.Config
