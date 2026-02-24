@@ -6,9 +6,11 @@ import { UserDetailsNavbar } from "./navbar";
 
 interface UserDetailsLayoutProps {
   children: ReactNode;
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
 }
 
-export const UserDetailsLayout = ({ children }: UserDetailsLayoutProps) => {
+export const UserDetailsLayout = ({ children, currentPath, onNavigate }: UserDetailsLayoutProps) => {
   const [showSidePanel, setShowSidePanel] = useState(true);
 
   function toggleSidePanel() {
@@ -17,7 +19,7 @@ export const UserDetailsLayout = ({ children }: UserDetailsLayoutProps) => {
 
   return (
     <Flex direction="column" className={styles.page}>
-      <UserDetailsNavbar toggleSidePanel={toggleSidePanel} />
+      <UserDetailsNavbar toggleSidePanel={toggleSidePanel} currentPath={currentPath} onNavigate={onNavigate} />
       <Flex justify="between" style={{ height: "100%" }}>
         <Flex
           className={

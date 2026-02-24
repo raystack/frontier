@@ -1,6 +1,5 @@
 import { useCallback, useEffect } from "react";
 import { Button, Flex, Sheet } from "@raystack/apsara";
-import { useNavigate, useParams } from "react-router-dom";
 import { SheetHeader } from "../../../../components/SheetHeader";
 import { SheetFooter } from "../../../../components/SheetFooter";
 import * as z from "zod";
@@ -37,9 +36,7 @@ export type UpdateWebhooksProps = {
 };
 
 export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCloseProp }: UpdateWebhooksProps = {}) {
-  const navigate = useNavigate();
-  const { webhookId: webhookIdParam } = useParams();
-  const webhookId = webhookIdProp ?? webhookIdParam ?? "";
+  const webhookId = webhookIdProp ?? "";
 
   const {
     listWebhooks: {
@@ -50,9 +47,8 @@ export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCl
   } = useWebhookQueries();
 
   const onClose = useCallback(() => {
-    if (onCloseProp) onCloseProp();
-    else navigate("/webhooks");
-  }, [navigate, onCloseProp]);
+    onCloseProp?.();
+  }, [onCloseProp]);
 
   const methods = useForm<UpdateWebhook>({
     resolver: zodResolver(UpdateWebhookSchema),

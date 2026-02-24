@@ -11,12 +11,14 @@ import { UserDetailsSecurityContent } from "./security/security";
 interface UserDetailContentProps {
   user: User;
   refetch: () => void;
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
 }
 
-export const UserDetailContent = ({ user, refetch }: UserDetailContentProps) => {
+export const UserDetailContent = ({ user, refetch, currentPath, onNavigate }: UserDetailContentProps) => {
   return (
     <UserProvider value={{ user, reset: refetch }}>
-      <UserDetailsLayout>
+      <UserDetailsLayout currentPath={currentPath} onNavigate={onNavigate}>
         <UserDetailsSecurityContent />
       </UserDetailsLayout>
     </UserProvider>
@@ -25,9 +27,11 @@ export const UserDetailContent = ({ user, refetch }: UserDetailContentProps) => 
 
 interface UserDetailsByUserIdProps {
   userId: string;
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
 }
 
-export const UserDetailsByUserId = ({ userId }: UserDetailsByUserIdProps) => {
+export const UserDetailsByUserId = ({ userId, currentPath, onNavigate }: UserDetailsByUserIdProps) => {
   const { data, isLoading, refetch } = useQuery(
     AdminServiceQueries.searchUsers,
     { query: { search: userId } },
@@ -66,5 +70,5 @@ export const UserDetailsByUserId = ({ userId }: UserDetailsByUserIdProps) => {
     );
   }
 
-  return <UserDetailContent user={user} refetch={refetch} />;
+  return <UserDetailContent user={user} refetch={refetch} currentPath={currentPath} onNavigate={onNavigate} />;
 };

@@ -21,7 +21,11 @@ const NoAdmins = () => {
   );
 };
 
-export default function AdminsView() {
+export type AdminsViewProps = {
+  onNavigateToOrg?: (orgId: string) => void;
+};
+
+export default function AdminsView({ onNavigateToOrg }: AdminsViewProps = {}) {
   const {
     data: platformUsersData,
     isLoading,
@@ -31,7 +35,7 @@ export default function AdminsView() {
     staleTime: Infinity,
   });
 
-  const columns = getColumns();
+  const columns = getColumns({ onNavigateToOrg });
   const data = [
     ...(platformUsersData?.users || []),
     ...(platformUsersData?.serviceusers || []),

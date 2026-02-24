@@ -6,7 +6,6 @@ import {
   IconButton,
   getAvatarColor,
 } from "@raystack/apsara";
-import { NavLink } from "react-router-dom";
 import { SidebarIcon } from "@raystack/apsara/icons";
 import UserIcon from "../../../../assets/icons/UsersIcon";
 import styles from "./navbar.module.css";
@@ -15,10 +14,14 @@ import { useUser } from "../user-context";
 
 interface UserDetailsNavbarProps {
   toggleSidePanel: () => void;
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
 }
 
 export const UserDetailsNavbar = ({
   toggleSidePanel,
+  currentPath = "",
+  onNavigate,
 }: UserDetailsNavbarProps) => {
   const { user } = useUser();
 
@@ -50,18 +53,19 @@ export const UserDetailsNavbar = ({
           </Breadcrumb.Item>
         </Breadcrumb>
         <Flex gap="small">
-          {links.map((link, index) => (
-            <NavLink to={link.path} key={link.path + index}>
-              {({ isActive }) => (
-                <Chip
-                  data-state={isActive ? "active" : undefined}
-                  variant="filled"
-                  className={styles["nav-chip"]}>
-                  {link.name}
-                </Chip>
-              )}
-            </NavLink>
-          ))}
+          {links.map((link, index) => {
+            const isActive = currentPath.startsWith(link.path);
+            return (
+              <Chip
+                key={link.path + index}
+                data-state={isActive ? "active" : undefined}
+                variant="filled"
+                className={styles["nav-chip"]}
+                onClick={() => onNavigate?.(link.path)}>
+                {link.name}
+              </Chip>
+            );
+          })}
         </Flex>
       </Flex>
       <Flex align="center" gap={4}>

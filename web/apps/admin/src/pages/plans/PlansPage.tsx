@@ -9,6 +9,7 @@ export function PlansPage() {
     <PlansView
       selectedPlanId={planId}
       onCloseDetail={() => navigate("/plans")}
+      onSelectPlan={(id: string) => navigate(`/plans/${id}`)}
     />
   );
 }
