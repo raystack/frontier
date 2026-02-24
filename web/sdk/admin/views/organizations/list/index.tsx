@@ -46,11 +46,17 @@ const INITIAL_QUERY: DataTableQuery = {
 };
 
 export type OrganizationListProps = {
+  /** App name displayed in the page title (e.g. "Frontier Admin"). */
   appName?: string;
+  /** Called when a user clicks on an organization row. Use to navigate to the org detail page. */
   onNavigateToOrg?: (id: string) => void;
+  /** Callback to export organizations list as CSV. Shown in navbar when provided. */
   onExportCsv?: () => Promise<void>;
+  /** List of allowed organization types for filtering / creation. */
   organizationTypes?: string[];
+  /** Base URL of the consumer app, used for generating links. */
   appUrl?: string;
+  /** List of country names for KYC country selector during org creation. */
   countries?: string[];
 };
 

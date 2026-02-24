@@ -40,7 +40,10 @@ const INITIAL_QUERY: DataTableQuery = {
   limit: DEFAULT_PAGE_SIZE,
 };
 
-export type InvoicesViewProps = { appName?: string };
+export type InvoicesViewProps = {
+  /** App name displayed in the page title. */
+  appName?: string;
+};
 
 export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
