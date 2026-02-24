@@ -10,7 +10,6 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -30,7 +29,17 @@ const orgSchema = yup
   })
   .required();
 
-export const DeleteOrganization = () => {
+export interface DeleteOrganizationDialogProps {
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
+  onDeleteSuccess?: () => void;
+}
+
+export const DeleteOrganizationDialog = ({
+  open,
+  onOpenChange,
+  onDeleteSuccess
+}: DeleteOrganizationDialogProps) => {
   const {
     watch,
     handleSubmit,
@@ -40,7 +49,6 @@ export const DeleteOrganization = () => {
   } = useForm({
     resolver: yupResolver(orgSchema)
   });
-  const navigate = useNavigate({ from: '/delete' });
   const t = useTerminology();
   const { activeOrganization: organization } = useFrontier();
   const { mutateAsync: deleteOrganization } = useMutation(
@@ -62,8 +70,7 @@ export const DeleteOrganization = () => {
       await deleteOrganization(req);
       toast.success(`${t.organization({ case: 'capital' })} deleted`);
 
-      // @ts-ignore
-      window.location = window.location.origin;
+      onDeleteSuccess?.();
     } catch (error: any) {
       toast.error('Something went wrong', {
         description:
@@ -75,14 +82,13 @@ export const DeleteOrganization = () => {
 
   const title = watch('title', '');
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content overlayClassName={styles.overlay} width={600}>
         <Dialog.Header>
           <Dialog.Title>
             Verify {t.organization({ case: 'lower' })} deletion
           </Dialog.Title>
           <Dialog.CloseButton
-            onClick={() => navigate({ to: '/' })}
             data-test-id="frontier-sdk-delete-organization-close-btn"
           />
         </Dialog.Header>
@@ -139,3 +145,4 @@ export const DeleteOrganization = () => {
     </Dialog>
   );
 };
+
