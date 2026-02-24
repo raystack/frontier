@@ -288,6 +288,14 @@ html[data-theme="dark"] .header-slack-link:before {
   padding-left: 0.5rem;
 }
 
+.theme-doc-sidebar-item-category-level-3 .menu__list-item-collapsible {
+  padding-left: 1rem;
+}
+
+.theme-doc-sidebar-item-link-level-4 {
+  padding-left: 1.5rem;
+}
+
 code {
   font-size: 90%;
   background-color: var(--ifm-color-info-contrast-background);
