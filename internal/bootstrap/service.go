@@ -14,6 +14,7 @@ import (
 
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
@@ -33,7 +34,13 @@ type PermissionService interface {
 
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
+	List(ctx context.Context, f role.Filter) ([]role.Role, error)
 	Upsert(ctx context.Context, toCreate role.Role) (role.Role, error)
+}
+
+type RelationService interface {
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 type UserService interface {
@@ -71,6 +78,8 @@ type Service struct {
 	permissionService PermissionService
 	authzEngine       AuthzEngine
 	userService       UserService
+	relationService   RelationService
+	patDeniedPerms    map[string]struct{}
 
 	planService   PlanService
 	planLocalRepo BillingPlanRepository
@@ -84,6 +93,8 @@ func NewBootstrapService(
 	actionService PermissionService,
 	userService UserService,
 	authzEngine AuthzEngine,
+	relationService RelationService,
+	patDeniedPerms map[string]struct{},
 	planService PlanService,
 	planLocalRepo BillingPlanRepository,
 ) *Service {
@@ -97,6 +108,8 @@ func NewBootstrapService(
 		authzEngine:       authzEngine,
 		planService:       planService,
 		planLocalRepo:     planLocalRepo,
+		relationService:   relationService,
+		patDeniedPerms:    patDeniedPerms,
 	}
 }
 
@@ -223,6 +236,11 @@ func (s Service) MigrateRoles(ctx context.Context) error {
 			return err
 		}
 	}
+
+	// backfill PAT wildcard tuples for all existing roles
+	if err = s.migratePATRelations(ctx); err != nil {
+		return fmt.Errorf("migrating PAT role relations: %w", err)
+	}
 	return nil
 }
 
@@ -245,6 +263,42 @@ func (s Service) createRole(ctx context.Context, orgID string, defRole schema.Ro
 	})
 	if err != nil {
 		return fmt.Errorf("can't migrate role: %w: %s", schema.ErrMigration, err.Error())
+	}
+	return nil
+}
+
+// migratePATRelations ensures app/pat:* wildcard tuples are in sync with the current
+// denied_permissions config for all existing roles. Runs on every bootstrap:
+//   - Creates app/pat:* for allowed permissions (idempotent via SpiceDB Touch)
+//   - Deletes app/pat:* for denied permissions (removes stale wildcards if config changed)
+func (s Service) migratePATRelations(ctx context.Context) error {
+	roles, err := s.roleService.List(ctx, role.Filter{})
+	if err != nil {
+		return fmt.Errorf("listing roles for PAT migration: %w", err)
+	}
+	for _, r := range roles {
+		for _, perm := range r.Permissions {
+			rel := relation.Relation{
+				Object: relation.Object{
+					ID:        r.ID,
+					Namespace: schema.RoleNamespace,
+				},
+				Subject: relation.Subject{
+					ID:        "*",
+					Namespace: schema.PATPrincipal,
+				},
+				RelationName: perm,
+			}
+			if _, denied := s.patDeniedPerms[perm]; denied {
+				if err := s.relationService.Delete(ctx, rel); err != nil {
+					return fmt.Errorf("deleting PAT wildcard for role %s denied permission %s: %w", r.Name, perm, err)
+				}
+				continue
+			}
+			if _, err := s.relationService.Create(ctx, rel); err != nil {
+				return fmt.Errorf("creating PAT wildcard for role %s permission %s: %w", r.Name, perm, err)
+			}
+		}
 	}
 	return nil
 }

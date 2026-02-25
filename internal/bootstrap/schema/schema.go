@@ -75,7 +75,8 @@ const (
 	PATPrincipal         = "app/pat"
 
 	// PAT relations
-	PATGrantRelationName = "pat_granted"
+	PATGrantRelationName     = "pat_granted"
+	GrantRelationMetadataKey = "grant_relation"
 
 	// Roles
 	RoleOrganizationViewer  = "app_organization_viewer"
@@ -256,7 +257,7 @@ func IsSystemNamespace(namespace string) bool {
 	return namespace == OrganizationNamespace || namespace == ProjectNamespace ||
 		namespace == UserPrincipal || namespace == ServiceUserPrincipal ||
 		namespace == SuperUserPrincipal || namespace == GroupPrincipal ||
-		namespace == PlatformNamespace
+		namespace == PATPrincipal || namespace == PlatformNamespace
 }
 
 // IsValidPermissionName checks if the provided name is a valid permission name

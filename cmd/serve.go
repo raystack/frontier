@@ -424,7 +424,7 @@ func buildAPIDependencies(
 	groupRepository := postgres.NewGroupRepository(dbc)
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 
-	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository)
+	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository, cfg.App.PAT.DeniedPermissionsSet())
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
 	userService := user.NewService(userRepository, relationService, policyService, roleService)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
@@ -433,7 +433,7 @@ func buildAPIDependencies(
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository)
 
-	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, auditRecordRepository)
+	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, auditRecordRepository)
 
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
@@ -548,6 +548,8 @@ func buildAPIDependencies(
 		permissionService,
 		userService,
 		authzSchemaRepository,
+		relationService,
+		cfg.App.PAT.DeniedPermissionsSet(),
 		planService,
 		planBlobRepository,
 	)

@@ -8,17 +8,31 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"slices"
 	"time"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/log"
 	"golang.org/x/crypto/sha3"
 )
 
 type OrganizationService interface {
 	GetRaw(ctx context.Context, id string) (organization.Organization, error)
+}
+
+type RoleService interface {
+	Get(ctx context.Context, id string) (role.Role, error)
+	List(ctx context.Context, f role.Filter) ([]role.Role, error)
+}
+
+type PolicyService interface {
+	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 }
 
 type AuditRecordRepository interface {
@@ -30,15 +44,20 @@ type Service struct {
 	config                Config
 	logger                log.Logger
 	orgService            OrganizationService
+	roleService           RoleService
+	policyService         PolicyService
 	auditRecordRepository AuditRecordRepository
 }
 
-func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService, auditRecordRepository AuditRecordRepository) *Service {
+func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService,
+	roleService RoleService, policyService PolicyService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repo:                  repo,
 		config:                config,
 		logger:                logger,
 		orgService:            orgService,
+		roleService:           roleService,
+		policyService:         policyService,
 		auditRecordRepository: auditRecordRepository,
 	}
 }
@@ -47,7 +66,7 @@ type CreateRequest struct {
 	UserID     string
 	OrgID      string
 	Title      string
-	Roles      []string
+	RoleIDs    []string
 	ProjectIDs []string
 	ExpiresAt  time.Time
 	Metadata   map[string]any
@@ -84,6 +103,12 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, e
 		return PAT{}, "", ErrLimitExceeded
 	}
 
+	roles, err := s.resolveAndValidateRoles(ctx, req.RoleIDs)
+	if err != nil {
+		return PersonalAccessToken{}, "", err
+	}
+
+	tokenValue, secretHash, err := s.generateToken()
 	patValue, secretHash, err := s.generatePAT()
 	if err != nil {
 		return PAT{}, "", err
@@ -103,11 +128,13 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, e
 		return PAT{}, "", err
 	}
 
-	// TODO: create policies for roles + project_ids
+	if err := s.createPolicies(ctx, created.ID, req.OrgID, roles, req.ProjectIDs); err != nil {
+		return PersonalAccessToken{}, "", fmt.Errorf("creating policies: %w", err)
+	}
 
 	// TODO: move audit record creation into the same transaction as PAT creation to avoid partial state where PAT exists but audit record doesn't.
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATCreatedEvent, created, created.CreatedAt, map[string]any{
-		"roles":       req.Roles,
+		"role_ids":    req.RoleIDs,
 		"project_ids": req.ProjectIDs,
 	}); err != nil {
 		s.logger.Error("failed to create audit record for PAT", "pat_id", created.ID, "error", err)
@@ -144,6 +171,127 @@ func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Ev
 		OccurredAt: occurredAt,
 	}); err != nil {
 		return fmt.Errorf("creating audit record: %w", err)
+	}
+	return nil
+}
+
+// resolveAndValidateRoles fetches the requested roles and validates they are allowed for PATs.
+// All validation (existence, permissions, scopes) happens here so callers can fail fast
+// before persisting any state.
+func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string) ([]role.Role, error) {
+	if len(roleIDs) == 0 {
+		return nil, nil
+	}
+
+	roles, err := s.roleService.List(ctx, role.Filter{IDs: roleIDs})
+	if err != nil {
+		return nil, fmt.Errorf("fetching roles: %w", err)
+	}
+	if len(roles) != len(roleIDs) {
+		var missing []string
+		for _, id := range roleIDs {
+			if !slices.ContainsFunc(roles, func(r role.Role) bool { return r.ID == id }) {
+				missing = append(missing, id)
+			}
+		}
+		return nil, fmt.Errorf("role IDs not found: %v: %w", missing, ErrRoleNotFound)
+	}
+
+	if err := s.validateRolePermissions(roles); err != nil {
+		return nil, err
+	}
+
+	for _, r := range roles {
+		if !slices.Contains(r.Scopes, schema.ProjectNamespace) && !slices.Contains(r.Scopes, schema.OrganizationNamespace) {
+			return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, ErrUnsupportedScope)
+		}
+	}
+
+	return roles, nil
+}
+
+// createPolicies creates SpiceDB policies for the PAT based on the already-validated roles and project scope.
+// Each role is categorized by its Scopes field:
+//   - Org-scoped role → policy on the org with default "granted" relation
+//   - Project-scoped role, all projects (projectIDs empty) → policy on org with "pat_granted" relation
+//   - Project-scoped role, specific projects → one policy per project with default "granted" relation
+func (s *Service) createPolicies(ctx context.Context, patID, orgID string, roles []role.Role, projectIDs []string) error {
+	for _, r := range roles {
+		var err error
+		switch {
+		case slices.Contains(r.Scopes, schema.ProjectNamespace):
+			err = s.createProjectScopedPolicies(ctx, patID, orgID, r, projectIDs)
+		case slices.Contains(r.Scopes, schema.OrganizationNamespace):
+			err = s.createOrgScopedPolicy(ctx, patID, orgID, r)
+		default:
+			err = fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, ErrUnsupportedScope)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateRolePermissions checks that none of the roles contain denied permissions.
+func (s *Service) validateRolePermissions(roles []role.Role) error {
+	deniedPerms := s.config.DeniedPermissionsSet()
+	for _, r := range roles {
+		for _, perm := range r.Permissions {
+			if _, denied := deniedPerms[perm]; denied {
+				return fmt.Errorf("role %s has denied permission %s: %w", r.Name, perm, ErrDeniedRole)
+			}
+		}
+	}
+	return nil
+}
+
+// createOrgScopedPolicy creates a policy on the org with the default "granted" relation.
+func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID string, r role.Role) error {
+	if _, err := s.policyService.Create(ctx, policy.Policy{
+		RoleID:        r.ID,
+		ResourceID:    orgID,
+		ResourceType:  schema.OrganizationNamespace,
+		PrincipalID:   patID,
+		PrincipalType: schema.PATPrincipal,
+	}); err != nil {
+		return fmt.Errorf("creating org policy for role %s: %w", r.Name, err)
+	}
+	return nil
+}
+
+// createProjectScopedPolicies creates policies for a project-scoped role.
+// If projectIDs is empty, it creates a single policy on the org with "pat_granted" relation
+// (cascades to all projects). Otherwise, it creates one policy per project with default "granted".
+func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID string, r role.Role, projectIDs []string) error {
+	if len(projectIDs) == 0 {
+		// all projects → policy on org with "pat_granted"
+		if _, err := s.policyService.Create(ctx, policy.Policy{
+			RoleID:        r.ID,
+			ResourceID:    orgID,
+			ResourceType:  schema.OrganizationNamespace,
+			PrincipalID:   patID,
+			PrincipalType: schema.PATPrincipal,
+			Metadata: metadata.Metadata{
+				schema.GrantRelationMetadataKey: schema.PATGrantRelationName,
+			},
+		}); err != nil {
+			return fmt.Errorf("creating org pat_granted policy for role %s: %w", r.Name, err)
+		}
+		return nil
+	}
+
+	// specific projects → one policy per project
+	for _, projectID := range projectIDs {
+		if _, err := s.policyService.Create(ctx, policy.Policy{
+			RoleID:        r.ID,
+			ResourceID:    projectID,
+			ResourceType:  schema.ProjectNamespace,
+			PrincipalID:   patID,
+			PrincipalType: schema.PATPrincipal,
+		}); err != nil {
+			return fmt.Errorf("creating project policy for role %s on project %s: %w", r.Name, projectID, err)
+		}
 	}
 	return nil
 }

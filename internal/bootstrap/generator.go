@@ -143,6 +143,8 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 					aznamespace.TupleToUserset("platform", "superuser"),
 					aznamespace.TupleToUserset("granted", "app_organization_administer"),
 					aznamespace.TupleToUserset("granted", fqPermissionName),
+					aznamespace.TupleToUserset(schema.PATGrantRelationName, "app_project_administer"),
+					aznamespace.TupleToUserset(schema.PATGrantRelationName, fqPermissionName),
 				), nil)
 				if err != nil {
 					return nil, err
@@ -177,6 +179,7 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 				nsRel, err := aznamespace.Relation(fqPermissionName, nil,
 					aznamespace.AllowedPublicNamespace(schema.UserPrincipal),
 					aznamespace.AllowedPublicNamespace(schema.ServiceUserPrincipal),
+					aznamespace.AllowedPublicNamespace(schema.PATPrincipal),
 				)
 				if err != nil {
 					return nil, err

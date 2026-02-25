@@ -117,6 +117,10 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	}
 
 	// bind policy to resource
+	grantRelation := schema.RoleGrantRelationName
+	if gr, ok := pol.Metadata[schema.GrantRelationMetadataKey].(string); ok && gr != "" {
+		grantRelation = gr
+	}
 	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        pol.ResourceID,
@@ -126,7 +130,7 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 			ID:        pol.ID,
 			Namespace: schema.RoleBindingNamespace,
 		},
-		RelationName: schema.RoleGrantRelationName,
+		RelationName: grantRelation,
 	})
 	if err != nil {
 		return err

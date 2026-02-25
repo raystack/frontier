@@ -31,14 +31,17 @@ type Service struct {
 	relationService       RelationService
 	permissionService     PermissionService
 	auditRecordRepository AuditRecordRepository
+	patDeniedPerms        map[string]struct{}
 }
 
-func NewService(repository Repository, relationService RelationService, permissionService PermissionService, auditRecordRepository AuditRecordRepository) *Service {
+func NewService(repository Repository, relationService RelationService, permissionService PermissionService,
+	auditRecordRepository AuditRecordRepository, patDeniedPerms map[string]struct{}) *Service {
 	return &Service{
 		repository:            repository,
 		relationService:       relationService,
 		permissionService:     permissionService,
 		auditRecordRepository: auditRecordRepository,
+		patDeniedPerms:        patDeniedPerms,
 	}
 }
 
@@ -135,6 +138,23 @@ func (s Service) createRolePermissionRelation(ctx context.Context, roleID string
 		if err != nil {
 			return err
 		}
+		// do the same with PAT (skip denied permissions)
+		if _, denied := s.patDeniedPerms[perm]; !denied {
+			_, err = s.relationService.Create(ctx, relation.Relation{
+				Object: relation.Object{
+					ID:        roleID,
+					Namespace: schema.RoleNamespace,
+				},
+				Subject: relation.Subject{
+					ID:        "*", // all principles who have role will have access
+					Namespace: schema.PATPrincipal,
+				},
+				RelationName: perm,
+			})
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -167,6 +187,20 @@ func (s Service) deleteRolePermissionRelations(ctx context.Context, roleID strin
 		Subject: relation.Subject{
 			ID:        "*", // all principles who have role will have access
 			Namespace: schema.ServiceUserPrincipal,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	// do the same with PAT
+	err = s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        roleID,
+			Namespace: schema.RoleNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        "*",
+			Namespace: schema.PATPrincipal,
 		},
 	})
 	if err != nil {

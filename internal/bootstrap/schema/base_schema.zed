@@ -7,6 +7,11 @@ definition app/serviceuser {
     permission manage = org->serviceusermanage + user
 }
 
+definition app/pat {
+	relation user: app/user
+	relation org: app/organization
+}
+
 definition app/platform {
 	relation admin: app/user | app/serviceuser
 	relation member: app/user | app/serviceuser
@@ -28,6 +33,7 @@ definition app/organization {
 	// relations
 	relation platform: app/platform
 	relation granted: app/rolebinding
+	relation pat_granted: app/rolebinding
 	relation member: app/user | app/group#member | app/serviceuser
 	relation owner: app/user | app/serviceuser
 
@@ -51,11 +57,11 @@ definition app/organization {
     permission billingview = platform->superuser + granted->app_organization_administer + granted->app_organization_billingview + owner
 
     // synthetic permissions - project
-    permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + owner
-    permission project_update = platform->superuser + granted->app_organization_administer + granted->app_project_update + owner
-    permission project_get = platform->superuser + granted->app_organization_administer + granted->app_project_get + owner
-    permission project_policymanage = platform->superuser + granted->app_organization_administer + granted->app_project_policymanage + owner
-	permission project_resourcelist = platform->superuser + granted->app_organization_administer + granted->app_project_resourcelist + owner
+    permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + pat_granted->app_project_administer + pat_granted->app_project_delete + owner
+    permission project_update = platform->superuser + granted->app_organization_administer + granted->app_project_update + pat_granted->app_project_administer + pat_granted->app_project_update + owner
+    permission project_get = platform->superuser + granted->app_organization_administer + granted->app_project_get + pat_granted->app_project_administer + pat_granted->app_project_get + owner
+    permission project_policymanage = platform->superuser + granted->app_organization_administer + granted->app_project_policymanage + pat_granted->app_project_administer + pat_granted->app_project_policymanage + owner
+	permission project_resourcelist = platform->superuser + granted->app_organization_administer + granted->app_project_resourcelist + pat_granted->app_project_administer + pat_granted->app_project_resourcelist + owner
 
     // synthetic permissions - group
     permission group_delete = platform->superuser + granted->app_organization_administer + granted->app_group_delete + owner
@@ -91,7 +97,7 @@ definition app/project {
 }
 
 definition app/rolebinding {
-	relation bearer: app/user | app/group#member | app/serviceuser
+	relation bearer: app/user | app/group#member | app/serviceuser | app/pat
 	relation role: app/role
 
 	// org
@@ -128,33 +134,33 @@ definition app/rolebinding {
 
 definition app/role {
 	// org
-	relation app_organization_administer: app/user:* | app/serviceuser:*
-	relation app_organization_delete: app/user:* | app/serviceuser:*
-	relation app_organization_update: app/user:* | app/serviceuser:*
-	relation app_organization_get: app/user:* | app/serviceuser:*
-	relation app_organization_rolemanage: app/user:* | app/serviceuser:*
-	relation app_organization_policymanage: app/user:* | app/serviceuser:*
-	relation app_organization_projectlist: app/user:* | app/serviceuser:*
-	relation app_organization_grouplist: app/user:* | app/serviceuser:*
-	relation app_organization_invitationlist: app/user:* | app/serviceuser:*
-	relation app_organization_projectcreate: app/user:* | app/serviceuser:*
-	relation app_organization_groupcreate: app/user:* | app/serviceuser:*
-	relation app_organization_invitationcreate: app/user:* | app/serviceuser:*
-    relation app_organization_serviceusermanage: app/user:* | app/serviceuser:*
-    relation app_organization_billingmanage: app/user:* | app/serviceuser:*
-    relation app_organization_billingview: app/user:* | app/serviceuser:*
+	relation app_organization_administer: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_delete: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_update: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_get: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_rolemanage: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_policymanage: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_projectlist: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_grouplist: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_invitationlist: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_projectcreate: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_groupcreate: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_invitationcreate: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_serviceusermanage: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_billingmanage: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_organization_billingview: app/user:* | app/serviceuser:* | app/pat:*
 
-    // project
-    relation app_project_administer: app/user:* | app/serviceuser:*
-    relation app_project_delete: app/user:* | app/serviceuser:*
-    relation app_project_update: app/user:* | app/serviceuser:*
-    relation app_project_get: app/user:* | app/serviceuser:*
-    relation app_project_policymanage: app/user:* | app/serviceuser:*
-    relation app_project_resourcelist: app/user:* | app/serviceuser:*
+	// project
+	relation app_project_administer: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_project_delete: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_project_update: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_project_get: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_project_policymanage: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_project_resourcelist: app/user:* | app/serviceuser:* | app/pat:*
 
-    // group
-    relation app_group_administer: app/user:* | app/serviceuser:*
-    relation app_group_delete: app/user:* | app/serviceuser:*
-    relation app_group_update: app/user:* | app/serviceuser:*
-    relation app_group_get: app/user:* | app/serviceuser:*
+	// group
+	relation app_group_administer: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_group_delete: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_group_update: app/user:* | app/serviceuser:* | app/pat:*
+	relation app_group_get: app/user:* | app/serviceuser:* | app/pat:*
 }
