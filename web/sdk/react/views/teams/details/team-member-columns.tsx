@@ -1,269 +1,269 @@
 'use client';
 
 import {
-  DotsHorizontalIcon,
-  TrashIcon,
-  UpdateIcon
+    DotsHorizontalIcon,
+    TrashIcon,
+    UpdateIcon
 } from '@radix-ui/react-icons';
 import {
-  toast,
-  Label,
-  Text,
-  Flex,
-  Avatar,
-  DropdownMenu,
-  type DataTableColumnDef,
-  getAvatarColor
+    toast,
+    Label,
+    Text,
+    Flex,
+    Avatar,
+    DropdownMenu,
+    type DataTableColumnDef,
+    getAvatarColor
 } from '@raystack/apsara';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import {
-  FrontierServiceQueries,
-  RemoveGroupUserRequestSchema,
-  DeletePolicyRequestSchema,
-  CreatePolicyRequestSchema,
-  Policy,
-  Role,
-  User,
-  ListPoliciesRequestSchema
+    FrontierServiceQueries,
+    RemoveGroupUserRequestSchema,
+    DeletePolicyRequestSchema,
+    CreatePolicyRequestSchema,
+    Policy,
+    Role,
+    User,
+    ListPoliciesRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
 interface getColumnsOptions {
-  roles: Role[];
-  organizationId: string;
-  teamId: string;
-  canUpdateGroup?: boolean;
-  memberRoles?: Record<string, Role[]>;
-  refetchMembers: () => void;
+    roles: Role[];
+    organizationId: string;
+    teamId: string;
+    canUpdateGroup?: boolean;
+    memberRoles?: Record<string, Role[]>;
+    refetchMembers: () => void;
 }
 
 export const getColumns = ({
-  roles = [],
-  organizationId,
-  teamId,
-  canUpdateGroup = false,
-  memberRoles = {},
-  refetchMembers
+    roles = [],
+    organizationId,
+    teamId,
+    canUpdateGroup = false,
+    memberRoles = {},
+    refetchMembers
 }: getColumnsOptions): DataTableColumnDef<User, unknown>[] => [
-  {
-    header: '',
-    accessorKey: 'avatar',
-    enableSorting: false,
-    styles: {
-      cell: {
-        width: 'var(--rs-space-5)'
-      }
-    },
-    cell: ({ row, getValue }) => {
-      const color = getAvatarColor(row?.original?.id || '');
-      return (
-        <Avatar
-          src={getValue() as string}
-          color={color}
-          fallback={getInitials(row.original?.title || row.original?.email)}
-          size={5}
-          radius="full"
-          style={{ marginRight: 'var(--rs-space-4)' }}
-        />
-      );
-    }
-  },
-  {
-    header: 'Title',
-    accessorKey: 'title',
-    cell: ({ row, getValue }) => {
-      return (
-        <Flex direction="column" gap={2}>
-          <Label style={{ fontWeight: '$500' }}>{getValue() as string}</Label>
-          <Text>{row.original.email}</Text>
-        </Flex>
-      );
-    }
-  },
-  {
-    header: 'Roles',
-    accessorKey: 'email',
-    cell: ({ row }) => {
-      return (
-        <Text>
-          {(row.original?.id &&
-            memberRoles[row.original?.id] &&
-            memberRoles[row.original?.id]
-              .map((r: any) => r.title || r.name)
-              .join(', ')) ??
-            'Inherited role'}
-        </Text>
-      );
-    }
-  },
-  {
-    header: '',
-    accessorKey: 'id',
-    enableSorting: false,
-    cell: ({ row }) => (
-      <MembersActions
-        refetch={refetchMembers}
-        member={row.original as User}
-        organizationId={organizationId}
-        teamId={teamId}
-        canUpdateGroup={canUpdateGroup}
-        excludedRoles={differenceWith<Role>(
-          isEqualById,
-          roles,
-          row.original?.id && memberRoles[row.original?.id]
-            ? memberRoles[row.original?.id]
-            : []
-        )}
-      />
-    )
-  }
-];
+        {
+            header: '',
+            accessorKey: 'avatar',
+            enableSorting: false,
+            styles: {
+                cell: {
+                    width: 'var(--rs-space-5)'
+                }
+            },
+            cell: ({ row, getValue }) => {
+                const color = getAvatarColor(row?.original?.id || '');
+                return (
+                    <Avatar
+                        src={getValue() as string}
+                        color={color}
+                        fallback={getInitials(row.original?.title || row.original?.email)}
+                        size={5}
+                        radius="full"
+                        style={{ marginRight: 'var(--rs-space-4)' }}
+                    />
+                );
+            }
+        },
+        {
+            header: 'Title',
+            accessorKey: 'title',
+            cell: ({ row, getValue }) => {
+                return (
+                    <Flex direction="column" gap={2}>
+                        <Label style={{ fontWeight: '$500' }}>{getValue() as string}</Label>
+                        <Text>{row.original.email}</Text>
+                    </Flex>
+                );
+            }
+        },
+        {
+            header: 'Roles',
+            accessorKey: 'email',
+            cell: ({ row }) => {
+                return (
+                    <Text>
+                        {(row.original?.id &&
+                            memberRoles[row.original?.id] &&
+                            memberRoles[row.original?.id]
+                                .map((r: any) => r.title || r.name)
+                                .join(', ')) ??
+                            'Inherited role'}
+                    </Text>
+                );
+            }
+        },
+        {
+            header: '',
+            accessorKey: 'id',
+            enableSorting: false,
+            cell: ({ row }) => (
+                <MembersActions
+                    refetch={refetchMembers}
+                    member={row.original as User}
+                    organizationId={organizationId}
+                    teamId={teamId}
+                    canUpdateGroup={canUpdateGroup}
+                    excludedRoles={differenceWith<Role>(
+                        isEqualById,
+                        roles,
+                        row.original?.id && memberRoles[row.original?.id]
+                            ? memberRoles[row.original?.id]
+                            : []
+                    )}
+                />
+            )
+        }
+    ];
 
 const MembersActions = ({
-  member,
-  organizationId,
-  teamId,
-  canUpdateGroup,
-  excludedRoles = [],
-  refetch = () => null
+    member,
+    organizationId,
+    teamId,
+    canUpdateGroup,
+    excludedRoles = [],
+    refetch = () => null
 }: {
-  member: User;
-  canUpdateGroup?: boolean;
-  organizationId: string;
-  teamId: string;
-  excludedRoles: Role[];
-  refetch: () => void;
+    member: User;
+    canUpdateGroup?: boolean;
+    organizationId: string;
+    teamId: string;
+    excludedRoles: Role[];
+    refetch: () => void;
 }) => {
-  // Remove group user using Connect RPC
-  const removeGroupUserMutation = useMutation(
-    FrontierServiceQueries.removeGroupUser,
-    {
-      onSuccess: () => {
-        refetch();
-        toast.success('Member deleted');
-      },
-      onError: error => {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      }
-    }
-  );
-
-  function deleteMember() {
-    const request = create(RemoveGroupUserRequestSchema, {
-      id: teamId,
-      orgId: organizationId,
-      userId: member?.id as string
-    });
-
-    removeGroupUserMutation.mutate(request);
-  }
-
-  // Get policies using Connect RPC
-  const { refetch: refetchPolicies } = useQuery(
-    FrontierServiceQueries.listPolicies,
-    create(ListPoliciesRequestSchema, {
-      groupId: teamId,
-      userId: member?.id as string
-    }),
-    { enabled: false } // Only fetch when needed
-  );
-
-  // Delete policy using Connect RPC
-  const deletePolicyMutation = useMutation(
-    FrontierServiceQueries.deletePolicy,
-    {
-      onError: error => {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      }
-    }
-  );
-
-  // Create policy using Connect RPC
-  const createPolicyMutation = useMutation(
-    FrontierServiceQueries.createPolicy,
-    {
-      onSuccess: () => {
-        refetch();
-        toast.success('Team member role updated');
-      },
-      onError: error => {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      }
-    }
-  );
-
-  async function updateRole(role: Role) {
-    try {
-      const resource = `app/group:${teamId}`;
-      const principal = `app/user:${member?.id}`;
-
-      // Get policies using Connect RPC
-      const policiesResponse = await refetchPolicies();
-      const policies = policiesResponse?.data?.policies || [];
-
-      // Delete existing policies
-      const deletePromises = policies.map((p: Policy) => {
-        const deleteRequest = create(DeletePolicyRequestSchema, {
-          id: p.id as string
-        });
-        return deletePolicyMutation.mutateAsync(deleteRequest);
-      });
-
-      await Promise.all(deletePromises);
-
-      // Create new policy
-      const createRequest = create(CreatePolicyRequestSchema, {
-        body: {
-          roleId: role.id as string,
-          title: role.name as string,
-          resource: resource,
-          principal: principal
+    // Remove group user using Connect RPC
+    const removeGroupUserMutation = useMutation(
+        FrontierServiceQueries.removeGroupUser,
+        {
+            onSuccess: () => {
+                refetch();
+                toast.success('Member deleted');
+            },
+            onError: error => {
+                toast.error('Something went wrong', {
+                    description: error.message
+                });
+            }
         }
-      });
+    );
 
-      await createPolicyMutation.mutateAsync(createRequest);
-    } catch (error: any) {
-      toast.error('Something went wrong', {
-        description: error?.message
-      });
+    function deleteMember() {
+        const request = create(RemoveGroupUserRequestSchema, {
+            id: teamId,
+            orgId: organizationId,
+            userId: member?.id as string
+        });
+
+        removeGroupUserMutation.mutate(request);
     }
-  }
 
-  return canUpdateGroup ? (
-    <DropdownMenu placement="bottom-end">
-      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
-        <DotsHorizontalIcon />
-      </DropdownMenu.Trigger>
-      {/* @ts-ignore */}
-      <DropdownMenu.Content portal={false}>
-        <DropdownMenu.Group>
-          {excludedRoles.map((role: Role) => (
-            <DropdownMenu.Item
-              key={role.id}
-              onClick={() => updateRole(role)}
-              data-test-id="frontier-sdk-update-team-member-role-btn"
-            >
-              <UpdateIcon />
-              Make {role.title}
-            </DropdownMenu.Item>
-          ))}
-          <DropdownMenu.Item
-            onClick={deleteMember}
-            data-test-id="frontier-sdk-remove-team-member-btn"
-          >
-            <TrashIcon />
-            Remove from team
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
-  ) : null;
+    // Get policies using Connect RPC
+    const { refetch: refetchPolicies } = useQuery(
+        FrontierServiceQueries.listPolicies,
+        create(ListPoliciesRequestSchema, {
+            groupId: teamId,
+            userId: member?.id as string
+        }),
+        { enabled: false } // Only fetch when needed
+    );
+
+    // Delete policy using Connect RPC
+    const deletePolicyMutation = useMutation(
+        FrontierServiceQueries.deletePolicy,
+        {
+            onError: error => {
+                toast.error('Something went wrong', {
+                    description: error.message
+                });
+            }
+        }
+    );
+
+    // Create policy using Connect RPC
+    const createPolicyMutation = useMutation(
+        FrontierServiceQueries.createPolicy,
+        {
+            onSuccess: () => {
+                refetch();
+                toast.success('Team member role updated');
+            },
+            onError: error => {
+                toast.error('Something went wrong', {
+                    description: error.message
+                });
+            }
+        }
+    );
+
+    async function updateRole(role: Role) {
+        try {
+            const resource = `app/group:${teamId}`;
+            const principal = `app/user:${member?.id}`;
+
+            // Get policies using Connect RPC
+            const policiesResponse = await refetchPolicies();
+            const policies = policiesResponse?.data?.policies || [];
+
+            // Delete existing policies
+            const deletePromises = policies.map((p: Policy) => {
+                const deleteRequest = create(DeletePolicyRequestSchema, {
+                    id: p.id as string
+                });
+                return deletePolicyMutation.mutateAsync(deleteRequest);
+            });
+
+            await Promise.all(deletePromises);
+
+            // Create new policy
+            const createRequest = create(CreatePolicyRequestSchema, {
+                body: {
+                    roleId: role.id as string,
+                    title: role.name as string,
+                    resource: resource,
+                    principal: principal
+                }
+            });
+
+            await createPolicyMutation.mutateAsync(createRequest);
+        } catch (error: any) {
+            toast.error('Something went wrong', {
+                description: error?.message
+            });
+        }
+    }
+
+    return canUpdateGroup ? (
+        <DropdownMenu placement="bottom-end">
+            <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+                <DotsHorizontalIcon />
+            </DropdownMenu.Trigger>
+            {/* @ts-ignore */}
+            <DropdownMenu.Content portal={false}>
+                <DropdownMenu.Group>
+                    {excludedRoles.map((role: Role) => (
+                        <DropdownMenu.Item
+                            key={role.id}
+                            onClick={() => updateRole(role)}
+                            data-test-id="frontier-sdk-update-team-member-role-btn"
+                        >
+                            <UpdateIcon />
+                            Make {role.title}
+                        </DropdownMenu.Item>
+                    ))}
+                    <DropdownMenu.Item
+                        onClick={deleteMember}
+                        data-test-id="frontier-sdk-remove-team-member-btn"
+                    >
+                        <TrashIcon />
+                        Remove from team
+                    </DropdownMenu.Item>
+                </DropdownMenu.Group>
+            </DropdownMenu.Content>
+        </DropdownMenu>
+    ) : null;
 };
 
