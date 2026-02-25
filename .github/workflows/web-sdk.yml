@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
           ref: main
 
-      - name: Setup pnpm 8
+      - name: Setup pnpm 9
         uses: pnpm/action-setup@v2
         with:
           version: 9.3.0
