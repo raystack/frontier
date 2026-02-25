@@ -9,7 +9,7 @@ import {
   DescribePreferencesResponse,
 } from "@raystack/proton/frontier";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { ConnectError } from "@connectrpc/connect";
 import PreferencesList from "./index";
 import PreferenceDetails from "./details";
@@ -27,17 +27,13 @@ export default function PreferencesView({
 }: PreferencesViewProps = {}) {
   const transport = useTransport();
 
-  const [preferencesQuery, traitsQuery] = useQueries({
-    queries: [
-      {
-        ...createQueryOptions(AdminServiceQueries.listPreferences, {}, { transport }),
-        staleTime: Infinity,
-      },
-      {
-        ...createQueryOptions(FrontierServiceQueries.describePreferences, {}, { transport }),
-        staleTime: Infinity,
-      },
-    ],
+  const preferencesQuery = useQuery({
+    ...createQueryOptions(AdminServiceQueries.listPreferences, {}, { transport }),
+    staleTime: Infinity,
+  });
+  const traitsQuery = useQuery({
+    ...createQueryOptions(FrontierServiceQueries.describePreferences, {}, { transport }),
+    staleTime: Infinity,
   });
 
   const preferences = ((preferencesQuery.data as ListPreferencesResponse)?.preferences || []) as Preference[];
