@@ -12,7 +12,6 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -20,10 +19,16 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema, ListOrganizationRolesRequestSchema, ListRolesRequestSchema, ListOrganizationGroupsRequestSchema } from '@raystack/proton/frontier';
+import {
+  FrontierServiceQueries,
+  CreateOrganizationInvitationRequestSchema,
+  ListOrganizationRolesRequestSchema,
+  ListRolesRequestSchema,
+  ListOrganizationGroupsRequestSchema
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { handleSelectValueChange } from '~/react/utils';
-import styles from '../organization.module.css';
+import styles from '../../components/organization/organization.module.css';
 
 const inviteSchema = yup.object({
   type: yup.string().required(),
@@ -33,7 +38,15 @@ const inviteSchema = yup.object({
 
 type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 
-export const InviteMember = () => {
+export interface InviteMemberDialogProps {
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
+}
+
+export const InviteMemberDialog = ({
+  open,
+  onOpenChange
+}: InviteMemberDialogProps) => {
   const {
     watch,
     register,
@@ -43,11 +56,10 @@ export const InviteMember = () => {
   } = useForm({
     resolver: yupResolver(inviteSchema)
   });
-  const navigate = useNavigate({ from: '/members/modal' });
   const { activeOrganization: organization } = useFrontier();
-  
+
   // Organization roles query
-  const { data: orgRolesData, isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
+  const { data: orgRolesData, isLoading: isOrgRolesLoading } = useQuery(
     FrontierServiceQueries.listOrganizationRoles,
     create(ListOrganizationRolesRequestSchema, {
       orgId: organization?.id || '',
@@ -61,7 +73,7 @@ export const InviteMember = () => {
   const orgRoles = useMemo(() => orgRolesData?.roles || [], [orgRolesData]);
 
   // Global roles query
-  const { data: globalRolesData, isLoading: isGlobalRolesLoading, error: globalRolesError } = useQuery(
+  const { data: globalRolesData, isLoading: isGlobalRolesLoading } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       scopes: [PERMISSIONS.OrganizationNamespace]
@@ -71,10 +83,13 @@ export const InviteMember = () => {
     }
   );
 
-  const globalRoles = useMemo(() => globalRolesData?.roles || [], [globalRolesData]);
+  const globalRoles = useMemo(
+    () => globalRolesData?.roles || [],
+    [globalRolesData]
+  );
 
   // Organization groups query
-  const { data: teamsData, isLoading: isGroupsLoading, error: groupsError } = useQuery(
+  const { data: teamsData, isLoading: isGroupsLoading } = useQuery(
     FrontierServiceQueries.listOrganizationGroups,
     create(ListOrganizationGroupsRequestSchema, {
       orgId: organization?.id || ''
@@ -85,26 +100,27 @@ export const InviteMember = () => {
   );
 
   const teams = useMemo(() => teamsData?.groups || [], [teamsData]);
-  
-  const isLoading = isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
-  
-  const roles = useMemo(() => 
-    [...(globalRoles || []), ...(orgRoles || [])],
+
+  const isLoading =
+    isOrgRolesLoading || isGlobalRolesLoading || isGroupsLoading;
+
+  const roles = useMemo(
+    () => [...(globalRoles || []), ...(orgRoles || [])],
     [globalRoles, orgRoles]
   );
-  
+
   const { mutateAsync: createInvitation } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
     {
       onSuccess: () => {
         toast.success('User(s) invited');
-        navigate({ to: '/members' });
+        onOpenChange(false);
       },
       onError: (error: any) => {
         toast.error('Something went wrong', {
           description: error?.message || 'Failed to create invitation'
         });
-      },
+      }
     }
   );
 
@@ -138,8 +154,6 @@ export const InviteMember = () => {
     [createInvitation, organization?.id]
   );
 
-
-
   const isDisabled = useMemo(() => {
     const [emails, type] = values;
     const emailList =
@@ -151,7 +165,7 @@ export const InviteMember = () => {
   }, [isSubmitting, values]);
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
         overlayClassName={styles.overlay}
@@ -165,7 +179,7 @@ export const InviteMember = () => {
               alt="cross"
               style={{ cursor: 'pointer' }}
               src={cross as unknown as string}
-              onClick={() => navigate({ to: '/members' })}
+              onClick={() => onOpenChange(false)}
               data-test-id="frontier-sdk-invite-member-close-btn"
             />
           </Flex>
