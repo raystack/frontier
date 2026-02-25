@@ -1,0 +1,24 @@
+.tableWrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tableRoot {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+.tableHeader {
+    z-index: 1;
+}
+
+.tableSearchWrapper {
+    max-width: 500px;
+    flex: 1;
+}
+
