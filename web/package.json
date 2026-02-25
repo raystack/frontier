@@ -35,7 +35,9 @@
   },
   "pnpm": {
     "overrides": {
-      "@connectrpc/connect-query-core": "2.1.1"
+      "@connectrpc/connect-query-core": "2.1.1",
+      "@tanstack/react-query": "5.90.20",
+      "@tanstack/query-core": "5.90.20"
     }
   },
   "engines": {
