@@ -202,8 +202,13 @@ func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string)
 	}
 
 	for _, r := range roles {
-		if !slices.Contains(r.Scopes, schema.ProjectNamespace) && !slices.Contains(r.Scopes, schema.OrganizationNamespace) {
+		if len(r.Scopes) == 0 {
 			return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, ErrUnsupportedScope)
+		}
+		for _, scope := range r.Scopes {
+			if scope != schema.ProjectNamespace && scope != schema.OrganizationNamespace {
+				return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, ErrUnsupportedScope)
+			}
 		}
 	}
 

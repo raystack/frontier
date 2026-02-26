@@ -38,7 +38,7 @@ func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleServi
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.On("List", mock.Anything, mock.Anything).
 		Return([]role.Role{{
-			ID:     "role-1-id",
+			ID:     "role-1",
 			Name:   "test-role",
 			Scopes: []string{schema.OrganizationNamespace},
 		}}, nil).Maybe()
@@ -509,7 +509,7 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"org-role-1"}}).Return([]role.Role{{
-		ID:          "org-role-1-id",
+		ID:          "org-role-1",
 		Name:        "org_viewer",
 		Permissions: []string{"app_organization_get"},
 		Scopes:      []string{schema.OrganizationNamespace},
@@ -517,7 +517,7 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 
 	policySvc := mocks.NewPolicyService(t)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "org-role-1-id",
+		RoleID:        "org-role-1",
 		ResourceID:    "org-1",
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   "pat-1",
@@ -551,7 +551,7 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{{
-		ID:          "proj-role-1-id",
+		ID:          "proj-role-1",
 		Name:        "proj_viewer",
 		Permissions: []string{"app_project_get"},
 		Scopes:      []string{schema.ProjectNamespace},
@@ -559,7 +559,7 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 
 	policySvc := mocks.NewPolicyService(t)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "proj-role-1-id",
+		RoleID:        "proj-role-1",
 		ResourceID:    "org-1",
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   "pat-1",
@@ -596,7 +596,7 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{{
-		ID:          "proj-role-1-id",
+		ID:          "proj-role-1",
 		Name:        "proj_viewer",
 		Permissions: []string{"app_project_get"},
 		Scopes:      []string{schema.ProjectNamespace},
@@ -604,14 +604,14 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 
 	policySvc := mocks.NewPolicyService(t)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "proj-role-1-id",
+		RoleID:        "proj-role-1",
 		ResourceID:    "proj-a",
 		ResourceType:  schema.ProjectNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "proj-role-1-id",
+		RoleID:        "proj-role-1",
 		ResourceID:    "proj-b",
 		ResourceType:  schema.ProjectNamespace,
 		PrincipalID:   "pat-1",
@@ -642,7 +642,7 @@ func TestService_CreatePolicies_DeniedPermission(t *testing.T) {
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"admin-role"}}).Return([]role.Role{{
-		ID:          "admin-role-id",
+		ID:          "admin-role",
 		Name:        "org_admin",
 		Permissions: []string{"app_organization_administer", "app_organization_get"},
 		Scopes:      []string{schema.OrganizationNamespace},
@@ -709,7 +709,7 @@ func TestService_CreatePolicies_UnsupportedScope(t *testing.T) {
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"group-role"}}).Return([]role.Role{{
-		ID:          "group-role-id",
+		ID:          "group-role",
 		Name:        "group_owner",
 		Permissions: []string{"app_group_administer"},
 		Scopes:      []string{schema.GroupNamespace},
@@ -744,7 +744,7 @@ func TestService_CreatePolicies_MissingRoleID(t *testing.T) {
 	roleSvc := mocks.NewRoleService(t)
 	// request 2 roles but only 1 found
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"role-a", "role-b"}}).Return([]role.Role{{
-		ID:     "role-a-id",
+		ID:     "role-a",
 		Name:   "role_a",
 		Scopes: []string{schema.OrganizationNamespace},
 	}}, nil)
@@ -1017,6 +1017,17 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "group-role-id", Name: "app_group_manager", Permissions: []string{"app_group_get"}, Scopes: []string{schema.GroupNamespace}},
 			},
 			want:      nil, // scope validation happens upfront — no token or policies created
+			wantErr:   true,
+			wantErrIs: userpat.ErrUnsupportedScope,
+		},
+		{
+			name:       "role with mixed supported and unsupported scopes is rejected",
+			roleIDs:    []string{"mixed-scope-id"},
+			projectIDs: nil,
+			roles: []role.Role{
+				{ID: "mixed-scope-id", Name: "mixed_role", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace, schema.GroupNamespace}},
+			},
+			want:      nil,
 			wantErr:   true,
 			wantErrIs: userpat.ErrUnsupportedScope,
 		},

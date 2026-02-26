@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -118,8 +119,17 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 
 	// bind policy to resource
 	grantRelation := schema.RoleGrantRelationName
-	if gr, ok := pol.Metadata[schema.GrantRelationMetadataKey].(string); ok && gr != "" {
-		grantRelation = gr
+	if raw, ok := pol.Metadata[schema.GrantRelationMetadataKey]; ok {
+		gr, ok := raw.(string)
+		if !ok {
+			return fmt.Errorf("invalid %q metadata type", schema.GrantRelationMetadataKey)
+		}
+		if gr != "" {
+			if gr != schema.RoleGrantRelationName && gr != schema.PATGrantRelationName {
+				return fmt.Errorf("invalid %q metadata value: %q", schema.GrantRelationMetadataKey, gr)
+			}
+			grantRelation = gr
+		}
 	}
 	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{

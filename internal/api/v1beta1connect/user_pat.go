@@ -56,7 +56,7 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 		case errors.Is(err, userpat.ErrLimitExceeded):
 			return nil, connect.NewError(connect.CodeResourceExhausted, err)
 		case errors.Is(err, userpat.ErrRoleNotFound):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrRoleNotFound)
 		case errors.Is(err, userpat.ErrDeniedRole):
 			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrDeniedRole)
 		case errors.Is(err, userpat.ErrUnsupportedScope):
