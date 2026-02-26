@@ -346,10 +346,10 @@ func TestService_Create(t *testing.T) {
 					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
-					Enabled:                true,
-					Prefix:            "custom",
+					Enabled:          true,
+					Prefix:           "custom",
 					MaxPerUserPerOrg: 50,
-					MaxLifetime:       "8760h",
+					MaxLifetime:      "8760h",
 				}, orgSvc, roleSvc, policySvc, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
@@ -998,11 +998,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "org-admin-id", Name: "app_organization_admin", Permissions: []string{"app_organization_administer"}, Scopes: []string{schema.OrganizationNamespace}},
 			},
 			config: userpat.Config{
-				Enabled:                true,
+				Enabled:           true,
 				Prefix:            "fpt",
-				MaxPerUserPerOrg: 50,
+				MaxPerUserPerOrg:  50,
 				MaxLifetime:       "8760h",
-				DeniedPermissions:      []string{"app_organization_administer"},
+				DeniedPermissions: []string{"app_organization_administer"},
 			},
 			want:      nil, // no policies should be created
 			wantErr:   true,
