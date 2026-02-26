@@ -8,17 +8,26 @@ import {
   Flex,
   Dialog
 } from '@raystack/apsara';
-import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import cross from '~/react/assets/cross.svg';
-import styles from '../../organization.module.css';
+import orgStyles from '../../components/organization/organization.module.css';
 import { timestampToDayjs } from '~/utils/timestamp';
 import { usePlans } from '~/react/views/plans/hooks/usePlans';
 
-export function ConfirmCycleSwitch() {
+export interface ConfirmCycleSwitchDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  planId: string;
+}
+
+export function ConfirmCycleSwitchDialog({
+  open,
+  onOpenChange,
+  planId
+}: ConfirmCycleSwitchDialogProps) {
   const {
     activePlan,
     paymentMethod,
@@ -27,13 +36,11 @@ export function ConfirmCycleSwitch() {
     allPlans,
     isAllPlansLoading
   } = useFrontier();
-  const navigate = useNavigate({ from: '/billing/cycle-switch/$planId' });
-  const { planId } = useParams({ from: '/billing/cycle-switch/$planId' });
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
-  const closeModal = useCallback(
-    () => navigate({ to: '/billing' }),
-    [navigate]
+  const handleClose = useCallback(
+    () => onOpenChange?.(false),
+    [onOpenChange]
   );
 
   const {
@@ -85,7 +92,7 @@ export function ConfirmCycleSwitch() {
             planId: nextPlanId
           });
           if (planPhase) {
-            closeModal();
+            handleClose();
             const changeDate = timestampToDayjs(planPhase?.effectiveAt)?.format(
               dateFormat
             );
@@ -105,9 +112,9 @@ export function ConfirmCycleSwitch() {
     : 'the next billing cycle';
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
-        overlayClassName={styles.overlay}
+        overlayClassName={orgStyles.overlay}
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <Dialog.Header>
@@ -121,7 +128,7 @@ export function ConfirmCycleSwitch() {
               alt="cross"
               style={{ cursor: 'pointer' }}
               src={cross as unknown as string}
-              onClick={closeModal}
+              onClick={handleClose}
             />
           </Flex>
         </Dialog.Header>
@@ -164,7 +171,7 @@ export function ConfirmCycleSwitch() {
             <Button
               variant="outline"
               color="neutral"
-              onClick={closeModal}
+              onClick={handleClose}
               data-test-id="frontier-sdk-billing-cycle-switch-cancel-button"
             >
               Cancel
