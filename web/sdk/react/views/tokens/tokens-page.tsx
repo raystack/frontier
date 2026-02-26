@@ -149,13 +149,13 @@ function TokenInfoBox({ canUpdateWorkspace }: TokenInfoBoxProps) {
       icon={<InfoCircledIcon className={tokenStyles.tokenInfoText} />}
       className={tokenStyles.tokenInfoBox}
     >
-      You can now add tokens anytime to reduce next month's invoice. But this
-      won't settle any existing or overdue invoices.
+      You can now add tokens anytime to reduce next month&apos;s invoice. But this
+      won&apos;t settle any existing or overdue invoices.
     </Callout>
   ) : null;
 }
 
-export interface TokensPageProps {}
+export interface TokensPageProps { }
 
 export default function TokensPage(_props: TokensPageProps = {}) {
   const {
