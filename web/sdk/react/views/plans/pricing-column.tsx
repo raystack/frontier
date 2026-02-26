@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -244,21 +243,21 @@ interface PlanPricingColumnProps {
   features: string[];
   currentPlan?: IntervalPricingWithPlan;
   allowAction: boolean;
+  onConfirmPlanChange?: (planId: string) => void;
 }
 
 export const PlanPricingColumn = ({
   plan,
   features,
   currentPlan,
-  allowAction
+  allowAction,
+  onConfirmPlanChange
 }: PlanPricingColumnProps) => {
   const { config, paymentMethod } = useFrontier();
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
   const shortDateFormat = config?.shortDateFormat || DEFAULT_DATE_SHORT_FORMAT;
   const [isTrialCheckoutLoading, setIsTrialCheckoutLoading] = useState(false);
   const plans = useMemo(() => Object.values(plan.intervals), [plan.intervals]);
-
-  const navigate = useNavigate({ from: '/plans' });
 
   const {
     checkoutPlan,
@@ -333,12 +332,7 @@ export const PlanPricingColumn = ({
 
   const onPlanActionClick = useCallback(() => {
     if (action?.showModal && !isCheckoutRequired && isAlreadySubscribed) {
-      navigate({
-        to: '/plans/confirm-change/$planId',
-        params: {
-          planId: selectedIntervalPricing?.planId
-        }
-      });
+      onConfirmPlanChange?.(selectedIntervalPricing?.planId);
     } else if (isAlreadySubscribed && !isCheckoutRequired) {
       const planId = selectedIntervalPricing?.planId;
       changePlan({
@@ -372,7 +366,7 @@ export const PlanPricingColumn = ({
     action?.btnLabel,
     isAlreadySubscribed,
     isCheckoutRequired,
-    navigate,
+    onConfirmPlanChange,
     selectedIntervalPricing?.planId,
     changePlan,
     verifyPlanChange,

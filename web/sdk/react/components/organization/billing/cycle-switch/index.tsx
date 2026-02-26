@@ -12,11 +12,11 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
-import { usePlans } from '../../plans/hooks/usePlans';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 import { timestampToDayjs } from '~/utils/timestamp';
+import { usePlans } from '~/react/views/plans/hooks/usePlans';
 
 export function ConfirmCycleSwitch() {
   const {
@@ -61,7 +61,7 @@ export function ConfirmCycleSwitch() {
 
   const isUpgrade =
     (Number(nextPlanMetadata?.weightage) || 0) -
-      (Number(activePlanMetadata?.weightage) || 0) >
+    (Number(activePlanMetadata?.weightage) || 0) >
     0;
 
   const isLoading = isAllPlansLoading;
@@ -100,8 +100,8 @@ export function ConfirmCycleSwitch() {
 
   const cycleSwitchDate = activeSubscription?.currentPeriodEndAt
     ? timestampToDayjs(activeSubscription?.currentPeriodEndAt)?.format(
-        config?.dateFormat || DEFAULT_DATE_FORMAT
-      )
+      config?.dateFormat || DEFAULT_DATE_FORMAT
+    )
     : 'the next billing cycle';
 
   return (
