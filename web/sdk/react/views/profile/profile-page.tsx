@@ -3,9 +3,7 @@ import { PageHeader } from '~/react/components/common/page-header';
 import { UpdateProfile } from './update-profile';
 import sharedStyles from '../../components/organization/styles.module.css';
 
-export interface ProfilePageProps {}
-
-export default function ProfilePage({}: ProfilePageProps) {
+export default function ProfilePage() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex direction="column" className={sharedStyles.container}>
