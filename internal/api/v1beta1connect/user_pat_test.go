@@ -21,34 +21,26 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
+func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 	testTime := time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
 	testCreatedAt := time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC)
 	testOrgID := "9f256f86-31a3-11ec-8d3d-0242ac130003"
 	testUserID := "8e256f86-31a3-11ec-8d3d-0242ac130003"
 	testRoleID := "7d256f86-31a3-11ec-8d3d-0242ac130003"
-	defaultPATConfig := userpat.Config{
-		Enabled:                true,
-		TokenPrefix:            "fpt",
-		MaxTokensPerUserPerOrg: 50,
-		MaxTokenLifetime:       "8760h",
-	}
 
 	tests := []struct {
-		name      string
-		setup     func(ps *mocks.UserPATService, as *mocks.AuthnService)
-		patConfig userpat.Config
-		request   *connect.Request[frontierv1beta1.CreateCurrentUserPersonalTokenRequest]
-		want      *frontierv1beta1.CreateCurrentUserPersonalTokenResponse
-		wantErr   error
+		name    string
+		setup   func(ps *mocks.UserPATService, as *mocks.AuthnService)
+		request *connect.Request[frontierv1beta1.CreateCurrentUserPATRequest]
+		want    *frontierv1beta1.CreateCurrentUserPATResponse
+		wantErr error
 	}{
 		{
 			name: "should return unauthenticated error when GetLoggedInPrincipal fails",
 			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -65,8 +57,7 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.ServiceUserPrincipal,
 				}, nil)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -83,9 +74,9 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(userpat.ErrExpiryInPast)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -102,14 +93,9 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(userpat.ErrExpiryExceeded)
 			},
-			patConfig: userpat.Config{
-				Enabled:                true,
-				TokenPrefix:            "fpt",
-				MaxTokensPerUserPerOrg: 50,
-				MaxTokenLifetime:       "24h",
-			},
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -126,11 +112,11 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PersonalAccessToken{}, "", userpat.ErrDisabled)
+					Return(userpat.PAT{}, "", userpat.ErrDisabled)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -147,11 +133,11 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PersonalAccessToken{}, "", userpat.ErrConflict)
+					Return(userpat.PAT{}, "", userpat.ErrConflict)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -168,11 +154,11 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PersonalAccessToken{}, "", userpat.ErrLimitExceeded)
+					Return(userpat.PAT{}, "", userpat.ErrLimitExceeded)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -189,11 +175,11 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PersonalAccessToken{}, "", fmt.Errorf("creating policies: %w", userpat.ErrDeniedRole))
+					Return(userpat.PAT{}, "", fmt.Errorf("creating policies: %w", userpat.ErrDeniedRole))
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -210,11 +196,11 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PersonalAccessToken{}, "", fmt.Errorf("creating policies: %w", userpat.ErrUnsupportedScope))
+					Return(userpat.PAT{}, "", fmt.Errorf("creating policies: %w", userpat.ErrUnsupportedScope))
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -231,11 +217,11 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PersonalAccessToken{}, "", errors.New("unexpected error"))
+					Return(userpat.PAT{}, "", errors.New("unexpected error"))
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -245,19 +231,20 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
 		{
-			name: "should create token successfully and return response",
+			name: "should create PAT successfully and return response",
 			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
 					ID:   testUserID,
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.MatchedBy(func(req userpat.CreateRequest) bool {
 					return req.UserID == testUserID &&
 						req.OrgID == testOrgID &&
 						req.Title == "my-token" &&
 						len(req.RoleIDs) == 1 && req.RoleIDs[0] == testRoleID
-				})).Return(userpat.PersonalAccessToken{
+				})).Return(userpat.PAT{
 					ID:        "pat-1",
 					UserID:    testUserID,
 					OrgID:     testOrgID,
@@ -267,15 +254,14 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					UpdatedAt: testCreatedAt,
 				}, "fpt_abc123", nil)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
-			want: &frontierv1beta1.CreateCurrentUserPersonalTokenResponse{
-				Token: &frontierv1beta1.PersonalAccessToken{
+			want: &frontierv1beta1.CreateCurrentUserPATResponse{
+				Pat: &frontierv1beta1.PAT{
 					Id:        "pat-1",
 					UserId:    testUserID,
 					OrgId:     testOrgID,
@@ -289,15 +275,16 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "should create token with metadata",
+			name: "should create PAT with metadata",
 			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
 					ID:   testUserID,
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PersonalAccessToken{
+					Return(userpat.PAT{
 						ID:        "pat-1",
 						UserID:    testUserID,
 						OrgID:     testOrgID,
@@ -308,8 +295,7 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 						Metadata:  metadata.Metadata{"env": "staging"},
 					}, "fpt_xyz789", nil)
 			},
-			patConfig: defaultPATConfig,
-			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPersonalTokenRequest{
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
 				RoleIds:   []string{testRoleID},
@@ -320,8 +306,8 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 					},
 				},
 			}),
-			want: &frontierv1beta1.CreateCurrentUserPersonalTokenResponse{
-				Token: &frontierv1beta1.PersonalAccessToken{
+			want: &frontierv1beta1.CreateCurrentUserPATResponse{
+				Pat: &frontierv1beta1.PAT{
 					Id:        "pat-1",
 					UserId:    testUserID,
 					OrgId:     testOrgID,
@@ -353,10 +339,9 @@ func TestHandler_CreateCurrentUserPersonalToken(t *testing.T) {
 			handler := &ConnectHandler{
 				userPATService: mockPATSrv,
 				authnService:   mockAuthnSrv,
-				patConfig:      tt.patConfig,
 			}
 
-			resp, err := handler.CreateCurrentUserPersonalToken(context.Background(), tt.request)
+			resp, err := handler.CreateCurrentUserPAT(context.Background(), tt.request)
 
 			if tt.wantErr != nil {
 				assert.Error(t, err)
@@ -383,14 +368,14 @@ func TestTransformPATToPB(t *testing.T) {
 	testLastUsed := time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC)
 
 	tests := []struct {
-		name       string
-		pat        userpat.PersonalAccessToken
-		tokenValue string
-		want       *frontierv1beta1.PersonalAccessToken
+		name     string
+		pat      userpat.PAT
+		patValue string
+		want     *frontierv1beta1.PAT
 	}{
 		{
 			name: "should transform minimal PAT",
-			pat: userpat.PersonalAccessToken{
+			pat: userpat.PAT{
 				ID:        "pat-1",
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -399,8 +384,8 @@ func TestTransformPATToPB(t *testing.T) {
 				CreatedAt: testCreatedAt,
 				UpdatedAt: testCreatedAt,
 			},
-			tokenValue: "",
-			want: &frontierv1beta1.PersonalAccessToken{
+			patValue: "",
+			want: &frontierv1beta1.PAT{
 				Id:        "pat-1",
 				UserId:    "user-1",
 				OrgId:     "org-1",
@@ -412,7 +397,7 @@ func TestTransformPATToPB(t *testing.T) {
 		},
 		{
 			name: "should include token value when provided",
-			pat: userpat.PersonalAccessToken{
+			pat: userpat.PAT{
 				ID:        "pat-1",
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -421,8 +406,8 @@ func TestTransformPATToPB(t *testing.T) {
 				CreatedAt: testCreatedAt,
 				UpdatedAt: testCreatedAt,
 			},
-			tokenValue: "fpt_abc123",
-			want: &frontierv1beta1.PersonalAccessToken{
+			patValue: "fpt_abc123",
+			want: &frontierv1beta1.PAT{
 				Id:        "pat-1",
 				UserId:    "user-1",
 				OrgId:     "org-1",
@@ -435,7 +420,7 @@ func TestTransformPATToPB(t *testing.T) {
 		},
 		{
 			name: "should include last_used_at when set",
-			pat: userpat.PersonalAccessToken{
+			pat: userpat.PAT{
 				ID:         "pat-1",
 				UserID:     "user-1",
 				OrgID:      "org-1",
@@ -445,8 +430,8 @@ func TestTransformPATToPB(t *testing.T) {
 				UpdatedAt:  testCreatedAt,
 				LastUsedAt: &testLastUsed,
 			},
-			tokenValue: "",
-			want: &frontierv1beta1.PersonalAccessToken{
+			patValue: "",
+			want: &frontierv1beta1.PAT{
 				Id:         "pat-1",
 				UserId:     "user-1",
 				OrgId:      "org-1",
@@ -459,7 +444,7 @@ func TestTransformPATToPB(t *testing.T) {
 		},
 		{
 			name: "should include metadata when set",
-			pat: userpat.PersonalAccessToken{
+			pat: userpat.PAT{
 				ID:        "pat-1",
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -469,8 +454,8 @@ func TestTransformPATToPB(t *testing.T) {
 				UpdatedAt: testCreatedAt,
 				Metadata:  metadata.Metadata{"env": "prod"},
 			},
-			tokenValue: "fpt_xyz",
-			want: &frontierv1beta1.PersonalAccessToken{
+			patValue: "fpt_xyz",
+			want: &frontierv1beta1.PAT{
 				Id:        "pat-1",
 				UserId:    "user-1",
 				OrgId:     "org-1",
@@ -490,7 +475,7 @@ func TestTransformPATToPB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := transformPATToPB(tt.pat, tt.tokenValue)
+			got := transformPATToPB(tt.pat, tt.patValue)
 			assert.Equal(t, tt.want, got)
 		})
 	}

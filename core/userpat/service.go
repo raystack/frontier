@@ -105,10 +105,9 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, e
 
 	roles, err := s.resolveAndValidateRoles(ctx, req.RoleIDs)
 	if err != nil {
-		return PersonalAccessToken{}, "", err
+		return PAT{}, "", err
 	}
 
-	tokenValue, secretHash, err := s.generateToken()
 	patValue, secretHash, err := s.generatePAT()
 	if err != nil {
 		return PAT{}, "", err
@@ -129,7 +128,7 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, e
 	}
 
 	if err := s.createPolicies(ctx, created.ID, req.OrgID, roles, req.ProjectIDs); err != nil {
-		return PersonalAccessToken{}, "", fmt.Errorf("creating policies: %w", err)
+		return PAT{}, "", fmt.Errorf("creating policies: %w", err)
 	}
 
 	// TODO: move audit record creation into the same transaction as PAT creation to avoid partial state where PAT exists but audit record doesn't.
@@ -217,9 +216,9 @@ func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string)
 
 // createPolicies creates SpiceDB policies for the PAT based on the already-validated roles and project scope.
 // Each role is categorized by its Scopes field:
-//   - Org-scoped role → policy on the org with default "granted" relation
-//   - Project-scoped role, all projects (projectIDs empty) → policy on org with "pat_granted" relation
-//   - Project-scoped role, specific projects → one policy per project with default "granted" relation
+//   - Org-scoped role -> policy on the org with default "granted" relation
+//   - Project-scoped role, all projects (projectIDs empty) -> policy on org with "pat_granted" relation
+//   - Project-scoped role, specific projects -> one policy per project with default "granted" relation
 func (s *Service) createPolicies(ctx context.Context, patID, orgID string, roles []role.Role, projectIDs []string) error {
 	for _, r := range roles {
 		var err error
@@ -270,7 +269,7 @@ func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID string
 // (cascades to all projects). Otherwise, it creates one policy per project with default "granted".
 func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID string, r role.Role, projectIDs []string) error {
 	if len(projectIDs) == 0 {
-		// all projects → policy on org with "pat_granted"
+		// all projects -> policy on org with "pat_granted"
 		if _, err := s.policyService.Create(ctx, policy.Policy{
 			RoleID:        r.ID,
 			ResourceID:    orgID,
@@ -286,7 +285,7 @@ func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID 
 		return nil
 	}
 
-	// specific projects → one policy per project
+	// specific projects -> one policy per project
 	for _, projectID := range projectIDs {
 		if _, err := s.policyService.Create(ctx, policy.Policy{
 			RoleID:        r.ID,

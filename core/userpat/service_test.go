@@ -24,10 +24,10 @@ import (
 )
 
 var defaultConfig = userpat.Config{
-	Enabled:                true,
-	TokenPrefix:            "fpt",
-	MaxTokensPerUserPerOrg: 50,
-	MaxTokenLifetime:       "8760h",
+	Enabled:          true,
+	Prefix:           "fpt",
+	MaxPerUserPerOrg: 50,
+	MaxLifetime:      "8760h",
 }
 
 func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleService, *mocks.PolicyService, *mocks.AuditRecordRepository) {
@@ -59,7 +59,7 @@ func TestService_Create(t *testing.T) {
 		wantErr      bool
 		wantErrIs    error
 		wantErrMsg   string
-		validateFunc func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string)
+		validateFunc func(t *testing.T, got userpat.PAT, tokenValue string)
 	}{
 		{
 			name: "should return ErrDisabled when PAT feature is disabled",
@@ -91,7 +91,7 @@ func TestService_Create(t *testing.T) {
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:    true,
-			wantErrMsg: "counting active tokens",
+			wantErrMsg: "counting active PATs",
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
@@ -156,8 +156,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{}, errors.New("insert failed"))
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{}, errors.New("insert failed"))
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				roleSvc := mocks.NewRoleService(t)
@@ -182,8 +182,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{}, userpat.ErrConflict)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{}, userpat.ErrConflict)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				roleSvc := mocks.NewRoleService(t)
@@ -209,8 +209,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Run(func(ctx context.Context, pat userpat.PersonalAccessToken) {
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Run(func(ctx context.Context, pat userpat.PAT) {
 						if pat.UserID != "user-1" {
 							t.Errorf("Create() UserID = %v, want %v", pat.UserID, "user-1")
 						}
@@ -230,7 +230,7 @@ func TestService_Create(t *testing.T) {
 							t.Errorf("Create() ExpiresAt = %v, want %v", pat.ExpiresAt, time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC))
 						}
 					}).
-					Return(userpat.PersonalAccessToken{
+					Return(userpat.PAT{
 						ID:        "pat-id-1",
 						UserID:    "user-1",
 						OrgID:     "org-1",
@@ -242,7 +242,7 @@ func TestService_Create(t *testing.T) {
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
+			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
 				t.Helper()
 				if got.ID != "pat-id-1" {
 					t.Errorf("Create() ID = %v, want %v", got.ID, "pat-id-1")
@@ -269,12 +269,12 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
+			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
 				t.Helper()
 				if !strings.HasPrefix(tokenValue, "fpt_") {
 					t.Errorf("token should start with prefix fpt_, got %v", tokenValue)
@@ -306,12 +306,12 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
+			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
 				t.Helper()
 				parts := strings.SplitN(tokenValue, "_", 2)
 				if len(parts) != 2 {
@@ -342,17 +342,17 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
 					Enabled:                true,
-					TokenPrefix:            "custom",
-					MaxTokensPerUserPerOrg: 50,
-					MaxTokenLifetime:       "8760h",
+					Prefix:            "custom",
+					MaxPerUserPerOrg: 50,
+					MaxLifetime:       "8760h",
 				}, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PersonalAccessToken, tokenValue string) {
+			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
 				t.Helper()
 				if !strings.HasPrefix(tokenValue, "custom_") {
 					t.Errorf("token should start with custom_, got %v", tokenValue)
@@ -373,8 +373,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(49), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
@@ -393,8 +393,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
@@ -423,12 +423,12 @@ func TestService_Create(t *testing.T) {
 	}
 }
 
-func TestService_Create_UniqueTokens(t *testing.T) {
+func TestService_Create_UniquePATs(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 		Return(int64(0), nil).Times(2)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil).Times(2)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil).Times(2)
 
 	orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
@@ -441,16 +441,16 @@ func TestService_Create_UniqueTokens(t *testing.T) {
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
 
-	_, token1, err1 := svc.Create(context.Background(), req)
+	_, pat1, err1 := svc.Create(context.Background(), req)
 	if err1 != nil {
 		t.Fatalf("Create() first call error = %v", err1)
 	}
-	_, token2, err2 := svc.Create(context.Background(), req)
+	_, pat2, err2 := svc.Create(context.Background(), req)
 	if err2 != nil {
 		t.Fatalf("Create() second call error = %v", err2)
 	}
-	if token1 == token2 {
-		t.Errorf("Create() should generate unique tokens, got same token twice: %v", token1)
+	if pat1 == pat2 {
+		t.Errorf("Create() should generate unique PATs, got same value twice: %v", pat1)
 	}
 }
 
@@ -459,11 +459,11 @@ func TestService_Create_HashVerification(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 		Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-		Run(func(ctx context.Context, pat userpat.PersonalAccessToken) {
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+		Run(func(ctx context.Context, pat userpat.PAT) {
 			capturedHash = pat.SecretHash
 		}).
-		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1"}, nil)
+		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 
 	orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
@@ -498,8 +498,8 @@ func TestService_Create_HashVerification(t *testing.T) {
 func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	orgSvc.On("GetRaw", mock.Anything, mock.Anything).
@@ -540,8 +540,8 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	orgSvc.On("GetRaw", mock.Anything, mock.Anything).
@@ -585,8 +585,8 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	orgSvc.On("GetRaw", mock.Anything, mock.Anything).
@@ -773,8 +773,8 @@ func TestService_CreatePolicies_MissingRoleID(t *testing.T) {
 func TestService_CreatePolicies_NoRoles(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
@@ -999,9 +999,9 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 			config: userpat.Config{
 				Enabled:                true,
-				TokenPrefix:            "fpt",
-				MaxTokensPerUserPerOrg: 50,
-				MaxTokenLifetime:       "8760h",
+				Prefix:            "fpt",
+				MaxPerUserPerOrg: 50,
+				MaxLifetime:       "8760h",
 				DeniedPermissions:      []string{"app_organization_administer"},
 			},
 			want:      nil, // no policies should be created
@@ -1066,8 +1066,8 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
 			// Only mock repo.Create for success cases — validation errors fail before token creation
 			if !tt.wantErr {
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-					Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 			}
 
 			orgSvc := mocks.NewOrganizationService(t)
@@ -1173,8 +1173,8 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 func TestService_CreatePolicies_PolicyCreateFailure(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PersonalAccessToken")).
-		Return(userpat.PersonalAccessToken{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
+		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	auditRepo := mocks.NewAuditRecordRepository(t)
@@ -1219,17 +1219,17 @@ func TestConfig_MaxExpiry(t *testing.T) {
 	}{
 		{
 			name: "should parse valid duration",
-			cfg:  userpat.Config{MaxTokenLifetime: "720h"},
+			cfg:  userpat.Config{MaxLifetime: "720h"},
 			want: 720 * time.Hour,
 		},
 		{
 			name: "should return default 1 year on invalid duration",
-			cfg:  userpat.Config{MaxTokenLifetime: "invalid"},
+			cfg:  userpat.Config{MaxLifetime: "invalid"},
 			want: 365 * 24 * time.Hour,
 		},
 		{
 			name: "should return default 1 year on empty duration",
-			cfg:  userpat.Config{MaxTokenLifetime: ""},
+			cfg:  userpat.Config{MaxLifetime: ""},
 			want: 365 * 24 * time.Hour,
 		},
 	}

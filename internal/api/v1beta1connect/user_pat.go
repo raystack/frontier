@@ -3,7 +3,6 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/userpat"
@@ -37,7 +36,6 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 		UserID:     principal.User.ID,
 		OrgID:      request.Msg.GetOrgId(),
 		Title:      request.Msg.GetTitle(),
-		Roles:      request.Msg.GetRoleIds(),
 		RoleIDs:    request.Msg.GetRoleIds(),
 		ProjectIDs: request.Msg.GetProjectIds(),
 		ExpiresAt:  request.Msg.GetExpiresAt().AsTime(),
