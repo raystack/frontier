@@ -22,10 +22,10 @@ interface RevokeSessionFinalConfirmProps {
   isCurrentSession?: boolean;
 }
 
-export const RevokeSessionFinalConfirm = ({ 
-  isOpen, 
-  onOpenChange, 
-  onConfirm, 
+export const RevokeSessionFinalConfirm = ({
+  isOpen,
+  onOpenChange,
+  onConfirm,
   isLoading = false,
   isCurrentSession = false
 }: RevokeSessionFinalConfirmProps) => {

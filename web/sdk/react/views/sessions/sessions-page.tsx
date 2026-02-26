@@ -1,24 +1,40 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Text,
   Flex,
   Button,
 } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useSessions } from '../../../hooks/useSessions';
-import { PageHeader } from '../../common/page-header';
-import sharedStyles from '../styles.module.css';
+import { useSessions } from '~/react/hooks/useSessions';
+import { PageHeader } from '~/react/components/common/page-header';
+import sharedStyles from '../../components/organization/styles.module.css';
 import { SessionSkeleton } from './session-skeleton';
+import { RevokeSessionDialog } from './revoke-session-dialog';
 import styles from './sessions.module.css';
 
-export const SessionsPage = () => {
-  const navigate = useNavigate({ from: '/sessions' });
+export interface SessionsPageProps {
+  onLogout?: () => void;
+}
+
+export default function SessionsPage({ onLogout }: SessionsPageProps) {
   const { sessions, isLoading, error } = useSessions();
 
+  const [revokeState, setRevokeState] = useState({
+    open: false,
+    sessionId: ''
+  });
+
+  const handleRevokeOpenChange = (value: boolean) => {
+    if (!value) {
+      setRevokeState({ open: false, sessionId: '' });
+    } else {
+      setRevokeState(prev => ({ ...prev, open: value }));
+    }
+  };
 
   const handleRevoke = (sessionId: string) => {
-    navigate({ to: '/sessions/revoke', search: { sessionId } });
+    setRevokeState({ open: true, sessionId });
   };
 
   if (isLoading) {
@@ -26,8 +42,8 @@ export const SessionsPage = () => {
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
           <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
-            <PageHeader 
-              title="Sessions" 
+            <PageHeader
+              title="Sessions"
               description="Devices logged into this account."
             />
           </Flex>
@@ -44,8 +60,8 @@ export const SessionsPage = () => {
       <Flex direction="column" width="full">
         <Flex direction="column" className={styles.container}>
           <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
-            <PageHeader 
-              title="Sessions" 
+            <PageHeader
+              title="Sessions"
               description="Devices logged into this account."
             />
           </Flex>
@@ -63,12 +79,12 @@ export const SessionsPage = () => {
     <Flex direction="column" width="full">
       <Flex direction="column" className={styles.container}>
         <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
-          <PageHeader 
-            title="Sessions" 
+          <PageHeader
+            title="Sessions"
             description="Devices logged into this account."
           />
         </Flex>
-        
+
         <Flex direction="column" className={styles.sessionsList}>
           {sessions.length === 0 ? (
             <Flex justify="center" align="center" style={{ padding: '2rem' }}>
@@ -93,10 +109,10 @@ export const SessionsPage = () => {
                     )}
                   </Flex>
                 </Flex>
-                <Button 
-                  variant="text" 
-                  color="neutral" 
-                  onClick={() => handleRevoke(session.id)} 
+                <Button
+                  variant="text"
+                  color="neutral"
+                  onClick={() => handleRevoke(session.id)}
                   data-test-id="frontier-sdk-revoke-session-button"
                 >
                   {session.isCurrent ? 'Logout' : 'Revoke'}
@@ -106,7 +122,12 @@ export const SessionsPage = () => {
           )}
         </Flex>
       </Flex>
-      <Outlet />
+      <RevokeSessionDialog
+        open={revokeState.open}
+        onOpenChange={handleRevokeOpenChange}
+        sessionId={revokeState.sessionId}
+        onLogout={onLogout}
+      />
     </Flex>
   );
-};
+}
