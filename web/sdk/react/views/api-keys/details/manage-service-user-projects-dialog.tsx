@@ -41,6 +41,7 @@ const getColumns = ({
   return [
     {
       header: '',
+      id: 'checkbox',
       accessorKey: 'id',
       enableSorting: false,
       styles: {
