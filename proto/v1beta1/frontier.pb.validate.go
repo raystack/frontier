@@ -45945,23 +45945,22 @@ var _ interface {
 	ErrorName() string
 } = CreateAuditRecordResponseValidationError{}
 
-// Validate checks the field values on CreateCurrentUserPersonalTokenRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *CreateCurrentUserPersonalTokenRequest) Validate() error {
+// Validate checks the field values on CreateCurrentUserPATRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateCurrentUserPATRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CreateCurrentUserPersonalTokenRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the result is a list of violation errors wrapped in
-// CreateCurrentUserPersonalTokenRequestMultiError, or nil if none found.
-func (m *CreateCurrentUserPersonalTokenRequest) ValidateAll() error {
+// ValidateAll checks the field values on CreateCurrentUserPATRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateCurrentUserPATRequestMultiError, or nil if none found.
+func (m *CreateCurrentUserPATRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
+func (m *CreateCurrentUserPATRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -45969,7 +45968,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 	var errors []error
 
 	if utf8.RuneCountInString(m.GetTitle()) < 1 {
-		err := CreateCurrentUserPersonalTokenRequestValidationError{
+		err := CreateCurrentUserPATRequestValidationError{
 			field:  "Title",
 			reason: "value length must be at least 1 runes",
 		}
@@ -45980,7 +45979,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 	}
 
 	if err := m._validateUuid(m.GetOrgId()); err != nil {
-		err = CreateCurrentUserPersonalTokenRequestValidationError{
+		err = CreateCurrentUserPATRequestValidationError{
 			field:  "OrgId",
 			reason: "value must be a valid UUID",
 			cause:  err,
@@ -45991,9 +45990,9 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetRoles()) < 1 {
-		err := CreateCurrentUserPersonalTokenRequestValidationError{
-			field:  "Roles",
+	if len(m.GetRoleIds()) < 1 {
+		err := CreateCurrentUserPATRequestValidationError{
+			field:  "RoleIds",
 			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
@@ -46002,11 +46001,28 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	for idx, item := range m.GetRoleIds() {
+		_, _ = idx, item
+
+		if err := m._validateUuid(item); err != nil {
+			err = CreateCurrentUserPATRequestValidationError{
+				field:  fmt.Sprintf("RoleIds[%v]", idx),
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	for idx, item := range m.GetProjectIds() {
 		_, _ = idx, item
 
 		if err := m._validateUuid(item); err != nil {
-			err = CreateCurrentUserPersonalTokenRequestValidationError{
+			err = CreateCurrentUserPATRequestValidationError{
 				field:  fmt.Sprintf("ProjectIds[%v]", idx),
 				reason: "value must be a valid UUID",
 				cause:  err,
@@ -46023,7 +46039,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 		switch v := interface{}(m.GetExpiresAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateCurrentUserPersonalTokenRequestValidationError{
+				errors = append(errors, CreateCurrentUserPATRequestValidationError{
 					field:  "ExpiresAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46031,7 +46047,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateCurrentUserPersonalTokenRequestValidationError{
+				errors = append(errors, CreateCurrentUserPATRequestValidationError{
 					field:  "ExpiresAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46040,7 +46056,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetExpiresAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CreateCurrentUserPersonalTokenRequestValidationError{
+			return CreateCurrentUserPATRequestValidationError{
 				field:  "ExpiresAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -46052,7 +46068,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateCurrentUserPersonalTokenRequestValidationError{
+				errors = append(errors, CreateCurrentUserPATRequestValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46060,7 +46076,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateCurrentUserPersonalTokenRequestValidationError{
+				errors = append(errors, CreateCurrentUserPATRequestValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46069,7 +46085,7 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CreateCurrentUserPersonalTokenRequestValidationError{
+			return CreateCurrentUserPATRequestValidationError{
 				field:  "Metadata",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -46078,13 +46094,13 @@ func (m *CreateCurrentUserPersonalTokenRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return CreateCurrentUserPersonalTokenRequestMultiError(errors)
+		return CreateCurrentUserPATRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-func (m *CreateCurrentUserPersonalTokenRequest) _validateUuid(uuid string) error {
+func (m *CreateCurrentUserPATRequest) _validateUuid(uuid string) error {
 	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
 		return errors.New("invalid uuid format")
 	}
@@ -46092,14 +46108,13 @@ func (m *CreateCurrentUserPersonalTokenRequest) _validateUuid(uuid string) error
 	return nil
 }
 
-// CreateCurrentUserPersonalTokenRequestMultiError is an error wrapping
-// multiple validation errors returned by
-// CreateCurrentUserPersonalTokenRequest.ValidateAll() if the designated
-// constraints aren't met.
-type CreateCurrentUserPersonalTokenRequestMultiError []error
+// CreateCurrentUserPATRequestMultiError is an error wrapping multiple
+// validation errors returned by CreateCurrentUserPATRequest.ValidateAll() if
+// the designated constraints aren't met.
+type CreateCurrentUserPATRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CreateCurrentUserPersonalTokenRequestMultiError) Error() string {
+func (m CreateCurrentUserPATRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -46108,12 +46123,12 @@ func (m CreateCurrentUserPersonalTokenRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CreateCurrentUserPersonalTokenRequestMultiError) AllErrors() []error { return m }
+func (m CreateCurrentUserPATRequestMultiError) AllErrors() []error { return m }
 
-// CreateCurrentUserPersonalTokenRequestValidationError is the validation error
-// returned by CreateCurrentUserPersonalTokenRequest.Validate if the
-// designated constraints aren't met.
-type CreateCurrentUserPersonalTokenRequestValidationError struct {
+// CreateCurrentUserPATRequestValidationError is the validation error returned
+// by CreateCurrentUserPATRequest.Validate if the designated constraints
+// aren't met.
+type CreateCurrentUserPATRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -46121,24 +46136,24 @@ type CreateCurrentUserPersonalTokenRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e CreateCurrentUserPersonalTokenRequestValidationError) Field() string { return e.field }
+func (e CreateCurrentUserPATRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CreateCurrentUserPersonalTokenRequestValidationError) Reason() string { return e.reason }
+func (e CreateCurrentUserPATRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CreateCurrentUserPersonalTokenRequestValidationError) Cause() error { return e.cause }
+func (e CreateCurrentUserPATRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CreateCurrentUserPersonalTokenRequestValidationError) Key() bool { return e.key }
+func (e CreateCurrentUserPATRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CreateCurrentUserPersonalTokenRequestValidationError) ErrorName() string {
-	return "CreateCurrentUserPersonalTokenRequestValidationError"
+func (e CreateCurrentUserPATRequestValidationError) ErrorName() string {
+	return "CreateCurrentUserPATRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CreateCurrentUserPersonalTokenRequestValidationError) Error() string {
+func (e CreateCurrentUserPATRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -46150,14 +46165,14 @@ func (e CreateCurrentUserPersonalTokenRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCreateCurrentUserPersonalTokenRequest.%s: %s%s",
+		"invalid %sCreateCurrentUserPATRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CreateCurrentUserPersonalTokenRequestValidationError{}
+var _ error = CreateCurrentUserPATRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -46165,26 +46180,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CreateCurrentUserPersonalTokenRequestValidationError{}
+} = CreateCurrentUserPATRequestValidationError{}
 
-// Validate checks the field values on CreateCurrentUserPersonalTokenResponse
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *CreateCurrentUserPersonalTokenResponse) Validate() error {
+// Validate checks the field values on CreateCurrentUserPATResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateCurrentUserPATResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on
-// CreateCurrentUserPersonalTokenResponse with the rules defined in the proto
-// definition for this message. If any rules are violated, the result is a
-// list of violation errors wrapped in
-// CreateCurrentUserPersonalTokenResponseMultiError, or nil if none found.
-func (m *CreateCurrentUserPersonalTokenResponse) ValidateAll() error {
+// ValidateAll checks the field values on CreateCurrentUserPATResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateCurrentUserPATResponseMultiError, or nil if none found.
+func (m *CreateCurrentUserPATResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CreateCurrentUserPersonalTokenResponse) validate(all bool) error {
+func (m *CreateCurrentUserPATResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -46192,28 +46205,28 @@ func (m *CreateCurrentUserPersonalTokenResponse) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetToken()).(type) {
+		switch v := interface{}(m.GetPat()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateCurrentUserPersonalTokenResponseValidationError{
-					field:  "Token",
+				errors = append(errors, CreateCurrentUserPATResponseValidationError{
+					field:  "Pat",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateCurrentUserPersonalTokenResponseValidationError{
-					field:  "Token",
+				errors = append(errors, CreateCurrentUserPATResponseValidationError{
+					field:  "Pat",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetToken()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetPat()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CreateCurrentUserPersonalTokenResponseValidationError{
-				field:  "Token",
+			return CreateCurrentUserPATResponseValidationError{
+				field:  "Pat",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -46221,20 +46234,19 @@ func (m *CreateCurrentUserPersonalTokenResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return CreateCurrentUserPersonalTokenResponseMultiError(errors)
+		return CreateCurrentUserPATResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// CreateCurrentUserPersonalTokenResponseMultiError is an error wrapping
-// multiple validation errors returned by
-// CreateCurrentUserPersonalTokenResponse.ValidateAll() if the designated
-// constraints aren't met.
-type CreateCurrentUserPersonalTokenResponseMultiError []error
+// CreateCurrentUserPATResponseMultiError is an error wrapping multiple
+// validation errors returned by CreateCurrentUserPATResponse.ValidateAll() if
+// the designated constraints aren't met.
+type CreateCurrentUserPATResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CreateCurrentUserPersonalTokenResponseMultiError) Error() string {
+func (m CreateCurrentUserPATResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -46243,12 +46255,12 @@ func (m CreateCurrentUserPersonalTokenResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CreateCurrentUserPersonalTokenResponseMultiError) AllErrors() []error { return m }
+func (m CreateCurrentUserPATResponseMultiError) AllErrors() []error { return m }
 
-// CreateCurrentUserPersonalTokenResponseValidationError is the validation
-// error returned by CreateCurrentUserPersonalTokenResponse.Validate if the
-// designated constraints aren't met.
-type CreateCurrentUserPersonalTokenResponseValidationError struct {
+// CreateCurrentUserPATResponseValidationError is the validation error returned
+// by CreateCurrentUserPATResponse.Validate if the designated constraints
+// aren't met.
+type CreateCurrentUserPATResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -46256,24 +46268,24 @@ type CreateCurrentUserPersonalTokenResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e CreateCurrentUserPersonalTokenResponseValidationError) Field() string { return e.field }
+func (e CreateCurrentUserPATResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CreateCurrentUserPersonalTokenResponseValidationError) Reason() string { return e.reason }
+func (e CreateCurrentUserPATResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CreateCurrentUserPersonalTokenResponseValidationError) Cause() error { return e.cause }
+func (e CreateCurrentUserPATResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CreateCurrentUserPersonalTokenResponseValidationError) Key() bool { return e.key }
+func (e CreateCurrentUserPATResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CreateCurrentUserPersonalTokenResponseValidationError) ErrorName() string {
-	return "CreateCurrentUserPersonalTokenResponseValidationError"
+func (e CreateCurrentUserPATResponseValidationError) ErrorName() string {
+	return "CreateCurrentUserPATResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CreateCurrentUserPersonalTokenResponseValidationError) Error() string {
+func (e CreateCurrentUserPATResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -46285,14 +46297,14 @@ func (e CreateCurrentUserPersonalTokenResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCreateCurrentUserPersonalTokenResponse.%s: %s%s",
+		"invalid %sCreateCurrentUserPATResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CreateCurrentUserPersonalTokenResponseValidationError{}
+var _ error = CreateCurrentUserPATResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -46300,7 +46312,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CreateCurrentUserPersonalTokenResponseValidationError{}
+} = CreateCurrentUserPATResponseValidationError{}
 
 // Validate checks the field values on ChangeSubscriptionRequest_PlanChange
 // with the rules defined in the proto definition for this message. If any

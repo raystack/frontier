@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -398,5 +399,6 @@ type AuditRecordService interface {
 }
 
 type UserPATService interface {
-	Create(ctx context.Context, req userpat.CreateRequest) (userpat.PersonalAccessToken, string, error)
+	ValidateExpiry(expiresAt time.Time) error
+	Create(ctx context.Context, req userpat.CreateRequest) (userpat.PAT, string, error)
 }

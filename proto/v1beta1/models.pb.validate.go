@@ -3659,22 +3659,21 @@ var _ interface {
 	ErrorName() string
 } = ServiceUserTokenValidationError{}
 
-// Validate checks the field values on PersonalAccessToken with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *PersonalAccessToken) Validate() error {
+// Validate checks the field values on PAT with the rules defined in the proto
+// definition for this message. If any rules are violated, the first error
+// encountered is returned, or nil if there are no violations.
+func (m *PAT) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on PersonalAccessToken with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// PersonalAccessTokenMultiError, or nil if none found.
-func (m *PersonalAccessToken) ValidateAll() error {
+// ValidateAll checks the field values on PAT with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in PATMultiError, or nil if none found.
+func (m *PAT) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *PersonalAccessToken) validate(all bool) error {
+func (m *PAT) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -3695,7 +3694,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		switch v := interface{}(m.GetExpiresAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "ExpiresAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3703,7 +3702,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "ExpiresAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3712,7 +3711,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetExpiresAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PersonalAccessTokenValidationError{
+			return PATValidationError{
 				field:  "ExpiresAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -3724,7 +3723,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		switch v := interface{}(m.GetLastUsedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "LastUsedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3732,7 +3731,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "LastUsedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3741,7 +3740,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetLastUsedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PersonalAccessTokenValidationError{
+			return PATValidationError{
 				field:  "LastUsedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -3753,7 +3752,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3761,7 +3760,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3770,7 +3769,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PersonalAccessTokenValidationError{
+			return PATValidationError{
 				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -3782,7 +3781,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3790,7 +3789,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3799,7 +3798,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PersonalAccessTokenValidationError{
+			return PATValidationError{
 				field:  "UpdatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -3811,7 +3810,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3819,7 +3818,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, PersonalAccessTokenValidationError{
+				errors = append(errors, PATValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3828,7 +3827,7 @@ func (m *PersonalAccessToken) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return PersonalAccessTokenValidationError{
+			return PATValidationError{
 				field:  "Metadata",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -3837,19 +3836,18 @@ func (m *PersonalAccessToken) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return PersonalAccessTokenMultiError(errors)
+		return PATMultiError(errors)
 	}
 
 	return nil
 }
 
-// PersonalAccessTokenMultiError is an error wrapping multiple validation
-// errors returned by PersonalAccessToken.ValidateAll() if the designated
-// constraints aren't met.
-type PersonalAccessTokenMultiError []error
+// PATMultiError is an error wrapping multiple validation errors returned by
+// PAT.ValidateAll() if the designated constraints aren't met.
+type PATMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m PersonalAccessTokenMultiError) Error() string {
+func (m PATMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -3858,11 +3856,11 @@ func (m PersonalAccessTokenMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m PersonalAccessTokenMultiError) AllErrors() []error { return m }
+func (m PATMultiError) AllErrors() []error { return m }
 
-// PersonalAccessTokenValidationError is the validation error returned by
-// PersonalAccessToken.Validate if the designated constraints aren't met.
-type PersonalAccessTokenValidationError struct {
+// PATValidationError is the validation error returned by PAT.Validate if the
+// designated constraints aren't met.
+type PATValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -3870,24 +3868,22 @@ type PersonalAccessTokenValidationError struct {
 }
 
 // Field function returns field value.
-func (e PersonalAccessTokenValidationError) Field() string { return e.field }
+func (e PATValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e PersonalAccessTokenValidationError) Reason() string { return e.reason }
+func (e PATValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e PersonalAccessTokenValidationError) Cause() error { return e.cause }
+func (e PATValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e PersonalAccessTokenValidationError) Key() bool { return e.key }
+func (e PATValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e PersonalAccessTokenValidationError) ErrorName() string {
-	return "PersonalAccessTokenValidationError"
-}
+func (e PATValidationError) ErrorName() string { return "PATValidationError" }
 
 // Error satisfies the builtin error interface
-func (e PersonalAccessTokenValidationError) Error() string {
+func (e PATValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -3899,14 +3895,14 @@ func (e PersonalAccessTokenValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sPersonalAccessToken.%s: %s%s",
+		"invalid %sPAT.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = PersonalAccessTokenValidationError{}
+var _ error = PATValidationError{}
 
 var _ interface {
 	Field() string
@@ -3914,7 +3910,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = PersonalAccessTokenValidationError{}
+} = PATValidationError{}
 
 // Validate checks the field values on JSONWebKey with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

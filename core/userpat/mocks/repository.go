@@ -81,25 +81,25 @@ func (_c *Repository_CountActive_Call) RunAndReturn(run func(context.Context, st
 }
 
 // Create provides a mock function with given fields: ctx, pat
-func (_m *Repository) Create(ctx context.Context, pat userpat.PersonalAccessToken) (userpat.PersonalAccessToken, error) {
+func (_m *Repository) Create(ctx context.Context, pat userpat.PAT) (userpat.PAT, error) {
 	ret := _m.Called(ctx, pat)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 userpat.PersonalAccessToken
+	var r0 userpat.PAT
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, userpat.PersonalAccessToken) (userpat.PersonalAccessToken, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, userpat.PAT) (userpat.PAT, error)); ok {
 		return rf(ctx, pat)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, userpat.PersonalAccessToken) userpat.PersonalAccessToken); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, userpat.PAT) userpat.PAT); ok {
 		r0 = rf(ctx, pat)
 	} else {
-		r0 = ret.Get(0).(userpat.PersonalAccessToken)
+		r0 = ret.Get(0).(userpat.PAT)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, userpat.PersonalAccessToken) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, userpat.PAT) error); ok {
 		r1 = rf(ctx, pat)
 	} else {
 		r1 = ret.Error(1)
@@ -115,24 +115,24 @@ type Repository_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
-//   - pat userpat.PersonalAccessToken
+//   - pat userpat.PAT
 func (_e *Repository_Expecter) Create(ctx interface{}, pat interface{}) *Repository_Create_Call {
 	return &Repository_Create_Call{Call: _e.mock.On("Create", ctx, pat)}
 }
 
-func (_c *Repository_Create_Call) Run(run func(ctx context.Context, pat userpat.PersonalAccessToken)) *Repository_Create_Call {
+func (_c *Repository_Create_Call) Run(run func(ctx context.Context, pat userpat.PAT)) *Repository_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(userpat.PersonalAccessToken))
+		run(args[0].(context.Context), args[1].(userpat.PAT))
 	})
 	return _c
 }
 
-func (_c *Repository_Create_Call) Return(_a0 userpat.PersonalAccessToken, _a1 error) *Repository_Create_Call {
+func (_c *Repository_Create_Call) Return(_a0 userpat.PAT, _a1 error) *Repository_Create_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, userpat.PersonalAccessToken) (userpat.PersonalAccessToken, error)) *Repository_Create_Call {
+func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, userpat.PAT) (userpat.PAT, error)) *Repository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }

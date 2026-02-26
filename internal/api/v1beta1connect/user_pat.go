@@ -3,7 +3,6 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/userpat"
@@ -14,7 +13,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (h *ConnectHandler) CreateCurrentUserPersonalToken(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCurrentUserPersonalTokenRequest]) (*connect.Response[frontierv1beta1.CreateCurrentUserPersonalTokenResponse], error) {
+func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.CreateCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
 
 	principal, err := h.GetLoggedInPrincipal(ctx)
@@ -29,25 +28,21 @@ func (h *ConnectHandler) CreateCurrentUserPersonalToken(ctx context.Context, req
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	expiresAt := request.Msg.GetExpiresAt().AsTime()
-	if !expiresAt.After(time.Now()) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrExpiryInPast)
-	}
-	if expiresAt.After(time.Now().Add(h.patConfig.MaxExpiry())) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrExpiryExceeded)
+	if err := h.userPATService.ValidateExpiry(request.Msg.GetExpiresAt().AsTime()); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	created, tokenValue, err := h.userPATService.Create(ctx, userpat.CreateRequest{
+	created, patValue, err := h.userPATService.Create(ctx, userpat.CreateRequest{
 		UserID:     principal.User.ID,
 		OrgID:      request.Msg.GetOrgId(),
 		Title:      request.Msg.GetTitle(),
-		Roles:      request.Msg.GetRoles(),
+		Roles:      request.Msg.GetRoleIds(),
 		ProjectIDs: request.Msg.GetProjectIds(),
 		ExpiresAt:  request.Msg.GetExpiresAt().AsTime(),
 		Metadata:   metadata.BuildFromProto(request.Msg.GetMetadata()),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "CreateCurrentUserPersonalToken", err,
+		errorLogger.LogServiceError(ctx, request, "CreateCurrentUserPAT", err,
 			zap.String("user_id", principal.User.ID),
 			zap.String("org_id", request.Msg.GetOrgId()))
 
@@ -63,13 +58,13 @@ func (h *ConnectHandler) CreateCurrentUserPersonalToken(ctx context.Context, req
 		}
 	}
 
-	return connect.NewResponse(&frontierv1beta1.CreateCurrentUserPersonalTokenResponse{
-		Token: transformPATToPB(created, tokenValue),
+	return connect.NewResponse(&frontierv1beta1.CreateCurrentUserPATResponse{
+		Pat: transformPATToPB(created, patValue),
 	}), nil
 }
 
-func transformPATToPB(pat userpat.PersonalAccessToken, tokenValue string) *frontierv1beta1.PersonalAccessToken {
-	pbPAT := &frontierv1beta1.PersonalAccessToken{
+func transformPATToPB(pat userpat.PAT, patValue string) *frontierv1beta1.PAT {
+	pbPAT := &frontierv1beta1.PAT{
 		Id:        pat.ID,
 		Title:     pat.Title,
 		UserId:    pat.UserID,
@@ -78,8 +73,8 @@ func transformPATToPB(pat userpat.PersonalAccessToken, tokenValue string) *front
 		CreatedAt: timestamppb.New(pat.CreatedAt),
 		UpdatedAt: timestamppb.New(pat.UpdatedAt),
 	}
-	if tokenValue != "" {
-		pbPAT.Token = tokenValue
+	if patValue != "" {
+		pbPAT.Token = patValue
 	}
 	if pat.LastUsedAt != nil {
 		pbPAT.LastUsedAt = timestamppb.New(*pat.LastUsedAt)
