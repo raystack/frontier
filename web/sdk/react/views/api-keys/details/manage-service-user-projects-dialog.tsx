@@ -9,12 +9,11 @@ import {
   DataTable,
   type DataTableColumnDef
 } from '@raystack/apsara';
-import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useState, useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
-import styles from './styles.module.css';
+import styles from './service-user.module.css';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -91,18 +90,24 @@ const getColumns = ({
   ];
 };
 
-export default function ManageServiceUserProjects() {
-  const { activeOrganization: organization } = useFrontier();
+export interface ManageServiceUserProjectsDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  serviceUserId: string;
+}
 
-  const { id } = useParams({
-    from: '/api-keys/$id/projects'
-  });
+export default function ManageServiceUserProjectsDialog({
+  open,
+  onOpenChange,
+  serviceUserId
+}: ManageServiceUserProjectsDialogProps) {
+  const { activeOrganization: organization } = useFrontier();
 
   const [addedProjectsMap, setAddedProjectsMap] = useState<ProjectAccessMap>(
     {}
   );
 
-  const navigate = useNavigate({ from: '/api-keys/$id/projects' });
+  const handleClose = () => onOpenChange?.(false);
 
   const orgId = organization?.id || '';
 
@@ -114,7 +119,7 @@ export default function ManageServiceUserProjects() {
       withMemberCount: false
     }),
     {
-      enabled: Boolean(orgId)
+      enabled: Boolean(orgId) && open
     }
   );
 
@@ -127,12 +132,12 @@ export default function ManageServiceUserProjects() {
     useQuery(
       FrontierServiceQueries.listServiceUserProjects,
       create(ListServiceUserProjectsRequestSchema, {
-        id,
+        id: serviceUserId,
         orgId,
         withPermissions: []
       }),
       {
-        enabled: Boolean(id) && Boolean(orgId)
+        enabled: Boolean(serviceUserId) && Boolean(orgId) && open
       }
     );
 
@@ -149,15 +154,6 @@ export default function ManageServiceUserProjects() {
     }, {} as ProjectAccessMap);
     setAddedProjectsMap(permMap);
   }, [addedProjects]);
-
-  function onCancel() {
-    navigate({
-      to: '/api-keys/$id',
-      params: {
-        id: id
-      }
-    });
-  }
 
   const { mutateAsync: createPolicyForProject } = useMutation(
     FrontierServiceQueries.createPolicyForProject
@@ -180,7 +176,7 @@ export default function ManageServiceUserProjects() {
         }));
 
         if (value) {
-          const principal = `${PERMISSIONS.ServiceUserPrincipal}:${id}`;
+          const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceUserId}`;
           await createPolicyForProject(
             create(CreatePolicyForProjectRequestSchema, {
               projectId,
@@ -198,7 +194,7 @@ export default function ManageServiceUserProjects() {
           const policiesResp = await listPolicies(
             create(ListPoliciesRequestSchema, {
               projectId,
-              userId: id,
+              userId: serviceUserId,
               orgId: '',
               roleId: '',
               groupId: ''
@@ -227,7 +223,7 @@ export default function ManageServiceUserProjects() {
         }));
       }
     },
-    [id, createPolicyForProject, listPolicies, deletePolicy]
+    [serviceUserId, createPolicyForProject, listPolicies, deletePolicy]
   );
 
   const columns = getColumns({
@@ -240,7 +236,7 @@ export default function ManageServiceUserProjects() {
   const isLoading = isProjectsLoading || isAddedProjectsLoading;
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
         overlayClassName={styles.overlay}
         className={styles.manageProjectDialogContent}
@@ -255,7 +251,7 @@ export default function ManageServiceUserProjects() {
               alt="cross"
               style={{ cursor: 'pointer' }}
               src={cross as unknown as string}
-              onClick={onCancel}
+              onClick={handleClose}
               data-test-id="frontier-sdk-service-account-manage-access-close-btn"
             />
           </Flex>

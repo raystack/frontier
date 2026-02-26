@@ -29,11 +29,7 @@ import Billing from './billing';
 import Tokens from './tokens';
 import Plans from './plans';
 import APIKeys from './api-keys';
-import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
-import { DeleteServiceAccount } from './api-keys/delete';
-import { DeleteServiceAccountKey } from './api-keys/service-user/delete';
-import ManageServiceUserProjects from './api-keys/service-user/projects';
 import { SessionsPage, RevokeSessionConfirm } from './sessions';
 export interface CustomScreen {
   name: string;
@@ -233,34 +229,10 @@ const apiKeysRoute = createRoute({
   component: APIKeys
 });
 
-const addServiceAccountRoute = createRoute({
-  getParentRoute: () => apiKeysRoute,
-  path: '/add',
-  component: AddServiceAccount
-});
-
-const deleteServiceAccountRoute = createRoute({
-  getParentRoute: () => apiKeysRoute,
-  path: '/$id/delete',
-  component: DeleteServiceAccount
-});
-
 const serviceAccountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/api-keys/$id',
   component: ServiceUserPage
-});
-
-const serviceAccountProjectRoute = createRoute({
-  getParentRoute: () => serviceAccountRoute,
-  path: '/projects',
-  component: ManageServiceUserProjects
-});
-
-const deleteServiceAccountKeyRoute = createRoute({
-  getParentRoute: () => serviceAccountRoute,
-  path: '/key/$tokenId/delete',
-  component: DeleteServiceAccountKey
 });
 
 const sessionsRoute = createRoute({
@@ -302,14 +274,8 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     billingRoute,
     plansRoute,
     tokensRoute,
-    apiKeysRoute.addChildren([
-      addServiceAccountRoute,
-      deleteServiceAccountRoute
-    ]),
-    serviceAccountRoute.addChildren([
-      deleteServiceAccountKeyRoute,
-      serviceAccountProjectRoute
-    ]),
+    apiKeysRoute,
+    serviceAccountRoute,
     ...customScreens.map(cc =>
       createRoute({
         path: cc.path,

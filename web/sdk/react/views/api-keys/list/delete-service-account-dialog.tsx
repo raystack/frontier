@@ -1,8 +1,7 @@
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
 import cross from '~/react/assets/cross.svg';
-import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import styles from './styles.module.css';
+import styles from './api-keys.module.css';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
 import {
@@ -12,14 +11,24 @@ import {
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
-export const DeleteServiceAccount = () => {
-  const { id } = useParams({ from: '/api-keys/$id/delete' });
-  const navigate = useNavigate({ from: '/api-keys/$id/delete' });
+export interface DeleteServiceAccountDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  serviceAccountId: string;
+}
+
+export const DeleteServiceAccountDialog = ({
+  open,
+  onOpenChange,
+  serviceAccountId
+}: DeleteServiceAccountDialogProps) => {
   const { activeOrganization: organization } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
 
   const orgId = organization?.id || '';
+
+  const handleClose = () => onOpenChange?.(false);
 
   const { mutateAsync: deleteServiceUser, isPending } = useMutation(
     FrontierServiceQueries.deleteServiceUser
@@ -29,7 +38,7 @@ export const DeleteServiceAccount = () => {
     try {
       await deleteServiceUser(
         create(DeleteServiceUserRequestSchema, {
-          id,
+          id: serviceAccountId,
           orgId
         })
       );
@@ -46,7 +55,7 @@ export const DeleteServiceAccount = () => {
         })
       });
 
-      navigate({ to: '/api-keys' });
+      handleClose();
       toast.success('Service account deleted');
     } catch (error: unknown) {
       toast.error('Unable to delete service account', {
@@ -55,12 +64,8 @@ export const DeleteServiceAccount = () => {
     }
   }
 
-  function onCancel() {
-    navigate({ to: '/api-keys' });
-  }
-
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
         overlayClassName={styles.overlay}
         className={styles.addDialogContent}
@@ -75,7 +80,7 @@ export const DeleteServiceAccount = () => {
               alt="cross"
               style={{ cursor: 'pointer' }}
               src={cross as unknown as string}
-              onClick={() => navigate({ to: '/api-keys' })}
+              onClick={handleClose}
               data-test-id="frontier-sdk-delete-service-account-close-btn"
             />
           </Flex>
@@ -98,7 +103,7 @@ export const DeleteServiceAccount = () => {
               color="neutral"
               size="normal"
               data-test-id="frontier-sdk-delete-service-account-cancel-btn"
-              onClick={onCancel}
+              onClick={handleClose}
             >
               Cancel
             </Button>
