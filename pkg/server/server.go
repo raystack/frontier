@@ -109,7 +109,7 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 }
 
 func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
-	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication, cfg.PAT)
+	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
 
 	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
 	zapLogger := zap.NewExample().Sugar()

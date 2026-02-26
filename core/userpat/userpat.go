@@ -7,7 +7,7 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
-type PersonalAccessToken struct {
+type PAT struct {
 	ID         string `rql:"name=id,type=string"`
 	UserID     string `rql:"name=user_id,type=string"`
 	OrgID      string `rql:"name=org_id,type=string"`
@@ -21,6 +21,6 @@ type PersonalAccessToken struct {
 }
 
 type Repository interface {
-	Create(ctx context.Context, pat PersonalAccessToken) (PersonalAccessToken, error)
+	Create(ctx context.Context, pat PAT) (PAT, error)
 	CountActive(ctx context.Context, userID, orgID string) (int64, error)
 }

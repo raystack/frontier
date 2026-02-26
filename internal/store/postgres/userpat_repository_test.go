@@ -65,7 +65,7 @@ func (s *UserPATRepositoryTestSuite) TearDownTest() {
 
 func (s *UserPATRepositoryTestSuite) cleanup() error {
 	queries := []string{
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USER_TOKENS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USER_PATS),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ORGANIZATIONS),
 	}
@@ -74,7 +74,7 @@ func (s *UserPATRepositoryTestSuite) cleanup() error {
 
 func (s *UserPATRepositoryTestSuite) TestCreate() {
 	s.Run("should create a token and return it with generated ID", func() {
-		pat := userpat.PersonalAccessToken{
+		pat := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "test-token",
@@ -96,7 +96,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 
 	s.Run("should use provided ID if set", func() {
 		customID := uuid.New().String()
-		pat := userpat.PersonalAccessToken{
+		pat := userpat.PAT{
 			ID:         customID,
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
@@ -111,7 +111,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should store and return metadata", func() {
-		pat := userpat.PersonalAccessToken{
+		pat := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "token-with-meta",
@@ -127,7 +127,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should return ErrConflict for duplicate title per user per org", func() {
-		pat := userpat.PersonalAccessToken{
+		pat := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "duplicate-title",
@@ -145,7 +145,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should return ErrConflict for duplicate secret hash", func() {
-		pat1 := userpat.PersonalAccessToken{
+		pat1 := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "token-unique-hash-1",
@@ -156,7 +156,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 		_, err := s.repository.Create(s.ctx, pat1)
 		s.Require().NoError(err)
 
-		pat2 := userpat.PersonalAccessToken{
+		pat2 := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "token-unique-hash-2",
@@ -168,7 +168,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should allow same title for different users in same org", func() {
-		pat1 := userpat.PersonalAccessToken{
+		pat1 := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "shared-title",
@@ -178,7 +178,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 		_, err := s.repository.Create(s.ctx, pat1)
 		s.Require().NoError(err)
 
-		pat2 := userpat.PersonalAccessToken{
+		pat2 := userpat.PAT{
 			UserID:     s.users[1].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "shared-title",
@@ -190,7 +190,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should allow same title for same user in different orgs", func() {
-		pat1 := userpat.PersonalAccessToken{
+		pat1 := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "cross-org-title",
@@ -200,7 +200,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 		_, err := s.repository.Create(s.ctx, pat1)
 		s.Require().NoError(err)
 
-		pat2 := userpat.PersonalAccessToken{
+		pat2 := userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[1].ID,
 			Title:      "cross-org-title",
@@ -214,7 +214,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 
 func (s *UserPATRepositoryTestSuite) truncateTokens() {
 	err := execQueries(context.TODO(), s.client, []string{
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USER_TOKENS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USER_PATS),
 	})
 	s.Require().NoError(err)
 }
@@ -229,7 +229,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_ExcludesExpired() {
 	s.truncateTokens()
 
 	// create an active token
-	_, err := s.repository.Create(s.ctx, userpat.PersonalAccessToken{
+	_, err := s.repository.Create(s.ctx, userpat.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "active-token",
@@ -239,7 +239,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_ExcludesExpired() {
 	s.Require().NoError(err)
 
 	// create an expired token
-	_, err = s.repository.Create(s.ctx, userpat.PersonalAccessToken{
+	_, err = s.repository.Create(s.ctx, userpat.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "expired-token",
@@ -257,7 +257,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_FiltersByUserAndOrg() {
 	s.truncateTokens()
 
 	// token for user[0] in org[0]
-	_, err := s.repository.Create(s.ctx, userpat.PersonalAccessToken{
+	_, err := s.repository.Create(s.ctx, userpat.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "user0-org0",
@@ -267,7 +267,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_FiltersByUserAndOrg() {
 	s.Require().NoError(err)
 
 	// token for user[1] in org[0]
-	_, err = s.repository.Create(s.ctx, userpat.PersonalAccessToken{
+	_, err = s.repository.Create(s.ctx, userpat.PAT{
 		UserID:     s.users[1].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "user1-org0",
@@ -277,7 +277,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_FiltersByUserAndOrg() {
 	s.Require().NoError(err)
 
 	// token for user[0] in org[1]
-	_, err = s.repository.Create(s.ctx, userpat.PersonalAccessToken{
+	_, err = s.repository.Create(s.ctx, userpat.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[1].ID,
 		Title:      "user0-org1",
@@ -295,7 +295,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_MultipleTokens() {
 	s.truncateTokens()
 
 	for i := 0; i < 3; i++ {
-		_, err := s.repository.Create(s.ctx, userpat.PersonalAccessToken{
+		_, err := s.repository.Create(s.ctx, userpat.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      fmt.Sprintf("multi-token-%d", i),

@@ -534,9 +534,9 @@ const (
 	// FrontierServiceCreateAuditRecordProcedure is the fully-qualified name of the FrontierService's
 	// CreateAuditRecord RPC.
 	FrontierServiceCreateAuditRecordProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateAuditRecord"
-	// FrontierServiceCreateCurrentUserPersonalTokenProcedure is the fully-qualified name of the
-	// FrontierService's CreateCurrentUserPersonalToken RPC.
-	FrontierServiceCreateCurrentUserPersonalTokenProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPersonalToken"
+	// FrontierServiceCreateCurrentUserPATProcedure is the fully-qualified name of the FrontierService's
+	// CreateCurrentUserPAT RPC.
+	FrontierServiceCreateCurrentUserPATProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPAT"
 )
 
 // FrontierServiceClient is a client for the raystack.frontier.v1beta1.FrontierService service.
@@ -740,7 +740,7 @@ type FrontierServiceClient interface {
 	// Audit Records
 	CreateAuditRecord(context.Context, *connect.Request[v1beta1.CreateAuditRecordRequest]) (*connect.Response[v1beta1.CreateAuditRecordResponse], error)
 	// Personal Access Token
-	CreateCurrentUserPersonalToken(context.Context, *connect.Request[v1beta1.CreateCurrentUserPersonalTokenRequest]) (*connect.Response[v1beta1.CreateCurrentUserPersonalTokenResponse], error)
+	CreateCurrentUserPAT(context.Context, *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error)
 }
 
 // NewFrontierServiceClient constructs a client for the raystack.frontier.v1beta1.FrontierService
@@ -1762,10 +1762,10 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("CreateAuditRecord")),
 			connect.WithClientOptions(opts...),
 		),
-		createCurrentUserPersonalToken: connect.NewClient[v1beta1.CreateCurrentUserPersonalTokenRequest, v1beta1.CreateCurrentUserPersonalTokenResponse](
+		createCurrentUserPAT: connect.NewClient[v1beta1.CreateCurrentUserPATRequest, v1beta1.CreateCurrentUserPATResponse](
 			httpClient,
-			baseURL+FrontierServiceCreateCurrentUserPersonalTokenProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("CreateCurrentUserPersonalToken")),
+			baseURL+FrontierServiceCreateCurrentUserPATProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateCurrentUserPAT")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -1941,7 +1941,7 @@ type frontierServiceClient struct {
 	billingWebhookCallback         *connect.Client[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse]
 	createProspectPublic           *connect.Client[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse]
 	createAuditRecord              *connect.Client[v1beta1.CreateAuditRecordRequest, v1beta1.CreateAuditRecordResponse]
-	createCurrentUserPersonalToken *connect.Client[v1beta1.CreateCurrentUserPersonalTokenRequest, v1beta1.CreateCurrentUserPersonalTokenResponse]
+	createCurrentUserPAT           *connect.Client[v1beta1.CreateCurrentUserPATRequest, v1beta1.CreateCurrentUserPATResponse]
 }
 
 // ListUsers calls raystack.frontier.v1beta1.FrontierService.ListUsers.
@@ -2806,10 +2806,9 @@ func (c *frontierServiceClient) CreateAuditRecord(ctx context.Context, req *conn
 	return c.createAuditRecord.CallUnary(ctx, req)
 }
 
-// CreateCurrentUserPersonalToken calls
-// raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPersonalToken.
-func (c *frontierServiceClient) CreateCurrentUserPersonalToken(ctx context.Context, req *connect.Request[v1beta1.CreateCurrentUserPersonalTokenRequest]) (*connect.Response[v1beta1.CreateCurrentUserPersonalTokenResponse], error) {
-	return c.createCurrentUserPersonalToken.CallUnary(ctx, req)
+// CreateCurrentUserPAT calls raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT.
+func (c *frontierServiceClient) CreateCurrentUserPAT(ctx context.Context, req *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error) {
+	return c.createCurrentUserPAT.CallUnary(ctx, req)
 }
 
 // FrontierServiceHandler is an implementation of the raystack.frontier.v1beta1.FrontierService
@@ -3014,7 +3013,7 @@ type FrontierServiceHandler interface {
 	// Audit Records
 	CreateAuditRecord(context.Context, *connect.Request[v1beta1.CreateAuditRecordRequest]) (*connect.Response[v1beta1.CreateAuditRecordResponse], error)
 	// Personal Access Token
-	CreateCurrentUserPersonalToken(context.Context, *connect.Request[v1beta1.CreateCurrentUserPersonalTokenRequest]) (*connect.Response[v1beta1.CreateCurrentUserPersonalTokenResponse], error)
+	CreateCurrentUserPAT(context.Context, *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error)
 }
 
 // NewFrontierServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -4032,10 +4031,10 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("CreateAuditRecord")),
 		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreateCurrentUserPersonalTokenHandler := connect.NewUnaryHandler(
-		FrontierServiceCreateCurrentUserPersonalTokenProcedure,
-		svc.CreateCurrentUserPersonalToken,
-		connect.WithSchema(frontierServiceMethods.ByName("CreateCurrentUserPersonalToken")),
+	frontierServiceCreateCurrentUserPATHandler := connect.NewUnaryHandler(
+		FrontierServiceCreateCurrentUserPATProcedure,
+		svc.CreateCurrentUserPAT,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateCurrentUserPAT")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/raystack.frontier.v1beta1.FrontierService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -4376,8 +4375,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceCreateProspectPublicHandler.ServeHTTP(w, r)
 		case FrontierServiceCreateAuditRecordProcedure:
 			frontierServiceCreateAuditRecordHandler.ServeHTTP(w, r)
-		case FrontierServiceCreateCurrentUserPersonalTokenProcedure:
-			frontierServiceCreateCurrentUserPersonalTokenHandler.ServeHTTP(w, r)
+		case FrontierServiceCreateCurrentUserPATProcedure:
+			frontierServiceCreateCurrentUserPATHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -5059,6 +5058,6 @@ func (UnimplementedFrontierServiceHandler) CreateAuditRecord(context.Context, *c
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateAuditRecord is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreateCurrentUserPersonalToken(context.Context, *connect.Request[v1beta1.CreateCurrentUserPersonalTokenRequest]) (*connect.Response[v1beta1.CreateCurrentUserPersonalTokenResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPersonalToken is not implemented"))
+func (UnimplementedFrontierServiceHandler) CreateCurrentUserPAT(context.Context, *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT is not implemented"))
 }

@@ -53,31 +53,43 @@ type CreateRequest struct {
 	Metadata   map[string]any
 }
 
-// Create generates a new personal access token and returns it with the plaintext token value.
-// The plaintext token is only available at creation time.
-func (s *Service) Create(ctx context.Context, req CreateRequest) (PersonalAccessToken, string, error) {
+// ValidateExpiry checks that the given expiry time is in the future and within
+// the configured maximum PAT lifetime.
+func (s *Service) ValidateExpiry(expiresAt time.Time) error {
+	if !expiresAt.After(time.Now()) {
+		return ErrExpiryInPast
+	}
+	if expiresAt.After(time.Now().Add(s.config.MaxExpiry())) {
+		return ErrExpiryExceeded
+	}
+	return nil
+}
+
+// Create generates a new PAT and returns it with the plaintext value.
+// The plaintext value is only available at creation time.
+func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, error) {
 	if !s.config.Enabled {
-		return PersonalAccessToken{}, "", ErrDisabled
+		return PAT{}, "", ErrDisabled
 	}
 
 	// NOTE: CountActive + Create is not atomic (TOCTOU race). Two concurrent requests
-	// could both read count=49 (assuming max limit is 50), pass the check, and create tokens exceeding the limit.
+	// could both read count=49 (assuming max limit is 50), pass the check, and create PATs exceeding the limit.
 	// Acceptable for now given low concurrency on this endpoint. If this becomes an issue,
 	// use an atomic INSERT ... SELECT with a count subquery in the WHERE clause.
 	count, err := s.repo.CountActive(ctx, req.UserID, req.OrgID)
 	if err != nil {
-		return PersonalAccessToken{}, "", fmt.Errorf("counting active tokens: %w", err)
+		return PAT{}, "", fmt.Errorf("counting active PATs: %w", err)
 	}
-	if count >= s.config.MaxTokensPerUserPerOrg {
-		return PersonalAccessToken{}, "", ErrLimitExceeded
+	if count >= s.config.MaxPerUserPerOrg {
+		return PAT{}, "", ErrLimitExceeded
 	}
 
-	tokenValue, secretHash, err := s.generateToken()
+	patValue, secretHash, err := s.generatePAT()
 	if err != nil {
-		return PersonalAccessToken{}, "", err
+		return PAT{}, "", err
 	}
 
-	pat := PersonalAccessToken{
+	pat := PAT{
 		UserID:     req.UserID,
 		OrgID:      req.OrgID,
 		Title:      req.Title,
@@ -88,12 +100,12 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PersonalAccess
 
 	created, err := s.repo.Create(ctx, pat)
 	if err != nil {
-		return PersonalAccessToken{}, "", err
+		return PAT{}, "", err
 	}
 
 	// TODO: create policies for roles + project_ids
 
-	// TODO: move audit record creation into the same transaction as token creation to avoid partial state where token exists but audit record doesn't.
+	// TODO: move audit record creation into the same transaction as PAT creation to avoid partial state where PAT exists but audit record doesn't.
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATCreatedEvent, created, created.CreatedAt, map[string]any{
 		"roles":       req.Roles,
 		"project_ids": req.ProjectIDs,
@@ -101,11 +113,11 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PersonalAccess
 		s.logger.Error("failed to create audit record for PAT", "pat_id", created.ID, "error", err)
 	}
 
-	return created, tokenValue, nil
+	return created, patValue, nil
 }
 
-// createAuditRecord logs a PAT lifecycle event with org context and token metadata.
-func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat PersonalAccessToken, occurredAt time.Time, targetMetadata map[string]any) error {
+// createAuditRecord logs a PAT lifecycle event with org context and PAT metadata.
+func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat PAT, occurredAt time.Time, targetMetadata map[string]any) error {
 	orgName := ""
 	if org, err := s.orgService.GetRaw(ctx, pat.OrgID); err == nil {
 		orgName = org.Title
@@ -136,20 +148,20 @@ func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Ev
 	return nil
 }
 
-// generateToken creates a random token string with the configured prefix and returns
-// the plaintext token value along with its SHA3-256 hash for storage.
-// The hash is computed over the raw secret bytes (not the formatted token string)
-// to avoid coupling the stored hash to the token prefix configuration.
-func (s *Service) generateToken() (tokenValue, secretHash string, err error) {
+// generatePAT creates a random PAT string with the configured prefix and returns
+// the plaintext value along with its SHA3-256 hash for storage.
+// The hash is computed over the raw secret bytes (not the formatted PAT string)
+// to avoid coupling the stored hash to the prefix configuration.
+func (s *Service) generatePAT() (patValue, secretHash string, err error) {
 	secretBytes := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, secretBytes); err != nil {
 		return "", "", fmt.Errorf("generating secret: %w", err)
 	}
 
-	tokenValue = s.config.TokenPrefix + "_" + base64.RawURLEncoding.EncodeToString(secretBytes)
+	patValue = s.config.Prefix + "_" + base64.RawURLEncoding.EncodeToString(secretBytes)
 
 	hash := sha3.Sum256(secretBytes)
 	secretHash = hex.EncodeToString(hash[:])
 
-	return tokenValue, secretHash, nil
+	return patValue, secretHash, nil
 }
