@@ -13,10 +13,7 @@ import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@ra
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   useInfiniteQuery,
-  createConnectQueryKey,
-  useTransport,
 } from "@connectrpc/connect-query";
-import { useQueryClient } from "@tanstack/react-query";
 import { OrganizationContext } from "../contexts/organization-context";
 import { FileIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProjectMembersDialog } from "./members";
@@ -73,8 +70,6 @@ export function OrganizationProjectsPage() {
     setVisibility: setSearchVisibility,
     query: searchQuery,
   } = search;
-  const queryClient = useQueryClient();
-  const transport = useTransport();
 
   const organizationId = organization?.id || "";
 
