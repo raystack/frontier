@@ -1,3 +1,8 @@
+---
+pagination_prev: sdk/web/admin/overview
+pagination_next: sdk/web/admin/utilities
+---
+
 # Components
 
 All view components are exported from `@raystack/frontier/admin`.

@@ -1,3 +1,7 @@
+---
+pagination_next: sdk/web/admin/components
+---
+
 # Overview
 
 `@raystack/frontier/admin` is a React component library that provides pre-built admin views for managing Frontier resources such as users, organizations, plans, webhooks, and more. Each view handles data fetching, pagination, and rendering internally using [ConnectRPC](https://connectrpc.com/) and [`@raystack/apsara`](https://github.com/raystack/apsara) UI components.

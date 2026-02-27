@@ -182,7 +182,7 @@ module.exports = {
             {
               type: "category",
               label: "Admin",
-              collapsed: false,
+              collapsed: true,
               collapsible: true,
               link: {
                 type: "doc",

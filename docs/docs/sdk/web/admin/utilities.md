@@ -1,3 +1,7 @@
+---
+pagination_prev: sdk/web/admin/components
+---
+
 # Utilities
 
 The SDK exports utility functions for working with ConnectRPC pagination and query transformation.
