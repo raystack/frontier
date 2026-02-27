@@ -3,7 +3,7 @@
 All view components are exported from `@raystack/frontier/admin`.
 
 ```tsx
-import { UsersView, PlansView, OrganizationList } from "@raystack/frontier/admin";
+import { UsersView, PlansView, OrganizationListView } from "@raystack/frontier/admin";
 ```
 
 ---
@@ -43,7 +43,7 @@ function UsersPage() {
 
 ---
 
-## OrganizationList
+## OrganizationListView
 
 Displays a paginated, searchable list of organizations with filtering and grouping support.
 
@@ -61,14 +61,14 @@ Displays a paginated, searchable list of organizations with filtering and groupi
 ### Example
 
 ```tsx
-import { OrganizationList } from "@raystack/frontier/admin";
+import { OrganizationListView } from "@raystack/frontier/admin";
 import { useNavigate } from "react-router-dom";
 
 function OrganizationsPage() {
   const navigate = useNavigate();
 
   return (
-    <OrganizationList
+    <OrganizationListView
       onNavigateToOrg={(id) => navigate(`/organizations/${id}/members`)}
     />
   );
@@ -77,7 +77,7 @@ function OrganizationsPage() {
 
 ---
 
-## OrganizationDetails
+## OrganizationDetailsView
 
 Renders the detail layout for a single organization including a navbar with tabs (members, security, projects, etc.). The consuming app must provide child routes via the `children` prop.
 
@@ -99,7 +99,7 @@ Renders the detail layout for a single organization including a navbar with tabs
 
 ### Sub-page Components
 
-These components are meant to be rendered as children of `OrganizationDetails` via your router:
+These components are meant to be rendered as children of `OrganizationDetailsView` via your router:
 
 - `OrganizationMembersView`
 - `OrganizationSecurity`
@@ -112,7 +112,7 @@ These components are meant to be rendered as children of `OrganizationDetails` v
 
 ```tsx
 import {
-  OrganizationDetails,
+  OrganizationDetailsView,
   OrganizationMembersView,
   OrganizationSecurity,
 } from "@raystack/frontier/admin";
@@ -124,13 +124,13 @@ function OrgDetailsPage() {
   const location = useLocation();
 
   return (
-    <OrganizationDetails
+    <OrganizationDetailsView
       organizationId={orgId}
       currentPath={location.pathname}
       onNavigate={navigate}
     >
       <Outlet />
-    </OrganizationDetails>
+    </OrganizationDetailsView>
   );
 }
 ```

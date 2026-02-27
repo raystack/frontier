@@ -1,4 +1,4 @@
-import { OrganizationDetails } from '@raystack/frontier/admin';
+import { OrganizationDetailsView } from '@raystack/frontier/admin';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, Outlet } from 'react-router-dom';
 import { AppContext } from '~/contexts/App';
@@ -51,7 +51,7 @@ export function OrganizationDetailsPage() {
   }, [organizationId]);
 
   return (
-    <OrganizationDetails
+    <OrganizationDetailsView
       organizationId={organizationId}
       appUrl={config?.app_url}
       tokenProductId={config?.token_product_id}
@@ -64,6 +64,6 @@ export function OrganizationDetailsPage() {
       onNavigate={navigate}
     >
       <Outlet />
-    </OrganizationDetails>
+    </OrganizationDetailsView>
   );
 }

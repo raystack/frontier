@@ -45,7 +45,7 @@ const INITIAL_QUERY: DataTableQuery = {
   limit: DEFAULT_PAGE_SIZE,
 };
 
-export type OrganizationListProps = {
+export type OrganizationListViewProps = {
   /** App name displayed in the page title (e.g. "Frontier Admin"). */
   appName?: string;
   /** Called when a user clicks on an organization row. Use to navigate to the org detail page. */
@@ -60,14 +60,14 @@ export type OrganizationListProps = {
   countries?: string[];
 };
 
-export const OrganizationList = ({
+export const OrganizationListView = ({
   appName,
   onNavigateToOrg,
   onExportCsv,
   organizationTypes = [],
   appUrl,
   countries = [],
-}: OrganizationListProps = {}) => {
+}: OrganizationListViewProps = {}) => {
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(

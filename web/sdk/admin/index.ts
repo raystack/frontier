@@ -10,10 +10,10 @@ export { default as PlansView } from "./views/plans";
 export { default as WebhooksView } from "./views/webhooks/webhooks";
 export { default as PreferencesView } from "./views/preferences/PreferencesView";
 export { default as UsersView } from "./views/users/UsersView";
-export { OrganizationList, type OrganizationListProps } from "./views/organizations/list";
+export { OrganizationListView, type OrganizationListViewProps } from "./views/organizations/list";
 export {
-  OrganizationDetails,
-  type OrganizationDetailsProps,
+  OrganizationDetailsView,
+  type OrganizationDetailsViewProps,
 } from "./views/organizations/details";
 export { OrganizationSecurity } from "./views/organizations/details/security";
 export { OrganizationMembersView } from "./views/organizations/details/members";

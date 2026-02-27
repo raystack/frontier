@@ -17,7 +17,7 @@ import {
   type User,
 } from "@raystack/proton/frontier";
 
-export type OrganizationDetailsProps = {
+export type OrganizationDetailsViewProps = {
   /** The organization ID, typically from route params (e.g. `useParams`). */
   organizationId: string | undefined;
   /** Callback to export organization members as CSV. Shown in the action menu when provided. */
@@ -41,7 +41,7 @@ export type OrganizationDetailsProps = {
   children?: React.ReactNode;
 };
 
-export const OrganizationDetails = ({
+export const OrganizationDetailsView = ({
   organizationId,
   onExportMembers,
   onExportProjects,
@@ -53,7 +53,7 @@ export const OrganizationDetails = ({
   currentPath,
   onNavigate,
   children,
-}: OrganizationDetailsProps) => {
+}: OrganizationDetailsViewProps) => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
