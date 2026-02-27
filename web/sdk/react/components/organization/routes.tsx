@@ -25,11 +25,8 @@ import { RemoveProjectMember } from './project/members/remove';
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
 import WorkspaceTeams from './teams';
-import { AddTeam } from './teams/add';
-import { DeleteTeam } from './teams/delete';
 import { TeamPage } from './teams/team';
 import { UserSetting } from './user';
-import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
@@ -163,12 +160,6 @@ const teamsRoute = createRoute({
   component: WorkspaceTeams
 });
 
-const addTeamRoute = createRoute({
-  getParentRoute: () => teamsRoute,
-  path: '/modal',
-  component: AddTeam
-});
-
 const domainsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/domains',
@@ -197,18 +188,6 @@ const teamRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/teams/$teamId',
   component: TeamPage
-});
-
-const inviteTeamMembersRoute = createRoute({
-  getParentRoute: () => teamRoute,
-  path: '/invite',
-  component: InviteTeamMembers
-});
-
-const deleteTeamRoute = createRoute({
-  getParentRoute: () => teamRoute,
-  path: '/delete',
-  component: DeleteTeam
 });
 
 const projectsRoute = createRoute({
@@ -350,13 +329,13 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     securityRoute,
     sessionsRoute.addChildren([revokeSessionRoute]),
     membersRoute,
-    teamsRoute.addChildren([addTeamRoute]),
+    teamsRoute,
     domainsRoute.addChildren([
       addDomainRoute,
       verifyDomainRoute,
       deleteDomainRoute
     ]),
-    teamRoute.addChildren([deleteTeamRoute, inviteTeamMembersRoute]),
+    teamRoute,
     projectsRoute.addChildren([addProjectRoute]),
     projectPageRoute.addChildren([
       deleteProjectRoute,
