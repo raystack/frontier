@@ -13,9 +13,7 @@ import Domain from './domain';
 import { AddDomain } from './domain/add-domain';
 import { VerifyDomain } from './domain/verify-domain';
 import GeneralSetting from './general';
-import { DeleteOrganization } from './general/delete';
 import WorkspaceMembers from './members';
-import { InviteMember } from './members/invite';
 import UserPreferences from './preferences';
 
 import { default as WorkspaceProjects } from './project';
@@ -39,7 +37,6 @@ import { AddTokens } from './tokens/add-tokens';
 import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
-import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
@@ -148,12 +145,6 @@ const indexRoute = createRoute({
   component: GeneralSetting
 });
 
-const deleteOrgRoute = createRoute({
-  getParentRoute: () => indexRoute,
-  path: '/delete',
-  component: DeleteOrganization
-});
-
 const securityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/security',
@@ -164,18 +155,6 @@ const membersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/members',
   component: WorkspaceMembers
-});
-
-const inviteMemberRoute = createRoute({
-  getParentRoute: () => membersRoute,
-  path: '/modal',
-  component: InviteMember
-});
-
-const removeMemberRoute = createRoute({
-  getParentRoute: () => membersRoute,
-  path: '/remove-member/$memberId/$invited',
-  component: MemberRemoveConfirm
 });
 
 const teamsRoute = createRoute({
@@ -367,10 +346,10 @@ interface getRootTreeOptions {
 
 export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
   return rootRoute.addChildren([
-    indexRoute.addChildren([deleteOrgRoute]),
+    indexRoute,
     securityRoute,
     sessionsRoute.addChildren([revokeSessionRoute]),
-    membersRoute.addChildren([inviteMemberRoute, removeMemberRoute]),
+    membersRoute,
     teamsRoute.addChildren([addTeamRoute]),
     domainsRoute.addChildren([
       addDomainRoute,

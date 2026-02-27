@@ -1,15 +1,32 @@
 {
   "extends": "@raystack/frontier-tsconfig/react-library.json",
   "compilerOptions": {
+    "jsx": "react-jsx",
     "moduleResolution": "bundler",
     "target": "ES2015",
-    "lib": ["ES2020", "DOM"],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "paths": {
-      "~/*": ["./*"],
-      "~hooks": ["./hooks/index.ts"]
+      "~/*": [
+        "./*"
+      ],
+      "~hooks": [
+        "./hooks/index.ts"
+      ]
     },
-    "types": ["jest"]
+    "types": [
+      "jest"
+    ]
   },
-  "include": ["."],
-  "exclude": ["dist", "react/dist", "hooks/dist", "node_modules"]
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "dist",
+    "react/dist",
+    "hooks/dist",
+    "node_modules"
+  ]
 }

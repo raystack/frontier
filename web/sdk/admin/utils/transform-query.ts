@@ -108,7 +108,7 @@ export function transformDataTableQueryToRQLRequest(
   // Build the RQLRequest with snake_case properties
   const rqlRequest = create(RQLRequestSchema, {
     filters,
-    groupBy: query.group_by || [],
+    groupBy: (query.group_by || []).map(field => fieldNameMapping?.[field] ?? field),
     offset: query.offset || 0,
     limit: query.limit || defaultLimit,
     sort: transformSort(query.sort || [], fieldNameMapping) || [],

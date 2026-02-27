@@ -18,4 +18,5 @@ export type MembersTableType = {
   memberRoles: Record<string, Role[]>;
   roles: Role[];
   refetch?: () => void;
+  onRemoveMember?: (memberId: string, invited: string) => void;
 };

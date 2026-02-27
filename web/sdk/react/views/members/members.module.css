@@ -15,6 +15,7 @@
 
 .tableHeader {
   z-index: 1;
+  top: -1px;
 }
 
 .tableSearchWrapper {
@@ -25,3 +26,7 @@
 .skeletonRow {
   margin-top: var(--rs-space-8);
 }
+
+
+
+

@@ -24,3 +24,5 @@ resource_config
 /dist
 __debug_*
 *.local.*
+node_modules/
+.next/
