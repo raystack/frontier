@@ -3,7 +3,6 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import {
   toast,
@@ -18,16 +17,23 @@ import {
 import type { Role, Policy } from '@raystack/proton/frontier';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries, DeletePolicyRequestSchema, CreatePolicyRequestSchema, ListPoliciesRequestSchema } from '@raystack/proton/frontier';
+import {
+  FrontierServiceQueries,
+  DeletePolicyRequestSchema,
+  CreatePolicyRequestSchema,
+  ListPoliciesRequestSchema
+} from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import type { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
+import { MembersTableType } from './member-types';
 
 export const getColumns = (
   organizationId: string,
   memberRoles: Record<string, Role[]> = {},
   roles: Role[] = [],
   canDeleteUser = false,
-  refetch = () => {}
+  refetch = () => {},
+  onRemoveMember?: MembersTableType['onRemoveMember']
 ): DataTableColumnDef<MemberWithInvite, MemberWithInvite>[] => [
   {
     header: '',
@@ -105,6 +111,7 @@ export const getColumns = (
             ? memberRoles[row.original?.id]
             : []
         )}
+        onRemoveMember={onRemoveMember}
       />
     )
   }
@@ -115,16 +122,16 @@ const MembersActions = ({
   organizationId,
   canUpdateGroup,
   excludedRoles = [],
-  refetch = () => null
+  refetch = () => null,
+  onRemoveMember
 }: {
   member: MemberWithInvite;
   canUpdateGroup?: boolean;
   organizationId: string;
   excludedRoles: Role[];
   refetch: () => void;
+  onRemoveMember?: MembersTableType['onRemoveMember'];
 }) => {
-  const navigate = useNavigate({ from: '/members' });
-  
   // Query to fetch policies for the current member
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -140,7 +147,7 @@ const MembersActions = ({
       gcTime: 300_000
     }
   );
-  
+
   const { mutateAsync: deletePolicy } = useMutation(
     FrontierServiceQueries.deletePolicy,
     {
@@ -148,10 +155,10 @@ const MembersActions = ({
         toast.error('Something went wrong', {
           description: error?.message || 'Failed to delete policy'
         });
-      },
+      }
     }
   );
-  
+
   const { mutateAsync: createPolicy } = useMutation(
     FrontierServiceQueries.createPolicy,
     {
@@ -163,7 +170,7 @@ const MembersActions = ({
         toast.error('Something went wrong', {
           description: error?.message || 'Failed to create policy'
         });
-      },
+      }
     }
   );
 
@@ -171,10 +178,10 @@ const MembersActions = ({
     try {
       const resource = `app/organization:${organizationId}`;
       const principal = `app/user:${member?.id}`;
-      
+
       // Use policies from Connect RPC query
       const policies = policiesData?.policies || [];
-      
+
       // Delete existing policies with individual error handling
       const deleteResults = await Promise.allSettled(
         policies.map((p: Policy) => {
@@ -184,16 +191,19 @@ const MembersActions = ({
           return deletePolicy(req);
         })
       );
-      
+
       // Check for delete errors
       const deleteErrors = deleteResults
-        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .filter(
+          (result): result is PromiseRejectedResult =>
+            result.status === 'rejected'
+        )
         .map(result => result.reason);
-      
+
       if (deleteErrors.length > 0) {
         console.warn('Some policy deletions failed:', deleteErrors);
       }
-      
+
       // Create new policy
       const createReq = create(CreatePolicyRequestSchema, {
         body: {
@@ -240,13 +250,10 @@ const MembersActions = ({
 
             <DropdownMenu.Item
               onClick={() =>
-                navigate({
-                  to: `/members/remove-member/$memberId/$invited`,
-                  params: {
-                    memberId: member?.id || '',
-                    invited: (member?.invited || false).toString()
-                  }
-                })
+                onRemoveMember?.(
+                  member?.id || '',
+                  String(member?.invited || false)
+                )
               }
               data-test-id="remove-member-dropdown-item"
             >
