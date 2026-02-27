@@ -101,19 +101,19 @@ Renders the detail layout for a single organization including a navbar with tabs
 
 These components are meant to be rendered as children of `OrganizationDetails` via your router:
 
-- `OrganizationMembersPage`
+- `OrganizationMembersView`
 - `OrganizationSecurity`
-- `OrganizationProjectsPage`
-- `OrganizationInvoicesPage`
-- `OrganizationTokensPage`
-- `OrganizationApisPage`
+- `OrganizationProjectsView`
+- `OrganizationInvoicesView`
+- `OrganizationTokensView`
+- `OrganizationApisView`
 
 ### Example
 
 ```tsx
 import {
   OrganizationDetails,
-  OrganizationMembersPage,
+  OrganizationMembersView,
   OrganizationSecurity,
 } from "@raystack/frontier/admin";
 import { useParams, useNavigate, useLocation, Outlet } from "react-router-dom";
