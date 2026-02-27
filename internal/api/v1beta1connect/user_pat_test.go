@@ -168,6 +168,27 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeResourceExhausted, userpat.ErrLimitExceeded),
 		},
 		{
+			name: "should return invalid argument when role is not found",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
+				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
+					Return(userpat.PAT{}, "", fmt.Errorf("fetching roles: %w", userpat.ErrRoleNotFound))
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+				Title:     "my-token",
+				OrgId:     testOrgID,
+				RoleIds:   []string{testRoleID},
+				ExpiresAt: timestamppb.New(testTime),
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrRoleNotFound),
+		},
+		{
 			name: "should return invalid argument when role is denied",
 			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{

@@ -47,6 +47,7 @@ type Service struct {
 	roleService           RoleService
 	policyService         PolicyService
 	auditRecordRepository AuditRecordRepository
+	deniedPerms           map[string]struct{}
 }
 
 func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService,
@@ -59,6 +60,7 @@ func NewService(logger log.Logger, repo Repository, config Config, orgService Or
 		roleService:           roleService,
 		policyService:         policyService,
 		auditRecordRepository: auditRecordRepository,
+		deniedPerms:           config.DeniedPermissionsSet(),
 	}
 }
 
@@ -239,10 +241,9 @@ func (s *Service) createPolicies(ctx context.Context, patID, orgID string, roles
 
 // validateRolePermissions checks that none of the roles contain denied permissions.
 func (s *Service) validateRolePermissions(roles []role.Role) error {
-	deniedPerms := s.config.DeniedPermissionsSet()
 	for _, r := range roles {
 		for _, perm := range r.Permissions {
-			if _, denied := deniedPerms[perm]; denied {
+			if _, denied := s.deniedPerms[perm]; denied {
 				return fmt.Errorf("role %s has denied permission %s: %w", r.Name, perm, ErrDeniedRole)
 			}
 		}

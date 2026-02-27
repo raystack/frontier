@@ -821,7 +821,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 		projectIDs []string
 		roles      []role.Role
 		want       []wantPolicy
-		config     userpat.Config // zero value = use defaultConfig
+		config     *userpat.Config // nil = use defaultConfig
 		wantErr    bool
 		wantErrIs  error
 		wantErrMsg string
@@ -997,7 +997,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "org-admin-id", Name: "app_organization_admin", Permissions: []string{"app_organization_administer"}, Scopes: []string{schema.OrganizationNamespace}},
 			},
-			config: userpat.Config{
+			config: &userpat.Config{
 				Enabled:           true,
 				Prefix:            "fpt",
 				MaxPerUserPerOrg:  50,
@@ -1058,8 +1058,8 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := defaultConfig
-			if tt.config.Enabled {
-				cfg = tt.config
+			if tt.config != nil {
+				cfg = *tt.config
 			}
 
 			repo := mocks.NewRepository(t)

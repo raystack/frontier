@@ -115,7 +115,7 @@ func (s Service) createRolePermissionRelation(ctx context.Context, roleID string
 				Namespace: schema.RoleNamespace,
 			},
 			Subject: relation.Subject{
-				ID:        "*", // all principles who have role will have access
+				ID:        "*", // all principals who have role will have access
 				Namespace: schema.UserPrincipal,
 			},
 			RelationName: perm,
@@ -130,7 +130,7 @@ func (s Service) createRolePermissionRelation(ctx context.Context, roleID string
 				Namespace: schema.RoleNamespace,
 			},
 			Subject: relation.Subject{
-				ID:        "*", // all principles who have role will have access
+				ID:        "*", // all principals who have role will have access
 				Namespace: schema.ServiceUserPrincipal,
 			},
 			RelationName: perm,
@@ -146,7 +146,7 @@ func (s Service) createRolePermissionRelation(ctx context.Context, roleID string
 					Namespace: schema.RoleNamespace,
 				},
 				Subject: relation.Subject{
-					ID:        "*", // all principles who have role will have access
+					ID:        "*", // all principals who have role will have access
 					Namespace: schema.PATPrincipal,
 				},
 				RelationName: perm,
@@ -171,7 +171,7 @@ func (s Service) deleteRolePermissionRelations(ctx context.Context, roleID strin
 			Namespace: schema.RoleNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        "*", // all principles who have role will have access
+			ID:        "*", // all principals who have role will have access
 			Namespace: schema.UserPrincipal,
 		},
 	})
@@ -185,7 +185,7 @@ func (s Service) deleteRolePermissionRelations(ctx context.Context, roleID strin
 			Namespace: schema.RoleNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        "*", // all principles who have role will have access
+			ID:        "*", // all principals who have role will have access
 			Namespace: schema.ServiceUserPrincipal,
 		},
 	})
