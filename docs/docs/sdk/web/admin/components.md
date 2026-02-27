@@ -85,7 +85,7 @@ Renders the detail layout for a single organization including a navbar with tabs
 
 | Prop | Type | Required | Description |
 | --- | --- | --- | --- |
-| `organizationId` | `string \| undefined` | Yes | The ID of the organization to display. |
+| `organizationId` | `string | undefined` | Yes | The ID of the organization to display. |
 | `currentPath` | `string` | Yes | Current URL pathname, used for active tab highlighting. |
 | `onNavigate` | `(path: string) => void` | Yes | Called when a nav tab is clicked. |
 | `children` | `React.ReactNode` | No | Child content (e.g. `<Outlet />` from your router). |
