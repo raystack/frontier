@@ -13,7 +13,6 @@ import Domain from './domain';
 import { AddDomain } from './domain/add-domain';
 import { VerifyDomain } from './domain/verify-domain';
 import GeneralSetting from './general';
-import { DeleteOrganization } from './general/delete';
 import WorkspaceMembers from './members';
 import { InviteMember } from './members/invite';
 import UserPreferences from './preferences';
@@ -146,12 +145,6 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: GeneralSetting
-});
-
-const deleteOrgRoute = createRoute({
-  getParentRoute: () => indexRoute,
-  path: '/delete',
-  component: DeleteOrganization
 });
 
 const securityRoute = createRoute({
@@ -367,7 +360,7 @@ interface getRootTreeOptions {
 
 export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
   return rootRoute.addChildren([
-    indexRoute.addChildren([deleteOrgRoute]),
+    indexRoute,
     securityRoute,
     sessionsRoute.addChildren([revokeSessionRoute]),
     membersRoute.addChildren([inviteMemberRoute, removeMemberRoute]),
