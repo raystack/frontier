@@ -17,7 +17,7 @@ export {
 } from "./views/organizations/details";
 export { OrganizationSecurity } from "./views/organizations/details/security";
 export { OrganizationMembersPage } from "./views/organizations/details/members";
-export { OrganizationProjectssPage } from "./views/organizations/details/projects";
+export { OrganizationProjectsPage } from "./views/organizations/details/projects";
 export { OrganizationInvoicesPage } from "./views/organizations/details/invoices";
 export { OrganizationTokensPage } from "./views/organizations/details/tokens";
 export { OrganizationApisPage } from "./views/organizations/details/apis";

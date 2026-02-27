@@ -65,7 +65,7 @@ const ErrorState = () => {
   );
 };
 
-export function OrganizationProjectssPage() {
+export function OrganizationProjectsPage() {
   const { organization, search, orgMembersMap, isOrgMembersMapLoading } =
     useContext(OrganizationContext);
   const {

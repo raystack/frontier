@@ -103,7 +103,7 @@ These components are meant to be rendered as children of `OrganizationDetails` v
 
 - `OrganizationMembersPage`
 - `OrganizationSecurity`
-- `OrganizationProjectssPage`
+- `OrganizationProjectsPage`
 - `OrganizationInvoicesPage`
 - `OrganizationTokensPage`
 - `OrganizationApisPage`
