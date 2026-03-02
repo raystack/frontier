@@ -12,7 +12,7 @@ import {
 } from '@raystack/apsara';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { AvatarUpload } from '../../avatar-upload';
+import { AvatarUpload } from '~/react/components/avatar-upload';
 import { useMutation, FrontierServiceQueries } from '~hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { createConnectQueryKey } from '@connectrpc/connect-query';
