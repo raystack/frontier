@@ -66,7 +66,9 @@ export const MagicLinkVerify = ({
         });
 
         // @ts-ignore
-        window.location = redirectURL ? redirectURL : window.location.origin;
+        const destination =
+          redirectURL ?? window.location.origin;
+        window.location.replace(destination);
       } catch (error) {
         console.log(error);
         isButtonDisabledRef.current = true;
