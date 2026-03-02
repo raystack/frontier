@@ -63,7 +63,7 @@ export default memo(function AppRoutes() {
         <Route
           path="organizations/:organizationId"
           element={<OrganizationDetailsPage />}>
-          <Route index element={<Navigate to="members" />} />
+          <Route index element={<Navigate to="members" replace />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
           <Route path="projects" element={<OrganizationProjectssPage />} />
