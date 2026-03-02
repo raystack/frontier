@@ -11,10 +11,15 @@ import { PageTitle } from "../../components/PageTitle";
 import ProductDetails from "./details";
 
 export type ProductsViewProps = {
+  /** When set, opens the detail sheet for this product. */
   selectedProductId?: string;
+  /** Called when a user clicks a product row. Use to update the URL or local state. */
   onSelectProduct?: (productId: string) => void;
+  /** Called when the detail sheet is closed. Use to clear the selected product. */
   onCloseDetail?: () => void;
+  /** Called when "View Prices" is clicked. Use to navigate to the prices page for this product. */
   onNavigateToPrices?: (productId: string) => void;
+  /** App name displayed in the page title. */
   appName?: string;
 };
 

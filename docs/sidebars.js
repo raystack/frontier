@@ -159,6 +159,47 @@ module.exports = {
     },
     {
       type: "category",
+      label: "SDK",
+      collapsed: true,
+      collapsible: true,
+      link: {
+        type: "generated-index",
+        title: "SDK",
+        slug: "sdk",
+      },
+      items: [
+        {
+          type: "category",
+          label: "Web",
+          collapsed: true,
+          collapsible: true,
+          link: {
+            type: "generated-index",
+            title: "Web SDK",
+            slug: "sdk/web",
+          },
+          items: [
+            {
+              type: "category",
+              label: "Admin",
+              collapsed: true,
+              collapsible: true,
+              link: {
+                type: "doc",
+                id: "sdk/web/admin/overview",
+              },
+              items: [
+                "sdk/web/admin/overview",
+                "sdk/web/admin/components",
+                "sdk/web/admin/utilities",
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Contribute",
       link: {
         type: "doc",

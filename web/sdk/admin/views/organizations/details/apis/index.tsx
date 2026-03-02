@@ -60,7 +60,7 @@ const TRANSFORM_OPTIONS = {
   },
 };
 
-export function OrganizationApisPage() {
+export function OrganizationApisView() {
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const {

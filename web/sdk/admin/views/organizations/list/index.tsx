@@ -45,23 +45,29 @@ const INITIAL_QUERY: DataTableQuery = {
   limit: DEFAULT_PAGE_SIZE,
 };
 
-export type OrganizationListProps = {
+export type OrganizationListViewProps = {
+  /** App name displayed in the page title (e.g. "Frontier Admin"). */
   appName?: string;
+  /** Called when a user clicks on an organization row. Use to navigate to the org detail page. */
   onNavigateToOrg?: (id: string) => void;
+  /** Callback to export organizations list as CSV. Shown in navbar when provided. */
   onExportCsv?: () => Promise<void>;
+  /** List of allowed organization types for filtering / creation. */
   organizationTypes?: string[];
+  /** Base URL of the consumer app, used for generating links. */
   appUrl?: string;
+  /** List of country names for KYC country selector during org creation. */
   countries?: string[];
 };
 
-export const OrganizationList = ({
+export const OrganizationListView = ({
   appName,
   onNavigateToOrg,
   onExportCsv,
   organizationTypes = [],
   appUrl,
   countries = [],
-}: OrganizationListProps = {}) => {
+}: OrganizationListViewProps = {}) => {
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(

@@ -26,11 +26,11 @@ import { OrganizationListPage } from "./pages/organizations/list";
 import { OrganizationDetailsPage } from "./pages/organizations/details";
 import {
   OrganizationSecurity,
-  OrganizationMembersPage,
-  OrganizationProjectssPage,
-  OrganizationInvoicesPage,
-  OrganizationTokensPage,
-  OrganizationApisPage,
+  OrganizationMembersView,
+  OrganizationProjectsView,
+  OrganizationInvoicesView,
+  OrganizationTokensView,
+  OrganizationApisView,
 } from "@raystack/frontier/admin";
 
 import { UsersPage } from "./pages/users/UsersPage";
@@ -63,13 +63,13 @@ export default memo(function AppRoutes() {
         <Route
           path="organizations/:organizationId"
           element={<OrganizationDetailsPage />}>
-          <Route index element={<Navigate to="members" />} />
-          <Route path="members" element={<OrganizationMembersPage />} />
+          <Route index element={<Navigate to="members" replace />} />
+          <Route path="members" element={<OrganizationMembersView />} />
           <Route path="security" element={<OrganizationSecurity />} />
-          <Route path="projects" element={<OrganizationProjectssPage />} />
-          <Route path="invoices" element={<OrganizationInvoicesPage />} />
-          <Route path="tokens" element={<OrganizationTokensPage />} />
-          <Route path="apis" element={<OrganizationApisPage />} />
+          <Route path="projects" element={<OrganizationProjectsView />} />
+          <Route path="invoices" element={<OrganizationInvoicesView />} />
+          <Route path="tokens" element={<OrganizationTokensView />} />
+          <Route path="apis" element={<OrganizationApisView />} />
         </Route>
         <Route path="users" element={<UsersPage />}>
           <Route path=":userId" element={<UsersPage />} />

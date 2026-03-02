@@ -12,7 +12,10 @@ export interface TransformOptions {
    * @default 50
    */
   defaultLimit?: number;
-  // TODO: add support for more cases in RQL
+  /**
+   * Maps DataTable field names to RQL field names.
+   * E.g. `{ createdAt: "created_at" }` transforms the DataTable column name to the backend field.
+   */
   fieldNameMapping?: Record<string, string>;
 }
 
@@ -87,6 +90,10 @@ function transformSort(
   }));
 }
 
+/**
+ * Converts an Apsara `DataTableQuery` (search, filters, sort, pagination) into
+ * a Frontier `RQLRequest` that can be passed to Connect RPC query hooks.
+ */
 export function transformDataTableQueryToRQLRequest(
   query: DataTableQuery,
   options: TransformOptions = {},
@@ -101,7 +108,7 @@ export function transformDataTableQueryToRQLRequest(
   // Build the RQLRequest with snake_case properties
   const rqlRequest = create(RQLRequestSchema, {
     filters,
-    groupBy: query.group_by || [],
+    groupBy: (query.group_by || []).map(field => fieldNameMapping?.[field] ?? field),
     offset: query.offset || 0,
     limit: query.limit || defaultLimit,
     sort: transformSort(query.sort || [], fieldNameMapping) || [],
