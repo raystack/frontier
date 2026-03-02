@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback } from 'react';
 import { Flex, toast, Button, InputField } from '@raystack/apsara';
-import styles from './styles.module.css';
+import styles from './service-user.module.css';
 import { useMutation } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {

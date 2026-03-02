@@ -10,7 +10,6 @@ import {
   Select,
   Label
 } from '@raystack/apsara';
-import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as yup from 'yup';
@@ -39,7 +38,7 @@ import {
 } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
-import styles from './styles.module.css';
+import styles from './api-keys.module.css';
 import { handleSelectValueChange } from '~/react/utils';
 import { useTerminology } from '~/react/hooks/useTerminology';
 
@@ -54,12 +53,23 @@ const serviceAccountSchema = yup
 
 type FormData = yup.InferType<typeof serviceAccountSchema>;
 
-export const AddServiceAccount = () => {
-  const navigate = useNavigate({ from: '/api-keys/add' });
+export interface AddServiceAccountDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  onCreated?: (serviceUserId: string) => void;
+}
+
+export const AddServiceAccountDialog = ({
+  open,
+  onOpenChange,
+  onCreated
+}: AddServiceAccountDialogProps) => {
   const { activeOrganization: organization } = useFrontier();
   const t = useTerminology();
   const queryClient = useQueryClient();
   const transport = useTransport();
+
+  const handleClose = () => onOpenChange?.(false);
 
   const {
     register,
@@ -80,7 +90,7 @@ export const AddServiceAccount = () => {
       withMemberCount: false
     }),
     {
-      enabled: Boolean(orgId)
+      enabled: Boolean(orgId) && open
     }
   );
 
@@ -169,11 +179,7 @@ export const AddServiceAccount = () => {
         );
 
         toast.success('Service user created');
-
-        navigate({
-          to: '/api-keys/$id',
-          params: { id: serviceUserId }
-        });
+        onCreated?.(serviceUserId);
       } catch (error: unknown) {
         toast.error('Something went wrong', {
           description: error instanceof Error ? error.message : 'Unknown error'
@@ -187,12 +193,12 @@ export const AddServiceAccount = () => {
       createServiceUserToken,
       queryClient,
       transport,
-      navigate
+      onCreated
     ]
   );
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
         overlayClassName={styles.overlay}
         className={styles.addDialogContent}
@@ -207,7 +213,7 @@ export const AddServiceAccount = () => {
                 alt="cross"
                 style={{ cursor: 'pointer' }}
                 src={cross as unknown as string}
-                onClick={() => navigate({ to: '/api-keys' })}
+                onClick={handleClose}
                 data-test-id="frontier-sdk-new-service-account-close-btn"
               />
             </Flex>

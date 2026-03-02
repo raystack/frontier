@@ -1,15 +1,20 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { Button, type DataTableColumnDef, Flex, Text } from '@raystack/apsara';
-import { Link, useNavigate } from '@tanstack/react-router';
 import type { ServiceUser } from '~/src';
 import { timestampToDayjs } from '~/utils/timestamp';
 import type { Timestamp } from '@bufbuild/protobuf/wkt';
 
-export const getColumns = ({
-  dateFormat
-}: {
+interface GetColumnsOptions {
   dateFormat: string;
-}): DataTableColumnDef<ServiceUser, unknown>[] => {
+  onServiceAccountClick?: (id: string) => void;
+  onDeleteClick?: (id: string) => void;
+}
+
+export const getColumns = ({
+  dateFormat,
+  onServiceAccountClick,
+  onDeleteClick
+}: GetColumnsOptions): DataTableColumnDef<ServiceUser, unknown>[] => {
   return [
     {
       header: 'Name',
@@ -17,22 +22,17 @@ export const getColumns = ({
       cell: ({ row, getValue }) => {
         const value = getValue() as string;
         return (
-          <Link
-            to={`/api-keys/$id`}
-            params={{
-              id: row.original.id || ''
-            }}
-            state={{
-              enableServiceUserTokensListFetch: true
-            }}
+          <Text
+            size="small"
             style={{
               textDecoration: 'none',
               color: 'var(--rs-color-foreground-base-primary)',
-              fontSize: 'var(--rs-font-size-small)'
+              cursor: 'pointer'
             }}
+            onClick={() => onServiceAccountClick?.(row.original.id || '')}
           >
             {value}
-          </Link>
+          </Text>
         );
       }
     },
@@ -54,27 +54,18 @@ export const getColumns = ({
       enableSorting: false,
       cell: ({ row, getValue }) => {
         const value = getValue() as string;
-        return <ServiceAccountDeleteAction id={value} />;
+        return (
+          <Button
+            variant="text"
+            size="small"
+            color="danger"
+            data-test-id="frontier-sdk-delete-service-account-btn"
+            onClick={() => onDeleteClick?.(value)}
+          >
+            <TrashIcon />
+          </Button>
+        );
       }
     }
   ];
 };
-
-function ServiceAccountDeleteAction({ id }: { id: string }) {
-  const navigate = useNavigate({ from: '/api-keys' });
-
-  function onDeleteClick() {
-    return navigate({ to: '/api-keys/$id/delete', params: { id: id } });
-  }
-  return (
-    <Button
-      variant="text"
-      size="small"
-      color="danger"
-      data-test-id="frontier-sdk-delete-service-account-btn"
-      onClick={onDeleteClick}
-    >
-      <TrashIcon />
-    </Button>
-  );
-}

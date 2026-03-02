@@ -1,8 +1,7 @@
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
 import cross from '~/react/assets/cross.svg';
-import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import styles from './styles.module.css';
+import styles from './service-user.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
 import { useMutation } from '@connectrpc/connect-query';
 import {
@@ -12,17 +11,25 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { useServiceUserTokens } from '../hooks/useServiceUserTokens';
 
-export const DeleteServiceAccountKey = () => {
-  const { id, tokenId } = useParams({
-    from: '/api-keys/$id/key/$tokenId/delete'
-  });
-  const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
+export interface DeleteServiceUserKeyDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  serviceUserId: string;
+  tokenId: string;
+}
+
+export const DeleteServiceUserKeyDialog = ({
+  open,
+  onOpenChange,
+  serviceUserId,
+  tokenId
+}: DeleteServiceUserKeyDialogProps) => {
   const { activeOrganization } = useFrontier();
 
   const orgId = activeOrganization?.id || '';
 
   const { removeToken } = useServiceUserTokens({
-    id,
+    id: serviceUserId,
     orgId,
     enableFetch: false
   });
@@ -31,11 +38,13 @@ export const DeleteServiceAccountKey = () => {
     FrontierServiceQueries.deleteServiceUserToken
   );
 
+  const handleClose = () => onOpenChange?.(false);
+
   async function onDeleteClick() {
     try {
       await deleteServiceUserToken(
         create(DeleteServiceUserTokenRequestSchema, {
-          id,
+          id: serviceUserId,
           tokenId,
           orgId
         })
@@ -44,12 +53,7 @@ export const DeleteServiceAccountKey = () => {
       // Remove token from cache
       removeToken(tokenId);
 
-      navigate({
-        to: '/api-keys/$id',
-        params: {
-          id: id
-        }
-      });
+      handleClose();
       toast.success('Service account key revoked');
     } catch (error: unknown) {
       toast.error('Unable to revoke service account key', {
@@ -58,19 +62,10 @@ export const DeleteServiceAccountKey = () => {
     }
   }
 
-  function onCancel() {
-    navigate({
-      to: '/api-keys/$id',
-      params: {
-        id: id
-      }
-    });
-  }
-
   const t = useTerminology();
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
         overlayClassName={styles.overlay}
         className={styles.addDialogContent}
@@ -85,7 +80,7 @@ export const DeleteServiceAccountKey = () => {
               alt="cross"
               style={{ cursor: 'pointer' }}
               src={cross as unknown as string}
-              onClick={onCancel}
+              onClick={handleClose}
               data-test-id="frontier-sdk-revoke-service-account-key-close-btn"
             />
           </Flex>
@@ -108,7 +103,7 @@ export const DeleteServiceAccountKey = () => {
               color="neutral"
               size="normal"
               data-test-id="frontier-sdk-revoke-service-account-key-cancel-btn"
-              onClick={onCancel}
+              onClick={handleClose}
             >
               Cancel
             </Button>
