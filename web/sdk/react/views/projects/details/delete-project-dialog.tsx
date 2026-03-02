@@ -1,0 +1,189 @@
+'use client';
+
+import {
+    Button,
+    Checkbox,
+    toast,
+    Skeleton,
+    Image,
+    Text,
+    Flex,
+    Dialog,
+    InputField
+} from '@raystack/apsara';
+
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
+import {
+    FrontierServiceQueries,
+    GetProjectRequestSchema,
+    DeleteProjectRequestSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import cross from '~/react/assets/cross.svg';
+import orgStyles from '../../../components/organization/organization.module.css';
+
+const projectSchema = yup
+    .object({
+        title: yup.string()
+    })
+    .required();
+
+export interface DeleteProjectDialogProps {
+    open: boolean;
+    onOpenChange?: (value: boolean) => void;
+    projectId: string;
+    onDeleteSuccess?: () => void;
+}
+
+export const DeleteProjectDialog = ({
+    open,
+    onOpenChange,
+    projectId,
+    onDeleteSuccess
+}: DeleteProjectDialogProps) => {
+    const {
+        watch,
+        setError,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting },
+        register
+    } = useForm({
+        resolver: yupResolver(projectSchema)
+    });
+    const { activeOrganization: organization } = useFrontier();
+    const [isAcknowledged, setIsAcknowledged] = useState(false);
+
+    const handleOpenChange = (value: boolean) => {
+        if (!value) {
+            reset();
+            setIsAcknowledged(false);
+        }
+        onOpenChange?.(value);
+    };
+
+    const {
+        data: project,
+        isLoading: isProjectQueryLoading,
+        error: projectError
+    } = useQuery(
+        FrontierServiceQueries.getProject,
+        create(GetProjectRequestSchema, { id: projectId || '' }),
+        {
+            enabled: !!projectId && open,
+            select: (d) => d?.project
+        }
+    );
+
+    useEffect(() => {
+        if (projectError) {
+            toast.error('Something went wrong', { description: projectError.message });
+        }
+    }, [projectError]);
+
+    const { mutateAsync: deleteProject } = useMutation(
+        FrontierServiceQueries.deleteProject,
+        {
+            onSuccess: () => {
+                toast.success('Project deleted');
+                onDeleteSuccess?.();
+                handleOpenChange(false);
+            },
+            onError: (err: Error) =>
+                toast.error('Something went wrong', { description: err.message })
+        }
+    );
+
+    async function onSubmit(data: { title?: string }) {
+        if (!organization?.id || !projectId) return;
+        if (data.title !== project?.title)
+            return setError('title', { message: 'Project title does not match' });
+        await deleteProject(create(DeleteProjectRequestSchema, { id: projectId }));
+    }
+
+    const title = watch('title', '');
+
+    return (
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <Dialog.Content
+                style={{ padding: 0, maxWidth: '600px', width: '100%' }}
+                overlayClassName={orgStyles.overlay}
+            >
+                <Dialog.Header>
+                    <Flex justify="between" align="center" style={{ width: '100%' }}>
+                        <Text size="large" weight="medium">
+                            Verify project deletion
+                        </Text>
+                        <Image
+                            alt="cross"
+                            src={cross as unknown as string}
+                            onClick={() => handleOpenChange(false)}
+                            style={{ cursor: 'pointer' }}
+                            data-test-id="frontier-sdk-delete-project-close-btn"
+                        />
+                    </Flex>
+                </Dialog.Header>
+                <Dialog.Body>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <Flex direction="column" gap={5}>
+                            {isProjectQueryLoading ? (
+                                <>
+                                    <Skeleton height={'16px'} />
+                                    <Skeleton width={'50%'} height={'16px'} />
+                                    <Skeleton height={'32px'} />
+                                    <Skeleton height={'16px'} />
+                                    <Skeleton height={'32px'} />
+                                </>
+                            ) : (
+                                <>
+                                    <Text size="small">
+                                        This action can not be undone. This will permanently delete
+                                        project <b>{project?.title}</b>.
+                                    </Text>
+
+                                    <InputField
+                                        label="Please enter the title of the project to confirm."
+                                        size="large"
+                                        error={errors.title && String(errors.title?.message)}
+                                        {...register('title')}
+                                        placeholder="Enter the project title"
+                                    />
+
+                                    <Flex gap="small">
+                                        <Checkbox
+                                            checked={isAcknowledged}
+                                            onCheckedChange={v => setIsAcknowledged(v === true)}
+                                            data-test-id="frontier-sdk-delete-project-checkbox"
+                                        />
+                                        <Text size="small">
+                                            I acknowledge and understand that all of the project data will be deleted
+                                            and want to proceed.
+                                        </Text>
+                                    </Flex>
+                                    <Button
+                                        variant="solid"
+                                        color="danger"
+                                        type="submit"
+                                        disabled={!title || !isAcknowledged}
+                                        style={{ width: '100%' }}
+                                        data-test-id="frontier-sdk-delete-project-btn"
+                                        loading={isSubmitting}
+                                        loaderText="Deleting..."
+                                    >
+                                        Delete this project
+                                    </Button>
+                                </>
+                            )}
+                        </Flex>
+                    </form>
+                </Dialog.Body>
+            </Dialog.Content>
+        </Dialog>
+    );
+};
+

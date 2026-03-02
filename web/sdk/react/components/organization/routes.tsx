@@ -17,10 +17,7 @@ import WorkspaceMembers from './members';
 import UserPreferences from './preferences';
 
 import { default as WorkspaceProjects } from './project';
-import { AddProject } from './project/add';
-import { DeleteProject } from './project/delete';
 import { ProjectPage } from './project/project';
-import { RemoveProjectMember } from './project/members/remove';
 
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
@@ -196,28 +193,10 @@ const projectsRoute = createRoute({
   component: WorkspaceProjects
 });
 
-const addProjectRoute = createRoute({
-  getParentRoute: () => projectsRoute,
-  path: '/modal',
-  component: AddProject
-});
-
 const projectPageRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects/$projectId',
   component: ProjectPage
-});
-
-const deleteProjectRoute = createRoute({
-  getParentRoute: () => projectPageRoute,
-  path: '/delete',
-  component: DeleteProject
-});
-
-const removeProjectMemberRoute = createRoute({
-  getParentRoute: () => projectPageRoute,
-  path: '/$membertype/$memberId/remove',
-  component: RemoveProjectMember
 });
 
 const profileRoute = createRoute({
@@ -336,11 +315,8 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
       deleteDomainRoute
     ]),
     teamRoute,
-    projectsRoute.addChildren([addProjectRoute]),
-    projectPageRoute.addChildren([
-      deleteProjectRoute,
-      removeProjectMemberRoute
-    ]),
+    projectsRoute,
+    projectPageRoute,
     profileRoute,
     preferencesRoute,
     billingRoute.addChildren([switchBillingCycleModalRoute]),
