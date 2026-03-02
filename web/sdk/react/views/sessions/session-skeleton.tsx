@@ -20,4 +20,3 @@ export const SessionSkeleton = ({ count = 3 }: { count?: number }) => {
     </>
   );
 };
-

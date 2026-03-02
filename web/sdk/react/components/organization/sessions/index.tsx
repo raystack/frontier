@@ -1,3 +1,9 @@
-export { SessionsPage } from './sessions-page';
-export { RevokeSessionConfirm } from './revoke-session-confirm';
-export { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
+'use client';
+
+import { useRouteContext } from '@tanstack/react-router';
+import { SessionsPage as SessionsPageView } from '~/react/views/sessions';
+
+export const SessionsPage = () => {
+  const { onLogout } = useRouteContext({ from: '__root__' }) as { onLogout?: () => void };
+  return <SessionsPageView onLogout={onLogout} />;
+};

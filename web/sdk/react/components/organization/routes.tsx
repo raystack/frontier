@@ -30,7 +30,7 @@ import Tokens from './tokens';
 import Plans from './plans';
 import APIKeys from './api-keys';
 import ServiceUserPage from './api-keys/service-user';
-import { SessionsPage, RevokeSessionConfirm } from './sessions';
+import { SessionsPage } from './sessions';
 export interface CustomScreen {
   name: string;
   path: string;
@@ -241,14 +241,6 @@ const sessionsRoute = createRoute({
   component: SessionsPage
 });
 
-const revokeSessionRoute = createRoute({
-  getParentRoute: () => sessionsRoute,
-  path: '/revoke',
-  component: RevokeSessionConfirm,
-  validateSearch: (search: Record<string, unknown>) => ({
-    sessionId: search.sessionId as string | undefined,
-  }),
-});
 
 interface getRootTreeOptions {
   customScreens?: CustomScreen[];
@@ -258,7 +250,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
   return rootRoute.addChildren([
     indexRoute,
     securityRoute,
-    sessionsRoute.addChildren([revokeSessionRoute]),
+    sessionsRoute,
     membersRoute,
     teamsRoute,
     domainsRoute.addChildren([

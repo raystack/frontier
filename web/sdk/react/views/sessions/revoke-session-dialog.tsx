@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, useSearch, useRouteContext } from '@tanstack/react-router';
 import {
   Button,
   Text,
@@ -8,18 +7,29 @@ import {
   List,
   Skeleton
 } from '@raystack/apsara';
-import { useSessions } from '../../../hooks/useSessions';
+import { useSessions } from '~/react/hooks/useSessions';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import styles from './sessions.module.css';
 
-export const RevokeSessionConfirm = () => {
-  const navigate = useNavigate({ from: '/sessions/revoke' });
-  const search = useSearch({ from: '/sessions/revoke' }) as { sessionId?: string };
+export interface RevokeSessionDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  sessionId: string;
+  onLogout?: () => void;
+}
+
+export const RevokeSessionDialog = ({
+  open,
+  onOpenChange,
+  sessionId,
+  onLogout
+}: RevokeSessionDialogProps) => {
   const { sessions, revokeSession, isRevokingSession } = useSessions();
-  const { onLogout } = useRouteContext({ from: '__root__' }) as { onLogout?: () => void };
   const [isFinalConfirmOpen, setIsFinalConfirmOpen] = useState(false);
+
+  const handleClose = () => onOpenChange?.(false);
 
   const { mutate: logout } = useMutation(FrontierServiceQueries.authLogout, {
     onSuccess: () => {
@@ -30,49 +40,48 @@ export const RevokeSessionConfirm = () => {
     onError: (error) => {
       console.error('Failed to logout:', error);
       // Fallback to regular session revocation
-      if (search.sessionId) {
-        revokeSession(search.sessionId);
-        navigate({ to: '/sessions' });
+      if (sessionId) {
+        revokeSession(sessionId);
+        handleClose();
       }
     },
   });
 
-  // Find the session data based on sessionId from URL params
+  // Find the session data based on sessionId
   const sessionData = useMemo(() => {
-    if (!search.sessionId || sessions.length === 0) {
+    if (!sessionId || sessions.length === 0) {
       return null;
     }
-    
-    const session = sessions.find(s => s.id === search.sessionId);
+
+    const session = sessions.find(s => s.id === sessionId);
     if (!session) {
       console.error('Not found');
       return null;
     }
-    
+
     return session;
-  }, [search.sessionId, sessions]);
+  }, [sessionId, sessions]);
 
   const handleRevokeClick = () => {
     setIsFinalConfirmOpen(true);
   };
 
   const handleFinalConfirm = () => {
-    if (!search.sessionId) return;
-    
+    if (!sessionId) return;
+
     if (sessionData?.isCurrent) {
       logout({});
       return;
     }
-    
-    revokeSession(search.sessionId);
-    navigate({ to: '/sessions' });
-  };
 
+    revokeSession(sessionId);
+    handleClose();
+  };
 
   return (
     <>
       {sessionData ? (
-        <Dialog open={true} onOpenChange={() => navigate({ to: '/sessions' })}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
           <Dialog.Content
             style={{ padding: 0, maxWidth: '400px', width: '100%' }}
           >
@@ -111,7 +120,7 @@ export const RevokeSessionConfirm = () => {
                 <Button
                   variant="outline"
                   color="neutral"
-                  onClick={() => navigate({ to: '/sessions' })}
+                  onClick={handleClose}
                   data-test-id="frontier-sdk-cancel-revoke-session-dialog"
                 >
                   Cancel
@@ -128,17 +137,17 @@ export const RevokeSessionConfirm = () => {
             </Dialog.Footer>
           </Dialog.Content>
         </Dialog>
-      ) : (
-        <Dialog open={true} onOpenChange={() => navigate({ to: '/sessions' })}>
+      ) : open ? (
+        <Dialog open={true} onOpenChange={onOpenChange}>
           <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%' }}>
-            <Skeleton 
-              height="20px" 
+            <Skeleton
+              height="20px"
               containerStyle={{ padding: '2rem' }}
               count={4}
             />
           </Dialog.Content>
         </Dialog>
-      )}
+      ) : null}
 
       <RevokeSessionFinalConfirm
         isOpen={isFinalConfirmOpen}
