@@ -13,9 +13,7 @@ import Domain from './domain';
 import { AddDomain } from './domain/add-domain';
 import { VerifyDomain } from './domain/verify-domain';
 import GeneralSetting from './general';
-import { DeleteOrganization } from './general/delete';
 import WorkspaceMembers from './members';
-import { InviteMember } from './members/invite';
 import UserPreferences from './preferences';
 
 import { default as WorkspaceProjects } from './project';
@@ -27,11 +25,8 @@ import { RemoveProjectMember } from './project/members/remove';
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
 import WorkspaceTeams from './teams';
-import { AddTeam } from './teams/add';
-import { DeleteTeam } from './teams/delete';
 import { TeamPage } from './teams/team';
 import { UserSetting } from './user';
-import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
@@ -39,7 +34,6 @@ import { AddTokens } from './tokens/add-tokens';
 import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
-import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
@@ -148,12 +142,6 @@ const indexRoute = createRoute({
   component: GeneralSetting
 });
 
-const deleteOrgRoute = createRoute({
-  getParentRoute: () => indexRoute,
-  path: '/delete',
-  component: DeleteOrganization
-});
-
 const securityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/security',
@@ -166,28 +154,10 @@ const membersRoute = createRoute({
   component: WorkspaceMembers
 });
 
-const inviteMemberRoute = createRoute({
-  getParentRoute: () => membersRoute,
-  path: '/modal',
-  component: InviteMember
-});
-
-const removeMemberRoute = createRoute({
-  getParentRoute: () => membersRoute,
-  path: '/remove-member/$memberId/$invited',
-  component: MemberRemoveConfirm
-});
-
 const teamsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/teams',
   component: WorkspaceTeams
-});
-
-const addTeamRoute = createRoute({
-  getParentRoute: () => teamsRoute,
-  path: '/modal',
-  component: AddTeam
 });
 
 const domainsRoute = createRoute({
@@ -218,18 +188,6 @@ const teamRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/teams/$teamId',
   component: TeamPage
-});
-
-const inviteTeamMembersRoute = createRoute({
-  getParentRoute: () => teamRoute,
-  path: '/invite',
-  component: InviteTeamMembers
-});
-
-const deleteTeamRoute = createRoute({
-  getParentRoute: () => teamRoute,
-  path: '/delete',
-  component: DeleteTeam
 });
 
 const projectsRoute = createRoute({
@@ -367,17 +325,17 @@ interface getRootTreeOptions {
 
 export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
   return rootRoute.addChildren([
-    indexRoute.addChildren([deleteOrgRoute]),
+    indexRoute,
     securityRoute,
     sessionsRoute.addChildren([revokeSessionRoute]),
-    membersRoute.addChildren([inviteMemberRoute, removeMemberRoute]),
-    teamsRoute.addChildren([addTeamRoute]),
+    membersRoute,
+    teamsRoute,
     domainsRoute.addChildren([
       addDomainRoute,
       verifyDomainRoute,
       deleteDomainRoute
     ]),
-    teamRoute.addChildren([deleteTeamRoute, inviteTeamMembersRoute]),
+    teamRoute,
     projectsRoute.addChildren([addProjectRoute]),
     projectPageRoute.addChildren([
       deleteProjectRoute,

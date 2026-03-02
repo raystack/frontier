@@ -1,0 +1,205 @@
+'use client';
+
+import {
+    Button,
+    Checkbox,
+    Skeleton,
+    Image,
+    Text,
+    Flex,
+    Dialog,
+    toast,
+    InputField
+} from '@raystack/apsara';
+
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import cross from '~/react/assets/cross.svg';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+    FrontierServiceQueries,
+    DeleteGroupRequestSchema,
+    GetGroupRequestSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import orgStyles from '../../../components/organization/organization.module.css';
+
+const teamSchema = yup
+    .object({
+        title: yup.string()
+    })
+    .required();
+
+export interface DeleteTeamDialogProps {
+    open: boolean;
+    onOpenChange: (value: boolean) => void;
+    teamId: string;
+    onDeleteSuccess?: () => void;
+}
+
+export const DeleteTeamDialog = ({
+    open,
+    onOpenChange,
+    teamId,
+    onDeleteSuccess
+}: DeleteTeamDialogProps) => {
+    const {
+        watch,
+        handleSubmit,
+        setError,
+        formState: { errors, isSubmitting },
+        register,
+        reset
+    } = useForm({
+        resolver: yupResolver(teamSchema)
+    });
+    const [isAcknowledged, setIsAcknowledged] = useState(false);
+
+    const { activeOrganization: organization } = useFrontier();
+
+    // Reset form when dialog closes
+    const handleOpenChange = (value: boolean) => {
+        if (!value) {
+            reset();
+            setIsAcknowledged(false);
+        }
+        onOpenChange?.(value);
+    };
+
+    // Get team details using Connect RPC
+    const {
+        data: teamData,
+        isLoading: isTeamLoading,
+        error: teamError
+    } = useQuery(
+        FrontierServiceQueries.getGroup,
+        create(GetGroupRequestSchema, {
+            id: teamId || '',
+            orgId: organization?.id || ''
+        }),
+        { enabled: !!organization?.id && !!teamId && open }
+    );
+
+    const team = teamData?.group;
+
+    // Handle team error
+    useEffect(() => {
+        if (teamError) {
+            toast.error('Something went wrong', {
+                description: teamError.message
+            });
+        }
+    }, [teamError]);
+
+    // Delete team using Connect RPC
+    const deleteTeamMutation = useMutation(FrontierServiceQueries.deleteGroup, {
+        onSuccess: () => {
+            toast.success('team deleted');
+            handleOpenChange(false);
+            onDeleteSuccess?.();
+        },
+        onError: error => {
+            toast.error('Something went wrong', {
+                description: error.message
+            });
+        }
+    });
+
+    function onSubmit(data: { title?: string }) {
+        if (!organization?.id) return;
+        if (!teamId) return;
+
+        if (data.title !== team?.title)
+            return setError('title', { message: 'Team title does not match' });
+
+        const request = create(DeleteGroupRequestSchema, {
+            id: teamId,
+            orgId: organization.id
+        });
+
+        deleteTeamMutation.mutate(request);
+    }
+
+    const title = watch('title', '');
+    return (
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <Dialog.Content
+                style={{ padding: 0, maxWidth: '600px', width: '100%' }}
+                overlayClassName={orgStyles.overlay}
+            >
+                <Dialog.Header>
+                    <Flex justify="between" align="center" style={{ width: '100%' }}>
+                        <Text size="large" weight="medium">
+                            Verify team deletion
+                        </Text>
+                        <Image
+                            alt="cross"
+                            src={cross as unknown as string}
+                            onClick={() => handleOpenChange(false)}
+                            style={{ cursor: 'pointer' }}
+                            data-test-id="frontier-sdk-delete-team-close-btn"
+                        />
+                    </Flex>
+                </Dialog.Header>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <Dialog.Body>
+                        <Flex direction="column" gap={5}>
+                            {isTeamLoading ? (
+                                <>
+                                    <Skeleton height={'16px'} />
+                                    <Skeleton width={'50%'} height={'16px'} />
+                                    <Skeleton height={'32px'} />
+                                    <Skeleton height={'16px'} />
+                                    <Skeleton height={'32px'} />
+                                </>
+                            ) : (
+                                <>
+                                    <Text size={2}>
+                                        This action can not be undone. This will permanently delete
+                                        team <b>{team?.title}</b>.
+                                    </Text>
+
+                                    <InputField
+                                        label="Please enter the title of the team to confirm."
+                                        size="large"
+                                        error={errors.title && String(errors.title?.message)}
+                                        {...register('title')}
+                                        placeholder="Enter the team title"
+                                    />
+
+                                    <Flex gap="small">
+                                        <Checkbox
+                                            checked={isAcknowledged}
+                                            onCheckedChange={v => setIsAcknowledged(v === true)}
+                                            data-test-id="frontier-sdk-delete-team-checkbox"
+                                        />
+                                        <Text size={2}>
+                                            I acknowledge and understand that all of the team data
+                                            will be deleted and want to proceed.
+                                        </Text>
+                                    </Flex>
+                                    <Button
+                                        variant="solid"
+                                        color="danger"
+                                        disabled={!title || !isAcknowledged}
+                                        type="submit"
+                                        style={{ width: '100%' }}
+                                        data-test-id="frontier-sdk-delete-team-btn-general"
+                                        loading={deleteTeamMutation.isPending || isSubmitting}
+                                        loaderText="Deleting..."
+                                    >
+                                        Delete this team
+                                    </Button>
+                                </>
+                            )}
+                        </Flex>
+                    </Dialog.Body>
+                </form>
+            </Dialog.Content>
+        </Dialog>
+    );
+};
+

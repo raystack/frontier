@@ -26,7 +26,7 @@ import {
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { AuthTooltipMessage } from '~/react/utils';
-import { AvatarUpload } from '../../avatar-upload';
+import { AvatarUpload } from '~/react/components/avatar-upload';
 import { getInitials } from '~/utils';
 import { useTerminology } from '~/react/hooks/useTerminology';
 import styles from './general.module.css';
@@ -41,7 +41,7 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
-interface GeneralOrganizationProps {
+export interface GeneralOrganizationProps {
   organization?: Organization;
   isLoading?: boolean;
   canUpdateWorkspace?: boolean;
@@ -201,3 +201,4 @@ export const GeneralOrganization = ({
     </form>
   );
 };
+
