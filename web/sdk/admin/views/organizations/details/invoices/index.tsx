@@ -63,7 +63,7 @@ const ErrorState = () => {
   );
 };
 
-export function OrganizationInvoicesPage() {
+export function OrganizationInvoicesView() {
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
 

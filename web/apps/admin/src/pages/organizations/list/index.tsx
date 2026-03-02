@@ -1,5 +1,5 @@
 import {
-  OrganizationList,
+  OrganizationListView,
 } from "@raystack/frontier/admin";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -37,7 +37,7 @@ export function OrganizationListPage() {
   }, []);
 
   return (
-    <OrganizationList
+    <OrganizationListView
       appName={config?.title}
       appUrl={config?.app_url}
       organizationTypes={config?.organization_types}
