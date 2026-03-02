@@ -27,7 +27,6 @@ import { UserSetting } from './user';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
-import { AddTokens } from './tokens/add-tokens';
 import Plans from './plans';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
@@ -228,12 +227,6 @@ const tokensRoute = createRoute({
   component: Tokens
 });
 
-const addTokensRoute = createRoute({
-  getParentRoute: () => tokensRoute,
-  path: '/modal',
-  component: AddTokens
-});
-
 const apiKeysRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/api-keys',
@@ -308,7 +301,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     preferencesRoute,
     billingRoute,
     plansRoute,
-    tokensRoute.addChildren([addTokensRoute]),
+    tokensRoute,
     apiKeysRoute.addChildren([
       addServiceAccountRoute,
       deleteServiceAccountRoute

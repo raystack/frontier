@@ -9,13 +9,12 @@ import {
   Skeleton
 } from '@raystack/apsara';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@connectrpc/connect-query';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import cross from '~/react/assets/cross.svg';
-import styles from '../organization.module.css';
+import orgStyles from '../../components/organization/organization.module.css';
 import tokenStyles from './token.module.css';
 import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
@@ -24,9 +23,15 @@ import { useQuery } from '@connectrpc/connect-query';
 import { CreateCheckoutRequestSchema, FrontierServiceQueries } from '~/src';
 import { create } from '@bufbuild/protobuf';
 
-export const AddTokens = () => {
-  const navigate = useNavigate({ from: '/tokens/modal' });
+export interface AddTokensDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+}
+
+export const AddTokensDialog = ({ open, onOpenChange }: AddTokensDialogProps) => {
   const { config, activeOrganization, billingAccount } = useFrontier();
+
+  const handleClose = () => onOpenChange?.(false);
 
   const tokenProductId =
     config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
@@ -35,7 +40,7 @@ export const AddTokens = () => {
     FrontierServiceQueries.getProduct,
     { id: tokenProductId },
     {
-      enabled: !!tokenProductId,
+      enabled: !!tokenProductId && open,
       select: data => data?.product
     }
   );
@@ -135,9 +140,9 @@ export const AddTokens = () => {
   const isFormSubmitting = isSubmitting || isCreatingCheckout;
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
-        overlayClassName={styles.overlay}
+        overlayClassName={orgStyles.overlay}
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -151,7 +156,7 @@ export const AddTokens = () => {
                 alt="cross"
                 style={{ cursor: 'pointer' }}
                 src={cross as unknown as string}
-                onClick={() => navigate({ to: '/tokens' })}
+                onClick={handleClose}
                 data-test-id="frontier-sdk-add-tokens-btn"
               />
             </Flex>
@@ -197,7 +202,7 @@ export const AddTokens = () => {
             <Button
               variant="outline"
               color="neutral"
-              onClick={() => navigate({ to: '/tokens' })}
+              onClick={handleClose}
               data-test-id="frontier-sdk-add-tokens-cancel-btn"
             >
               Cancel
