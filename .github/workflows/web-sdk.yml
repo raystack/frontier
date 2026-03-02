@@ -22,10 +22,10 @@ jobs:
           fetch-depth: 0
           ref: main
 
-      - name: Setup pnpm 8
+      - name: Setup pnpm 9
         uses: pnpm/action-setup@v2
         with:
-          version: 8.6.9
+          version: 9.3.0
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v2
