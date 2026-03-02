@@ -9,11 +9,17 @@ import CreateWebhooks from "./create";
 import UpdateWebhooks from "./update";
 
 export type WebhooksViewProps = {
+  /** When set, opens the update panel for this webhook. */
   selectedWebhookId?: string;
+  /** When true, opens the create webhook panel. */
   createOpen?: boolean;
+  /** Called when the detail/create panel is closed. */
   onCloseDetail?: () => void;
+  /** Called when a user clicks a webhook row. Use to update the URL or local state. */
   onSelectWebhook?: (id: string) => void;
+  /** Called when the "Create" button is clicked. Use to update the URL or open the create panel. */
   onOpenCreate?: () => void;
+  /** When true, shows the delete option for webhooks. Defaults to `false`. */
   enableDelete?: boolean;
 };
 

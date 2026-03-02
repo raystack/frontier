@@ -8,8 +8,11 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { PageTitle } from "../../../components/PageTitle";
 
 export type ProductPricesViewProps = {
+  /** The product ID whose prices are displayed. */
   productId: string;
+  /** App name displayed in the page title. */
   appName?: string;
+  /** Called when a breadcrumb item is clicked. Use to navigate back (e.g. to products list). */
   onBreadcrumbClick?: (item: { name: string; href?: string }) => void;
 };
 

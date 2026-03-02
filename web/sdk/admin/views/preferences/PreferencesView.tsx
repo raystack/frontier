@@ -15,7 +15,9 @@ import PreferencesList from "./index";
 import PreferenceDetails from "./details";
 
 export type PreferencesViewProps = {
+  /** When set, opens the detail panel for this preference (matched by name). */
   selectedPreferenceName?: string;
+  /** Called when the detail panel is closed. Use to clear the selected preference. */
   onCloseDetail?: () => void;
   onSelectPreference?: (name: string) => void;
 };

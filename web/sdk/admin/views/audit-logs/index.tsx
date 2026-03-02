@@ -61,8 +61,11 @@ const TRANSFORM_OPTIONS = {
 };
 
 export type AuditLogsViewProps = {
+  /** App name displayed in the page title. */
   appName?: string;
+  /** Callback to export audit logs as CSV with the current query filters applied. */
   onExportCsv?: (query: RQLRequest) => Promise<void>;
+  /** Navigation callback for links within audit log entries (e.g. to org/user pages). */
   onNavigate?: (path: string) => void;
 };
 

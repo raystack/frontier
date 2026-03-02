@@ -17,9 +17,13 @@ const pageHeader = {
 };
 
 export type PlansViewProps = {
+  /** When set, opens the detail sheet for this plan. */
   selectedPlanId?: string;
+  /** Called when the detail sheet is closed. Use to clear the selected plan. */
   onCloseDetail?: () => void;
+  /** Called when a plan is selected. Use to open the detail sheet. */
   onSelectPlan?: (planId: string) => void;
+  /** App name displayed in the page title. */
   appName?: string;
 };
 

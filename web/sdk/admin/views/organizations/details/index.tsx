@@ -17,21 +17,31 @@ import {
   type User,
 } from "@raystack/proton/frontier";
 
-export type OrganizationDetailsProps = {
+export type OrganizationDetailsViewProps = {
+  /** The organization ID, typically from route params (e.g. `useParams`). */
   organizationId: string | undefined;
+  /** Callback to export organization members as CSV. Shown in the action menu when provided. */
   onExportMembers?: () => Promise<void>;
+  /** Callback to export organization projects as CSV. Shown in the action menu when provided. */
   onExportProjects?: () => Promise<void>;
+  /** Callback to export organization tokens as CSV. Shown in the action menu when provided. */
   onExportTokens?: () => Promise<void>;
+  /** Base URL of the consumer app, used for generating links (e.g. invitation emails). */
   appUrl?: string;
+  /** Product ID used for token-related billing operations. */
   tokenProductId?: string;
+  /** List of country names for KYC country selector. */
   countries?: string[];
+  /** List of allowed organization types for the organization type selector. */
   organizationTypes?: string[];
+  /** Current browser path (e.g. `location.pathname`) for highlighting active nav tabs. */
   currentPath: string;
+  /** Navigation callback for tab switches (e.g. `useNavigate()` from react-router-dom). */
   onNavigate: (path: string) => void;
   children?: React.ReactNode;
 };
 
-export const OrganizationDetails = ({
+export const OrganizationDetailsView = ({
   organizationId,
   onExportMembers,
   onExportProjects,
@@ -43,7 +53,7 @@ export const OrganizationDetails = ({
   currentPath,
   onNavigate,
   children,
-}: OrganizationDetailsProps) => {
+}: OrganizationDetailsViewProps) => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
