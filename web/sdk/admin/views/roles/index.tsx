@@ -14,9 +14,13 @@ import { useQuery } from "@connectrpc/connect-query";
 import RoleDetails from "./details";
 
 export type RolesViewProps = {
+  /** When set, opens the detail sheet for this role. */
   selectedRoleId?: string;
+  /** Called when a user clicks a role row. Use to update the URL or local state. */
   onSelectRole?: (roleId: string) => void;
+  /** Called when the detail sheet is closed. Use to clear the selected role from URL/state. */
   onCloseDetail?: () => void;
+  /** App name displayed in the page title. */
   appName?: string;
 };
 

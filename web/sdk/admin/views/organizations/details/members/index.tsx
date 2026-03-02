@@ -63,7 +63,7 @@ const ErrorState = () => {
   );
 };
 
-export function OrganizationMembersPage() {
+export function OrganizationMembersView() {
   const { roles = [], organization, search } = useContext(OrganizationContext);
   const {
     onChange: onSearchChange,

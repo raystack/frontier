@@ -58,7 +58,7 @@ const ErrorState = () => {
   );
 };
 
-export function OrganizationTokensPage() {
+export function OrganizationTokensView() {
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const {

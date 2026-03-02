@@ -10,17 +10,17 @@ export { default as PlansView } from "./views/plans";
 export { default as WebhooksView } from "./views/webhooks/webhooks";
 export { default as PreferencesView } from "./views/preferences/PreferencesView";
 export { default as UsersView } from "./views/users/UsersView";
-export { OrganizationList, type OrganizationListProps } from "./views/organizations/list";
+export { OrganizationListView, type OrganizationListViewProps } from "./views/organizations/list";
 export {
-  OrganizationDetails,
-  type OrganizationDetailsProps,
+  OrganizationDetailsView,
+  type OrganizationDetailsViewProps,
 } from "./views/organizations/details";
 export { OrganizationSecurity } from "./views/organizations/details/security";
-export { OrganizationMembersPage } from "./views/organizations/details/members";
-export { OrganizationProjectssPage } from "./views/organizations/details/projects";
-export { OrganizationInvoicesPage } from "./views/organizations/details/invoices";
-export { OrganizationTokensPage } from "./views/organizations/details/tokens";
-export { OrganizationApisPage } from "./views/organizations/details/apis";
+export { OrganizationMembersView } from "./views/organizations/details/members";
+export { OrganizationProjectsView } from "./views/organizations/details/projects";
+export { OrganizationInvoicesView } from "./views/organizations/details/invoices";
+export { OrganizationTokensView } from "./views/organizations/details/tokens";
+export { OrganizationApisView } from "./views/organizations/details/apis";
 
 // utils exports
 export {
