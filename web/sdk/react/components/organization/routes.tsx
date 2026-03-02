@@ -28,7 +28,6 @@ import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
 import { AddTokens } from './tokens/add-tokens';
-import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
@@ -216,12 +215,6 @@ const billingRoute = createRoute({
   component: Billing
 });
 
-const switchBillingCycleModalRoute = createRoute({
-  getParentRoute: () => billingRoute,
-  path: '/cycle-switch/$planId',
-  component: ConfirmCycleSwitch
-});
-
 const plansRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/plans',
@@ -313,7 +306,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     projectPageRoute,
     profileRoute,
     preferencesRoute,
-    billingRoute.addChildren([switchBillingCycleModalRoute]),
+    billingRoute,
     plansRoute,
     tokensRoute.addChildren([addTokensRoute]),
     apiKeysRoute.addChildren([

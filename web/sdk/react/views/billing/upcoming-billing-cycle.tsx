@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
@@ -47,17 +46,16 @@ function LabeledBillingData({
   );
 }
 
-function PlanSwitchButton({ nextPlan }: { nextPlan: Plan }) {
+interface PlanSwitchButtonProps {
+  nextPlan: Plan;
+  onCycleSwitchClick?: (planId: string) => void;
+}
+
+function PlanSwitchButton({ nextPlan, onCycleSwitchClick }: PlanSwitchButtonProps) {
   const intervalName = getPlanIntervalName(nextPlan).toLowerCase();
 
-  const navigate = useNavigate({ from: '/billing' });
   function onClick() {
-    navigate({
-      to: '/billing/cycle-switch/$planId',
-      params: {
-        planId: nextPlan.id || ''
-      }
-    });
+    onCycleSwitchClick?.(nextPlan.id || '');
   }
 
   return (
@@ -91,11 +89,15 @@ function getSwitchablePlan(plans: Plan[], currentPlan: Plan) {
 interface UpcomingBillingCycleProps {
   isAllowed: boolean;
   isPermissionLoading: boolean;
+  onCycleSwitchClick?: (planId: string) => void;
+  onNavigateToPlans?: () => void;
 }
 
 export const UpcomingBillingCycle = ({
   isAllowed,
-  isPermissionLoading
+  isPermissionLoading,
+  onCycleSwitchClick,
+  onNavigateToPlans
 }: UpcomingBillingCycleProps) => {
   const {
     billingAccount,
@@ -108,7 +110,6 @@ export const UpcomingBillingCycle = ({
     isAllPlansLoading,
     activeOrganization
   } = useFrontier();
-  const navigate = useNavigate({ from: '/billing' });
 
   const {
     data: upcomingInvoice,
@@ -165,21 +166,18 @@ export const UpcomingBillingCycle = ({
       ? {
           message: `You are subscribed to ${planName}.`,
           action: {
-            label: 'Upgrade',
-            link: '/plans'
+            label: 'Upgrade'
           }
         }
       : {
           message: 'You are not subscribed to any plan',
           action: {
-            label: 'Subscribe',
-            link: '/plans'
+            label: 'Subscribe'
           }
         };
 
   const onActionBtnClick = () => {
-    // @ts-ignore
-    navigate({ to: planInfo.action.link });
+    onNavigateToPlans?.();
   };
 
   const alreadyPhased = activeSubscription?.phases?.find(
@@ -218,6 +216,7 @@ export const UpcomingBillingCycle = ({
         {switchablePlan && isAllowed && !alreadyPhased ? (
           <PlanSwitchButton
             nextPlan={switchablePlan}
+            onCycleSwitchClick={onCycleSwitchClick}
             data-test-id="frontier-sdk-billing-cycle-interval-switch-button"
           />
         ) : null}
