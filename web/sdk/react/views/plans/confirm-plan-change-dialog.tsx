@@ -8,7 +8,6 @@ import {
   Flex,
   Dialog
 } from '@raystack/apsara';
-import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
@@ -16,17 +15,25 @@ import {
   DEFAULT_PLAN_UPGRADE_MESSAGE
 } from '~/react/utils/constants';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
-import planStyles from '../plans.module.css';
-import { usePlans } from '../hooks/usePlans';
+import planStyles from './plans.module.css';
+import { usePlans } from './hooks/usePlans';
 import cross from '~/react/assets/cross.svg';
-import styles from '../../organization.module.css';
+import orgStyles from '../../components/organization/organization.module.css';
 import { useMessages } from '~/react/hooks/useMessages';
 import { timestampToDayjs } from '~/utils/timestamp';
 import { Plan } from '@raystack/proton/frontier';
 
-export default function ConfirmPlanChange() {
-  const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
-  const { planId } = useParams({ from: '/plans/confirm-change/$planId' });
+export interface ConfirmPlanChangeDialogProps {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  planId: string;
+}
+
+export function ConfirmPlanChangeDialog({
+  open,
+  onOpenChange,
+  planId
+}: ConfirmPlanChangeDialogProps) {
   const {
     activePlan,
     isAllPlansLoading,
@@ -63,7 +70,7 @@ export default function ConfirmPlanChange() {
     Number(activePlanMetadata?.weightage)
   );
 
-  const cancel = useCallback(() => navigate({ to: '/plans' }), [navigate]);
+  const handleClose = useCallback(() => onOpenChange?.(false), [onOpenChange]);
   const newPlanSlug = isNewPlanBasePlan ? 'base' : newPlan?.name;
 
   const planChangeSlug = activePlan?.name
@@ -88,10 +95,10 @@ export default function ConfirmPlanChange() {
       toast.success(`Plan ${actionName} successful`, {
         description: `Your plan will ${actionName} on ${changeDate}`
       });
-      cancel();
+      handleClose();
     }
   }, [
-    cancel,
+    handleClose,
     config?.dateFormat,
     planAction?.btnLabel,
     planId,
@@ -139,10 +146,10 @@ export default function ConfirmPlanChange() {
   }, [isNewPlanBasePlan, basePlan, currentPlan]);
 
   useEffect(() => {
-    if (planId) {
+    if (planId && open) {
       getPlan();
     }
-  }, [getPlan, planId]);
+  }, [getPlan, planId, open]);
 
   const isLoading = isAllPlansLoading || isNewPlanLoading;
 
@@ -161,10 +168,10 @@ export default function ConfirmPlanChange() {
     : 'the next billing cycle';
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
-        overlayClassName={styles.overlay}
+        overlayClassName={orgStyles.overlay}
       >
         <Dialog.Header>
           <Flex justify="between" align="center" style={{ width: '100%' }}>
@@ -180,7 +187,7 @@ export default function ConfirmPlanChange() {
               alt="cross"
               style={{ cursor: 'pointer' }}
               src={cross as unknown as string}
-              onClick={cancel}
+              onClick={handleClose}
               data-test-id="frontier-sdk-confirm-plan-change-close-button"
             />
           </Flex>
@@ -232,7 +239,7 @@ export default function ConfirmPlanChange() {
             <Button
               variant="outline"
               color="neutral"
-              onClick={cancel}
+              onClick={handleClose}
               data-test-id="frontier-sdk-confirm-plan-change-cancel-button"
             >
               Cancel

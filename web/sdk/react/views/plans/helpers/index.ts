@@ -1,6 +1,7 @@
 import {
   IntervalKeys,
   IntervalPricing,
+  IntervalPricingWithPlan,
   PlanIntervalPricing
 } from '~/src/types';
 import { getPlanPrice, makePlanSlug } from '~/react/utils';

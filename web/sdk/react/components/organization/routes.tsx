@@ -30,7 +30,6 @@ import Tokens from './tokens';
 import { AddTokens } from './tokens/add-tokens';
 import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
-import ConfirmPlanChange from './plans/confirm-change';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
@@ -229,11 +228,6 @@ const plansRoute = createRoute({
   component: Plans
 });
 
-const planDowngradeRoute = createRoute({
-  getParentRoute: () => plansRoute,
-  path: '/confirm-change/$planId',
-  component: ConfirmPlanChange
-});
 
 const tokensRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -320,7 +314,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     profileRoute,
     preferencesRoute,
     billingRoute.addChildren([switchBillingCycleModalRoute]),
-    plansRoute.addChildren([planDowngradeRoute]),
+    plansRoute,
     tokensRoute.addChildren([addTokensRoute]),
     apiKeysRoute.addChildren([
       addServiceAccountRoute,
