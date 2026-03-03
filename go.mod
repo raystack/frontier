@@ -20,7 +20,6 @@ require (
 	github.com/go-resty/resty/v2 v2.1.1-0.20191201195748-d7b97669fe48
 	github.com/go-webauthn/webauthn v0.8.6
 	github.com/golang-migrate/migrate/v4 v4.16.0
-	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/securecookie v1.1.1
@@ -48,7 +47,6 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/stripe/stripe-go/v79 v79.5.0
 	github.com/ua-parser/uap-go v0.0.0-20250917011043-9c86a9b0f8f0
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
 	go.uber.org/zap v1.26.0
 	gocloud.dev v0.28.0
@@ -101,13 +99,13 @@ require (
 	github.com/go-webauthn/x v0.1.4 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/oklog/run v1.1.0 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
@@ -119,6 +117,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
@@ -178,7 +177,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
-	github.com/gorilla/handlers v1.5.1
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

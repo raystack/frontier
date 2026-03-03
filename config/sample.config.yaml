@@ -34,16 +34,6 @@ ui:
   organization_types: []
 
 app:
-  port: 8000
-  grpc:
-    port: 8001
-    # gRPC message size limits
-    # max_recv_msg_size: 33554432
-    # max_send_msg_size: 33554432
-    # optional tls config
-    # tls_cert_file: "temp/server-cert.pem"
-    # tls_key_file: "temp/server-key.pem"
-    # tls_client_ca_file: "temp/ca-cert.pem"
   connect:
     port: 8002
   # port for application metrics
