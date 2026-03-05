@@ -75,8 +75,7 @@ const (
 	PATPrincipal         = "app/pat"
 
 	// PAT relations
-	PATGrantRelationName     = "pat_granted"
-	GrantRelationMetadataKey = "grant_relation"
+	PATGrantRelationName = "pat_granted"
 
 	// Roles
 	RoleOrganizationViewer  = "app_organization_viewer"

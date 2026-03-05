@@ -17,7 +17,6 @@ import (
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/sha3"
@@ -564,9 +563,7 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
-		Metadata: metadata.Metadata{
-			schema.GrantRelationMetadataKey: schema.PATGrantRelationName,
-		},
+		GrantRelation: schema.PATGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
@@ -795,8 +792,8 @@ func TestService_CreatePolicies_NoRoles(t *testing.T) {
 // Format: "roleID→resourceType:resourceID(grantRelation)"
 func policyKey(p policy.Policy) string {
 	grant := "granted"
-	if gr, ok := p.Metadata[schema.GrantRelationMetadataKey].(string); ok && gr != "" {
-		grant = gr
+	if p.GrantRelation != "" {
+		grant = p.GrantRelation
 	}
 	return p.RoleID + "→" + p.ResourceType + ":" + p.ResourceID + "(" + grant + ")"
 }

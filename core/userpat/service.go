@@ -17,7 +17,6 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
-	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/log"
 	"golang.org/x/crypto/sha3"
 )
@@ -277,9 +276,7 @@ func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID 
 			ResourceType:  schema.OrganizationNamespace,
 			PrincipalID:   patID,
 			PrincipalType: schema.PATPrincipal,
-			Metadata: metadata.Metadata{
-				schema.GrantRelationMetadataKey: schema.PATGrantRelationName,
-			},
+			GrantRelation: schema.PATGrantRelationName,
 		}); err != nil {
 			return fmt.Errorf("creating org pat_granted policy for role %s: %w", r.Name, err)
 		}

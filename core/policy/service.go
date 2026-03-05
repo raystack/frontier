@@ -55,6 +55,16 @@ func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
 		return Policy{}, err
 	}
 	policy.RoleID = policyRole.ID
+	if policy.GrantRelation == "" {
+		policy.GrantRelation = schema.RoleGrantRelationName
+	}
+	if policy.GrantRelation != schema.RoleGrantRelationName && policy.GrantRelation != schema.PATGrantRelationName {
+		return Policy{}, fmt.Errorf("invalid grant_relation value: %q", policy.GrantRelation)
+	}
+	if policy.GrantRelation == schema.PATGrantRelationName && policy.PrincipalType != schema.PATPrincipal {
+		return Policy{}, fmt.Errorf("%q relation requires principal type %q, got %q",
+			schema.PATGrantRelationName, schema.PATPrincipal, policy.PrincipalType)
+	}
 
 	createdPolicy, err := s.repository.Upsert(ctx, policy)
 	if err != nil {
@@ -118,19 +128,6 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	}
 
 	// bind policy to resource
-	grantRelation := schema.RoleGrantRelationName
-	if raw, ok := pol.Metadata[schema.GrantRelationMetadataKey]; ok {
-		gr, ok := raw.(string)
-		if !ok {
-			return fmt.Errorf("invalid %q metadata type", schema.GrantRelationMetadataKey)
-		}
-		if gr != "" {
-			if gr != schema.RoleGrantRelationName && gr != schema.PATGrantRelationName {
-				return fmt.Errorf("invalid %q metadata value: %q", schema.GrantRelationMetadataKey, gr)
-			}
-			grantRelation = gr
-		}
-	}
 	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        pol.ResourceID,
@@ -140,7 +137,7 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 			ID:        pol.ID,
 			Namespace: schema.RoleBindingNamespace,
 		},
-		RelationName: grantRelation,
+		RelationName: pol.GrantRelation,
 	})
 	if err != nil {
 		return err

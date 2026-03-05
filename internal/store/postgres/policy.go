@@ -15,6 +15,7 @@ type Policy struct {
 	ResourceType  string    `db:"resource_type"`
 	PrincipalID   string    `db:"principal_id"`
 	PrincipalType string    `db:"principal_type"`
+	GrantRelation string    `db:"grant_relation"`
 	Metadata      []byte    `db:"metadata"`
 	CreatedAt     time.Time `db:"created_at"`
 	UpdatedAt     time.Time `db:"updated_at"`
@@ -27,6 +28,7 @@ type PolicyCols struct {
 	ResourceID    string    `db:"resource_id"`
 	PrincipalID   string    `db:"principal_id"`
 	PrincipalType string    `db:"principal_type"`
+	GrantRelation string    `db:"grant_relation"`
 	Metadata      []byte    `db:"metadata"`
 	CreatedAt     time.Time `db:"created_at"`
 	UpdatedAt     time.Time `db:"updated_at"`
@@ -47,6 +49,7 @@ func (from Policy) transformToPolicy() (policy.Policy, error) {
 		ResourceType:  from.ResourceType,
 		PrincipalID:   from.PrincipalID,
 		PrincipalType: from.PrincipalType,
+		GrantRelation: from.GrantRelation,
 		Metadata:      unmarshalledMetadata,
 		CreatedAt:     from.CreatedAt,
 		UpdatedAt:     from.UpdatedAt,
