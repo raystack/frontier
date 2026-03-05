@@ -556,6 +556,128 @@ func TestService_Update(t *testing.T) {
 	}
 }
 
+func TestService_Disable(t *testing.T) {
+	validID := uuid.New().String()
+	tests := []struct {
+		name    string
+		id      string
+		setup   func() *user.Service
+		wantErr error
+	}{
+		{
+			name: "disable user with valid uuid",
+			id:   validID,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				repo.EXPECT().SetState(mock.Anything, validID, user.Disabled).Return(nil)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+		{
+			name:    "return invalid id error for non-uuid string",
+			id:      "not-a-uuid",
+			wantErr: user.ErrInvalidID,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+		{
+			name:    "return invalid id error for empty string",
+			id:      "",
+			wantErr: user.ErrInvalidID,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+		{
+			name:    "return not exist error if user not found",
+			id:      validID,
+			wantErr: user.ErrNotExist,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				repo.EXPECT().SetState(mock.Anything, validID, user.Disabled).Return(user.ErrNotExist)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			err := s.Disable(context.Background(), tt.id)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("Disable() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			} else if err != nil {
+				t.Errorf("Disable() unexpected error = %v", err)
+			}
+		})
+	}
+}
+
+func TestService_Enable(t *testing.T) {
+	validID := uuid.New().String()
+	tests := []struct {
+		name    string
+		id      string
+		setup   func() *user.Service
+		wantErr error
+	}{
+		{
+			name: "enable user with valid uuid",
+			id:   validID,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				repo.EXPECT().SetState(mock.Anything, validID, user.Enabled).Return(nil)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+		{
+			name:    "return invalid id error for non-uuid string",
+			id:      "not-a-uuid",
+			wantErr: user.ErrInvalidID,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+		{
+			name:    "return invalid id error for empty string",
+			id:      "",
+			wantErr: user.ErrInvalidID,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+		{
+			name:    "return not exist error if user not found",
+			id:      validID,
+			wantErr: user.ErrNotExist,
+			setup: func() *user.Service {
+				repo, relationService, policyService, roleService := mockService(t)
+				repo.EXPECT().SetState(mock.Anything, validID, user.Enabled).Return(user.ErrNotExist)
+				return user.NewService(repo, relationService, policyService, roleService)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			err := s.Enable(context.Background(), tt.id)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("Enable() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			} else if err != nil {
+				t.Errorf("Enable() unexpected error = %v", err)
+			}
+		})
+	}
+}
+
 func TestService_Delete(t *testing.T) {
 	tests := []struct {
 		name    string
