@@ -4,6 +4,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "preview": "turbo run preview",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "publish": "turbo run publish",
@@ -15,15 +16,15 @@
     "ci:build": "turbo build --filter=@raystack/frontier..."
   },
   "devDependencies": {
-    "@turbo/gen": "^1.10.14",
-    "prettier": "^2.8.8",
-    "process": "^0.11.10",
+    "@turbo/gen": "1.10.14",
+    "prettier": "2.8.8",
+    "process": "0.11.10",
     "turbo": "2.0.6"
   },
   "packageManager": "pnpm@9.3.0",
   "dependencies": {
-    "@changesets/cli": "^2.26.2",
-    "eslint": "^8.57.1",
+    "@changesets/cli": "2.26.2",
+    "eslint": "8.57.1",
     "@raystack/eslint-config": "workspace:^"
   },
   "prettier": {
@@ -39,6 +40,7 @@
     }
   },
   "engines": {
-    "node": ">=20.6.1"
+    "node": ">=20.6.1",
+    "pnpm": ">=9.3.0"
   }
 }
