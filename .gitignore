@@ -28,4 +28,4 @@ node_modules/
 .next/
 .claude
 claude.md
-
+.cursor
