@@ -129,10 +129,16 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {
+	if !utils.IsValidUUID(id) {
+		return ErrInvalidID
+	}
 	return s.repository.SetState(ctx, id, Enabled)
 }
 
 func (s Service) Disable(ctx context.Context, id string) error {
+	if !utils.IsValidUUID(id) {
+		return ErrInvalidID
+	}
 	return s.repository.SetState(ctx, id, Disabled)
 }
 
