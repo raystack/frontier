@@ -11,6 +11,7 @@ import {
   Spinner,
   getAvatarColor,
   toast,
+  Search
 } from "@raystack/apsara";
 
 import styles from "./layout.module.css";
@@ -20,7 +21,6 @@ import { AddTokensDialog } from "./add-tokens-dialog";
 import type React from "react";
 import { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
-import { InputField } from "@raystack/apsara";
 import type { Organization } from "@raystack/proton/frontier";
 
 interface navConfig {
@@ -334,15 +334,19 @@ export const OrganizationsDetailsNavabar = ({
       </Flex>
       <Flex align="center" gap={4}>
         {search.isVisible ? (
-          <InputField
+          <Search
             value={search.query}
             onChange={handleSearchChange}
+            onClear={() => search.onChange("")}
             placeholder="Search"
+            size="small"
+            showClearButton
             data-test-id="admin-org-details-navbar-search"
           />
         ) : null}
         <IconButton
           size={3}
+          className={styles["navbar-sidepanel-button"]}
           data-test-id="admin-nav-sidepanel-button"
           onClick={toggleSidePanel}
         >
