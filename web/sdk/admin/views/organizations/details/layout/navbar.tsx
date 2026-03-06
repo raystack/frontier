@@ -346,7 +346,6 @@ export const OrganizationsDetailsNavabar = ({
         ) : null}
         <IconButton
           size={3}
-          className={styles["navbar-sidepanel-button"]}
           data-test-id="admin-nav-sidepanel-button"
           onClick={toggleSidePanel}
         >

@@ -24,10 +24,6 @@
   min-height: var(--rs-space-11);
 }
 
-.navbar-sidepanel-button {
-  flex-shrink: 0;
-}
-
 .navbar-action-menu-content {
   min-width: 160px;
 }
