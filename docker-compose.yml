@@ -54,9 +54,9 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "8081:8080" # rest endpoint
-      - "8082:8081" # grpc endpoint
+      - "8002:8002" # connect endpoint
       - "8083:8083" # ui
+      - "9000:9000" # metrics
     command: ["server", "start"]
     restart: on-failure
     depends_on:
