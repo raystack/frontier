@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -54,6 +55,16 @@ func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
 		return Policy{}, err
 	}
 	policy.RoleID = policyRole.ID
+	if policy.GrantRelation == "" {
+		policy.GrantRelation = schema.RoleGrantRelationName
+	}
+	if policy.GrantRelation != schema.RoleGrantRelationName && policy.GrantRelation != schema.PATGrantRelationName {
+		return Policy{}, fmt.Errorf("invalid grant_relation value: %q", policy.GrantRelation)
+	}
+	if policy.GrantRelation == schema.PATGrantRelationName && policy.PrincipalType != schema.PATPrincipal {
+		return Policy{}, fmt.Errorf("%q relation requires principal type %q, got %q",
+			schema.PATGrantRelationName, schema.PATPrincipal, policy.PrincipalType)
+	}
 
 	createdPolicy, err := s.repository.Upsert(ctx, policy)
 	if err != nil {
@@ -126,7 +137,7 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 			ID:        pol.ID,
 			Namespace: schema.RoleBindingNamespace,
 		},
-		RelationName: schema.RoleGrantRelationName,
+		RelationName: pol.GrantRelation,
 	})
 	if err != nil {
 		return err

@@ -1,0 +1,1 @@
+ALTER TABLE policies DROP COLUMN IF EXISTS grant_relation;

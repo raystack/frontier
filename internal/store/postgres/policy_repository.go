@@ -36,6 +36,7 @@ func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
 		"p.principal_id",
 		"p.principal_type",
 		"p.role_id",
+		"p.grant_relation",
 	).From(goqu.T(TABLE_POLICIES).As("p"))
 }
 
@@ -199,10 +200,12 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 			"resource_id":    pol.ResourceID,
 			"principal_id":   pol.PrincipalID,
 			"principal_type": pol.PrincipalType,
+			"grant_relation": pol.GrantRelation,
 			"metadata":       marshaledMetadata,
 		}).OnConflict(goqu.DoUpdate("role_id, resource_id, resource_type, principal_id, principal_type", goqu.Record{
-		"metadata":   marshaledMetadata,
-		"updated_at": goqu.L("now()"),
+		"grant_relation": pol.GrantRelation,
+		"metadata":       marshaledMetadata,
+		"updated_at":     goqu.L("now()"),
 	})).Returning(&PolicyCols{}).ToSQL()
 	if err != nil {
 		return policy.Policy{}, fmt.Errorf("%w: %w", queryErr, err)
@@ -268,8 +271,9 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 
 	query, params, err := dialect.Update(TABLE_POLICIES).Set(
 		goqu.Record{
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
+			"grant_relation": toUpdate.GrantRelation,
+			"metadata":       marshaledMetadata,
+			"updated_at":     goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": toUpdate.ID,
 	}).Returning("id", "updated_at").ToSQL()
@@ -476,6 +480,7 @@ func (r PolicyRepository) buildPolicyAuditRecord(ctx context.Context, tx *sqlx.T
 		"role_id":        pol.RoleID,
 		"principal_id":   pol.PrincipalID,
 		"principal_type": pol.PrincipalType,
+		"grant_relation": pol.GrantRelation,
 	}
 	for k, v := range additionalMetadata {
 		targetMetadata[k] = v
