@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -39,7 +40,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -57,7 +57,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					Type: schema.ServiceUserPrincipal,
 				}, nil)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -77,7 +76,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(userpat.ErrExpiryInPast)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -118,7 +116,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
 					Return(userpat.PAT{}, "", userpat.ErrDisabled)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -140,7 +137,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
 					Return(userpat.PAT{}, "", userpat.ErrConflict)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -162,7 +158,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
 					Return(userpat.PAT{}, "", userpat.ErrLimitExceeded)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -171,6 +166,69 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeResourceExhausted, userpat.ErrLimitExceeded),
+		},
+		{
+			name: "should return invalid argument when role is not found",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
+				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
+					Return(userpat.PAT{}, "", fmt.Errorf("fetching roles: %w", userpat.ErrRoleNotFound))
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+				Title:     "my-token",
+				OrgId:     testOrgID,
+				RoleIds:   []string{testRoleID},
+				ExpiresAt: timestamppb.New(testTime),
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrRoleNotFound),
+		},
+		{
+			name: "should return invalid argument when role is denied",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
+				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
+					Return(userpat.PAT{}, "", fmt.Errorf("creating policies: %w", userpat.ErrDeniedRole))
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+				Title:     "my-token",
+				OrgId:     testOrgID,
+				RoleIds:   []string{testRoleID},
+				ExpiresAt: timestamppb.New(testTime),
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrDeniedRole),
+		},
+		{
+			name: "should return invalid argument when role scope is unsupported",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
+				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
+					Return(userpat.PAT{}, "", fmt.Errorf("creating policies: %w", userpat.ErrUnsupportedScope))
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+				Title:     "my-token",
+				OrgId:     testOrgID,
+				RoleIds:   []string{testRoleID},
+				ExpiresAt: timestamppb.New(testTime),
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrUnsupportedScope),
 		},
 		{
 			name: "should return internal error for unknown service failure",
@@ -184,7 +242,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
 					Return(userpat.PAT{}, "", errors.New("unexpected error"))
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -195,7 +252,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
 		{
-			name: "should create token successfully and return response",
+			name: "should create PAT successfully and return response",
 			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
 					ID:   testUserID,
@@ -207,7 +264,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					return req.UserID == testUserID &&
 						req.OrgID == testOrgID &&
 						req.Title == "my-token" &&
-						len(req.Roles) == 1 && req.Roles[0] == testRoleID
+						len(req.RoleIDs) == 1 && req.RoleIDs[0] == testRoleID
 				})).Return(userpat.PAT{
 					ID:        "pat-1",
 					UserID:    testUserID,
@@ -218,7 +275,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					UpdatedAt: testCreatedAt,
 				}, "fpt_abc123", nil)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
@@ -240,7 +296,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "should create token with metadata",
+			name: "should create PAT with metadata",
 			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
 					ID:   testUserID,
@@ -260,7 +316,6 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 						Metadata:  metadata.Metadata{"env": "staging"},
 					}, "fpt_xyz789", nil)
 			},
-
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,

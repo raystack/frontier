@@ -1,0 +1,1 @@
+ALTER TABLE policies ADD COLUMN IF NOT EXISTS grant_relation TEXT NOT NULL DEFAULT 'granted';

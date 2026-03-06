@@ -33,7 +33,7 @@ func Test_Get(t *testing.T) {
 
 		mockRepository.On("Get", mock.Anything, mockID).Return(expectedRole, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		res, err := svc.Get(context.Background(), mockID)
 
 		assert.Equal(t, nil, err)
@@ -49,7 +49,7 @@ func Test_Get(t *testing.T) {
 
 		mockRepository.On("GetByName", mock.Anything, "", mockSlug).Return(expectedRole, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		res, err := svc.Get(context.Background(), mockSlug)
 
 		assert.Equal(t, nil, err)
@@ -62,7 +62,7 @@ func Test_Get(t *testing.T) {
 
 		mockRepository.On("Get", mock.Anything, mockID).Return(role.Role{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		_, err := svc.Get(context.Background(), mockID)
 
 		assert.NotNil(t, err)
@@ -92,7 +92,7 @@ func Test_List(t *testing.T) {
 
 		mockRepository.On("List", mock.Anything, f).Return(expectedRoles, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		res, err := svc.List(context.Background(), f)
 
 		assert.Equal(t, nil, err)
@@ -104,7 +104,7 @@ func Test_List(t *testing.T) {
 		f := role.Filter{}
 		mockRepository.On("List", mock.Anything, f).Return(nil, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		_, err := svc.List(context.Background(), f)
 
 		assert.NotNil(t, err)
@@ -129,7 +129,7 @@ func Test_Upsert(t *testing.T) {
 		mockPermissionSvc.On("Get", mock.Anything, "app_project_viewer").Return(permission.Permission{}, nil).Once()
 		mockPermissionSvc.On("Get", mock.Anything, nonExistentPermission).Return(permission.Permission{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		_, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.NotNil(t, err)
@@ -153,7 +153,7 @@ func Test_Upsert(t *testing.T) {
 		mockPermissionSvc.On("Get", mock.Anything, "app_project_viewer").Return(permissionForRole, nil).Once()
 		mockRepository.On("Upsert", mock.Anything, role.Role{ID: roleToBeUpserted.ID, Permissions: []string{slugForPermission}}).Return(role.Role{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		_, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.NotNil(t, err)
@@ -194,7 +194,7 @@ func Test_Upsert(t *testing.T) {
 		expectedErr := errors.New("Error creating user role relation")
 		mockRelationSvc.On("Create", mock.Anything, userRoleRelation).Return(relation.Relation{}, expectedErr).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		_, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.NotNil(t, err)
@@ -247,13 +247,70 @@ func Test_Upsert(t *testing.T) {
 		}
 		mockRelationSvc.On("Create", mock.Anything, serviceUserRoleRelation).Return(relation.Relation{}, nil).Once()
 
+		patRoleRelation := relation.Relation{
+			Object: relation.Object{
+				ID:        roleWithPermSlug.ID,
+				Namespace: schema.RoleNamespace,
+			},
+			Subject: relation.Subject{
+				ID:        "*",
+				Namespace: schema.PATPrincipal,
+			},
+			RelationName: slugForPermission,
+		}
+		mockRelationSvc.On("Create", mock.Anything, patRoleRelation).Return(relation.Relation{}, nil).Once()
+
 		// Mock audit record repository
 		mockAuditRecordRepo.On("Create", mock.Anything, mock.Anything).Return(auditrecord.AuditRecord{}, nil).Once()
 
-		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo)
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
 		roleCreated, err := svc.Upsert(context.Background(), roleToBeUpserted)
 
 		assert.Nil(t, err)
 		assert.Equal(t, roleWithPermSlug, roleCreated)
+	})
+
+	t.Run("should skip PAT wildcard for denied permissions", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		relSvc := mocks.NewRelationService(t)
+		permSvc := mocks.NewPermissionService(t)
+		auditRepo := auditMocks.NewRepository(t)
+
+		perm := permission.Permission{
+			ID:          "perm-1",
+			Name:        "administer",
+			NamespaceID: "organization",
+		}
+		slug := perm.GenerateSlug()
+
+		permSvc.On("Get", mock.Anything, "app_organization_administer").Return(perm, nil).Once()
+		repo.On("Upsert", mock.Anything, mock.Anything).Return(role.Role{
+			ID:          "role-1",
+			Permissions: []string{slug},
+		}, nil).Once()
+
+		// only user and serviceuser wildcards — NO PAT wildcard
+		relSvc.On("Create", mock.Anything, relation.Relation{
+			Object:       relation.Object{ID: "role-1", Namespace: schema.RoleNamespace},
+			Subject:      relation.Subject{ID: "*", Namespace: schema.UserPrincipal},
+			RelationName: slug,
+		}).Return(relation.Relation{}, nil).Once()
+		relSvc.On("Create", mock.Anything, relation.Relation{
+			Object:       relation.Object{ID: "role-1", Namespace: schema.RoleNamespace},
+			Subject:      relation.Subject{ID: "*", Namespace: schema.ServiceUserPrincipal},
+			RelationName: slug,
+		}).Return(relation.Relation{}, nil).Once()
+
+		auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditrecord.AuditRecord{}, nil).Once()
+
+		deniedPerms := map[string]struct{}{slug: {}}
+		svc := role.NewService(repo, relSvc, permSvc, auditRepo, deniedPerms)
+		_, err := svc.Upsert(context.Background(), role.Role{
+			ID:          "role-1",
+			Permissions: []string{"app_organization_administer"},
+		})
+
+		assert.Nil(t, err)
+		relSvc.AssertExpectations(t) // ensures PAT Create was NOT called
 	})
 }

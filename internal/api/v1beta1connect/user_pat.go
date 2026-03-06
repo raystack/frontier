@@ -36,7 +36,7 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 		UserID:     principal.User.ID,
 		OrgID:      request.Msg.GetOrgId(),
 		Title:      request.Msg.GetTitle(),
-		Roles:      request.Msg.GetRoleIds(),
+		RoleIDs:    request.Msg.GetRoleIds(),
 		ProjectIDs: request.Msg.GetProjectIds(),
 		ExpiresAt:  request.Msg.GetExpiresAt().AsTime(),
 		Metadata:   metadata.BuildFromProto(request.Msg.GetMetadata()),
@@ -53,6 +53,12 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 			return nil, connect.NewError(connect.CodeAlreadyExists, err)
 		case errors.Is(err, userpat.ErrLimitExceeded):
 			return nil, connect.NewError(connect.CodeResourceExhausted, err)
+		case errors.Is(err, userpat.ErrRoleNotFound):
+			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrRoleNotFound)
+		case errors.Is(err, userpat.ErrDeniedRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrDeniedRole)
+		case errors.Is(err, userpat.ErrUnsupportedScope):
+			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrUnsupportedScope)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}

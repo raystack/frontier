@@ -93,6 +93,33 @@ func TestService_Create(t *testing.T) {
 			},
 		},
 		{
+			name: "reject invalid grant_relation value",
+			policy: policy.Policy{
+				RoleID:        "role-id",
+				GrantRelation: "invalid_relation",
+			},
+			wantErr: true,
+			setup: func() *policy.Service {
+				repo, roleService, relationService := mockService(t)
+				roleService.On("Get", ctx, "role-id").Return(role.Role{ID: "role-id"}, nil)
+				return policy.NewService(repo, relationService, roleService)
+			},
+		},
+		{
+			name: "reject pat_granted for non-PAT principal",
+			policy: policy.Policy{
+				RoleID:        "role-id",
+				PrincipalType: schema.UserPrincipal,
+				GrantRelation: schema.PATGrantRelationName,
+			},
+			wantErr: true,
+			setup: func() *policy.Service {
+				repo, roleService, relationService := mockService(t)
+				roleService.On("Get", ctx, "role-id").Return(role.Role{ID: "role-id"}, nil)
+				return policy.NewService(repo, relationService, roleService)
+			},
+		},
+		{
 			name: "create policy successfully",
 			policy: policy.Policy{
 				ID:            "policy-id",
@@ -109,6 +136,7 @@ func TestService_Create(t *testing.T) {
 				ResourceType:  schema.ProjectNamespace,
 				PrincipalID:   "user-id",
 				PrincipalType: schema.UserPrincipal,
+				GrantRelation: schema.RoleGrantRelationName,
 			},
 			setup: func() *policy.Service {
 				repo, roleService, relationService := mockService(t)
@@ -120,6 +148,7 @@ func TestService_Create(t *testing.T) {
 					ResourceType:  schema.ProjectNamespace,
 					PrincipalID:   "user-id",
 					PrincipalType: schema.UserPrincipal,
+					GrantRelation: schema.RoleGrantRelationName,
 				}).Return(policy.Policy{
 					ID:            "policy-id",
 					RoleID:        "role-id",
@@ -127,6 +156,7 @@ func TestService_Create(t *testing.T) {
 					ResourceType:  schema.ProjectNamespace,
 					PrincipalID:   "user-id",
 					PrincipalType: schema.UserPrincipal,
+					GrantRelation: schema.RoleGrantRelationName,
 				}, nil)
 
 				// assign role
@@ -184,6 +214,7 @@ func TestService_Create(t *testing.T) {
 				ResourceType:  schema.ProjectNamespace,
 				PrincipalID:   "group-id",
 				PrincipalType: schema.GroupPrincipal,
+				GrantRelation: schema.RoleGrantRelationName,
 			},
 			setup: func() *policy.Service {
 				repo, roleService, relationService := mockService(t)
@@ -195,6 +226,7 @@ func TestService_Create(t *testing.T) {
 					ResourceType:  schema.ProjectNamespace,
 					PrincipalID:   "group-id",
 					PrincipalType: schema.GroupPrincipal,
+					GrantRelation: schema.RoleGrantRelationName,
 				}).Return(policy.Policy{
 					ID:            "policy-id",
 					RoleID:        "role-id",
@@ -202,6 +234,7 @@ func TestService_Create(t *testing.T) {
 					ResourceType:  schema.ProjectNamespace,
 					PrincipalID:   "group-id",
 					PrincipalType: schema.GroupPrincipal,
+					GrantRelation: schema.RoleGrantRelationName,
 				}, nil)
 
 				// assign role
