@@ -1,8 +1,6 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 
