@@ -51,6 +51,8 @@ func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleServi
 }
 
 func TestService_Create(t *testing.T) {
+	futureExpiry := time.Now().UTC().Add(24 * time.Hour).Truncate(time.Second)
+
 	tests := []struct {
 		name         string
 		setup        func() *userpat.Service
@@ -200,7 +202,7 @@ func TestService_Create(t *testing.T) {
 				Title:      "my-token",
 				RoleIDs:    []string{"role-1"},
 				ProjectIDs: []string{"proj-1"},
-				ExpiresAt:  time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC),
+				ExpiresAt:  futureExpiry,
 				Metadata:   map[string]any{"env": "staging"},
 			},
 			wantErr: false,
@@ -225,8 +227,8 @@ func TestService_Create(t *testing.T) {
 						if diff := cmp.Diff(map[string]any{"env": "staging"}, map[string]any(pat.Metadata)); diff != "" {
 							t.Errorf("Create() Metadata mismatch (-want +got):\n%s", diff)
 						}
-						if !pat.ExpiresAt.Equal(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)) {
-							t.Errorf("Create() ExpiresAt = %v, want %v", pat.ExpiresAt, time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC))
+						if !pat.ExpiresAt.Equal(futureExpiry) {
+							t.Errorf("Create() ExpiresAt = %v, want %v", pat.ExpiresAt, futureExpiry)
 						}
 					}).
 					Return(userpat.PAT{
@@ -235,7 +237,7 @@ func TestService_Create(t *testing.T) {
 						OrgID:     "org-1",
 						Title:     "my-token",
 						Metadata:  map[string]any{"env": "staging"},
-						ExpiresAt: time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC),
+						ExpiresAt: futureExpiry,
 						CreatedAt: time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC),
 					}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
