@@ -11,6 +11,10 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { getColumns } from "./columns";
 import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { useInfiniteQuery } from "@connectrpc/connect-query";
+import { OrganizationContext } from "../contexts/organization-context";
+import { FileIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { ProjectMembersDialog } from "./members";
 import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE
