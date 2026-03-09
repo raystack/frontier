@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/raystack/frontier/core/userpat"
+	"github.com/raystack/frontier/core/userpat/models"
 )
 
 type UserPAT struct {
@@ -21,14 +21,14 @@ type UserPAT struct {
 	DeletedAt  *time.Time `db:"deleted_at"`
 }
 
-func (t UserPAT) transform() (userpat.PAT, error) {
+func (t UserPAT) transform() (models.PAT, error) {
 	var unmarshalledMetadata map[string]any
 	if len(t.Metadata) > 0 {
 		if err := json.Unmarshal(t.Metadata, &unmarshalledMetadata); err != nil {
-			return userpat.PAT{}, err
+			return models.PAT{}, err
 		}
 	}
-	return userpat.PAT{
+	return models.PAT{
 		ID:         t.ID,
 		UserID:     t.UserID,
 		OrgID:      t.OrgID,

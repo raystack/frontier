@@ -4,9 +4,11 @@ package mocks
 
 import (
 	context "context"
-	time "time"
 
+	models "github.com/raystack/frontier/core/userpat/models"
 	mock "github.com/stretchr/testify/mock"
+
+	time "time"
 
 	userpat "github.com/raystack/frontier/core/userpat"
 )
@@ -25,23 +27,23 @@ func (_m *UserPATService) EXPECT() *UserPATService_Expecter {
 }
 
 // Create provides a mock function with given fields: ctx, req
-func (_m *UserPATService) Create(ctx context.Context, req userpat.CreateRequest) (userpat.PAT, string, error) {
+func (_m *UserPATService) Create(ctx context.Context, req userpat.CreateRequest) (models.PAT, string, error) {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 userpat.PAT
+	var r0 models.PAT
 	var r1 string
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, userpat.CreateRequest) (userpat.PAT, string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, userpat.CreateRequest) (models.PAT, string, error)); ok {
 		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, userpat.CreateRequest) userpat.PAT); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, userpat.CreateRequest) models.PAT); ok {
 		r0 = rf(ctx, req)
 	} else {
-		r0 = ret.Get(0).(userpat.PAT)
+		r0 = ret.Get(0).(models.PAT)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, userpat.CreateRequest) string); ok {
@@ -78,12 +80,12 @@ func (_c *UserPATService_Create_Call) Run(run func(ctx context.Context, req user
 	return _c
 }
 
-func (_c *UserPATService_Create_Call) Return(_a0 userpat.PAT, _a1 string, _a2 error) *UserPATService_Create_Call {
+func (_c *UserPATService_Create_Call) Return(_a0 models.PAT, _a1 string, _a2 error) *UserPATService_Create_Call {
 	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *UserPATService_Create_Call) RunAndReturn(run func(context.Context, userpat.CreateRequest) (userpat.PAT, string, error)) *UserPATService_Create_Call {
+func (_c *UserPATService_Create_Call) RunAndReturn(run func(context.Context, userpat.CreateRequest) (models.PAT, string, error)) *UserPATService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }

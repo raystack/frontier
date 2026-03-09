@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
@@ -144,6 +145,11 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, organization.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(err, relation.ErrSubjectNotAllowed):
+			errorLogger.LogServiceError(ctx, request, "CreateOrganization.Create", err,
+				zap.String("org_name", request.Msg.GetBody().GetName()),
+				zap.String("org_title", request.Msg.GetBody().GetTitle()))
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 		default:
 			errorLogger.LogServiceError(ctx, request, "CreateOrganization.Create", err,
 				zap.String("org_name", request.Msg.GetBody().GetName()),

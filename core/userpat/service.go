@@ -15,6 +15,8 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/role"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
+	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/salt/log"
@@ -77,19 +79,19 @@ type CreateRequest struct {
 // the configured maximum PAT lifetime.
 func (s *Service) ValidateExpiry(expiresAt time.Time) error {
 	if !expiresAt.After(time.Now()) {
-		return ErrExpiryInPast
+		return paterrors.ErrExpiryInPast
 	}
 	if expiresAt.After(time.Now().Add(s.config.MaxExpiry())) {
-		return ErrExpiryExceeded
+		return paterrors.ErrExpiryExceeded
 	}
 	return nil
 }
 
 // Create generates a new PAT and returns it with the plaintext value.
 // The plaintext value is only available at creation time.
-func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, error) {
+func (s *Service) Create(ctx context.Context, req CreateRequest) (patmodels.PAT, string, error) {
 	if !s.config.Enabled {
-		return PAT{}, "", ErrDisabled
+		return patmodels.PAT{}, "", paterrors.ErrDisabled
 	}
 
 	// NOTE: CountActive + Create is not atomic (TOCTOU race). Two concurrent requests
@@ -98,23 +100,23 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, e
 	// use an atomic INSERT ... SELECT with a count subquery in the WHERE clause.
 	count, err := s.repo.CountActive(ctx, req.UserID, req.OrgID)
 	if err != nil {
-		return PAT{}, "", fmt.Errorf("counting active PATs: %w", err)
+		return patmodels.PAT{}, "", fmt.Errorf("counting active PATs: %w", err)
 	}
 	if count >= s.config.MaxPerUserPerOrg {
-		return PAT{}, "", ErrLimitExceeded
+		return patmodels.PAT{}, "", paterrors.ErrLimitExceeded
 	}
 
 	roles, err := s.resolveAndValidateRoles(ctx, req.RoleIDs)
 	if err != nil {
-		return PAT{}, "", err
+		return patmodels.PAT{}, "", err
 	}
 
 	patValue, secretHash, err := s.generatePAT()
 	if err != nil {
-		return PAT{}, "", err
+		return patmodels.PAT{}, "", err
 	}
 
-	pat := PAT{
+	pat := patmodels.PAT{
 		UserID:     req.UserID,
 		OrgID:      req.OrgID,
 		Title:      req.Title,
@@ -125,11 +127,11 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, e
 
 	created, err := s.repo.Create(ctx, pat)
 	if err != nil {
-		return PAT{}, "", err
+		return patmodels.PAT{}, "", err
 	}
 
 	if err := s.createPolicies(ctx, created.ID, req.OrgID, roles, req.ProjectIDs); err != nil {
-		return PAT{}, "", fmt.Errorf("creating policies: %w", err)
+		return patmodels.PAT{}, "", fmt.Errorf("creating policies: %w", err)
 	}
 
 	// TODO: move audit record creation into the same transaction as PAT creation to avoid partial state where PAT exists but audit record doesn't.
@@ -144,7 +146,7 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (PAT, string, e
 }
 
 // createAuditRecord logs a PAT lifecycle event with org context and PAT metadata.
-func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat PAT, occurredAt time.Time, targetMetadata map[string]any) error {
+func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Event, pat patmodels.PAT, occurredAt time.Time, targetMetadata map[string]any) error {
 	orgName := ""
 	if org, err := s.orgService.GetRaw(ctx, pat.OrgID); err == nil {
 		orgName = org.Title
@@ -194,7 +196,7 @@ func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string)
 				missing = append(missing, id)
 			}
 		}
-		return nil, fmt.Errorf("role IDs not found: %v: %w", missing, ErrRoleNotFound)
+		return nil, fmt.Errorf("role IDs not found: %v: %w", missing, paterrors.ErrRoleNotFound)
 	}
 
 	if err := s.validateRolePermissions(roles); err != nil {
@@ -203,11 +205,11 @@ func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string)
 
 	for _, r := range roles {
 		if len(r.Scopes) == 0 {
-			return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, ErrUnsupportedScope)
+			return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, paterrors.ErrUnsupportedScope)
 		}
 		for _, scope := range r.Scopes {
 			if scope != schema.ProjectNamespace && scope != schema.OrganizationNamespace {
-				return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, ErrUnsupportedScope)
+				return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, paterrors.ErrUnsupportedScope)
 			}
 		}
 	}
@@ -229,7 +231,7 @@ func (s *Service) createPolicies(ctx context.Context, patID, orgID string, roles
 		case slices.Contains(r.Scopes, schema.OrganizationNamespace):
 			err = s.createOrgScopedPolicy(ctx, patID, orgID, r)
 		default:
-			err = fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, ErrUnsupportedScope)
+			err = fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, paterrors.ErrUnsupportedScope)
 		}
 		if err != nil {
 			return err
@@ -243,7 +245,7 @@ func (s *Service) validateRolePermissions(roles []role.Role) error {
 	for _, r := range roles {
 		for _, perm := range r.Permissions {
 			if _, denied := s.deniedPerms[perm]; denied {
-				return fmt.Errorf("role %s has denied permission %s: %w", r.Name, perm, ErrDeniedRole)
+				return fmt.Errorf("role %s has denied permission %s: %w", r.Name, perm, paterrors.ErrDeniedRole)
 			}
 		}
 	}
