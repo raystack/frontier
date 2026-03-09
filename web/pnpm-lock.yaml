@@ -61,8 +61,8 @@ importers:
         specifier: workspace:^
         version: link:../../sdk
       '@raystack/proton':
-        specifier: 0.1.0-b1687af73f994fa9612a023c850aa97c35735af8
-        version: 0.1.0-b1687af73f994fa9612a023c850aa97c35735af8(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24
+        version: 0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@stitches/react':
         specifier: ^1.2.8
         version: 1.2.8(react@18.3.1)
@@ -225,8 +225,8 @@ importers:
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.71.2(react@18.3.1))
       '@raystack/proton':
-        specifier: 0.1.0-330c7558f34570056814d418f99730fb45cfe80f
-        version: 0.1.0-330c7558f34570056814d418f99730fb45cfe80f(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24
+        version: 0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
         specifier: ^5.90.2
         version: 5.90.21(react@18.3.1)
@@ -2298,16 +2298,8 @@ packages:
       '@types/react':
         optional: true
 
-  '@raystack/proton@0.1.0-330c7558f34570056814d418f99730fb45cfe80f':
-    resolution: {integrity: sha512-6QFWJKfPofeGusIyChAAyzu1Y7A/5VCFIkNvhvnjnQxmUoq91iEz+w9NXAqG6u50Em1Q/7j58QW12dSVRxfTyQ==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.0.0
-    peerDependenciesMeta:
-      '@tanstack/react-query':
-        optional: true
-
-  '@raystack/proton@0.1.0-b1687af73f994fa9612a023c850aa97c35735af8':
-    resolution: {integrity: sha512-kKaLa9tESbGQ8cFnB3gfSaPKyOJHqXXIaFGPLKwD9eknwLm4Uu7Uj+3mhY79wDvvTFxSidTl0YkzhzvSPuQphw==}
+  '@raystack/proton@0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24':
+    resolution: {integrity: sha512-Nj1RUxpbd+jTQ7GD9ZEsrXzjc51X04CIT56yNkDUxC7ymrstYZEFxURmvDvPrx6sS1MyjMaMU+++KPuAO4pOMg==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
     peerDependenciesMeta:
@@ -9869,21 +9861,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react-dom'
 
-  '@raystack/proton@0.1.0-330c7558f34570056814d418f99730fb45cfe80f(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@bufbuild/protobuf': 2.11.0
-      '@connectrpc/connect': 2.1.1(@bufbuild/protobuf@2.11.0)
-      '@connectrpc/connect-query': 2.1.1(@bufbuild/protobuf@2.11.0)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.11.0))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@protobuf-ts/runtime': 2.11.1
-      '@protobuf-ts/runtime-rpc': 2.11.1
-    optionalDependencies:
-      '@tanstack/react-query': 5.90.21(react@18.3.1)
-    transitivePeerDependencies:
-      - '@tanstack/query-core'
-      - react
-      - react-dom
-
-  '@raystack/proton@0.1.0-b1687af73f994fa9612a023c850aa97c35735af8(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/proton@0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@bufbuild/protobuf': 2.11.0
       '@connectrpc/connect': 2.1.1(@bufbuild/protobuf@2.11.0)
