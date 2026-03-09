@@ -25,6 +25,7 @@ import (
 
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"
+	"github.com/raystack/frontier/core/userpat"
 
 	"golang.org/x/exp/slices"
 
@@ -372,6 +373,8 @@ func buildAPIDependencies(
 	prospectRepository := postgres.NewProspectRepository(dbc)
 	prospectService := prospect.NewService(prospectRepository)
 
+	userPATRepo := postgres.NewUserPATRepository(dbc)
+
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
 	serviceUserService := serviceuser.NewService(svUserRepo, scUserCredRepo, relationService)
@@ -406,7 +409,7 @@ func buildAPIDependencies(
 	groupRepository := postgres.NewGroupRepository(dbc)
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 
-	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository)
+	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository, cfg.App.PAT.DeniedPermissionsSet())
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
 	userService := user.NewService(userRepository, relationService, policyService, roleService)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
@@ -414,6 +417,8 @@ func buildAPIDependencies(
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository)
+
+	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, auditRecordRepository)
 
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
@@ -528,6 +533,8 @@ func buildAPIDependencies(
 		permissionService,
 		userService,
 		authzSchemaRepository,
+		relationService,
+		cfg.App.PAT.DeniedPermissionsSet(),
 		planService,
 		planBlobRepository,
 	)
@@ -606,6 +613,7 @@ func buildAPIDependencies(
 		UserOrgsService:                  userOrgsService,
 		UserProjectsService:              userProjectsService,
 		AuditRecordService:               auditRecordService,
+		UserPATService:                   userPATService,
 	}
 	return dependencies, nil
 }

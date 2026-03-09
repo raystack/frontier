@@ -72,6 +72,10 @@ const (
 	ServiceUserPrincipal = "app/serviceuser"
 	GroupPrincipal       = "app/group"
 	SuperUserPrincipal   = "app/superuser"
+	PATPrincipal         = "app/pat"
+
+	// PAT relations
+	PATGrantRelationName = "pat_granted"
 
 	// Roles
 	RoleOrganizationViewer  = "app_organization_viewer"
@@ -218,6 +222,8 @@ func ParseNamespaceAliasIfRequired(n string) string {
 		n = ServiceUserPrincipal
 	case "group":
 		n = GroupPrincipal
+	case "pat":
+		n = PATPrincipal
 	case "org", "organization":
 		n = OrganizationNamespace
 	case "project":
@@ -250,7 +256,7 @@ func IsSystemNamespace(namespace string) bool {
 	return namespace == OrganizationNamespace || namespace == ProjectNamespace ||
 		namespace == UserPrincipal || namespace == ServiceUserPrincipal ||
 		namespace == SuperUserPrincipal || namespace == GroupPrincipal ||
-		namespace == PlatformNamespace
+		namespace == PATPrincipal || namespace == PlatformNamespace
 }
 
 // IsValidPermissionName checks if the provided name is a valid permission name
