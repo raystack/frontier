@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@connectrpc/connect-query-core': 2.1.1
-
 importers:
 
   .:
