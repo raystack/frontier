@@ -12,16 +12,13 @@ import { getColumns } from "./columns";
 import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
-  useInfiniteQuery,
-} from "@connectrpc/connect-query";
-import { OrganizationContext } from "../contexts/organization-context";
-import { FileIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { ProjectMembersDialog } from "./members";
-import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "../../../../utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
-import { useDebounceValue } from "usehooks-ts";
+  getConnectNextPageParam,
+  DEFAULT_PAGE_SIZE
+} from '../../../../utils/connect-pagination';
+import { transformDataTableQueryToRQLRequest } from '../../../../utils/transform-query';
+import { useDebounceValue } from 'usehooks-ts';
 
-const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
