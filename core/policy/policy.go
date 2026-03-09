@@ -25,6 +25,7 @@ type Policy struct {
 	ResourceType  string `json:"resource_type"`
 	PrincipalID   string `json:"principal_id"`
 	PrincipalType string `json:"principal_type"`
+	GrantRelation string `json:"grant_relation"`
 	Metadata      metadata.Metadata
 
 	CreatedAt time.Time

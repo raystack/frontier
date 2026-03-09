@@ -54,6 +54,9 @@ const (
 	// Session Events
 	SessionRevokedEvent Event = "session.revoked"
 
+	// PAT Events
+	PATCreatedEvent Event = "pat.created"
+
 	SystemActor = "system"
 
 	// Entity Types (used in Resource.Type and Target.Type)
@@ -71,6 +74,7 @@ const (
 	BillingSubscriptionType EntityType = "billing_subscription"
 	BillingTransactionType  EntityType = "billing_transaction"
 	SessionType             EntityType = "session"
+	PATType                 EntityType = "pat"
 )
 
 // String returns the string representation of the event

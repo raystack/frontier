@@ -149,6 +149,7 @@ export const InviteUser = () => {
                       {...field}
                       // @ts-expect-error placeholder props not defined in TS
                       placeholder="abc@example.com, xyz@example.com"
+                      className={styles["invite-users-emails-textarea"]}
                     />
                   )}
                 />
