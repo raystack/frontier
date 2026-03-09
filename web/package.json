@@ -21,7 +21,7 @@
     "process": "0.11.10",
     "turbo": "2.0.6"
   },
-  "packageManager": "pnpm@9.3.0",
+  "packageManager": "pnpm@10.19.0",
   "dependencies": {
     "@changesets/cli": "2.26.2",
     "eslint": "8.57.1",
@@ -36,11 +36,12 @@
   },
   "pnpm": {
     "overrides": {
-      "@connectrpc/connect-query-core": "2.1.1"
+      "@connectrpc/connect-query-core": "2.1.1",
+      "@tanstack/query-core": "5.83.0"
     }
   },
   "engines": {
     "node": ">=20.6.1",
-    "pnpm": ">=9.3.0"
+    "pnpm": ">=10.19.0"
   }
 }
