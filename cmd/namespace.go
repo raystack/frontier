@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/cli/printer"
@@ -38,6 +37,7 @@ func NamespaceCommand(cliConfig *Config) *cli.Command {
 }
 
 func viewNamespaceCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View a namespace",
@@ -58,9 +58,13 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 			}
 
 			namespaceID := args[0]
-			res, err := client.GetNamespace(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetNamespaceRequest{
+			req, err := newRequest(&frontierv1beta1.GetNamespaceRequest{
 				Id: namespaceID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetNamespace(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -84,10 +88,13 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 		},
 	}
 
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+
 	return cmd
 }
 
 func listNamespaceCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all namespaces",
@@ -107,7 +114,11 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.ListNamespaces(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListNamespacesRequest{}))
+			req, err := newRequest(&frontierv1beta1.ListNamespacesRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListNamespaces(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -133,6 +144,8 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }

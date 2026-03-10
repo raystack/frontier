@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -100,7 +99,7 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 }
 
 func editGroupCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "edit",
@@ -132,10 +131,14 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 			}
 
 			groupID := args[0]
-			_, err = client.UpdateGroup(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+			req, err := newRequest(&frontierv1beta1.UpdateGroupRequest{
 				Id:   groupID,
 				Body: &reqBody,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.UpdateGroup(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -148,12 +151,14 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the group body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
 
 func viewGroupCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
+	var header string
 
 	cmd := &cli.Command{
 		Use:   "view",
@@ -176,10 +181,14 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 
 			orgID := args[0]
 			groupID := args[1]
-			res, err := client.GetGroup(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+			req, err := newRequest(&frontierv1beta1.GetGroupRequest{
 				Id:    groupID,
 				OrgId: orgID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetGroup(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -220,11 +229,13 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
 
 func listGroupCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all groups",
@@ -244,9 +255,13 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.ListOrganizationGroups(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationGroupsRequest{
+			req, err := newRequest(&frontierv1beta1.ListOrganizationGroupsRequest{
 				OrgId: args[0],
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListOrganizationGroups(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -276,6 +291,8 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
