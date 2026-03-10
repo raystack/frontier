@@ -58,8 +58,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.2(react@18.3.1)
       '@raystack/apsara':
-        specifier: 0.56.5
-        version: 0.56.5(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.56.6
+        version: 0.56.6(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
         specifier: workspace:^
         version: link:../../sdk
@@ -286,8 +286,8 @@ importers:
         specifier: ^1.3.2
         version: 1.3.2(react@18.3.1)
       '@raystack/apsara':
-        specifier: 0.56.5
-        version: 0.56.5(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.56.6
+        version: 0.56.6(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/eslint-config':
         specifier: workspace:^
         version: link:../tools/eslint-config
@@ -2277,8 +2277,8 @@ packages:
       '@types/react':
         optional: true
 
-  '@raystack/apsara@0.56.5':
-    resolution: {integrity: sha512-jpFknvaka2F3SsTpDl6de2u8PK1FlyyGvIt4BPL7GKGU6IE7Tm+1ZF0S9537z0UMSzCgyoNb4LGVu/9IX0nxhQ==}
+  '@raystack/apsara@0.56.6':
+    resolution: {integrity: sha512-Qt+Nh3CQAaLGtlpo+bNujsgj52PpNVgRG5VySBKEqkTIUZch+R4fOQ5F5zSC8Iv2/4yweuaknTVllNF9o691Eg==}
     engines: {node: '>=22'}
     peerDependencies:
       '@types/react': ^18 || ^19
@@ -9630,7 +9630,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react-dom'
 
-  '@raystack/apsara@0.56.5(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/apsara@0.56.6(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@ariakit/react': 0.4.21(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-icons': 1.3.2(react@18.3.1)
