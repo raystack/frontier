@@ -13,7 +13,7 @@ type PAT struct {
 	Title      string `rql:"name=title,type=string"`
 	SecretHash string `json:"-"`
 	Metadata   metadata.Metadata
-	LastUsedAt *time.Time `rql:"name=last_used_at,type=datetime"`
+	LastUsedAt *time.Time `rql:"name=last_used_at,type=datetime"` // last_used_at can be null
 	ExpiresAt  time.Time  `rql:"name=expires_at,type=datetime"`
 	CreatedAt  time.Time  `rql:"name=created_at,type=datetime"`
 	UpdatedAt  time.Time  `rql:"name=updated_at,type=datetime"`
