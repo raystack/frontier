@@ -205,7 +205,7 @@ func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string)
 
 	for _, r := range roles {
 		if len(r.Scopes) == 0 {
-			return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, paterrors.ErrUnsupportedScope)
+			return nil, fmt.Errorf("role %s has no scopes defined: %w", r.Name, paterrors.ErrUnsupportedScope)
 		}
 		for _, scope := range r.Scopes {
 			if scope != schema.ProjectNamespace && scope != schema.OrganizationNamespace {

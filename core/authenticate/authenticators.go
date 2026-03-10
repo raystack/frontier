@@ -20,9 +20,6 @@ import (
 // or any other error for a terminal authentication failure.
 type AuthenticatorFunc func(ctx context.Context, s *Service) (Principal, error)
 
-// errSkip signals that this authenticator doesn't apply to the request.
-var errSkip = errors.New("skip authenticator")
-
 // authenticators maps each ClientAssertion to its authentication function.
 var authenticators = map[ClientAssertion]AuthenticatorFunc{
 	SessionClientAssertion:           authenticateWithSession,

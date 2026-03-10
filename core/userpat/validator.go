@@ -15,8 +15,6 @@ import (
 )
 
 // Validator validates PAT values during authentication.
-// It is separate from Service to avoid circular dependencies in wiring
-// (authenticate.Service → userpat.Service → orgService → authenticate.Service).
 type Validator struct {
 	repo   Repository
 	config Config
