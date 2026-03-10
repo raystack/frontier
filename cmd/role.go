@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -101,7 +100,7 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 }
 
 func editRoleCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "edit",
@@ -133,10 +132,14 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 			}
 
 			roleID := args[0]
-			_, err = client.UpdateOrganizationRole(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateOrganizationRoleRequest{
+			req, err := newRequest(&frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:   roleID,
 				Body: &reqBody,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.UpdateOrganizationRole(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -149,12 +152,14 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the role body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
 
 func viewRoleCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
+	var header string
 
 	cmd := &cli.Command{
 		Use:   "view",
@@ -176,9 +181,13 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 			}
 
 			roleID := args[0]
-			res, err := client.GetOrganizationRole(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetOrganizationRoleRequest{
+			req, err := newRequest(&frontierv1beta1.GetOrganizationRoleRequest{
 				Id: roleID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetOrganizationRole(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -220,11 +229,13 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
 
 func listRoleCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all roles",
@@ -244,7 +255,11 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.ListRoles(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListRolesRequest{}))
+			req, err := newRequest(&frontierv1beta1.ListRolesRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListRoles(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -275,6 +290,8 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }

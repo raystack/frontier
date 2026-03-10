@@ -101,7 +101,7 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 }
 
 func editOrganizationCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "edit",
@@ -133,10 +133,14 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 			}
 
 			organizationID := args[0]
-			_, err = client.UpdateOrganization(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+			req, err := newRequest(&frontierv1beta1.UpdateOrganizationRequest{
 				Id:   organizationID,
 				Body: &reqBody,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.UpdateOrganization(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -149,12 +153,14 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the organization body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
 
 func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
+	var header string
 
 	cmd := &cli.Command{
 		Use:   "view",
@@ -176,9 +182,13 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 			}
 
 			organizationID := args[0]
-			res, err := client.GetOrganization(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
+			req, err := newRequest(&frontierv1beta1.GetOrganizationRequest{
 				Id: organizationID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetOrganization(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -218,11 +228,13 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
 
 func listOrganizationCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all organizations",
@@ -242,7 +254,11 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.ListOrganizations(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}))
+			req, err := newRequest(&frontierv1beta1.ListOrganizationsRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListOrganizations(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -271,6 +287,8 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
