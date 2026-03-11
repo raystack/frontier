@@ -3,9 +3,6 @@ title: MetaSchemas
 order: 7
 ---
 
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
-
 # MetaSchemas
 
 MetaSchemas in Frontier are default JSON-schemas designed to validate metadata that is included in the body of a resource. These schemas provide a standard way of describing the expected structure and content of metadata, which can be used to ensure consistency and accuracy of metadata across different resources.
@@ -28,8 +25,12 @@ One can easily updated these Schemas using the Frontier MetaSchema APIs.
 
 A sample user MetaSchema is given below, and the second tab shows an example user metadata which is valid according to the given example schema.
 
-<Tabs groupId="cli" >
-<TabItem value="User MetaSchema" label="User MetaSchema">
+<Tabs defaultValue="User MetaSchema">
+  <Tabs.List>
+    <Tabs.Trigger value="User MetaSchema">User MetaSchema</Tabs.Trigger>
+    <Tabs.Trigger value="Valid User">Valid User</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="User MetaSchema">
 
 ```json
 {
@@ -59,8 +60,8 @@ A sample user MetaSchema is given below, and the second tab shows an example use
 }
 ```
 
-</TabItem>
-<TabItem value="Valid User" label="Valid User">
+  </Tabs.Content>
+  <Tabs.Content value="Valid User">
 
 ```json
 {
@@ -75,7 +76,7 @@ A sample user MetaSchema is given below, and the second tab shows an example use
 }
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 **Note:** The default user, organization, group and project MetaSchemas are in this [repository](https://github.com/raystack/frontier/tree/feat/json-schema-validation/internal/store/postgres/metaschemas)
