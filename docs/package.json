@@ -33,7 +33,8 @@
     "url-loader": "^4.1.1"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22",
+    "pnpm": ">=10.19.0"
   },
   "browserslist": {
     "production": [
