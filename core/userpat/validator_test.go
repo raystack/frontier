@@ -107,6 +107,22 @@ func TestValidator_Validate(t *testing.T) {
 		assert.NotErrorIs(t, err, paterrors.ErrInvalidPAT)
 	})
 
+	t.Run("UpdateLastUsedAt failure returns error", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+
+		value, secretHash := validPATValue(t, prefix)
+		repo.EXPECT().GetBySecretHash(mock.Anything, secretHash).Return(models.PAT{
+			ID:        "pat-1",
+			ExpiresAt: time.Now().Add(time.Hour),
+		}, nil)
+		dbErr := errors.New("connection refused")
+		repo.EXPECT().UpdateLastUsedAt(mock.Anything, "pat-1", mock.AnythingOfType("time.Time")).Return(dbErr)
+
+		_, err := v.Validate(context.Background(), value)
+		assert.ErrorIs(t, err, dbErr)
+	})
+
 	t.Run("valid PAT returns PAT and updates last_used_at", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
 		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
