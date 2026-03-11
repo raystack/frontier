@@ -87,6 +87,10 @@ func (s *Service) ValidateExpiry(expiresAt time.Time) error {
 	return nil
 }
 
+func (s *Service) GetByID(ctx context.Context, id string) (patmodels.PAT, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
 // Create generates a new PAT and returns it with the plaintext value.
 // The plaintext value is only available at creation time.
 func (s *Service) Create(ctx context.Context, req CreateRequest) (patmodels.PAT, string, error) {

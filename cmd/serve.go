@@ -473,6 +473,7 @@ func buildAPIDependencies(
 		authnService,
 		projectService,
 		organizationService,
+		userPATService,
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
