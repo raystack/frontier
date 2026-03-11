@@ -10,12 +10,14 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/raystack/frontier/core/auditrecord/models"
+	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/userpat"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/mocks"
+	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/mock"
@@ -46,7 +48,7 @@ func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleServi
 		Return(policy.Policy{}, nil).Maybe()
 	auditRepo := mocks.NewAuditRecordRepository(t)
 	auditRepo.On("Create", mock.Anything, mock.Anything).
-		Return(models.AuditRecord{}, nil).Maybe()
+		Return(auditmodels.AuditRecord{}, nil).Maybe()
 	return orgSvc, roleSvc, policySvc, auditRepo
 }
 
@@ -60,7 +62,7 @@ func TestService_Create(t *testing.T) {
 		wantErr      bool
 		wantErrIs    error
 		wantErrMsg   string
-		validateFunc func(t *testing.T, got userpat.PAT, tokenValue string)
+		validateFunc func(t *testing.T, got models.PAT, tokenValue string)
 	}{
 		{
 			name: "should return ErrDisabled when PAT feature is disabled",
@@ -72,7 +74,7 @@ func TestService_Create(t *testing.T) {
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
-			wantErrIs: userpat.ErrDisabled,
+			wantErrIs: paterrors.ErrDisabled,
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
 				orgSvc := mocks.NewOrganizationService(t)
@@ -112,7 +114,7 @@ func TestService_Create(t *testing.T) {
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
-			wantErrIs: userpat.ErrLimitExceeded,
+			wantErrIs: paterrors.ErrLimitExceeded,
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
@@ -132,7 +134,7 @@ func TestService_Create(t *testing.T) {
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
-			wantErrIs: userpat.ErrLimitExceeded,
+			wantErrIs: paterrors.ErrLimitExceeded,
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
@@ -157,8 +159,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{}, errors.New("insert failed"))
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{}, errors.New("insert failed"))
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				roleSvc := mocks.NewRoleService(t)
@@ -178,13 +180,13 @@ func TestService_Create(t *testing.T) {
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
-			wantErrIs: userpat.ErrConflict,
+			wantErrIs: paterrors.ErrConflict,
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{}, userpat.ErrConflict)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{}, paterrors.ErrConflict)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				roleSvc := mocks.NewRoleService(t)
@@ -210,8 +212,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Run(func(ctx context.Context, pat userpat.PAT) {
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Run(func(ctx context.Context, pat models.PAT) {
 						if pat.UserID != "user-1" {
 							t.Errorf("Create() UserID = %v, want %v", pat.UserID, "user-1")
 						}
@@ -231,7 +233,7 @@ func TestService_Create(t *testing.T) {
 							t.Errorf("Create() ExpiresAt = %v, want %v", pat.ExpiresAt, futureExpiry)
 						}
 					}).
-					Return(userpat.PAT{
+					Return(models.PAT{
 						ID:        "pat-id-1",
 						UserID:    "user-1",
 						OrgID:     "org-1",
@@ -243,7 +245,7 @@ func TestService_Create(t *testing.T) {
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
+			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
 				if got.ID != "pat-id-1" {
 					t.Errorf("Create() ID = %v, want %v", got.ID, "pat-id-1")
@@ -270,12 +272,12 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
+			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
 				if !strings.HasPrefix(tokenValue, "fpt_") {
 					t.Errorf("token should start with prefix fpt_, got %v", tokenValue)
@@ -307,12 +309,12 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
+			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
 				parts := strings.SplitN(tokenValue, "_", 2)
 				if len(parts) != 2 {
@@ -343,8 +345,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
 					Enabled:          true,
@@ -353,7 +355,7 @@ func TestService_Create(t *testing.T) {
 					MaxLifetime:      "8760h",
 				}, orgSvc, roleSvc, policySvc, auditRepo)
 			},
-			validateFunc: func(t *testing.T, got userpat.PAT, tokenValue string) {
+			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
 				if !strings.HasPrefix(tokenValue, "custom_") {
 					t.Errorf("token should start with custom_, got %v", tokenValue)
@@ -374,8 +376,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(49), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
@@ -394,8 +396,8 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(0), nil)
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 			},
@@ -428,8 +430,8 @@ func TestService_Create_UniquePATs(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 		Return(int64(0), nil).Times(2)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil).Times(2)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+		Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil).Times(2)
 
 	orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
@@ -460,11 +462,11 @@ func TestService_Create_HashVerification(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 		Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-		Run(func(ctx context.Context, pat userpat.PAT) {
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+		Run(func(ctx context.Context, pat models.PAT) {
 			capturedHash = pat.SecretHash
 		}).
-		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
+		Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 
 	orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
@@ -499,14 +501,14 @@ func TestService_Create_HashVerification(t *testing.T) {
 func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+		Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 		Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
 	auditRepo := mocks.NewAuditRecordRepository(t)
-	auditRepo.On("Create", mock.Anything, mock.Anything).Return(models.AuditRecord{}, nil).Maybe()
+	auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"org-role-1"}}).Return([]role.Role{{
@@ -541,14 +543,14 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+		Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 		Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
 	auditRepo := mocks.NewAuditRecordRepository(t)
-	auditRepo.On("Create", mock.Anything, mock.Anything).Return(models.AuditRecord{}, nil).Maybe()
+	auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{{
@@ -584,14 +586,14 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+		Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 		Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
 	auditRepo := mocks.NewAuditRecordRepository(t)
-	auditRepo.On("Create", mock.Anything, mock.Anything).Return(models.AuditRecord{}, nil).Maybe()
+	auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{{
@@ -663,7 +665,7 @@ func TestService_CreatePolicies_DeniedPermission(t *testing.T) {
 	if err == nil {
 		t.Fatal("Create() expected error for denied permission, got nil")
 	}
-	if !errors.Is(err, userpat.ErrDeniedRole) {
+	if !errors.Is(err, paterrors.ErrDeniedRole) {
 		t.Errorf("Create() error = %v, want ErrDeniedRole", err)
 	}
 }
@@ -727,7 +729,7 @@ func TestService_CreatePolicies_UnsupportedScope(t *testing.T) {
 	if err == nil {
 		t.Fatal("Create() expected error for unsupported scope, got nil")
 	}
-	if !errors.Is(err, userpat.ErrUnsupportedScope) {
+	if !errors.Is(err, paterrors.ErrUnsupportedScope) {
 		t.Errorf("Create() error = %v, want ErrUnsupportedScope", err)
 	}
 }
@@ -761,7 +763,7 @@ func TestService_CreatePolicies_MissingRoleID(t *testing.T) {
 	if err == nil {
 		t.Fatal("Create() expected error for missing role, got nil")
 	}
-	if !errors.Is(err, userpat.ErrRoleNotFound) {
+	if !errors.Is(err, paterrors.ErrRoleNotFound) {
 		t.Errorf("Create() error = %v, want ErrRoleNotFound", err)
 	}
 	if !strings.Contains(err.Error(), "role-b") {
@@ -772,8 +774,8 @@ func TestService_CreatePolicies_MissingRoleID(t *testing.T) {
 func TestService_CreatePolicies_NoRoles(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+		Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc, roleSvc, policySvc, auditRepo := newSuccessMocks(t)
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
@@ -1005,7 +1007,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 			want:      nil, // no policies should be created
 			wantErr:   true,
-			wantErrIs: userpat.ErrDeniedRole,
+			wantErrIs: paterrors.ErrDeniedRole,
 		},
 		{
 			name:       "unsupported scope rejects before any policy creation",
@@ -1017,7 +1019,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 			want:      nil, // scope validation happens upfront — no token or policies created
 			wantErr:   true,
-			wantErrIs: userpat.ErrUnsupportedScope,
+			wantErrIs: paterrors.ErrUnsupportedScope,
 		},
 		{
 			name:       "role with mixed supported and unsupported scopes is rejected",
@@ -1028,7 +1030,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 			want:      nil,
 			wantErr:   true,
-			wantErrIs: userpat.ErrUnsupportedScope,
+			wantErrIs: paterrors.ErrUnsupportedScope,
 		},
 		{
 			name:       "role with empty scopes is unsupported",
@@ -1039,7 +1041,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 			want:      nil,
 			wantErr:   true,
-			wantErrIs: userpat.ErrUnsupportedScope,
+			wantErrIs: paterrors.ErrUnsupportedScope,
 		},
 		{
 			name:       "role count mismatch: requested 2 but found 1",
@@ -1050,7 +1052,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 			want:      nil,
 			wantErr:   true,
-			wantErrIs: userpat.ErrRoleNotFound,
+			wantErrIs: paterrors.ErrRoleNotFound,
 		},
 	}
 
@@ -1065,15 +1067,15 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
 			// Only mock repo.Create for success cases — validation errors fail before token creation
 			if !tt.wantErr {
-				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-					Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+					Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 			}
 
 			orgSvc := mocks.NewOrganizationService(t)
 			orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 				Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
 			auditRepo := mocks.NewAuditRecordRepository(t)
-			auditRepo.On("Create", mock.Anything, mock.Anything).Return(models.AuditRecord{}, nil).Maybe()
+			auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
 			// --- roleService: return the test's roles
 			roleSvc := mocks.NewRoleService(t)
@@ -1172,8 +1174,8 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 func TestService_CreatePolicies_PolicyCreateFailure(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
-	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.PAT")).
-		Return(userpat.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
+	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
+		Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc := mocks.NewOrganizationService(t)
 	auditRepo := mocks.NewAuditRecordRepository(t)

@@ -10,7 +10,8 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
-	"github.com/raystack/frontier/core/userpat"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
+	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
@@ -74,7 +75,7 @@ func (s *UserPATRepositoryTestSuite) cleanup() error {
 
 func (s *UserPATRepositoryTestSuite) TestCreate() {
 	s.Run("should create a token and return it with generated ID", func() {
-		pat := userpat.PAT{
+		pat := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "test-token",
@@ -96,7 +97,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 
 	s.Run("should use provided ID if set", func() {
 		customID := uuid.New().String()
-		pat := userpat.PAT{
+		pat := models.PAT{
 			ID:         customID,
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
@@ -111,7 +112,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should store and return metadata", func() {
-		pat := userpat.PAT{
+		pat := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "token-with-meta",
@@ -127,7 +128,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should return ErrConflict for duplicate title per user per org", func() {
-		pat := userpat.PAT{
+		pat := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "duplicate-title",
@@ -141,11 +142,11 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 		pat.ID = ""
 		pat.SecretHash = "hashB"
 		_, err = s.repository.Create(s.ctx, pat)
-		s.ErrorIs(err, userpat.ErrConflict)
+		s.ErrorIs(err, paterrors.ErrConflict)
 	})
 
 	s.Run("should return ErrConflict for duplicate secret hash", func() {
-		pat1 := userpat.PAT{
+		pat1 := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "token-unique-hash-1",
@@ -156,7 +157,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 		_, err := s.repository.Create(s.ctx, pat1)
 		s.Require().NoError(err)
 
-		pat2 := userpat.PAT{
+		pat2 := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "token-unique-hash-2",
@@ -164,11 +165,11 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 			ExpiresAt:  time.Now().Add(24 * time.Hour),
 		}
 		_, err = s.repository.Create(s.ctx, pat2)
-		s.ErrorIs(err, userpat.ErrConflict)
+		s.ErrorIs(err, paterrors.ErrConflict)
 	})
 
 	s.Run("should allow same title for different users in same org", func() {
-		pat1 := userpat.PAT{
+		pat1 := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "shared-title",
@@ -178,7 +179,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 		_, err := s.repository.Create(s.ctx, pat1)
 		s.Require().NoError(err)
 
-		pat2 := userpat.PAT{
+		pat2 := models.PAT{
 			UserID:     s.users[1].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "shared-title",
@@ -190,7 +191,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 	})
 
 	s.Run("should allow same title for same user in different orgs", func() {
-		pat1 := userpat.PAT{
+		pat1 := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      "cross-org-title",
@@ -200,7 +201,7 @@ func (s *UserPATRepositoryTestSuite) TestCreate() {
 		_, err := s.repository.Create(s.ctx, pat1)
 		s.Require().NoError(err)
 
-		pat2 := userpat.PAT{
+		pat2 := models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[1].ID,
 			Title:      "cross-org-title",
@@ -229,7 +230,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_ExcludesExpired() {
 	s.truncateTokens()
 
 	// create an active token
-	_, err := s.repository.Create(s.ctx, userpat.PAT{
+	_, err := s.repository.Create(s.ctx, models.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "active-token",
@@ -239,7 +240,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_ExcludesExpired() {
 	s.Require().NoError(err)
 
 	// create an expired token
-	_, err = s.repository.Create(s.ctx, userpat.PAT{
+	_, err = s.repository.Create(s.ctx, models.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "expired-token",
@@ -257,7 +258,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_FiltersByUserAndOrg() {
 	s.truncateTokens()
 
 	// token for user[0] in org[0]
-	_, err := s.repository.Create(s.ctx, userpat.PAT{
+	_, err := s.repository.Create(s.ctx, models.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "user0-org0",
@@ -267,7 +268,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_FiltersByUserAndOrg() {
 	s.Require().NoError(err)
 
 	// token for user[1] in org[0]
-	_, err = s.repository.Create(s.ctx, userpat.PAT{
+	_, err = s.repository.Create(s.ctx, models.PAT{
 		UserID:     s.users[1].ID,
 		OrgID:      s.orgs[0].ID,
 		Title:      "user1-org0",
@@ -277,7 +278,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_FiltersByUserAndOrg() {
 	s.Require().NoError(err)
 
 	// token for user[0] in org[1]
-	_, err = s.repository.Create(s.ctx, userpat.PAT{
+	_, err = s.repository.Create(s.ctx, models.PAT{
 		UserID:     s.users[0].ID,
 		OrgID:      s.orgs[1].ID,
 		Title:      "user0-org1",
@@ -295,7 +296,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_MultipleTokens() {
 	s.truncateTokens()
 
 	for i := 0; i < 3; i++ {
-		_, err := s.repository.Create(s.ctx, userpat.PAT{
+		_, err := s.repository.Create(s.ctx, models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,
 			Title:      fmt.Sprintf("multi-token-%d", i),

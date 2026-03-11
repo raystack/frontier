@@ -10,6 +10,8 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/userpat"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
+	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
@@ -74,7 +76,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
-				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(userpat.ErrExpiryInPast)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(paterrors.ErrExpiryInPast)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -83,7 +85,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrExpiryInPast),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrExpiryInPast),
 		},
 		{
 			name: "should return invalid argument when expiry exceeds max lifetime",
@@ -93,7 +95,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					Type: schema.UserPrincipal,
 					User: &user.User{ID: testUserID},
 				}, nil)
-				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(userpat.ErrExpiryExceeded)
+				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(paterrors.ErrExpiryExceeded)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -102,7 +104,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(time.Now().Add(48 * time.Hour)),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrExpiryExceeded),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrExpiryExceeded),
 		},
 		{
 			name: "should return failed precondition when PAT is disabled",
@@ -114,7 +116,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{}, "", userpat.ErrDisabled)
+					Return(models.PAT{}, "", paterrors.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -123,7 +125,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, userpat.ErrDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, paterrors.ErrDisabled),
 		},
 		{
 			name: "should return already exists when title conflicts",
@@ -135,7 +137,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{}, "", userpat.ErrConflict)
+					Return(models.PAT{}, "", paterrors.ErrConflict)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -144,7 +146,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeAlreadyExists, userpat.ErrConflict),
+			wantErr: connect.NewError(connect.CodeAlreadyExists, paterrors.ErrConflict),
 		},
 		{
 			name: "should return resource exhausted when limit exceeded",
@@ -156,7 +158,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{}, "", userpat.ErrLimitExceeded)
+					Return(models.PAT{}, "", paterrors.ErrLimitExceeded)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -165,7 +167,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeResourceExhausted, userpat.ErrLimitExceeded),
+			wantErr: connect.NewError(connect.CodeResourceExhausted, paterrors.ErrLimitExceeded),
 		},
 		{
 			name: "should return invalid argument when role is not found",
@@ -177,7 +179,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{}, "", fmt.Errorf("fetching roles: %w", userpat.ErrRoleNotFound))
+					Return(models.PAT{}, "", fmt.Errorf("fetching roles: %w", paterrors.ErrRoleNotFound))
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -186,7 +188,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrRoleNotFound),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrRoleNotFound),
 		},
 		{
 			name: "should return invalid argument when role is denied",
@@ -198,7 +200,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{}, "", fmt.Errorf("creating policies: %w", userpat.ErrDeniedRole))
+					Return(models.PAT{}, "", fmt.Errorf("creating policies: %w", paterrors.ErrDeniedRole))
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -207,7 +209,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrDeniedRole),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole),
 		},
 		{
 			name: "should return invalid argument when role scope is unsupported",
@@ -219,7 +221,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{}, "", fmt.Errorf("creating policies: %w", userpat.ErrUnsupportedScope))
+					Return(models.PAT{}, "", fmt.Errorf("creating policies: %w", paterrors.ErrUnsupportedScope))
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -228,7 +230,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, userpat.ErrUnsupportedScope),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope),
 		},
 		{
 			name: "should return internal error for unknown service failure",
@@ -240,7 +242,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{}, "", errors.New("unexpected error"))
+					Return(models.PAT{}, "", errors.New("unexpected error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
@@ -265,7 +267,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 						req.OrgID == testOrgID &&
 						req.Title == "my-token" &&
 						len(req.RoleIDs) == 1 && req.RoleIDs[0] == testRoleID
-				})).Return(userpat.PAT{
+				})).Return(models.PAT{
 					ID:        "pat-1",
 					UserID:    testUserID,
 					OrgID:     testOrgID,
@@ -305,7 +307,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				}, nil)
 				ps.EXPECT().ValidateExpiry(mock.AnythingOfType("time.Time")).Return(nil)
 				ps.EXPECT().Create(mock.Anything, mock.AnythingOfType("userpat.CreateRequest")).
-					Return(userpat.PAT{
+					Return(models.PAT{
 						ID:        "pat-1",
 						UserID:    testUserID,
 						OrgID:     testOrgID,
@@ -390,13 +392,13 @@ func TestTransformPATToPB(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		pat      userpat.PAT
+		pat      models.PAT
 		patValue string
 		want     *frontierv1beta1.PAT
 	}{
 		{
 			name: "should transform minimal PAT",
-			pat: userpat.PAT{
+			pat: models.PAT{
 				ID:        "pat-1",
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -418,7 +420,7 @@ func TestTransformPATToPB(t *testing.T) {
 		},
 		{
 			name: "should include token value when provided",
-			pat: userpat.PAT{
+			pat: models.PAT{
 				ID:        "pat-1",
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -441,7 +443,7 @@ func TestTransformPATToPB(t *testing.T) {
 		},
 		{
 			name: "should include last_used_at when set",
-			pat: userpat.PAT{
+			pat: models.PAT{
 				ID:         "pat-1",
 				UserID:     "user-1",
 				OrgID:      "org-1",
@@ -465,7 +467,7 @@ func TestTransformPATToPB(t *testing.T) {
 		},
 		{
 			name: "should include metadata when set",
-			pat: userpat.PAT{
+			pat: models.PAT{
 				ID:        "pat-1",
 				UserID:    "user-1",
 				OrgID:     "org-1",

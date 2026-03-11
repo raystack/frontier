@@ -8,6 +8,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/userpat"
 
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -22,6 +23,7 @@ type SessionInterceptor struct {
 	// use secure cookie EncodeMulti/DecodeMulti
 	cookieCodec securecookie.Codec
 	conf        authenticate.SessionConfig
+	patConf     userpat.Config
 	h           *v1beta1connect.ConnectHandler
 }
 
@@ -66,6 +68,8 @@ func (s *SessionInterceptor) WrapStreamingHandler(next connect.StreamingHandlerF
 				if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
 					incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
 				}
+			} else if s.patConf.Prefix != "" && strings.HasPrefix(tokenVal, s.patConf.Prefix+"_") {
+				incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
 			}
 			secretVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Basic "))
 			if len(secretVal) > 0 {
@@ -112,6 +116,8 @@ func (s *SessionInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc
 				if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
 					incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
 				}
+			} else if s.patConf.Prefix != "" && strings.HasPrefix(tokenVal, s.patConf.Prefix+"_") {
+				incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
 			}
 			secretVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Basic "))
 			if len(secretVal) > 0 {
@@ -197,12 +203,13 @@ func (s *SessionInterceptor) UnaryConnectResponseInterceptor() connect.UnaryInte
 	return connect.UnaryInterceptorFunc(interceptor)
 }
 
-func NewSessionInterceptor(cookieCutter securecookie.Codec, conf authenticate.SessionConfig, h *v1beta1connect.ConnectHandler) *SessionInterceptor {
+func NewSessionInterceptor(cookieCutter securecookie.Codec, conf authenticate.SessionConfig, h *v1beta1connect.ConnectHandler, patConf userpat.Config) *SessionInterceptor {
 	return &SessionInterceptor{
 		// could be nil if not configured by user
 		cookieCodec: cookieCutter,
 		conf:        conf,
 		h:           h,
+		patConf:     patConf,
 	}
 }
 
@@ -256,6 +263,8 @@ func (s *SessionInterceptor) UnaryConnectRequestHeadersAnnotator() connect.Unary
 					if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
 						incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
 					}
+				} else if s.patConf.Prefix != "" && strings.HasPrefix(tokenVal, s.patConf.Prefix+"_") {
+					incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
 				}
 				secretVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Basic "))
 				if len(secretVal) > 0 {

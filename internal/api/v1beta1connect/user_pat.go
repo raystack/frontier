@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/userpat"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
+	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -47,18 +49,18 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 			zap.String("org_id", request.Msg.GetOrgId()))
 
 		switch {
-		case errors.Is(err, userpat.ErrDisabled):
+		case errors.Is(err, paterrors.ErrDisabled):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		case errors.Is(err, userpat.ErrConflict):
+		case errors.Is(err, paterrors.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, err)
-		case errors.Is(err, userpat.ErrLimitExceeded):
+		case errors.Is(err, paterrors.ErrLimitExceeded):
 			return nil, connect.NewError(connect.CodeResourceExhausted, err)
-		case errors.Is(err, userpat.ErrRoleNotFound):
-			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrRoleNotFound)
-		case errors.Is(err, userpat.ErrDeniedRole):
-			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrDeniedRole)
-		case errors.Is(err, userpat.ErrUnsupportedScope):
-			return nil, connect.NewError(connect.CodeInvalidArgument, userpat.ErrUnsupportedScope)
+		case errors.Is(err, paterrors.ErrRoleNotFound):
+			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrRoleNotFound)
+		case errors.Is(err, paterrors.ErrDeniedRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole)
+		case errors.Is(err, paterrors.ErrUnsupportedScope):
+			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -69,7 +71,7 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 	}), nil
 }
 
-func transformPATToPB(pat userpat.PAT, patValue string) *frontierv1beta1.PAT {
+func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	pbPAT := &frontierv1beta1.PAT{
 		Id:        pat.ID,
 		Title:     pat.Title,

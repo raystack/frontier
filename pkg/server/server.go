@@ -146,7 +146,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService, cfg.Authentication.Session.Headers)
 	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
-	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
+	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService, cfg.PAT)
 	auditInterceptor := connectinterceptors.NewAuditInterceptor(deps.AuditService)
 
 	interceptors := connect.WithInterceptors(

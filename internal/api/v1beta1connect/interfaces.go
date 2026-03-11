@@ -47,6 +47,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/userpat"
+	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -400,5 +401,5 @@ type AuditRecordService interface {
 
 type UserPATService interface {
 	ValidateExpiry(expiresAt time.Time) error
-	Create(ctx context.Context, req userpat.CreateRequest) (userpat.PAT, string, error)
+	Create(ctx context.Context, req userpat.CreateRequest) (models.PAT, string, error)
 }

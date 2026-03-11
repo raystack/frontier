@@ -11,4 +11,5 @@ var (
 	ErrCreatingRelationInStore       = errors.New("error while creating relation")
 	ErrCreatingRelationInAuthzEngine = errors.New("error while creating relation in authz engine")
 	ErrFetchingUser                  = errors.New("error while fetching user")
+	ErrSubjectNotAllowed             = errors.New("subject type is not allowed on this relation")
 )

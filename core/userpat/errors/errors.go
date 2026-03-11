@@ -1,4 +1,4 @@
-package userpat
+package errors
 
 import "errors"
 
@@ -6,7 +6,8 @@ var (
 	ErrNotFound         = errors.New("personal access token not found")
 	ErrConflict         = errors.New("personal access token with this name already exists")
 	ErrExpired          = errors.New("personal access token has expired")
-	ErrInvalidToken     = errors.New("personal access token is invalid")
+	ErrInvalidPAT       = errors.New("not a personal access token")
+	ErrMalformedPAT     = errors.New("personal access token is malformed")
 	ErrLimitExceeded    = errors.New("maximum number of personal access tokens reached")
 	ErrDisabled         = errors.New("personal access tokens are not enabled")
 	ErrExpiryExceeded   = errors.New("expiry exceeds maximum allowed lifetime")

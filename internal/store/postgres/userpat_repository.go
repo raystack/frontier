@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +12,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 
-	"github.com/raystack/frontier/core/userpat"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
+	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -25,14 +27,14 @@ func NewUserPATRepository(dbc *db.Client) *UserPATRepository {
 	}
 }
 
-func (r UserPATRepository) Create(ctx context.Context, pat userpat.PAT) (userpat.PAT, error) {
+func (r UserPATRepository) Create(ctx context.Context, pat models.PAT) (models.PAT, error) {
 	if strings.TrimSpace(pat.ID) == "" {
 		pat.ID = uuid.New().String()
 	}
 
 	marshaledMetadata, err := json.Marshal(pat.Metadata)
 	if err != nil {
-		return userpat.PAT{}, fmt.Errorf("%w: %w", parseErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var model UserPAT
@@ -47,7 +49,7 @@ func (r UserPATRepository) Create(ctx context.Context, pat userpat.PAT) (userpat
 			"expires_at":  pat.ExpiresAt,
 		}).Returning(&UserPAT{}).ToSQL()
 	if err != nil {
-		return userpat.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "Create", func(ctx context.Context) error {
@@ -55,9 +57,9 @@ func (r UserPATRepository) Create(ctx context.Context, pat userpat.PAT) (userpat
 	}); err != nil {
 		err = checkPostgresError(err)
 		if errors.Is(err, ErrDuplicateKey) {
-			return userpat.PAT{}, userpat.ErrConflict
+			return models.PAT{}, paterrors.ErrConflict
 		}
-		return userpat.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return model.transform()
@@ -83,4 +85,48 @@ func (r UserPATRepository) CountActive(ctx context.Context, userID, orgID string
 	}
 
 	return count, nil
+}
+
+func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).
+		Select(&UserPAT{}).
+		Where(
+			goqu.Ex{"secret_hash": secretHash},
+			goqu.Ex{"deleted_at": nil},
+		).Limit(1).ToSQL()
+	if err != nil {
+		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var model UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "GetBySecretHash", func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &model, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.PAT{}, paterrors.ErrNotFound
+		}
+		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	return model.transform()
+}
+
+func (r UserPATRepository) UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error {
+	query, params, err := dialect.Update(TABLE_USER_PATS).
+		Set(goqu.Record{"last_used_at": at}).
+		Where(goqu.Ex{"id": id}).
+		ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "UpdateLastUsedAt", func(ctx context.Context) error {
+		_, err := r.dbc.ExecContext(ctx, query, params...)
+		return err
+	}); err != nil {
+		return fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	return nil
 }
