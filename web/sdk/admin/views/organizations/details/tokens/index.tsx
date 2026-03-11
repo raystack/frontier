@@ -13,7 +13,7 @@ import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform
 import { getColumns } from "./columns";
 import { useDebounceValue } from "usehooks-ts";
 
-const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,

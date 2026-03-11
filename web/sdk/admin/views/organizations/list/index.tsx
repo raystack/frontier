@@ -39,7 +39,7 @@ const NoOrganizations = () => {
   );
 };
 
-const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
+const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,

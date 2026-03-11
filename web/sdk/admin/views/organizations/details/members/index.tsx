@@ -9,19 +9,22 @@ import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   useInfiniteQuery,
   createConnectQueryKey,
-  useTransport,
-} from "@connectrpc/connect-query";
-import { useQueryClient } from "@tanstack/react-query";
-import { UsersIcon } from "../../../../assets/icons/UsersIcon";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { OrganizationContext } from "../contexts/organization-context";
-import { AssignRole } from "../../../../components/AssignRole";
-import { RemoveMember } from "./remove-member";
-import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "../../../../utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
-import { useDebounceValue } from "usehooks-ts";
+  useTransport
+} from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { UsersIcon } from '../../../../assets/icons/UsersIcon';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { OrganizationContext } from '../contexts/organization-context';
+import { AssignRole } from '../../../../components/AssignRole';
+import { RemoveMember } from './remove-member';
+import {
+  getConnectNextPageParam,
+  DEFAULT_PAGE_SIZE
+} from '../../../../utils/connect-pagination';
+import { transformDataTableQueryToRQLRequest } from '../../../../utils/transform-query';
+import { useDebounceValue } from 'usehooks-ts';
 
-const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
+const DEFAULT_SORT: DataTableSort = { name: 'orgJoinedAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,

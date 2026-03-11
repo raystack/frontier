@@ -107,10 +107,25 @@ func TestValidator_Validate(t *testing.T) {
 		assert.NotErrorIs(t, err, paterrors.ErrInvalidPAT)
 	})
 
+	t.Run("UpdateLastUsedAt failure returns error", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+
+		value, secretHash := validPATValue(t, prefix)
+		repo.EXPECT().GetBySecretHash(mock.Anything, secretHash).Return(models.PAT{
+			ID:        "pat-1",
+			ExpiresAt: time.Now().Add(time.Hour),
+		}, nil)
+		dbErr := errors.New("connection refused")
+		repo.EXPECT().UpdateLastUsedAt(mock.Anything, "pat-1", mock.AnythingOfType("time.Time")).Return(dbErr)
+
+		_, err := v.Validate(context.Background(), value)
+		assert.ErrorIs(t, err, dbErr)
+	})
+
 	t.Run("valid PAT returns PAT and updates last_used_at", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
 		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
-		done := make(chan struct{})
 
 		value, secretHash := validPATValue(t, prefix)
 		expectedPAT := models.PAT{
@@ -121,10 +136,7 @@ func TestValidator_Validate(t *testing.T) {
 			ExpiresAt: time.Now().Add(time.Hour),
 		}
 		repo.EXPECT().GetBySecretHash(mock.Anything, secretHash).Return(expectedPAT, nil)
-		repo.EXPECT().
-			UpdateLastUsedAt(mock.Anything, "pat-1", mock.AnythingOfType("time.Time")).
-			Run(func(_ context.Context, _ string, _ time.Time) { close(done) }).
-			Return(nil)
+		repo.EXPECT().UpdateLastUsedAt(mock.Anything, "pat-1", mock.AnythingOfType("time.Time")).Return(nil)
 
 		pat, err := v.Validate(context.Background(), value)
 		require.NoError(t, err)
@@ -132,11 +144,5 @@ func TestValidator_Validate(t *testing.T) {
 		assert.Equal(t, expectedPAT.UserID, pat.UserID)
 		assert.Equal(t, expectedPAT.OrgID, pat.OrgID)
 		assert.Equal(t, expectedPAT.Title, pat.Title)
-
-		select {
-		case <-done:
-		case <-time.After(time.Second):
-			t.Fatal("UpdateLastUsedAt was not called")
-		}
 	})
 }

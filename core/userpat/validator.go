@@ -61,12 +61,9 @@ func (v *Validator) Validate(ctx context.Context, value string) (models.PAT, err
 		return models.PAT{}, paterrors.ErrExpired
 	}
 
-	// async last_used_at update — don't block the auth path
-	go func() {
-		if err := v.repo.UpdateLastUsedAt(context.Background(), pat.ID, time.Now()); err != nil {
-			v.logger.Error("failed to update PAT last_used_at", "pat_id", pat.ID, "error", err)
-		}
-	}()
+	if err := v.repo.UpdateLastUsedAt(ctx, pat.ID, time.Now()); err != nil {
+		return models.PAT{}, fmt.Errorf("updating last_used_at: %w", err)
+	}
 
 	return pat, nil
 }
