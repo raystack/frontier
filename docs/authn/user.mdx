@@ -2,10 +2,6 @@
 title: User
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import CodeBlock from '@theme/CodeBlock';
-
 # User Authentication
 
 To integration User authentication with a frontend application, you need to configure either of the supported strategies
@@ -23,13 +19,18 @@ organizations.
 
 You can list all enabled strategies by running the following command
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location 'http://localhost:7400/v1beta1/auth'
---header 'Accept: application/json'`}
-    </CodeBlock>
-  </TabItem>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location 'http://localhost:7400/v1beta1/auth'
+--header 'Accept: application/json'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### Social Login
@@ -40,7 +41,7 @@ Get the client id and client secret from the third party provider and configure 
 ![user_auth_google_oidc.png](user_auth_google_oidc.png)
 
 To get OIDC configuration for Google, you can visit the following URL https://console.developers.google.com/ and
-create a new project. You’ll also need to create OAuth 2.0 credentials for the project since Google does not do that
+create a new project. You'll also need to create OAuth 2.0 credentials for the project since Google does not do that
 by default. From the sidebar, click the **Credentials** tab, then click **Create credentials** and choose
 **OAuth client ID** from the dropdown.
 
@@ -103,14 +104,21 @@ Sample flow for Google OIDC is as follows:
    authentication strategies and then renders the login page with the supported strategies.
 2. User clicks on the Google button in the frontend application. Frontend application requests Frontier server to generate
    a login URL for Google.
-   <Tabs groupId="api">
-   <TabItem value="HTTP" label="HTTP" default>
-   <CodeBlock className="language-bash">
-   {`$ curl --location 'http://localhost:7400/v1beta1/auth/register/google'
---header 'Accept: application/json'`}
-   </CodeBlock>
-   </TabItem>
+
+   <Tabs defaultValue="HTTP">
+     <Tabs.List>
+       <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+     </Tabs.List>
+     <Tabs.Content value="HTTP">
+
+   ```bash
+   $ curl --location 'http://localhost:7400/v1beta1/auth/register/google'
+   --header 'Accept: application/json'
+   ```
+
+     </Tabs.Content>
    </Tabs>
+
 3. Response from Frontier contain the endpoint URL using which frontend application redirects the user to Google's
    login page.
 4. Once user is logged in to google, Google redirects the user back to the frontend application
@@ -177,25 +185,39 @@ Sample flow for email OTP is as follows:
    authentication strategies and then renders the login page with the supported strategies.
 2. User enters the email address and clicks on the Email OTP button in the frontend application. Frontend application
    sends the email address to Frontier server to start the login flow.
-   <Tabs groupId="api">
-   <TabItem value="HTTP" label="HTTP" default>
-   <CodeBlock className="language-bash">
-   {`$ curl --location 'http://localhost:7400/v1beta1/auth/register/mailotp?email=example%40example.com'
---header 'Accept: application/json'`}
-   </CodeBlock>
-   </TabItem>
+
+   <Tabs defaultValue="HTTP">
+     <Tabs.List>
+       <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+     </Tabs.List>
+     <Tabs.Content value="HTTP">
+
+   ```bash
+   $ curl --location 'http://localhost:7400/v1beta1/auth/register/mailotp?email=example%40example.com'
+   --header 'Accept: application/json'
+   ```
+
+     </Tabs.Content>
    </Tabs>
+
 3. Frontier server sends an email to the user with an OTP and returns a state in the response.
 4. User enters the OTP in the frontend application and clicks on the Verify button. Frontend application sends the OTP
    to Frontier server to verify the OTP along with the state returned when the flow was created.
-   <Tabs groupId="api">
-   <TabItem value="HTTP" label="HTTP" default>
-   <CodeBlock className="language-bash">
-   {`$ curl --location 'http://localhost:7400/v1beta1/auth/callback/?code=XXXXXX&state=XXXXXX'
---header 'Accept: application/json'`}
-   </CodeBlock>
-   </TabItem>
+
+   <Tabs defaultValue="HTTP">
+     <Tabs.List>
+       <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+     </Tabs.List>
+     <Tabs.Content value="HTTP">
+
+   ```bash
+   $ curl --location 'http://localhost:7400/v1beta1/auth/callback/?code=XXXXXX&state=XXXXXX'
+   --header 'Accept: application/json'
+   ```
+
+     </Tabs.Content>
    </Tabs>
+
 5. Frontier server verifies the OTP and creates a new session.
 
 :::tip

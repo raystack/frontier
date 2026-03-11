@@ -1,10 +1,6 @@
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import CodeBlock from '@theme/CodeBlock';
-
 # Manage Resources
 
-A resource is a logical entity that represents any user-defined entity in the system. A resource always belongs to 
+A resource is a logical entity that represents any user-defined entity in the system. A resource always belongs to
 a `project` and is identified by a unique identifier called `urn` or via it's `id`. For example, in a system that
 manages databases, a resource can be a database instance. For a database instance, it's namespace can be `db/instance`
 and when the actual db service creates a database instance, it can create a resource in the frontier to manage it authorization.
@@ -13,8 +9,11 @@ Without these permissions, the frontier will not be able to manage the resource,
 
 A resource in Frontier looks like
 
-<Tabs groupId="model">
-<TabItem value="JSON" label="Sample JSON" default>
+<Tabs defaultValue="JSON">
+  <Tabs.List>
+    <Tabs.Trigger value="JSON">Sample JSON</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="JSON">
 
 ```json
 {
@@ -30,7 +29,7 @@ A resource in Frontier looks like
 }
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ## API Interface
@@ -41,10 +40,14 @@ To create a resource in the frontier:
 
 #### API Interface
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request POST 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --header 'X-Frontier-Email: admin@raystack.org'
@@ -58,59 +61,80 @@ To create a resource in the frontier:
       "roleName": "owner"
     }
   ]
-}'`}
-    </CodeBlock>
-  </TabItem>
+}'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### List all resources across projects
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/projects/:project_id/resources'
---header 'Accept: application/json'`}
-    </CodeBlock>
-  </TabItem>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request GET 'http://localhost:8000/v1beta1/projects/:project_id/resources'
+--header 'Accept: application/json'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### Get resources
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl -curl --location --request GET 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/28105b9a-1717-47cf-a5d9-49249b6638df'
---header 'Accept: application/json'`}
-    </CodeBlock>
-  </TabItem>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl -curl --location --request GET 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/28105b9a-1717-47cf-a5d9-49249b6638df'
+--header 'Accept: application/json'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### Update resource
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location --request PUT 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/a9f784cf-0f29-486f-92d0-51300295f7e8'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request PUT 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/a9f784cf-0f29-486f-92d0-51300295f7e8'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
   "name": "test-resource-beta1",
   "projectId": "1b89026b-6713-4327-9d7e-ed03345da288",
   "namespaceId": "entropy/firehose"
-}'`}
-    </CodeBlock>
-  </TabItem>
+}'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### Delete resources
 
 Ensure `delete` permission is created for the resource and provided to caller.
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl -curl --location --request DELETE 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/28105b9a-1717-47cf-a5d9-49249b6638df'
---header 'Accept: application/json'`}
-    </CodeBlock>
-  </TabItem>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl -curl --location --request DELETE 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/28105b9a-1717-47cf-a5d9-49249b6638df'
+--header 'Accept: application/json'
+```
+
+  </Tabs.Content>
 </Tabs>

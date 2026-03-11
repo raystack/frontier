@@ -1,5 +1,3 @@
-import Mermaid from '@theme/Mermaid';
-
 # Overview
 
 Authorization is the process of determining whether a user is allowed to perform an action. In the context of Frontier, authorization is the process of determining whether a user is allowed to perform an action on a resource. This is done after the system has already confirmed that user has proven their identity (authentication).
@@ -8,10 +6,11 @@ Frontier authorization is based on the Role Based Access Control (RBAC) model. I
 
 In the Frontier, several key components and concepts come into play for authorization of user request to access resources. Let's first look into how a normal user request flow with Frontier will look like.
 
-<Mermaid chart = {`sequenceDiagram
+```mermaid
+sequenceDiagram
     participant User
     participant App
-    participant Frontier 
+    participant Frontier
     participant SpiceDB
     %
     User->>App: Request Resource
@@ -28,9 +27,9 @@ In the Frontier, several key components and concepts come into play for authoriz
         App->>Frontier : Check User is Authorized
         Frontier->>SpiceDB: Check API
         SpiceDB->>App: Valid Permission
-        App-->>User: Return Resource 
-    end`}
-/>
+        App-->>User: Return Resource
+    end
+```
 
 <br/><br/>
 

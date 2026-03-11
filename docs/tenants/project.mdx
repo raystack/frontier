@@ -1,6 +1,3 @@
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 # Project
 
 Projects in Frontier are sub-resources within an organization. They allow for logical grouping of resources and users (including groups and service users). Each project can have its own set of permissions and access controls, enabling fine-grained control over resource allocation and user management.A single organization can contain multiple projects.
@@ -43,8 +40,12 @@ Caution should be exercised when deleting a project, as it cannot be undone. Del
 
 A project in Frontier looks like
 
-<Tabs groupId="model">
-  <TabItem value="Model" label="Model" default>
+<Tabs defaultValue="Model">
+  <Tabs.List>
+    <Tabs.Trigger value="Model">Model</Tabs.Trigger>
+    <Tabs.Trigger value="JSON">Sample JSON</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="Model">
 
 | Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,8 +55,8 @@ A project in Frontier looks like
 | **orgId**    | uuid   | Unique Organization identifier to which the project belongs                                                                                                                                                                                                                                                                                                                                                                                     |
 | **metadata** | object | Metadata object for project that can hold key value pairs pre-defined in Project Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the project. Update the same to add more fields to the user metadata object. <br/> _Example:{"label": {"key1": "value1"}, "description": "Project Description"}_ |
 
-</TabItem>
-<TabItem value="JSON" label="Sample JSON" default>
+  </Tabs.Content>
+  <Tabs.Content value="JSON">
 
 ```json
 {
@@ -73,7 +74,7 @@ A project in Frontier looks like
 }
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ## API Interface
@@ -84,8 +85,12 @@ Some of these APIs require special privileges to access these endpoints and to a
 
 ### Create projects
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 $ curl --location --request POST 'http://localhost:8000/v1beta1/projects'
@@ -101,60 +106,72 @@ $ curl --location --request POST 'http://localhost:8000/v1beta1/projects'
 }
 ```
 
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
 ```bash
 $ frontier project create --file project.yaml --header key:value
 ```
 
-  </TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ### List projects
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 $ curl --location --request GET 'http://localhost:8000/v1beta1/admin/projects'
 --header 'Accept: application/json'
 ```
 
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
 ```bash
 $ frontier project list
 ```
 
-  </TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ### Get Projects
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 $ curl --location --request GET 'http://localhost:8000/v1beta1/projects/457944c2-2a4c-4e6f-b1f7-3e1e109fe94c'
 --header 'Accept: application/json'
 ```
 
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
 ```bash
 $ frontier project view 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --metadata
 ```
 
-  </TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ### Update Projects
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 $ curl --location --request PUT 'http://localhost:8000/v1beta1/projects/457944c2-2a4c-4e6f-b1f7-3e1e109fe94c'
@@ -170,11 +187,11 @@ $ curl --location --request PUT 'http://localhost:8000/v1beta1/projects/457944c2
 }'
 ```
 
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
-  
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
+
 ```bash
 $ frontier project edit 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --file=project.yaml````
 ```
-  </TabItem>
+  </Tabs.Content>
 </Tabs>

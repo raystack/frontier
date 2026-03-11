@@ -1,6 +1,3 @@
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 # Principal
 
 Principal in Frontier are entities that can be authenticated and authorized to access resources and perform actions. A principal will be used in controlling access to resources, as they can be associated with policies in Frontier that define what actions the principal can perform and which resources they can access.
@@ -50,8 +47,12 @@ Caution should be exercised when deleting a user, as it cannot be undone. If the
 
 A project in Frontier looks like
 
-<Tabs groupId="model">
-  <TabItem value="Model" label="Model" default>
+<Tabs defaultValue="Model">
+  <Tabs.List>
+    <Tabs.Trigger value="Model">Model</Tabs.Trigger>
+    <Tabs.Trigger value="JSON">Sample JSON</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="Model">
 
 | Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -61,8 +62,8 @@ A project in Frontier looks like
 | **metadata** | object | Metadata object for users that can hold key value pairs pre-defined in User Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the user. Update the same to add more fields to the user metadata object. <br/> _Example:{"label": {"key1": "value1"}, "description": "User Description"}_ |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/> _Example:"John Doe"_                                                                                                                                                                                                                                                                                    |
 
-</TabItem>
-<TabItem value="JSON" label="Sample JSON" default>
+  </Tabs.Content>
+  <Tabs.Content value="JSON">
 
 ```json
 {
@@ -80,7 +81,7 @@ A project in Frontier looks like
 }
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 **Note:** The metadata values are validated while creating and updating User using MetaSchemas in Frontier [Read More](../reference/metaschemas.md)
@@ -98,8 +99,12 @@ Create a user in Frontier with the given details. A user is not attached to an o
 1. Using **`POST /v1beta1/users`** API
 2. Using **`frontier user create`** CLI command
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 curl -L -X POST 'http://127.0.0.1:7400/v1beta1/users' \
@@ -115,14 +120,14 @@ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/users' \
 }'
 ```
 
-</TabItem>
-<TabItem value="CLI" label="CLI" default>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
 ```bash
 $ frontier user create --file=user.yaml
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ---
@@ -134,22 +139,26 @@ Lists all the users from all the organizations in a Frontier instance. The resul
 1. Using **`GET /v1beta1/users`** API
 2. Using **`frontier user list`** CLI command (will list all users, no flags for filtering currently)
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 $ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/admin/users?pageSize=10&pageNum=2&keyword=John&orgId=4d726cf5-52f6-46f1-9c87-1a79f29e3abf&groupId=c2d85306-96f4-4895-98b4-c3e5c2f3084d&state=enabled' \
 -H 'Accept: application/json'
 ```
 
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
 ```bash
 $ frontier user list
 ```
 
-  </TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ---
@@ -158,22 +167,26 @@ $ frontier user list
 
 Query a user in Frontier by its unique id. In Frontier a user can belong to more than one organizations, and result will get us a user in the entire Frontier instance and not specific to an organization.
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 curl -L -X GET 'http://127.0.0.1:7400/v1beta1/users/e9fba4af-ab23-4631-abba-597b1c8e6608%20' \
 -H 'Accept: application/json'
 ```
 
-  </TabItem>
-<TabItem value="CLI" label="CLI" default>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
 ```bash
 $ frontier user view e9fba4af-ab23-4631-abba-597b1c8e6608
 ```
 
-  </TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ---
@@ -233,8 +246,12 @@ To Update a user title, metadata, name use **`PUT /v1beta1/users/:id`** API. <br
 
 Frontier also provides **`frontier user edit`** CLI command for this operation.
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 curl -L -X PUT 'http://127.0.0.1:7400/v1beta1/users/e9fba4af-ab23-4631-abba-597b1c8e6608' \
@@ -250,14 +267,14 @@ curl -L -X PUT 'http://127.0.0.1:7400/v1beta1/users/e9fba4af-ab23-4631-abba-597b
 }'
 ```
 
-  </TabItem>
-<TabItem value="CLI" label="CLI" default>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
 ```bash
 $ frontier user edit e9fba4af-ab23-4631-abba-597b1c8e6608 --file=user.yaml
 ```
 
-  </TabItem>
+  </Tabs.Content>
 </Tabs>
 
 ---

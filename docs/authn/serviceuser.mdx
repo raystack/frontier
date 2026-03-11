@@ -2,10 +2,6 @@
 title: Service User
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import CodeBlock from '@theme/CodeBlock';
-
 # Service User Authentication
 
 Service User authentication is used to authenticate a service to another service where a human is not actively
@@ -17,14 +13,20 @@ pair and both of them will be valid for the service user authentication.
 ## Client ID/Secret
 
 Once a service user is created, a client id and secret can be generated for the service user using following API:
-<Tabs groupId="api">
-<TabItem value="HTTP" label="HTTP" default>
-<CodeBlock className="language-bash">
-{`$ curl --location --request POST 'http://localhost:7400/v1beta1/serviceusers/{id}/secrets'
+
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request POST 'http://localhost:7400/v1beta1/serviceusers/{id}/secrets'
 --header 'Content-Type: application/json'
---header 'Accept: application/json' --data-raw '{"title": "command line tool"}'`}
-</CodeBlock>
-</TabItem>
+--header 'Accept: application/json' --data-raw '{"title": "command line tool"}'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 The response of this request will contain an `id` and `secret` field. The secret field is never persisted in the database
@@ -32,28 +34,38 @@ and is only returned once. If you lose the secret, you will have to generate a n
 To authenticate a service user, you need to pass the client id and secret in the **Authorization ** header first to
 request an access token as follows:
 
-<Tabs groupId="api">
-    <TabItem value="HTTP" label="HTTP" default>
-    <CodeBlock className="language-bash">
-    {`$ curl --location 'http://localhost:7400/v1beta1/auth/token'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location 'http://localhost:7400/v1beta1/auth/token'
     --header 'Accept: application/json'
     --header 'Authorization: Basic {base64(id:secret)}'
-    --data-raw 'grant_type=client_credentials'`}
-    </CodeBlock>
-    </TabItem>
+    --data-raw 'grant_type=client_credentials'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 The response of this request will contain a `access_token` that can be used to authenticate the service user in all
 subsequent requests. The token can be used in the **Authorization** header as follows:
 
-<Tabs groupId="api">
-<TabItem value="HTTP" label="HTTP" default>
-<CodeBlock className="language-bash">
-{`$ curl --location 'http://localhost:7400/v1beta1/users/self'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location 'http://localhost:7400/v1beta1/users/self'
 --header 'Accept: application/json'
---header 'Authorization: Bearer <access_token>'`}
-</CodeBlock>
-</TabItem>
+--header 'Authorization: Bearer <access_token>'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 By default, the access token is valid for 1 hour.
@@ -61,14 +73,20 @@ By default, the access token is valid for 1 hour.
 ## Private JWT Grant
 
 Once a service user is created, a public/private key pair can be generated for the service user using following API:
-<Tabs groupId="api">
-<TabItem value="HTTP" label="HTTP" default>
-<CodeBlock className="language-bash">
-{`$ curl --location --request POST 'http://localhost:7400/v1beta1/serviceusers/{id}/keys'
+
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request POST 'http://localhost:7400/v1beta1/serviceusers/{id}/keys'
 --header 'Content-Type: application/json'
---header 'Accept: application/json' --data-raw '{"title": "command line tool"}'`}
-</CodeBlock>
-</TabItem>
+--header 'Accept: application/json' --data-raw '{"title": "command line tool"}'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 The response of this request will be as follows:
@@ -86,13 +104,19 @@ message KeyCredential {
 
 The private key is never persisted in the database and is only returned once. If you lose the private key,
 you will have to generate a new one. The public key can be retrieved using the following API:
-<Tabs groupId="api">
-<TabItem value="HTTP" label="HTTP" default>
-<CodeBlock className="language-bash">
-{`$ curl --location --request GET 'http://localhost:7400/v1beta1/serviceusers/{id}/keys/{kid}'
-    --header 'Accept: application/json'`}
-</CodeBlock>
-</TabItem>
+
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request GET 'http://localhost:7400/v1beta1/serviceusers/{id}/keys/{kid}'
+    --header 'Accept: application/json'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 To authenticate a request, you need to generate a JWT using the private key. There are various libraries that can
@@ -139,15 +163,20 @@ To identify your key, it is necessary that you provide a JWT with a kid header c
 
 The generated JWT needs to be exchanged to get an access token. It can be requested in the **Authorization** header as follows:
 
-<Tabs groupId="api">
-<TabItem value="HTTP" label="HTTP" default>
-<CodeBlock className="language-bash">
-{`$ curl --location 'http://localhost:7400/v1beta1/auth/token'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location 'http://localhost:7400/v1beta1/auth/token'
 --header 'Accept: application/json'
 --header 'Authorization: Bearer <jwt token>'
---data-raw 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer'`}
-</CodeBlock>
-</TabItem>
+--data-raw 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 Response of this request will contain a `access_token` that can be used to authenticate the service user.
@@ -161,14 +190,19 @@ Response of this request will contain a `access_token` that can be used to authe
 
 The token can be used in the **Authorization** header same as the client id/secret token as follows:
 
-<Tabs groupId="api">
-<TabItem value="HTTP" label="HTTP" default>
-<CodeBlock className="language-bash">
-{`$ curl --location 'http://localhost:7400/v1beta1/users/self'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location 'http://localhost:7400/v1beta1/users/self'
 --header 'Accept: application/json'
---header 'Authorization: Bearer <access_token>'`}
-</CodeBlock>
-</TabItem>
+--header 'Authorization: Bearer <access_token>'
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ## Access token
@@ -182,5 +216,5 @@ at `/v1beta1/auth/token`.
 Token comes with few custom claims that can be used to identify the request scope. The claims are:
 - org_id: IDs of the organization principal belongs to
 - project_id: ID of the project the request is made to. This is useful when the user has access to multiple projects.
-Ideally the frontend should be able to show a list of projects to user, and it can select one out of many and pass it 
+Ideally the frontend should be able to show a list of projects to user, and it can select one out of many and pass it
 along the request in the header "X-Project". If the user has access to this project, it will be added as a claim.

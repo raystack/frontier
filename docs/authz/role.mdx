@@ -1,6 +1,3 @@
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 # Roles
 
 A Role is a collection of permissions in Frontier. Roles are typically associated with one or more policies, which specify the permissions granted to the users. When a user is assigned a role, they inherit the permissions defined within that role. This simplifies access management by allowing administrators to assign roles to users rather than individually assigning permissions.
@@ -57,8 +54,12 @@ Frontier also provides flexibility to Org Admins to create a custom role specifi
 
 ## Managing Roles
 
-<Tabs groupId="model">
-  <TabItem value="Model" label="Model" default>
+<Tabs defaultValue="Model">
+  <Tabs.List>
+    <Tabs.Trigger value="Model">Model</Tabs.Trigger>
+    <Tabs.Trigger value="JSON">Sample JSON</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="Model">
 
 | Field           | Type     | Description                                                                                                                                                                                                                                                                                         |
 | --------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -70,8 +71,8 @@ Frontier also provides flexibility to Org Admins to create a custom role specifi
 | **orgId**       | string   | Unique Organization identifier to which the role is attached                                                                                                                                                                                                                                        |
 | **state**       | string   | Represents the status of the role indicating whether it can be used in a policy or not. One of **`enabled`** or **`disabled`**                                                                                                                                                                      |
 
-</TabItem>
-<TabItem value="JSON" label="Sample JSON" default>
+  </Tabs.Content>
+  <Tabs.Content value="JSON">
 
 ```json
 {
@@ -91,7 +92,7 @@ Frontier also provides flexibility to Org Admins to create a custom role specifi
 }
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 :::tip

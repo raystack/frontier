@@ -1,9 +1,5 @@
 # Group
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import CodeBlock from '@theme/CodeBlock';
-
 - Create an org group
 - List an org groups
 - Add or invite users to a group
@@ -14,8 +10,12 @@ import CodeBlock from '@theme/CodeBlock';
 
 A group in Frontier looks like
 
-<Tabs groupId="model">
-  <TabItem value="Model" label="Model" default>
+<Tabs defaultValue="Model">
+  <Tabs.List>
+    <Tabs.Trigger value="Model">Model</Tabs.Trigger>
+    <Tabs.Trigger value="JSON">Sample JSON</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="Model">
 
 | Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -25,8 +25,8 @@ A group in Frontier looks like
 | **metadata** | object | Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields. <br/>_Example:{"labels": {"key": "value"}, "description": "Group description"}_ |
 | **orgId**    | uuid   | The organization ID to which the group belongs to.                                                                                                                                                                                                                                                                                                                                                         |
 
-</TabItem>
-<TabItem value="JSON" label="Sample JSON" default>
+  </Tabs.Content>
+  <Tabs.Content value="JSON">
 
 ```json
 {
@@ -44,7 +44,7 @@ A group in Frontier looks like
 }
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 **Note:** group metadata values are validated using MetaSchemas in Frontier [Read More](../reference/metaschemas.md)
@@ -54,10 +54,15 @@ A group in Frontier looks like
 1. Using `frontier group create` CLI command
 2. Calling to `POST /v1beta1/organizations/orgId/groups` API
 
-<Tabs groupId="api">
-  <TabItem value="http" label="HTTP">
-  <CodeBlock className="language-bash">
-{` $ curl --location --request POST 'http://localhost:8000/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/groups'
+<Tabs defaultValue="http">
+  <Tabs.List>
+    <Tabs.Trigger value="http">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="cli">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="http">
+
+```bash
+$ curl --location --request POST 'http://localhost:8000/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/groups'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
@@ -67,12 +72,15 @@ A group in Frontier looks like
       "description": "group for users in data batching domain"
   }
 }'
-`}</CodeBlock>
-</TabItem>
- <TabItem value="cli" label="CLI">
+```
+
+  </Tabs.Content>
+  <Tabs.Content value="cli">
+
 Todo
- </TabItem>
- </Tabs>
+
+  </Tabs.Content>
+</Tabs>
 
 3. To create a group via the Admin Portal:
 
@@ -89,26 +97,39 @@ iii. Enter basic information for the group, and select **Add Group**
 
 ### View an organization projects
 
-<Tabs groupId="api">
-  <TabItem value="http" label="HTTP">
-  <CodeBlock className="language-bash">
-  {` curl --location 'http://localhost:8000/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/projects' 
---header 'Accept: application/json' `}
-  </CodeBlock>
-</TabItem>
- <TabItem value="cli" label="CLI">
+<Tabs defaultValue="http">
+  <Tabs.List>
+    <Tabs.Trigger value="http">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="cli">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="http">
+
+```bash
+curl --location 'http://localhost:8000/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/projects'
+--header 'Accept: application/json'
+```
+
+  </Tabs.Content>
+  <Tabs.Content value="cli">
+
 Todo
- </TabItem>
- </Tabs>
+
+  </Tabs.Content>
+</Tabs>
 
 ## API Interface
 
 ### Create groups
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/groups'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request POST 'http://localhost:8000/v1beta1/groups'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
@@ -118,60 +139,78 @@ Todo
       "description": "group for users in data batching domain"
   },
   "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8"
-}'`}
-    </CodeBlock>
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
-<CodeBlock>
+}'
+```
 
-`$ frontier group create --file group.yaml --header key:value`
-</CodeBlock>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
-  </TabItem>
+```
+$ frontier group create --file group.yaml --header key:value
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### List groups
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups'
---header 'Accept: application/json'`}
-    </CodeBlock>
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
-<CodeBlock>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
-`$ frontier group list`
-</CodeBlock>
+```bash
+$ curl --location --request GET 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups'
+--header 'Accept: application/json'
+```
 
-  </TabItem>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
+
+```
+$ frontier group list
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### Get groups
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups/2105beab-5d04-4fc5-b0ec-8d6f60b67ab2'
---header 'Accept: application/json'`}
-    </CodeBlock>
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
-<CodeBlock>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
-`$ frontier group view 2105beab-5d04-4fc5-b0ec-8d6f60b67ab2 --metadata`
-</CodeBlock>
+```bash
+$ curl --location --request GET 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups/2105beab-5d04-4fc5-b0ec-8d6f60b67ab2'
+--header 'Accept: application/json'
+```
 
-  </TabItem>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
+
+```
+$ frontier group view 2105beab-5d04-4fc5-b0ec-8d6f60b67ab2 --metadata
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### Update group
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`$ curl --location --request PUT 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups/2105beab-5d04-4fc5-b0ec-8d6f60b67ab2'
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+    <Tabs.Trigger value="CLI">CLI</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+$ curl --location --request PUT 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups/2105beab-5d04-4fc5-b0ec-8d6f60b67ab2'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
@@ -182,25 +221,31 @@ Todo
         "description": "group for users in data batching domain",
         "org-name": "raystack"
     }
-}'`}
-    </CodeBlock>
-  </TabItem>
-  <TabItem value="CLI" label="CLI" default>
-<CodeBlock>
+}'
+```
 
-`$ frontier group edit 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --file=group.yaml`
-</CodeBlock>
+  </Tabs.Content>
+  <Tabs.Content value="CLI">
 
-  </TabItem>
+```
+$ frontier group edit 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --file=group.yaml
+```
+
+  </Tabs.Content>
 </Tabs>
 
 ### Get all users in a group
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
-        <CodeBlock className="language-bash">
-    {`curl --location --request GET 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups/86e2f95d-92c7-4c59-8fed-b7686cccbf4f/relations?subjectType=user&role=manager'
---header 'Accept: application/json'`}
-    </CodeBlock>
-  </TabItem>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
+
+```bash
+curl --location --request GET 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups/86e2f95d-92c7-4c59-8fed-b7686cccbf4f/relations?subjectType=user&role=manager'
+--header 'Accept: application/json'
+```
+
+  </Tabs.Content>
 </Tabs>

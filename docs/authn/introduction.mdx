@@ -2,8 +2,6 @@
 title: Overview
 ---
 
-import Mermaid from '@theme/Mermaid';
-
 # Overview
 
 Authentication is the process of verifying the identity of a user. This is done by checking the user's credentials
@@ -38,7 +36,8 @@ still valid. If it is, the user no longer needs to authenticate again. This is h
 
 On high level here are some of the steps involved in the authentication process when working with a web application:
 
-<Mermaid chart = {`sequenceDiagram
+```mermaid
+sequenceDiagram
     %% participant User
     participant User
     participant Authentication Server
@@ -68,8 +67,8 @@ On high level here are some of the steps involved in the authentication process 
             Authentication Server ->> Resource: Continues to get the requested resource
             Resource ->> User: Return Requested Resource
         end
-    end`}
-/>
+    end
+```
 
 <br/>
 
