@@ -1,3 +1,8 @@
+---
+title: Roles
+order: 3
+---
+
 # Roles
 
 A Role is a collection of permissions in Frontier. Roles are typically associated with one or more policies, which specify the permissions granted to the users. When a user is assigned a role, they inherit the permissions defined within that role. This simplifies access management by allowing administrators to assign roles to users rather than individually assigning permissions.
@@ -67,7 +72,7 @@ Frontier also provides flexibility to Org Admins to create a custom role specifi
 | **name**        | string   | The name of the role. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> _Example:"app_organization_owner"_                                                                                               |
 | **title**       | string   | The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty. <br/>_Example: "Organization Owner"_                                                                                                                                 |
 | **permissions** | string[] | List of permission slugs to be assigned to the role <br/> _Example: ["app_organization_administer"]_                                                                                                                                                                                                |
-| **metadata**    | object   | Metadata object for organizations that can hold key value pairs defined in Role Metaschema. The default Role Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields.<br/>_Example:{"labels": {"key": "value"}, "description": "Role description"}_ |
+| **metadata**    | object   | Metadata object for organizations that can hold key value pairs defined in Role Metaschema. The default Role Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields.<br/>_Example:\{"labels": \{"key": "value"\}, "description": "Role description"\}_ |
 | **orgId**       | string   | Unique Organization identifier to which the role is attached                                                                                                                                                                                                                                        |
 | **state**       | string   | Represents the status of the role indicating whether it can be used in a policy or not. One of **`enabled`** or **`disabled`**                                                                                                                                                                      |
 

@@ -1,3 +1,8 @@
+---
+title: Organization
+order: 1
+---
+
 # Organization
 
 ## Overview
@@ -56,7 +61,7 @@ An Organization in Frontier is a top-level resource. Each Project, Group, User, 
 | **id**       | uuid   | Unique Organization identifier                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | **name**     | string | The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> _Example:"frontier-org1-acme"_                                                                                                                                                                                                                                           |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty. <br/>_Example: "Acme Inc"_                                                                                                                                                                                                                                                                                           |     |
-| **metadata** | object | Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields.<br/>_Example:{"labels": {"key": "value"}, "description": "Organization description"}_ |
+| **metadata** | object | Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields.<br/>_Example:\{"labels": \{"key": "value"\}, "description": "Organization description"\}_ |
 
   </Tabs.Content>
   <Tabs.Content value="JSON">

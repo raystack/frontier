@@ -1,3 +1,8 @@
+---
+title: Project
+order: 2
+---
+
 # Project
 
 Projects in Frontier are sub-resources within an organization. They allow for logical grouping of resources and users (including groups and service users). Each project can have its own set of permissions and access controls, enabling fine-grained control over resource allocation and user management.A single organization can contain multiple projects.
@@ -53,7 +58,7 @@ A project in Frontier looks like
 | **name**     | string | The name of the project. This name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. <br/> _Example:"project-alpha"_                                                                                                                                                                                                                  |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the project. Can also be left empty. <br/> _Example:"Project Alpha"_                                                                                                                                                                                                                                                                                       |
 | **orgId**    | uuid   | Unique Organization identifier to which the project belongs                                                                                                                                                                                                                                                                                                                                                                                     |
-| **metadata** | object | Metadata object for project that can hold key value pairs pre-defined in Project Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the project. Update the same to add more fields to the user metadata object. <br/> _Example:{"label": {"key1": "value1"}, "description": "Project Description"}_ |
+| **metadata** | object | Metadata object for project that can hold key value pairs pre-defined in Project Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the project. Update the same to add more fields to the user metadata object. <br/> _Example:\{"label": \{"key1": "value1"\}, "description": "Project Description"\}_ |
 
   </Tabs.Content>
   <Tabs.Content value="JSON">

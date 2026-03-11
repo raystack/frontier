@@ -1,5 +1,6 @@
 ---
-pagination_prev: sdk/web/admin/components
+title: Utilities
+order: 3
 ---
 
 # Utilities
@@ -46,7 +47,7 @@ function getConnectNextPageParam<T extends ConnectRPCPaginatedResponse>(
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `lastPage` | `ConnectRPCPaginatedResponse` | The last page response from the API. |
-| `queryParams` | `{ query: RQLRequest }` | The current query parameters. |
+| `queryParams` | `\{ query: RQLRequest \}` | The current query parameters. |
 | `itemsKey` | `string` | The key in the response that contains the items array. Defaults to `"organizations"`. |
 
 ### Example
@@ -111,7 +112,7 @@ function transformDataTableQueryToRQLRequest(
 | Option | Type | Description |
 | --- | --- | --- |
 | `defaultLimit` | `number` | Default page size. Defaults to `50`. |
-| `fieldNameMapping` | `Record<string, string>` | Maps frontend field names to API field names (e.g. `{ createdAt: "created_at" }`). |
+| `fieldNameMapping` | `Record<string, string>` | Maps frontend field names to API field names (e.g. `\{ createdAt: "created_at" \}`). |
 
 ### Example
 

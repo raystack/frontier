@@ -1,3 +1,8 @@
+---
+title: Group
+order: 2
+---
+
 # Group
 
 - Create an org group
@@ -22,7 +27,7 @@ A group in Frontier looks like
 | **id**       | uuid   | Unique group identifier                                                                                                                                                                                                                                                                                                                                                                                    |
 | **name**     | string | The name of the group. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.                                                                                                                                                                                                                                             |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the group. Can also be left empty.                                                                                                                                                                                                                                                                                    |
-| **metadata** | object | Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields. <br/>_Example:{"labels": {"key": "value"}, "description": "Group description"}_ |
+| **metadata** | object | Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields. <br/>_Example:\{"labels": \{"key": "value"\}, "description": "Group description"\}_ |
 | **orgId**    | uuid   | The organization ID to which the group belongs to.                                                                                                                                                                                                                                                                                                                                                         |
 
   </Tabs.Content>
