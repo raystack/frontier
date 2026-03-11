@@ -49,8 +49,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install pnpm
-        run: npm install -g pnpm@10.19.0
+      - name: Setup pnpm 10
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.19.0
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -83,8 +85,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install pnpm
-        run: npm install -g pnpm@10.19.0
+      - name: Setup pnpm 10
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.19.0
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
