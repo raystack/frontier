@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -294,6 +293,7 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 }
 
 func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "admlist",
 		Short: "list admins of an organization",
@@ -314,9 +314,13 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 			}
 
 			organizationID := args[0]
-			res, err := client.ListOrganizationAdmins(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
+			req, err := newRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: organizationID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListOrganizationAdmins(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -341,6 +345,8 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
