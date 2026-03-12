@@ -126,17 +126,17 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	return Group{}, ErrInvalidID
 }
 
-func (s Service) ListByUser(ctx context.Context, principalID, principalType string, flt Filter) ([]Group, error) {
+func (s Service) ListByUser(ctx context.Context, principal authenticate.Principal, flt Filter) ([]Group, error) {
+	subjectID, subjectType := principal.ResolveSubject()
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
-		Object: relation.Object{
-			Namespace: schema.GroupNamespace,
-		},
-		Subject: relation.Subject{
-			Namespace: principalType,
-			ID:        principalID,
-		},
+		Object:       relation.Object{Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{Namespace: subjectType, ID: subjectID},
 		RelationName: schema.MembershipPermission,
 	})
+	if err != nil {
+		return nil, err
+	}
+	subjectIDs, err = s.intersectPATScope(ctx, principal, schema.GroupNamespace, subjectIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +146,23 @@ func (s Service) ListByUser(ctx context.Context, principalID, principalType stri
 	}
 	flt.GroupIDs = subjectIDs
 	return s.List(ctx, flt)
+}
+
+// intersectPATScope narrows resource IDs to only those the PAT is scoped to.
+func (s Service) intersectPATScope(ctx context.Context, principal authenticate.Principal,
+	namespace string, resourceIDs []string) ([]string, error) {
+	if principal.PAT == nil || len(resourceIDs) == 0 {
+		return resourceIDs, nil
+	}
+	patIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
+		Object:       relation.Object{Namespace: namespace},
+		Subject:      relation.Subject{ID: principal.PAT.ID, Namespace: schema.PATPrincipal},
+		RelationName: schema.GetPermission,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return utils.Intersection(resourceIDs, patIDs), nil
 }
 
 // AddMember adds a subject(user) to group as member
