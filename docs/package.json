@@ -1,0 +1,14 @@
+{
+  "name": "frontier-docs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "chronicle dev -c docs",
+    "build": "chronicle build -c docs",
+    "start": "chronicle start",
+    "serve": "chronicle serve -c docs"
+  },
+  "dependencies": {
+    "@raystack/chronicle": "^0.1.3"
+  }
+}

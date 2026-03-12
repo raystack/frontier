@@ -27,8 +27,11 @@ To check if the current logged in user has the permission to access a particular
 
 #### Sample Query
 
-<Tabs groupId="api">
-  <TabItem value="HTTP" label="HTTP" default>
+<Tabs defaultValue="HTTP">
+  <Tabs.List>
+    <Tabs.Trigger value="HTTP">HTTP</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="HTTP">
 
 ```bash
 curl -L -X POST 'http://127.0.0.1:7400/v1beta1/check' \
@@ -41,7 +44,7 @@ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/check' \
 }'
 ```
 
-</TabItem>
+  </Tabs.Content>
 </Tabs>
 
 :::info

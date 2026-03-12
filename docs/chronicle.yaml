@@ -6,10 +6,10 @@ theme:
 search:
   enabled: true
   placeholder: Search documentation...
-api:
-  - name: Frontier Administration API
-    spec: ../proto/apidocs.swagger.yaml
-    basePath: /apis
+# api:
+#   - name: Frontier Administration API
+#     spec: ../proto/apidocs.swagger.yaml
+#     basePath: /apis
 footer:
   copyright: "Open DataOps Foundation"
   links:
