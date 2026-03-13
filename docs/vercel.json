@@ -1,0 +1,9 @@
+{
+  "github": {
+    "silent": true
+  },
+  "installCommand": "npm install && npm run setup",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".chronicle/.next",
+  "framework": "nextjs"
+}
