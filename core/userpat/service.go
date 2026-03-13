@@ -19,6 +19,7 @@ import (
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	pkgUtils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
 	"golang.org/x/crypto/sha3"
 )
@@ -34,6 +35,7 @@ type RoleService interface {
 
 type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 }
 
 type AuditRecordRepository interface {
@@ -89,6 +91,26 @@ func (s *Service) ValidateExpiry(expiresAt time.Time) error {
 
 func (s *Service) GetByID(ctx context.Context, id string) (patmodels.PAT, error) {
 	return s.repo.GetByID(ctx, id)
+}
+
+// Get retrieves a PAT by ID, verifying it belongs to the given user.
+// Returns ErrDisabled if PATs are not enabled, ErrNotFound if the PAT
+// does not exist or belongs to a different user.
+func (s *Service) Get(ctx context.Context, userID, id string) (patmodels.PAT, error) {
+	if !s.config.Enabled {
+		return patmodels.PAT{}, paterrors.ErrDisabled
+	}
+	pat, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return patmodels.PAT{}, err
+	}
+	if pat.UserID != userID {
+		return patmodels.PAT{}, paterrors.ErrNotFound
+	}
+	if err := s.enrichWithScope(ctx, &pat); err != nil {
+		return patmodels.PAT{}, fmt.Errorf("enriching PAT scope: %w", err)
+	}
+	return pat, nil
 }
 
 // Create generates a new PAT and returns it with the plaintext value.
@@ -301,6 +323,37 @@ func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID 
 			return fmt.Errorf("creating project policy for role %s on project %s: %w", r.Name, projectID, err)
 		}
 	}
+	return nil
+}
+
+// enrichWithScope derives role_ids and project_ids from the PAT's SpiceDB policies.
+func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   pat.ID,
+		PrincipalType: schema.PATPrincipal,
+	})
+	if err != nil {
+		return fmt.Errorf("listing policies for PAT %s: %w", pat.ID, err)
+	}
+
+	var roleIDs []string
+	allProjects := false
+	var projectIDs []string
+	for _, pol := range policies {
+		roleIDs = append(roleIDs, pol.RoleID)
+		if pol.ResourceType == schema.ProjectNamespace {
+			projectIDs = append(projectIDs, pol.ResourceID)
+		}
+		if pol.GrantRelation == schema.PATGrantRelationName {
+			allProjects = true
+		}
+	}
+
+	pat.RoleIDs = pkgUtils.Deduplicate(roleIDs)
+	if !allProjects {
+		pat.ProjectIDs = projectIDs
+	}
+	// allProjects → pat.ProjectIDs stays nil (empty = all projects, matching create semantics)
 	return nil
 }
 

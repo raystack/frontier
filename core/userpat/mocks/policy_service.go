@@ -79,6 +79,65 @@ func (_c *PolicyService_Create_Call) RunAndReturn(run func(context.Context, poli
 	return _c
 }
 
+// List provides a mock function with given fields: ctx, flt
+func (_m *PolicyService) List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error) {
+	ret := _m.Called(ctx, flt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for List")
+	}
+
+	var r0 []policy.Policy
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Filter) ([]policy.Policy, error)); ok {
+		return rf(ctx, flt)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Filter) []policy.Policy); ok {
+		r0 = rf(ctx, flt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]policy.Policy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, policy.Filter) error); ok {
+		r1 = rf(ctx, flt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PolicyService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type PolicyService_List_Call struct {
+	*mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - flt policy.Filter
+func (_e *PolicyService_Expecter) List(ctx interface{}, flt interface{}) *PolicyService_List_Call {
+	return &PolicyService_List_Call{Call: _e.mock.On("List", ctx, flt)}
+}
+
+func (_c *PolicyService_List_Call) Run(run func(ctx context.Context, flt policy.Filter)) *PolicyService_List_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(policy.Filter))
+	})
+	return _c
+}
+
+func (_c *PolicyService_List_Call) Return(_a0 []policy.Policy, _a1 error) *PolicyService_List_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *PolicyService_List_Call) RunAndReturn(run func(context.Context, policy.Filter) ([]policy.Policy, error)) *PolicyService_List_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewPolicyService creates a new instance of PolicyService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPolicyService(t interface {

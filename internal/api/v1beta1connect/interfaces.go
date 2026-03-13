@@ -402,4 +402,5 @@ type AuditRecordService interface {
 type UserPATService interface {
 	ValidateExpiry(expiresAt time.Time) error
 	Create(ctx context.Context, req userpat.CreateRequest) (models.PAT, string, error)
+	Get(ctx context.Context, userID, id string) (models.PAT, error)
 }
