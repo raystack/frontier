@@ -1,0 +1,25 @@
+title: Frontier
+description: Identity and authorization for your APIs
+
+theme:
+  name: default
+
+navigation:
+  links:
+    - label: GitHub
+      href: https://github.com/raystack/frontier
+
+search:
+  enabled: true
+  placeholder: Search documentation...
+
+# api:
+#   - name: Frontier Administration API
+#     spec: apidocs.swagger.yaml
+#     basePath: /apis
+
+footer:
+  copyright: "Open DataOps Foundation"
+  links:
+    - label: GitHub
+      href: https://github.com/raystack/frontier

@@ -10,7 +10,12 @@
     "serve": "chronicle serve"
   },
   "dependencies": {
-    "@raystack/chronicle": "0.1.0-canary.e11f924",
+    "@raystack/chronicle": "^0.1.0-canary.f94fdd7",
     "openapi-types": "^12.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "25.5.0",
+    "@types/react": "19.2.14",
+    "typescript": "5.9.3"
   }
 }
