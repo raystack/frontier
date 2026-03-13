@@ -87,6 +87,61 @@ func (r UserPATRepository) CountActive(ctx context.Context, userID, orgID string
 	return count, nil
 }
 
+func (r UserPATRepository) GetByID(ctx context.Context, id string) (models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).
+		Select(&UserPAT{}).
+		Where(
+			goqu.Ex{"id": id},
+			goqu.Ex{"deleted_at": nil},
+		).Limit(1).ToSQL()
+	if err != nil {
+		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var model UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "GetByID", func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &model, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.PAT{}, paterrors.ErrNotFound
+		}
+		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	return model.transform()
+}
+
+func (r UserPATRepository) List(ctx context.Context, userID, orgID string) ([]models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).
+		Select(&UserPAT{}).
+		Where(
+			goqu.Ex{"user_id": userID},
+			goqu.Ex{"org_id": orgID},
+			goqu.Ex{"deleted_at": nil},
+		).Order(goqu.C("created_at").Desc()).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var rows []UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "List", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	pats := make([]models.PAT, 0, len(rows))
+	for _, row := range rows {
+		pat, err := row.transform()
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, pat)
+	}
+	return pats, nil
+}
+
 func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error) {
 	query, params, err := dialect.From(TABLE_USER_PATS).
 		Select(&UserPAT{}).

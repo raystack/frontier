@@ -139,6 +139,63 @@ func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, models.
 	return _c
 }
 
+// GetByID provides a mock function with given fields: ctx, id
+func (_m *Repository) GetByID(ctx context.Context, id string) (models.PAT, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByID")
+	}
+
+	var r0 models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (models.PAT, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) models.PAT); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(models.PAT)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_GetByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByID'
+type Repository_GetByID_Call struct {
+	*mock.Call
+}
+
+// GetByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *Repository_Expecter) GetByID(ctx interface{}, id interface{}) *Repository_GetByID_Call {
+	return &Repository_GetByID_Call{Call: _e.mock.On("GetByID", ctx, id)}
+}
+
+func (_c *Repository_GetByID_Call) Run(run func(ctx context.Context, id string)) *Repository_GetByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_GetByID_Call) Return(_a0 models.PAT, _a1 error) *Repository_GetByID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_GetByID_Call) RunAndReturn(run func(context.Context, string) (models.PAT, error)) *Repository_GetByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetBySecretHash provides a mock function with given fields: ctx, secretHash
 func (_m *Repository) GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error) {
 	ret := _m.Called(ctx, secretHash)
@@ -192,6 +249,66 @@ func (_c *Repository_GetBySecretHash_Call) Return(_a0 models.PAT, _a1 error) *Re
 }
 
 func (_c *Repository_GetBySecretHash_Call) RunAndReturn(run func(context.Context, string) (models.PAT, error)) *Repository_GetBySecretHash_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// List provides a mock function with given fields: ctx, userID, orgID
+func (_m *Repository) List(ctx context.Context, userID string, orgID string) ([]models.PAT, error) {
+	ret := _m.Called(ctx, userID, orgID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for List")
+	}
+
+	var r0 []models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]models.PAT, error)); ok {
+		return rf(ctx, userID, orgID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []models.PAT); ok {
+		r0 = rf(ctx, userID, orgID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.PAT)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, userID, orgID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type Repository_List_Call struct {
+	*mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - orgID string
+func (_e *Repository_Expecter) List(ctx interface{}, userID interface{}, orgID interface{}) *Repository_List_Call {
+	return &Repository_List_Call{Call: _e.mock.On("List", ctx, userID, orgID)}
+}
+
+func (_c *Repository_List_Call) Run(run func(ctx context.Context, userID string, orgID string)) *Repository_List_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_List_Call) Return(_a0 []models.PAT, _a1 error) *Repository_List_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, string, string) ([]models.PAT, error)) *Repository_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
