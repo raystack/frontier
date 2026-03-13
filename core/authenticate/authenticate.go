@@ -8,6 +8,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	pat "github.com/raystack/frontier/core/userpat/models"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
@@ -141,4 +142,13 @@ type Principal struct {
 	User        *user.User
 	ServiceUser *serviceuser.ServiceUser
 	PAT         *pat.PAT
+}
+
+// ResolveSubject returns the subject ID and type for authorization queries.
+// For PAT principals, it resolves to the underlying user.
+func (p Principal) ResolveSubject() (id string, subjectType string) {
+	if p.PAT != nil {
+		return p.PAT.UserID, schema.UserPrincipal
+	}
+	return p.ID, p.Type
 }

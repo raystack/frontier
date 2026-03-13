@@ -48,7 +48,7 @@ type AuthnService interface {
 
 type GroupService interface {
 	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
-	ListByUser(ctx context.Context, principalID, principalType string, flt group.Filter) ([]group.Group, error)
+	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
 }
 
 type Service struct {
@@ -137,15 +137,66 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 	return projects, nil
 }
 
-func (s Service) ListByUser(ctx context.Context, principalID, principalType string,
+func (s Service) ListByUser(ctx context.Context, principal authenticate.Principal,
 	flt Filter) ([]Project, error) {
+	subjectID, subjectType := principal.ResolveSubject()
+
 	var projIDs []string
 	var err error
-	if flt.NonInherited == true {
+	if flt.NonInherited {
 		// direct added users
-		policies, err := s.policyService.List(ctx, policy.Filter{
-			PrincipalType: principalType,
-			PrincipalID:   principalID,
+		projIDs, err = s.listNonInheritedProjectIDs(ctx, subjectID, subjectType)
+	} else {
+		projIDs, err = s.relationService.LookupResources(ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.ProjectNamespace},
+			Subject:      relation.Subject{Namespace: subjectType, ID: subjectID},
+			RelationName: MemberPermission,
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	projIDs = utils.Deduplicate(projIDs)
+	projIDs, err = s.intersectPATScope(ctx, principal, schema.ProjectNamespace, projIDs)
+	if err != nil {
+		return nil, err
+	}
+	if len(projIDs) == 0 {
+		return []Project{}, nil
+	}
+
+	flt.ProjectIDs = projIDs
+	return s.List(ctx, flt)
+}
+
+// listNonInheritedProjectIDs returns project IDs where the principal has direct
+// role assignments (not inherited through org), including via group memberships.
+func (s Service) listNonInheritedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalType: principalType,
+		PrincipalID:   principalID,
+		ResourceType:  schema.ProjectNamespace,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var projIDs []string
+	for _, pol := range policies {
+		projIDs = append(projIDs, pol.ResourceID)
+	}
+
+	// projects added via group memberships
+	groups, err := s.groupService.ListByUser(ctx,
+		authenticate.Principal{ID: principalID, Type: principalType}, group.Filter{})
+	if err != nil {
+		return nil, err
+	}
+	groupIDs := utils.Map(groups, func(g group.Group) string { return g.ID })
+	if len(groupIDs) > 0 {
+		policies, err = s.policyService.List(ctx, policy.Filter{
+			PrincipalType: schema.GroupPrincipal,
+			PrincipalIDs:  groupIDs,
 			ResourceType:  schema.ProjectNamespace,
 		})
 		if err != nil {
@@ -154,52 +205,25 @@ func (s Service) ListByUser(ctx context.Context, principalID, principalType stri
 		for _, pol := range policies {
 			projIDs = append(projIDs, pol.ResourceID)
 		}
-
-		// added via groups
-		groups, err := s.groupService.ListByUser(ctx, principalID, principalType, group.Filter{})
-		if err != nil {
-			return nil, err
-		}
-		groupIDs := utils.Map(groups, func(g group.Group) string {
-			return g.ID
-		})
-		if len(groupIDs) > 0 {
-			policies, err = s.policyService.List(ctx, policy.Filter{
-				PrincipalType: schema.GroupPrincipal,
-				PrincipalIDs:  groupIDs,
-				ResourceType:  schema.ProjectNamespace,
-			})
-			if err != nil {
-				return nil, err
-			}
-			for _, pol := range policies {
-				projIDs = append(projIDs, pol.ResourceID)
-			}
-		}
-	} else {
-		projIDs, err = s.relationService.LookupResources(ctx, relation.Relation{
-			Object: relation.Object{
-				Namespace: schema.ProjectNamespace,
-			},
-			Subject: relation.Subject{
-				Namespace: principalType,
-				ID:        principalID,
-			},
-			RelationName: MemberPermission,
-		})
-		if err != nil {
-			return nil, err
-		}
 	}
+	return projIDs, nil
+}
 
-	// de-duplicate project IDs
-	projIDs = utils.Deduplicate(projIDs)
-	if len(projIDs) == 0 {
-		return []Project{}, nil
+// intersectPATScope narrows resource IDs to only those the PAT is scoped to.
+func (s Service) intersectPATScope(ctx context.Context, principal authenticate.Principal,
+	namespace string, resourceIDs []string) ([]string, error) {
+	if principal.PAT == nil || len(resourceIDs) == 0 {
+		return resourceIDs, nil
 	}
-
-	flt.ProjectIDs = projIDs
-	return s.List(ctx, flt)
+	patIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
+		Object:       relation.Object{Namespace: namespace},
+		Subject:      relation.Subject{ID: principal.PAT.ID, Namespace: schema.PATPrincipal},
+		RelationName: schema.GetPermission,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return utils.Intersection(resourceIDs, patIDs), nil
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {

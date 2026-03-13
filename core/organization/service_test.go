@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/core/relation"
+	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -256,5 +257,105 @@ func TestService_AttachToPlatform(t *testing.T) {
 		err := svc.AttachToPlatform(context.Background(), inputOrgID)
 		assert.NotNil(t, err)
 		assert.Equal(t, expectedErr, err)
+	})
+}
+
+func TestService_ListByUser(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("should resolve PAT to user and intersect with PAT org", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockUserSvc := mocks.NewUserService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockPrefSvc := mocks.NewPreferencesService(t)
+		mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
+
+		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
+
+		// LookupResources should be called with user ID/type, not PAT
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.OrganizationNamespace},
+			Subject:      relation.Subject{ID: "user-123", Namespace: schema.UserPrincipal},
+			RelationName: schema.MembershipPermission,
+		}).Return([]string{"org-1", "org-2"}, nil).Once()
+
+		// Repo should only be called with the PAT's org (intersection result)
+		mockRepo.On("List", ctx, organization.Filter{
+			IDs: []string{"org-1"},
+		}).Return([]organization.Organization{
+			{ID: "org-1", Name: "org-one"},
+		}, nil).Once()
+
+		result, err := svc.ListByUser(ctx, authenticate.Principal{
+			ID:   "pat-456",
+			Type: schema.PATPrincipal,
+			PAT:  &pat.PAT{ID: "pat-456", UserID: "user-123", OrgID: "org-1"},
+		}, organization.Filter{})
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		assert.Equal(t, "org-1", result[0].ID)
+	})
+
+	t.Run("should return empty when PAT org not in user memberships", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockUserSvc := mocks.NewUserService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockPrefSvc := mocks.NewPreferencesService(t)
+		mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
+
+		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
+
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.OrganizationNamespace},
+			Subject:      relation.Subject{ID: "user-123", Namespace: schema.UserPrincipal},
+			RelationName: schema.MembershipPermission,
+		}).Return([]string{"org-1", "org-2"}, nil).Once()
+
+		result, err := svc.ListByUser(ctx, authenticate.Principal{
+			ID:   "pat-456",
+			Type: schema.PATPrincipal,
+			PAT:  &pat.PAT{ID: "pat-456", UserID: "user-123", OrgID: "org-999"},
+		}, organization.Filter{})
+
+		assert.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("should pass through for regular user principal", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockUserSvc := mocks.NewUserService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockPrefSvc := mocks.NewPreferencesService(t)
+		mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
+
+		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo)
+
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.OrganizationNamespace},
+			Subject:      relation.Subject{ID: "user-123", Namespace: schema.UserPrincipal},
+			RelationName: schema.MembershipPermission,
+		}).Return([]string{"org-1", "org-2"}, nil).Once()
+
+		mockRepo.On("List", ctx, organization.Filter{
+			IDs: []string{"org-1", "org-2"},
+		}).Return([]organization.Organization{
+			{ID: "org-1", Name: "org-one"},
+			{ID: "org-2", Name: "org-two"},
+		}, nil).Once()
+
+		result, err := svc.ListByUser(ctx, authenticate.Principal{
+			ID:   "user-123",
+			Type: schema.UserPrincipal,
+		}, organization.Filter{})
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
 	})
 }

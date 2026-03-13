@@ -142,6 +142,31 @@ func (r UserPATRepository) List(ctx context.Context, userID, orgID string) ([]mo
 	return pats, nil
 }
 
+func (r UserPATRepository) GetByID(ctx context.Context, id string) (models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).
+		Select(&UserPAT{}).
+		Where(
+			goqu.Ex{"id": id},
+			goqu.Ex{"deleted_at": nil},
+		).Limit(1).ToSQL()
+	if err != nil {
+		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var model UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "GetByID", func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &model, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.PAT{}, paterrors.ErrNotFound
+		}
+		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	return model.transform()
+}
+
 func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error) {
 	query, params, err := dialect.From(TABLE_USER_PATS).
 		Select(&UserPAT{}).
