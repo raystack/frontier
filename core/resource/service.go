@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/raystack/frontier/core/project"
+	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/relation"
@@ -36,6 +37,10 @@ type OrgService interface {
 	Get(ctx context.Context, idOrName string) (organization.Organization, error)
 }
 
+type PATService interface {
+	GetByID(ctx context.Context, id string) (patmodels.PAT, error)
+}
+
 type Service struct {
 	repository       Repository
 	configRepository ConfigRepository
@@ -43,11 +48,13 @@ type Service struct {
 	authnService     AuthnService
 	projectService   ProjectService
 	orgService       OrgService
+	patService       PATService
 }
 
 func NewService(repository Repository, configRepository ConfigRepository,
 	relationService RelationService, authnService AuthnService,
-	projectService ProjectService, orgService OrgService) *Service {
+	projectService ProjectService, orgService OrgService,
+	patService PATService) *Service {
 	return &Service{
 		repository:       repository,
 		configRepository: configRepository,
@@ -55,6 +62,7 @@ func NewService(repository Repository, configRepository ConfigRepository,
 		authnService:     authnService,
 		projectService:   projectService,
 		orgService:       orgService,
+		patService:       patService,
 	}
 }
 
@@ -163,12 +171,17 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 }
 
 func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
-	relSubject, err := s.buildRelationSubject(ctx, check.Subject)
+	relObject, err := s.buildRelationObject(ctx, check.Object)
 	if err != nil {
 		return false, err
 	}
 
-	relObject, err := s.buildRelationObject(ctx, check.Object)
+	// PAT scope — early exit if denied
+	if allowed, err := s.checkPATScope(ctx, check.Subject, relObject, check.Permission); err != nil || !allowed {
+		return false, err
+	}
+
+	relSubject, err := s.buildRelationSubject(ctx, check.Subject)
 	if err != nil {
 		return false, err
 	}
@@ -183,12 +196,20 @@ func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
 func (s Service) buildRelationSubject(ctx context.Context, sub relation.Subject) (relation.Subject, error) {
 	// use existing if passed in request
 	if sub.ID != "" && sub.Namespace != "" {
+		// PAT subject → resolve to underlying user for authorization
+		if sub.Namespace == schema.PATPrincipal {
+			return s.resolvePATUser(ctx, sub.ID)
+		}
 		return sub, nil
 	}
 
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return relation.Subject{}, err
+	}
+	// PAT principal → use underlying user for authorization
+	if principal.PAT != nil {
+		return relation.Subject{ID: principal.PAT.UserID, Namespace: schema.UserPrincipal}, nil
 	}
 	return relation.Subject{
 		ID:        principal.ID,
@@ -229,26 +250,147 @@ func (s Service) buildRelationObject(ctx context.Context, obj relation.Object) (
 	return obj, nil
 }
 
+// resolvePATUser resolves a PAT ID to its owning user subject.
+// Tries context first(cached), falls back to DB (for federated checks with explicit subject).
+func (s Service) resolvePATUser(ctx context.Context, patID string) (relation.Subject, error) {
+	principal, err := s.authnService.GetPrincipal(ctx)
+	if err == nil && principal.PAT != nil && principal.PAT.ID == patID {
+		return relation.Subject{ID: principal.PAT.UserID, Namespace: schema.UserPrincipal}, nil
+	}
+
+	pat, err := s.patService.GetByID(ctx, patID)
+	if err != nil {
+		return relation.Subject{}, err
+	}
+	return relation.Subject{ID: pat.UserID, Namespace: schema.UserPrincipal}, nil
+}
+
+// resolvePATID returns the PAT ID to scope-check, if any.
+// Explicit app/pat subject takes precedence (federated check by admin),
+// otherwise falls back to the authenticated principal's PAT.
+func (s Service) resolvePATID(ctx context.Context, subject relation.Subject) string {
+	if subject.Namespace == schema.PATPrincipal && subject.ID != "" {
+		return subject.ID
+	}
+	principal, _ := s.authnService.GetPrincipal(ctx)
+	if principal.PAT != nil {
+		return principal.PAT.ID
+	}
+	return ""
+}
+
+// checkPATScope checks if the PAT has scope for the given permission on the object.
+// Returns (true, nil) if no PAT is involved.
+func (s Service) checkPATScope(ctx context.Context, subject relation.Subject, object relation.Object, permission string) (bool, error) {
+	patID := s.resolvePATID(ctx, subject)
+	if patID == "" {
+		return true, nil
+	}
+	return s.relationService.CheckPermission(ctx, relation.Relation{
+		Subject:      relation.Subject{ID: patID, Namespace: schema.PATPrincipal},
+		Object:       object,
+		RelationName: permission,
+	})
+}
+
+// BatchCheck checks permissions for multiple resource checks.
+// For PAT requests, it first batch-checks PAT scope, then only runs user permission
+// checks for scope-allowed items. Scope-denied items return false directly.
 func (s Service) BatchCheck(ctx context.Context, checks []Check) ([]relation.CheckPair, error) {
-	relations := make([]relation.Relation, 0, len(checks))
-	for _, check := range checks {
-		// we can parallelize this to speed up the process
+	relations, patScopeRelations, patScopeIdx, err := s.buildBatchRelations(ctx, checks)
+	if err != nil {
+		return nil, err
+	}
+
+	// no PAT involved — straight to user permission check
+	if len(patScopeRelations) == 0 {
+		return s.relationService.BatchCheckPermission(ctx, relations)
+	}
+
+	// PAT scope gate — check which items the PAT has scope for
+	scopeDenied, err := s.batchCheckPATScope(ctx, patScopeRelations, patScopeIdx)
+	if err != nil {
+		return nil, err
+	}
+
+	// run user permission checks only for scope-allowed items, merge results
+	return s.batchCheckWithScopeFilter(ctx, relations, scopeDenied)
+}
+
+// buildBatchRelations resolves objects/subjects and builds parallel PAT scope relations.
+// Returns user relations, PAT scope relations, and index mapping from scope back to user relations.
+func (s Service) buildBatchRelations(ctx context.Context, checks []Check) (
+	relations, patScopeRelations []relation.Relation, patScopeIdx []int, err error,
+) {
+	relations = make([]relation.Relation, 0, len(checks))
+	for i, check := range checks {
 		relObject, err := s.buildRelationObject(ctx, check.Object)
 		if err != nil {
-			return nil, err
+			return nil, nil, nil, err
 		}
-
 		relSubject, err := s.buildRelationSubject(ctx, check.Subject)
 		if err != nil {
-			return nil, err
+			return nil, nil, nil, err
 		}
 		relations = append(relations, relation.Relation{
 			Subject:      relSubject,
 			Object:       relObject,
 			RelationName: check.Permission,
 		})
+
+		if patID := s.resolvePATID(ctx, check.Subject); patID != "" {
+			patScopeRelations = append(patScopeRelations, relation.Relation{
+				Subject:      relation.Subject{ID: patID, Namespace: schema.PATPrincipal},
+				Object:       relObject,
+				RelationName: check.Permission,
+			})
+			patScopeIdx = append(patScopeIdx, i)
+		}
 	}
-	return s.relationService.BatchCheckPermission(ctx, relations)
+	return relations, patScopeRelations, patScopeIdx, nil
+}
+
+// batchCheckPATScope runs a batch scope check and returns the set of denied relation indices.
+func (s Service) batchCheckPATScope(ctx context.Context, patScopeRelations []relation.Relation, patScopeIdx []int) (map[int]bool, error) {
+	scopeResults, err := s.relationService.BatchCheckPermission(ctx, patScopeRelations)
+	if err != nil {
+		return nil, err
+	}
+	denied := make(map[int]bool, len(scopeResults))
+	for j, sr := range scopeResults {
+		if !sr.Status {
+			denied[patScopeIdx[j]] = true
+		}
+	}
+	return denied, nil
+}
+
+// batchCheckWithScopeFilter runs user permission checks for scope-allowed items
+// and returns merged results where scope-denied items are false.
+func (s Service) batchCheckWithScopeFilter(ctx context.Context, relations []relation.Relation, scopeDenied map[int]bool) ([]relation.CheckPair, error) {
+	var allowedRelations []relation.Relation
+	var allowedIdx []int
+	for i, rel := range relations {
+		if !scopeDenied[i] {
+			allowedRelations = append(allowedRelations, rel)
+			allowedIdx = append(allowedIdx, i)
+		}
+	}
+
+	results := make([]relation.CheckPair, len(relations))
+	for i := range results {
+		results[i] = relation.CheckPair{Relation: relations[i], Status: false}
+	}
+	if len(allowedRelations) > 0 {
+		userResults, err := s.relationService.BatchCheckPermission(ctx, allowedRelations)
+		if err != nil {
+			return nil, err
+		}
+		for j, idx := range allowedIdx {
+			results[idx] = userResults[j]
+		}
+	}
+	return results, nil
 }
 
 func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
