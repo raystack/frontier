@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 )
 
 type PAT struct {
@@ -19,4 +20,9 @@ type PAT struct {
 	ExpiresAt  time.Time  `rql:"name=expires_at,type=datetime"`
 	CreatedAt  time.Time  `rql:"name=created_at,type=datetime"`
 	UpdatedAt  time.Time  `rql:"name=updated_at,type=datetime"`
+}
+
+type PATList struct {
+	PATs []PAT
+	Page utils.Page
 }

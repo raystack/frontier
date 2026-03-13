@@ -3,31 +3,20 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/userpat"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-// resolveUserID extracts the user ID from either a UserPrincipal or PATPrincipal.
-// ServiceUser principals are rejected.
-func resolveUserID(principal authenticate.Principal) (string, error) {
-	switch principal.Type {
-	case schema.UserPrincipal:
-		return principal.User.ID, nil
-	case schema.PATPrincipal:
-		return principal.PAT.UserID, nil
-	default:
-		return "", connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
-	}
-}
 
 func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.CreateCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
@@ -119,16 +108,21 @@ func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *conne
 	if err != nil {
 		return nil, err
 	}
-	userID, err := resolveUserID(principal)
-	if err != nil {
-		return nil, err
-	}
+	userID, _ := principal.ResolveSubject()
 
 	if err := request.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	pats, err := h.userPATService.List(ctx, userID, request.Msg.GetOrgId())
+	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), models.PAT{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to transform rql query: %v", err))
+	}
+	if err = rql.ValidateQuery(rqlQuery, models.PAT{}); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
+	}
+
+	result, err := h.userPATService.List(ctx, userID, request.Msg.GetOrgId(), rqlQuery)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListCurrentUserPATs", err,
 			zap.String("user_id", userID),
@@ -142,12 +136,17 @@ func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *conne
 		}
 	}
 
-	pbPATs := make([]*frontierv1beta1.PAT, 0, len(pats))
-	for _, pat := range pats {
+	pbPATs := make([]*frontierv1beta1.PAT, 0, len(result.PATs))
+	for _, pat := range result.PATs {
 		pbPATs = append(pbPATs, transformPATToPB(pat, ""))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListCurrentUserPATsResponse{
 		Pats: pbPATs,
+		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+			Offset:     uint32(result.Page.Offset),
+			Limit:      uint32(result.Page.Limit),
+			TotalCount: uint32(result.Page.TotalCount),
+		},
 	}), nil
 }

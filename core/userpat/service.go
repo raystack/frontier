@@ -19,7 +19,9 @@ import (
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	pkgUtils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -306,25 +308,23 @@ func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID 
 }
 
 // List retrieves all PATs for a user in an org and enriches each with scope fields.
-func (s *Service) List(ctx context.Context, userID, orgID string) ([]patmodels.PAT, error) {
+func (s *Service) List(ctx context.Context, userID, orgID string, query *rql.Query) (patmodels.PATList, error) {
 	if !s.config.Enabled {
-		return nil, paterrors.ErrDisabled
+		return patmodels.PATList{}, paterrors.ErrDisabled
 	}
-	pats, err := s.repo.List(ctx, userID, orgID)
+	result, err := s.repo.List(ctx, userID, orgID, query)
 	if err != nil {
-		return nil, err
+		return patmodels.PATList{}, err
 	}
-	for i := range pats {
-		if err := s.enrichWithScope(ctx, &pats[i]); err != nil {
-			return nil, fmt.Errorf("enriching PAT scope: %w", err)
+	for i := range result.PATs {
+		if err := s.enrichWithScope(ctx, &result.PATs[i]); err != nil {
+			return patmodels.PATList{}, fmt.Errorf("enriching PAT scope: %w", err)
 		}
 	}
-	return pats, nil
+	return result, nil
 }
 
-// enrichWithScope reconstructs role_ids and project_ids from the policies table.
-// These fields are not stored on the PAT row — they are derived from the policies
-// created during PAT creation (see createPolicies).
+// enrichWithScope derives role_ids and project_ids
 func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   pat.ID,
@@ -334,11 +334,11 @@ func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error
 		return fmt.Errorf("listing policies for PAT %s: %w", pat.ID, err)
 	}
 
-	roleSet := make(map[string]struct{})
+	var roleIDs []string
 	allProjects := false
 	var projectIDs []string
 	for _, pol := range policies {
-		roleSet[pol.RoleID] = struct{}{}
+		roleIDs = append(roleIDs, pol.RoleID)
 		if pol.ResourceType == schema.ProjectNamespace {
 			projectIDs = append(projectIDs, pol.ResourceID)
 		}
@@ -347,7 +347,7 @@ func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error
 		}
 	}
 
-	pat.RoleIDs = slices.Sorted(maps.Keys(roleSet))
+	pat.RoleIDs = pkgUtils.Deduplicate(roleIDs)
 	if !allProjects {
 		pat.ProjectIDs = projectIDs
 	}

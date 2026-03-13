@@ -15,6 +15,13 @@ import (
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/rql"
+)
+
+var (
+	patRQLFilterSupportedColumns = []string{"id", "title", "expires_at", "created_at"}
+	patRQLSearchSupportedColumns = []string{"id", "title"}
 )
 
 type UserPATRepository struct {
@@ -112,59 +119,111 @@ func (r UserPATRepository) GetByID(ctx context.Context, id string) (models.PAT, 
 	return model.transform()
 }
 
-func (r UserPATRepository) List(ctx context.Context, userID, orgID string) ([]models.PAT, error) {
-	query, params, err := dialect.From(TABLE_USER_PATS).
-		Select(&UserPAT{}).
-		Where(
-			goqu.Ex{"user_id": userID},
-			goqu.Ex{"org_id": orgID},
-			goqu.Ex{"deleted_at": nil},
-		).Order(goqu.C("created_at").Desc()).ToSQL()
+func (r UserPATRepository) List(ctx context.Context, userID, orgID string, rqlQuery *rql.Query) (models.PATList, error) {
+	baseStmt, err := r.buildPATFilteredQuery(userID, orgID, rqlQuery)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PATList{}, err
+	}
+
+	totalCount, err := r.countPATs(ctx, baseStmt)
+	if err != nil {
+		return models.PATList{}, err
+	}
+
+	listStmt := r.applySort(baseStmt.Select(&UserPAT{}), rqlQuery)
+	listStmt, pagination := utils.AddRQLPaginationInQuery(listStmt, rqlQuery)
+
+	query, params, err := listStmt.ToSQL()
+	if err != nil {
+		return models.PATList{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var rows []UserPAT
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &rows, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.PATList{}, nil
+		}
+		return models.PATList{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	pats := make([]models.PAT, 0, len(rows))
 	for _, row := range rows {
 		pat, err := row.transform()
 		if err != nil {
-			return nil, err
+			return models.PATList{}, err
 		}
 		pats = append(pats, pat)
 	}
-	return pats, nil
+
+	return models.PATList{
+		PATs: pats,
+		Page: utils.Page{
+			Limit:      pagination.Limit,
+			Offset:     pagination.Offset,
+			TotalCount: totalCount,
+		},
+	}, nil
 }
 
-func (r UserPATRepository) GetByID(ctx context.Context, id string) (models.PAT, error) {
-	query, params, err := dialect.From(TABLE_USER_PATS).
-		Select(&UserPAT{}).
-		Where(
-			goqu.Ex{"id": id},
-			goqu.Ex{"deleted_at": nil},
-		).Limit(1).ToSQL()
-	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+func (r UserPATRepository) buildPATFilteredQuery(userID, orgID string, rqlQuery *rql.Query) (*goqu.SelectDataset, error) {
+	if rqlQuery == nil {
+		rqlQuery = utils.NewRQLQuery("", utils.DefaultOffset, utils.DefaultLimit, []rql.Filter{}, []rql.Sort{}, []string{})
 	}
 
-	var model UserPAT
-	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "GetByID", func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &model, query, params...)
+	baseStmt := dialect.From(TABLE_USER_PATS).Where(
+		goqu.Ex{"user_id": userID},
+		goqu.Ex{"org_id": orgID},
+		goqu.Ex{"deleted_at": nil},
+	)
+
+	baseStmt, err := utils.AddRQLFiltersInQuery(baseStmt, rqlQuery, patRQLFilterSupportedColumns, models.PAT{})
+	if err != nil {
+		return nil, fmt.Errorf("invalid filter: %w", err)
+	}
+
+	baseStmt, err = utils.AddRQLSearchInQuery(baseStmt, rqlQuery, patRQLSearchSupportedColumns)
+	if err != nil {
+		return nil, fmt.Errorf("invalid search: %w", err)
+	}
+
+	return baseStmt, nil
+}
+
+func (r UserPATRepository) countPATs(ctx context.Context, baseStmt *goqu.SelectDataset) (int64, error) {
+	countQuery, countParams, err := baseStmt.Select(goqu.L("COUNT(*) as total")).ToSQL()
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	var totalCount int64
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListCount", func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &totalCount, countQuery, countParams...)
 	}); err != nil {
 		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.PAT{}, paterrors.ErrNotFound
+			return 0, nil
 		}
-		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+		return 0, fmt.Errorf("%w: %w", dbErr, err)
 	}
+	return totalCount, nil
+}
 
-	return model.transform()
+func (r UserPATRepository) applySort(query *goqu.SelectDataset, rqlQuery *rql.Query) *goqu.SelectDataset {
+	if len(rqlQuery.Sort) > 0 {
+		for _, sortItem := range rqlQuery.Sort {
+			switch sortItem.Order {
+			case "desc":
+				query = query.OrderAppend(goqu.C(sortItem.Name).Desc())
+			default:
+				query = query.OrderAppend(goqu.C(sortItem.Name).Asc())
+			}
+		}
+	} else {
+		query = query.Order(goqu.C("created_at").Desc())
+	}
+	return query
 }
 
 func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error) {
