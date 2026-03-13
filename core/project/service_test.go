@@ -16,6 +16,7 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
@@ -280,9 +281,8 @@ func TestService_List(t *testing.T) {
 func TestService_ListByUser(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		principalID   string
-		principalType string
-		flt           project.Filter
+		principal authenticate.Principal
+		flt       project.Filter
 	}
 	tests := []struct {
 		name    string
@@ -294,9 +294,8 @@ func TestService_ListByUser(t *testing.T) {
 		{
 			name: "list all projects by user successfully",
 			args: args{
-				principalID:   "user-id",
-				principalType: schema.UserPrincipal,
-				flt:           project.Filter{},
+				principal: authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				flt:       project.Filter{},
 			},
 			want: []project.Project{
 				{
@@ -366,8 +365,7 @@ func TestService_ListByUser(t *testing.T) {
 		{
 			name: "list all projects by user with non-inherited policies (with no groups)",
 			args: args{
-				principalID:   "user-id",
-				principalType: schema.UserPrincipal,
+				principal: authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
 				flt: project.Filter{
 					NonInherited: true,
 				},
@@ -397,7 +395,7 @@ func TestService_ListByUser(t *testing.T) {
 					},
 				}, nil)
 
-				groupService.EXPECT().ListByUser(ctx, "user-id", schema.UserPrincipal, group.Filter{}).Return([]group.Group{}, nil)
+				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{}, nil)
 
 				repo.EXPECT().List(ctx, project.Filter{
 					ProjectIDs:   []string{"project-id"},
@@ -417,8 +415,7 @@ func TestService_ListByUser(t *testing.T) {
 		{
 			name: "list all projects by user with non-inherited policies (with groups)",
 			args: args{
-				principalID:   "user-id",
-				principalType: schema.UserPrincipal,
+				principal: authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
 				flt: project.Filter{
 					NonInherited: true,
 				},
@@ -455,7 +452,7 @@ func TestService_ListByUser(t *testing.T) {
 					},
 				}, nil)
 
-				groupService.EXPECT().ListByUser(ctx, "user-id", schema.UserPrincipal, group.Filter{}).Return([]group.Group{
+				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{
 					{
 						ID: "group-id",
 					},
@@ -496,11 +493,188 @@ func TestService_ListByUser(t *testing.T) {
 				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
 			},
 		},
+		{
+			name: "PAT principal should resolve to user and intersect with PAT project scope",
+			args: args{
+				principal: authenticate.Principal{
+					ID:   "pat-456",
+					Type: schema.PATPrincipal,
+					PAT:  &pat.PAT{ID: "pat-456", UserID: "user-id", OrgID: "org-1"},
+				},
+				flt: project.Filter{},
+			},
+			want: []project.Project{
+				{
+					ID:   "project-id",
+					Name: "test",
+					Organization: organization.Organization{
+						ID: "org-id",
+					},
+				},
+			},
+			wantErr: false,
+			setup: func() *project.Service {
+				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				// LookupResources for user's project memberships (resolved from PAT)
+				relationService.EXPECT().LookupResources(ctx, relation.Relation{
+					Object: relation.Object{
+						Namespace: schema.ProjectNamespace,
+					},
+					Subject: relation.Subject{
+						Namespace: schema.UserPrincipal,
+						ID:        "user-id",
+					},
+					RelationName: project.MemberPermission,
+				}).Return([]string{"project-id", "project-id-2", "project-id-3"}, nil)
+
+				// LookupResources for PAT's project scope
+				relationService.EXPECT().LookupResources(ctx, relation.Relation{
+					Object: relation.Object{
+						Namespace: schema.ProjectNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        "pat-456",
+						Namespace: schema.PATPrincipal,
+					},
+					RelationName: schema.GetPermission,
+				}).Return([]string{"project-id"}, nil)
+
+				// Repo called with intersection
+				repo.EXPECT().List(ctx, project.Filter{
+					ProjectIDs: []string{"project-id"},
+				}).Return([]project.Project{
+					{
+						ID:   "project-id",
+						Name: "test",
+						Organization: organization.Organization{
+							ID: "org-id",
+						},
+					},
+				}, nil)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+			},
+		},
+		{
+			name: "PAT principal with non-inherited should resolve to user and intersect",
+			args: args{
+				principal: authenticate.Principal{
+					ID:   "pat-456",
+					Type: schema.PATPrincipal,
+					PAT:  &pat.PAT{ID: "pat-456", UserID: "user-id", OrgID: "org-1"},
+				},
+				flt: project.Filter{
+					NonInherited: true,
+				},
+			},
+			want: []project.Project{
+				{
+					ID:   "project-id",
+					Name: "test",
+					Organization: organization.Organization{
+						ID: "org-id",
+					},
+				},
+			},
+			wantErr: false,
+			setup: func() *project.Service {
+				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				// Direct policies for user (resolved from PAT)
+				policyService.EXPECT().List(ctx, policy.Filter{
+					PrincipalType: schema.UserPrincipal,
+					PrincipalID:   "user-id",
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{
+						ResourceID:    "project-id",
+						ResourceType:  schema.ProjectNamespace,
+						PrincipalID:   "user-id",
+						PrincipalType: schema.UserPrincipal,
+					},
+					{
+						ResourceID:    "project-id-2",
+						ResourceType:  schema.ProjectNamespace,
+						PrincipalID:   "user-id",
+						PrincipalType: schema.UserPrincipal,
+					},
+				}, nil)
+
+				// Group lookup uses user-only principal (no double PAT filtering)
+				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{}, nil)
+
+				// PAT scope intersection
+				relationService.EXPECT().LookupResources(ctx, relation.Relation{
+					Object: relation.Object{
+						Namespace: schema.ProjectNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        "pat-456",
+						Namespace: schema.PATPrincipal,
+					},
+					RelationName: schema.GetPermission,
+				}).Return([]string{"project-id"}, nil)
+
+				// Repo called with intersection result
+				repo.EXPECT().List(ctx, project.Filter{
+					ProjectIDs:   []string{"project-id"},
+					NonInherited: true,
+				}).Return([]project.Project{
+					{
+						ID:   "project-id",
+						Name: "test",
+						Organization: organization.Organization{
+							ID: "org-id",
+						},
+					},
+				}, nil)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+			},
+		},
+		{
+			name: "PAT principal with no project overlap returns empty",
+			args: args{
+				principal: authenticate.Principal{
+					ID:   "pat-456",
+					Type: schema.PATPrincipal,
+					PAT:  &pat.PAT{ID: "pat-456", UserID: "user-id", OrgID: "org-1"},
+				},
+				flt: project.Filter{},
+			},
+			want:    []project.Project{},
+			wantErr: false,
+			setup: func() *project.Service {
+				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				// User has projects
+				relationService.EXPECT().LookupResources(ctx, relation.Relation{
+					Object: relation.Object{
+						Namespace: schema.ProjectNamespace,
+					},
+					Subject: relation.Subject{
+						Namespace: schema.UserPrincipal,
+						ID:        "user-id",
+					},
+					RelationName: project.MemberPermission,
+				}).Return([]string{"project-id-1"}, nil)
+
+				// PAT scoped to different projects
+				relationService.EXPECT().LookupResources(ctx, relation.Relation{
+					Object: relation.Object{
+						Namespace: schema.ProjectNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        "pat-456",
+						Namespace: schema.PATPrincipal,
+					},
+					RelationName: schema.GetPermission,
+				}).Return([]string{"project-id-2"}, nil)
+
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := tt.setup()
-			got, err := s.ListByUser(ctx, tt.args.principalID, tt.args.principalType, tt.args.flt)
+			got, err := s.ListByUser(ctx, tt.args.principal, tt.args.flt)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListByUser() error = %v, wantErr %v", err, tt.wantErr)
 				return

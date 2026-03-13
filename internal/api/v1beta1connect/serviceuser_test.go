@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/core/project"
@@ -1337,7 +1338,7 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 				Id: "1",
 			}),
 			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
-				projSvc.EXPECT().ListByUser(mock.Anything, "1", schema.ServiceUserPrincipal, project.Filter{}).Return(nil, errors.New("test error"))
+				projSvc.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}, project.Filter{}).Return(nil, errors.New("test error"))
 			},
 			want:    nil,
 			wantErr: ErrInternalServerError,
@@ -1353,7 +1354,7 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 				for _, projectID := range testProjectIDList {
 					projects = append(projects, testProjectMap[projectID])
 				}
-				projSvc.EXPECT().ListByUser(mock.Anything, "1", schema.ServiceUserPrincipal, project.Filter{}).Return(projects, nil)
+				projSvc.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}, project.Filter{}).Return(projects, nil)
 			},
 			want: connect.NewResponse(&frontierv1beta1.ListServiceUserProjectsResponse{
 				Projects: []*frontierv1beta1.Project{{
@@ -1398,7 +1399,7 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 				}
 
 				ctx := mock.Anything
-				projSvc.EXPECT().ListByUser(ctx, "1", schema.ServiceUserPrincipal, project.Filter{}).Return(projects, nil)
+				projSvc.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}, project.Filter{}).Return(projects, nil)
 
 				permSvc.EXPECT().Get(ctx, "app/project:get").Return(
 					permission.Permission{

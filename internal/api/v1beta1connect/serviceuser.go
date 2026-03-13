@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
@@ -455,7 +456,9 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 	serviceUserID := request.Msg.GetId()
 	orgID := request.Msg.GetOrgId()
 
-	projList, err := h.projectService.ListByUser(ctx, serviceUserID, schema.ServiceUserPrincipal, project.Filter{
+	projList, err := h.projectService.ListByUser(ctx, authenticate.Principal{
+		ID: serviceUserID, Type: schema.ServiceUserPrincipal,
+	}, project.Filter{
 		OrgID: orgID,
 	})
 	if err != nil {

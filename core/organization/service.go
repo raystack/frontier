@@ -308,19 +308,25 @@ func (s Service) ListByUser(ctx context.Context, principal authenticate.Principa
 		defer promCollect()
 	}
 
+	subjectID, subjectType := principal.ResolveSubject()
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        principal.ID,
-			Namespace: principal.Type,
+			ID:        subjectID,
+			Namespace: subjectType,
 		},
 		RelationName: schema.MembershipPermission,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	if principal.PAT != nil {
+		subjectIDs = utils.Intersection(subjectIDs, []string{principal.PAT.OrgID})
+	}
+
 	if len(subjectIDs) == 0 {
 		// no organizations
 		return []Organization{}, nil

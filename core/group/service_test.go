@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
+	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -260,5 +261,109 @@ func TestService_Update(t *testing.T) {
 		_, err := svc.Update(context.Background(), group.Group{ID: ""})
 		assert.NotNil(t, err)
 		assert.Equal(t, err, group.ErrInvalidID)
+	})
+}
+
+func TestService_ListByUser(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("should resolve PAT to user and intersect with PAT group scope", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+
+		// LookupResources for user's group memberships
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{Namespace: schema.UserPrincipal, ID: "user-123"},
+			RelationName: schema.MembershipPermission,
+		}).Return([]string{"group-1", "group-2", "group-3"}, nil).Once()
+
+		// LookupResources for PAT's group scope
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{ID: "pat-456", Namespace: schema.PATPrincipal},
+			RelationName: schema.GetPermission,
+		}).Return([]string{"group-1", "group-3"}, nil).Once()
+
+		// Repo should be called with intersection
+		mockRepo.On("List", ctx, group.Filter{
+			GroupIDs: []string{"group-1", "group-3"},
+		}).Return([]group.Group{
+			{ID: "group-1", Name: "group-one"},
+			{ID: "group-3", Name: "group-three"},
+		}, nil).Once()
+
+		result, err := svc.ListByUser(ctx, authenticate.Principal{
+			ID:   "pat-456",
+			Type: schema.PATPrincipal,
+			PAT:  &pat.PAT{ID: "pat-456", UserID: "user-123", OrgID: "org-1"},
+		}, group.Filter{})
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
+	})
+
+	t.Run("should return nil when PAT has no group scope overlap", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{Namespace: schema.UserPrincipal, ID: "user-123"},
+			RelationName: schema.MembershipPermission,
+		}).Return([]string{"group-1"}, nil).Once()
+
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{ID: "pat-456", Namespace: schema.PATPrincipal},
+			RelationName: schema.GetPermission,
+		}).Return([]string{"group-2"}, nil).Once()
+
+		result, err := svc.ListByUser(ctx, authenticate.Principal{
+			ID:   "pat-456",
+			Type: schema.PATPrincipal,
+			PAT:  &pat.PAT{ID: "pat-456", UserID: "user-123", OrgID: "org-1"},
+		}, group.Filter{})
+
+		assert.NoError(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("should pass through for regular user principal", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+
+		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
+			Object:       relation.Object{Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{Namespace: schema.UserPrincipal, ID: "user-123"},
+			RelationName: schema.MembershipPermission,
+		}).Return([]string{"group-1", "group-2"}, nil).Once()
+
+		mockRepo.On("List", ctx, group.Filter{
+			GroupIDs: []string{"group-1", "group-2"},
+		}).Return([]group.Group{
+			{ID: "group-1", Name: "group-one"},
+			{ID: "group-2", Name: "group-two"},
+		}, nil).Once()
+
+		result, err := svc.ListByUser(ctx, authenticate.Principal{
+			ID:   "user-123",
+			Type: schema.UserPrincipal,
+		}, group.Filter{})
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
 	})
 }
