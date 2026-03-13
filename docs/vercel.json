@@ -5,6 +5,5 @@
   "installCommand": "npm install && npm run setup",
   "buildCommand": "npm run build",
   "outputDirectory": ".chronicle/.next",
-  "framework": "nextjs",
-  "nodeVersion": "22.x"
+  "framework": "nextjs"
 }

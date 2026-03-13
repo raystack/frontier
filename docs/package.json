@@ -13,6 +13,9 @@
     "@raystack/chronicle": "0.1.0-canary.30bf0df",
     "openapi-types": "^12.1.3"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "devDependencies": {
     "@types/node": "25.5.0",
     "@types/react": "19.2.14",
