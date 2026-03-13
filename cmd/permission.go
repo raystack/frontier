@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -100,7 +99,7 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 }
 
 func editPermissionCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "edit",
@@ -132,10 +131,14 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 			}
 
 			permissionID := args[0]
-			_, err = client.UpdatePermission(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
+			req, err := newRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id:   permissionID,
 				Body: &reqBody,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.UpdatePermission(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -148,11 +151,13 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the permission body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
 
 func viewPermissionCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View a permission",
@@ -173,9 +178,13 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 			}
 
 			permissionID := args[0]
-			res, err := client.GetPermission(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetPermissionRequest{
+			req, err := newRequest(&frontierv1beta1.GetPermissionRequest{
 				Id: permissionID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetPermission(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -198,10 +207,13 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 		},
 	}
 
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+
 	return cmd
 }
 
 func listPermissionCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all permissions",
@@ -221,7 +233,11 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.ListPermissions(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}))
+			req, err := newRequest(&frontierv1beta1.ListPermissionsRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListPermissions(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -251,6 +267,8 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 
 	return cmd
 }
