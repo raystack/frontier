@@ -1,6 +1,7 @@
 node_modules/
 .next/
 package-lock.json
+pnpm-lock.yaml
 
 .chronicle
 docs/apidocs.swagger.yaml
