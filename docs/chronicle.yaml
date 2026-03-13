@@ -4,10 +4,6 @@ description: Identity and authorization for your APIs
 theme:
   name: default
 
-navigation:
-  links:
-    - label: GitHub
-      href: https://github.com/raystack/frontier
 
 search:
   enabled: true
