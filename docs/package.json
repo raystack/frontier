@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "chronicle dev -c docs",
-    "build": "chronicle build -c docs",
+    "setup": "chronicle init -c docs",
+    "dev": "chronicle dev",
+    "build": "chronicle build",
     "start": "chronicle start",
-    "serve": "chronicle serve -c docs"
+    "serve": "chronicle serve"
   },
   "dependencies": {
-    "@raystack/chronicle": "^0.1.3"
+    "@raystack/chronicle": "0.1.0-canary.e11f924",
+    "openapi-types": "^12.1.3"
   }
 }
