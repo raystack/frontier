@@ -19,7 +19,9 @@ import (
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	pkgUtils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -34,6 +36,7 @@ type RoleService interface {
 
 type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 }
 
 type AuditRecordRepository interface {
@@ -301,6 +304,54 @@ func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID 
 			return fmt.Errorf("creating project policy for role %s on project %s: %w", r.Name, projectID, err)
 		}
 	}
+	return nil
+}
+
+// List retrieves all PATs for a user in an org and enriches each with scope fields.
+func (s *Service) List(ctx context.Context, userID, orgID string, query *rql.Query) (patmodels.PATList, error) {
+	if !s.config.Enabled {
+		return patmodels.PATList{}, paterrors.ErrDisabled
+	}
+	result, err := s.repo.List(ctx, userID, orgID, query)
+	if err != nil {
+		return patmodels.PATList{}, err
+	}
+	for i := range result.PATs {
+		if err := s.enrichWithScope(ctx, &result.PATs[i]); err != nil {
+			return patmodels.PATList{}, fmt.Errorf("enriching PAT scope: %w", err)
+		}
+	}
+	return result, nil
+}
+
+// enrichWithScope derives role_ids and project_ids
+func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   pat.ID,
+		PrincipalType: schema.PATPrincipal,
+	})
+	if err != nil {
+		return fmt.Errorf("listing policies for PAT %s: %w", pat.ID, err)
+	}
+
+	var roleIDs []string
+	allProjects := false
+	var projectIDs []string
+	for _, pol := range policies {
+		roleIDs = append(roleIDs, pol.RoleID)
+		if pol.ResourceType == schema.ProjectNamespace {
+			projectIDs = append(projectIDs, pol.ResourceID)
+		}
+		if pol.GrantRelation == schema.PATGrantRelationName {
+			allProjects = true
+		}
+	}
+
+	pat.RoleIDs = pkgUtils.Deduplicate(roleIDs)
+	if !allProjects {
+		pat.ProjectIDs = projectIDs
+	}
+	// allProjects → pat.ProjectIDs stays nil (empty = all projects, matching create semantics)
 	return nil
 }
 
