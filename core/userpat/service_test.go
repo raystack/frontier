@@ -1518,3 +1518,123 @@ func TestConfig_MaxExpiry(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Get(t *testing.T) {
+	testPAT := models.PAT{
+		ID:        "pat-1",
+		UserID:    "user-1",
+		OrgID:     "org-1",
+		Title:     "my-token",
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	tests := []struct {
+		name      string
+		setup     func() *userpat.Service
+		userID    string
+		patID     string
+		wantErr   bool
+		wantErrIs error
+	}{
+		{
+			name:   "should return ErrDisabled when PAT feature is disabled",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc, _, policySvc, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+					Enabled: false,
+				}, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDisabled,
+		},
+		{
+			name:   "should return error when repo GetByID fails",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(models.PAT{}, paterrors.ErrNotFound)
+				orgSvc, _, policySvc, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrNotFound,
+		},
+		{
+			name:   "should return ErrNotFound when PAT belongs to different user",
+			userID: "user-2",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				orgSvc, _, policySvc, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrNotFound,
+		},
+		{
+			name:   "should return PAT when user owns it",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				orgSvc, _, policySvc, auditRepo := newSuccessMocks(t)
+				policySvc.On("List", mock.Anything, mock.Anything).
+					Return([]policy.Policy{
+						{RoleID: "role-1", ResourceType: "app/organization", ResourceID: "org-1"},
+					}, nil).Maybe()
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: false,
+		},
+		{
+			name:   "should return error when enrichWithScope fails",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.On("List", mock.Anything, mock.Anything).
+					Return(nil, errors.New("spicedb down"))
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.setup()
+			got, err := svc.Get(context.Background(), tt.userID, tt.patID)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("Get() expected error, got nil")
+				}
+				if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+					t.Errorf("Get() error = %v, want %v", err, tt.wantErrIs)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Get() unexpected error: %v", err)
+			}
+			if got.ID != testPAT.ID {
+				t.Errorf("Get() PAT ID = %v, want %v", got.ID, testPAT.ID)
+			}
+		})
+	}
+}

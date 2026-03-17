@@ -10,6 +10,8 @@ import (
 
 	role "github.com/raystack/frontier/core/role"
 
+	rql "github.com/raystack/salt/rql"
+
 	time "time"
 
 	userpat "github.com/raystack/frontier/core/userpat"
@@ -147,6 +149,123 @@ func (_c *UserPATService_ListAllowedRoles_Call) Return(_a0 []role.Role, _a1 erro
 }
 
 func (_c *UserPATService_ListAllowedRoles_Call) RunAndReturn(run func(context.Context, []string) ([]role.Role, error)) *UserPATService_ListAllowedRoles_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// List provides a mock function with given fields: ctx, userID, orgID, query
+func (_m *UserPATService) List(ctx context.Context, userID string, orgID string, query *rql.Query) (models.PATList, error) {
+	ret := _m.Called(ctx, userID, orgID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for List")
+	}
+
+	var r0 models.PATList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *rql.Query) (models.PATList, error)); ok {
+		return rf(ctx, userID, orgID, query)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *rql.Query) models.PATList); ok {
+		r0 = rf(ctx, userID, orgID, query)
+	} else {
+		r0 = ret.Get(0).(models.PATList)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, *rql.Query) error); ok {
+		r1 = rf(ctx, userID, orgID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserPATService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type UserPATService_List_Call struct {
+	*mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - orgID string
+//   - query *rql.Query
+func (_e *UserPATService_Expecter) List(ctx interface{}, userID interface{}, orgID interface{}, query interface{}) *UserPATService_List_Call {
+	return &UserPATService_List_Call{Call: _e.mock.On("List", ctx, userID, orgID, query)}
+}
+
+func (_c *UserPATService_List_Call) Run(run func(ctx context.Context, userID string, orgID string, query *rql.Query)) *UserPATService_List_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*rql.Query))
+	})
+	return _c
+}
+
+func (_c *UserPATService_List_Call) Return(_a0 models.PATList, _a1 error) *UserPATService_List_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserPATService_List_Call) RunAndReturn(run func(context.Context, string, string, *rql.Query) (models.PATList, error)) *UserPATService_List_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Get provides a mock function with given fields: ctx, userID, id
+func (_m *UserPATService) Get(ctx context.Context, userID string, id string) (models.PAT, error) {
+	ret := _m.Called(ctx, userID, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (models.PAT, error)); ok {
+		return rf(ctx, userID, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) models.PAT); ok {
+		r0 = rf(ctx, userID, id)
+	} else {
+		r0 = ret.Get(0).(models.PAT)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, userID, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserPATService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type UserPATService_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - id string
+func (_e *UserPATService_Expecter) Get(ctx interface{}, userID interface{}, id interface{}) *UserPATService_Get_Call {
+	return &UserPATService_Get_Call{Call: _e.mock.On("Get", ctx, userID, id)}
+}
+
+func (_c *UserPATService_Get_Call) Run(run func(ctx context.Context, userID string, id string)) *UserPATService_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *UserPATService_Get_Call) Return(_a0 models.PAT, _a1 error) *UserPATService_Get_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserPATService_Get_Call) RunAndReturn(run func(context.Context, string, string) (models.PAT, error)) *UserPATService_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }

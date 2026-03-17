@@ -135,6 +135,8 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/PingUserSession": true,
 	"/raystack.frontier.v1beta1.FrontierService/RevokeSession":   true,
 
+	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUserPAT": true,
+
 	"/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT": true,
 }
 
@@ -707,6 +709,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	// personal access tokens
 	frontierv1beta1connect.FrontierServiceCreateCurrentUserPATProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.CreateCurrentUserPATRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+	},
+	frontierv1beta1connect.FrontierServiceListCurrentUserPATsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.ListCurrentUserPATsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
 	},
 

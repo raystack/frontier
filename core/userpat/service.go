@@ -19,8 +19,10 @@ import (
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	pkgUtils "github.com/raystack/frontier/pkg/utils"
 	pkgutils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -90,6 +92,26 @@ func (s *Service) ValidateExpiry(expiresAt time.Time) error {
 
 func (s *Service) GetByID(ctx context.Context, id string) (patmodels.PAT, error) {
 	return s.repo.GetByID(ctx, id)
+}
+
+// Get retrieves a PAT by ID, verifying it belongs to the given user.
+// Returns ErrDisabled if PATs are not enabled, ErrNotFound if the PAT
+// does not exist or belongs to a different user.
+func (s *Service) Get(ctx context.Context, userID, id string) (patmodels.PAT, error) {
+	if !s.config.Enabled {
+		return patmodels.PAT{}, paterrors.ErrDisabled
+	}
+	pat, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return patmodels.PAT{}, err
+	}
+	if pat.UserID != userID {
+		return patmodels.PAT{}, paterrors.ErrNotFound
+	}
+	if err := s.enrichWithScope(ctx, &pat); err != nil {
+		return patmodels.PAT{}, fmt.Errorf("enriching PAT scope: %w", err)
+	}
+	return pat, nil
 }
 
 // Create generates a new PAT and returns it with the plaintext value.
@@ -300,8 +322,10 @@ func (s *Service) hasAnyDeniedPermission(r role.Role) bool {
 // validateRolePermissions checks that none of the roles contain denied permissions.
 func (s *Service) validateRolePermissions(roles []role.Role) error {
 	for _, r := range roles {
-		if s.hasAnyDeniedPermission(r) {
-			return fmt.Errorf("role %s contains a denied permission: %w", r.Name, paterrors.ErrDeniedRole)
+		for _, perm := range r.Permissions {
+			if _, denied := s.deniedPerms[perm]; denied {
+				return fmt.Errorf("role %s has denied permission %s: %w", r.Name, perm, paterrors.ErrDeniedRole)
+			}
 		}
 	}
 	return nil
@@ -353,6 +377,54 @@ func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID 
 		}
 	}
 	return nil
+}
+
+// enrichWithScope derives role_ids and project_ids from the PAT's SpiceDB policies.
+func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   pat.ID,
+		PrincipalType: schema.PATPrincipal,
+	})
+	if err != nil {
+		return fmt.Errorf("listing policies for PAT %s: %w", pat.ID, err)
+	}
+
+	var roleIDs []string
+	allProjects := false
+	var projectIDs []string
+	for _, pol := range policies {
+		roleIDs = append(roleIDs, pol.RoleID)
+		if pol.ResourceType == schema.ProjectNamespace {
+			projectIDs = append(projectIDs, pol.ResourceID)
+		}
+		if pol.GrantRelation == schema.PATGrantRelationName {
+			allProjects = true
+		}
+	}
+
+	pat.RoleIDs = pkgUtils.Deduplicate(roleIDs)
+	if !allProjects {
+		pat.ProjectIDs = pkgUtils.Deduplicate(projectIDs)
+	}
+	// allProjects → pat.ProjectIDs stays nil (empty = all projects, matching create semantics)
+	return nil
+}
+
+// List retrieves all PATs for a user in an org and enriches each with scope fields.
+func (s *Service) List(ctx context.Context, userID, orgID string, query *rql.Query) (patmodels.PATList, error) {
+	if !s.config.Enabled {
+		return patmodels.PATList{}, paterrors.ErrDisabled
+	}
+	result, err := s.repo.List(ctx, userID, orgID, query)
+	if err != nil {
+		return patmodels.PATList{}, err
+	}
+	for i := range result.PATs {
+		if err := s.enrichWithScope(ctx, &result.PATs[i]); err != nil {
+			return patmodels.PATList{}, fmt.Errorf("enriching PAT scope: %w", err)
+		}
+	}
+	return result, nil
 }
 
 // generatePAT creates a random PAT string with the configured prefix and returns
