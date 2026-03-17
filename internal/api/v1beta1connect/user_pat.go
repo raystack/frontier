@@ -71,6 +71,35 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 	}), nil
 }
 
+func (h *ConnectHandler) ListRolesForPAT(ctx context.Context, request *connect.Request[frontierv1beta1.ListRolesForPATRequest]) (*connect.Response[frontierv1beta1.ListRolesForPATResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	roleList, err := h.userPATService.ListAllowedRoles(ctx, request.Msg.GetScopes())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListRolesForPAT", err)
+		switch {
+		case errors.Is(err, paterrors.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, paterrors.ErrUnsupportedScope):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	var roles []*frontierv1beta1.Role
+	for _, v := range roleList {
+		rolePB, err := transformRoleToPB(v)
+		if err != nil {
+			errorLogger.LogTransformError(ctx, request, "ListRolesForPAT", v.ID, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		roles = append(roles, &rolePB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListRolesForPATResponse{Roles: roles}), nil
+}
+
 func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	pbPAT := &frontierv1beta1.PAT{
 		Id:        pat.ID,

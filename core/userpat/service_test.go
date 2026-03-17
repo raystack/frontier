@@ -1212,6 +1212,281 @@ func TestService_CreatePolicies_PolicyCreateFailure(t *testing.T) {
 	}
 }
 
+func TestService_ListAllowedRoles(t *testing.T) {
+	tests := []struct {
+		name      string
+		scopes    []string
+		setup     func() *userpat.Service
+		wantErr   bool
+		wantErrIs error
+		wantCount int
+		wantIDs   []string
+	}{
+		{
+			name:      "should return ErrDisabled when PAT feature is disabled",
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDisabled,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+					Enabled: false,
+				}, orgSvc, nil, nil, auditRepo)
+			},
+		},
+		{
+			name:    "should propagate role service error",
+			wantErr: true,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
+				}).Return(nil, errors.New("db connection failed"))
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should filter out roles with denied permissions",
+			wantErr:   false,
+			wantCount: 2,
+			wantIDs:   []string{"org-viewer-id", "proj-viewer-id"},
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
+				}).Return([]role.Role{
+					{ID: "org-viewer-id", Name: "org_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
+					{ID: "org-admin-id", Name: "org_admin", Permissions: []string{"app_organization_administer", "app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
+					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
+				}, nil)
+				cfg := defaultConfig
+				cfg.DeniedPermissions = []string{"app_organization_administer"}
+				return userpat.NewService(log.NewNoop(), repo, cfg, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should return empty slice when all roles are denied",
+			wantErr:   false,
+			wantCount: 0,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
+				}).Return([]role.Role{
+					{ID: "admin-id", Name: "org_admin", Permissions: []string{"app_organization_administer"}, Scopes: []string{schema.OrganizationNamespace}},
+				}, nil)
+				cfg := defaultConfig
+				cfg.DeniedPermissions = []string{"app_organization_administer"}
+				return userpat.NewService(log.NewNoop(), repo, cfg, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should return empty slice when no roles exist",
+			wantErr:   false,
+			wantCount: 0,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
+				}).Return([]role.Role{}, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should return all roles when no denied permissions configured",
+			wantErr:   false,
+			wantCount: 3,
+			wantIDs:   []string{"org-viewer-id", "org-admin-id", "proj-viewer-id"},
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
+				}).Return([]role.Role{
+					{ID: "org-viewer-id", Name: "org_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
+					{ID: "org-admin-id", Name: "org_admin", Permissions: []string{"app_organization_administer"}, Scopes: []string{schema.OrganizationNamespace}},
+					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
+				}, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should normalize short alias 'project' to app/project",
+			scopes:    []string{"project"},
+			wantErr:   false,
+			wantCount: 1,
+			wantIDs:   []string{"proj-viewer-id"},
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.ProjectNamespace},
+				}).Return([]role.Role{
+					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
+				}, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should normalize short alias 'org' to app/organization",
+			scopes:    []string{"org"},
+			wantErr:   false,
+			wantCount: 1,
+			wantIDs:   []string{"org-viewer-id"},
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.OrganizationNamespace},
+				}).Return([]role.Role{
+					{ID: "org-viewer-id", Name: "org_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
+				}, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should accept full namespace app/project",
+			scopes:    []string{schema.ProjectNamespace},
+			wantErr:   false,
+			wantCount: 1,
+			wantIDs:   []string{"proj-viewer-id"},
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.ProjectNamespace},
+				}).Return([]role.Role{
+					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
+				}, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should reject unsupported scope like group",
+			scopes:    []string{"group"},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrUnsupportedScope,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should reject unknown scope",
+			scopes:    []string{"unknown"},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrUnsupportedScope,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should deduplicate repeated scopes",
+			scopes:    []string{"project", "project", "project"},
+			wantErr:   false,
+			wantCount: 1,
+			wantIDs:   []string{"proj-viewer-id"},
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.ProjectNamespace},
+				}).Return([]role.Role{
+					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
+				}, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+		{
+			name:      "should deduplicate mixed aliases and full namespaces",
+			scopes:    []string{"project", schema.ProjectNamespace, "org", schema.OrganizationNamespace},
+			wantErr:   false,
+			wantCount: 3,
+			wantIDs:   []string{"org-viewer-id", "org-admin-id", "proj-viewer-id"},
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				roleSvc := mocks.NewRoleService(t)
+				roleSvc.EXPECT().List(mock.Anything, role.Filter{
+					OrgID:  schema.PlatformOrgID.String(),
+					Scopes: []string{schema.ProjectNamespace, schema.OrganizationNamespace},
+				}).Return([]role.Role{
+					{ID: "org-viewer-id", Name: "org_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
+					{ID: "org-admin-id", Name: "org_admin", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
+					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
+				}, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, auditRepo)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.setup()
+			got, err := svc.ListAllowedRoles(context.Background(), tt.scopes)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListAllowedRoles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+				t.Errorf("ListAllowedRoles() error = %v, wantErrIs %v", err, tt.wantErrIs)
+				return
+			}
+			if !tt.wantErr {
+				if len(got) != tt.wantCount {
+					t.Errorf("ListAllowedRoles() returned %d roles, want %d", len(got), tt.wantCount)
+				}
+				if tt.wantIDs != nil {
+					var gotIDs []string
+					for _, r := range got {
+						gotIDs = append(gotIDs, r.ID)
+					}
+					if diff := cmp.Diff(tt.wantIDs, gotIDs); diff != "" {
+						t.Errorf("ListAllowedRoles() IDs mismatch (-want +got):\n%s", diff)
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestConfig_MaxExpiry(t *testing.T) {
 	tests := []struct {
 		name string

@@ -8,6 +8,8 @@ import (
 	models "github.com/raystack/frontier/core/userpat/models"
 	mock "github.com/stretchr/testify/mock"
 
+	role "github.com/raystack/frontier/core/role"
+
 	time "time"
 
 	userpat "github.com/raystack/frontier/core/userpat"
@@ -86,6 +88,65 @@ func (_c *UserPATService_Create_Call) Return(_a0 models.PAT, _a1 string, _a2 err
 }
 
 func (_c *UserPATService_Create_Call) RunAndReturn(run func(context.Context, userpat.CreateRequest) (models.PAT, string, error)) *UserPATService_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListAllowedRoles provides a mock function with given fields: ctx, scopes
+func (_m *UserPATService) ListAllowedRoles(ctx context.Context, scopes []string) ([]role.Role, error) {
+	ret := _m.Called(ctx, scopes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAllowedRoles")
+	}
+
+	var r0 []role.Role
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]role.Role, error)); ok {
+		return rf(ctx, scopes)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []role.Role); ok {
+		r0 = rf(ctx, scopes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]role.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, scopes)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserPATService_ListAllowedRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllowedRoles'
+type UserPATService_ListAllowedRoles_Call struct {
+	*mock.Call
+}
+
+// ListAllowedRoles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - scopes []string
+func (_e *UserPATService_Expecter) ListAllowedRoles(ctx interface{}, scopes interface{}) *UserPATService_ListAllowedRoles_Call {
+	return &UserPATService_ListAllowedRoles_Call{Call: _e.mock.On("ListAllowedRoles", ctx, scopes)}
+}
+
+func (_c *UserPATService_ListAllowedRoles_Call) Run(run func(ctx context.Context, scopes []string)) *UserPATService_ListAllowedRoles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *UserPATService_ListAllowedRoles_Call) Return(_a0 []role.Role, _a1 error) *UserPATService_ListAllowedRoles_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserPATService_ListAllowedRoles_Call) RunAndReturn(run func(context.Context, []string) ([]role.Role, error)) *UserPATService_ListAllowedRoles_Call {
 	_c.Call.Return(run)
 	return _c
 }

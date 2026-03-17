@@ -19,6 +19,7 @@ import (
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	pkgutils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
 	"golang.org/x/crypto/sha3"
 )
@@ -244,13 +245,63 @@ func (s *Service) createPolicies(ctx context.Context, patID, orgID string, roles
 	return nil
 }
 
+// ListAllowedRoles returns predefined roles that are valid for PAT assignment.
+// It lists platform roles filtered by scopes and removes any role containing
+// a denied permission. If scopes is empty, defaults to org + project scopes.
+// Accepts short aliases (e.g. "project", "org") which are normalized to full
+// namespace form (e.g. "app/project", "app/organization").
+func (s *Service) ListAllowedRoles(ctx context.Context, scopes []string) ([]role.Role, error) {
+	if !s.config.Enabled {
+		return nil, paterrors.ErrDisabled
+	}
+
+	if len(scopes) == 0 {
+		scopes = []string{schema.OrganizationNamespace, schema.ProjectNamespace}
+	} else {
+		for i, scope := range scopes {
+			scopes[i] = schema.ParseNamespaceAliasIfRequired(scope)
+		}
+		allowedScopes := []string{schema.OrganizationNamespace, schema.ProjectNamespace}
+		scopes = pkgutils.Deduplicate(scopes)
+		for _, scope := range scopes {
+			if !slices.Contains(allowedScopes, scope) {
+				return nil, fmt.Errorf("scope %q: %w", scope, paterrors.ErrUnsupportedScope)
+			}
+		}
+	}
+
+	roles, err := s.roleService.List(ctx, role.Filter{
+		OrgID:  schema.PlatformOrgID.String(),
+		Scopes: scopes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("listing roles: %w", err)
+	}
+
+	allowed := make([]role.Role, 0, len(roles))
+	for _, r := range roles {
+		if !s.hasAnyDeniedPermission(r) {
+			allowed = append(allowed, r)
+		}
+	}
+	return allowed, nil
+}
+
+// hasAnyDeniedPermission returns true if the role contains at least one denied permission.
+func (s *Service) hasAnyDeniedPermission(r role.Role) bool {
+	for _, perm := range r.Permissions {
+		if _, denied := s.deniedPerms[perm]; denied {
+			return true
+		}
+	}
+	return false
+}
+
 // validateRolePermissions checks that none of the roles contain denied permissions.
 func (s *Service) validateRolePermissions(roles []role.Role) error {
 	for _, r := range roles {
-		for _, perm := range r.Permissions {
-			if _, denied := s.deniedPerms[perm]; denied {
-				return fmt.Errorf("role %s has denied permission %s: %w", r.Name, perm, paterrors.ErrDeniedRole)
-			}
+		if s.hasAnyDeniedPermission(r) {
+			return fmt.Errorf("role %s contains a denied permission: %w", r.Name, paterrors.ErrDeniedRole)
 		}
 	}
 	return nil
