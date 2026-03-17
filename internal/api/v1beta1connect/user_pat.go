@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/userpat"
@@ -10,7 +11,9 @@ import (
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -131,5 +134,57 @@ func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 			pbPAT.Metadata = metaPB
 		}
 	}
+	pbPAT.RoleIds = pat.RoleIDs
+	pbPAT.ProjectIds = pat.ProjectIDs
 	return pbPAT
+}
+
+func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *connect.Request[frontierv1beta1.ListCurrentUserPATsRequest]) (*connect.Response[frontierv1beta1.ListCurrentUserPATsResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, _ := principal.ResolveSubject()
+
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), models.PAT{})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to transform rql query: %v", err))
+	}
+	if err = rql.ValidateQuery(rqlQuery, models.PAT{}); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
+	}
+
+	result, err := h.userPATService.List(ctx, userID, request.Msg.GetOrgId(), rqlQuery)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListCurrentUserPATs", err,
+			zap.String("user_id", userID),
+			zap.String("org_id", request.Msg.GetOrgId()))
+
+		switch {
+		case errors.Is(err, paterrors.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	pbPATs := make([]*frontierv1beta1.PAT, 0, len(result.PATs))
+	for _, pat := range result.PATs {
+		pbPATs = append(pbPATs, transformPATToPB(pat, ""))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListCurrentUserPATsResponse{
+		Pats: pbPATs,
+		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+			Offset:     uint32(result.Page.Offset),
+			Limit:      uint32(result.Page.Limit),
+			TotalCount: uint32(result.Page.TotalCount),
+		},
+	}), nil
 }

@@ -21,6 +21,7 @@ import (
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	pkgUtils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -355,6 +356,23 @@ func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error
 	}
 	// allProjects → pat.ProjectIDs stays nil (empty = all projects, matching create semantics)
 	return nil
+}
+
+// List retrieves all PATs for a user in an org and enriches each with scope fields.
+func (s *Service) List(ctx context.Context, userID, orgID string, query *rql.Query) (patmodels.PATList, error) {
+	if !s.config.Enabled {
+		return patmodels.PATList{}, paterrors.ErrDisabled
+	}
+	result, err := s.repo.List(ctx, userID, orgID, query)
+	if err != nil {
+		return patmodels.PATList{}, err
+	}
+	for i := range result.PATs {
+		if err := s.enrichWithScope(ctx, &result.PATs[i]); err != nil {
+			return patmodels.PATList{}, fmt.Errorf("enriching PAT scope: %w", err)
+		}
+	}
+	return result, nil
 }
 
 // generatePAT creates a random PAT string with the configured prefix and returns
