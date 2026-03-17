@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAdminConfig } from "../contexts/AdminConfigContext";
 import { defaultTerminology } from "../utils/constants";
 
@@ -20,7 +21,7 @@ const applyCase = (
     case "upper":
       return text.toUpperCase();
     case "capital":
-      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+      return text.charAt(0).toUpperCase() + text.slice(1);
     default:
       return text;
   }
@@ -40,7 +41,7 @@ export const useAdminTerminology = () => {
   const config = useAdminConfig();
   const terminology = config.terminology || defaultTerminology;
 
-  return {
+  return useMemo(() => ({
     organization: createEntity(
       terminology.organization?.singular || defaultTerminology.organization.singular,
       terminology.organization?.plural || defaultTerminology.organization.plural
@@ -65,5 +66,5 @@ export const useAdminTerminology = () => {
       terminology.appName || defaultTerminology.appName,
       terminology.appName || defaultTerminology.appName
     ),
-  };
+  }),[terminology]);
 };
