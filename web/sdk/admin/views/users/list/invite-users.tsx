@@ -102,8 +102,9 @@ export const InviteUser = () => {
         console.error("Failed to invite user", error);
       },
       onSuccess: (data: CreateOrganizationInvitationResponse) => {
+        const invitedCount = data?.invitations?.length ?? 0;
         toast.success(
-          `${t.user({ case: "capital" })}${data?.invitations?.length > 1 ? "s" : ""} invited`,
+          `${t.user({ case: "capital", plural: invitedCount !== 1 })} invited`,
         );
         reset({ role: defaultRoleId });
         onOpenChange(false);

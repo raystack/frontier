@@ -125,7 +125,7 @@ export const BlockUserDialog = () => {
           {config.btnText}
         </Button>
       </Dialog.Trigger>
-      <Dialog.Content width={400} ariaLabel={`Block ${t.user({ case: "lower" })}`}>
+      <Dialog.Content width={400} ariaLabel={config.dialogTitle}>
         <Dialog.Body>
           <Dialog.Title>{config.dialogTitle}</Dialog.Title>
           <Dialog.Description>{config.dialogDescription}</Dialog.Description>
