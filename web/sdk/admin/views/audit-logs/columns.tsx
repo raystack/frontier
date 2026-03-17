@@ -14,13 +14,19 @@ import {
 import { ACTOR_TYPES, getActionBadgeColor } from "./util";
 import { ComponentPropsWithoutRef } from "react";
 import ActorCell from "./actor-cell";
+import { TerminologyEntity } from "../../hooks/useAdminTerminology";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
+  t: {
+    organization: TerminologyEntity;
+    user: TerminologyEntity;
+  };
 }
 
 export const getColumns = ({
   groupCountMap,
+  t,
 }: getColumnsOptions): DataTableColumnDef<AuditRecord, unknown>[] => {
   return [
     {
@@ -43,14 +49,14 @@ export const getColumns = ({
       cell: () => null,
       filterType: "multiselect",
       filterOptions: [
-        { label: "User", value: ACTOR_TYPES.USER },
-        { label: "Service User", value: ACTOR_TYPES.SERVICE_USER },
+        { label: t.user({ case: "capital" }), value: ACTOR_TYPES.USER },
+        { label: `Service ${t.user({ case: "capital" })}`, value: ACTOR_TYPES.SERVICE_USER },
         { label: "System", value: ACTOR_TYPES.SYSTEM },
       ],
     },
     {
       accessorKey: "orgName",
-      header: "Organization",
+      header: t.organization({ case: "capital" }),
       classNames: {
         cell: styles["org-column"],
         header: styles["org-column"],

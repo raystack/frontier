@@ -9,6 +9,7 @@ import { EditKYCPanel } from "../edit/kyc";
 import { EditOrganizationPanel } from "../edit/organization";
 import { EditBillingPanel } from "../edit/billing";
 import type { Organization } from "@raystack/proton/frontier";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 interface OrganizationDetailsLayoutProps {
   isLoading: boolean;
@@ -31,6 +32,7 @@ export const OrganizationDetailsLayout = ({
   currentPath,
   onNavigate,
 }: OrganizationDetailsLayoutProps) => {
+  const t = useAdminTerminology();
   const [showSidePanel, setShowSidePanel] = useState(true);
   const [showKYCPanel, setShowKYCPanel] = useState(false);
   const [showEditOrgPanel, setShowEditOrgPanel] = useState(false);
@@ -111,11 +113,11 @@ export const OrganizationDetailsLayout = ({
       align="center"
       justify="center"
     >
-      <PageTitle title={"Organization not found"} />
+      <PageTitle title={`${t.organization({ case: "capital" })} not found`} />
       <EmptyState
         icon={<OrganizationIcon />}
-        heading="Organization not found"
-        subHeading="The organization you are looking for does not exist."
+        heading={`${t.organization({ case: "capital" })} not found`}
+        subHeading={`The ${t.organization({ case: "lower" })} you are looking for does not exist.`}
       />
     </Flex>
   );

@@ -12,6 +12,7 @@ import {
   FrontierServiceQueries,
 } from "@raystack/proton/frontier";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 type ButtonColorType = ComponentProps<typeof Button>["color"];
 
@@ -23,6 +24,7 @@ type SearchUsersQueryData = {
 };
 
 export const BlockUserDialog = () => {
+  const t = useAdminTerminology();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { user, reset } = useUser();
   const queryClient = useQueryClient();
@@ -58,7 +60,7 @@ export const BlockUserDialog = () => {
     FrontierServiceQueries.disableUser,
     {
       onSuccess: () => {
-        toast.success("User blocked successfully");
+        toast.success(`${t.user({ case: "capital" })} blocked successfully`);
         optimisticUpdateState("disabled");
         reset?.();
         onOpenChange(false);
@@ -72,7 +74,7 @@ export const BlockUserDialog = () => {
     FrontierServiceQueries.enableUser,
     {
       onSuccess: () => {
-        toast.success("User unblocked successfully");
+        toast.success(`${t.user({ case: "capital" })} unblocked successfully`);
         optimisticUpdateState("enabled");
         reset?.();
         onOpenChange(false);
@@ -94,8 +96,8 @@ export const BlockUserDialog = () => {
         onClick: blockUser,
         btnColor: "danger" as ButtonColorType,
         btnText: "Block",
-        dialogTitle: "Block user",
-        dialogDescription: `Blocking this user will permanently restrict access to its content, disable communication, and prevent any future interactions. Are you sure you want to suspend ${userName}?`,
+        dialogTitle: `Block ${t.user({ case: "lower" })}`,
+        dialogDescription: `Blocking this ${t.user({ case: "lower" })} will permanently restrict access to its content, disable communication, and prevent any future interactions. Are you sure you want to suspend ${userName}?`,
         dialogConfirmText: "Block",
         dialogConfirmLoadingText: "Blocking...",
       }
@@ -103,8 +105,8 @@ export const BlockUserDialog = () => {
         onClick: unblockUser,
         btnColor: "accent" as ButtonColorType,
         btnText: "Unblock",
-        dialogTitle: "Unblock user",
-        dialogDescription: `Unblocking this user will restore access to its content, enable communication, and allow future interactions. Are you sure you want to unblock ${userName}?`,
+        dialogTitle: `Unblock ${t.user({ case: "lower" })}`,
+        dialogDescription: `Unblocking this ${t.user({ case: "lower" })} will restore access to its content, enable communication, and allow future interactions. Are you sure you want to unblock ${userName}?`,
         dialogConfirmText: "Unblock",
         dialogConfirmLoadingText: "Unblocking...",
       };
@@ -123,7 +125,7 @@ export const BlockUserDialog = () => {
           {config.btnText}
         </Button>
       </Dialog.Trigger>
-      <Dialog.Content width={400} ariaLabel="Block user">
+      <Dialog.Content width={400} ariaLabel={`Block ${t.user({ case: "lower" })}`}>
         <Dialog.Body>
           <Dialog.Title>{config.dialogTitle}</Dialog.Title>
           <Dialog.Description>{config.dialogDescription}</Dialog.Description>

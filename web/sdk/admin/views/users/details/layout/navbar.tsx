@@ -11,6 +11,8 @@ import UserIcon from "../../../../assets/icons/UsersIcon";
 import styles from "./navbar.module.css";
 import { getUserName } from "../../util";
 import { useUser } from "../user-context";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useAdminPaths } from "../../../../hooks/useAdminPaths";
 
 interface UserDetailsNavbarProps {
   toggleSidePanel: () => void;
@@ -24,22 +26,24 @@ export const UserDetailsNavbar = ({
   onNavigate,
 }: UserDetailsNavbarProps) => {
   const { user } = useUser();
+  const t = useAdminTerminology();
+  const paths = useAdminPaths();
 
-  const links = [{ name: "Security", path: `/users/${user?.id}/security` }];
+  const links = [{ name: "Security", path: `/${paths.users}/${user?.id}/security` }];
 
   return (
     <nav className={styles.navbar}>
       <Flex gap="medium" align="center">
         <Breadcrumb size="small">
           <Breadcrumb.Item
-            href="/users"
+            href={`/${paths.users}`}
             leadingIcon={<UserIcon />}
             data-test-id="admin-user-details-breadcrumb-users">
-            Users
+            {t.user({ plural: true, case: "capital" })}
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
           <Breadcrumb.Item
-            href={`/users/${user?.id}`}
+            href={`/${paths.users}/${user?.id}`}
             leadingIcon={
               <Avatar
                 color={getAvatarColor(user?.id || "")}

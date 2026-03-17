@@ -22,6 +22,8 @@ import type React from "react";
 import { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import type { Organization } from "@raystack/proton/frontier";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useAdminPaths } from "../../../../hooks/useAdminPaths";
 
 interface navConfig {
   label: string;
@@ -66,6 +68,7 @@ const NavbarActionMenu = ({
   onExportProjects,
   onExportTokens,
 }: NavbarActionMenuProps) => {
+  const t = useAdminTerminology();
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
   const [isAddTokensDialogOpen, setIsAddTokensDialogOpen] = useState(false);
   const [isMembersDownloading, setIsMembersDownloading] = useState(false);
@@ -125,14 +128,14 @@ const NavbarActionMenu = ({
   const exportSubItems: navConfig[] = [];
   if (onExportMembers) {
     exportSubItems.push({
-      label: "Members",
+      label: t.member({ plural: true, case: "capital" }),
       onClick: handleExportMembers,
       isLoading: isMembersDownloading,
     });
   }
   if (onExportProjects) {
     exportSubItems.push({
-      label: "Projects",
+      label: t.project({ plural: true, case: "capital" }),
       onClick: handleExportProjects,
       isLoading: isProjectsDownloading,
     });
@@ -149,17 +152,17 @@ const NavbarActionMenu = ({
     {
       label: "Edit...",
       subItems: [
-        { label: "Organization...", onClick: openEditOrgPanel },
+        { label: `${t.organization({ case: "capital" })}...`, onClick: openEditOrgPanel },
         { label: "Billing...", onClick: openEditBillingPanel },
         { label: "KYC...", onClick: openKYCPanel },
       ],
     },
     {
-      label: "Invite users...",
+      label: `Invite ${t.user({ plural: true, case: "lower" })}...`,
       onClick: openInviteUsersDialog,
     },
     {
-      label: "Add project...",
+      label: `Add ${t.project({ case: "lower" })}...`,
       disabled: true,
     },
     {
@@ -226,13 +229,16 @@ const NavLinks = ({
   currentPath: string;
   onNavigate: (path: string) => void;
 }) => {
+  const t = useAdminTerminology();
+  const paths = useAdminPaths();
+  const basePath = `/${paths.organizations}/${organizationId}`;
   const links = [
-    { name: "Members", path: `/organizations/${organizationId}/members` },
-    { name: "Projects", path: `/organizations/${organizationId}/projects` },
-    { name: "Invoices", path: `/organizations/${organizationId}/invoices` },
-    { name: "Tokens", path: `/organizations/${organizationId}/tokens` },
-    { name: "API", path: `/organizations/${organizationId}/apis` },
-    { name: "Security", path: `/organizations/${organizationId}/security` },
+    { name: t.member({ plural: true, case: "capital" }), path: `${basePath}/${paths.members}` },
+    { name: t.project({ plural: true, case: "capital" }), path: `${basePath}/${paths.projects}` },
+    { name: "Invoices", path: `${basePath}/invoices` },
+    { name: "Tokens", path: `${basePath}/tokens` },
+    { name: "API", path: `${basePath}/apis` },
+    { name: "Security", path: `${basePath}/security` },
   ];
 
   function checkActive(path: string) {
@@ -284,6 +290,8 @@ export const OrganizationsDetailsNavabar = ({
   currentPath,
   onNavigate,
 }: OrganizationDetailsNavbarProps) => {
+  const t = useAdminTerminology();
+  const adminPaths = useAdminPaths();
   const { search } = useContext(OrganizationContext);
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -296,14 +304,14 @@ export const OrganizationsDetailsNavabar = ({
       <Flex gap={4} align="center">
         <Breadcrumb size="small">
           <Breadcrumb.Item
-            href="/organizations"
+            href={`/${adminPaths.organizations}`}
             leadingIcon={<OrganizationIcon />}
           >
-            Organizations
+            {t.organization({ plural: true, case: "capital" })}
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
           <Breadcrumb.Item
-            href={`/organizations/${organization?.id}`}
+            href={`/${adminPaths.organizations}/${organization?.id}`}
             leadingIcon={
               <Avatar
                 color={getAvatarColor(organization?.id || "")}

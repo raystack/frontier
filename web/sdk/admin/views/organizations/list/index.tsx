@@ -24,16 +24,18 @@ import {
 import { transformDataTableQueryToRQLRequest } from "../../../utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useDebouncedState } from "@raystack/apsara/hooks";
+import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
 
 const NoOrganizations = () => {
+  const t = useAdminTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No Organization Found"
-      subHeading="We couldn’t find any matches for that keyword or filter. Try alternative terms or check for typos."
+      heading={`No ${t.organization({ case: "capital" })} Found`}
+      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
       icon={<OrganizationIcon />}
     />
   );
@@ -68,6 +70,7 @@ export const OrganizationListView = ({
   appUrl,
   countries = [],
 }: OrganizationListViewProps = {}) => {
+  const t = useAdminTerminology();
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
@@ -161,13 +164,13 @@ export const OrganizationListView = ({
   if (isError) {
     return (
       <>
-        <PageTitle title="Organizations" appName={appName} />
+        <PageTitle title={t.organization({ plural: true, case: "capital" })} appName={appName} />
         <EmptyState
           icon={<ExclamationTriangleIcon />}
-          heading="Error Loading Organizations"
+          heading={`Error Loading ${t.organization({ plural: true, case: "capital" })}`}
           subHeading={
             error?.message ||
-            "Something went wrong while loading organizations. Please try again."
+            `Something went wrong while loading ${t.organization({ plural: true, case: "lower" })}. Please try again.`
           }
         />
       </>
@@ -194,7 +197,7 @@ export const OrganizationListView = ({
           }}
         />
       ) : null}
-      <PageTitle title="Organizations" appName={appName} />
+      <PageTitle title={t.organization({ plural: true, case: "capital" })} appName={appName} />
       <DataTable
         query={tableQuery}
         columns={columns}

@@ -15,15 +15,17 @@ import {
 import { transformDataTableQueryToRQLRequest } from "../../../utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useDebouncedState } from "@raystack/apsara/hooks";
+import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
 
 const NoUsers = () => {
+  const t = useAdminTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No Users Found"
+      heading={`No ${t.user({ plural: true, case: "capital" })} Found`}
       subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
       icon={<UserIcon />}
     />
@@ -42,6 +44,7 @@ interface UsersListProps {
 }
 
 export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) => {
+  const t = useAdminTerminology();
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
     INITIAL_QUERY,
     200,
@@ -110,13 +113,13 @@ export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) =
     console.error("ConnectRPC Error:", error);
     return (
       <>
-        <PageTitle title="Users" />
+        <PageTitle title={t.user({ plural: true, case: "capital" })} />
         <EmptyState
           icon={<ExclamationTriangleIcon />}
-          heading="Error Loading Users"
+          heading={`Error Loading ${t.user({ plural: true, case: "capital" })}`}
           subHeading={
             error?.message ||
-            "Something went wrong while loading users. Please try again."
+            `Something went wrong while loading ${t.user({ plural: true, case: "lower" })}. Please try again.`
           }
         />
       </>
@@ -128,7 +131,7 @@ export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) =
 
   return (
     <>
-      <PageTitle title="Users" />
+      <PageTitle title={t.user({ plural: true, case: "capital" })} />
       <DataTable
         query={tableQuery}
         columns={columns}

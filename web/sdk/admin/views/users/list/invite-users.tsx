@@ -25,6 +25,7 @@ import {
   ListRolesRequestSchema,
 } from "@raystack/proton/frontier";
 import {create} from "@bufbuild/protobuf";
+import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -38,6 +39,7 @@ const inviteSchema = z.object({
 type InviteSchemaType = z.infer<typeof inviteSchema>;
 
 export const InviteUser = () => {
+  const t = useAdminTerminology();
   const [open, onOpenChange] = useState(false);
 
   const {
@@ -101,7 +103,7 @@ export const InviteUser = () => {
       },
       onSuccess: (data: CreateOrganizationInvitationResponse) => {
         toast.success(
-          `User${data?.invitations?.length > 1 ? "s" : ""} invited`,
+          `${t.user({ case: "capital" })}${data?.invitations?.length > 1 ? "s" : ""} invited`,
         );
         reset({ role: defaultRoleId });
         onOpenChange(false);
@@ -126,13 +128,13 @@ export const InviteUser = () => {
           color="neutral"
           leadingIcon={<PlusIcon />}
           data-test-id="users-list-invite-user-btn">
-          Invite User
+          Invite {t.user({ case: "capital" })}
         </Button>
       </Dialog.Trigger>
       <Dialog.Content width={600}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
-            <Dialog.Title>Invite user</Dialog.Title>
+            <Dialog.Title>Invite {t.user({ case: "lower" })}</Dialog.Title>
             <Dialog.CloseButton data-test-id="users-list-invite-user-close-btn" />
           </Dialog.Header>
           <Dialog.Body className={styles["invite-users-dialog-body"]}>
@@ -203,7 +205,7 @@ export const InviteUser = () => {
 
               <Flex direction="column" gap={2}>
                 <Label className={styles["invite-users-dialog-label"]}>
-                  Organization
+                  {t.organization({ case: "capital" })}
                 </Label>
                 <Controller
                   name="organizationId"

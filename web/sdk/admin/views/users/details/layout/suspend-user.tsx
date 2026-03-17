@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 interface SuspendDropdownProps {
   userId: string;
@@ -12,12 +13,13 @@ export const SuspendUser = ({
   onClose,
   onSubmit,
 }: SuspendDropdownProps) => {
+  const t = useAdminTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSuspend = async () => {
     try {
       setIsSubmitting(true);
-      toast.success("User suspended successfully");
+      toast.success(`${t.user({ case: "capital" })} suspended successfully`);
       onSubmit?.();
     } catch (error) {
       console.error(error);
@@ -31,9 +33,9 @@ export const SuspendUser = ({
       <Dialog.Content width={400}>
         <Dialog.Body>
           <Flex direction="column" gap="small">
-            <Dialog.Title>Suspend User</Dialog.Title>
+            <Dialog.Title>Suspend {t.user({ case: "capital" })}</Dialog.Title>
             <Text variant="secondary">
-              Suspending this user will permanently restrict access to its
+              Suspending this {t.user({ case: "lower" })} will permanently restrict access to its
               content, disable communication, and prevent any future
               interactions. Are you sure you want to proceed?
             </Text>

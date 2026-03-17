@@ -25,6 +25,7 @@ import { useState } from "react";
 import type React from "react";
 import Skeleton from "react-loading-skeleton";
 import { useAddProjectMembers } from "./use-add-project-members";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 const DropdownLoader = () => {
   return (
@@ -57,6 +58,7 @@ function AddMemberDropdown({
   isLoading,
   setSearchQuery,
 }: AddMemberDropdownProps) {
+  const t = useAdminTerminology();
   return (
     <DropdownMenu
       autocomplete
@@ -64,7 +66,7 @@ function AddMemberDropdown({
       onSearch={setSearchQuery}
     >
       <DropdownMenu.TriggerItem data-test-id="add-members">
-        Add member
+        Add {t.member({ case: "lower" })}
       </DropdownMenu.TriggerItem>
       <DropdownMenu.Content>
         {isLoading ? (
@@ -106,6 +108,7 @@ function ProjectActionsContent({
   ) => void;
   handleRenameOptionOpen: () => void;
 }) {
+  const t = useAdminTerminology();
   const handleRenameOptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
     handleRenameOptionOpen();
     e.stopPropagation();
@@ -137,7 +140,7 @@ function ProjectActionsContent({
         onClick={handleRenameOptionClick}
         data-test-id="rename-project"
       >
-        Rename project...
+        Rename {t.project({ case: "lower" })}...
       </DropdownMenu.Item>
     </>
   );
@@ -206,11 +209,15 @@ function ProjectActions({
 export const getColumns = ({
   orgMembersMap,
   handleProjectUpdate,
+  t,
 }: {
   orgMembersMap: Record<string, User>;
   handleProjectUpdate: (
     project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
+  t: {
+    member: TerminologyEntity;
+  };
 }): DataTableColumnDef<
   SearchOrganizationProjectsResponse_OrganizationProject,
   unknown
@@ -243,7 +250,7 @@ export const getColumns = ({
     },
     {
       accessorKey: "userIds",
-      header: "Members",
+      header: t.member({ plural: true, case: "capital" }),
       enableHiding: true,
       cell: ({ getValue }) => {
         const user_ids = (getValue() as string[]) || [];

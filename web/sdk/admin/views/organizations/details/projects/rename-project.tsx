@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import React from "react";
 import { useMutation } from "@connectrpc/connect-query";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 const projectRenameSchema = z.object({
   title: z.string(),
@@ -32,6 +33,7 @@ export function RenameProjectDialog({
   project,
   onRename,
 }: RenameProjectDialogProps) {
+  const t = useAdminTerminology();
   const preventClickPropagation = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
   };
@@ -64,7 +66,7 @@ export function RenameProjectDialog({
       const newProject = resp.project;
 
       if (newProject) {
-        toast.success("Project renamed successfully");
+        toast.success(`${t.project({ case: "capital" })} renamed successfully`);
         onRename({
           ...project,
           title: newProject.title,
@@ -72,7 +74,7 @@ export function RenameProjectDialog({
         });
       }
     } catch (error) {
-      toast.error("Failed to rename project");
+      toast.error(`Failed to rename ${t.project({ case: "lower" })}`);
       console.error(error);
     }
   };
@@ -86,7 +88,7 @@ export function RenameProjectDialog({
       >
         <form onSubmit={handleSubmit(submit)}>
           <Dialog.Header>
-            <Dialog.Title>Rename Project</Dialog.Title>
+            <Dialog.Title>Rename {t.project({ case: "capital" })}</Dialog.Title>
             <Dialog.CloseButton data-test-id="rename-project-close-button" />
           </Dialog.Header>
           <Dialog.Body>
@@ -97,8 +99,8 @@ export function RenameProjectDialog({
                 render={({ field }) => (
                   <InputField
                     {...field}
-                    label="Project name"
-                    placeholder="Project name"
+                    label={`${t.project({ case: "capital" })} name`}
+                    placeholder={`${t.project({ case: "capital" })} name`}
                     data-test-id="rename-project-title-input"
                   />
                 )}

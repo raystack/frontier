@@ -15,6 +15,7 @@ import {
   PlusIcon,
 } from "@radix-ui/react-icons";
 import React, { useState } from "react";
+import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
 
 interface OrganizationsNavabarProps {
   searchQuery?: string;
@@ -27,6 +28,7 @@ export const OrganizationsNavabar = ({
   openCreatePanel,
   onExportCsv,
 }: OrganizationsNavabarProps) => {
+  const t = useAdminTerminology();
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -58,7 +60,7 @@ export const OrganizationsNavabar = ({
       <Flex gap={2}>
         <OrganizationIcon />
         <Text size={2} weight={500}>
-          Organizations
+          {t.organization({ plural: true, case: "capital" })}
         </Text>
       </Flex>
       <Flex align="center" gap={4}>
@@ -69,7 +71,7 @@ export const OrganizationsNavabar = ({
           data-test-id="admin-create-organization-btn"
           onClick={openCreatePanel}
         >
-          New Organization
+          New {t.organization({ case: "capital" })}
         </Button>
         <Separator orientation="vertical" size="small" />
         {showSearch ? (

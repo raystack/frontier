@@ -3,12 +3,16 @@ import dayjs from "dayjs";
 import { NULL_DATE } from "../../../../utils/constants";
 import styles from "./apis.module.css";
 import type {
-  SearchOrganizationServiceUsersResponse_OrganizationServiceUser, 
-  SearchOrganizationServiceUsersResponse_Project 
+  SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
+  SearchOrganizationServiceUsersResponse_Project
 } from "@raystack/proton/frontier";
+import { TerminologyEntity } from "../../../../hooks/useAdminTerminology";
 
 interface ColumnOptions {
   groupCountMap: Record<string, Record<string, number>>;
+  t: {
+    project: TerminologyEntity;
+  };
 }
 
 export function getColumns(
@@ -17,6 +21,7 @@ export function getColumns(
 SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
   unknown
 >[] {
+  const { t } = options;
   return [
     {
       accessorKey: "title",
@@ -33,7 +38,7 @@ SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
     },
     {
       accessorKey: "projects",
-      header: "Projects",
+      header: t.project({ plural: true, case: "capital" }),
       cell: ({ getValue }) => {
         const value =
           getValue() as SearchOrganizationServiceUsersResponse_Project[];

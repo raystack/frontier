@@ -5,12 +5,14 @@ import { DEFAULT_ROLES } from "../../../../utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, ListProjectUsersRequestSchema, CreatePolicyRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 interface useAddProjectMembersProps {
   projectId: string;
 }
 
 export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
+  const t = useAdminTerminology();
   const { orgMembersMap } = useContext(OrganizationContext);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -63,7 +65,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
             },
           }),
         );
-        toast.success("member added");
+        toast.success(`${t.member({ case: "capital" })} added`);
         await refetch();
         return projectMembers;
       } catch (error: unknown) {

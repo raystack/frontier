@@ -19,6 +19,7 @@ import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/co
 import { useQueryClient } from "@tanstack/react-query";
 import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -35,6 +36,7 @@ interface InviteUsersDialogProps {
 }
 
 export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
+  const t = useAdminTerminology();
   const { roles = [], organization } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -64,7 +66,7 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
             cardinality: "finite",
           }),
         });
-        toast.success("User invited");
+        toast.success(`${t.user({ case: "capital" })} invited`);
         onOpenChange(false);
       },
       onError: (error) => {
@@ -95,7 +97,7 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             <Dialog.Header>
-              <Dialog.Title>Invite user</Dialog.Title>
+              <Dialog.Title>Invite {t.user({ case: "lower" })}</Dialog.Title>
               <Dialog.CloseButton data-test-id="invite-users-close-button" />
             </Dialog.Header>
             <Dialog.Body className={styles["invite-users-dialog-body"]}>

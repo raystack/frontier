@@ -19,8 +19,10 @@ import {
 } from "../../utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { transformDataTableQueryToRQLRequest } from "../../utils/transform-query";
+import { useAdminTerminology } from "../../hooks/useAdminTerminology";
 
 const NoInvoices = () => {
+  const t = useAdminTerminology();
   return (
     <EmptyState
       classNames={{
@@ -28,7 +30,7 @@ const NoInvoices = () => {
         subHeading: styles["empty-state-subheading"],
       }}
       heading="No invoices found"
-      subHeading="Start billing to organizations to populate the table"
+      subHeading={`Start billing to ${t.organization({ plural: true, case: "lower" })} to populate the table`}
       icon={<InvoicesIcon />}
     />
   );
@@ -46,6 +48,7 @@ export type InvoicesViewProps = {
 };
 
 export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
+  const t = useAdminTerminology();
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const query = transformDataTableQueryToRQLRequest(tableQuery, {
@@ -95,7 +98,7 @@ export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
     }
   };
 
-  const columns = getColumns();
+  const columns = getColumns({ t });
 
   const loading = isLoading || isFetchingNextPage;
 

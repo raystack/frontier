@@ -21,6 +21,7 @@ import {
 } from '../../../../utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '../../../../utils/transform-query';
 import { useDebounceValue } from 'usehooks-ts';
+import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -36,13 +37,14 @@ const TRANSFORM_OPTIONS = {
 };
 
 const NoProjects = () => {
+  const t = useAdminTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No Projects found"
+      heading={`No ${t.project({ plural: true, case: "capital" })} found`}
       subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
       icon={<FileIcon />}
     />
@@ -50,20 +52,22 @@ const NoProjects = () => {
 };
 
 const ErrorState = () => {
+  const t = useAdminTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="Error Loading Projects"
-      subHeading="Something went wrong while loading organization projects. Please try refreshing the page."
+      heading={`Error Loading ${t.project({ plural: true, case: "capital" })}`}
+      subHeading={`Something went wrong while loading ${t.organization({ case: "lower" })} ${t.project({ plural: true, case: "lower" })}. Please try refreshing the page.`}
       icon={<ExclamationTriangleIcon />}
     />
   );
 };
 
 export function OrganizationProjectsView() {
+  const t = useAdminTerminology();
   const { organization, search, orgMembersMap, isOrgMembersMapLoading } =
     useContext(OrganizationContext);
   const {
@@ -81,7 +85,7 @@ export function OrganizationProjectsView() {
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
-  const title = `Projects | ${organization?.title} | Organizations`;
+  const title = `${t.project({ plural: true, case: "capital" })} | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const computedQuery = useMemo(() => {
     const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
@@ -162,7 +166,7 @@ export function OrganizationProjectsView() {
     });
   }
 
-  const columns = getColumns({ orgMembersMap, handleProjectUpdate });
+  const columns = getColumns({ orgMembersMap, handleProjectUpdate, t });
 
   return (
     <>
