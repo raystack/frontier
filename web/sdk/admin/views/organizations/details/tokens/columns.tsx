@@ -7,6 +7,7 @@ import {
   Flex,
   getAvatarColor,
   Text,
+  Tooltip,
 } from "@raystack/apsara";
 import type {
   SearchOrganizationTokensResponse_OrganizationToken,
@@ -29,6 +30,7 @@ export const getColumns = (): DataTableColumnDef<
         cell: styles["first-column"],
         header: styles["first-column"],
       },
+      styles: { header: { width: "180px" } },
       cell: ({ getValue }) => {
         const value = getValue() as TimeStamp;
         const date = isNullTimestamp(value)
@@ -43,6 +45,7 @@ export const getColumns = (): DataTableColumnDef<
     {
       accessorKey: "amount",
       header: "Tokens",
+      styles: { header: { width: "220px" } },
       cell: ({ row, getValue }) => {
         const prefix = row.original.type === "credit" ? "+" : "-";
         const value = getValue() as number;
@@ -56,7 +59,15 @@ export const getColumns = (): DataTableColumnDef<
       accessorKey: "description",
       header: "Events",
       cell: ({ getValue }) => {
-        return getValue();
+        const text = (getValue() as string) ?? "";
+        if (!text) return text;
+        return (
+          <span className={styles["truncate-tooltip-wrapper"]}>
+            <Tooltip message={text} delayDuration={500}>
+              <span className={styles["truncate-text"]}>{text}</span>
+            </Tooltip>
+          </span>
+        );
       },
       enableHiding: true,
     },
