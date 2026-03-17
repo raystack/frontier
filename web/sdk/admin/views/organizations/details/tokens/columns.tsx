@@ -58,15 +58,14 @@ export const getColumns = (): DataTableColumnDef<
     {
       accessorKey: "description",
       header: "Events",
+      classNames: { cell: styles["truncate-tooltip-wrapper"] },
       cell: ({ getValue }) => {
         const text = (getValue() as string) ?? "";
         if (!text) return text;
         return (
-          <span className={styles["truncate-tooltip-wrapper"]}>
-            <Tooltip message={text} delayDuration={500}>
-              <span className={styles["truncate-text"]}>{text}</span>
-            </Tooltip>
-          </span>
+          <Tooltip message={text} delayDuration={500}>
+            <span className={styles["truncate-text"]}>{text}</span>
+          </Tooltip>
         );
       },
       enableHiding: true,
