@@ -12,7 +12,7 @@ import { createClient } from "@connectrpc/connect";
 import styles from "./members.module.css";
 
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
-import { useAdminTerminology } from "../../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
   projectId: string;
@@ -27,7 +27,7 @@ export const RemoveMember = ({
   onRemove,
   onClose,
 }: RemoveMemberProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const transport = useTransport();
 

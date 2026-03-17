@@ -12,7 +12,7 @@ import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "../../../../utils/co
 import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { getColumns } from "./columns";
 import { useDebounceValue } from "usehooks-ts";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -46,7 +46,7 @@ const NoTokens = () => {
 };
 
 const ErrorState = () => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
@@ -61,7 +61,7 @@ const ErrorState = () => {
 };
 
 export function OrganizationTokensView() {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const {

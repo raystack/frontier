@@ -7,7 +7,7 @@ import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { ConnectError } from "@connectrpc/connect";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
   organizationId: string;
@@ -22,7 +22,7 @@ export const RemoveMember = ({
   onRemove,
   onClose,
 }: RemoveMemberProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const { mutateAsync: removeOrganizationUser, isPending } = useMutation(
     FrontierServiceQueries.removeOrganizationUser,
   );

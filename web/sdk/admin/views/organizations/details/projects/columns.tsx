@@ -25,7 +25,7 @@ import { useState } from "react";
 import type React from "react";
 import Skeleton from "react-loading-skeleton";
 import { useAddProjectMembers } from "./use-add-project-members";
-import { useAdminTerminology, TerminologyEntity } from "../../../../hooks/useAdminTerminology";
+import { useTerminology, TerminologyEntity } from "../../../../hooks/useTerminology";
 
 const DropdownLoader = () => {
   return (
@@ -58,7 +58,7 @@ function AddMemberDropdown({
   isLoading,
   setSearchQuery,
 }: AddMemberDropdownProps) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   return (
     <DropdownMenu
       autocomplete
@@ -108,7 +108,7 @@ function ProjectActionsContent({
   ) => void;
   handleRenameOptionOpen: () => void;
 }) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const handleRenameOptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
     handleRenameOptionOpen();
     e.stopPropagation();

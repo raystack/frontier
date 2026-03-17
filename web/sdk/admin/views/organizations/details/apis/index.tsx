@@ -19,7 +19,7 @@ import {
 } from "../../../../utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { useDebounceValue } from "usehooks-ts";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const NoCredentials = () => {
   return (
@@ -62,7 +62,7 @@ const TRANSFORM_OPTIONS = {
 };
 
 export function OrganizationApisView() {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const {

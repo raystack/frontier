@@ -17,7 +17,7 @@ import {
   TimeStamp,
   timestampToDate,
 } from "../../../../utils/connect-timestamp";
-import { TerminologyEntity } from "../../../../hooks/useAdminTerminology";
+import { TerminologyEntity } from "../../../../hooks/useTerminology";
 
 interface GetColumnsOptions {
   t: {

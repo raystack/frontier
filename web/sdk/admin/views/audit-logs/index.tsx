@@ -28,7 +28,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import SidePanelDetails from "./sidepanel-details";
 import { useQueryClient } from "@tanstack/react-query";
 import { AUDIT_LOG_QUERY_KEY } from "./util";
-import { useAdminTerminology } from "../../hooks/useAdminTerminology";
+import { useTerminology } from "../../hooks/useTerminology";
 
 const NoAuditLogs = () => {
   return (
@@ -71,7 +71,7 @@ export type AuditLogsViewProps = {
 };
 
 export default function AuditLogsView({ appName, onExportCsv, onNavigate }: AuditLogsViewProps = {}) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const queryClient = useQueryClient();
   const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;

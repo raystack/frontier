@@ -19,7 +19,7 @@ import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/co
 import { useQueryClient } from "@tanstack/react-query";
 import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -36,7 +36,7 @@ interface InviteUsersDialogProps {
 }
 
 export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const { roles = [], organization } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();

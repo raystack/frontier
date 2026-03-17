@@ -21,7 +21,7 @@ import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/co
 import { useQueryClient } from "@tanstack/react-query";
 import { FrontierServiceQueries, UpdateOrganizationRequestSchema, type Organization, OrganizationSchema } from "@raystack/proton/frontier";
 import { create, type JsonObject } from "@bufbuild/protobuf";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const orgUpdateSchema = z
   .object({
@@ -78,7 +78,7 @@ function getDefaultValue(organization: Organization, industries: string[]) {
 }
 
 export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const { organization, appUrl, countries: countriesFromContext = [], organizationTypes: industries = [] } = useContext(OrganizationContext);
   const [countries, setCountries] = useState<string[]>(countriesFromContext);
   const queryClient = useQueryClient();

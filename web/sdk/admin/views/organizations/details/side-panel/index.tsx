@@ -5,7 +5,7 @@ import { PlanDetailsSection } from "./plan-details-section";
 import { TokensDetailsSection } from "./tokens-details-section";
 import { BillingDetailsSection } from "./billing-details-section";
 import type { Organization } from "@raystack/proton/frontier";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 export const SUBSCRIPTION_STATES = {
   active: "Active",
@@ -20,7 +20,7 @@ interface SidePanelProps {
 }
 
 export function OrgSidePanel({ organization }: SidePanelProps) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const avatarColor = getAvatarColor(organization?.id || "");
   return (
     <SidePanel data-test-id="admin-sidepanel">

@@ -19,10 +19,10 @@ import {
 } from "../../utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { transformDataTableQueryToRQLRequest } from "../../utils/transform-query";
-import { useAdminTerminology } from "../../hooks/useAdminTerminology";
+import { useTerminology } from "../../hooks/useTerminology";
 
 const NoInvoices = () => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
@@ -48,7 +48,7 @@ export type InvoicesViewProps = {
 };
 
 export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const query = transformDataTableQueryToRQLRequest(tableQuery, {

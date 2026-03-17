@@ -25,7 +25,7 @@ import {
   ListRolesRequestSchema,
 } from "@raystack/proton/frontier";
 import {create} from "@bufbuild/protobuf";
-import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../hooks/useTerminology";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -39,7 +39,7 @@ const inviteSchema = z.object({
 type InviteSchemaType = z.infer<typeof inviteSchema>;
 
 export const InviteUser = () => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [open, onOpenChange] = useState(false);
 
   const {

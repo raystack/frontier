@@ -15,7 +15,7 @@ import {
   PlusIcon,
 } from "@radix-ui/react-icons";
 import React, { useState } from "react";
-import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../hooks/useTerminology";
 
 interface OrganizationsNavabarProps {
   searchQuery?: string;
@@ -28,7 +28,7 @@ export const OrganizationsNavabar = ({
   openCreatePanel,
   onExportCsv,
 }: OrganizationsNavabarProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
 

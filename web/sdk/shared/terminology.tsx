@@ -1,3 +1,4 @@
+import React, { createContext, useContext, useMemo } from "react";
 import { EntityTerminologies } from "./types";
 
 export interface TerminologyOptions {
@@ -97,3 +98,36 @@ export function createTerminologyMap(
     ),
   };
 }
+
+// -- Context & Hook --
+
+const TerminologyContext = createContext<TerminologyMap>(
+  createTerminologyMap()
+);
+
+export interface TerminologyProviderProps {
+  children: React.ReactNode;
+  terminology?: TerminologyConfig;
+  defaults?: Required<TerminologyConfig>;
+}
+
+export const TerminologyProvider: React.FC<TerminologyProviderProps> = ({
+  children,
+  terminology,
+  defaults,
+}) => {
+  const map = useMemo(
+    () => createTerminologyMap(terminology, defaults),
+    [terminology, defaults]
+  );
+
+  return (
+    <TerminologyContext.Provider value={map}>
+      {children}
+    </TerminologyContext.Provider>
+  );
+};
+
+export const useTerminology = (): TerminologyMap => {
+  return useContext(TerminologyContext);
+};

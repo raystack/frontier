@@ -14,7 +14,7 @@ import {
 import { ACTOR_TYPES, getActionBadgeColor } from "./util";
 import { ComponentPropsWithoutRef } from "react";
 import ActorCell from "./actor-cell";
-import { TerminologyEntity } from "../../hooks/useAdminTerminology";
+import { TerminologyEntity } from "../../hooks/useTerminology";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;

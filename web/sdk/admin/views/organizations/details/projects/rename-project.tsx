@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import React from "react";
 import { useMutation } from "@connectrpc/connect-query";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const projectRenameSchema = z.object({
   title: z.string(),
@@ -33,7 +33,7 @@ export function RenameProjectDialog({
   project,
   onRename,
 }: RenameProjectDialogProps) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const preventClickPropagation = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
   };

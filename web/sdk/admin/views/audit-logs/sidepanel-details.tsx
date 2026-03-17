@@ -17,7 +17,7 @@ import ActorCell from "./actor-cell";
 import SidepanelListItemLink from "./sidepanel-list-link";
 import { isZeroUUID } from "../../utils/helper";
 import SidepanelListId from "./sidepanel-list-id";
-import { useAdminTerminology } from "../../hooks/useAdminTerminology";
+import { useTerminology } from "../../hooks/useTerminology";
 import { useAdminPaths } from "../../hooks/useAdminPaths";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
@@ -40,7 +40,7 @@ export default function SidePanelDetails({
   onNavigate,
   ...rest
 }: SidePanelDetailsProps) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const paths = useAdminPaths();
   const { actor, event, resource, occurredAt, id, orgId, orgName, target } =
     rest;

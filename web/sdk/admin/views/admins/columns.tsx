@@ -1,6 +1,6 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
-import { TerminologyEntity } from "../../hooks/useAdminTerminology";
+import { TerminologyEntity } from "../../hooks/useTerminology";
 
 export const getColumns: (options?: {
   onNavigateToOrg?: (orgId: string) => void;

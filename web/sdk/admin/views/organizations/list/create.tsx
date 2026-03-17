@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./list.module.css";
-import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../hooks/useTerminology";
 import {
   Button,
   Flex,
@@ -59,7 +59,7 @@ export function CreateOrganizationPanel({
   countries: countriesProp = [],
   onSuccess,
 }: CreateOrganizationPanelProps) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [countries, setCountries] = useState<string[]>(countriesProp);
   const industries = organizationTypes;
 

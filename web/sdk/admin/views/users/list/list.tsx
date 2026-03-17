@@ -15,10 +15,10 @@ import {
 import { transformDataTableQueryToRQLRequest } from "../../../utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useDebouncedState } from "@raystack/apsara/hooks";
-import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../hooks/useTerminology";
 
 const NoUsers = () => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
@@ -44,7 +44,7 @@ interface UsersListProps {
 }
 
 export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
     INITIAL_QUERY,
     200,

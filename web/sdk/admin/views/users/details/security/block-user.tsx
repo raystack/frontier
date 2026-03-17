@@ -12,7 +12,7 @@ import {
   FrontierServiceQueries,
 } from "@raystack/proton/frontier";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 type ButtonColorType = ComponentProps<typeof Button>["color"];
 
@@ -24,7 +24,7 @@ type SearchUsersQueryData = {
 };
 
 export const BlockUserDialog = () => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { user, reset } = useUser();
   const queryClient = useQueryClient();

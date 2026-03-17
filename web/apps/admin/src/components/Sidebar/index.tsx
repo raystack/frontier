@@ -26,7 +26,7 @@ import CpuChipIcon from "~/assets/icons/cpu-chip.svg?react";
 import { AppContext } from "~/contexts/App";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { Link, useLocation } from "react-router-dom";
-import { useAdminTerminology, useAdminPaths } from "@raystack/frontier/admin";
+import { useTerminology, useAdminPaths } from "@raystack/frontier/admin";
 
 export type NavigationItemsTypes = {
   to?: string;
@@ -38,7 +38,7 @@ export type NavigationItemsTypes = {
 const BRAND_NAME = "Frontier";
 
 const useNavigationItems = (): NavigationItemsTypes[] => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const paths = useAdminPaths();
 
   return [

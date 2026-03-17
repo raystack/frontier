@@ -5,7 +5,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { PageHeader } from "../../components/PageHeader";
-import { useAdminTerminology } from "../../hooks/useAdminTerminology";
+import { useTerminology } from "../../hooks/useTerminology";
 
 const pageHeader = {
   title: "Super Admins",
@@ -27,7 +27,7 @@ export type AdminsViewProps = {
 };
 
 export default function AdminsView({ onNavigateToOrg }: AdminsViewProps = {}) {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const {
     data: platformUsersData,
     isLoading,

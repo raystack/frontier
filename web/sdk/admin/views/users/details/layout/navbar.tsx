@@ -11,7 +11,7 @@ import UserIcon from "../../../../assets/icons/UsersIcon";
 import styles from "./navbar.module.css";
 import { getUserName } from "../../util";
 import { useUser } from "../user-context";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 import { useAdminPaths } from "../../../../hooks/useAdminPaths";
 
 interface UserDetailsNavbarProps {
@@ -26,7 +26,7 @@ export const UserDetailsNavbar = ({
   onNavigate,
 }: UserDetailsNavbarProps) => {
   const { user } = useUser();
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const paths = useAdminPaths();
 
   const links = [{ name: "Security", path: `/${paths.users}/${user?.id}/security` }];

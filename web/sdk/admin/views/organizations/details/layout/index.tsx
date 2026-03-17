@@ -9,7 +9,7 @@ import { EditKYCPanel } from "../edit/kyc";
 import { EditOrganizationPanel } from "../edit/organization";
 import { EditBillingPanel } from "../edit/billing";
 import type { Organization } from "@raystack/proton/frontier";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface OrganizationDetailsLayoutProps {
   isLoading: boolean;
@@ -32,7 +32,7 @@ export const OrganizationDetailsLayout = ({
   currentPath,
   onNavigate,
 }: OrganizationDetailsLayoutProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [showSidePanel, setShowSidePanel] = useState(true);
   const [showKYCPanel, setShowKYCPanel] = useState(false);
   const [showEditOrgPanel, setShowEditOrgPanel] = useState(false);

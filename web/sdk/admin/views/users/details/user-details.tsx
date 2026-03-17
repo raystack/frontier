@@ -7,7 +7,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import type { User } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { UserDetailsSecurityContent } from "./security/security";
-import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../hooks/useTerminology";
 
 interface UserDetailContentProps {
   user: User;
@@ -33,7 +33,7 @@ interface UserDetailsByUserIdProps {
 }
 
 export const UserDetailsByUserId = ({ userId, currentPath, onNavigate }: UserDetailsByUserIdProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const { data, isLoading, refetch } = useQuery(
     AdminServiceQueries.searchUsers,
     { query: { search: userId } },

@@ -6,7 +6,7 @@ import type {
   SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
   SearchOrganizationServiceUsersResponse_Project
 } from "@raystack/proton/frontier";
-import { TerminologyEntity } from "../../../../hooks/useAdminTerminology";
+import { TerminologyEntity } from "../../../../hooks/useTerminology";
 
 interface ColumnOptions {
   groupCountMap: Record<string, Record<string, number>>;

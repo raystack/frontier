@@ -6,7 +6,7 @@ import { createConnectQueryKey, useMutation, useTransport } from "@connectrpc/co
 import { FrontierServiceQueries, DisableOrganizationRequestSchema, EnableOrganizationRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface componentConfigType {
   btnColor: "danger" | "accent";
@@ -20,7 +20,7 @@ interface componentConfigType {
 }
 
 const BlockOrganizationDialog = () => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const { organization } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();

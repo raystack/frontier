@@ -1,6 +1,7 @@
 import React, { createContext, ReactNode, useContext } from "react";
 import { merge } from "lodash";
 import { Config, defaultConfig, defaultTerminology } from "../utils/constants";
+import { TerminologyProvider } from "../../shared/terminology";
 
 const AdminConfigContext = createContext<Config>(defaultConfig);
 
@@ -20,7 +21,12 @@ export const AdminConfigProvider: React.FC<AdminConfigProviderProps> = ({
 
   return (
     <AdminConfigContext.Provider value={mergedConfig}>
-      {children}
+      <TerminologyProvider
+        terminology={mergedConfig.terminology}
+        defaults={defaultTerminology}
+      >
+        {children}
+      </TerminologyProvider>
     </AdminConfigContext.Provider>
   );
 };

@@ -24,10 +24,10 @@ import {
 import { transformDataTableQueryToRQLRequest } from "../../../utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useDebouncedState } from "@raystack/apsara/hooks";
-import { useAdminTerminology } from "../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../hooks/useTerminology";
 
 const NoOrganizations = () => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
@@ -70,7 +70,7 @@ export const OrganizationListView = ({
   appUrl,
   countries = [],
 }: OrganizationListViewProps = {}) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(

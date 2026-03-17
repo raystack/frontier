@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface SuspendDropdownProps {
   userId: string;
@@ -13,7 +13,7 @@ export const SuspendUser = ({
   onClose,
   onSubmit,
 }: SuspendDropdownProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSuspend = async () => {

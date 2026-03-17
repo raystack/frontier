@@ -22,7 +22,7 @@ import type React from "react";
 import { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import type { Organization } from "@raystack/proton/frontier";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useTerminology } from "../../../../hooks/useTerminology";
 import { useAdminPaths } from "../../../../hooks/useAdminPaths";
 
 interface navConfig {
@@ -68,7 +68,7 @@ const NavbarActionMenu = ({
   onExportProjects,
   onExportTokens,
 }: NavbarActionMenuProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
   const [isAddTokensDialogOpen, setIsAddTokensDialogOpen] = useState(false);
   const [isMembersDownloading, setIsMembersDownloading] = useState(false);
@@ -229,7 +229,7 @@ const NavLinks = ({
   currentPath: string;
   onNavigate: (path: string) => void;
 }) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const paths = useAdminPaths();
   const basePath = `/${paths.organizations}/${organizationId}`;
   const links = [
@@ -290,7 +290,7 @@ export const OrganizationsDetailsNavabar = ({
   currentPath,
   onNavigate,
 }: OrganizationDetailsNavbarProps) => {
-  const t = useAdminTerminology();
+  const t = useTerminology();
   const adminPaths = useAdminPaths();
   const { search } = useContext(OrganizationContext);
 
