@@ -27,6 +27,7 @@
   padding-left: var(--rs-space-7);
 }
 
+/* Target Tooltip's root element (direct child of wrapper) – constrains width so inner text can truncate */
 .truncate-tooltip-wrapper>* {
   width: 100%;
 }
