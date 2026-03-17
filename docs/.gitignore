@@ -1,6 +1,0 @@
-node_modules/
-.next/
-pnpm-lock.yaml
-
-.chronicle
-docs/apidocs.swagger.yaml
