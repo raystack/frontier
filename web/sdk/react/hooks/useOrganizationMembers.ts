@@ -80,10 +80,9 @@ export const useOrganizationMembers = ({
         ...user,
         email: user.userId,
         invited: true
-      } as unknown as MemberWithInvite;
+      };
     });
-    const orgMembers = users as unknown as MemberWithInvite[];
-    return [...orgMembers, ...invitations];
+    return [...users, ...invitations] as unknown as MemberWithInvite[];
   }, [users, invitationsData?.invitations]);
 
   const refetch = useCallback(() => {
