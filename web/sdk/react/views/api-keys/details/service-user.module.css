@@ -31,6 +31,11 @@
   border-bottom-right-radius: var(--rs-radius-2);
 }
 
+.serviceKeyItemTitle {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 .serviceKeyItemLoaderBtn {
   display: flex;
   justify-content: end;

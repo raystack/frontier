@@ -94,7 +94,7 @@ const ServiceUserTokenItem = ({
           </>
         ) : (
           <>
-            <Text size={3} weight="medium">
+            <Text size={3} weight="medium" className={styles.serviceKeyItemTitle}>
               {token?.title}
             </Text>
             <Button
@@ -240,8 +240,7 @@ export default function ServiceUserDetailPage({
             />
           </Flex>
         </Flex>
-        <Flex justify="center" align="center">
-          <Flex className={styles.content} direction="column" gap={9}>
+        <Flex direction="column" gap={9}>
           <Headings
             isLoading={isLoading}
             name={serviceUser?.title || ''}
@@ -253,7 +252,6 @@ export default function ServiceUserDetailPage({
             tokens={serviceUserTokens}
             onRevokeClick={handleRevokeClick}
           />
-          </Flex>
         </Flex>
       </Flex>
       <ManageServiceUserProjectsDialog
