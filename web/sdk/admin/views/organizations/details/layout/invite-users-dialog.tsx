@@ -57,7 +57,7 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const { mutateAsync: createInvitation } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
     {
-      onSuccess: () => {
+      onSuccess: (data) => {
         queryClient.invalidateQueries({
           queryKey: createConnectQueryKey({
             schema: FrontierServiceQueries.listOrganizationInvitations,
@@ -66,7 +66,10 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
             cardinality: "finite",
           }),
         });
-        toast.success(`${t.user({ case: "capital" })} invited`);
+        const inviteCount = data?.invitations?.length ?? 0;
+        toast.success(
+          `${t.user({ case: "capital", plural: inviteCount > 1 })} invited`,
+        );
         onOpenChange(false);
       },
       onError: (error) => {
