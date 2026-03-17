@@ -30,7 +30,7 @@ export {
 } from "./contexts/AdminConfigContext";
 
 // hook exports
-export { useTerminology, useAdminTerminology } from "./hooks/useTerminology";
+export { useTerminology } from "./hooks/useTerminology";
 export { useAdminPaths, type AdminPaths } from "./hooks/useAdminPaths";
 
 // utils exports
