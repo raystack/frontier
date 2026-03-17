@@ -1,70 +1,24 @@
 import { useMemo } from "react";
 import { useAdminConfig } from "../contexts/AdminConfigContext";
 import { defaultTerminology } from "../utils/constants";
+import {
+  createTerminologyMap,
+  type TerminologyMap,
+} from "../../shared/terminology";
 
-export interface TerminologyOptions {
-  plural?: boolean;
-  case?: "lower" | "upper" | "capital";
-}
+// Re-export types so existing imports don't break
+export type {
+  TerminologyOptions,
+  TerminologyEntity,
+  TerminologyMap,
+} from "../../shared/terminology";
 
-export interface TerminologyEntity {
-  (options?: TerminologyOptions): string;
-}
-
-const applyCase = (
-  text: string,
-  caseType?: "lower" | "upper" | "capital"
-): string => {
-  switch (caseType) {
-    case "lower":
-      return text.toLowerCase();
-    case "upper":
-      return text.toUpperCase();
-    case "capital":
-      return text.charAt(0).toUpperCase() + text.slice(1);
-    default:
-      return text;
-  }
-};
-
-const createEntity = (singular: string, plural: string): TerminologyEntity => {
-  return ({
-    plural: isPlural = false,
-    case: caseType,
-  }: TerminologyOptions = {}) => {
-    const text = isPlural ? plural : singular;
-    return applyCase(text, caseType);
-  };
-};
-
-export const useAdminTerminology = () => {
+export const useAdminTerminology = (): TerminologyMap => {
   const config = useAdminConfig();
   const terminology = config.terminology || defaultTerminology;
 
-  return useMemo(() => ({
-    organization: createEntity(
-      terminology.organization?.singular || defaultTerminology.organization.singular,
-      terminology.organization?.plural || defaultTerminology.organization.plural
-    ),
-    project: createEntity(
-      terminology.project?.singular || defaultTerminology.project.singular,
-      terminology.project?.plural || defaultTerminology.project.plural
-    ),
-    team: createEntity(
-      terminology.team?.singular || defaultTerminology.team.singular,
-      terminology.team?.plural || defaultTerminology.team.plural
-    ),
-    member: createEntity(
-      terminology.member?.singular || defaultTerminology.member.singular,
-      terminology.member?.plural || defaultTerminology.member.plural
-    ),
-    user: createEntity(
-      terminology.user?.singular || defaultTerminology.user.singular,
-      terminology.user?.plural || defaultTerminology.user.plural
-    ),
-    appName: createEntity(
-      terminology.appName || defaultTerminology.appName,
-      terminology.appName || defaultTerminology.appName
-    ),
-  }),[terminology]);
+  return useMemo(
+    () => createTerminologyMap(terminology, defaultTerminology),
+    [terminology]
+  );
 };
