@@ -322,10 +322,8 @@ func (s *Service) hasAnyDeniedPermission(r role.Role) bool {
 // validateRolePermissions checks that none of the roles contain denied permissions.
 func (s *Service) validateRolePermissions(roles []role.Role) error {
 	for _, r := range roles {
-		for _, perm := range r.Permissions {
-			if _, denied := s.deniedPerms[perm]; denied {
-				return fmt.Errorf("role %s has denied permission %s: %w", r.Name, perm, paterrors.ErrDeniedRole)
-			}
+		if s.hasAnyDeniedPermission(r) {
+			return fmt.Errorf("role %s contains a denied permission: %w", r.Name, paterrors.ErrDeniedRole)
 		}
 	}
 	return nil
