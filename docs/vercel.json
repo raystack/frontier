@@ -1,9 +1,5 @@
 {
-  "github": {
-    "silent": true
-  },
-  "installCommand": "npm install && npm run setup",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".chronicle/.next",
-  "framework": "nextjs"
+  "framework": null,
+  "buildCommand": "npx @raystack/chronicle@0.1.0-canary.9b7d924 build --adapter vercel",
+  "installCommand": "echo 'skip'"
 }
