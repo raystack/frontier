@@ -136,6 +136,8 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/RevokeSession":   true,
 
 	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUserPAT": true,
+
+	"/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT": true,
 }
 
 // authorizationValidationMap stores path to validation function

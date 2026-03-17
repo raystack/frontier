@@ -46314,6 +46314,244 @@ var _ interface {
 	ErrorName() string
 } = CreateCurrentUserPATResponseValidationError{}
 
+// Validate checks the field values on ListRolesForPATRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListRolesForPATRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListRolesForPATRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListRolesForPATRequestMultiError, or nil if none found.
+func (m *ListRolesForPATRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListRolesForPATRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListRolesForPATRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListRolesForPATRequestMultiError is an error wrapping multiple validation
+// errors returned by ListRolesForPATRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListRolesForPATRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListRolesForPATRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListRolesForPATRequestMultiError) AllErrors() []error { return m }
+
+// ListRolesForPATRequestValidationError is the validation error returned by
+// ListRolesForPATRequest.Validate if the designated constraints aren't met.
+type ListRolesForPATRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListRolesForPATRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListRolesForPATRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListRolesForPATRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListRolesForPATRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListRolesForPATRequestValidationError) ErrorName() string {
+	return "ListRolesForPATRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListRolesForPATRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListRolesForPATRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListRolesForPATRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListRolesForPATRequestValidationError{}
+
+// Validate checks the field values on ListRolesForPATResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListRolesForPATResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListRolesForPATResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListRolesForPATResponseMultiError, or nil if none found.
+func (m *ListRolesForPATResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListRolesForPATResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetRoles() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListRolesForPATResponseValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListRolesForPATResponseValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListRolesForPATResponseValidationError{
+					field:  fmt.Sprintf("Roles[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListRolesForPATResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListRolesForPATResponseMultiError is an error wrapping multiple validation
+// errors returned by ListRolesForPATResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListRolesForPATResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListRolesForPATResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListRolesForPATResponseMultiError) AllErrors() []error { return m }
+
+// ListRolesForPATResponseValidationError is the validation error returned by
+// ListRolesForPATResponse.Validate if the designated constraints aren't met.
+type ListRolesForPATResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListRolesForPATResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListRolesForPATResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListRolesForPATResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListRolesForPATResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListRolesForPATResponseValidationError) ErrorName() string {
+	return "ListRolesForPATResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListRolesForPATResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListRolesForPATResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListRolesForPATResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListRolesForPATResponseValidationError{}
+
 // Validate checks the field values on ListCurrentUserPATsRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

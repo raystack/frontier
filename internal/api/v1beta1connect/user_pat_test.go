@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/userpat"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
@@ -663,6 +664,129 @@ func TestTransformPATToPB(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := transformPATToPB(tt.pat, tt.patValue)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestHandler_ListRolesForPAT(t *testing.T) {
+	testCreatedAt := time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.UserPATService)
+		want    *frontierv1beta1.ListRolesForPATResponse
+		wantErr error
+	}{
+		{
+			name: "should return failed precondition when PAT is disabled",
+			setup: func(ps *mocks.UserPATService) {
+				ps.EXPECT().ListAllowedRoles(mock.Anything, mock.Anything).Return(nil, paterrors.ErrDisabled)
+			},
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, paterrors.ErrDisabled),
+		},
+		{
+			name: "should return invalid argument on unsupported scope",
+			setup: func(ps *mocks.UserPATService) {
+				ps.EXPECT().ListAllowedRoles(mock.Anything, mock.Anything).
+					Return(nil, fmt.Errorf("scope %q: %w", "group", paterrors.ErrUnsupportedScope))
+			},
+			wantErr: connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope %q: %w", "group", paterrors.ErrUnsupportedScope)),
+		},
+		{
+			name: "should return internal error on service failure",
+			setup: func(ps *mocks.UserPATService) {
+				ps.EXPECT().ListAllowedRoles(mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
+			},
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return roles successfully",
+			setup: func(ps *mocks.UserPATService) {
+				ps.EXPECT().ListAllowedRoles(mock.Anything, mock.Anything).Return([]role.Role{
+					{
+						ID:          "role-1",
+						Name:        "org_viewer",
+						Title:       "Organization Viewer",
+						Permissions: []string{"app_organization_get"},
+						Scopes:      []string{schema.OrganizationNamespace},
+						OrgID:       schema.PlatformOrgID.String(),
+						CreatedAt:   testCreatedAt,
+						UpdatedAt:   testCreatedAt,
+					},
+					{
+						ID:          "role-2",
+						Name:        "proj_viewer",
+						Title:       "Project Viewer",
+						Permissions: []string{"app_project_get"},
+						Scopes:      []string{schema.ProjectNamespace},
+						OrgID:       schema.PlatformOrgID.String(),
+						CreatedAt:   testCreatedAt,
+						UpdatedAt:   testCreatedAt,
+					},
+				}, nil)
+			},
+			want: func() *frontierv1beta1.ListRolesForPATResponse {
+				emptyMeta, _ := metadata.Metadata(nil).ToStructPB()
+				return &frontierv1beta1.ListRolesForPATResponse{
+					Roles: []*frontierv1beta1.Role{
+						{
+							Id:          "role-1",
+							Name:        "org_viewer",
+							Title:       "Organization Viewer",
+							Permissions: []string{"app_organization_get"},
+							Scopes:      []string{schema.OrganizationNamespace},
+							OrgId:       schema.PlatformOrgID.String(),
+							Metadata:    emptyMeta,
+							CreatedAt:   timestamppb.New(testCreatedAt),
+							UpdatedAt:   timestamppb.New(testCreatedAt),
+						},
+						{
+							Id:          "role-2",
+							Name:        "proj_viewer",
+							Title:       "Project Viewer",
+							Permissions: []string{"app_project_get"},
+							Scopes:      []string{schema.ProjectNamespace},
+							OrgId:       schema.PlatformOrgID.String(),
+							Metadata:    emptyMeta,
+							CreatedAt:   timestamppb.New(testCreatedAt),
+							UpdatedAt:   timestamppb.New(testCreatedAt),
+						},
+					},
+				}
+			}(),
+		},
+		{
+			name: "should return empty response when no roles available",
+			setup: func(ps *mocks.UserPATService) {
+				ps.EXPECT().ListAllowedRoles(mock.Anything, mock.Anything).Return([]role.Role{}, nil)
+			},
+			want: &frontierv1beta1.ListRolesForPATResponse{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPATSrv := new(mocks.UserPATService)
+			if tt.setup != nil {
+				tt.setup(mockPATSrv)
+			}
+
+			handler := &ConnectHandler{
+				userPATService: mockPATSrv,
+			}
+
+			resp, err := handler.ListRolesForPAT(context.Background(), connect.NewRequest(&frontierv1beta1.ListRolesForPATRequest{}))
+
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.Error(), err.Error())
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, resp.Msg)
+			}
+
+			mockPATSrv.AssertExpectations(t)
 		})
 	}
 }
