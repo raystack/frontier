@@ -8,8 +8,8 @@
   },
   "terminology": {
     "organization": {
-      "singular": "Workspace",
-      "plural": "Workspaces"
+      "singular": "Organization",
+      "plural": "Organizations"
     },
     "project": {
       "singular": "Project",
