@@ -351,7 +351,7 @@ func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error
 
 	pat.RoleIDs = pkgUtils.Deduplicate(roleIDs)
 	if !allProjects {
-		pat.ProjectIDs = projectIDs
+		pat.ProjectIDs = pkgUtils.Deduplicate(projectIDs)
 	}
 	// allProjects → pat.ProjectIDs stays nil (empty = all projects, matching create semantics)
 	return nil
