@@ -13,6 +13,7 @@ interface useAddProjectMembersProps {
 
 export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
   const t = useAdminTerminology();
+  const memberLabel = t.member({ case: "capital" });
   const { orgMembersMap } = useContext(OrganizationContext);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -65,7 +66,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
             },
           }),
         );
-        toast.success(`${t.member({ case: "capital" })} added`);
+        toast.success(`${memberLabel} added`);
         await refetch();
         return projectMembers;
       } catch (error: unknown) {
@@ -73,7 +74,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
         toast.error("Something went wrong");
       }
     },
-    [projectId, createPolicy, refetch, projectMembers],
+    [projectId, createPolicy, refetch, projectMembers, memberLabel],
   );
 
   return {

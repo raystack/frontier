@@ -221,7 +221,9 @@ export const InviteUser = () => {
                           {...rest}
                           onValueChange={value => field.onChange(value)}>
                           <Select.Trigger ref={ref}>
-                            <Select.Value placeholder="Select an Organization" />
+                            <Select.Value
+                              placeholder={`Select ${t.organization({ case: "capital" })}`}
+                            />
                           </Select.Trigger>
                           <Select.Content
                             style={{

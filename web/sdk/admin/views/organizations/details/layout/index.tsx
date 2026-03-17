@@ -66,7 +66,7 @@ export const OrganizationDetailsLayout = ({
     setShowEditBillingPanel(false);
   }
 
-  const title = `${organization?.title} | Organizations`;
+  const title = `${organization?.title} | ${t.organization({ case: "capital", plural: true })}`;
 
   return isLoading ? (
     <Flex align="center" justify="center" style={{ minHeight: "200px", width: "100%" }}>
