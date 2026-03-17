@@ -37,6 +37,7 @@ type RoleService interface {
 
 type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 }
 
 type AuditRecordRepository interface {
