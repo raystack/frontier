@@ -74,15 +74,53 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 	}), nil
 }
 
+func (h *ConnectHandler) GetCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.GetCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.GetCurrentUserPATResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.User == nil {
+		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
+	}
+
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	pat, err := h.userPATService.Get(ctx, principal.User.ID, request.Msg.GetId())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "GetCurrentUserPAT", err,
+			zap.String("user_id", principal.User.ID),
+			zap.String("pat_id", request.Msg.GetId()))
+
+		switch {
+		case errors.Is(err, paterrors.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, paterrors.ErrNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.GetCurrentUserPATResponse{
+		Pat: transformPATToPB(pat, ""),
+	}), nil
+}
+
 func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	pbPAT := &frontierv1beta1.PAT{
-		Id:        pat.ID,
-		Title:     pat.Title,
-		UserId:    pat.UserID,
-		OrgId:     pat.OrgID,
-		ExpiresAt: timestamppb.New(pat.ExpiresAt),
-		CreatedAt: timestamppb.New(pat.CreatedAt),
-		UpdatedAt: timestamppb.New(pat.UpdatedAt),
+		Id:         pat.ID,
+		Title:      pat.Title,
+		UserId:     pat.UserID,
+		OrgId:      pat.OrgID,
+		RoleIds:    pat.RoleIDs,
+		ProjectIds: pat.ProjectIDs,
+		ExpiresAt:  timestamppb.New(pat.ExpiresAt),
+		CreatedAt:  timestamppb.New(pat.CreatedAt),
+		UpdatedAt:  timestamppb.New(pat.UpdatedAt),
 	}
 	if patValue != "" {
 		pbPAT.Token = patValue
