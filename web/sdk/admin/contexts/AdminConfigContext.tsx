@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import React, { createContext, ReactNode, useContext } from "react";
 import { merge } from "lodash";
 import { Config, defaultConfig, defaultTerminology } from "../utils/constants";
 

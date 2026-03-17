@@ -25,7 +25,7 @@ import { useState } from "react";
 import type React from "react";
 import Skeleton from "react-loading-skeleton";
 import { useAddProjectMembers } from "./use-add-project-members";
-import { useAdminTerminology } from "../../../../hooks/useAdminTerminology";
+import { useAdminTerminology, TerminologyEntity } from "../../../../hooks/useAdminTerminology";
 
 const DropdownLoader = () => {
   return (
