@@ -20,7 +20,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	pkgUtils "github.com/raystack/frontier/pkg/utils"
-	pkgutils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
@@ -285,7 +284,7 @@ func (s *Service) ListAllowedRoles(ctx context.Context, scopes []string) ([]role
 			scopes[i] = schema.ParseNamespaceAliasIfRequired(scope)
 		}
 		allowedScopes := []string{schema.OrganizationNamespace, schema.ProjectNamespace}
-		scopes = pkgutils.Deduplicate(scopes)
+		scopes = pkgUtils.Deduplicate(scopes)
 		for _, scope := range scopes {
 			if !slices.Contains(allowedScopes, scope) {
 				return nil, fmt.Errorf("scope %q: %w", scope, paterrors.ErrUnsupportedScope)
