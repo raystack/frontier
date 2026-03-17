@@ -1,5 +1,5 @@
 {
   "framework": null,
-  "buildCommand": "npx @raystack/chronicle@0.1.0-canary.9b7d924 build --adapter vercel --content=./docs",
+  "buildCommand": "npx @raystack/chronicle@0.1.0-canary.111b55a build --adapter vercel --content=./docs",
   "installCommand": "echo 'skip'"
 }
