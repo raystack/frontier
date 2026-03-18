@@ -141,7 +141,6 @@ const ServiceAccountsTable = ({
 }: ServiceAccountsTableProps) => {
   const columns = getColumns({
     dateFormat: dateFormat || DEFAULT_DATE_FORMAT,
-    onServiceAccountClick,
     onDeleteClick
   });
 
@@ -152,6 +151,7 @@ const ServiceAccountsTable = ({
       isLoading={isLoading}
       defaultSort={{ name: 'createdAt', order: 'desc' }}
       mode="client"
+      onRowClick={row => onServiceAccountClick?.(row.id)}
     >
       <Flex direction="column" gap={7} className={styles.tableWrapper}>
         <Flex justify="between" gap={3}>

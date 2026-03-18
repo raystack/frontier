@@ -3,6 +3,7 @@ import { Button, type DataTableColumnDef, Flex, Text } from '@raystack/apsara';
 import type { ServiceUser } from '~/src';
 import { timestampToDayjs } from '~/utils/timestamp';
 import type { Timestamp } from '@bufbuild/protobuf/wkt';
+import React from 'react';
 
 interface GetColumnsOptions {
   dateFormat: string;
@@ -21,19 +22,7 @@ export const getColumns = ({
       accessorKey: 'title',
       cell: ({ row, getValue }) => {
         const value = getValue() as string;
-        return (
-          <Text
-            size="small"
-            style={{
-              textDecoration: 'none',
-              color: 'var(--rs-color-foreground-base-primary)',
-              cursor: 'pointer'
-            }}
-            onClick={() => onServiceAccountClick?.(row.original.id || '')}
-          >
-            {value}
-          </Text>
-        );
+        return <Text>{value}</Text>;
       }
     },
     {
@@ -60,7 +49,10 @@ export const getColumns = ({
             size="small"
             color="danger"
             data-test-id="frontier-sdk-delete-service-account-btn"
-            onClick={() => onDeleteClick?.(value)}
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              onDeleteClick?.(value);
+            }}
           >
             <TrashIcon />
           </Button>
