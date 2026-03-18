@@ -94,29 +94,75 @@ func (_c *UserPATService_Create_Call) RunAndReturn(run func(context.Context, use
 	return _c
 }
 
-// ListAllowedRoles provides a mock function with given fields: ctx, scopes
-func (_m *UserPATService) ListAllowedRoles(ctx context.Context, scopes []string) ([]role.Role, error) {
-	ret := _m.Called(ctx, scopes)
+// Delete provides a mock function with given fields: ctx, userID, id
+func (_m *UserPATService) Delete(ctx context.Context, userID string, id string) error {
+	ret := _m.Called(ctx, userID, id)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListAllowedRoles")
+		panic("no return value specified for Delete")
 	}
 
-	var r0 []role.Role
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]role.Role, error)); ok {
-		return rf(ctx, scopes)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []role.Role); ok {
-		r0 = rf(ctx, scopes)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, userID, id)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]role.Role)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
-		r1 = rf(ctx, scopes)
+	return r0
+}
+
+// UserPATService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type UserPATService_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - id string
+func (_e *UserPATService_Expecter) Delete(ctx interface{}, userID interface{}, id interface{}) *UserPATService_Delete_Call {
+	return &UserPATService_Delete_Call{Call: _e.mock.On("Delete", ctx, userID, id)}
+}
+
+func (_c *UserPATService_Delete_Call) Run(run func(ctx context.Context, userID string, id string)) *UserPATService_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *UserPATService_Delete_Call) Return(_a0 error) *UserPATService_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *UserPATService_Delete_Call) RunAndReturn(run func(context.Context, string, string) error) *UserPATService_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Get provides a mock function with given fields: ctx, userID, id
+func (_m *UserPATService) Get(ctx context.Context, userID string, id string) (models.PAT, error) {
+	ret := _m.Called(ctx, userID, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (models.PAT, error)); ok {
+		return rf(ctx, userID, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) models.PAT); ok {
+		r0 = rf(ctx, userID, id)
+	} else {
+		r0 = ret.Get(0).(models.PAT)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, userID, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -124,31 +170,32 @@ func (_m *UserPATService) ListAllowedRoles(ctx context.Context, scopes []string)
 	return r0, r1
 }
 
-// UserPATService_ListAllowedRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllowedRoles'
-type UserPATService_ListAllowedRoles_Call struct {
+// UserPATService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type UserPATService_Get_Call struct {
 	*mock.Call
 }
 
-// ListAllowedRoles is a helper method to define mock.On call
+// Get is a helper method to define mock.On call
 //   - ctx context.Context
-//   - scopes []string
-func (_e *UserPATService_Expecter) ListAllowedRoles(ctx interface{}, scopes interface{}) *UserPATService_ListAllowedRoles_Call {
-	return &UserPATService_ListAllowedRoles_Call{Call: _e.mock.On("ListAllowedRoles", ctx, scopes)}
+//   - userID string
+//   - id string
+func (_e *UserPATService_Expecter) Get(ctx interface{}, userID interface{}, id interface{}) *UserPATService_Get_Call {
+	return &UserPATService_Get_Call{Call: _e.mock.On("Get", ctx, userID, id)}
 }
 
-func (_c *UserPATService_ListAllowedRoles_Call) Run(run func(ctx context.Context, scopes []string)) *UserPATService_ListAllowedRoles_Call {
+func (_c *UserPATService_Get_Call) Run(run func(ctx context.Context, userID string, id string)) *UserPATService_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *UserPATService_ListAllowedRoles_Call) Return(_a0 []role.Role, _a1 error) *UserPATService_ListAllowedRoles_Call {
+func (_c *UserPATService_Get_Call) Return(_a0 models.PAT, _a1 error) *UserPATService_Get_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserPATService_ListAllowedRoles_Call) RunAndReturn(run func(context.Context, []string) ([]role.Role, error)) *UserPATService_ListAllowedRoles_Call {
+func (_c *UserPATService_Get_Call) RunAndReturn(run func(context.Context, string, string) (models.PAT, error)) *UserPATService_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -212,27 +259,29 @@ func (_c *UserPATService_List_Call) RunAndReturn(run func(context.Context, strin
 	return _c
 }
 
-// Get provides a mock function with given fields: ctx, userID, id
-func (_m *UserPATService) Get(ctx context.Context, userID string, id string) (models.PAT, error) {
-	ret := _m.Called(ctx, userID, id)
+// ListAllowedRoles provides a mock function with given fields: ctx, scopes
+func (_m *UserPATService) ListAllowedRoles(ctx context.Context, scopes []string) ([]role.Role, error) {
+	ret := _m.Called(ctx, scopes)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Get")
+		panic("no return value specified for ListAllowedRoles")
 	}
 
-	var r0 models.PAT
+	var r0 []role.Role
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (models.PAT, error)); ok {
-		return rf(ctx, userID, id)
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]role.Role, error)); ok {
+		return rf(ctx, scopes)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) models.PAT); ok {
-		r0 = rf(ctx, userID, id)
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []role.Role); ok {
+		r0 = rf(ctx, scopes)
 	} else {
-		r0 = ret.Get(0).(models.PAT)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]role.Role)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, userID, id)
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, scopes)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -240,32 +289,31 @@ func (_m *UserPATService) Get(ctx context.Context, userID string, id string) (mo
 	return r0, r1
 }
 
-// UserPATService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type UserPATService_Get_Call struct {
+// UserPATService_ListAllowedRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllowedRoles'
+type UserPATService_ListAllowedRoles_Call struct {
 	*mock.Call
 }
 
-// Get is a helper method to define mock.On call
+// ListAllowedRoles is a helper method to define mock.On call
 //   - ctx context.Context
-//   - userID string
-//   - id string
-func (_e *UserPATService_Expecter) Get(ctx interface{}, userID interface{}, id interface{}) *UserPATService_Get_Call {
-	return &UserPATService_Get_Call{Call: _e.mock.On("Get", ctx, userID, id)}
+//   - scopes []string
+func (_e *UserPATService_Expecter) ListAllowedRoles(ctx interface{}, scopes interface{}) *UserPATService_ListAllowedRoles_Call {
+	return &UserPATService_ListAllowedRoles_Call{Call: _e.mock.On("ListAllowedRoles", ctx, scopes)}
 }
 
-func (_c *UserPATService_Get_Call) Run(run func(ctx context.Context, userID string, id string)) *UserPATService_Get_Call {
+func (_c *UserPATService_ListAllowedRoles_Call) Run(run func(ctx context.Context, scopes []string)) *UserPATService_ListAllowedRoles_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].([]string))
 	})
 	return _c
 }
 
-func (_c *UserPATService_Get_Call) Return(_a0 models.PAT, _a1 error) *UserPATService_Get_Call {
+func (_c *UserPATService_ListAllowedRoles_Call) Return(_a0 []role.Role, _a1 error) *UserPATService_ListAllowedRoles_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserPATService_Get_Call) RunAndReturn(run func(context.Context, string, string) (models.PAT, error)) *UserPATService_Get_Call {
+func (_c *UserPATService_ListAllowedRoles_Call) RunAndReturn(run func(context.Context, []string) ([]role.Role, error)) *UserPATService_ListAllowedRoles_Call {
 	_c.Call.Return(run)
 	return _c
 }
