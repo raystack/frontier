@@ -6,8 +6,7 @@ import { useQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries, ListOrganizationUsersRequestSchema, ListRolesRequestSchema, ListOrganizationInvitationsRequestSchema } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
-
-export type MemberWithInvite = User & Invitation & { invited?: boolean };
+export type MemberWithInvite = Partial<User> & Partial<Invitation> & { invited?: boolean };
 
 export interface UseOrganizationMembersReturn {
   isFetching: boolean;
@@ -22,7 +21,6 @@ export const useOrganizationMembers = ({
   showInvitations = false
 }): UseOrganizationMembersReturn => {
   const [users, setUsers] = useState<User[]>([]);
-  const [invitations, setInvitations] = useState<MemberWithInvite[]>([]);
 
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
 
@@ -73,24 +71,19 @@ export const useOrganizationMembers = ({
     { enabled: !!organization?.id && showInvitations }
   );
 
-  useEffect(() => {
-    if (invitationsData) {
-      const invitedUsers: MemberWithInvite[] = (invitationsData.invitations || []).map((user: User) => ({
-        ...user,
-        invited: true
-      }));
-      setInvitations(invitedUsers);
-    }
-  }, [invitationsData]);
-
-
   const isFetching = isUsersLoading || isInvitationsLoading || isRolesLoading;
   const hasError = usersError || rolesError || invitationsError;
 
-  const updatedUsers = useMemo(() => 
-    [...users, ...invitations],
-    [users, invitations]
-  );
+  const updatedUsers = useMemo(() => {
+    const invitations = (invitationsData?.invitations || []).map(user => {
+      return {
+        ...user,
+        email: user.userId,
+        invited: true
+      };
+    });
+    return [...users, ...invitations] as unknown as MemberWithInvite[];
+  }, [users, invitationsData?.invitations]);
 
   const refetch = useCallback(() => {
     // Trigger refetch of all queries

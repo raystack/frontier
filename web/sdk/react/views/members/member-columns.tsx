@@ -62,12 +62,9 @@ export const getColumns = (
   {
     header: 'Title',
     accessorKey: 'title',
-
     cell: ({ row, getValue }) => {
       const title = getValue() as string;
-      const email = row.original.invited
-        ? row.original.userId
-        : row.original.email;
+      const email = row.original.email;
       return (
         <Flex direction="column" gap={2}>
           <Label style={{ fontWeight: '$500' }}>{title}</Label>
