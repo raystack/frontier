@@ -152,6 +152,7 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the group body file")
 	cmd.MarkFlagRequired("file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
@@ -230,6 +231,7 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
@@ -293,6 +295,7 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

@@ -152,6 +152,7 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the project body file")
 	cmd.MarkFlagRequired("file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
@@ -228,6 +229,7 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
@@ -291,6 +293,7 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

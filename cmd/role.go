@@ -153,6 +153,7 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the role body file")
 	cmd.MarkFlagRequired("file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
@@ -230,6 +231,7 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
@@ -292,6 +294,7 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

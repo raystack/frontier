@@ -150,6 +150,7 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the policy body file")
 	cmd.MarkFlagRequired("file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
@@ -207,6 +208,7 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
