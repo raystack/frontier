@@ -9,6 +9,7 @@ import { Text, DropdownMenu } from '@raystack/apsara';
 import type { Project } from '@raystack/proton/frontier';
 import type { DataTableColumnDef } from '@raystack/apsara';
 import orgStyles from '../../../components/organization/organization.module.css';
+import React from 'react';
 
 export const getColumns = (
     userAccessOnProject: Record<string, string[]>,
