@@ -7,13 +7,11 @@ import React from 'react';
 
 interface GetColumnsOptions {
   dateFormat: string;
-  onServiceAccountClick?: (id: string) => void;
   onDeleteClick?: (id: string) => void;
 }
 
 export const getColumns = ({
   dateFormat,
-  onServiceAccountClick,
   onDeleteClick
 }: GetColumnsOptions): DataTableColumnDef<ServiceUser, unknown>[] => {
   return [
