@@ -1638,3 +1638,229 @@ func TestService_Get(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Delete(t *testing.T) {
+	testPAT := models.PAT{
+		ID:        "pat-1",
+		UserID:    "user-1",
+		OrgID:     "org-1",
+		Title:     "my-token",
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	tests := []struct {
+		name      string
+		setup     func() *userpat.Service
+		userID    string
+		patID     string
+		wantErr   bool
+		wantErrIs error
+	}{
+		{
+			name:   "should return ErrDisabled when PAT feature is disabled",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+					Enabled: false,
+				}, orgSvc, nil, nil, auditRepo)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDisabled,
+		},
+		{
+			name:   "should return ErrNotFound when PAT does not exist",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(models.PAT{}, paterrors.ErrNotFound)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, auditRepo)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrNotFound,
+		},
+		{
+			name:   "should return ErrNotFound when PAT belongs to different user",
+			userID: "user-2",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, auditRepo)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrNotFound,
+		},
+		{
+			name:   "should return error when repo delete fails",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				repo.EXPECT().Delete(mock.Anything, "pat-1").
+					Return(errors.New("db error"))
+				orgSvc := mocks.NewOrganizationService(t)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, auditRepo)
+			},
+			wantErr: true,
+		},
+		{
+			name:   "should return error when policy list fails after soft-delete",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				repo.EXPECT().Delete(mock.Anything, "pat-1").
+					Return(nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.EXPECT().List(mock.Anything, policy.Filter{
+					PrincipalID:   "pat-1",
+					PrincipalType: schema.PATPrincipal,
+				}).Return(nil, errors.New("spicedb down"))
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: true,
+		},
+		{
+			name:   "should return error when policy delete fails after soft-delete",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				repo.EXPECT().Delete(mock.Anything, "pat-1").
+					Return(nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.EXPECT().List(mock.Anything, policy.Filter{
+					PrincipalID:   "pat-1",
+					PrincipalType: schema.PATPrincipal,
+				}).Return([]policy.Policy{{ID: "pol-1"}}, nil)
+				policySvc.EXPECT().Delete(mock.Anything, "pol-1").
+					Return(errors.New("spicedb unavailable"))
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: true,
+		},
+		{
+			name:   "should delete successfully with policies",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				repo.EXPECT().Delete(mock.Anything, "pat-1").
+					Return(nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.EXPECT().List(mock.Anything, policy.Filter{
+					PrincipalID:   "pat-1",
+					PrincipalType: schema.PATPrincipal,
+				}).Return([]policy.Policy{
+					{ID: "pol-1"},
+					{ID: "pol-2"},
+				}, nil)
+				policySvc.EXPECT().Delete(mock.Anything, "pol-1").Return(nil)
+				policySvc.EXPECT().Delete(mock.Anything, "pol-2").Return(nil)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				auditRepo.On("Create", mock.Anything, mock.Anything).
+					Return(auditmodels.AuditRecord{}, nil).Maybe()
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: false,
+		},
+		{
+			name:   "should delete successfully with no policies",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				repo.EXPECT().Delete(mock.Anything, "pat-1").
+					Return(nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.EXPECT().List(mock.Anything, policy.Filter{
+					PrincipalID:   "pat-1",
+					PrincipalType: schema.PATPrincipal,
+				}).Return([]policy.Policy{}, nil)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				auditRepo.On("Create", mock.Anything, mock.Anything).
+					Return(auditmodels.AuditRecord{}, nil).Maybe()
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: false,
+		},
+		{
+			name:   "should succeed even when audit record creation fails",
+			userID: "user-1",
+			patID:  "pat-1",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(testPAT, nil)
+				repo.EXPECT().Delete(mock.Anything, "pat-1").
+					Return(nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.EXPECT().List(mock.Anything, policy.Filter{
+					PrincipalID:   "pat-1",
+					PrincipalType: schema.PATPrincipal,
+				}).Return([]policy.Policy{}, nil)
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				auditRepo.On("Create", mock.Anything, mock.Anything).
+					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.setup()
+			err := svc.Delete(context.Background(), tt.userID, tt.patID)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("Delete() expected error, got nil")
+				}
+				if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+					t.Errorf("Delete() error = %v, want %v", err, tt.wantErrIs)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Delete() unexpected error: %v", err)
+			}
+		})
+	}
+}

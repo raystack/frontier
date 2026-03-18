@@ -790,3 +790,133 @@ func TestHandler_ListRolesForPAT(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_DeleteCurrentUserPAT(t *testing.T) {
+	testUserID := "8e256f86-31a3-11ec-8d3d-0242ac130003"
+	testPATID := "6c256f86-31a3-11ec-8d3d-0242ac130003"
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.UserPATService, as *mocks.AuthnService)
+		request *connect.Request[frontierv1beta1.DeleteCurrentUserPATRequest]
+		wantErr error
+	}{
+		{
+			name: "should return unauthenticated error when GetLoggedInPrincipal fails",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
+				Id: testPATID,
+			}),
+			wantErr: connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated),
+		},
+		{
+			name: "should return permission denied when principal is not a user",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "sv-1",
+					Type: schema.ServiceUserPrincipal,
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
+				Id: testPATID,
+			}),
+			wantErr: connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated),
+		},
+		{
+			name: "should return failed precondition when PAT is disabled",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().Delete(mock.Anything, testUserID, testPATID).
+					Return(paterrors.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
+				Id: testPATID,
+			}),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, paterrors.ErrDisabled),
+		},
+		{
+			name: "should return not found when PAT does not exist",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().Delete(mock.Anything, testUserID, testPATID).
+					Return(paterrors.ErrNotFound)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
+				Id: testPATID,
+			}),
+			wantErr: connect.NewError(connect.CodeNotFound, paterrors.ErrNotFound),
+		},
+		{
+			name: "should return internal error for unknown failure",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().Delete(mock.Anything, testUserID, testPATID).
+					Return(errors.New("unexpected error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
+				Id: testPATID,
+			}),
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should delete PAT successfully",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().Delete(mock.Anything, testUserID, testPATID).
+					Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
+				Id: testPATID,
+			}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPATSrv := new(mocks.UserPATService)
+			mockAuthnSrv := new(mocks.AuthnService)
+
+			if tt.setup != nil {
+				tt.setup(mockPATSrv, mockAuthnSrv)
+			}
+
+			handler := &ConnectHandler{
+				userPATService: mockPATSrv,
+				authnService:   mockAuthnSrv,
+			}
+
+			resp, err := handler.DeleteCurrentUserPAT(context.Background(), tt.request)
+
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.Error(), err.Error())
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+			}
+
+			mockPATSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+		})
+	}
+}

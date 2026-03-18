@@ -269,3 +269,35 @@ func (r UserPATRepository) UpdateLastUsedAt(ctx context.Context, id string, at t
 
 	return nil
 }
+
+func (r UserPATRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := dialect.Update(TABLE_USER_PATS).
+		Set(goqu.Record{"deleted_at": time.Now().UTC()}).
+		Where(
+			goqu.Ex{"id": id},
+			goqu.Ex{"deleted_at": nil},
+		).
+		ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var result sql.Result
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "Delete", func(ctx context.Context) error {
+		var execErr error
+		result, execErr = r.dbc.ExecContext(ctx, query, params...)
+		return execErr
+	}); err != nil {
+		return fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%w: %w", dbErr, err)
+	}
+	if rowsAffected == 0 {
+		return paterrors.ErrNotFound
+	}
+
+	return nil
+}
