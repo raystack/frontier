@@ -205,7 +205,7 @@ const TeamsTable = ({
       isLoading={isLoading}
       columns={columns}
       defaultSort={{ name: 'name', order: 'asc' }}
-      onRowClick={row => onTeamClick(row.id)}
+      onRowClick={row => onTeamClick?.(row.id)}
     >
       <Flex direction="column" gap={7} className={styles.tableWrapper}>
         <Flex justify="between" gap={3}>
