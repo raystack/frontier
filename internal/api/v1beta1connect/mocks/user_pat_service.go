@@ -318,6 +318,72 @@ func (_c *UserPATService_ListAllowedRoles_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// Regenerate provides a mock function with given fields: ctx, userID, id, newExpiresAt
+func (_m *UserPATService) Regenerate(ctx context.Context, userID string, id string, newExpiresAt time.Time) (models.PAT, string, error) {
+	ret := _m.Called(ctx, userID, id, newExpiresAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Regenerate")
+	}
+
+	var r0 models.PAT
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Time) (models.PAT, string, error)); ok {
+		return rf(ctx, userID, id, newExpiresAt)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Time) models.PAT); ok {
+		r0 = rf(ctx, userID, id, newExpiresAt)
+	} else {
+		r0 = ret.Get(0).(models.PAT)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, time.Time) string); ok {
+		r1 = rf(ctx, userID, id, newExpiresAt)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, time.Time) error); ok {
+		r2 = rf(ctx, userID, id, newExpiresAt)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// UserPATService_Regenerate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Regenerate'
+type UserPATService_Regenerate_Call struct {
+	*mock.Call
+}
+
+// Regenerate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - id string
+//   - newExpiresAt time.Time
+func (_e *UserPATService_Expecter) Regenerate(ctx interface{}, userID interface{}, id interface{}, newExpiresAt interface{}) *UserPATService_Regenerate_Call {
+	return &UserPATService_Regenerate_Call{Call: _e.mock.On("Regenerate", ctx, userID, id, newExpiresAt)}
+}
+
+func (_c *UserPATService_Regenerate_Call) Run(run func(ctx context.Context, userID string, id string, newExpiresAt time.Time)) *UserPATService_Regenerate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(time.Time))
+	})
+	return _c
+}
+
+func (_c *UserPATService_Regenerate_Call) Return(_a0 models.PAT, _a1 string, _a2 error) *UserPATService_Regenerate_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *UserPATService_Regenerate_Call) RunAndReturn(run func(context.Context, string, string, time.Time) (models.PAT, string, error)) *UserPATService_Regenerate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: ctx, toUpdate
 func (_m *UserPATService) Update(ctx context.Context, toUpdate models.PAT) (models.PAT, error) {
 	ret := _m.Called(ctx, toUpdate)

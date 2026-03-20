@@ -552,6 +552,9 @@ const (
 	// FrontierServiceUpdateCurrentUserPATProcedure is the fully-qualified name of the FrontierService's
 	// UpdateCurrentUserPAT RPC.
 	FrontierServiceUpdateCurrentUserPATProcedure = "/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUserPAT"
+	// FrontierServiceRegenerateCurrentUserPATProcedure is the fully-qualified name of the
+	// FrontierService's RegenerateCurrentUserPAT RPC.
+	FrontierServiceRegenerateCurrentUserPATProcedure = "/raystack.frontier.v1beta1.FrontierService/RegenerateCurrentUserPAT"
 )
 
 // FrontierServiceClient is a client for the raystack.frontier.v1beta1.FrontierService service.
@@ -761,6 +764,7 @@ type FrontierServiceClient interface {
 	GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error)
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
+	RegenerateCurrentUserPAT(context.Context, *connect.Request[v1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[v1beta1.RegenerateCurrentUserPATResponse], error)
 }
 
 // NewFrontierServiceClient constructs a client for the raystack.frontier.v1beta1.FrontierService
@@ -1818,6 +1822,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("UpdateCurrentUserPAT")),
 			connect.WithClientOptions(opts...),
 		),
+		regenerateCurrentUserPAT: connect.NewClient[v1beta1.RegenerateCurrentUserPATRequest, v1beta1.RegenerateCurrentUserPATResponse](
+			httpClient,
+			baseURL+FrontierServiceRegenerateCurrentUserPATProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("RegenerateCurrentUserPAT")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -1997,6 +2007,7 @@ type frontierServiceClient struct {
 	getCurrentUserPAT              *connect.Client[v1beta1.GetCurrentUserPATRequest, v1beta1.GetCurrentUserPATResponse]
 	deleteCurrentUserPAT           *connect.Client[v1beta1.DeleteCurrentUserPATRequest, v1beta1.DeleteCurrentUserPATResponse]
 	updateCurrentUserPAT           *connect.Client[v1beta1.UpdateCurrentUserPATRequest, v1beta1.UpdateCurrentUserPATResponse]
+	regenerateCurrentUserPAT       *connect.Client[v1beta1.RegenerateCurrentUserPATRequest, v1beta1.RegenerateCurrentUserPATResponse]
 }
 
 // ListUsers calls raystack.frontier.v1beta1.FrontierService.ListUsers.
@@ -2891,6 +2902,12 @@ func (c *frontierServiceClient) UpdateCurrentUserPAT(ctx context.Context, req *c
 	return c.updateCurrentUserPAT.CallUnary(ctx, req)
 }
 
+// RegenerateCurrentUserPAT calls
+// raystack.frontier.v1beta1.FrontierService.RegenerateCurrentUserPAT.
+func (c *frontierServiceClient) RegenerateCurrentUserPAT(ctx context.Context, req *connect.Request[v1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[v1beta1.RegenerateCurrentUserPATResponse], error) {
+	return c.regenerateCurrentUserPAT.CallUnary(ctx, req)
+}
+
 // FrontierServiceHandler is an implementation of the raystack.frontier.v1beta1.FrontierService
 // service.
 type FrontierServiceHandler interface {
@@ -3099,6 +3116,7 @@ type FrontierServiceHandler interface {
 	GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error)
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
+	RegenerateCurrentUserPAT(context.Context, *connect.Request[v1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[v1beta1.RegenerateCurrentUserPATResponse], error)
 }
 
 // NewFrontierServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -4152,6 +4170,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("UpdateCurrentUserPAT")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceRegenerateCurrentUserPATHandler := connect.NewUnaryHandler(
+		FrontierServiceRegenerateCurrentUserPATProcedure,
+		svc.RegenerateCurrentUserPAT,
+		connect.WithSchema(frontierServiceMethods.ByName("RegenerateCurrentUserPAT")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/raystack.frontier.v1beta1.FrontierService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FrontierServiceListUsersProcedure:
@@ -4502,6 +4526,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceDeleteCurrentUserPATHandler.ServeHTTP(w, r)
 		case FrontierServiceUpdateCurrentUserPATProcedure:
 			frontierServiceUpdateCurrentUserPATHandler.ServeHTTP(w, r)
+		case FrontierServiceRegenerateCurrentUserPATProcedure:
+			frontierServiceRegenerateCurrentUserPATHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -5205,4 +5231,8 @@ func (UnimplementedFrontierServiceHandler) DeleteCurrentUserPAT(context.Context,
 
 func (UnimplementedFrontierServiceHandler) UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateCurrentUserPAT is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) RegenerateCurrentUserPAT(context.Context, *connect.Request[v1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[v1beta1.RegenerateCurrentUserPATResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RegenerateCurrentUserPAT is not implemented"))
 }

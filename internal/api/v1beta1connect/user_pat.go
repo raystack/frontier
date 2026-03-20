@@ -223,6 +223,48 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 	}), nil
 }
 
+func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.RegenerateCurrentUserPATResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.User == nil {
+		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
+	}
+
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	regenerated, patValue, err := h.userPATService.Regenerate(ctx, principal.User.ID, request.Msg.GetId(), request.Msg.GetExpiresAt().AsTime())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "RegenerateCurrentUserPAT", err,
+			zap.String("user_id", principal.User.ID),
+			zap.String("pat_id", request.Msg.GetId()))
+
+		switch {
+		case errors.Is(err, paterrors.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, paterrors.ErrNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		case errors.Is(err, paterrors.ErrLimitExceeded):
+			return nil, connect.NewError(connect.CodeResourceExhausted, err)
+		case errors.Is(err, paterrors.ErrExpiryInPast):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, paterrors.ErrExpiryExceeded):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.RegenerateCurrentUserPATResponse{
+		Pat: transformPATToPB(regenerated, patValue),
+	}), nil
+}
+
 func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	pbPAT := &frontierv1beta1.PAT{
 		Id:         pat.ID,

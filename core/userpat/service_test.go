@@ -2144,3 +2144,228 @@ func TestService_Update(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Regenerate(t *testing.T) {
+	futureExpiry := time.Now().Add(48 * time.Hour)
+
+	activePAT := models.PAT{
+		ID:        "pat-1",
+		UserID:    "user-1",
+		OrgID:     "org-1",
+		Title:     "my-token",
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	expiredPAT := models.PAT{
+		ID:        "pat-2",
+		UserID:    "user-1",
+		OrgID:     "org-1",
+		Title:     "expired-token",
+		ExpiresAt: time.Now().Add(-24 * time.Hour),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	regeneratedPAT := models.PAT{
+		ID:        "pat-1",
+		UserID:    "user-1",
+		OrgID:     "org-1",
+		Title:     "my-token",
+		ExpiresAt: futureExpiry,
+		CreatedAt: activePAT.CreatedAt,
+		UpdatedAt: time.Now(),
+	}
+
+	tests := []struct {
+		name      string
+		setup     func() *userpat.Service
+		userID    string
+		patID     string
+		expiresAt time.Time
+		wantErr   bool
+		wantErrIs error
+	}{
+		{
+			name:      "should return ErrDisabled when PAT feature is disabled",
+			userID:    "user-1",
+			patID:     "pat-1",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				return userpat.NewService(log.NewNoop(), nil, userpat.Config{
+					Enabled: false,
+				}, nil, nil, nil, nil)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDisabled,
+		},
+		{
+			name:      "should return ErrNotFound when PAT does not exist",
+			userID:    "user-1",
+			patID:     "pat-1",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(models.PAT{}, paterrors.ErrNotFound)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrNotFound,
+		},
+		{
+			name:      "should return ErrNotFound when PAT belongs to different user",
+			userID:    "user-2",
+			patID:     "pat-1",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(activePAT, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrNotFound,
+		},
+		{
+			name:      "should return error when expiry is in the past",
+			userID:    "user-1",
+			patID:     "pat-1",
+			expiresAt: time.Now().Add(-1 * time.Hour),
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(activePAT, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrExpiryInPast,
+		},
+		{
+			name:      "should return ErrLimitExceeded when reviving expired PAT at limit",
+			userID:    "user-1",
+			patID:     "pat-2",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-2").
+					Return(expiredPAT, nil)
+				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
+					Return(int64(50), nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrLimitExceeded,
+		},
+		{
+			name:      "should not check limit when regenerating active PAT",
+			userID:    "user-1",
+			patID:     "pat-1",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(activePAT, nil)
+				// No CountActive call expected — PAT is active
+				repo.EXPECT().Regenerate(mock.Anything, "pat-1", mock.Anything, mock.Anything).
+					Return(regeneratedPAT, nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.On("List", mock.Anything, mock.Anything).
+					Return([]policy.Policy{}, nil).Maybe()
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				auditRepo.On("Create", mock.Anything, mock.Anything).
+					Return(auditmodels.AuditRecord{}, nil).Maybe()
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: false,
+		},
+		{
+			name:      "should return error when repo regenerate fails",
+			userID:    "user-1",
+			patID:     "pat-1",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(activePAT, nil)
+				repo.EXPECT().Regenerate(mock.Anything, "pat-1", mock.Anything, mock.Anything).
+					Return(models.PAT{}, errors.New("db error"))
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name:      "should regenerate expired PAT successfully when under limit",
+			userID:    "user-1",
+			patID:     "pat-2",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-2").
+					Return(expiredPAT, nil)
+				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
+					Return(int64(10), nil)
+				repo.EXPECT().Regenerate(mock.Anything, "pat-2", mock.Anything, mock.Anything).
+					Return(regeneratedPAT, nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.On("List", mock.Anything, mock.Anything).
+					Return([]policy.Policy{}, nil).Maybe()
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				auditRepo.On("Create", mock.Anything, mock.Anything).
+					Return(auditmodels.AuditRecord{}, nil).Maybe()
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: false,
+		},
+		{
+			name:      "should succeed even when audit record creation fails",
+			userID:    "user-1",
+			patID:     "pat-1",
+			expiresAt: futureExpiry,
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(activePAT, nil)
+				repo.EXPECT().Regenerate(mock.Anything, "pat-1", mock.Anything, mock.Anything).
+					Return(regeneratedPAT, nil)
+				orgSvc := mocks.NewOrganizationService(t)
+				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+				policySvc := mocks.NewPolicyService(t)
+				policySvc.On("List", mock.Anything, mock.Anything).
+					Return([]policy.Policy{}, nil).Maybe()
+				auditRepo := mocks.NewAuditRecordRepository(t)
+				auditRepo.On("Create", mock.Anything, mock.Anything).
+					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, auditRepo)
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.setup()
+			_, _, err := svc.Regenerate(context.Background(), tt.userID, tt.patID, tt.expiresAt)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("Regenerate() expected error, got nil")
+				}
+				if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+					t.Errorf("Regenerate() error = %v, want %v", err, tt.wantErrIs)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Regenerate() unexpected error: %v", err)
+			}
+		})
+	}
+}
