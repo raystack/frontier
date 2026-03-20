@@ -318,6 +318,63 @@ func (_c *UserPATService_ListAllowedRoles_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// Update provides a mock function with given fields: ctx, toUpdate
+func (_m *UserPATService) Update(ctx context.Context, toUpdate models.PAT) (models.PAT, error) {
+	ret := _m.Called(ctx, toUpdate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.PAT) (models.PAT, error)); ok {
+		return rf(ctx, toUpdate)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.PAT) models.PAT); ok {
+		r0 = rf(ctx, toUpdate)
+	} else {
+		r0 = ret.Get(0).(models.PAT)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.PAT) error); ok {
+		r1 = rf(ctx, toUpdate)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserPATService_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type UserPATService_Update_Call struct {
+	*mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ctx context.Context
+//   - toUpdate models.PAT
+func (_e *UserPATService_Expecter) Update(ctx interface{}, toUpdate interface{}) *UserPATService_Update_Call {
+	return &UserPATService_Update_Call{Call: _e.mock.On("Update", ctx, toUpdate)}
+}
+
+func (_c *UserPATService_Update_Call) Run(run func(ctx context.Context, toUpdate models.PAT)) *UserPATService_Update_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(models.PAT))
+	})
+	return _c
+}
+
+func (_c *UserPATService_Update_Call) Return(_a0 models.PAT, _a1 error) *UserPATService_Update_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserPATService_Update_Call) RunAndReturn(run func(context.Context, models.PAT) (models.PAT, error)) *UserPATService_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ValidateExpiry provides a mock function with given fields: expiresAt
 func (_m *UserPATService) ValidateExpiry(expiresAt time.Time) error {
 	ret := _m.Called(expiresAt)

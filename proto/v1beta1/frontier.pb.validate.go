@@ -47348,6 +47348,346 @@ var _ interface {
 	ErrorName() string
 } = DeleteCurrentUserPATResponseValidationError{}
 
+// Validate checks the field values on UpdateCurrentUserPATRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateCurrentUserPATRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateCurrentUserPATRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateCurrentUserPATRequestMultiError, or nil if none found.
+func (m *UpdateCurrentUserPATRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateCurrentUserPATRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = UpdateCurrentUserPATRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetTitle()) < 1 {
+		err := UpdateCurrentUserPATRequestValidationError{
+			field:  "Title",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetRoleIds()) < 1 {
+		err := UpdateCurrentUserPATRequestValidationError{
+			field:  "RoleIds",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetRoleIds() {
+		_, _ = idx, item
+
+		if err := m._validateUuid(item); err != nil {
+			err = UpdateCurrentUserPATRequestValidationError{
+				field:  fmt.Sprintf("RoleIds[%v]", idx),
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	for idx, item := range m.GetProjectIds() {
+		_, _ = idx, item
+
+		if err := m._validateUuid(item); err != nil {
+			err = UpdateCurrentUserPATRequestValidationError{
+				field:  fmt.Sprintf("ProjectIds[%v]", idx),
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateCurrentUserPATRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateCurrentUserPATRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateCurrentUserPATRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateCurrentUserPATRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateCurrentUserPATRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// UpdateCurrentUserPATRequestMultiError is an error wrapping multiple
+// validation errors returned by UpdateCurrentUserPATRequest.ValidateAll() if
+// the designated constraints aren't met.
+type UpdateCurrentUserPATRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateCurrentUserPATRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateCurrentUserPATRequestMultiError) AllErrors() []error { return m }
+
+// UpdateCurrentUserPATRequestValidationError is the validation error returned
+// by UpdateCurrentUserPATRequest.Validate if the designated constraints
+// aren't met.
+type UpdateCurrentUserPATRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateCurrentUserPATRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateCurrentUserPATRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateCurrentUserPATRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateCurrentUserPATRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateCurrentUserPATRequestValidationError) ErrorName() string {
+	return "UpdateCurrentUserPATRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateCurrentUserPATRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateCurrentUserPATRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateCurrentUserPATRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateCurrentUserPATRequestValidationError{}
+
+// Validate checks the field values on UpdateCurrentUserPATResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateCurrentUserPATResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateCurrentUserPATResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateCurrentUserPATResponseMultiError, or nil if none found.
+func (m *UpdateCurrentUserPATResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateCurrentUserPATResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPat()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateCurrentUserPATResponseValidationError{
+					field:  "Pat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateCurrentUserPATResponseValidationError{
+					field:  "Pat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPat()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateCurrentUserPATResponseValidationError{
+				field:  "Pat",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateCurrentUserPATResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateCurrentUserPATResponseMultiError is an error wrapping multiple
+// validation errors returned by UpdateCurrentUserPATResponse.ValidateAll() if
+// the designated constraints aren't met.
+type UpdateCurrentUserPATResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateCurrentUserPATResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateCurrentUserPATResponseMultiError) AllErrors() []error { return m }
+
+// UpdateCurrentUserPATResponseValidationError is the validation error returned
+// by UpdateCurrentUserPATResponse.Validate if the designated constraints
+// aren't met.
+type UpdateCurrentUserPATResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateCurrentUserPATResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateCurrentUserPATResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateCurrentUserPATResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateCurrentUserPATResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateCurrentUserPATResponseValidationError) ErrorName() string {
+	return "UpdateCurrentUserPATResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateCurrentUserPATResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateCurrentUserPATResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateCurrentUserPATResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateCurrentUserPATResponseValidationError{}
+
 // Validate checks the field values on ChangeSubscriptionRequest_PlanChange
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if

@@ -15,5 +15,6 @@ type Repository interface {
 	List(ctx context.Context, userID, orgID string, query *rql.Query) (models.PATList, error)
 	GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error)
 	UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error
+	Update(ctx context.Context, pat models.PAT) (models.PAT, error)
 	Delete(ctx context.Context, id string) error
 }

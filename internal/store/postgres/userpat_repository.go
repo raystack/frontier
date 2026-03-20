@@ -270,6 +270,44 @@ func (r UserPATRepository) UpdateLastUsedAt(ctx context.Context, id string, at t
 	return nil
 }
 
+func (r UserPATRepository) Update(ctx context.Context, pat models.PAT) (models.PAT, error) {
+	marshaledMetadata, err := json.Marshal(pat.Metadata)
+	if err != nil {
+		return models.PAT{}, fmt.Errorf("%w: %w", parseErr, err)
+	}
+
+	query, params, err := dialect.Update(TABLE_USER_PATS).
+		Set(goqu.Record{
+			"title":    pat.Title,
+			"metadata": marshaledMetadata,
+		}).
+		Where(
+			goqu.Ex{"id": pat.ID},
+			goqu.Ex{"deleted_at": nil},
+		).
+		Returning(&UserPAT{}).
+		ToSQL()
+	if err != nil {
+		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var model UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "Update", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&model)
+	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.PAT{}, paterrors.ErrNotFound
+		}
+		if errors.Is(err, ErrDuplicateKey) {
+			return models.PAT{}, paterrors.ErrConflict
+		}
+		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	return model.transform()
+}
+
 func (r UserPATRepository) Delete(ctx context.Context, id string) error {
 	query, params, err := dialect.Update(TABLE_USER_PATS).
 		Set(goqu.Record{"deleted_at": time.Now().UTC()}).

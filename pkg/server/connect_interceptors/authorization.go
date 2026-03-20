@@ -137,6 +137,7 @@ var authorizationSkipEndpoints = map[string]bool{
 
 	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUserPAT":    true,
 	"/raystack.frontier.v1beta1.FrontierService/DeleteCurrentUserPAT": true,
+	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUserPAT": true,
 	"/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT":      true,
 }
 
