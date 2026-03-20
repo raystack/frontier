@@ -56,6 +56,7 @@ const (
 
 	// PAT Events
 	PATCreatedEvent Event = "pat.created"
+	PATRevokedEvent Event = "pat.revoked"
 
 	SystemActor = "system"
 
