@@ -1105,8 +1105,8 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
-				assert.Equal(t, testPATID, resp.Msg.Pat.Id)
-				assert.Equal(t, "updated-title", resp.Msg.Pat.Title)
+				assert.Equal(t, testPATID, resp.Msg.GetPat().GetId())
+				assert.Equal(t, "updated-title", resp.Msg.GetPat().GetTitle())
 			}
 
 			mockPATSrv.AssertExpectations(t)
