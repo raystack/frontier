@@ -403,4 +403,7 @@ type UserPATService interface {
 	ValidateExpiry(expiresAt time.Time) error
 	Create(ctx context.Context, req userpat.CreateRequest) (models.PAT, string, error)
 	List(ctx context.Context, userID, orgID string, query *rql.Query) (models.PATList, error)
+	Get(ctx context.Context, userID, id string) (models.PAT, error)
+	Delete(ctx context.Context, userID, id string) error
+	ListAllowedRoles(ctx context.Context, scopes []string) ([]role.Role, error)
 }

@@ -18973,6 +18973,100 @@ func (x *CreateCurrentUserPATResponse) GetPat() *PAT {
 	return nil
 }
 
+type ListRolesForPATRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Scopes []string `protobuf:"bytes,1,rep,name=scopes,proto3" json:"scopes,omitempty"`
+}
+
+func (x *ListRolesForPATRequest) Reset() {
+	*x = ListRolesForPATRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListRolesForPATRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRolesForPATRequest) ProtoMessage() {}
+
+func (x *ListRolesForPATRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRolesForPATRequest.ProtoReflect.Descriptor instead.
+func (*ListRolesForPATRequest) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{359}
+}
+
+func (x *ListRolesForPATRequest) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+type ListRolesForPATResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Roles []*Role `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
+}
+
+func (x *ListRolesForPATResponse) Reset() {
+	*x = ListRolesForPATResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListRolesForPATResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRolesForPATResponse) ProtoMessage() {}
+
+func (x *ListRolesForPATResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRolesForPATResponse.ProtoReflect.Descriptor instead.
+func (*ListRolesForPATResponse) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{360}
+}
+
+func (x *ListRolesForPATResponse) GetRoles() []*Role {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
 type ListCurrentUserPATsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -18985,7 +19079,7 @@ type ListCurrentUserPATsRequest struct {
 func (x *ListCurrentUserPATsRequest) Reset() {
 	*x = ListCurrentUserPATsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18998,7 +19092,7 @@ func (x *ListCurrentUserPATsRequest) String() string {
 func (*ListCurrentUserPATsRequest) ProtoMessage() {}
 
 func (x *ListCurrentUserPATsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19011,7 +19105,7 @@ func (x *ListCurrentUserPATsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCurrentUserPATsRequest.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserPATsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{359}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{361}
 }
 
 func (x *ListCurrentUserPATsRequest) GetOrgId() string {
@@ -19040,7 +19134,7 @@ type ListCurrentUserPATsResponse struct {
 func (x *ListCurrentUserPATsResponse) Reset() {
 	*x = ListCurrentUserPATsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19053,7 +19147,7 @@ func (x *ListCurrentUserPATsResponse) String() string {
 func (*ListCurrentUserPATsResponse) ProtoMessage() {}
 
 func (x *ListCurrentUserPATsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19066,7 +19160,7 @@ func (x *ListCurrentUserPATsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCurrentUserPATsResponse.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserPATsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{360}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{362}
 }
 
 func (x *ListCurrentUserPATsResponse) GetPats() []*PAT {
@@ -19094,7 +19188,7 @@ type GetCurrentUserPATRequest struct {
 func (x *GetCurrentUserPATRequest) Reset() {
 	*x = GetCurrentUserPATRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19107,7 +19201,7 @@ func (x *GetCurrentUserPATRequest) String() string {
 func (*GetCurrentUserPATRequest) ProtoMessage() {}
 
 func (x *GetCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19120,7 +19214,7 @@ func (x *GetCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserPATRequest.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserPATRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{361}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{363}
 }
 
 func (x *GetCurrentUserPATRequest) GetId() string {
@@ -19141,7 +19235,7 @@ type GetCurrentUserPATResponse struct {
 func (x *GetCurrentUserPATResponse) Reset() {
 	*x = GetCurrentUserPATResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19154,7 +19248,7 @@ func (x *GetCurrentUserPATResponse) String() string {
 func (*GetCurrentUserPATResponse) ProtoMessage() {}
 
 func (x *GetCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19167,7 +19261,7 @@ func (x *GetCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserPATResponse.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserPATResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{362}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{364}
 }
 
 func (x *GetCurrentUserPATResponse) GetPat() *PAT {
@@ -19175,6 +19269,91 @@ func (x *GetCurrentUserPATResponse) GetPat() *PAT {
 		return x.Pat
 	}
 	return nil
+}
+
+type DeleteCurrentUserPATRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *DeleteCurrentUserPATRequest) Reset() {
+	*x = DeleteCurrentUserPATRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCurrentUserPATRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCurrentUserPATRequest) ProtoMessage() {}
+
+func (x *DeleteCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCurrentUserPATRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCurrentUserPATRequest) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{365}
+}
+
+func (x *DeleteCurrentUserPATRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteCurrentUserPATResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DeleteCurrentUserPATResponse) Reset() {
+	*x = DeleteCurrentUserPATResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCurrentUserPATResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCurrentUserPATResponse) ProtoMessage() {}
+
+func (x *DeleteCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCurrentUserPATResponse.ProtoReflect.Descriptor instead.
+func (*DeleteCurrentUserPATResponse) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{366}
 }
 
 type ChangeSubscriptionRequest_PlanChange struct {
@@ -19191,7 +19370,7 @@ type ChangeSubscriptionRequest_PlanChange struct {
 func (x *ChangeSubscriptionRequest_PlanChange) Reset() {
 	*x = ChangeSubscriptionRequest_PlanChange{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19204,7 +19383,7 @@ func (x *ChangeSubscriptionRequest_PlanChange) String() string {
 func (*ChangeSubscriptionRequest_PlanChange) ProtoMessage() {}
 
 func (x *ChangeSubscriptionRequest_PlanChange) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19246,7 +19425,7 @@ type ChangeSubscriptionRequest_PhaseChange struct {
 func (x *ChangeSubscriptionRequest_PhaseChange) Reset() {
 	*x = ChangeSubscriptionRequest_PhaseChange{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19259,7 +19438,7 @@ func (x *ChangeSubscriptionRequest_PhaseChange) String() string {
 func (*ChangeSubscriptionRequest_PhaseChange) ProtoMessage() {}
 
 func (x *ChangeSubscriptionRequest_PhaseChange) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19294,7 +19473,7 @@ type ListProjectsByCurrentUserResponse_AccessPair struct {
 func (x *ListProjectsByCurrentUserResponse_AccessPair) Reset() {
 	*x = ListProjectsByCurrentUserResponse_AccessPair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19307,7 +19486,7 @@ func (x *ListProjectsByCurrentUserResponse_AccessPair) String() string {
 func (*ListProjectsByCurrentUserResponse_AccessPair) ProtoMessage() {}
 
 func (x *ListProjectsByCurrentUserResponse_AccessPair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19349,7 +19528,7 @@ type ListCurrentUserGroupsResponse_AccessPair struct {
 func (x *ListCurrentUserGroupsResponse_AccessPair) Reset() {
 	*x = ListCurrentUserGroupsResponse_AccessPair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19362,7 +19541,7 @@ func (x *ListCurrentUserGroupsResponse_AccessPair) String() string {
 func (*ListCurrentUserGroupsResponse_AccessPair) ProtoMessage() {}
 
 func (x *ListCurrentUserGroupsResponse_AccessPair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19404,7 +19583,7 @@ type ListServiceUserProjectsResponse_AccessPair struct {
 func (x *ListServiceUserProjectsResponse_AccessPair) Reset() {
 	*x = ListServiceUserProjectsResponse_AccessPair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19417,7 +19596,7 @@ func (x *ListServiceUserProjectsResponse_AccessPair) String() string {
 func (*ListServiceUserProjectsResponse_AccessPair) ProtoMessage() {}
 
 func (x *ListServiceUserProjectsResponse_AccessPair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19459,7 +19638,7 @@ type ListOrganizationUsersResponse_RolePair struct {
 func (x *ListOrganizationUsersResponse_RolePair) Reset() {
 	*x = ListOrganizationUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19472,7 +19651,7 @@ func (x *ListOrganizationUsersResponse_RolePair) String() string {
 func (*ListOrganizationUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListOrganizationUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19514,7 +19693,7 @@ type ListProjectUsersResponse_RolePair struct {
 func (x *ListProjectUsersResponse_RolePair) Reset() {
 	*x = ListProjectUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19527,7 +19706,7 @@ func (x *ListProjectUsersResponse_RolePair) String() string {
 func (*ListProjectUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListProjectUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19569,7 +19748,7 @@ type ListProjectServiceUsersResponse_RolePair struct {
 func (x *ListProjectServiceUsersResponse_RolePair) Reset() {
 	*x = ListProjectServiceUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19582,7 +19761,7 @@ func (x *ListProjectServiceUsersResponse_RolePair) String() string {
 func (*ListProjectServiceUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListProjectServiceUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19624,7 +19803,7 @@ type ListProjectGroupsResponse_RolePair struct {
 func (x *ListProjectGroupsResponse_RolePair) Reset() {
 	*x = ListProjectGroupsResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19637,7 +19816,7 @@ func (x *ListProjectGroupsResponse_RolePair) String() string {
 func (*ListProjectGroupsResponse_RolePair) ProtoMessage() {}
 
 func (x *ListProjectGroupsResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19679,7 +19858,7 @@ type ListGroupUsersResponse_RolePair struct {
 func (x *ListGroupUsersResponse_RolePair) Reset() {
 	*x = ListGroupUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19692,7 +19871,7 @@ func (x *ListGroupUsersResponse_RolePair) String() string {
 func (*ListGroupUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListGroupUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -22059,35 +22238,49 @@ var file_raystack_frontier_v1beta1_frontier_proto_rawDesc = []byte{
 	0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a, 0x03, 0x70, 0x61,
 	0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
 	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x50, 0x41, 0x54, 0x52, 0x03, 0x70, 0x61, 0x74, 0x22, 0x7d, 0x0a, 0x1a,
-	0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50,
-	0x41, 0x54, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x22, 0x0a, 0x06, 0x6f, 0x72,
-	0x67, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x0b, 0xe0, 0x41, 0x02, 0xfa,
-	0x42, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x12, 0x3b,
-	0x0a, 0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x25, 0x2e,
+	0x74, 0x61, 0x31, 0x2e, 0x50, 0x41, 0x54, 0x52, 0x03, 0x70, 0x61, 0x74, 0x22, 0x30, 0x0a, 0x16,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x63, 0x6f, 0x70, 0x65, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x73, 0x63, 0x6f, 0x70, 0x65, 0x73, 0x22, 0x50,
+	0x0a, 0x17, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41,
+	0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x35, 0x0a, 0x05, 0x72, 0x6f, 0x6c,
+	0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x6f, 0x6c, 0x65, 0x52, 0x05, 0x72, 0x6f, 0x6c, 0x65, 0x73,
+	0x22, 0x7d, 0x0a, 0x1a, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55,
+	0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x22,
+	0x0a, 0x06, 0x6f, 0x72, 0x67, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x0b,
+	0xe0, 0x41, 0x02, 0xfa, 0x42, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x05, 0x6f, 0x72, 0x67,
+	0x49, 0x64, 0x12, 0x3b, 0x0a, 0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x25, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f,
+	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x51,
+	0x4c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x22,
+	0xa8, 0x01, 0x0a, 0x1b, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55,
+	0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x32, 0x0a, 0x04, 0x70, 0x61, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1e, 0x2e,
 	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x51, 0x4c, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x52, 0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x22, 0xa8, 0x01, 0x0a, 0x1b,
-	0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50,
-	0x41, 0x54, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x32, 0x0a, 0x04, 0x70,
-	0x61, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x72, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x41, 0x54, 0x52, 0x04, 0x70, 0x61, 0x74, 0x73, 0x12,
-	0x55, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x35, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
-	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
-	0x52, 0x51, 0x4c, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69,
-	0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x37, 0x0a, 0x18, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72,
-	0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x1b, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x0b,
-	0xe0, 0x41, 0x02, 0xfa, 0x42, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x22,
-	0x4d, 0x0a, 0x19, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65,
-	0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a, 0x03,
-	0x70, 0x61, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x72, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x41, 0x54, 0x52, 0x03, 0x70, 0x61, 0x74, 0x32, 0x92,
-	0xb0, 0x01, 0x0a, 0x0f, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76,
+	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x41, 0x54, 0x52, 0x04, 0x70,
+	0x61, 0x74, 0x73, 0x12, 0x55, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x35, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
+	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x31, 0x2e, 0x52, 0x51, 0x4c, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x67, 0x69,
+	0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a,
+	0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x37, 0x0a, 0x18, 0x47, 0x65,
+	0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x42, 0x0b, 0xe0, 0x41, 0x02, 0xfa, 0x42, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52,
+	0x02, 0x69, 0x64, 0x22, 0x4d, 0x0a, 0x19, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e,
+	0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x30, 0x0a, 0x03, 0x70, 0x61, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e,
+	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x41, 0x54, 0x52, 0x03, 0x70,
+	0x61, 0x74, 0x22, 0x3a, 0x0a, 0x1b, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72,
+	0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x1b, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x0b, 0xe0,
+	0x41, 0x02, 0xfa, 0x42, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x22, 0x1e,
+	0x0a, 0x1c, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55,
+	0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x9a,
+	0xb2, 0x01, 0x0a, 0x0f, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76,
 	0x69, 0x63, 0x65, 0x12, 0x68, 0x0a, 0x09, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x73,
 	0x12, 0x2b, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
 	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73,
@@ -23479,39 +23672,56 @@ var file_raystack_frontier_v1beta1_frontier_proto_rawDesc = []byte{
 	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
 	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
 	0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x86, 0x01, 0x0a, 0x13, 0x4c, 0x69, 0x73,
-	0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73,
-	0x12, 0x35, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
-	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73,
-	0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
-	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55,
-	0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x80, 0x01, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74,
-	0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12, 0x33, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
-	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73,
-	0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x34, 0x2e, 0x72,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7a, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74,
+	0x52, 0x6f, 0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x12, 0x31, 0x2e, 0x72, 0x61,
+	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x65,
+	0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32,
+	0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69,
+	0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52,
+	0x6f, 0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x86, 0x01, 0x0a, 0x13, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72,
+	0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x12, 0x35, 0x2e, 0x72,
 	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72,
-	0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x42, 0xf0, 0x01, 0x0a, 0x1d, 0x63, 0x6f, 0x6d, 0x2e, 0x72, 0x61, 0x79,
-	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x42, 0x0d, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2f, 0x66, 0x72, 0x6f,
-	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x3b, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0xa2, 0x02, 0x03, 0x52, 0x46, 0x58, 0xaa, 0x02, 0x19, 0x52, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x56, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0xca, 0x02, 0x19, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
-	0x5c, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0xe2, 0x02, 0x25, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x5c, 0x46, 0x72, 0x6f,
-	0x6e, 0x74, 0x69, 0x65, 0x72, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x5c, 0x47, 0x50,
-	0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x1b, 0x52, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x3a, 0x3a, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x3a, 0x3a,
-	0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72,
+	0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
+	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
+	0x4c, 0x69, 0x73, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50,
+	0x41, 0x54, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x80, 0x01,
+	0x0a, 0x11, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72,
+	0x50, 0x41, 0x54, 0x12, 0x33, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
+	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
+	0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41,
+	0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x34, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55,
+	0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x89, 0x01, 0x0a, 0x14, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65,
+	0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12, 0x36, 0x2e, 0x72, 0x61, 0x79, 0x73,
+	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72,
+	0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x37, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f,
+	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50,
+	0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0xf0, 0x01, 0x0a,
+	0x1d, 0x63, 0x6f, 0x6d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
+	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x42, 0x0d,
+	0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,
+	0x3a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x72, 0x61, 0x79, 0x73,
+	0x74, 0x61, 0x63, 0x6b, 0x2f, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2f, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x3b, 0x66, 0x72, 0x6f, 0x6e,
+	0x74, 0x69, 0x65, 0x72, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xa2, 0x02, 0x03, 0x52, 0x46,
+	0x58, 0xaa, 0x02, 0x19, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x46, 0x72, 0x6f,
+	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xca, 0x02, 0x19,
+	0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x5c, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
+	0x72, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xe2, 0x02, 0x25, 0x52, 0x61, 0x79, 0x73,
+	0x74, 0x61, 0x63, 0x6b, 0x5c, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x5c, 0x56, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
+	0x61, 0xea, 0x02, 0x1b, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x3a, 0x3a, 0x46, 0x72,
+	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -23526,7 +23736,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP() []byte {
 	return file_raystack_frontier_v1beta1_frontier_proto_rawDescData
 }
 
-var file_raystack_frontier_v1beta1_frontier_proto_msgTypes = make([]protoimpl.MessageInfo, 373)
+var file_raystack_frontier_v1beta1_frontier_proto_msgTypes = make([]protoimpl.MessageInfo, 377)
 var file_raystack_frontier_v1beta1_frontier_proto_goTypes = []interface{}{
 	(*BillingAccountRequestBody)(nil),                    // 0: raystack.frontier.v1beta1.BillingAccountRequestBody
 	(*CreateBillingAccountRequest)(nil),                  // 1: raystack.frontier.v1beta1.CreateBillingAccountRequest
@@ -23887,644 +24097,653 @@ var file_raystack_frontier_v1beta1_frontier_proto_goTypes = []interface{}{
 	(*CreateAuditRecordResponse)(nil),                    // 356: raystack.frontier.v1beta1.CreateAuditRecordResponse
 	(*CreateCurrentUserPATRequest)(nil),                  // 357: raystack.frontier.v1beta1.CreateCurrentUserPATRequest
 	(*CreateCurrentUserPATResponse)(nil),                 // 358: raystack.frontier.v1beta1.CreateCurrentUserPATResponse
-	(*ListCurrentUserPATsRequest)(nil),                   // 359: raystack.frontier.v1beta1.ListCurrentUserPATsRequest
-	(*ListCurrentUserPATsResponse)(nil),                  // 360: raystack.frontier.v1beta1.ListCurrentUserPATsResponse
-	(*GetCurrentUserPATRequest)(nil),                     // 361: raystack.frontier.v1beta1.GetCurrentUserPATRequest
-	(*GetCurrentUserPATResponse)(nil),                    // 362: raystack.frontier.v1beta1.GetCurrentUserPATResponse
-	(*ChangeSubscriptionRequest_PlanChange)(nil),         // 363: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
-	(*ChangeSubscriptionRequest_PhaseChange)(nil),        // 364: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
-	(*ListProjectsByCurrentUserResponse_AccessPair)(nil), // 365: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
-	(*ListCurrentUserGroupsResponse_AccessPair)(nil),     // 366: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
-	(*ListServiceUserProjectsResponse_AccessPair)(nil),   // 367: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
-	(*ListOrganizationUsersResponse_RolePair)(nil),       // 368: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
-	(*ListProjectUsersResponse_RolePair)(nil),            // 369: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
-	(*ListProjectServiceUsersResponse_RolePair)(nil),     // 370: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
-	(*ListProjectGroupsResponse_RolePair)(nil),           // 371: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
-	(*ListGroupUsersResponse_RolePair)(nil),              // 372: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
-	(*BillingAccount_Address)(nil),                       // 373: raystack.frontier.v1beta1.BillingAccount.Address
-	(*BillingAccount_Tax)(nil),                           // 374: raystack.frontier.v1beta1.BillingAccount.Tax
-	(*structpb.Struct)(nil),                              // 375: google.protobuf.Struct
-	(*BillingAccount)(nil),                               // 376: raystack.frontier.v1beta1.BillingAccount
-	(*PaymentMethod)(nil),                                // 377: raystack.frontier.v1beta1.PaymentMethod
-	(*BillingAccountDetails)(nil),                        // 378: raystack.frontier.v1beta1.BillingAccountDetails
-	(*BillingAccount_Balance)(nil),                       // 379: raystack.frontier.v1beta1.BillingAccount.Balance
-	(*Usage)(nil),                                        // 380: raystack.frontier.v1beta1.Usage
-	(*timestamppb.Timestamp)(nil),                        // 381: google.protobuf.Timestamp
-	(*BillingTransaction)(nil),                           // 382: raystack.frontier.v1beta1.BillingTransaction
-	(*Subscription)(nil),                                 // 383: raystack.frontier.v1beta1.Subscription
-	(*Subscription_Phase)(nil),                           // 384: raystack.frontier.v1beta1.Subscription.Phase
-	(*Plan)(nil),                                         // 385: raystack.frontier.v1beta1.Plan
-	(*CheckoutSubscriptionBody)(nil),                     // 386: raystack.frontier.v1beta1.CheckoutSubscriptionBody
-	(*CheckoutProductBody)(nil),                          // 387: raystack.frontier.v1beta1.CheckoutProductBody
-	(*CheckoutSetupBody)(nil),                            // 388: raystack.frontier.v1beta1.CheckoutSetupBody
-	(*CheckoutSession)(nil),                              // 389: raystack.frontier.v1beta1.CheckoutSession
-	(*Price)(nil),                                        // 390: raystack.frontier.v1beta1.Price
-	(*Feature)(nil),                                      // 391: raystack.frontier.v1beta1.Feature
-	(*Product_BehaviorConfig)(nil),                       // 392: raystack.frontier.v1beta1.Product.BehaviorConfig
-	(*Product)(nil),                                      // 393: raystack.frontier.v1beta1.Product
-	(*Invoice)(nil),                                      // 394: raystack.frontier.v1beta1.Invoice
-	(*JSONWebKey)(nil),                                   // 395: raystack.frontier.v1beta1.JSONWebKey
-	(*User)(nil),                                         // 396: raystack.frontier.v1beta1.User
-	(*Organization)(nil),                                 // 397: raystack.frontier.v1beta1.Organization
-	(*Project)(nil),                                      // 398: raystack.frontier.v1beta1.Project
-	(*ServiceUser)(nil),                                  // 399: raystack.frontier.v1beta1.ServiceUser
-	(*Group)(nil),                                        // 400: raystack.frontier.v1beta1.Group
-	(*Invitation)(nil),                                   // 401: raystack.frontier.v1beta1.Invitation
-	(*KeyCredential)(nil),                                // 402: raystack.frontier.v1beta1.KeyCredential
-	(*ServiceUserJWK)(nil),                               // 403: raystack.frontier.v1beta1.ServiceUserJWK
-	(*SecretCredential)(nil),                             // 404: raystack.frontier.v1beta1.SecretCredential
-	(*ServiceUserToken)(nil),                             // 405: raystack.frontier.v1beta1.ServiceUserToken
-	(*RoleRequestBody)(nil),                              // 406: raystack.frontier.v1beta1.RoleRequestBody
-	(*Role)(nil),                                         // 407: raystack.frontier.v1beta1.Role
-	(*Domain)(nil),                                       // 408: raystack.frontier.v1beta1.Domain
-	(*OrganizationKyc)(nil),                              // 409: raystack.frontier.v1beta1.OrganizationKyc
-	(*Permission)(nil),                                   // 410: raystack.frontier.v1beta1.Permission
-	(*Namespace)(nil),                                    // 411: raystack.frontier.v1beta1.Namespace
-	(*Policy)(nil),                                       // 412: raystack.frontier.v1beta1.Policy
-	(*Relation)(nil),                                     // 413: raystack.frontier.v1beta1.Relation
-	(*Resource)(nil),                                     // 414: raystack.frontier.v1beta1.Resource
-	(*MetaSchema)(nil),                                   // 415: raystack.frontier.v1beta1.MetaSchema
-	(*PreferenceTrait)(nil),                              // 416: raystack.frontier.v1beta1.PreferenceTrait
-	(*PreferenceRequestBody)(nil),                        // 417: raystack.frontier.v1beta1.PreferenceRequestBody
-	(*Preference)(nil),                                   // 418: raystack.frontier.v1beta1.Preference
-	(*Session)(nil),                                      // 419: raystack.frontier.v1beta1.Session
-	(*Session_Meta)(nil),                                 // 420: raystack.frontier.v1beta1.Session.Meta
-	(*AuditRecordActor)(nil),                             // 421: raystack.frontier.v1beta1.AuditRecordActor
-	(*AuditRecordResource)(nil),                          // 422: raystack.frontier.v1beta1.AuditRecordResource
-	(*AuditRecordTarget)(nil),                            // 423: raystack.frontier.v1beta1.AuditRecordTarget
-	(*AuditRecord)(nil),                                  // 424: raystack.frontier.v1beta1.AuditRecord
-	(*PAT)(nil),                                          // 425: raystack.frontier.v1beta1.PAT
-	(*RQLRequest)(nil),                                   // 426: raystack.frontier.v1beta1.RQLRequest
-	(*RQLQueryPaginationResponse)(nil),                   // 427: raystack.frontier.v1beta1.RQLQueryPaginationResponse
+	(*ListRolesForPATRequest)(nil),                       // 359: raystack.frontier.v1beta1.ListRolesForPATRequest
+	(*ListRolesForPATResponse)(nil),                      // 360: raystack.frontier.v1beta1.ListRolesForPATResponse
+	(*ListCurrentUserPATsRequest)(nil),                   // 361: raystack.frontier.v1beta1.ListCurrentUserPATsRequest
+	(*ListCurrentUserPATsResponse)(nil),                  // 362: raystack.frontier.v1beta1.ListCurrentUserPATsResponse
+	(*GetCurrentUserPATRequest)(nil),                     // 363: raystack.frontier.v1beta1.GetCurrentUserPATRequest
+	(*GetCurrentUserPATResponse)(nil),                    // 364: raystack.frontier.v1beta1.GetCurrentUserPATResponse
+	(*DeleteCurrentUserPATRequest)(nil),                  // 365: raystack.frontier.v1beta1.DeleteCurrentUserPATRequest
+	(*DeleteCurrentUserPATResponse)(nil),                 // 366: raystack.frontier.v1beta1.DeleteCurrentUserPATResponse
+	(*ChangeSubscriptionRequest_PlanChange)(nil),         // 367: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
+	(*ChangeSubscriptionRequest_PhaseChange)(nil),        // 368: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
+	(*ListProjectsByCurrentUserResponse_AccessPair)(nil), // 369: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
+	(*ListCurrentUserGroupsResponse_AccessPair)(nil),     // 370: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
+	(*ListServiceUserProjectsResponse_AccessPair)(nil),   // 371: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
+	(*ListOrganizationUsersResponse_RolePair)(nil),       // 372: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
+	(*ListProjectUsersResponse_RolePair)(nil),            // 373: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
+	(*ListProjectServiceUsersResponse_RolePair)(nil),     // 374: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
+	(*ListProjectGroupsResponse_RolePair)(nil),           // 375: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
+	(*ListGroupUsersResponse_RolePair)(nil),              // 376: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
+	(*BillingAccount_Address)(nil),                       // 377: raystack.frontier.v1beta1.BillingAccount.Address
+	(*BillingAccount_Tax)(nil),                           // 378: raystack.frontier.v1beta1.BillingAccount.Tax
+	(*structpb.Struct)(nil),                              // 379: google.protobuf.Struct
+	(*BillingAccount)(nil),                               // 380: raystack.frontier.v1beta1.BillingAccount
+	(*PaymentMethod)(nil),                                // 381: raystack.frontier.v1beta1.PaymentMethod
+	(*BillingAccountDetails)(nil),                        // 382: raystack.frontier.v1beta1.BillingAccountDetails
+	(*BillingAccount_Balance)(nil),                       // 383: raystack.frontier.v1beta1.BillingAccount.Balance
+	(*Usage)(nil),                                        // 384: raystack.frontier.v1beta1.Usage
+	(*timestamppb.Timestamp)(nil),                        // 385: google.protobuf.Timestamp
+	(*BillingTransaction)(nil),                           // 386: raystack.frontier.v1beta1.BillingTransaction
+	(*Subscription)(nil),                                 // 387: raystack.frontier.v1beta1.Subscription
+	(*Subscription_Phase)(nil),                           // 388: raystack.frontier.v1beta1.Subscription.Phase
+	(*Plan)(nil),                                         // 389: raystack.frontier.v1beta1.Plan
+	(*CheckoutSubscriptionBody)(nil),                     // 390: raystack.frontier.v1beta1.CheckoutSubscriptionBody
+	(*CheckoutProductBody)(nil),                          // 391: raystack.frontier.v1beta1.CheckoutProductBody
+	(*CheckoutSetupBody)(nil),                            // 392: raystack.frontier.v1beta1.CheckoutSetupBody
+	(*CheckoutSession)(nil),                              // 393: raystack.frontier.v1beta1.CheckoutSession
+	(*Price)(nil),                                        // 394: raystack.frontier.v1beta1.Price
+	(*Feature)(nil),                                      // 395: raystack.frontier.v1beta1.Feature
+	(*Product_BehaviorConfig)(nil),                       // 396: raystack.frontier.v1beta1.Product.BehaviorConfig
+	(*Product)(nil),                                      // 397: raystack.frontier.v1beta1.Product
+	(*Invoice)(nil),                                      // 398: raystack.frontier.v1beta1.Invoice
+	(*JSONWebKey)(nil),                                   // 399: raystack.frontier.v1beta1.JSONWebKey
+	(*User)(nil),                                         // 400: raystack.frontier.v1beta1.User
+	(*Organization)(nil),                                 // 401: raystack.frontier.v1beta1.Organization
+	(*Project)(nil),                                      // 402: raystack.frontier.v1beta1.Project
+	(*ServiceUser)(nil),                                  // 403: raystack.frontier.v1beta1.ServiceUser
+	(*Group)(nil),                                        // 404: raystack.frontier.v1beta1.Group
+	(*Invitation)(nil),                                   // 405: raystack.frontier.v1beta1.Invitation
+	(*KeyCredential)(nil),                                // 406: raystack.frontier.v1beta1.KeyCredential
+	(*ServiceUserJWK)(nil),                               // 407: raystack.frontier.v1beta1.ServiceUserJWK
+	(*SecretCredential)(nil),                             // 408: raystack.frontier.v1beta1.SecretCredential
+	(*ServiceUserToken)(nil),                             // 409: raystack.frontier.v1beta1.ServiceUserToken
+	(*RoleRequestBody)(nil),                              // 410: raystack.frontier.v1beta1.RoleRequestBody
+	(*Role)(nil),                                         // 411: raystack.frontier.v1beta1.Role
+	(*Domain)(nil),                                       // 412: raystack.frontier.v1beta1.Domain
+	(*OrganizationKyc)(nil),                              // 413: raystack.frontier.v1beta1.OrganizationKyc
+	(*Permission)(nil),                                   // 414: raystack.frontier.v1beta1.Permission
+	(*Namespace)(nil),                                    // 415: raystack.frontier.v1beta1.Namespace
+	(*Policy)(nil),                                       // 416: raystack.frontier.v1beta1.Policy
+	(*Relation)(nil),                                     // 417: raystack.frontier.v1beta1.Relation
+	(*Resource)(nil),                                     // 418: raystack.frontier.v1beta1.Resource
+	(*MetaSchema)(nil),                                   // 419: raystack.frontier.v1beta1.MetaSchema
+	(*PreferenceTrait)(nil),                              // 420: raystack.frontier.v1beta1.PreferenceTrait
+	(*PreferenceRequestBody)(nil),                        // 421: raystack.frontier.v1beta1.PreferenceRequestBody
+	(*Preference)(nil),                                   // 422: raystack.frontier.v1beta1.Preference
+	(*Session)(nil),                                      // 423: raystack.frontier.v1beta1.Session
+	(*Session_Meta)(nil),                                 // 424: raystack.frontier.v1beta1.Session.Meta
+	(*AuditRecordActor)(nil),                             // 425: raystack.frontier.v1beta1.AuditRecordActor
+	(*AuditRecordResource)(nil),                          // 426: raystack.frontier.v1beta1.AuditRecordResource
+	(*AuditRecordTarget)(nil),                            // 427: raystack.frontier.v1beta1.AuditRecordTarget
+	(*AuditRecord)(nil),                                  // 428: raystack.frontier.v1beta1.AuditRecord
+	(*PAT)(nil),                                          // 429: raystack.frontier.v1beta1.PAT
+	(*RQLRequest)(nil),                                   // 430: raystack.frontier.v1beta1.RQLRequest
+	(*RQLQueryPaginationResponse)(nil),                   // 431: raystack.frontier.v1beta1.RQLQueryPaginationResponse
 }
 var file_raystack_frontier_v1beta1_frontier_proto_depIdxs = []int32{
-	373, // 0: raystack.frontier.v1beta1.BillingAccountRequestBody.address:type_name -> raystack.frontier.v1beta1.BillingAccount.Address
-	374, // 1: raystack.frontier.v1beta1.BillingAccountRequestBody.tax_data:type_name -> raystack.frontier.v1beta1.BillingAccount.Tax
-	375, // 2: raystack.frontier.v1beta1.BillingAccountRequestBody.metadata:type_name -> google.protobuf.Struct
+	377, // 0: raystack.frontier.v1beta1.BillingAccountRequestBody.address:type_name -> raystack.frontier.v1beta1.BillingAccount.Address
+	378, // 1: raystack.frontier.v1beta1.BillingAccountRequestBody.tax_data:type_name -> raystack.frontier.v1beta1.BillingAccount.Tax
+	379, // 2: raystack.frontier.v1beta1.BillingAccountRequestBody.metadata:type_name -> google.protobuf.Struct
 	0,   // 3: raystack.frontier.v1beta1.CreateBillingAccountRequest.body:type_name -> raystack.frontier.v1beta1.BillingAccountRequestBody
-	376, // 4: raystack.frontier.v1beta1.CreateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
-	376, // 5: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
-	377, // 6: raystack.frontier.v1beta1.GetBillingAccountResponse.payment_methods:type_name -> raystack.frontier.v1beta1.PaymentMethod
-	378, // 7: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_details:type_name -> raystack.frontier.v1beta1.BillingAccountDetails
+	380, // 4: raystack.frontier.v1beta1.CreateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
+	380, // 5: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
+	381, // 6: raystack.frontier.v1beta1.GetBillingAccountResponse.payment_methods:type_name -> raystack.frontier.v1beta1.PaymentMethod
+	382, // 7: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_details:type_name -> raystack.frontier.v1beta1.BillingAccountDetails
 	0,   // 8: raystack.frontier.v1beta1.UpdateBillingAccountRequest.body:type_name -> raystack.frontier.v1beta1.BillingAccountRequestBody
-	376, // 9: raystack.frontier.v1beta1.UpdateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
-	376, // 10: raystack.frontier.v1beta1.ListBillingAccountsResponse.billing_accounts:type_name -> raystack.frontier.v1beta1.BillingAccount
-	379, // 11: raystack.frontier.v1beta1.GetBillingBalanceResponse.balance:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
-	380, // 12: raystack.frontier.v1beta1.CreateBillingUsageRequest.usages:type_name -> raystack.frontier.v1beta1.Usage
-	381, // 13: raystack.frontier.v1beta1.ListBillingTransactionsRequest.since:type_name -> google.protobuf.Timestamp
-	381, // 14: raystack.frontier.v1beta1.ListBillingTransactionsRequest.start_range:type_name -> google.protobuf.Timestamp
-	381, // 15: raystack.frontier.v1beta1.ListBillingTransactionsRequest.end_range:type_name -> google.protobuf.Timestamp
-	382, // 16: raystack.frontier.v1beta1.ListBillingTransactionsResponse.transactions:type_name -> raystack.frontier.v1beta1.BillingTransaction
-	379, // 17: raystack.frontier.v1beta1.TotalDebitedTransactionsResponse.debited:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
-	383, // 18: raystack.frontier.v1beta1.GetSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
-	383, // 19: raystack.frontier.v1beta1.ListSubscriptionsResponse.subscriptions:type_name -> raystack.frontier.v1beta1.Subscription
-	375, // 20: raystack.frontier.v1beta1.UpdateSubscriptionRequest.metadata:type_name -> google.protobuf.Struct
-	383, // 21: raystack.frontier.v1beta1.UpdateSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
-	363, // 22: raystack.frontier.v1beta1.ChangeSubscriptionRequest.plan_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
-	364, // 23: raystack.frontier.v1beta1.ChangeSubscriptionRequest.phase_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
-	384, // 24: raystack.frontier.v1beta1.ChangeSubscriptionResponse.phase:type_name -> raystack.frontier.v1beta1.Subscription.Phase
-	385, // 25: raystack.frontier.v1beta1.ListPlansResponse.plans:type_name -> raystack.frontier.v1beta1.Plan
-	386, // 26: raystack.frontier.v1beta1.CreateCheckoutRequest.subscription_body:type_name -> raystack.frontier.v1beta1.CheckoutSubscriptionBody
-	387, // 27: raystack.frontier.v1beta1.CreateCheckoutRequest.product_body:type_name -> raystack.frontier.v1beta1.CheckoutProductBody
-	388, // 28: raystack.frontier.v1beta1.CreateCheckoutRequest.setup_body:type_name -> raystack.frontier.v1beta1.CheckoutSetupBody
-	389, // 29: raystack.frontier.v1beta1.CreateCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
-	389, // 30: raystack.frontier.v1beta1.ListCheckoutsResponse.checkout_sessions:type_name -> raystack.frontier.v1beta1.CheckoutSession
-	389, // 31: raystack.frontier.v1beta1.GetCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
-	390, // 32: raystack.frontier.v1beta1.ProductRequestBody.prices:type_name -> raystack.frontier.v1beta1.Price
-	391, // 33: raystack.frontier.v1beta1.ProductRequestBody.features:type_name -> raystack.frontier.v1beta1.Feature
-	392, // 34: raystack.frontier.v1beta1.ProductRequestBody.behavior_config:type_name -> raystack.frontier.v1beta1.Product.BehaviorConfig
-	375, // 35: raystack.frontier.v1beta1.ProductRequestBody.metadata:type_name -> google.protobuf.Struct
+	380, // 9: raystack.frontier.v1beta1.UpdateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
+	380, // 10: raystack.frontier.v1beta1.ListBillingAccountsResponse.billing_accounts:type_name -> raystack.frontier.v1beta1.BillingAccount
+	383, // 11: raystack.frontier.v1beta1.GetBillingBalanceResponse.balance:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
+	384, // 12: raystack.frontier.v1beta1.CreateBillingUsageRequest.usages:type_name -> raystack.frontier.v1beta1.Usage
+	385, // 13: raystack.frontier.v1beta1.ListBillingTransactionsRequest.since:type_name -> google.protobuf.Timestamp
+	385, // 14: raystack.frontier.v1beta1.ListBillingTransactionsRequest.start_range:type_name -> google.protobuf.Timestamp
+	385, // 15: raystack.frontier.v1beta1.ListBillingTransactionsRequest.end_range:type_name -> google.protobuf.Timestamp
+	386, // 16: raystack.frontier.v1beta1.ListBillingTransactionsResponse.transactions:type_name -> raystack.frontier.v1beta1.BillingTransaction
+	383, // 17: raystack.frontier.v1beta1.TotalDebitedTransactionsResponse.debited:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
+	387, // 18: raystack.frontier.v1beta1.GetSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
+	387, // 19: raystack.frontier.v1beta1.ListSubscriptionsResponse.subscriptions:type_name -> raystack.frontier.v1beta1.Subscription
+	379, // 20: raystack.frontier.v1beta1.UpdateSubscriptionRequest.metadata:type_name -> google.protobuf.Struct
+	387, // 21: raystack.frontier.v1beta1.UpdateSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
+	367, // 22: raystack.frontier.v1beta1.ChangeSubscriptionRequest.plan_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
+	368, // 23: raystack.frontier.v1beta1.ChangeSubscriptionRequest.phase_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
+	388, // 24: raystack.frontier.v1beta1.ChangeSubscriptionResponse.phase:type_name -> raystack.frontier.v1beta1.Subscription.Phase
+	389, // 25: raystack.frontier.v1beta1.ListPlansResponse.plans:type_name -> raystack.frontier.v1beta1.Plan
+	390, // 26: raystack.frontier.v1beta1.CreateCheckoutRequest.subscription_body:type_name -> raystack.frontier.v1beta1.CheckoutSubscriptionBody
+	391, // 27: raystack.frontier.v1beta1.CreateCheckoutRequest.product_body:type_name -> raystack.frontier.v1beta1.CheckoutProductBody
+	392, // 28: raystack.frontier.v1beta1.CreateCheckoutRequest.setup_body:type_name -> raystack.frontier.v1beta1.CheckoutSetupBody
+	393, // 29: raystack.frontier.v1beta1.CreateCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
+	393, // 30: raystack.frontier.v1beta1.ListCheckoutsResponse.checkout_sessions:type_name -> raystack.frontier.v1beta1.CheckoutSession
+	393, // 31: raystack.frontier.v1beta1.GetCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
+	394, // 32: raystack.frontier.v1beta1.ProductRequestBody.prices:type_name -> raystack.frontier.v1beta1.Price
+	395, // 33: raystack.frontier.v1beta1.ProductRequestBody.features:type_name -> raystack.frontier.v1beta1.Feature
+	396, // 34: raystack.frontier.v1beta1.ProductRequestBody.behavior_config:type_name -> raystack.frontier.v1beta1.Product.BehaviorConfig
+	379, // 35: raystack.frontier.v1beta1.ProductRequestBody.metadata:type_name -> google.protobuf.Struct
 	49,  // 36: raystack.frontier.v1beta1.CreateProductRequest.body:type_name -> raystack.frontier.v1beta1.ProductRequestBody
-	393, // 37: raystack.frontier.v1beta1.CreateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
-	393, // 38: raystack.frontier.v1beta1.GetProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
-	393, // 39: raystack.frontier.v1beta1.ListProductsResponse.products:type_name -> raystack.frontier.v1beta1.Product
+	397, // 37: raystack.frontier.v1beta1.CreateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
+	397, // 38: raystack.frontier.v1beta1.GetProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
+	397, // 39: raystack.frontier.v1beta1.ListProductsResponse.products:type_name -> raystack.frontier.v1beta1.Product
 	49,  // 40: raystack.frontier.v1beta1.UpdateProductRequest.body:type_name -> raystack.frontier.v1beta1.ProductRequestBody
-	393, // 41: raystack.frontier.v1beta1.UpdateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
-	375, // 42: raystack.frontier.v1beta1.FeatureRequestBody.metadata:type_name -> google.protobuf.Struct
+	397, // 41: raystack.frontier.v1beta1.UpdateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
+	379, // 42: raystack.frontier.v1beta1.FeatureRequestBody.metadata:type_name -> google.protobuf.Struct
 	58,  // 43: raystack.frontier.v1beta1.CreateFeatureRequest.body:type_name -> raystack.frontier.v1beta1.FeatureRequestBody
-	391, // 44: raystack.frontier.v1beta1.CreateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
-	391, // 45: raystack.frontier.v1beta1.GetFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
+	395, // 44: raystack.frontier.v1beta1.CreateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
+	395, // 45: raystack.frontier.v1beta1.GetFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
 	58,  // 46: raystack.frontier.v1beta1.UpdateFeatureRequest.body:type_name -> raystack.frontier.v1beta1.FeatureRequestBody
-	391, // 47: raystack.frontier.v1beta1.UpdateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
-	391, // 48: raystack.frontier.v1beta1.ListFeaturesResponse.features:type_name -> raystack.frontier.v1beta1.Feature
-	393, // 49: raystack.frontier.v1beta1.PlanRequestBody.products:type_name -> raystack.frontier.v1beta1.Product
-	375, // 50: raystack.frontier.v1beta1.PlanRequestBody.metadata:type_name -> google.protobuf.Struct
+	395, // 47: raystack.frontier.v1beta1.UpdateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
+	395, // 48: raystack.frontier.v1beta1.ListFeaturesResponse.features:type_name -> raystack.frontier.v1beta1.Feature
+	397, // 49: raystack.frontier.v1beta1.PlanRequestBody.products:type_name -> raystack.frontier.v1beta1.Product
+	379, // 50: raystack.frontier.v1beta1.PlanRequestBody.metadata:type_name -> google.protobuf.Struct
 	67,  // 51: raystack.frontier.v1beta1.CreatePlanRequest.body:type_name -> raystack.frontier.v1beta1.PlanRequestBody
-	385, // 52: raystack.frontier.v1beta1.CreatePlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
-	385, // 53: raystack.frontier.v1beta1.GetPlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
+	389, // 52: raystack.frontier.v1beta1.CreatePlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
+	389, // 53: raystack.frontier.v1beta1.GetPlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
 	67,  // 54: raystack.frontier.v1beta1.UpdatePlanRequest.body:type_name -> raystack.frontier.v1beta1.PlanRequestBody
-	385, // 55: raystack.frontier.v1beta1.UpdatePlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
-	394, // 56: raystack.frontier.v1beta1.ListInvoicesResponse.invoices:type_name -> raystack.frontier.v1beta1.Invoice
-	394, // 57: raystack.frontier.v1beta1.GetUpcomingInvoiceResponse.invoice:type_name -> raystack.frontier.v1beta1.Invoice
-	395, // 58: raystack.frontier.v1beta1.GetJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
-	375, // 59: raystack.frontier.v1beta1.AuthCallbackRequest.state_options:type_name -> google.protobuf.Struct
-	375, // 60: raystack.frontier.v1beta1.AuthenticateResponse.state_options:type_name -> google.protobuf.Struct
-	375, // 61: raystack.frontier.v1beta1.AuthStrategy.params:type_name -> google.protobuf.Struct
+	389, // 55: raystack.frontier.v1beta1.UpdatePlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
+	398, // 56: raystack.frontier.v1beta1.ListInvoicesResponse.invoices:type_name -> raystack.frontier.v1beta1.Invoice
+	398, // 57: raystack.frontier.v1beta1.GetUpcomingInvoiceResponse.invoice:type_name -> raystack.frontier.v1beta1.Invoice
+	399, // 58: raystack.frontier.v1beta1.GetJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
+	379, // 59: raystack.frontier.v1beta1.AuthCallbackRequest.state_options:type_name -> google.protobuf.Struct
+	379, // 60: raystack.frontier.v1beta1.AuthenticateResponse.state_options:type_name -> google.protobuf.Struct
+	379, // 61: raystack.frontier.v1beta1.AuthStrategy.params:type_name -> google.protobuf.Struct
 	86,  // 62: raystack.frontier.v1beta1.ListAuthStrategiesResponse.strategies:type_name -> raystack.frontier.v1beta1.AuthStrategy
-	375, // 63: raystack.frontier.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
-	396, // 64: raystack.frontier.v1beta1.ListUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	379, // 63: raystack.frontier.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
+	400, // 64: raystack.frontier.v1beta1.ListUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
 	91,  // 65: raystack.frontier.v1beta1.CreateUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
-	396, // 66: raystack.frontier.v1beta1.CreateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	397, // 67: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
-	397, // 68: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
-	397, // 69: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
-	397, // 70: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
-	398, // 71: raystack.frontier.v1beta1.ListProjectsByUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	398, // 72: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	365, // 73: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
-	396, // 74: raystack.frontier.v1beta1.GetUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	396, // 75: raystack.frontier.v1beta1.GetCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	399, // 76: raystack.frontier.v1beta1.GetCurrentUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
-	396, // 77: raystack.frontier.v1beta1.UpdateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	396, // 78: raystack.frontier.v1beta1.UpdateCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	400, // 66: raystack.frontier.v1beta1.CreateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	401, // 67: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	401, // 68: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
+	401, // 69: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	401, // 70: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
+	402, // 71: raystack.frontier.v1beta1.ListProjectsByUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	402, // 72: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	369, // 73: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
+	400, // 74: raystack.frontier.v1beta1.GetUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	400, // 75: raystack.frontier.v1beta1.GetCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	403, // 76: raystack.frontier.v1beta1.GetCurrentUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
+	400, // 77: raystack.frontier.v1beta1.UpdateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	400, // 78: raystack.frontier.v1beta1.UpdateCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
 	91,  // 79: raystack.frontier.v1beta1.UpdateUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
-	400, // 80: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
-	366, // 81: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
-	400, // 82: raystack.frontier.v1beta1.ListUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	404, // 80: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	370, // 81: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
+	404, // 82: raystack.frontier.v1beta1.ListUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
 	91,  // 83: raystack.frontier.v1beta1.UpdateCurrentUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
-	401, // 84: raystack.frontier.v1beta1.ListUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	401, // 85: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	397, // 86: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.orgs:type_name -> raystack.frontier.v1beta1.Organization
-	399, // 87: raystack.frontier.v1beta1.ListServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
-	375, // 88: raystack.frontier.v1beta1.ServiceUserRequestBody.metadata:type_name -> google.protobuf.Struct
+	405, // 84: raystack.frontier.v1beta1.ListUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	405, // 85: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	401, // 86: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.orgs:type_name -> raystack.frontier.v1beta1.Organization
+	403, // 87: raystack.frontier.v1beta1.ListServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
+	379, // 88: raystack.frontier.v1beta1.ServiceUserRequestBody.metadata:type_name -> google.protobuf.Struct
 	128, // 89: raystack.frontier.v1beta1.CreateServiceUserRequest.body:type_name -> raystack.frontier.v1beta1.ServiceUserRequestBody
-	399, // 90: raystack.frontier.v1beta1.CreateServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
-	399, // 91: raystack.frontier.v1beta1.GetServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
-	402, // 92: raystack.frontier.v1beta1.CreateServiceUserJWKResponse.key:type_name -> raystack.frontier.v1beta1.KeyCredential
-	395, // 93: raystack.frontier.v1beta1.GetServiceUserJWKResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
-	403, // 94: raystack.frontier.v1beta1.ListServiceUserJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.ServiceUserJWK
-	404, // 95: raystack.frontier.v1beta1.CreateServiceUserCredentialResponse.secret:type_name -> raystack.frontier.v1beta1.SecretCredential
-	404, // 96: raystack.frontier.v1beta1.ListServiceUserCredentialsResponse.secrets:type_name -> raystack.frontier.v1beta1.SecretCredential
-	405, // 97: raystack.frontier.v1beta1.CreateServiceUserTokenResponse.token:type_name -> raystack.frontier.v1beta1.ServiceUserToken
-	405, // 98: raystack.frontier.v1beta1.ListServiceUserTokensResponse.tokens:type_name -> raystack.frontier.v1beta1.ServiceUserToken
-	398, // 99: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	367, // 100: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
-	400, // 101: raystack.frontier.v1beta1.ListOrganizationGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
-	406, // 102: raystack.frontier.v1beta1.CreateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
-	407, // 103: raystack.frontier.v1beta1.CreateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
-	407, // 104: raystack.frontier.v1beta1.GetOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
-	406, // 105: raystack.frontier.v1beta1.UpdateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
-	407, // 106: raystack.frontier.v1beta1.UpdateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
-	407, // 107: raystack.frontier.v1beta1.ListRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
-	407, // 108: raystack.frontier.v1beta1.ListOrganizationRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
-	375, // 109: raystack.frontier.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
-	397, // 110: raystack.frontier.v1beta1.ListOrganizationsResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	403, // 90: raystack.frontier.v1beta1.CreateServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
+	403, // 91: raystack.frontier.v1beta1.GetServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
+	406, // 92: raystack.frontier.v1beta1.CreateServiceUserJWKResponse.key:type_name -> raystack.frontier.v1beta1.KeyCredential
+	399, // 93: raystack.frontier.v1beta1.GetServiceUserJWKResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
+	407, // 94: raystack.frontier.v1beta1.ListServiceUserJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.ServiceUserJWK
+	408, // 95: raystack.frontier.v1beta1.CreateServiceUserCredentialResponse.secret:type_name -> raystack.frontier.v1beta1.SecretCredential
+	408, // 96: raystack.frontier.v1beta1.ListServiceUserCredentialsResponse.secrets:type_name -> raystack.frontier.v1beta1.SecretCredential
+	409, // 97: raystack.frontier.v1beta1.CreateServiceUserTokenResponse.token:type_name -> raystack.frontier.v1beta1.ServiceUserToken
+	409, // 98: raystack.frontier.v1beta1.ListServiceUserTokensResponse.tokens:type_name -> raystack.frontier.v1beta1.ServiceUserToken
+	402, // 99: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	371, // 100: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
+	404, // 101: raystack.frontier.v1beta1.ListOrganizationGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	410, // 102: raystack.frontier.v1beta1.CreateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
+	411, // 103: raystack.frontier.v1beta1.CreateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
+	411, // 104: raystack.frontier.v1beta1.GetOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
+	410, // 105: raystack.frontier.v1beta1.UpdateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
+	411, // 106: raystack.frontier.v1beta1.UpdateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
+	411, // 107: raystack.frontier.v1beta1.ListRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
+	411, // 108: raystack.frontier.v1beta1.ListOrganizationRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
+	379, // 109: raystack.frontier.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
+	401, // 110: raystack.frontier.v1beta1.ListOrganizationsResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
 	171, // 111: raystack.frontier.v1beta1.CreateOrganizationRequest.body:type_name -> raystack.frontier.v1beta1.OrganizationRequestBody
-	397, // 112: raystack.frontier.v1beta1.CreateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
-	397, // 113: raystack.frontier.v1beta1.GetOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
-	397, // 114: raystack.frontier.v1beta1.UpdateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
+	401, // 112: raystack.frontier.v1beta1.CreateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
+	401, // 113: raystack.frontier.v1beta1.GetOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
+	401, // 114: raystack.frontier.v1beta1.UpdateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
 	171, // 115: raystack.frontier.v1beta1.UpdateOrganizationRequest.body:type_name -> raystack.frontier.v1beta1.OrganizationRequestBody
-	396, // 116: raystack.frontier.v1beta1.ListOrganizationAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
-	396, // 117: raystack.frontier.v1beta1.ListOrganizationUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
-	368, // 118: raystack.frontier.v1beta1.ListOrganizationUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
-	399, // 119: raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
-	401, // 120: raystack.frontier.v1beta1.ListOrganizationInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	401, // 121: raystack.frontier.v1beta1.CreateOrganizationInvitationResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	401, // 122: raystack.frontier.v1beta1.GetOrganizationInvitationResponse.invitation:type_name -> raystack.frontier.v1beta1.Invitation
-	408, // 123: raystack.frontier.v1beta1.ListOrganizationDomainsResponse.domains:type_name -> raystack.frontier.v1beta1.Domain
-	397, // 124: raystack.frontier.v1beta1.ListOrganizationsByDomainResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
-	408, // 125: raystack.frontier.v1beta1.GetOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
-	408, // 126: raystack.frontier.v1beta1.CreateOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
-	409, // 127: raystack.frontier.v1beta1.GetOrganizationKycResponse.organization_kyc:type_name -> raystack.frontier.v1beta1.OrganizationKyc
-	375, // 128: raystack.frontier.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
+	400, // 116: raystack.frontier.v1beta1.ListOrganizationAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
+	400, // 117: raystack.frontier.v1beta1.ListOrganizationUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	372, // 118: raystack.frontier.v1beta1.ListOrganizationUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
+	403, // 119: raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
+	405, // 120: raystack.frontier.v1beta1.ListOrganizationInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	405, // 121: raystack.frontier.v1beta1.CreateOrganizationInvitationResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	405, // 122: raystack.frontier.v1beta1.GetOrganizationInvitationResponse.invitation:type_name -> raystack.frontier.v1beta1.Invitation
+	412, // 123: raystack.frontier.v1beta1.ListOrganizationDomainsResponse.domains:type_name -> raystack.frontier.v1beta1.Domain
+	401, // 124: raystack.frontier.v1beta1.ListOrganizationsByDomainResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	412, // 125: raystack.frontier.v1beta1.GetOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
+	412, // 126: raystack.frontier.v1beta1.CreateOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
+	413, // 127: raystack.frontier.v1beta1.GetOrganizationKycResponse.organization_kyc:type_name -> raystack.frontier.v1beta1.OrganizationKyc
+	379, // 128: raystack.frontier.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
 	222, // 129: raystack.frontier.v1beta1.CreateProjectRequest.body:type_name -> raystack.frontier.v1beta1.ProjectRequestBody
-	398, // 130: raystack.frontier.v1beta1.CreateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
-	398, // 131: raystack.frontier.v1beta1.ListOrganizationProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	398, // 132: raystack.frontier.v1beta1.GetProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
+	402, // 130: raystack.frontier.v1beta1.CreateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
+	402, // 131: raystack.frontier.v1beta1.ListOrganizationProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	402, // 132: raystack.frontier.v1beta1.GetProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
 	222, // 133: raystack.frontier.v1beta1.UpdateProjectRequest.body:type_name -> raystack.frontier.v1beta1.ProjectRequestBody
-	398, // 134: raystack.frontier.v1beta1.UpdateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
-	396, // 135: raystack.frontier.v1beta1.ListProjectAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
-	396, // 136: raystack.frontier.v1beta1.ListProjectUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
-	369, // 137: raystack.frontier.v1beta1.ListProjectUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
-	399, // 138: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
-	370, // 139: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
-	400, // 140: raystack.frontier.v1beta1.ListProjectGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
-	371, // 141: raystack.frontier.v1beta1.ListProjectGroupsResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
-	375, // 142: raystack.frontier.v1beta1.PolicyRequestBody.metadata:type_name -> google.protobuf.Struct
-	410, // 143: raystack.frontier.v1beta1.GetPermissionResponse.permission:type_name -> raystack.frontier.v1beta1.Permission
-	410, // 144: raystack.frontier.v1beta1.ListPermissionsResponse.permissions:type_name -> raystack.frontier.v1beta1.Permission
-	411, // 145: raystack.frontier.v1beta1.ListNamespacesResponse.namespaces:type_name -> raystack.frontier.v1beta1.Namespace
-	411, // 146: raystack.frontier.v1beta1.GetNamespaceResponse.namespace:type_name -> raystack.frontier.v1beta1.Namespace
+	402, // 134: raystack.frontier.v1beta1.UpdateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
+	400, // 135: raystack.frontier.v1beta1.ListProjectAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
+	400, // 136: raystack.frontier.v1beta1.ListProjectUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	373, // 137: raystack.frontier.v1beta1.ListProjectUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
+	403, // 138: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
+	374, // 139: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
+	404, // 140: raystack.frontier.v1beta1.ListProjectGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	375, // 141: raystack.frontier.v1beta1.ListProjectGroupsResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
+	379, // 142: raystack.frontier.v1beta1.PolicyRequestBody.metadata:type_name -> google.protobuf.Struct
+	414, // 143: raystack.frontier.v1beta1.GetPermissionResponse.permission:type_name -> raystack.frontier.v1beta1.Permission
+	414, // 144: raystack.frontier.v1beta1.ListPermissionsResponse.permissions:type_name -> raystack.frontier.v1beta1.Permission
+	415, // 145: raystack.frontier.v1beta1.ListNamespacesResponse.namespaces:type_name -> raystack.frontier.v1beta1.Namespace
+	415, // 146: raystack.frontier.v1beta1.GetNamespaceResponse.namespace:type_name -> raystack.frontier.v1beta1.Namespace
 	245, // 147: raystack.frontier.v1beta1.CreatePolicyRequest.body:type_name -> raystack.frontier.v1beta1.PolicyRequestBody
-	412, // 148: raystack.frontier.v1beta1.CreatePolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
-	412, // 149: raystack.frontier.v1beta1.GetPolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
-	412, // 150: raystack.frontier.v1beta1.ListPoliciesResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
+	416, // 148: raystack.frontier.v1beta1.CreatePolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
+	416, // 149: raystack.frontier.v1beta1.GetPolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
+	416, // 150: raystack.frontier.v1beta1.ListPoliciesResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
 	245, // 151: raystack.frontier.v1beta1.UpdatePolicyRequest.body:type_name -> raystack.frontier.v1beta1.PolicyRequestBody
-	412, // 152: raystack.frontier.v1beta1.UpdatePolicyResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
+	416, // 152: raystack.frontier.v1beta1.UpdatePolicyResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
 	246, // 153: raystack.frontier.v1beta1.CreatePolicyForProjectRequest.body:type_name -> raystack.frontier.v1beta1.CreatePolicyForProjectBody
 	267, // 154: raystack.frontier.v1beta1.CreateRelationRequest.body:type_name -> raystack.frontier.v1beta1.RelationRequestBody
-	413, // 155: raystack.frontier.v1beta1.CreateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
-	413, // 156: raystack.frontier.v1beta1.GetRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
+	417, // 155: raystack.frontier.v1beta1.CreateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
+	417, // 156: raystack.frontier.v1beta1.GetRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
 	267, // 157: raystack.frontier.v1beta1.UpdateRelationRequest.body:type_name -> raystack.frontier.v1beta1.RelationRequestBody
-	413, // 158: raystack.frontier.v1beta1.UpdateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
-	375, // 159: raystack.frontier.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
+	417, // 158: raystack.frontier.v1beta1.UpdateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
+	379, // 159: raystack.frontier.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
 	274, // 160: raystack.frontier.v1beta1.CreateGroupRequest.body:type_name -> raystack.frontier.v1beta1.GroupRequestBody
-	400, // 161: raystack.frontier.v1beta1.CreateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
-	400, // 162: raystack.frontier.v1beta1.GetGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
-	400, // 163: raystack.frontier.v1beta1.UpdateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
+	404, // 161: raystack.frontier.v1beta1.CreateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
+	404, // 162: raystack.frontier.v1beta1.GetGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
+	404, // 163: raystack.frontier.v1beta1.UpdateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
 	274, // 164: raystack.frontier.v1beta1.UpdateGroupRequest.body:type_name -> raystack.frontier.v1beta1.GroupRequestBody
-	396, // 165: raystack.frontier.v1beta1.ListGroupUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
-	372, // 166: raystack.frontier.v1beta1.ListGroupUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
-	414, // 167: raystack.frontier.v1beta1.ListProjectResourcesResponse.resources:type_name -> raystack.frontier.v1beta1.Resource
-	375, // 168: raystack.frontier.v1beta1.ResourceRequestBody.metadata:type_name -> google.protobuf.Struct
+	400, // 165: raystack.frontier.v1beta1.ListGroupUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	376, // 166: raystack.frontier.v1beta1.ListGroupUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
+	418, // 167: raystack.frontier.v1beta1.ListProjectResourcesResponse.resources:type_name -> raystack.frontier.v1beta1.Resource
+	379, // 168: raystack.frontier.v1beta1.ResourceRequestBody.metadata:type_name -> google.protobuf.Struct
 	297, // 169: raystack.frontier.v1beta1.CreateProjectResourceRequest.body:type_name -> raystack.frontier.v1beta1.ResourceRequestBody
-	414, // 170: raystack.frontier.v1beta1.CreateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
-	414, // 171: raystack.frontier.v1beta1.GetProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
+	418, // 170: raystack.frontier.v1beta1.CreateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
+	418, // 171: raystack.frontier.v1beta1.GetProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
 	297, // 172: raystack.frontier.v1beta1.UpdateProjectResourceRequest.body:type_name -> raystack.frontier.v1beta1.ResourceRequestBody
-	414, // 173: raystack.frontier.v1beta1.UpdateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
+	418, // 173: raystack.frontier.v1beta1.UpdateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
 	309, // 174: raystack.frontier.v1beta1.BatchCheckPermissionRequest.bodies:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionBody
 	311, // 175: raystack.frontier.v1beta1.BatchCheckPermissionResponse.pairs:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionResponsePair
 	309, // 176: raystack.frontier.v1beta1.BatchCheckPermissionResponsePair.body:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionBody
 	312, // 177: raystack.frontier.v1beta1.CreateMetaSchemaRequest.body:type_name -> raystack.frontier.v1beta1.MetaSchemaRequestBody
-	415, // 178: raystack.frontier.v1beta1.CreateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
-	415, // 179: raystack.frontier.v1beta1.GetMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
+	419, // 178: raystack.frontier.v1beta1.CreateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
+	419, // 179: raystack.frontier.v1beta1.GetMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
 	312, // 180: raystack.frontier.v1beta1.UpdateMetaSchemaRequest.body:type_name -> raystack.frontier.v1beta1.MetaSchemaRequestBody
-	415, // 181: raystack.frontier.v1beta1.UpdateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
-	415, // 182: raystack.frontier.v1beta1.ListMetaSchemasResponse.metaschemas:type_name -> raystack.frontier.v1beta1.MetaSchema
-	416, // 183: raystack.frontier.v1beta1.DescribePreferencesResponse.traits:type_name -> raystack.frontier.v1beta1.PreferenceTrait
-	417, // 184: raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	418, // 185: raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	418, // 186: raystack.frontier.v1beta1.ListOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	417, // 187: raystack.frontier.v1beta1.CreateProjectPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	418, // 188: raystack.frontier.v1beta1.CreateProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	418, // 189: raystack.frontier.v1beta1.ListProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	417, // 190: raystack.frontier.v1beta1.CreateGroupPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	418, // 191: raystack.frontier.v1beta1.CreateGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	418, // 192: raystack.frontier.v1beta1.ListGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	417, // 193: raystack.frontier.v1beta1.CreateUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	418, // 194: raystack.frontier.v1beta1.CreateUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	418, // 195: raystack.frontier.v1beta1.ListUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	417, // 196: raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	418, // 197: raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	418, // 198: raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	375, // 199: raystack.frontier.v1beta1.CreateProspectPublicRequest.metadata:type_name -> google.protobuf.Struct
-	419, // 200: raystack.frontier.v1beta1.ListSessionsResponse.sessions:type_name -> raystack.frontier.v1beta1.Session
-	420, // 201: raystack.frontier.v1beta1.PingUserSessionResponse.metadata:type_name -> raystack.frontier.v1beta1.Session.Meta
-	421, // 202: raystack.frontier.v1beta1.CreateAuditRecordRequest.actor:type_name -> raystack.frontier.v1beta1.AuditRecordActor
-	422, // 203: raystack.frontier.v1beta1.CreateAuditRecordRequest.resource:type_name -> raystack.frontier.v1beta1.AuditRecordResource
-	423, // 204: raystack.frontier.v1beta1.CreateAuditRecordRequest.target:type_name -> raystack.frontier.v1beta1.AuditRecordTarget
-	381, // 205: raystack.frontier.v1beta1.CreateAuditRecordRequest.occurred_at:type_name -> google.protobuf.Timestamp
-	375, // 206: raystack.frontier.v1beta1.CreateAuditRecordRequest.metadata:type_name -> google.protobuf.Struct
-	424, // 207: raystack.frontier.v1beta1.CreateAuditRecordResponse.audit_record:type_name -> raystack.frontier.v1beta1.AuditRecord
-	381, // 208: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.expires_at:type_name -> google.protobuf.Timestamp
-	375, // 209: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.metadata:type_name -> google.protobuf.Struct
-	425, // 210: raystack.frontier.v1beta1.CreateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
-	426, // 211: raystack.frontier.v1beta1.ListCurrentUserPATsRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
-	425, // 212: raystack.frontier.v1beta1.ListCurrentUserPATsResponse.pats:type_name -> raystack.frontier.v1beta1.PAT
-	427, // 213: raystack.frontier.v1beta1.ListCurrentUserPATsResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
-	425, // 214: raystack.frontier.v1beta1.GetCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
-	407, // 215: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	407, // 216: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	407, // 217: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	407, // 218: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	407, // 219: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	92,  // 220: raystack.frontier.v1beta1.FrontierService.ListUsers:input_type -> raystack.frontier.v1beta1.ListUsersRequest
-	94,  // 221: raystack.frontier.v1beta1.FrontierService.CreateUser:input_type -> raystack.frontier.v1beta1.CreateUserRequest
-	116, // 222: raystack.frontier.v1beta1.FrontierService.GetUser:input_type -> raystack.frontier.v1beta1.GetUserRequest
-	119, // 223: raystack.frontier.v1beta1.FrontierService.ListUserGroups:input_type -> raystack.frontier.v1beta1.ListUserGroupsRequest
-	117, // 224: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:input_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsRequest
-	111, // 225: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:input_type -> raystack.frontier.v1beta1.GetCurrentUserRequest
-	115, // 226: raystack.frontier.v1beta1.FrontierService.UpdateUser:input_type -> raystack.frontier.v1beta1.UpdateUserRequest
-	121, // 227: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:input_type -> raystack.frontier.v1beta1.UpdateCurrentUserRequest
-	104, // 228: raystack.frontier.v1beta1.FrontierService.EnableUser:input_type -> raystack.frontier.v1beta1.EnableUserRequest
-	106, // 229: raystack.frontier.v1beta1.FrontierService.DisableUser:input_type -> raystack.frontier.v1beta1.DisableUserRequest
-	108, // 230: raystack.frontier.v1beta1.FrontierService.DeleteUser:input_type -> raystack.frontier.v1beta1.DeleteUserRequest
-	96,  // 231: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByUserRequest
-	98,  // 232: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserRequest
-	100, // 233: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:input_type -> raystack.frontier.v1beta1.ListProjectsByUserRequest
-	102, // 234: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserRequest
-	122, // 235: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:input_type -> raystack.frontier.v1beta1.ListUserInvitationsRequest
-	124, // 236: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:input_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsRequest
-	126, // 237: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:input_type -> raystack.frontier.v1beta1.ListServiceUsersRequest
-	129, // 238: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:input_type -> raystack.frontier.v1beta1.CreateServiceUserRequest
-	131, // 239: raystack.frontier.v1beta1.FrontierService.GetServiceUser:input_type -> raystack.frontier.v1beta1.GetServiceUserRequest
-	133, // 240: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:input_type -> raystack.frontier.v1beta1.DeleteServiceUserRequest
-	135, // 241: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:input_type -> raystack.frontier.v1beta1.CreateServiceUserJWKRequest
-	139, // 242: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:input_type -> raystack.frontier.v1beta1.ListServiceUserJWKsRequest
-	137, // 243: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:input_type -> raystack.frontier.v1beta1.GetServiceUserJWKRequest
-	141, // 244: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:input_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKRequest
-	143, // 245: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:input_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialRequest
-	145, // 246: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:input_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsRequest
-	147, // 247: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:input_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialRequest
-	149, // 248: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:input_type -> raystack.frontier.v1beta1.CreateServiceUserTokenRequest
-	151, // 249: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:input_type -> raystack.frontier.v1beta1.ListServiceUserTokensRequest
-	153, // 250: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:input_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenRequest
-	155, // 251: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:input_type -> raystack.frontier.v1beta1.ListServiceUserProjectsRequest
-	157, // 252: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:input_type -> raystack.frontier.v1beta1.ListOrganizationGroupsRequest
-	275, // 253: raystack.frontier.v1beta1.FrontierService.CreateGroup:input_type -> raystack.frontier.v1beta1.CreateGroupRequest
-	276, // 254: raystack.frontier.v1beta1.FrontierService.GetGroup:input_type -> raystack.frontier.v1beta1.GetGroupRequest
-	280, // 255: raystack.frontier.v1beta1.FrontierService.UpdateGroup:input_type -> raystack.frontier.v1beta1.UpdateGroupRequest
-	281, // 256: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:input_type -> raystack.frontier.v1beta1.ListGroupUsersRequest
-	289, // 257: raystack.frontier.v1beta1.FrontierService.AddGroupUsers:input_type -> raystack.frontier.v1beta1.AddGroupUsersRequest
-	291, // 258: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:input_type -> raystack.frontier.v1beta1.RemoveGroupUserRequest
-	283, // 259: raystack.frontier.v1beta1.FrontierService.EnableGroup:input_type -> raystack.frontier.v1beta1.EnableGroupRequest
-	285, // 260: raystack.frontier.v1beta1.FrontierService.DisableGroup:input_type -> raystack.frontier.v1beta1.DisableGroupRequest
-	287, // 261: raystack.frontier.v1beta1.FrontierService.DeleteGroup:input_type -> raystack.frontier.v1beta1.DeleteGroupRequest
-	165, // 262: raystack.frontier.v1beta1.FrontierService.ListRoles:input_type -> raystack.frontier.v1beta1.ListRolesRequest
-	167, // 263: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:input_type -> raystack.frontier.v1beta1.ListOrganizationRolesRequest
-	159, // 264: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:input_type -> raystack.frontier.v1beta1.CreateOrganizationRoleRequest
-	161, // 265: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:input_type -> raystack.frontier.v1beta1.GetOrganizationRoleRequest
-	163, // 266: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleRequest
-	169, // 267: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleRequest
-	172, // 268: raystack.frontier.v1beta1.FrontierService.ListOrganizations:input_type -> raystack.frontier.v1beta1.ListOrganizationsRequest
-	174, // 269: raystack.frontier.v1beta1.FrontierService.CreateOrganization:input_type -> raystack.frontier.v1beta1.CreateOrganizationRequest
-	178, // 270: raystack.frontier.v1beta1.FrontierService.GetOrganization:input_type -> raystack.frontier.v1beta1.GetOrganizationRequest
-	179, // 271: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRequest
-	225, // 272: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:input_type -> raystack.frontier.v1beta1.ListOrganizationProjectsRequest
-	180, // 273: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:input_type -> raystack.frontier.v1beta1.ListOrganizationAdminsRequest
-	182, // 274: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationUsersRequest
-	184, // 275: raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers:input_type -> raystack.frontier.v1beta1.AddOrganizationUsersRequest
-	186, // 276: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser:input_type -> raystack.frontier.v1beta1.RemoveOrganizationUserRequest
-	220, // 277: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:input_type -> raystack.frontier.v1beta1.GetOrganizationKycRequest
-	188, // 278: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersRequest
-	190, // 279: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:input_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsRequest
-	192, // 280: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:input_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationRequest
-	194, // 281: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:input_type -> raystack.frontier.v1beta1.GetOrganizationInvitationRequest
-	196, // 282: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:input_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationRequest
-	198, // 283: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:input_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationRequest
-	199, // 284: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:input_type -> raystack.frontier.v1beta1.ListOrganizationDomainsRequest
-	207, // 285: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:input_type -> raystack.frontier.v1beta1.CreateOrganizationDomainRequest
-	209, // 286: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:input_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainRequest
-	205, // 287: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:input_type -> raystack.frontier.v1beta1.GetOrganizationDomainRequest
-	211, // 288: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:input_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainRequest
-	203, // 289: raystack.frontier.v1beta1.FrontierService.JoinOrganization:input_type -> raystack.frontier.v1beta1.JoinOrganizationRequest
-	214, // 290: raystack.frontier.v1beta1.FrontierService.EnableOrganization:input_type -> raystack.frontier.v1beta1.EnableOrganizationRequest
-	216, // 291: raystack.frontier.v1beta1.FrontierService.DisableOrganization:input_type -> raystack.frontier.v1beta1.DisableOrganizationRequest
-	218, // 292: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRequest
-	223, // 293: raystack.frontier.v1beta1.FrontierService.CreateProject:input_type -> raystack.frontier.v1beta1.CreateProjectRequest
-	227, // 294: raystack.frontier.v1beta1.FrontierService.GetProject:input_type -> raystack.frontier.v1beta1.GetProjectRequest
-	229, // 295: raystack.frontier.v1beta1.FrontierService.UpdateProject:input_type -> raystack.frontier.v1beta1.UpdateProjectRequest
-	231, // 296: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:input_type -> raystack.frontier.v1beta1.ListProjectAdminsRequest
-	233, // 297: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:input_type -> raystack.frontier.v1beta1.ListProjectUsersRequest
-	235, // 298: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:input_type -> raystack.frontier.v1beta1.ListProjectServiceUsersRequest
-	237, // 299: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:input_type -> raystack.frontier.v1beta1.ListProjectGroupsRequest
-	239, // 300: raystack.frontier.v1beta1.FrontierService.EnableProject:input_type -> raystack.frontier.v1beta1.EnableProjectRequest
-	241, // 301: raystack.frontier.v1beta1.FrontierService.DisableProject:input_type -> raystack.frontier.v1beta1.DisableProjectRequest
-	243, // 302: raystack.frontier.v1beta1.FrontierService.DeleteProject:input_type -> raystack.frontier.v1beta1.DeleteProjectRequest
-	255, // 303: raystack.frontier.v1beta1.FrontierService.CreatePolicy:input_type -> raystack.frontier.v1beta1.CreatePolicyRequest
-	257, // 304: raystack.frontier.v1beta1.FrontierService.GetPolicy:input_type -> raystack.frontier.v1beta1.GetPolicyRequest
-	259, // 305: raystack.frontier.v1beta1.FrontierService.ListPolicies:input_type -> raystack.frontier.v1beta1.ListPoliciesRequest
-	261, // 306: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:input_type -> raystack.frontier.v1beta1.UpdatePolicyRequest
-	263, // 307: raystack.frontier.v1beta1.FrontierService.DeletePolicy:input_type -> raystack.frontier.v1beta1.DeletePolicyRequest
-	265, // 308: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:input_type -> raystack.frontier.v1beta1.CreatePolicyForProjectRequest
-	268, // 309: raystack.frontier.v1beta1.FrontierService.CreateRelation:input_type -> raystack.frontier.v1beta1.CreateRelationRequest
-	270, // 310: raystack.frontier.v1beta1.FrontierService.GetRelation:input_type -> raystack.frontier.v1beta1.GetRelationRequest
-	293, // 311: raystack.frontier.v1beta1.FrontierService.DeleteRelation:input_type -> raystack.frontier.v1beta1.DeleteRelationRequest
-	249, // 312: raystack.frontier.v1beta1.FrontierService.ListPermissions:input_type -> raystack.frontier.v1beta1.ListPermissionsRequest
-	247, // 313: raystack.frontier.v1beta1.FrontierService.GetPermission:input_type -> raystack.frontier.v1beta1.GetPermissionRequest
-	251, // 314: raystack.frontier.v1beta1.FrontierService.ListNamespaces:input_type -> raystack.frontier.v1beta1.ListNamespacesRequest
-	253, // 315: raystack.frontier.v1beta1.FrontierService.GetNamespace:input_type -> raystack.frontier.v1beta1.GetNamespaceRequest
-	295, // 316: raystack.frontier.v1beta1.FrontierService.ListProjectResources:input_type -> raystack.frontier.v1beta1.ListProjectResourcesRequest
-	298, // 317: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:input_type -> raystack.frontier.v1beta1.CreateProjectResourceRequest
-	300, // 318: raystack.frontier.v1beta1.FrontierService.GetProjectResource:input_type -> raystack.frontier.v1beta1.GetProjectResourceRequest
-	302, // 319: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:input_type -> raystack.frontier.v1beta1.UpdateProjectResourceRequest
-	304, // 320: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:input_type -> raystack.frontier.v1beta1.DeleteProjectResourceRequest
-	306, // 321: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:input_type -> raystack.frontier.v1beta1.CheckResourcePermissionRequest
-	308, // 322: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:input_type -> raystack.frontier.v1beta1.BatchCheckPermissionRequest
-	78,  // 323: raystack.frontier.v1beta1.FrontierService.GetJWKs:input_type -> raystack.frontier.v1beta1.GetJWKsRequest
-	349, // 324: raystack.frontier.v1beta1.FrontierService.ListSessions:input_type -> raystack.frontier.v1beta1.ListSessionsRequest
-	351, // 325: raystack.frontier.v1beta1.FrontierService.RevokeSession:input_type -> raystack.frontier.v1beta1.RevokeSessionRequest
-	353, // 326: raystack.frontier.v1beta1.FrontierService.PingUserSession:input_type -> raystack.frontier.v1beta1.PingUserSessionRequest
-	87,  // 327: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:input_type -> raystack.frontier.v1beta1.ListAuthStrategiesRequest
-	84,  // 328: raystack.frontier.v1beta1.FrontierService.Authenticate:input_type -> raystack.frontier.v1beta1.AuthenticateRequest
-	82,  // 329: raystack.frontier.v1beta1.FrontierService.AuthCallback:input_type -> raystack.frontier.v1beta1.AuthCallbackRequest
-	89,  // 330: raystack.frontier.v1beta1.FrontierService.AuthToken:input_type -> raystack.frontier.v1beta1.AuthTokenRequest
-	80,  // 331: raystack.frontier.v1beta1.FrontierService.AuthLogout:input_type -> raystack.frontier.v1beta1.AuthLogoutRequest
-	321, // 332: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:input_type -> raystack.frontier.v1beta1.ListMetaSchemasRequest
-	313, // 333: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:input_type -> raystack.frontier.v1beta1.CreateMetaSchemaRequest
-	315, // 334: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:input_type -> raystack.frontier.v1beta1.GetMetaSchemaRequest
-	317, // 335: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:input_type -> raystack.frontier.v1beta1.UpdateMetaSchemaRequest
-	319, // 336: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:input_type -> raystack.frontier.v1beta1.DeleteMetaSchemaRequest
-	323, // 337: raystack.frontier.v1beta1.FrontierService.DescribePreferences:input_type -> raystack.frontier.v1beta1.DescribePreferencesRequest
-	325, // 338: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:input_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest
-	327, // 339: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:input_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesRequest
-	329, // 340: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:input_type -> raystack.frontier.v1beta1.CreateProjectPreferencesRequest
-	331, // 341: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:input_type -> raystack.frontier.v1beta1.ListProjectPreferencesRequest
-	333, // 342: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:input_type -> raystack.frontier.v1beta1.CreateGroupPreferencesRequest
-	335, // 343: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:input_type -> raystack.frontier.v1beta1.ListGroupPreferencesRequest
-	337, // 344: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:input_type -> raystack.frontier.v1beta1.CreateUserPreferencesRequest
-	339, // 345: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:input_type -> raystack.frontier.v1beta1.ListUserPreferencesRequest
-	341, // 346: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest
-	343, // 347: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesRequest
-	1,   // 348: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:input_type -> raystack.frontier.v1beta1.CreateBillingAccountRequest
-	3,   // 349: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:input_type -> raystack.frontier.v1beta1.GetBillingAccountRequest
-	5,   // 350: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:input_type -> raystack.frontier.v1beta1.UpdateBillingAccountRequest
-	7,   // 351: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:input_type -> raystack.frontier.v1beta1.RegisterBillingAccountRequest
-	9,   // 352: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:input_type -> raystack.frontier.v1beta1.ListBillingAccountsRequest
-	11,  // 353: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:input_type -> raystack.frontier.v1beta1.DeleteBillingAccountRequest
-	13,  // 354: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:input_type -> raystack.frontier.v1beta1.EnableBillingAccountRequest
-	15,  // 355: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:input_type -> raystack.frontier.v1beta1.DisableBillingAccountRequest
-	17,  // 356: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:input_type -> raystack.frontier.v1beta1.GetBillingBalanceRequest
-	19,  // 357: raystack.frontier.v1beta1.FrontierService.HasTrialed:input_type -> raystack.frontier.v1beta1.HasTrialedRequest
-	27,  // 358: raystack.frontier.v1beta1.FrontierService.GetSubscription:input_type -> raystack.frontier.v1beta1.GetSubscriptionRequest
-	35,  // 359: raystack.frontier.v1beta1.FrontierService.CancelSubscription:input_type -> raystack.frontier.v1beta1.CancelSubscriptionRequest
-	29,  // 360: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:input_type -> raystack.frontier.v1beta1.ListSubscriptionsRequest
-	33,  // 361: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:input_type -> raystack.frontier.v1beta1.ChangeSubscriptionRequest
-	31,  // 362: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:input_type -> raystack.frontier.v1beta1.UpdateSubscriptionRequest
-	50,  // 363: raystack.frontier.v1beta1.FrontierService.CreateProduct:input_type -> raystack.frontier.v1beta1.CreateProductRequest
-	52,  // 364: raystack.frontier.v1beta1.FrontierService.GetProduct:input_type -> raystack.frontier.v1beta1.GetProductRequest
-	54,  // 365: raystack.frontier.v1beta1.FrontierService.ListProducts:input_type -> raystack.frontier.v1beta1.ListProductsRequest
-	56,  // 366: raystack.frontier.v1beta1.FrontierService.UpdateProduct:input_type -> raystack.frontier.v1beta1.UpdateProductRequest
-	59,  // 367: raystack.frontier.v1beta1.FrontierService.CreateFeature:input_type -> raystack.frontier.v1beta1.CreateFeatureRequest
-	61,  // 368: raystack.frontier.v1beta1.FrontierService.GetFeature:input_type -> raystack.frontier.v1beta1.GetFeatureRequest
-	63,  // 369: raystack.frontier.v1beta1.FrontierService.UpdateFeature:input_type -> raystack.frontier.v1beta1.UpdateFeatureRequest
-	65,  // 370: raystack.frontier.v1beta1.FrontierService.ListFeatures:input_type -> raystack.frontier.v1beta1.ListFeaturesRequest
-	68,  // 371: raystack.frontier.v1beta1.FrontierService.CreatePlan:input_type -> raystack.frontier.v1beta1.CreatePlanRequest
-	37,  // 372: raystack.frontier.v1beta1.FrontierService.ListPlans:input_type -> raystack.frontier.v1beta1.ListPlansRequest
-	70,  // 373: raystack.frontier.v1beta1.FrontierService.GetPlan:input_type -> raystack.frontier.v1beta1.GetPlanRequest
-	72,  // 374: raystack.frontier.v1beta1.FrontierService.UpdatePlan:input_type -> raystack.frontier.v1beta1.UpdatePlanRequest
-	43,  // 375: raystack.frontier.v1beta1.FrontierService.CreateCheckout:input_type -> raystack.frontier.v1beta1.CreateCheckoutRequest
-	45,  // 376: raystack.frontier.v1beta1.FrontierService.ListCheckouts:input_type -> raystack.frontier.v1beta1.ListCheckoutsRequest
-	47,  // 377: raystack.frontier.v1beta1.FrontierService.GetCheckout:input_type -> raystack.frontier.v1beta1.GetCheckoutRequest
-	39,  // 378: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:input_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementRequest
-	41,  // 379: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:input_type -> raystack.frontier.v1beta1.CheckCreditEntitlementRequest
-	21,  // 380: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:input_type -> raystack.frontier.v1beta1.CreateBillingUsageRequest
-	23,  // 381: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:input_type -> raystack.frontier.v1beta1.ListBillingTransactionsRequest
-	25,  // 382: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:input_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsRequest
-	74,  // 383: raystack.frontier.v1beta1.FrontierService.ListInvoices:input_type -> raystack.frontier.v1beta1.ListInvoicesRequest
-	76,  // 384: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:input_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceRequest
-	345, // 385: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:input_type -> raystack.frontier.v1beta1.BillingWebhookCallbackRequest
-	347, // 386: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:input_type -> raystack.frontier.v1beta1.CreateProspectPublicRequest
-	355, // 387: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:input_type -> raystack.frontier.v1beta1.CreateAuditRecordRequest
-	357, // 388: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPATRequest
-	359, // 389: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs:input_type -> raystack.frontier.v1beta1.ListCurrentUserPATsRequest
-	361, // 390: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:input_type -> raystack.frontier.v1beta1.GetCurrentUserPATRequest
-	93,  // 391: raystack.frontier.v1beta1.FrontierService.ListUsers:output_type -> raystack.frontier.v1beta1.ListUsersResponse
-	95,  // 392: raystack.frontier.v1beta1.FrontierService.CreateUser:output_type -> raystack.frontier.v1beta1.CreateUserResponse
-	110, // 393: raystack.frontier.v1beta1.FrontierService.GetUser:output_type -> raystack.frontier.v1beta1.GetUserResponse
-	120, // 394: raystack.frontier.v1beta1.FrontierService.ListUserGroups:output_type -> raystack.frontier.v1beta1.ListUserGroupsResponse
-	118, // 395: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:output_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse
-	112, // 396: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:output_type -> raystack.frontier.v1beta1.GetCurrentUserResponse
-	113, // 397: raystack.frontier.v1beta1.FrontierService.UpdateUser:output_type -> raystack.frontier.v1beta1.UpdateUserResponse
-	114, // 398: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:output_type -> raystack.frontier.v1beta1.UpdateCurrentUserResponse
-	105, // 399: raystack.frontier.v1beta1.FrontierService.EnableUser:output_type -> raystack.frontier.v1beta1.EnableUserResponse
-	107, // 400: raystack.frontier.v1beta1.FrontierService.DisableUser:output_type -> raystack.frontier.v1beta1.DisableUserResponse
-	109, // 401: raystack.frontier.v1beta1.FrontierService.DeleteUser:output_type -> raystack.frontier.v1beta1.DeleteUserResponse
-	97,  // 402: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByUserResponse
-	99,  // 403: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse
-	101, // 404: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:output_type -> raystack.frontier.v1beta1.ListProjectsByUserResponse
-	103, // 405: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse
-	123, // 406: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:output_type -> raystack.frontier.v1beta1.ListUserInvitationsResponse
-	125, // 407: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:output_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse
-	127, // 408: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:output_type -> raystack.frontier.v1beta1.ListServiceUsersResponse
-	130, // 409: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:output_type -> raystack.frontier.v1beta1.CreateServiceUserResponse
-	132, // 410: raystack.frontier.v1beta1.FrontierService.GetServiceUser:output_type -> raystack.frontier.v1beta1.GetServiceUserResponse
-	134, // 411: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:output_type -> raystack.frontier.v1beta1.DeleteServiceUserResponse
-	136, // 412: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:output_type -> raystack.frontier.v1beta1.CreateServiceUserJWKResponse
-	140, // 413: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:output_type -> raystack.frontier.v1beta1.ListServiceUserJWKsResponse
-	138, // 414: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:output_type -> raystack.frontier.v1beta1.GetServiceUserJWKResponse
-	142, // 415: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:output_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKResponse
-	144, // 416: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:output_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialResponse
-	146, // 417: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:output_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsResponse
-	148, // 418: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:output_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialResponse
-	150, // 419: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:output_type -> raystack.frontier.v1beta1.CreateServiceUserTokenResponse
-	152, // 420: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:output_type -> raystack.frontier.v1beta1.ListServiceUserTokensResponse
-	154, // 421: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:output_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenResponse
-	156, // 422: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:output_type -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse
-	158, // 423: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:output_type -> raystack.frontier.v1beta1.ListOrganizationGroupsResponse
-	277, // 424: raystack.frontier.v1beta1.FrontierService.CreateGroup:output_type -> raystack.frontier.v1beta1.CreateGroupResponse
-	278, // 425: raystack.frontier.v1beta1.FrontierService.GetGroup:output_type -> raystack.frontier.v1beta1.GetGroupResponse
-	279, // 426: raystack.frontier.v1beta1.FrontierService.UpdateGroup:output_type -> raystack.frontier.v1beta1.UpdateGroupResponse
-	282, // 427: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:output_type -> raystack.frontier.v1beta1.ListGroupUsersResponse
-	290, // 428: raystack.frontier.v1beta1.FrontierService.AddGroupUsers:output_type -> raystack.frontier.v1beta1.AddGroupUsersResponse
-	292, // 429: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:output_type -> raystack.frontier.v1beta1.RemoveGroupUserResponse
-	284, // 430: raystack.frontier.v1beta1.FrontierService.EnableGroup:output_type -> raystack.frontier.v1beta1.EnableGroupResponse
-	286, // 431: raystack.frontier.v1beta1.FrontierService.DisableGroup:output_type -> raystack.frontier.v1beta1.DisableGroupResponse
-	288, // 432: raystack.frontier.v1beta1.FrontierService.DeleteGroup:output_type -> raystack.frontier.v1beta1.DeleteGroupResponse
-	166, // 433: raystack.frontier.v1beta1.FrontierService.ListRoles:output_type -> raystack.frontier.v1beta1.ListRolesResponse
-	168, // 434: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:output_type -> raystack.frontier.v1beta1.ListOrganizationRolesResponse
-	160, // 435: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:output_type -> raystack.frontier.v1beta1.CreateOrganizationRoleResponse
-	162, // 436: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:output_type -> raystack.frontier.v1beta1.GetOrganizationRoleResponse
-	164, // 437: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:output_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleResponse
-	170, // 438: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:output_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleResponse
-	173, // 439: raystack.frontier.v1beta1.FrontierService.ListOrganizations:output_type -> raystack.frontier.v1beta1.ListOrganizationsResponse
-	175, // 440: raystack.frontier.v1beta1.FrontierService.CreateOrganization:output_type -> raystack.frontier.v1beta1.CreateOrganizationResponse
-	176, // 441: raystack.frontier.v1beta1.FrontierService.GetOrganization:output_type -> raystack.frontier.v1beta1.GetOrganizationResponse
-	177, // 442: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:output_type -> raystack.frontier.v1beta1.UpdateOrganizationResponse
-	226, // 443: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:output_type -> raystack.frontier.v1beta1.ListOrganizationProjectsResponse
-	181, // 444: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:output_type -> raystack.frontier.v1beta1.ListOrganizationAdminsResponse
-	183, // 445: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationUsersResponse
-	185, // 446: raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers:output_type -> raystack.frontier.v1beta1.AddOrganizationUsersResponse
-	187, // 447: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser:output_type -> raystack.frontier.v1beta1.RemoveOrganizationUserResponse
-	221, // 448: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:output_type -> raystack.frontier.v1beta1.GetOrganizationKycResponse
-	189, // 449: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse
-	191, // 450: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:output_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsResponse
-	193, // 451: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:output_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationResponse
-	195, // 452: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:output_type -> raystack.frontier.v1beta1.GetOrganizationInvitationResponse
-	197, // 453: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:output_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationResponse
-	213, // 454: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:output_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationResponse
-	200, // 455: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:output_type -> raystack.frontier.v1beta1.ListOrganizationDomainsResponse
-	208, // 456: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:output_type -> raystack.frontier.v1beta1.CreateOrganizationDomainResponse
-	210, // 457: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:output_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainResponse
-	206, // 458: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:output_type -> raystack.frontier.v1beta1.GetOrganizationDomainResponse
-	212, // 459: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:output_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainResponse
-	204, // 460: raystack.frontier.v1beta1.FrontierService.JoinOrganization:output_type -> raystack.frontier.v1beta1.JoinOrganizationResponse
-	215, // 461: raystack.frontier.v1beta1.FrontierService.EnableOrganization:output_type -> raystack.frontier.v1beta1.EnableOrganizationResponse
-	217, // 462: raystack.frontier.v1beta1.FrontierService.DisableOrganization:output_type -> raystack.frontier.v1beta1.DisableOrganizationResponse
-	219, // 463: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:output_type -> raystack.frontier.v1beta1.DeleteOrganizationResponse
-	224, // 464: raystack.frontier.v1beta1.FrontierService.CreateProject:output_type -> raystack.frontier.v1beta1.CreateProjectResponse
-	228, // 465: raystack.frontier.v1beta1.FrontierService.GetProject:output_type -> raystack.frontier.v1beta1.GetProjectResponse
-	230, // 466: raystack.frontier.v1beta1.FrontierService.UpdateProject:output_type -> raystack.frontier.v1beta1.UpdateProjectResponse
-	232, // 467: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:output_type -> raystack.frontier.v1beta1.ListProjectAdminsResponse
-	234, // 468: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:output_type -> raystack.frontier.v1beta1.ListProjectUsersResponse
-	236, // 469: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:output_type -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse
-	238, // 470: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:output_type -> raystack.frontier.v1beta1.ListProjectGroupsResponse
-	240, // 471: raystack.frontier.v1beta1.FrontierService.EnableProject:output_type -> raystack.frontier.v1beta1.EnableProjectResponse
-	242, // 472: raystack.frontier.v1beta1.FrontierService.DisableProject:output_type -> raystack.frontier.v1beta1.DisableProjectResponse
-	244, // 473: raystack.frontier.v1beta1.FrontierService.DeleteProject:output_type -> raystack.frontier.v1beta1.DeleteProjectResponse
-	256, // 474: raystack.frontier.v1beta1.FrontierService.CreatePolicy:output_type -> raystack.frontier.v1beta1.CreatePolicyResponse
-	258, // 475: raystack.frontier.v1beta1.FrontierService.GetPolicy:output_type -> raystack.frontier.v1beta1.GetPolicyResponse
-	260, // 476: raystack.frontier.v1beta1.FrontierService.ListPolicies:output_type -> raystack.frontier.v1beta1.ListPoliciesResponse
-	262, // 477: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:output_type -> raystack.frontier.v1beta1.UpdatePolicyResponse
-	264, // 478: raystack.frontier.v1beta1.FrontierService.DeletePolicy:output_type -> raystack.frontier.v1beta1.DeletePolicyResponse
-	266, // 479: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:output_type -> raystack.frontier.v1beta1.CreatePolicyForProjectResponse
-	269, // 480: raystack.frontier.v1beta1.FrontierService.CreateRelation:output_type -> raystack.frontier.v1beta1.CreateRelationResponse
-	271, // 481: raystack.frontier.v1beta1.FrontierService.GetRelation:output_type -> raystack.frontier.v1beta1.GetRelationResponse
-	294, // 482: raystack.frontier.v1beta1.FrontierService.DeleteRelation:output_type -> raystack.frontier.v1beta1.DeleteRelationResponse
-	250, // 483: raystack.frontier.v1beta1.FrontierService.ListPermissions:output_type -> raystack.frontier.v1beta1.ListPermissionsResponse
-	248, // 484: raystack.frontier.v1beta1.FrontierService.GetPermission:output_type -> raystack.frontier.v1beta1.GetPermissionResponse
-	252, // 485: raystack.frontier.v1beta1.FrontierService.ListNamespaces:output_type -> raystack.frontier.v1beta1.ListNamespacesResponse
-	254, // 486: raystack.frontier.v1beta1.FrontierService.GetNamespace:output_type -> raystack.frontier.v1beta1.GetNamespaceResponse
-	296, // 487: raystack.frontier.v1beta1.FrontierService.ListProjectResources:output_type -> raystack.frontier.v1beta1.ListProjectResourcesResponse
-	299, // 488: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:output_type -> raystack.frontier.v1beta1.CreateProjectResourceResponse
-	301, // 489: raystack.frontier.v1beta1.FrontierService.GetProjectResource:output_type -> raystack.frontier.v1beta1.GetProjectResourceResponse
-	303, // 490: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:output_type -> raystack.frontier.v1beta1.UpdateProjectResourceResponse
-	305, // 491: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:output_type -> raystack.frontier.v1beta1.DeleteProjectResourceResponse
-	307, // 492: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:output_type -> raystack.frontier.v1beta1.CheckResourcePermissionResponse
-	310, // 493: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:output_type -> raystack.frontier.v1beta1.BatchCheckPermissionResponse
-	79,  // 494: raystack.frontier.v1beta1.FrontierService.GetJWKs:output_type -> raystack.frontier.v1beta1.GetJWKsResponse
-	350, // 495: raystack.frontier.v1beta1.FrontierService.ListSessions:output_type -> raystack.frontier.v1beta1.ListSessionsResponse
-	352, // 496: raystack.frontier.v1beta1.FrontierService.RevokeSession:output_type -> raystack.frontier.v1beta1.RevokeSessionResponse
-	354, // 497: raystack.frontier.v1beta1.FrontierService.PingUserSession:output_type -> raystack.frontier.v1beta1.PingUserSessionResponse
-	88,  // 498: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:output_type -> raystack.frontier.v1beta1.ListAuthStrategiesResponse
-	85,  // 499: raystack.frontier.v1beta1.FrontierService.Authenticate:output_type -> raystack.frontier.v1beta1.AuthenticateResponse
-	83,  // 500: raystack.frontier.v1beta1.FrontierService.AuthCallback:output_type -> raystack.frontier.v1beta1.AuthCallbackResponse
-	90,  // 501: raystack.frontier.v1beta1.FrontierService.AuthToken:output_type -> raystack.frontier.v1beta1.AuthTokenResponse
-	81,  // 502: raystack.frontier.v1beta1.FrontierService.AuthLogout:output_type -> raystack.frontier.v1beta1.AuthLogoutResponse
-	322, // 503: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:output_type -> raystack.frontier.v1beta1.ListMetaSchemasResponse
-	314, // 504: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:output_type -> raystack.frontier.v1beta1.CreateMetaSchemaResponse
-	316, // 505: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:output_type -> raystack.frontier.v1beta1.GetMetaSchemaResponse
-	318, // 506: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:output_type -> raystack.frontier.v1beta1.UpdateMetaSchemaResponse
-	320, // 507: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:output_type -> raystack.frontier.v1beta1.DeleteMetaSchemaResponse
-	324, // 508: raystack.frontier.v1beta1.FrontierService.DescribePreferences:output_type -> raystack.frontier.v1beta1.DescribePreferencesResponse
-	326, // 509: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:output_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse
-	328, // 510: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:output_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesResponse
-	330, // 511: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:output_type -> raystack.frontier.v1beta1.CreateProjectPreferencesResponse
-	332, // 512: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:output_type -> raystack.frontier.v1beta1.ListProjectPreferencesResponse
-	334, // 513: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:output_type -> raystack.frontier.v1beta1.CreateGroupPreferencesResponse
-	336, // 514: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:output_type -> raystack.frontier.v1beta1.ListGroupPreferencesResponse
-	338, // 515: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:output_type -> raystack.frontier.v1beta1.CreateUserPreferencesResponse
-	340, // 516: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:output_type -> raystack.frontier.v1beta1.ListUserPreferencesResponse
-	342, // 517: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse
-	344, // 518: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse
-	2,   // 519: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:output_type -> raystack.frontier.v1beta1.CreateBillingAccountResponse
-	4,   // 520: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:output_type -> raystack.frontier.v1beta1.GetBillingAccountResponse
-	6,   // 521: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:output_type -> raystack.frontier.v1beta1.UpdateBillingAccountResponse
-	8,   // 522: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:output_type -> raystack.frontier.v1beta1.RegisterBillingAccountResponse
-	10,  // 523: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:output_type -> raystack.frontier.v1beta1.ListBillingAccountsResponse
-	12,  // 524: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:output_type -> raystack.frontier.v1beta1.DeleteBillingAccountResponse
-	14,  // 525: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:output_type -> raystack.frontier.v1beta1.EnableBillingAccountResponse
-	16,  // 526: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:output_type -> raystack.frontier.v1beta1.DisableBillingAccountResponse
-	18,  // 527: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:output_type -> raystack.frontier.v1beta1.GetBillingBalanceResponse
-	20,  // 528: raystack.frontier.v1beta1.FrontierService.HasTrialed:output_type -> raystack.frontier.v1beta1.HasTrialedResponse
-	28,  // 529: raystack.frontier.v1beta1.FrontierService.GetSubscription:output_type -> raystack.frontier.v1beta1.GetSubscriptionResponse
-	36,  // 530: raystack.frontier.v1beta1.FrontierService.CancelSubscription:output_type -> raystack.frontier.v1beta1.CancelSubscriptionResponse
-	30,  // 531: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:output_type -> raystack.frontier.v1beta1.ListSubscriptionsResponse
-	34,  // 532: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:output_type -> raystack.frontier.v1beta1.ChangeSubscriptionResponse
-	32,  // 533: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:output_type -> raystack.frontier.v1beta1.UpdateSubscriptionResponse
-	51,  // 534: raystack.frontier.v1beta1.FrontierService.CreateProduct:output_type -> raystack.frontier.v1beta1.CreateProductResponse
-	53,  // 535: raystack.frontier.v1beta1.FrontierService.GetProduct:output_type -> raystack.frontier.v1beta1.GetProductResponse
-	55,  // 536: raystack.frontier.v1beta1.FrontierService.ListProducts:output_type -> raystack.frontier.v1beta1.ListProductsResponse
-	57,  // 537: raystack.frontier.v1beta1.FrontierService.UpdateProduct:output_type -> raystack.frontier.v1beta1.UpdateProductResponse
-	60,  // 538: raystack.frontier.v1beta1.FrontierService.CreateFeature:output_type -> raystack.frontier.v1beta1.CreateFeatureResponse
-	62,  // 539: raystack.frontier.v1beta1.FrontierService.GetFeature:output_type -> raystack.frontier.v1beta1.GetFeatureResponse
-	64,  // 540: raystack.frontier.v1beta1.FrontierService.UpdateFeature:output_type -> raystack.frontier.v1beta1.UpdateFeatureResponse
-	66,  // 541: raystack.frontier.v1beta1.FrontierService.ListFeatures:output_type -> raystack.frontier.v1beta1.ListFeaturesResponse
-	69,  // 542: raystack.frontier.v1beta1.FrontierService.CreatePlan:output_type -> raystack.frontier.v1beta1.CreatePlanResponse
-	38,  // 543: raystack.frontier.v1beta1.FrontierService.ListPlans:output_type -> raystack.frontier.v1beta1.ListPlansResponse
-	71,  // 544: raystack.frontier.v1beta1.FrontierService.GetPlan:output_type -> raystack.frontier.v1beta1.GetPlanResponse
-	73,  // 545: raystack.frontier.v1beta1.FrontierService.UpdatePlan:output_type -> raystack.frontier.v1beta1.UpdatePlanResponse
-	44,  // 546: raystack.frontier.v1beta1.FrontierService.CreateCheckout:output_type -> raystack.frontier.v1beta1.CreateCheckoutResponse
-	46,  // 547: raystack.frontier.v1beta1.FrontierService.ListCheckouts:output_type -> raystack.frontier.v1beta1.ListCheckoutsResponse
-	48,  // 548: raystack.frontier.v1beta1.FrontierService.GetCheckout:output_type -> raystack.frontier.v1beta1.GetCheckoutResponse
-	40,  // 549: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:output_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementResponse
-	42,  // 550: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:output_type -> raystack.frontier.v1beta1.CheckCreditEntitlementResponse
-	22,  // 551: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:output_type -> raystack.frontier.v1beta1.CreateBillingUsageResponse
-	24,  // 552: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:output_type -> raystack.frontier.v1beta1.ListBillingTransactionsResponse
-	26,  // 553: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:output_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsResponse
-	75,  // 554: raystack.frontier.v1beta1.FrontierService.ListInvoices:output_type -> raystack.frontier.v1beta1.ListInvoicesResponse
-	77,  // 555: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:output_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceResponse
-	346, // 556: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:output_type -> raystack.frontier.v1beta1.BillingWebhookCallbackResponse
-	348, // 557: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:output_type -> raystack.frontier.v1beta1.CreateProspectPublicResponse
-	356, // 558: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:output_type -> raystack.frontier.v1beta1.CreateAuditRecordResponse
-	358, // 559: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPATResponse
-	360, // 560: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs:output_type -> raystack.frontier.v1beta1.ListCurrentUserPATsResponse
-	362, // 561: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:output_type -> raystack.frontier.v1beta1.GetCurrentUserPATResponse
-	391, // [391:562] is the sub-list for method output_type
-	220, // [220:391] is the sub-list for method input_type
-	220, // [220:220] is the sub-list for extension type_name
-	220, // [220:220] is the sub-list for extension extendee
-	0,   // [0:220] is the sub-list for field type_name
+	419, // 181: raystack.frontier.v1beta1.UpdateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
+	419, // 182: raystack.frontier.v1beta1.ListMetaSchemasResponse.metaschemas:type_name -> raystack.frontier.v1beta1.MetaSchema
+	420, // 183: raystack.frontier.v1beta1.DescribePreferencesResponse.traits:type_name -> raystack.frontier.v1beta1.PreferenceTrait
+	421, // 184: raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	422, // 185: raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	422, // 186: raystack.frontier.v1beta1.ListOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	421, // 187: raystack.frontier.v1beta1.CreateProjectPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	422, // 188: raystack.frontier.v1beta1.CreateProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	422, // 189: raystack.frontier.v1beta1.ListProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	421, // 190: raystack.frontier.v1beta1.CreateGroupPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	422, // 191: raystack.frontier.v1beta1.CreateGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	422, // 192: raystack.frontier.v1beta1.ListGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	421, // 193: raystack.frontier.v1beta1.CreateUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	422, // 194: raystack.frontier.v1beta1.CreateUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	422, // 195: raystack.frontier.v1beta1.ListUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	421, // 196: raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	422, // 197: raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	422, // 198: raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	379, // 199: raystack.frontier.v1beta1.CreateProspectPublicRequest.metadata:type_name -> google.protobuf.Struct
+	423, // 200: raystack.frontier.v1beta1.ListSessionsResponse.sessions:type_name -> raystack.frontier.v1beta1.Session
+	424, // 201: raystack.frontier.v1beta1.PingUserSessionResponse.metadata:type_name -> raystack.frontier.v1beta1.Session.Meta
+	425, // 202: raystack.frontier.v1beta1.CreateAuditRecordRequest.actor:type_name -> raystack.frontier.v1beta1.AuditRecordActor
+	426, // 203: raystack.frontier.v1beta1.CreateAuditRecordRequest.resource:type_name -> raystack.frontier.v1beta1.AuditRecordResource
+	427, // 204: raystack.frontier.v1beta1.CreateAuditRecordRequest.target:type_name -> raystack.frontier.v1beta1.AuditRecordTarget
+	385, // 205: raystack.frontier.v1beta1.CreateAuditRecordRequest.occurred_at:type_name -> google.protobuf.Timestamp
+	379, // 206: raystack.frontier.v1beta1.CreateAuditRecordRequest.metadata:type_name -> google.protobuf.Struct
+	428, // 207: raystack.frontier.v1beta1.CreateAuditRecordResponse.audit_record:type_name -> raystack.frontier.v1beta1.AuditRecord
+	385, // 208: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.expires_at:type_name -> google.protobuf.Timestamp
+	379, // 209: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.metadata:type_name -> google.protobuf.Struct
+	429, // 210: raystack.frontier.v1beta1.CreateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
+	411, // 211: raystack.frontier.v1beta1.ListRolesForPATResponse.roles:type_name -> raystack.frontier.v1beta1.Role
+	430, // 212: raystack.frontier.v1beta1.ListCurrentUserPATsRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
+	429, // 213: raystack.frontier.v1beta1.ListCurrentUserPATsResponse.pats:type_name -> raystack.frontier.v1beta1.PAT
+	431, // 214: raystack.frontier.v1beta1.ListCurrentUserPATsResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
+	429, // 215: raystack.frontier.v1beta1.GetCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
+	411, // 216: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	411, // 217: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	411, // 218: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	411, // 219: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	411, // 220: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	92,  // 221: raystack.frontier.v1beta1.FrontierService.ListUsers:input_type -> raystack.frontier.v1beta1.ListUsersRequest
+	94,  // 222: raystack.frontier.v1beta1.FrontierService.CreateUser:input_type -> raystack.frontier.v1beta1.CreateUserRequest
+	116, // 223: raystack.frontier.v1beta1.FrontierService.GetUser:input_type -> raystack.frontier.v1beta1.GetUserRequest
+	119, // 224: raystack.frontier.v1beta1.FrontierService.ListUserGroups:input_type -> raystack.frontier.v1beta1.ListUserGroupsRequest
+	117, // 225: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:input_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsRequest
+	111, // 226: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:input_type -> raystack.frontier.v1beta1.GetCurrentUserRequest
+	115, // 227: raystack.frontier.v1beta1.FrontierService.UpdateUser:input_type -> raystack.frontier.v1beta1.UpdateUserRequest
+	121, // 228: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:input_type -> raystack.frontier.v1beta1.UpdateCurrentUserRequest
+	104, // 229: raystack.frontier.v1beta1.FrontierService.EnableUser:input_type -> raystack.frontier.v1beta1.EnableUserRequest
+	106, // 230: raystack.frontier.v1beta1.FrontierService.DisableUser:input_type -> raystack.frontier.v1beta1.DisableUserRequest
+	108, // 231: raystack.frontier.v1beta1.FrontierService.DeleteUser:input_type -> raystack.frontier.v1beta1.DeleteUserRequest
+	96,  // 232: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByUserRequest
+	98,  // 233: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserRequest
+	100, // 234: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:input_type -> raystack.frontier.v1beta1.ListProjectsByUserRequest
+	102, // 235: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserRequest
+	122, // 236: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:input_type -> raystack.frontier.v1beta1.ListUserInvitationsRequest
+	124, // 237: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:input_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsRequest
+	126, // 238: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:input_type -> raystack.frontier.v1beta1.ListServiceUsersRequest
+	129, // 239: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:input_type -> raystack.frontier.v1beta1.CreateServiceUserRequest
+	131, // 240: raystack.frontier.v1beta1.FrontierService.GetServiceUser:input_type -> raystack.frontier.v1beta1.GetServiceUserRequest
+	133, // 241: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:input_type -> raystack.frontier.v1beta1.DeleteServiceUserRequest
+	135, // 242: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:input_type -> raystack.frontier.v1beta1.CreateServiceUserJWKRequest
+	139, // 243: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:input_type -> raystack.frontier.v1beta1.ListServiceUserJWKsRequest
+	137, // 244: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:input_type -> raystack.frontier.v1beta1.GetServiceUserJWKRequest
+	141, // 245: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:input_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKRequest
+	143, // 246: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:input_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialRequest
+	145, // 247: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:input_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsRequest
+	147, // 248: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:input_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialRequest
+	149, // 249: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:input_type -> raystack.frontier.v1beta1.CreateServiceUserTokenRequest
+	151, // 250: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:input_type -> raystack.frontier.v1beta1.ListServiceUserTokensRequest
+	153, // 251: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:input_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenRequest
+	155, // 252: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:input_type -> raystack.frontier.v1beta1.ListServiceUserProjectsRequest
+	157, // 253: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:input_type -> raystack.frontier.v1beta1.ListOrganizationGroupsRequest
+	275, // 254: raystack.frontier.v1beta1.FrontierService.CreateGroup:input_type -> raystack.frontier.v1beta1.CreateGroupRequest
+	276, // 255: raystack.frontier.v1beta1.FrontierService.GetGroup:input_type -> raystack.frontier.v1beta1.GetGroupRequest
+	280, // 256: raystack.frontier.v1beta1.FrontierService.UpdateGroup:input_type -> raystack.frontier.v1beta1.UpdateGroupRequest
+	281, // 257: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:input_type -> raystack.frontier.v1beta1.ListGroupUsersRequest
+	289, // 258: raystack.frontier.v1beta1.FrontierService.AddGroupUsers:input_type -> raystack.frontier.v1beta1.AddGroupUsersRequest
+	291, // 259: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:input_type -> raystack.frontier.v1beta1.RemoveGroupUserRequest
+	283, // 260: raystack.frontier.v1beta1.FrontierService.EnableGroup:input_type -> raystack.frontier.v1beta1.EnableGroupRequest
+	285, // 261: raystack.frontier.v1beta1.FrontierService.DisableGroup:input_type -> raystack.frontier.v1beta1.DisableGroupRequest
+	287, // 262: raystack.frontier.v1beta1.FrontierService.DeleteGroup:input_type -> raystack.frontier.v1beta1.DeleteGroupRequest
+	165, // 263: raystack.frontier.v1beta1.FrontierService.ListRoles:input_type -> raystack.frontier.v1beta1.ListRolesRequest
+	167, // 264: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:input_type -> raystack.frontier.v1beta1.ListOrganizationRolesRequest
+	159, // 265: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:input_type -> raystack.frontier.v1beta1.CreateOrganizationRoleRequest
+	161, // 266: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:input_type -> raystack.frontier.v1beta1.GetOrganizationRoleRequest
+	163, // 267: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleRequest
+	169, // 268: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleRequest
+	172, // 269: raystack.frontier.v1beta1.FrontierService.ListOrganizations:input_type -> raystack.frontier.v1beta1.ListOrganizationsRequest
+	174, // 270: raystack.frontier.v1beta1.FrontierService.CreateOrganization:input_type -> raystack.frontier.v1beta1.CreateOrganizationRequest
+	178, // 271: raystack.frontier.v1beta1.FrontierService.GetOrganization:input_type -> raystack.frontier.v1beta1.GetOrganizationRequest
+	179, // 272: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRequest
+	225, // 273: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:input_type -> raystack.frontier.v1beta1.ListOrganizationProjectsRequest
+	180, // 274: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:input_type -> raystack.frontier.v1beta1.ListOrganizationAdminsRequest
+	182, // 275: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationUsersRequest
+	184, // 276: raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers:input_type -> raystack.frontier.v1beta1.AddOrganizationUsersRequest
+	186, // 277: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser:input_type -> raystack.frontier.v1beta1.RemoveOrganizationUserRequest
+	220, // 278: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:input_type -> raystack.frontier.v1beta1.GetOrganizationKycRequest
+	188, // 279: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersRequest
+	190, // 280: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:input_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsRequest
+	192, // 281: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:input_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationRequest
+	194, // 282: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:input_type -> raystack.frontier.v1beta1.GetOrganizationInvitationRequest
+	196, // 283: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:input_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationRequest
+	198, // 284: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:input_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationRequest
+	199, // 285: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:input_type -> raystack.frontier.v1beta1.ListOrganizationDomainsRequest
+	207, // 286: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:input_type -> raystack.frontier.v1beta1.CreateOrganizationDomainRequest
+	209, // 287: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:input_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainRequest
+	205, // 288: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:input_type -> raystack.frontier.v1beta1.GetOrganizationDomainRequest
+	211, // 289: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:input_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainRequest
+	203, // 290: raystack.frontier.v1beta1.FrontierService.JoinOrganization:input_type -> raystack.frontier.v1beta1.JoinOrganizationRequest
+	214, // 291: raystack.frontier.v1beta1.FrontierService.EnableOrganization:input_type -> raystack.frontier.v1beta1.EnableOrganizationRequest
+	216, // 292: raystack.frontier.v1beta1.FrontierService.DisableOrganization:input_type -> raystack.frontier.v1beta1.DisableOrganizationRequest
+	218, // 293: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRequest
+	223, // 294: raystack.frontier.v1beta1.FrontierService.CreateProject:input_type -> raystack.frontier.v1beta1.CreateProjectRequest
+	227, // 295: raystack.frontier.v1beta1.FrontierService.GetProject:input_type -> raystack.frontier.v1beta1.GetProjectRequest
+	229, // 296: raystack.frontier.v1beta1.FrontierService.UpdateProject:input_type -> raystack.frontier.v1beta1.UpdateProjectRequest
+	231, // 297: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:input_type -> raystack.frontier.v1beta1.ListProjectAdminsRequest
+	233, // 298: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:input_type -> raystack.frontier.v1beta1.ListProjectUsersRequest
+	235, // 299: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:input_type -> raystack.frontier.v1beta1.ListProjectServiceUsersRequest
+	237, // 300: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:input_type -> raystack.frontier.v1beta1.ListProjectGroupsRequest
+	239, // 301: raystack.frontier.v1beta1.FrontierService.EnableProject:input_type -> raystack.frontier.v1beta1.EnableProjectRequest
+	241, // 302: raystack.frontier.v1beta1.FrontierService.DisableProject:input_type -> raystack.frontier.v1beta1.DisableProjectRequest
+	243, // 303: raystack.frontier.v1beta1.FrontierService.DeleteProject:input_type -> raystack.frontier.v1beta1.DeleteProjectRequest
+	255, // 304: raystack.frontier.v1beta1.FrontierService.CreatePolicy:input_type -> raystack.frontier.v1beta1.CreatePolicyRequest
+	257, // 305: raystack.frontier.v1beta1.FrontierService.GetPolicy:input_type -> raystack.frontier.v1beta1.GetPolicyRequest
+	259, // 306: raystack.frontier.v1beta1.FrontierService.ListPolicies:input_type -> raystack.frontier.v1beta1.ListPoliciesRequest
+	261, // 307: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:input_type -> raystack.frontier.v1beta1.UpdatePolicyRequest
+	263, // 308: raystack.frontier.v1beta1.FrontierService.DeletePolicy:input_type -> raystack.frontier.v1beta1.DeletePolicyRequest
+	265, // 309: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:input_type -> raystack.frontier.v1beta1.CreatePolicyForProjectRequest
+	268, // 310: raystack.frontier.v1beta1.FrontierService.CreateRelation:input_type -> raystack.frontier.v1beta1.CreateRelationRequest
+	270, // 311: raystack.frontier.v1beta1.FrontierService.GetRelation:input_type -> raystack.frontier.v1beta1.GetRelationRequest
+	293, // 312: raystack.frontier.v1beta1.FrontierService.DeleteRelation:input_type -> raystack.frontier.v1beta1.DeleteRelationRequest
+	249, // 313: raystack.frontier.v1beta1.FrontierService.ListPermissions:input_type -> raystack.frontier.v1beta1.ListPermissionsRequest
+	247, // 314: raystack.frontier.v1beta1.FrontierService.GetPermission:input_type -> raystack.frontier.v1beta1.GetPermissionRequest
+	251, // 315: raystack.frontier.v1beta1.FrontierService.ListNamespaces:input_type -> raystack.frontier.v1beta1.ListNamespacesRequest
+	253, // 316: raystack.frontier.v1beta1.FrontierService.GetNamespace:input_type -> raystack.frontier.v1beta1.GetNamespaceRequest
+	295, // 317: raystack.frontier.v1beta1.FrontierService.ListProjectResources:input_type -> raystack.frontier.v1beta1.ListProjectResourcesRequest
+	298, // 318: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:input_type -> raystack.frontier.v1beta1.CreateProjectResourceRequest
+	300, // 319: raystack.frontier.v1beta1.FrontierService.GetProjectResource:input_type -> raystack.frontier.v1beta1.GetProjectResourceRequest
+	302, // 320: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:input_type -> raystack.frontier.v1beta1.UpdateProjectResourceRequest
+	304, // 321: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:input_type -> raystack.frontier.v1beta1.DeleteProjectResourceRequest
+	306, // 322: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:input_type -> raystack.frontier.v1beta1.CheckResourcePermissionRequest
+	308, // 323: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:input_type -> raystack.frontier.v1beta1.BatchCheckPermissionRequest
+	78,  // 324: raystack.frontier.v1beta1.FrontierService.GetJWKs:input_type -> raystack.frontier.v1beta1.GetJWKsRequest
+	349, // 325: raystack.frontier.v1beta1.FrontierService.ListSessions:input_type -> raystack.frontier.v1beta1.ListSessionsRequest
+	351, // 326: raystack.frontier.v1beta1.FrontierService.RevokeSession:input_type -> raystack.frontier.v1beta1.RevokeSessionRequest
+	353, // 327: raystack.frontier.v1beta1.FrontierService.PingUserSession:input_type -> raystack.frontier.v1beta1.PingUserSessionRequest
+	87,  // 328: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:input_type -> raystack.frontier.v1beta1.ListAuthStrategiesRequest
+	84,  // 329: raystack.frontier.v1beta1.FrontierService.Authenticate:input_type -> raystack.frontier.v1beta1.AuthenticateRequest
+	82,  // 330: raystack.frontier.v1beta1.FrontierService.AuthCallback:input_type -> raystack.frontier.v1beta1.AuthCallbackRequest
+	89,  // 331: raystack.frontier.v1beta1.FrontierService.AuthToken:input_type -> raystack.frontier.v1beta1.AuthTokenRequest
+	80,  // 332: raystack.frontier.v1beta1.FrontierService.AuthLogout:input_type -> raystack.frontier.v1beta1.AuthLogoutRequest
+	321, // 333: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:input_type -> raystack.frontier.v1beta1.ListMetaSchemasRequest
+	313, // 334: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:input_type -> raystack.frontier.v1beta1.CreateMetaSchemaRequest
+	315, // 335: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:input_type -> raystack.frontier.v1beta1.GetMetaSchemaRequest
+	317, // 336: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:input_type -> raystack.frontier.v1beta1.UpdateMetaSchemaRequest
+	319, // 337: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:input_type -> raystack.frontier.v1beta1.DeleteMetaSchemaRequest
+	323, // 338: raystack.frontier.v1beta1.FrontierService.DescribePreferences:input_type -> raystack.frontier.v1beta1.DescribePreferencesRequest
+	325, // 339: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:input_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest
+	327, // 340: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:input_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesRequest
+	329, // 341: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:input_type -> raystack.frontier.v1beta1.CreateProjectPreferencesRequest
+	331, // 342: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:input_type -> raystack.frontier.v1beta1.ListProjectPreferencesRequest
+	333, // 343: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:input_type -> raystack.frontier.v1beta1.CreateGroupPreferencesRequest
+	335, // 344: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:input_type -> raystack.frontier.v1beta1.ListGroupPreferencesRequest
+	337, // 345: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:input_type -> raystack.frontier.v1beta1.CreateUserPreferencesRequest
+	339, // 346: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:input_type -> raystack.frontier.v1beta1.ListUserPreferencesRequest
+	341, // 347: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest
+	343, // 348: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesRequest
+	1,   // 349: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:input_type -> raystack.frontier.v1beta1.CreateBillingAccountRequest
+	3,   // 350: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:input_type -> raystack.frontier.v1beta1.GetBillingAccountRequest
+	5,   // 351: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:input_type -> raystack.frontier.v1beta1.UpdateBillingAccountRequest
+	7,   // 352: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:input_type -> raystack.frontier.v1beta1.RegisterBillingAccountRequest
+	9,   // 353: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:input_type -> raystack.frontier.v1beta1.ListBillingAccountsRequest
+	11,  // 354: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:input_type -> raystack.frontier.v1beta1.DeleteBillingAccountRequest
+	13,  // 355: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:input_type -> raystack.frontier.v1beta1.EnableBillingAccountRequest
+	15,  // 356: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:input_type -> raystack.frontier.v1beta1.DisableBillingAccountRequest
+	17,  // 357: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:input_type -> raystack.frontier.v1beta1.GetBillingBalanceRequest
+	19,  // 358: raystack.frontier.v1beta1.FrontierService.HasTrialed:input_type -> raystack.frontier.v1beta1.HasTrialedRequest
+	27,  // 359: raystack.frontier.v1beta1.FrontierService.GetSubscription:input_type -> raystack.frontier.v1beta1.GetSubscriptionRequest
+	35,  // 360: raystack.frontier.v1beta1.FrontierService.CancelSubscription:input_type -> raystack.frontier.v1beta1.CancelSubscriptionRequest
+	29,  // 361: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:input_type -> raystack.frontier.v1beta1.ListSubscriptionsRequest
+	33,  // 362: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:input_type -> raystack.frontier.v1beta1.ChangeSubscriptionRequest
+	31,  // 363: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:input_type -> raystack.frontier.v1beta1.UpdateSubscriptionRequest
+	50,  // 364: raystack.frontier.v1beta1.FrontierService.CreateProduct:input_type -> raystack.frontier.v1beta1.CreateProductRequest
+	52,  // 365: raystack.frontier.v1beta1.FrontierService.GetProduct:input_type -> raystack.frontier.v1beta1.GetProductRequest
+	54,  // 366: raystack.frontier.v1beta1.FrontierService.ListProducts:input_type -> raystack.frontier.v1beta1.ListProductsRequest
+	56,  // 367: raystack.frontier.v1beta1.FrontierService.UpdateProduct:input_type -> raystack.frontier.v1beta1.UpdateProductRequest
+	59,  // 368: raystack.frontier.v1beta1.FrontierService.CreateFeature:input_type -> raystack.frontier.v1beta1.CreateFeatureRequest
+	61,  // 369: raystack.frontier.v1beta1.FrontierService.GetFeature:input_type -> raystack.frontier.v1beta1.GetFeatureRequest
+	63,  // 370: raystack.frontier.v1beta1.FrontierService.UpdateFeature:input_type -> raystack.frontier.v1beta1.UpdateFeatureRequest
+	65,  // 371: raystack.frontier.v1beta1.FrontierService.ListFeatures:input_type -> raystack.frontier.v1beta1.ListFeaturesRequest
+	68,  // 372: raystack.frontier.v1beta1.FrontierService.CreatePlan:input_type -> raystack.frontier.v1beta1.CreatePlanRequest
+	37,  // 373: raystack.frontier.v1beta1.FrontierService.ListPlans:input_type -> raystack.frontier.v1beta1.ListPlansRequest
+	70,  // 374: raystack.frontier.v1beta1.FrontierService.GetPlan:input_type -> raystack.frontier.v1beta1.GetPlanRequest
+	72,  // 375: raystack.frontier.v1beta1.FrontierService.UpdatePlan:input_type -> raystack.frontier.v1beta1.UpdatePlanRequest
+	43,  // 376: raystack.frontier.v1beta1.FrontierService.CreateCheckout:input_type -> raystack.frontier.v1beta1.CreateCheckoutRequest
+	45,  // 377: raystack.frontier.v1beta1.FrontierService.ListCheckouts:input_type -> raystack.frontier.v1beta1.ListCheckoutsRequest
+	47,  // 378: raystack.frontier.v1beta1.FrontierService.GetCheckout:input_type -> raystack.frontier.v1beta1.GetCheckoutRequest
+	39,  // 379: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:input_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementRequest
+	41,  // 380: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:input_type -> raystack.frontier.v1beta1.CheckCreditEntitlementRequest
+	21,  // 381: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:input_type -> raystack.frontier.v1beta1.CreateBillingUsageRequest
+	23,  // 382: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:input_type -> raystack.frontier.v1beta1.ListBillingTransactionsRequest
+	25,  // 383: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:input_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsRequest
+	74,  // 384: raystack.frontier.v1beta1.FrontierService.ListInvoices:input_type -> raystack.frontier.v1beta1.ListInvoicesRequest
+	76,  // 385: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:input_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceRequest
+	345, // 386: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:input_type -> raystack.frontier.v1beta1.BillingWebhookCallbackRequest
+	347, // 387: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:input_type -> raystack.frontier.v1beta1.CreateProspectPublicRequest
+	355, // 388: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:input_type -> raystack.frontier.v1beta1.CreateAuditRecordRequest
+	357, // 389: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPATRequest
+	359, // 390: raystack.frontier.v1beta1.FrontierService.ListRolesForPAT:input_type -> raystack.frontier.v1beta1.ListRolesForPATRequest
+	361, // 391: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs:input_type -> raystack.frontier.v1beta1.ListCurrentUserPATsRequest
+	363, // 392: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:input_type -> raystack.frontier.v1beta1.GetCurrentUserPATRequest
+	365, // 393: raystack.frontier.v1beta1.FrontierService.DeleteCurrentUserPAT:input_type -> raystack.frontier.v1beta1.DeleteCurrentUserPATRequest
+	93,  // 394: raystack.frontier.v1beta1.FrontierService.ListUsers:output_type -> raystack.frontier.v1beta1.ListUsersResponse
+	95,  // 395: raystack.frontier.v1beta1.FrontierService.CreateUser:output_type -> raystack.frontier.v1beta1.CreateUserResponse
+	110, // 396: raystack.frontier.v1beta1.FrontierService.GetUser:output_type -> raystack.frontier.v1beta1.GetUserResponse
+	120, // 397: raystack.frontier.v1beta1.FrontierService.ListUserGroups:output_type -> raystack.frontier.v1beta1.ListUserGroupsResponse
+	118, // 398: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:output_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse
+	112, // 399: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:output_type -> raystack.frontier.v1beta1.GetCurrentUserResponse
+	113, // 400: raystack.frontier.v1beta1.FrontierService.UpdateUser:output_type -> raystack.frontier.v1beta1.UpdateUserResponse
+	114, // 401: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:output_type -> raystack.frontier.v1beta1.UpdateCurrentUserResponse
+	105, // 402: raystack.frontier.v1beta1.FrontierService.EnableUser:output_type -> raystack.frontier.v1beta1.EnableUserResponse
+	107, // 403: raystack.frontier.v1beta1.FrontierService.DisableUser:output_type -> raystack.frontier.v1beta1.DisableUserResponse
+	109, // 404: raystack.frontier.v1beta1.FrontierService.DeleteUser:output_type -> raystack.frontier.v1beta1.DeleteUserResponse
+	97,  // 405: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByUserResponse
+	99,  // 406: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse
+	101, // 407: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:output_type -> raystack.frontier.v1beta1.ListProjectsByUserResponse
+	103, // 408: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse
+	123, // 409: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:output_type -> raystack.frontier.v1beta1.ListUserInvitationsResponse
+	125, // 410: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:output_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse
+	127, // 411: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:output_type -> raystack.frontier.v1beta1.ListServiceUsersResponse
+	130, // 412: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:output_type -> raystack.frontier.v1beta1.CreateServiceUserResponse
+	132, // 413: raystack.frontier.v1beta1.FrontierService.GetServiceUser:output_type -> raystack.frontier.v1beta1.GetServiceUserResponse
+	134, // 414: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:output_type -> raystack.frontier.v1beta1.DeleteServiceUserResponse
+	136, // 415: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:output_type -> raystack.frontier.v1beta1.CreateServiceUserJWKResponse
+	140, // 416: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:output_type -> raystack.frontier.v1beta1.ListServiceUserJWKsResponse
+	138, // 417: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:output_type -> raystack.frontier.v1beta1.GetServiceUserJWKResponse
+	142, // 418: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:output_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKResponse
+	144, // 419: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:output_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialResponse
+	146, // 420: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:output_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsResponse
+	148, // 421: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:output_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialResponse
+	150, // 422: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:output_type -> raystack.frontier.v1beta1.CreateServiceUserTokenResponse
+	152, // 423: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:output_type -> raystack.frontier.v1beta1.ListServiceUserTokensResponse
+	154, // 424: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:output_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenResponse
+	156, // 425: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:output_type -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse
+	158, // 426: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:output_type -> raystack.frontier.v1beta1.ListOrganizationGroupsResponse
+	277, // 427: raystack.frontier.v1beta1.FrontierService.CreateGroup:output_type -> raystack.frontier.v1beta1.CreateGroupResponse
+	278, // 428: raystack.frontier.v1beta1.FrontierService.GetGroup:output_type -> raystack.frontier.v1beta1.GetGroupResponse
+	279, // 429: raystack.frontier.v1beta1.FrontierService.UpdateGroup:output_type -> raystack.frontier.v1beta1.UpdateGroupResponse
+	282, // 430: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:output_type -> raystack.frontier.v1beta1.ListGroupUsersResponse
+	290, // 431: raystack.frontier.v1beta1.FrontierService.AddGroupUsers:output_type -> raystack.frontier.v1beta1.AddGroupUsersResponse
+	292, // 432: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:output_type -> raystack.frontier.v1beta1.RemoveGroupUserResponse
+	284, // 433: raystack.frontier.v1beta1.FrontierService.EnableGroup:output_type -> raystack.frontier.v1beta1.EnableGroupResponse
+	286, // 434: raystack.frontier.v1beta1.FrontierService.DisableGroup:output_type -> raystack.frontier.v1beta1.DisableGroupResponse
+	288, // 435: raystack.frontier.v1beta1.FrontierService.DeleteGroup:output_type -> raystack.frontier.v1beta1.DeleteGroupResponse
+	166, // 436: raystack.frontier.v1beta1.FrontierService.ListRoles:output_type -> raystack.frontier.v1beta1.ListRolesResponse
+	168, // 437: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:output_type -> raystack.frontier.v1beta1.ListOrganizationRolesResponse
+	160, // 438: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:output_type -> raystack.frontier.v1beta1.CreateOrganizationRoleResponse
+	162, // 439: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:output_type -> raystack.frontier.v1beta1.GetOrganizationRoleResponse
+	164, // 440: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:output_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleResponse
+	170, // 441: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:output_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleResponse
+	173, // 442: raystack.frontier.v1beta1.FrontierService.ListOrganizations:output_type -> raystack.frontier.v1beta1.ListOrganizationsResponse
+	175, // 443: raystack.frontier.v1beta1.FrontierService.CreateOrganization:output_type -> raystack.frontier.v1beta1.CreateOrganizationResponse
+	176, // 444: raystack.frontier.v1beta1.FrontierService.GetOrganization:output_type -> raystack.frontier.v1beta1.GetOrganizationResponse
+	177, // 445: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:output_type -> raystack.frontier.v1beta1.UpdateOrganizationResponse
+	226, // 446: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:output_type -> raystack.frontier.v1beta1.ListOrganizationProjectsResponse
+	181, // 447: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:output_type -> raystack.frontier.v1beta1.ListOrganizationAdminsResponse
+	183, // 448: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationUsersResponse
+	185, // 449: raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers:output_type -> raystack.frontier.v1beta1.AddOrganizationUsersResponse
+	187, // 450: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser:output_type -> raystack.frontier.v1beta1.RemoveOrganizationUserResponse
+	221, // 451: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:output_type -> raystack.frontier.v1beta1.GetOrganizationKycResponse
+	189, // 452: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse
+	191, // 453: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:output_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsResponse
+	193, // 454: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:output_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationResponse
+	195, // 455: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:output_type -> raystack.frontier.v1beta1.GetOrganizationInvitationResponse
+	197, // 456: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:output_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationResponse
+	213, // 457: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:output_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationResponse
+	200, // 458: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:output_type -> raystack.frontier.v1beta1.ListOrganizationDomainsResponse
+	208, // 459: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:output_type -> raystack.frontier.v1beta1.CreateOrganizationDomainResponse
+	210, // 460: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:output_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainResponse
+	206, // 461: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:output_type -> raystack.frontier.v1beta1.GetOrganizationDomainResponse
+	212, // 462: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:output_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainResponse
+	204, // 463: raystack.frontier.v1beta1.FrontierService.JoinOrganization:output_type -> raystack.frontier.v1beta1.JoinOrganizationResponse
+	215, // 464: raystack.frontier.v1beta1.FrontierService.EnableOrganization:output_type -> raystack.frontier.v1beta1.EnableOrganizationResponse
+	217, // 465: raystack.frontier.v1beta1.FrontierService.DisableOrganization:output_type -> raystack.frontier.v1beta1.DisableOrganizationResponse
+	219, // 466: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:output_type -> raystack.frontier.v1beta1.DeleteOrganizationResponse
+	224, // 467: raystack.frontier.v1beta1.FrontierService.CreateProject:output_type -> raystack.frontier.v1beta1.CreateProjectResponse
+	228, // 468: raystack.frontier.v1beta1.FrontierService.GetProject:output_type -> raystack.frontier.v1beta1.GetProjectResponse
+	230, // 469: raystack.frontier.v1beta1.FrontierService.UpdateProject:output_type -> raystack.frontier.v1beta1.UpdateProjectResponse
+	232, // 470: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:output_type -> raystack.frontier.v1beta1.ListProjectAdminsResponse
+	234, // 471: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:output_type -> raystack.frontier.v1beta1.ListProjectUsersResponse
+	236, // 472: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:output_type -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse
+	238, // 473: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:output_type -> raystack.frontier.v1beta1.ListProjectGroupsResponse
+	240, // 474: raystack.frontier.v1beta1.FrontierService.EnableProject:output_type -> raystack.frontier.v1beta1.EnableProjectResponse
+	242, // 475: raystack.frontier.v1beta1.FrontierService.DisableProject:output_type -> raystack.frontier.v1beta1.DisableProjectResponse
+	244, // 476: raystack.frontier.v1beta1.FrontierService.DeleteProject:output_type -> raystack.frontier.v1beta1.DeleteProjectResponse
+	256, // 477: raystack.frontier.v1beta1.FrontierService.CreatePolicy:output_type -> raystack.frontier.v1beta1.CreatePolicyResponse
+	258, // 478: raystack.frontier.v1beta1.FrontierService.GetPolicy:output_type -> raystack.frontier.v1beta1.GetPolicyResponse
+	260, // 479: raystack.frontier.v1beta1.FrontierService.ListPolicies:output_type -> raystack.frontier.v1beta1.ListPoliciesResponse
+	262, // 480: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:output_type -> raystack.frontier.v1beta1.UpdatePolicyResponse
+	264, // 481: raystack.frontier.v1beta1.FrontierService.DeletePolicy:output_type -> raystack.frontier.v1beta1.DeletePolicyResponse
+	266, // 482: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:output_type -> raystack.frontier.v1beta1.CreatePolicyForProjectResponse
+	269, // 483: raystack.frontier.v1beta1.FrontierService.CreateRelation:output_type -> raystack.frontier.v1beta1.CreateRelationResponse
+	271, // 484: raystack.frontier.v1beta1.FrontierService.GetRelation:output_type -> raystack.frontier.v1beta1.GetRelationResponse
+	294, // 485: raystack.frontier.v1beta1.FrontierService.DeleteRelation:output_type -> raystack.frontier.v1beta1.DeleteRelationResponse
+	250, // 486: raystack.frontier.v1beta1.FrontierService.ListPermissions:output_type -> raystack.frontier.v1beta1.ListPermissionsResponse
+	248, // 487: raystack.frontier.v1beta1.FrontierService.GetPermission:output_type -> raystack.frontier.v1beta1.GetPermissionResponse
+	252, // 488: raystack.frontier.v1beta1.FrontierService.ListNamespaces:output_type -> raystack.frontier.v1beta1.ListNamespacesResponse
+	254, // 489: raystack.frontier.v1beta1.FrontierService.GetNamespace:output_type -> raystack.frontier.v1beta1.GetNamespaceResponse
+	296, // 490: raystack.frontier.v1beta1.FrontierService.ListProjectResources:output_type -> raystack.frontier.v1beta1.ListProjectResourcesResponse
+	299, // 491: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:output_type -> raystack.frontier.v1beta1.CreateProjectResourceResponse
+	301, // 492: raystack.frontier.v1beta1.FrontierService.GetProjectResource:output_type -> raystack.frontier.v1beta1.GetProjectResourceResponse
+	303, // 493: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:output_type -> raystack.frontier.v1beta1.UpdateProjectResourceResponse
+	305, // 494: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:output_type -> raystack.frontier.v1beta1.DeleteProjectResourceResponse
+	307, // 495: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:output_type -> raystack.frontier.v1beta1.CheckResourcePermissionResponse
+	310, // 496: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:output_type -> raystack.frontier.v1beta1.BatchCheckPermissionResponse
+	79,  // 497: raystack.frontier.v1beta1.FrontierService.GetJWKs:output_type -> raystack.frontier.v1beta1.GetJWKsResponse
+	350, // 498: raystack.frontier.v1beta1.FrontierService.ListSessions:output_type -> raystack.frontier.v1beta1.ListSessionsResponse
+	352, // 499: raystack.frontier.v1beta1.FrontierService.RevokeSession:output_type -> raystack.frontier.v1beta1.RevokeSessionResponse
+	354, // 500: raystack.frontier.v1beta1.FrontierService.PingUserSession:output_type -> raystack.frontier.v1beta1.PingUserSessionResponse
+	88,  // 501: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:output_type -> raystack.frontier.v1beta1.ListAuthStrategiesResponse
+	85,  // 502: raystack.frontier.v1beta1.FrontierService.Authenticate:output_type -> raystack.frontier.v1beta1.AuthenticateResponse
+	83,  // 503: raystack.frontier.v1beta1.FrontierService.AuthCallback:output_type -> raystack.frontier.v1beta1.AuthCallbackResponse
+	90,  // 504: raystack.frontier.v1beta1.FrontierService.AuthToken:output_type -> raystack.frontier.v1beta1.AuthTokenResponse
+	81,  // 505: raystack.frontier.v1beta1.FrontierService.AuthLogout:output_type -> raystack.frontier.v1beta1.AuthLogoutResponse
+	322, // 506: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:output_type -> raystack.frontier.v1beta1.ListMetaSchemasResponse
+	314, // 507: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:output_type -> raystack.frontier.v1beta1.CreateMetaSchemaResponse
+	316, // 508: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:output_type -> raystack.frontier.v1beta1.GetMetaSchemaResponse
+	318, // 509: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:output_type -> raystack.frontier.v1beta1.UpdateMetaSchemaResponse
+	320, // 510: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:output_type -> raystack.frontier.v1beta1.DeleteMetaSchemaResponse
+	324, // 511: raystack.frontier.v1beta1.FrontierService.DescribePreferences:output_type -> raystack.frontier.v1beta1.DescribePreferencesResponse
+	326, // 512: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:output_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse
+	328, // 513: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:output_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesResponse
+	330, // 514: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:output_type -> raystack.frontier.v1beta1.CreateProjectPreferencesResponse
+	332, // 515: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:output_type -> raystack.frontier.v1beta1.ListProjectPreferencesResponse
+	334, // 516: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:output_type -> raystack.frontier.v1beta1.CreateGroupPreferencesResponse
+	336, // 517: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:output_type -> raystack.frontier.v1beta1.ListGroupPreferencesResponse
+	338, // 518: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:output_type -> raystack.frontier.v1beta1.CreateUserPreferencesResponse
+	340, // 519: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:output_type -> raystack.frontier.v1beta1.ListUserPreferencesResponse
+	342, // 520: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse
+	344, // 521: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse
+	2,   // 522: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:output_type -> raystack.frontier.v1beta1.CreateBillingAccountResponse
+	4,   // 523: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:output_type -> raystack.frontier.v1beta1.GetBillingAccountResponse
+	6,   // 524: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:output_type -> raystack.frontier.v1beta1.UpdateBillingAccountResponse
+	8,   // 525: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:output_type -> raystack.frontier.v1beta1.RegisterBillingAccountResponse
+	10,  // 526: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:output_type -> raystack.frontier.v1beta1.ListBillingAccountsResponse
+	12,  // 527: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:output_type -> raystack.frontier.v1beta1.DeleteBillingAccountResponse
+	14,  // 528: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:output_type -> raystack.frontier.v1beta1.EnableBillingAccountResponse
+	16,  // 529: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:output_type -> raystack.frontier.v1beta1.DisableBillingAccountResponse
+	18,  // 530: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:output_type -> raystack.frontier.v1beta1.GetBillingBalanceResponse
+	20,  // 531: raystack.frontier.v1beta1.FrontierService.HasTrialed:output_type -> raystack.frontier.v1beta1.HasTrialedResponse
+	28,  // 532: raystack.frontier.v1beta1.FrontierService.GetSubscription:output_type -> raystack.frontier.v1beta1.GetSubscriptionResponse
+	36,  // 533: raystack.frontier.v1beta1.FrontierService.CancelSubscription:output_type -> raystack.frontier.v1beta1.CancelSubscriptionResponse
+	30,  // 534: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:output_type -> raystack.frontier.v1beta1.ListSubscriptionsResponse
+	34,  // 535: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:output_type -> raystack.frontier.v1beta1.ChangeSubscriptionResponse
+	32,  // 536: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:output_type -> raystack.frontier.v1beta1.UpdateSubscriptionResponse
+	51,  // 537: raystack.frontier.v1beta1.FrontierService.CreateProduct:output_type -> raystack.frontier.v1beta1.CreateProductResponse
+	53,  // 538: raystack.frontier.v1beta1.FrontierService.GetProduct:output_type -> raystack.frontier.v1beta1.GetProductResponse
+	55,  // 539: raystack.frontier.v1beta1.FrontierService.ListProducts:output_type -> raystack.frontier.v1beta1.ListProductsResponse
+	57,  // 540: raystack.frontier.v1beta1.FrontierService.UpdateProduct:output_type -> raystack.frontier.v1beta1.UpdateProductResponse
+	60,  // 541: raystack.frontier.v1beta1.FrontierService.CreateFeature:output_type -> raystack.frontier.v1beta1.CreateFeatureResponse
+	62,  // 542: raystack.frontier.v1beta1.FrontierService.GetFeature:output_type -> raystack.frontier.v1beta1.GetFeatureResponse
+	64,  // 543: raystack.frontier.v1beta1.FrontierService.UpdateFeature:output_type -> raystack.frontier.v1beta1.UpdateFeatureResponse
+	66,  // 544: raystack.frontier.v1beta1.FrontierService.ListFeatures:output_type -> raystack.frontier.v1beta1.ListFeaturesResponse
+	69,  // 545: raystack.frontier.v1beta1.FrontierService.CreatePlan:output_type -> raystack.frontier.v1beta1.CreatePlanResponse
+	38,  // 546: raystack.frontier.v1beta1.FrontierService.ListPlans:output_type -> raystack.frontier.v1beta1.ListPlansResponse
+	71,  // 547: raystack.frontier.v1beta1.FrontierService.GetPlan:output_type -> raystack.frontier.v1beta1.GetPlanResponse
+	73,  // 548: raystack.frontier.v1beta1.FrontierService.UpdatePlan:output_type -> raystack.frontier.v1beta1.UpdatePlanResponse
+	44,  // 549: raystack.frontier.v1beta1.FrontierService.CreateCheckout:output_type -> raystack.frontier.v1beta1.CreateCheckoutResponse
+	46,  // 550: raystack.frontier.v1beta1.FrontierService.ListCheckouts:output_type -> raystack.frontier.v1beta1.ListCheckoutsResponse
+	48,  // 551: raystack.frontier.v1beta1.FrontierService.GetCheckout:output_type -> raystack.frontier.v1beta1.GetCheckoutResponse
+	40,  // 552: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:output_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementResponse
+	42,  // 553: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:output_type -> raystack.frontier.v1beta1.CheckCreditEntitlementResponse
+	22,  // 554: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:output_type -> raystack.frontier.v1beta1.CreateBillingUsageResponse
+	24,  // 555: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:output_type -> raystack.frontier.v1beta1.ListBillingTransactionsResponse
+	26,  // 556: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:output_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsResponse
+	75,  // 557: raystack.frontier.v1beta1.FrontierService.ListInvoices:output_type -> raystack.frontier.v1beta1.ListInvoicesResponse
+	77,  // 558: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:output_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceResponse
+	346, // 559: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:output_type -> raystack.frontier.v1beta1.BillingWebhookCallbackResponse
+	348, // 560: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:output_type -> raystack.frontier.v1beta1.CreateProspectPublicResponse
+	356, // 561: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:output_type -> raystack.frontier.v1beta1.CreateAuditRecordResponse
+	358, // 562: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPATResponse
+	360, // 563: raystack.frontier.v1beta1.FrontierService.ListRolesForPAT:output_type -> raystack.frontier.v1beta1.ListRolesForPATResponse
+	362, // 564: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs:output_type -> raystack.frontier.v1beta1.ListCurrentUserPATsResponse
+	364, // 565: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:output_type -> raystack.frontier.v1beta1.GetCurrentUserPATResponse
+	366, // 566: raystack.frontier.v1beta1.FrontierService.DeleteCurrentUserPAT:output_type -> raystack.frontier.v1beta1.DeleteCurrentUserPATResponse
+	394, // [394:567] is the sub-list for method output_type
+	221, // [221:394] is the sub-list for method input_type
+	221, // [221:221] is the sub-list for extension type_name
+	221, // [221:221] is the sub-list for extension extendee
+	0,   // [0:221] is the sub-list for field type_name
 }
 
 func init() { file_raystack_frontier_v1beta1_frontier_proto_init() }
@@ -28843,7 +29062,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListCurrentUserPATsRequest); i {
+			switch v := v.(*ListRolesForPATRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28855,7 +29074,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListCurrentUserPATsResponse); i {
+			switch v := v.(*ListRolesForPATResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28867,7 +29086,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetCurrentUserPATRequest); i {
+			switch v := v.(*ListCurrentUserPATsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28879,7 +29098,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetCurrentUserPATResponse); i {
+			switch v := v.(*ListCurrentUserPATsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28891,7 +29110,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChangeSubscriptionRequest_PlanChange); i {
+			switch v := v.(*GetCurrentUserPATRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28903,7 +29122,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChangeSubscriptionRequest_PhaseChange); i {
+			switch v := v.(*GetCurrentUserPATResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28915,7 +29134,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListProjectsByCurrentUserResponse_AccessPair); i {
+			switch v := v.(*DeleteCurrentUserPATRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28927,7 +29146,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListCurrentUserGroupsResponse_AccessPair); i {
+			switch v := v.(*DeleteCurrentUserPATResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28939,7 +29158,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListServiceUserProjectsResponse_AccessPair); i {
+			switch v := v.(*ChangeSubscriptionRequest_PlanChange); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28951,7 +29170,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListOrganizationUsersResponse_RolePair); i {
+			switch v := v.(*ChangeSubscriptionRequest_PhaseChange); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28963,7 +29182,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListProjectUsersResponse_RolePair); i {
+			switch v := v.(*ListProjectsByCurrentUserResponse_AccessPair); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28975,7 +29194,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListProjectServiceUsersResponse_RolePair); i {
+			switch v := v.(*ListCurrentUserGroupsResponse_AccessPair); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28987,7 +29206,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListProjectGroupsResponse_RolePair); i {
+			switch v := v.(*ListServiceUserProjectsResponse_AccessPair); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -28999,6 +29218,54 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListOrganizationUsersResponse_RolePair); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListProjectUsersResponse_RolePair); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListProjectServiceUsersResponse_RolePair); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListProjectGroupsResponse_RolePair); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupUsersResponse_RolePair); i {
 			case 0:
 				return &v.state
@@ -29021,7 +29288,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_raystack_frontier_v1beta1_frontier_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   373,
+			NumMessages:   377,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
