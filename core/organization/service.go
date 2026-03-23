@@ -350,8 +350,11 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 }
 
 // SetMemberRole atomically changes a user's role in an organization.
-// It deletes existing policies and creates a new one with the specified role.
+// It deletes existing org-level policies and creates a new one with the specified role.
 // Returns ErrLastOwnerRole if this would remove the last owner.
+//
+// Note: This assumes one role per user per org. If multiple roles need to be supported,
+// consider accepting a list of roles or providing separate Add/Remove methods.
 func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string) error {
 	// validate org exists
 	if _, err := s.repository.GetByID(ctx, orgID); err != nil {
@@ -363,7 +366,12 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string
 		return err
 	}
 
-	// list existing policies for user on this org
+	// List only org-level policies (OrgID filter sets resource_type = 'app/organization').
+	// Project and group policies are intentionally not touched because:
+	// - Org owner/admin get implicit project access via SpiceDB (org->project_get)
+	// - Explicit project policies are for users who need project-specific access
+	// - On role change, user loses implicit project access if moving away from owner/admin,
+	//   but keeps any explicit project policies granted independently
 	existingPolicies, err := s.policyService.List(ctx, policy.Filter{
 		OrgID:         orgID,
 		PrincipalID:   userID,
