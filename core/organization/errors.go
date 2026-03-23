@@ -9,4 +9,5 @@ var (
 	ErrConflict      = errors.New("org already exist")
 	ErrInvalidDetail = errors.New("invalid org detail")
 	ErrDisabled      = errors.New("org is disabled")
+	ErrLastOwnerRole = errors.New("cannot remove the last owner role")
 )

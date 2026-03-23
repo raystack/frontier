@@ -349,6 +349,74 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 	return err
 }
 
+// SetMemberRole atomically changes a user's role in an organization.
+// It deletes existing policies and creates a new one with the specified role.
+// Returns ErrLastOwnerRole if this would remove the last owner.
+func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string) error {
+	// validate org exists
+	if _, err := s.repository.GetByID(ctx, orgID); err != nil {
+		return err
+	}
+
+	// validate user exists
+	if _, err := s.userService.GetByID(ctx, userID); err != nil {
+		return err
+	}
+
+	// list existing policies for user on this org
+	existingPolicies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:         orgID,
+		PrincipalID:   userID,
+		PrincipalType: schema.UserPrincipal,
+	})
+	if err != nil && !errors.Is(err, policy.ErrNotExist) {
+		return err
+	}
+
+	// check if user currently has owner role
+	isCurrentlyOwner := false
+	for _, p := range existingPolicies {
+		if p.RoleID == schema.RoleOrganizationOwner {
+			isCurrentlyOwner = true
+			break
+		}
+	}
+
+	// if demoting from owner, check minimum owner constraint
+	if isCurrentlyOwner && roleID != schema.RoleOrganizationOwner {
+		ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
+			OrgID:  orgID,
+			RoleID: schema.RoleOrganizationOwner,
+		})
+		if err != nil {
+			return err
+		}
+		if len(ownerPolicies) == 1 {
+			return ErrLastOwnerRole
+		}
+	}
+
+	// delete existing policies
+	for _, p := range existingPolicies {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+			return err
+		}
+	}
+
+	// create new policy with new role
+	if _, err := s.policyService.Create(ctx, policy.Policy{
+		RoleID:        roleID,
+		ResourceID:    orgID,
+		ResourceType:  schema.OrganizationNamespace,
+		PrincipalID:   userID,
+		PrincipalType: schema.UserPrincipal,
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // RemoveUsers removes users from an organization as members
 // it doesn't remove user access to projects or other resources provided
 // by policies, don't call directly, use cascade deleter

@@ -124,6 +124,7 @@ type OrganizationService interface {
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt organization.Filter) ([]organization.Organization, error)
 	AddUsers(ctx context.Context, orgID string, userID []string) error
+	SetMemberRole(ctx context.Context, orgID, userID, roleID string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
