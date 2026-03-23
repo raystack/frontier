@@ -361,6 +361,63 @@ func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, string, s
 	return _c
 }
 
+// Update provides a mock function with given fields: ctx, pat
+func (_m *Repository) Update(ctx context.Context, pat models.PAT) (models.PAT, error) {
+	ret := _m.Called(ctx, pat)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.PAT) (models.PAT, error)); ok {
+		return rf(ctx, pat)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.PAT) models.PAT); ok {
+		r0 = rf(ctx, pat)
+	} else {
+		r0 = ret.Get(0).(models.PAT)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.PAT) error); ok {
+		r1 = rf(ctx, pat)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type Repository_Update_Call struct {
+	*mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pat models.PAT
+func (_e *Repository_Expecter) Update(ctx interface{}, pat interface{}) *Repository_Update_Call {
+	return &Repository_Update_Call{Call: _e.mock.On("Update", ctx, pat)}
+}
+
+func (_c *Repository_Update_Call) Run(run func(ctx context.Context, pat models.PAT)) *Repository_Update_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(models.PAT))
+	})
+	return _c
+}
+
+func (_c *Repository_Update_Call) Return(_a0 models.PAT, _a1 error) *Repository_Update_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_Update_Call) RunAndReturn(run func(context.Context, models.PAT) (models.PAT, error)) *Repository_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateLastUsedAt provides a mock function with given fields: ctx, id, at
 func (_m *Repository) UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error {
 	ret := _m.Called(ctx, id, at)
