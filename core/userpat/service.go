@@ -145,6 +145,59 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	return nil
 }
 
+// Regenerate creates a new secret and updates the expiry for an existing PAT.
+// Scope (roles + projects) and policies are preserved. Expired PATs can be
+// regenerated; if reviving one, checks the active count limit.
+func (s *Service) Regenerate(ctx context.Context, userID, id string, newExpiresAt time.Time) (patmodels.PAT, string, error) {
+	if !s.config.Enabled {
+		return patmodels.PAT{}, "", paterrors.ErrDisabled
+	}
+
+	pat, err := s.getOwnedPAT(ctx, userID, id)
+	if err != nil {
+		return patmodels.PAT{}, "", err
+	}
+
+	if err := s.ValidateExpiry(newExpiresAt); err != nil {
+		return patmodels.PAT{}, "", err
+	}
+
+	// If PAT is currently not active, regenerating revives it — check active count limit.
+	if !pat.ExpiresAt.After(time.Now()) {
+		count, err := s.repo.CountActive(ctx, pat.UserID, pat.OrgID)
+		if err != nil {
+			return patmodels.PAT{}, "", fmt.Errorf("counting active PATs: %w", err)
+		}
+		if count >= s.config.MaxPerUserPerOrg {
+			return patmodels.PAT{}, "", paterrors.ErrLimitExceeded
+		}
+	}
+
+	patValue, secretHash, err := s.generatePAT()
+	if err != nil {
+		return patmodels.PAT{}, "", err
+	}
+
+	oldExpiresAt := pat.ExpiresAt
+	regenerated, err := s.repo.Regenerate(ctx, id, secretHash, newExpiresAt)
+	if err != nil {
+		return patmodels.PAT{}, "", fmt.Errorf("regenerating PAT: %w", err)
+	}
+
+	if err := s.enrichWithScope(ctx, &regenerated); err != nil {
+		return patmodels.PAT{}, "", fmt.Errorf("enriching PAT scope: %w", err)
+	}
+
+	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRegeneratedEvent, regenerated, time.Now().UTC(), map[string]any{
+		"expires_at":     regenerated.ExpiresAt,
+		"old_expires_at": oldExpiresAt,
+	}); err != nil {
+		s.logger.Error("failed to create audit record for PAT regeneration", "pat_id", id, "error", err)
+	}
+
+	return regenerated, patValue, nil
+}
+
 // Update replaces a PAT's title, metadata, and scope (roles + projects).
 // Scope changes use revoke-all + recreate pattern with a TOCTOU guard
 // against concurrent Delete.

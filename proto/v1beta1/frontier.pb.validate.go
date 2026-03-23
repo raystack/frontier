@@ -47688,6 +47688,292 @@ var _ interface {
 	ErrorName() string
 } = UpdateCurrentUserPATResponseValidationError{}
 
+// Validate checks the field values on RegenerateCurrentUserPATRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RegenerateCurrentUserPATRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RegenerateCurrentUserPATRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RegenerateCurrentUserPATRequestMultiError, or nil if none found.
+func (m *RegenerateCurrentUserPATRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RegenerateCurrentUserPATRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = RegenerateCurrentUserPATRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetExpiresAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RegenerateCurrentUserPATRequestValidationError{
+					field:  "ExpiresAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RegenerateCurrentUserPATRequestValidationError{
+					field:  "ExpiresAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExpiresAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RegenerateCurrentUserPATRequestValidationError{
+				field:  "ExpiresAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RegenerateCurrentUserPATRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *RegenerateCurrentUserPATRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// RegenerateCurrentUserPATRequestMultiError is an error wrapping multiple
+// validation errors returned by RegenerateCurrentUserPATRequest.ValidateAll()
+// if the designated constraints aren't met.
+type RegenerateCurrentUserPATRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RegenerateCurrentUserPATRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RegenerateCurrentUserPATRequestMultiError) AllErrors() []error { return m }
+
+// RegenerateCurrentUserPATRequestValidationError is the validation error
+// returned by RegenerateCurrentUserPATRequest.Validate if the designated
+// constraints aren't met.
+type RegenerateCurrentUserPATRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RegenerateCurrentUserPATRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RegenerateCurrentUserPATRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RegenerateCurrentUserPATRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RegenerateCurrentUserPATRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RegenerateCurrentUserPATRequestValidationError) ErrorName() string {
+	return "RegenerateCurrentUserPATRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RegenerateCurrentUserPATRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRegenerateCurrentUserPATRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RegenerateCurrentUserPATRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RegenerateCurrentUserPATRequestValidationError{}
+
+// Validate checks the field values on RegenerateCurrentUserPATResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *RegenerateCurrentUserPATResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RegenerateCurrentUserPATResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RegenerateCurrentUserPATResponseMultiError, or nil if none found.
+func (m *RegenerateCurrentUserPATResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RegenerateCurrentUserPATResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPat()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RegenerateCurrentUserPATResponseValidationError{
+					field:  "Pat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RegenerateCurrentUserPATResponseValidationError{
+					field:  "Pat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPat()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RegenerateCurrentUserPATResponseValidationError{
+				field:  "Pat",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RegenerateCurrentUserPATResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RegenerateCurrentUserPATResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// RegenerateCurrentUserPATResponse.ValidateAll() if the designated
+// constraints aren't met.
+type RegenerateCurrentUserPATResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RegenerateCurrentUserPATResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RegenerateCurrentUserPATResponseMultiError) AllErrors() []error { return m }
+
+// RegenerateCurrentUserPATResponseValidationError is the validation error
+// returned by RegenerateCurrentUserPATResponse.Validate if the designated
+// constraints aren't met.
+type RegenerateCurrentUserPATResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RegenerateCurrentUserPATResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RegenerateCurrentUserPATResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RegenerateCurrentUserPATResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RegenerateCurrentUserPATResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RegenerateCurrentUserPATResponseValidationError) ErrorName() string {
+	return "RegenerateCurrentUserPATResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RegenerateCurrentUserPATResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRegenerateCurrentUserPATResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RegenerateCurrentUserPATResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RegenerateCurrentUserPATResponseValidationError{}
+
 // Validate checks the field values on ChangeSubscriptionRequest_PlanChange
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if
