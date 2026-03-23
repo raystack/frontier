@@ -108,6 +108,23 @@ func TestPrepareDataQuery(t *testing.T) {
 			wantErr:        false,
 		},
 		{
+			name: "query with like filter should be case insensitive",
+			rqlQuery: &rql.Query{
+				Filters: []rql.Filter{
+					{
+						Name:     "title",
+						Operator: "like",
+						Value:    "%Fah%",
+					},
+				},
+				Limit:  10,
+				Offset: 0,
+			},
+			wantSQL:        `SELECT "id", "title", "name", "state", "avatar", "updated_at", "created_at", "created_by", "country", "plan_id", "plan_name", "subscription_state", "subscription_cycle_end_at", "plan_interval" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE (("row_num" = $2) AND "title"::TEXT ILIKE '%Fah%') LIMIT $3`,
+			wantParameters: []interface{}{"canceled", int64(1), int64(10)},
+			wantErr:        false,
+		},
+		{
 			name: "query with invalid filter",
 			rqlQuery: &rql.Query{
 				Filters: []rql.Filter{

@@ -411,10 +411,10 @@ func processStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.S
 		query = query.Where(goqu.Cast(goqu.I(filter.Name), "TEXT").NotIn(strings.Split(filter.Value.(string), ",")))
 	case OPERATOR_LIKE:
 		// some semi string sql types like UUID require casting to text to support like operator
-		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string))))
+		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT ILIKE '%s'`, filter.Name, filter.Value.(string))))
 	case OPERATOR_NOT_LIKE:
 		// some semi string sql types like UUID require casting to text to support like operator
-		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string))))
+		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT NOT ILIKE '%s'`, filter.Name, filter.Value.(string))))
 	default:
 		query = query.Where(goqu.Ex{filter.Name: goqu.Op{filter.Operator: filter.Value.(string)}})
 	}
