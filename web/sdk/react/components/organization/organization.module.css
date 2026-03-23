@@ -35,3 +35,9 @@
 .orgTabsContainer {
   box-sizing: border-box;
 }
+
+.invite-member-emails-textarea {
+  resize: vertical;
+  width: 100%;
+  max-height: var(--rs-space-17);
+}

@@ -16,5 +16,7 @@ type Repository interface {
 	GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error)
 	IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error)
 	UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error
+	Update(ctx context.Context, pat models.PAT) (models.PAT, error)
+	Regenerate(ctx context.Context, id, secretHash string, expiresAt time.Time) (models.PAT, error)
 	Delete(ctx context.Context, id string) error
 }

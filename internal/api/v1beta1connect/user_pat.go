@@ -172,6 +172,104 @@ func (h *ConnectHandler) DeleteCurrentUserPAT(ctx context.Context, request *conn
 	return connect.NewResponse(&frontierv1beta1.DeleteCurrentUserPATResponse{}), nil
 }
 
+func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.UpdateCurrentUserPATResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.User == nil {
+		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
+	}
+
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	updated, err := h.userPATService.Update(ctx, models.PAT{
+		UserID:     principal.User.ID,
+		ID:         request.Msg.GetId(),
+		Title:      request.Msg.GetTitle(),
+		RoleIDs:    request.Msg.GetRoleIds(),
+		ProjectIDs: request.Msg.GetProjectIds(),
+		Metadata:   metadata.BuildFromProto(request.Msg.GetMetadata()),
+	})
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateCurrentUserPAT", err,
+			zap.String("user_id", principal.User.ID),
+			zap.String("pat_id", request.Msg.GetId()))
+
+		switch {
+		case errors.Is(err, paterrors.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, paterrors.ErrNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		case errors.Is(err, paterrors.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, err)
+		case errors.Is(err, paterrors.ErrRoleNotFound):
+			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrRoleNotFound)
+		case errors.Is(err, paterrors.ErrDeniedRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole)
+		case errors.Is(err, paterrors.ErrUnsupportedScope):
+			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.UpdateCurrentUserPATResponse{
+		Pat: transformPATToPB(updated, ""),
+	}), nil
+}
+
+func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.RegenerateCurrentUserPATResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.User == nil {
+		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
+	}
+
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	if request.Msg.GetExpiresAt() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("expires_at is required"))
+	}
+
+	regenerated, patValue, err := h.userPATService.Regenerate(ctx, principal.User.ID, request.Msg.GetId(), request.Msg.GetExpiresAt().AsTime())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "RegenerateCurrentUserPAT", err,
+			zap.String("user_id", principal.User.ID),
+			zap.String("pat_id", request.Msg.GetId()))
+
+		switch {
+		case errors.Is(err, paterrors.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, paterrors.ErrNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		case errors.Is(err, paterrors.ErrLimitExceeded):
+			return nil, connect.NewError(connect.CodeResourceExhausted, err)
+		case errors.Is(err, paterrors.ErrExpiryInPast):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, paterrors.ErrExpiryExceeded):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, paterrors.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.RegenerateCurrentUserPATResponse{
+		Pat: transformPATToPB(regenerated, patValue),
+	}), nil
+}
+
 func (h *ConnectHandler) CheckCurrentUserPATTitle(ctx context.Context, request *connect.Request[frontierv1beta1.CheckCurrentUserPATTitleRequest]) (*connect.Response[frontierv1beta1.CheckCurrentUserPATTitleResponse], error) {
 	errorLogger := NewErrorLogger()
 

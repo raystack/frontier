@@ -219,22 +219,22 @@ const MembersActions = ({
   }
 
   return canUpdateGroup ? (
-    <>
-      <DropdownMenu
-        placement="bottom-end"
-        open={isMenuOpen}
-        onOpenChange={(open: boolean) => {
-          setIsMenuOpen(open);
-          if (open) refetchPolicies();
-        }}
-      >
-        <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
-          <DotsHorizontalIcon />
-        </DropdownMenu.Trigger>
-        {/* @ts-ignore */}
-        <DropdownMenu.Content portal={false}>
-          <DropdownMenu.Group style={{ padding: 0 }}>
-            {excludedRoles.map((role: Role) => (
+    <DropdownMenu
+      placement="bottom-end"
+      open={isMenuOpen}
+      onOpenChange={(open: boolean) => {
+        setIsMenuOpen(open);
+        if (open) refetchPolicies();
+      }}
+    >
+      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+        <DotsHorizontalIcon />
+      </DropdownMenu.Trigger>
+      {/* @ts-ignore */}
+      <DropdownMenu.Content portal={false}>
+        <DropdownMenu.Group style={{ padding: 0 }}>
+          {!member.invited &&
+            excludedRoles.map((role: Role) => (
               <DropdownMenu.Item
                 key={role.id}
                 onClick={() => updateRole(role)}
@@ -244,22 +244,20 @@ const MembersActions = ({
                 Make {role.title}
               </DropdownMenu.Item>
             ))}
-
-            <DropdownMenu.Item
-              onClick={() =>
-                onRemoveMember?.(
-                  member?.id || '',
-                  String(member?.invited || false)
-                )
-              }
-              data-test-id="remove-member-dropdown-item"
-            >
-              <TrashIcon />
-              Remove
-            </DropdownMenu.Item>
-          </DropdownMenu.Group>
-        </DropdownMenu.Content>
-      </DropdownMenu>
-    </>
+          <DropdownMenu.Item
+            onClick={() =>
+              onRemoveMember?.(
+                member?.id || '',
+                String(member?.invited || false)
+              )
+            }
+            data-test-id="remove-member-dropdown-item"
+          >
+            <TrashIcon />
+            Remove
+          </DropdownMenu.Item>
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   ) : null;
 };

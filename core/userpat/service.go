@@ -153,6 +153,156 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	return nil
 }
 
+// Regenerate creates a new secret and updates the expiry for an existing PAT.
+// Scope (roles + projects) and policies are preserved. Expired PATs can be
+// regenerated; if reviving one, checks the active count limit.
+func (s *Service) Regenerate(ctx context.Context, userID, id string, newExpiresAt time.Time) (patmodels.PAT, string, error) {
+	if !s.config.Enabled {
+		return patmodels.PAT{}, "", paterrors.ErrDisabled
+	}
+
+	pat, err := s.getOwnedPAT(ctx, userID, id)
+	if err != nil {
+		return patmodels.PAT{}, "", err
+	}
+
+	if err := s.ValidateExpiry(newExpiresAt); err != nil {
+		return patmodels.PAT{}, "", err
+	}
+
+	// If PAT is currently not active, regenerating revives it — check active count limit.
+	if !pat.ExpiresAt.After(time.Now()) {
+		count, err := s.repo.CountActive(ctx, pat.UserID, pat.OrgID)
+		if err != nil {
+			return patmodels.PAT{}, "", fmt.Errorf("counting active PATs: %w", err)
+		}
+		if count >= s.config.MaxPerUserPerOrg {
+			return patmodels.PAT{}, "", paterrors.ErrLimitExceeded
+		}
+	}
+
+	patValue, secretHash, err := s.generatePAT()
+	if err != nil {
+		return patmodels.PAT{}, "", err
+	}
+
+	oldExpiresAt := pat.ExpiresAt
+	regenerated, err := s.repo.Regenerate(ctx, id, secretHash, newExpiresAt)
+	if err != nil {
+		return patmodels.PAT{}, "", fmt.Errorf("regenerating PAT: %w", err)
+	}
+
+	if err := s.enrichWithScope(ctx, &regenerated); err != nil {
+		return patmodels.PAT{}, "", fmt.Errorf("enriching PAT scope: %w", err)
+	}
+
+	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRegeneratedEvent, regenerated, time.Now().UTC(), map[string]any{
+		"expires_at":     regenerated.ExpiresAt,
+		"old_expires_at": oldExpiresAt,
+	}); err != nil {
+		s.logger.Error("failed to create audit record for PAT regeneration", "pat_id", id, "error", err)
+	}
+
+	return regenerated, patValue, nil
+}
+
+// Update replaces a PAT's title, metadata, and scope (roles + projects).
+// Scope changes use revoke-all + recreate pattern with a TOCTOU guard
+// against concurrent Delete.
+func (s *Service) Update(ctx context.Context, toUpdate patmodels.PAT) (patmodels.PAT, error) {
+	if !s.config.Enabled {
+		return patmodels.PAT{}, paterrors.ErrDisabled
+	}
+
+	existing, err := s.getOwnedPAT(ctx, toUpdate.UserID, toUpdate.ID)
+	if err != nil {
+		return patmodels.PAT{}, err
+	}
+
+	roles, err := s.resolveAndValidateRoles(ctx, toUpdate.RoleIDs)
+	if err != nil {
+		return patmodels.PAT{}, err
+	}
+
+	oldTitle, oldRoleIDs, oldProjectIDs, err := s.captureOldScope(ctx, &existing)
+	if err != nil {
+		return patmodels.PAT{}, err
+	}
+
+	updated, err := s.repo.Update(ctx, patmodels.PAT{
+		ID:       toUpdate.ID,
+		Title:    toUpdate.Title,
+		Metadata: toUpdate.Metadata,
+	})
+	if err != nil {
+		return patmodels.PAT{}, fmt.Errorf("updating PAT: %w", err)
+	}
+
+	if err := s.replacePolicies(ctx, toUpdate.ID, existing.OrgID, roles, toUpdate.ProjectIDs); err != nil {
+		return patmodels.PAT{}, err
+	}
+
+	if err := s.enrichWithScope(ctx, &updated); err != nil {
+		return patmodels.PAT{}, fmt.Errorf("enriching PAT scope: %w", err)
+	}
+
+	s.auditUpdate(ctx, updated, toUpdate, oldTitle, oldRoleIDs, oldProjectIDs)
+
+	return updated, nil
+}
+
+// getOwnedPAT retrieves a PAT and verifies it belongs to the given user.
+func (s *Service) getOwnedPAT(ctx context.Context, userID, id string) (patmodels.PAT, error) {
+	pat, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return patmodels.PAT{}, err
+	}
+	if pat.UserID != userID {
+		return patmodels.PAT{}, paterrors.ErrNotFound
+	}
+	return pat, nil
+}
+
+// captureOldScope enriches the PAT with its current scope and returns old title, role IDs, and project IDs for audit.
+func (s *Service) captureOldScope(ctx context.Context, pat *patmodels.PAT) (string, []string, []string, error) {
+	oldTitle := pat.Title
+	if err := s.enrichWithScope(ctx, pat); err != nil {
+		return "", nil, nil, fmt.Errorf("enriching old PAT scope: %w", err)
+	}
+	return oldTitle, pat.RoleIDs, pat.ProjectIDs, nil
+}
+
+// replacePolicies deletes existing policies and creates new ones.
+// Re-checks PAT existence after delete to guard against concurrent soft-delete.
+func (s *Service) replacePolicies(ctx context.Context, patID, orgID string, roles []role.Role, projectIDs []string) error {
+	if err := s.deletePolicies(ctx, patID); err != nil {
+		return fmt.Errorf("deleting old policies: %w", err)
+	}
+
+	// TOCTOU guard: ensure PAT wasn't soft-deleted by concurrent Delete.
+	if _, err := s.repo.GetByID(ctx, patID); err != nil {
+		return fmt.Errorf("PAT deleted concurrently: %w", err)
+	}
+
+	if err := s.createPolicies(ctx, patID, orgID, roles, projectIDs); err != nil {
+		return fmt.Errorf("creating new policies: %w", err)
+	}
+	return nil
+}
+
+// auditUpdate creates an audit record for the PAT update. Errors are logged, not returned.
+func (s *Service) auditUpdate(ctx context.Context, updated patmodels.PAT, toUpdate patmodels.PAT, oldTitle string, oldRoleIDs []string, oldProjectIDs []string) {
+	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATUpdatedEvent, updated, time.Now().UTC(), map[string]any{
+		"role_ids":        toUpdate.RoleIDs,
+		"project_ids":     toUpdate.ProjectIDs,
+		"old_title":       oldTitle,
+		"old_role_ids":    oldRoleIDs,
+		"old_project_ids": oldProjectIDs,
+	}); err != nil {
+		s.logger.Error("failed to create audit record for PAT update", "pat_id", toUpdate.ID, "error", err)
+	}
+}
+
 // deletePolicies removes all SpiceDB policies associated with a PAT.
 // Each policy.Delete call removes SpiceDB relations first, then hard-deletes the Postgres policy row.
 func (s *Service) deletePolicies(ctx context.Context, patID string) error {
