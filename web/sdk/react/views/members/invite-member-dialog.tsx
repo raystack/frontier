@@ -201,6 +201,7 @@ export const InviteMemberDialog = ({
                   helperText={
                     errors.emails?.message ? String(errors.emails?.message) : ''
                   }
+                  className={styles['invite-member-emails-textarea']}
                 />
               )}
               <Flex direction="column" gap={2}>
