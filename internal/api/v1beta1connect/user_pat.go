@@ -237,6 +237,9 @@ func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *
 	if err := request.Msg.Validate(); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
+	if request.Msg.GetExpiresAt() == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("expires_at is required"))
+	}
 
 	regenerated, patValue, err := h.userPATService.Regenerate(ctx, principal.User.ID, request.Msg.GetId(), request.Msg.GetExpiresAt().AsTime())
 	if err != nil {
@@ -255,6 +258,8 @@ func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		case errors.Is(err, paterrors.ErrExpiryExceeded):
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, paterrors.ErrConflict):
+			return nil, connect.NewError(connect.CodeAlreadyExists, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}

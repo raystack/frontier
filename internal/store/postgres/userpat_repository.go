@@ -332,6 +332,9 @@ func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.PAT{}, paterrors.ErrNotFound
 		}
+		if errors.Is(err, ErrDuplicateKey) {
+			return models.PAT{}, paterrors.ErrConflict
+		}
 		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 

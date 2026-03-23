@@ -146,8 +146,8 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 }
 
 // Regenerate creates a new secret and updates the expiry for an existing PAT.
-// The scope (roles + projects) and policies are preserved. Expired PATs can be
-// regenerated; if reviving an expired PAT, checks the active count limit.
+// Scope (roles + projects) and policies are preserved. Expired PATs can be
+// regenerated; if reviving one, checks the active count limit.
 func (s *Service) Regenerate(ctx context.Context, userID, id string, newExpiresAt time.Time) (patmodels.PAT, string, error) {
 	if !s.config.Enabled {
 		return patmodels.PAT{}, "", paterrors.ErrDisabled
@@ -162,8 +162,8 @@ func (s *Service) Regenerate(ctx context.Context, userID, id string, newExpiresA
 		return patmodels.PAT{}, "", err
 	}
 
-	// If PAT is expired, regenerating revives it — check active count limit.
-	if pat.ExpiresAt.Before(time.Now()) {
+	// If PAT is currently not active, regenerating revives it — check active count limit.
+	if !pat.ExpiresAt.After(time.Now()) {
 		count, err := s.repo.CountActive(ctx, pat.UserID, pat.OrgID)
 		if err != nil {
 			return patmodels.PAT{}, "", fmt.Errorf("counting active PATs: %w", err)
