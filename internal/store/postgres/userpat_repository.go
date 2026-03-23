@@ -226,6 +226,29 @@ func (r UserPATRepository) applySort(query *goqu.SelectDataset, rqlQuery *rql.Qu
 	return query
 }
 
+func (r UserPATRepository) IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error) {
+	query, params, err := dialect.Select(goqu.L("NOT EXISTS(?)",
+		dialect.From(TABLE_USER_PATS).Select(goqu.L("1")).Where(
+			goqu.Ex{"user_id": userID},
+			goqu.Ex{"org_id": orgID},
+			goqu.Func("LOWER", goqu.C("title")).Eq(goqu.Func("LOWER", title)),
+			goqu.Ex{"deleted_at": nil},
+		).Limit(1),
+	)).ToSQL()
+	if err != nil {
+		return false, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var available bool
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "IsTitleAvailable", func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &available, query, params...)
+	}); err != nil {
+		return false, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	return available, nil
+}
+
 func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error) {
 	query, params, err := dialect.From(TABLE_USER_PATS).
 		Select(&UserPAT{}).

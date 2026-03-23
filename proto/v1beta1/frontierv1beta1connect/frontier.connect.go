@@ -555,6 +555,9 @@ const (
 	// FrontierServiceRegenerateCurrentUserPATProcedure is the fully-qualified name of the
 	// FrontierService's RegenerateCurrentUserPAT RPC.
 	FrontierServiceRegenerateCurrentUserPATProcedure = "/raystack.frontier.v1beta1.FrontierService/RegenerateCurrentUserPAT"
+	// FrontierServiceCheckCurrentUserPATTitleProcedure is the fully-qualified name of the
+	// FrontierService's CheckCurrentUserPATTitle RPC.
+	FrontierServiceCheckCurrentUserPATTitleProcedure = "/raystack.frontier.v1beta1.FrontierService/CheckCurrentUserPATTitle"
 )
 
 // FrontierServiceClient is a client for the raystack.frontier.v1beta1.FrontierService service.
@@ -765,6 +768,7 @@ type FrontierServiceClient interface {
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
 	RegenerateCurrentUserPAT(context.Context, *connect.Request[v1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[v1beta1.RegenerateCurrentUserPATResponse], error)
+	CheckCurrentUserPATTitle(context.Context, *connect.Request[v1beta1.CheckCurrentUserPATTitleRequest]) (*connect.Response[v1beta1.CheckCurrentUserPATTitleResponse], error)
 }
 
 // NewFrontierServiceClient constructs a client for the raystack.frontier.v1beta1.FrontierService
@@ -1828,6 +1832,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("RegenerateCurrentUserPAT")),
 			connect.WithClientOptions(opts...),
 		),
+		checkCurrentUserPATTitle: connect.NewClient[v1beta1.CheckCurrentUserPATTitleRequest, v1beta1.CheckCurrentUserPATTitleResponse](
+			httpClient,
+			baseURL+FrontierServiceCheckCurrentUserPATTitleProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CheckCurrentUserPATTitle")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -2008,6 +2018,7 @@ type frontierServiceClient struct {
 	deleteCurrentUserPAT           *connect.Client[v1beta1.DeleteCurrentUserPATRequest, v1beta1.DeleteCurrentUserPATResponse]
 	updateCurrentUserPAT           *connect.Client[v1beta1.UpdateCurrentUserPATRequest, v1beta1.UpdateCurrentUserPATResponse]
 	regenerateCurrentUserPAT       *connect.Client[v1beta1.RegenerateCurrentUserPATRequest, v1beta1.RegenerateCurrentUserPATResponse]
+	checkCurrentUserPATTitle       *connect.Client[v1beta1.CheckCurrentUserPATTitleRequest, v1beta1.CheckCurrentUserPATTitleResponse]
 }
 
 // ListUsers calls raystack.frontier.v1beta1.FrontierService.ListUsers.
@@ -2908,6 +2919,12 @@ func (c *frontierServiceClient) RegenerateCurrentUserPAT(ctx context.Context, re
 	return c.regenerateCurrentUserPAT.CallUnary(ctx, req)
 }
 
+// CheckCurrentUserPATTitle calls
+// raystack.frontier.v1beta1.FrontierService.CheckCurrentUserPATTitle.
+func (c *frontierServiceClient) CheckCurrentUserPATTitle(ctx context.Context, req *connect.Request[v1beta1.CheckCurrentUserPATTitleRequest]) (*connect.Response[v1beta1.CheckCurrentUserPATTitleResponse], error) {
+	return c.checkCurrentUserPATTitle.CallUnary(ctx, req)
+}
+
 // FrontierServiceHandler is an implementation of the raystack.frontier.v1beta1.FrontierService
 // service.
 type FrontierServiceHandler interface {
@@ -3117,6 +3134,7 @@ type FrontierServiceHandler interface {
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
 	RegenerateCurrentUserPAT(context.Context, *connect.Request[v1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[v1beta1.RegenerateCurrentUserPATResponse], error)
+	CheckCurrentUserPATTitle(context.Context, *connect.Request[v1beta1.CheckCurrentUserPATTitleRequest]) (*connect.Response[v1beta1.CheckCurrentUserPATTitleResponse], error)
 }
 
 // NewFrontierServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -4176,6 +4194,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("RegenerateCurrentUserPAT")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceCheckCurrentUserPATTitleHandler := connect.NewUnaryHandler(
+		FrontierServiceCheckCurrentUserPATTitleProcedure,
+		svc.CheckCurrentUserPATTitle,
+		connect.WithSchema(frontierServiceMethods.ByName("CheckCurrentUserPATTitle")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/raystack.frontier.v1beta1.FrontierService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FrontierServiceListUsersProcedure:
@@ -4528,6 +4552,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceUpdateCurrentUserPATHandler.ServeHTTP(w, r)
 		case FrontierServiceRegenerateCurrentUserPATProcedure:
 			frontierServiceRegenerateCurrentUserPATHandler.ServeHTTP(w, r)
+		case FrontierServiceCheckCurrentUserPATTitleProcedure:
+			frontierServiceCheckCurrentUserPATTitleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -5235,4 +5261,8 @@ func (UnimplementedFrontierServiceHandler) UpdateCurrentUserPAT(context.Context,
 
 func (UnimplementedFrontierServiceHandler) RegenerateCurrentUserPAT(context.Context, *connect.Request[v1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[v1beta1.RegenerateCurrentUserPATResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RegenerateCurrentUserPAT is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) CheckCurrentUserPATTitle(context.Context, *connect.Request[v1beta1.CheckCurrentUserPATTitleRequest]) (*connect.Response[v1beta1.CheckCurrentUserPATTitleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckCurrentUserPATTitle is not implemented"))
 }

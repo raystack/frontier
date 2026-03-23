@@ -47974,6 +47974,247 @@ var _ interface {
 	ErrorName() string
 } = RegenerateCurrentUserPATResponseValidationError{}
 
+// Validate checks the field values on CheckCurrentUserPATTitleRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CheckCurrentUserPATTitleRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckCurrentUserPATTitleRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CheckCurrentUserPATTitleRequestMultiError, or nil if none found.
+func (m *CheckCurrentUserPATTitleRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckCurrentUserPATTitleRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetOrgId()); err != nil {
+		err = CheckCurrentUserPATTitleRequestValidationError{
+			field:  "OrgId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetTitle()) < 1 {
+		err := CheckCurrentUserPATTitleRequestValidationError{
+			field:  "Title",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return CheckCurrentUserPATTitleRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CheckCurrentUserPATTitleRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// CheckCurrentUserPATTitleRequestMultiError is an error wrapping multiple
+// validation errors returned by CheckCurrentUserPATTitleRequest.ValidateAll()
+// if the designated constraints aren't met.
+type CheckCurrentUserPATTitleRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckCurrentUserPATTitleRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckCurrentUserPATTitleRequestMultiError) AllErrors() []error { return m }
+
+// CheckCurrentUserPATTitleRequestValidationError is the validation error
+// returned by CheckCurrentUserPATTitleRequest.Validate if the designated
+// constraints aren't met.
+type CheckCurrentUserPATTitleRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckCurrentUserPATTitleRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckCurrentUserPATTitleRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckCurrentUserPATTitleRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckCurrentUserPATTitleRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckCurrentUserPATTitleRequestValidationError) ErrorName() string {
+	return "CheckCurrentUserPATTitleRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckCurrentUserPATTitleRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckCurrentUserPATTitleRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckCurrentUserPATTitleRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckCurrentUserPATTitleRequestValidationError{}
+
+// Validate checks the field values on CheckCurrentUserPATTitleResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CheckCurrentUserPATTitleResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckCurrentUserPATTitleResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CheckCurrentUserPATTitleResponseMultiError, or nil if none found.
+func (m *CheckCurrentUserPATTitleResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckCurrentUserPATTitleResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Available
+
+	if len(errors) > 0 {
+		return CheckCurrentUserPATTitleResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckCurrentUserPATTitleResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// CheckCurrentUserPATTitleResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CheckCurrentUserPATTitleResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckCurrentUserPATTitleResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckCurrentUserPATTitleResponseMultiError) AllErrors() []error { return m }
+
+// CheckCurrentUserPATTitleResponseValidationError is the validation error
+// returned by CheckCurrentUserPATTitleResponse.Validate if the designated
+// constraints aren't met.
+type CheckCurrentUserPATTitleResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckCurrentUserPATTitleResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckCurrentUserPATTitleResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckCurrentUserPATTitleResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckCurrentUserPATTitleResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckCurrentUserPATTitleResponseValidationError) ErrorName() string {
+	return "CheckCurrentUserPATTitleResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckCurrentUserPATTitleResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckCurrentUserPATTitleResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckCurrentUserPATTitleResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckCurrentUserPATTitleResponseValidationError{}
+
 // Validate checks the field values on ChangeSubscriptionRequest_PlanChange
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if

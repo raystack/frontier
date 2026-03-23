@@ -95,6 +95,14 @@ func (s *Service) GetByID(ctx context.Context, id string) (patmodels.PAT, error)
 	return s.repo.GetByID(ctx, id)
 }
 
+// IsTitleAvailable checks if a PAT title is available for the given user and org.
+func (s *Service) IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error) {
+	if !s.config.Enabled {
+		return false, paterrors.ErrDisabled
+	}
+	return s.repo.IsTitleAvailable(ctx, userID, orgID, title)
+}
+
 // Get retrieves a PAT by ID, verifying it belongs to the given user.
 // Returns ErrDisabled if PATs are not enabled, ErrNotFound if the PAT
 // does not exist or belongs to a different user.

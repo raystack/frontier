@@ -1301,3 +1301,141 @@ func TestHandler_RegenerateCurrentUserPAT(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_CheckCurrentUserPATTitle(t *testing.T) {
+	testUserID := "8e256f86-31a3-11ec-8d3d-0242ac130003"
+	testOrgID := "9f256f86-31a3-11ec-8d3d-0242ac130003"
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.UserPATService, as *mocks.AuthnService)
+		request *connect.Request[frontierv1beta1.CheckCurrentUserPATTitleRequest]
+		wantErr error
+		wantAvl bool
+	}{
+		{
+			name: "should return unauthenticated error when GetLoggedInPrincipal fails",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+				OrgId: testOrgID,
+				Title: "my-token",
+			}),
+			wantErr: connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated),
+		},
+		{
+			name: "should return permission denied when principal is not a user",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "sv-1",
+					Type: schema.ServiceUserPrincipal,
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+				OrgId: testOrgID,
+				Title: "my-token",
+			}),
+			wantErr: connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated),
+		},
+		{
+			name: "should return failed precondition when PAT is disabled",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().IsTitleAvailable(mock.Anything, testUserID, testOrgID, "my-token").
+					Return(false, paterrors.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+				OrgId: testOrgID,
+				Title: "my-token",
+			}),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, paterrors.ErrDisabled),
+		},
+		{
+			name: "should return internal error for unknown failure",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().IsTitleAvailable(mock.Anything, testUserID, testOrgID, "my-token").
+					Return(false, errors.New("db error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+				OrgId: testOrgID,
+				Title: "my-token",
+			}),
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return available true when title is free",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().IsTitleAvailable(mock.Anything, testUserID, testOrgID, "new-token").
+					Return(true, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+				OrgId: testOrgID,
+				Title: "new-token",
+			}),
+			wantAvl: true,
+		},
+		{
+			name: "should return available false when title is taken",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().IsTitleAvailable(mock.Anything, testUserID, testOrgID, "existing-token").
+					Return(false, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+				OrgId: testOrgID,
+				Title: "existing-token",
+			}),
+			wantAvl: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPATSrv := new(mocks.UserPATService)
+			mockAuthnSrv := new(mocks.AuthnService)
+
+			if tt.setup != nil {
+				tt.setup(mockPATSrv, mockAuthnSrv)
+			}
+
+			handler := &ConnectHandler{
+				userPATService: mockPATSrv,
+				authnService:   mockAuthnSrv,
+			}
+
+			resp, err := handler.CheckCurrentUserPATTitle(context.Background(), tt.request)
+
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.Error(), err.Error())
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Equal(t, tt.wantAvl, resp.Msg.GetAvailable())
+			}
+
+			mockPATSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+		})
+	}
+}

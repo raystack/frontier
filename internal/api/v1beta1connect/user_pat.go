@@ -270,6 +270,40 @@ func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *
 	}), nil
 }
 
+func (h *ConnectHandler) CheckCurrentUserPATTitle(ctx context.Context, request *connect.Request[frontierv1beta1.CheckCurrentUserPATTitleRequest]) (*connect.Response[frontierv1beta1.CheckCurrentUserPATTitleResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.User == nil {
+		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
+	}
+
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	available, err := h.userPATService.IsTitleAvailable(ctx, principal.User.ID, request.Msg.GetOrgId(), request.Msg.GetTitle())
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CheckCurrentUserPATTitle", err,
+			zap.String("user_id", principal.User.ID),
+			zap.String("org_id", request.Msg.GetOrgId()))
+
+		switch {
+		case errors.Is(err, paterrors.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.CheckCurrentUserPATTitleResponse{
+		Available: available,
+	}), nil
+}
+
 func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	pbPAT := &frontierv1beta1.PAT{
 		Id:         pat.ID,

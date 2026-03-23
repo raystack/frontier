@@ -2369,3 +2369,91 @@ func TestService_Regenerate(t *testing.T) {
 		})
 	}
 }
+
+func TestService_IsTitleAvailable(t *testing.T) {
+	tests := []struct {
+		name          string
+		setup         func() *userpat.Service
+		userID        string
+		orgID         string
+		title         string
+		wantAvailable bool
+		wantErr       bool
+		wantErrIs     error
+	}{
+		{
+			name:   "should return ErrDisabled when PAT feature is disabled",
+			userID: "user-1",
+			orgID:  "org-1",
+			title:  "my-token",
+			setup: func() *userpat.Service {
+				return userpat.NewService(log.NewNoop(), nil, userpat.Config{
+					Enabled: false,
+				}, nil, nil, nil, nil)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDisabled,
+		},
+		{
+			name:   "should return true when title is available",
+			userID: "user-1",
+			orgID:  "org-1",
+			title:  "new-token",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().IsTitleAvailable(mock.Anything, "user-1", "org-1", "new-token").
+					Return(true, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantAvailable: true,
+		},
+		{
+			name:   "should return false when title is taken",
+			userID: "user-1",
+			orgID:  "org-1",
+			title:  "existing-token",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().IsTitleAvailable(mock.Anything, "user-1", "org-1", "existing-token").
+					Return(false, nil)
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantAvailable: false,
+		},
+		{
+			name:   "should return error when repo fails",
+			userID: "user-1",
+			orgID:  "org-1",
+			title:  "my-token",
+			setup: func() *userpat.Service {
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().IsTitleAvailable(mock.Anything, "user-1", "org-1", "my-token").
+					Return(false, errors.New("db error"))
+				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil)
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := tt.setup()
+			available, err := svc.IsTitleAvailable(context.Background(), tt.userID, tt.orgID, tt.title)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("IsTitleAvailable() expected error, got nil")
+				}
+				if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+					t.Errorf("IsTitleAvailable() error = %v, want %v", err, tt.wantErrIs)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("IsTitleAvailable() unexpected error: %v", err)
+			}
+			if available != tt.wantAvailable {
+				t.Errorf("IsTitleAvailable() = %v, want %v", available, tt.wantAvailable)
+			}
+		})
+	}
+}

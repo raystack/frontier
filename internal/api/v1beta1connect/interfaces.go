@@ -407,5 +407,6 @@ type UserPATService interface {
 	Delete(ctx context.Context, userID, id string) error
 	Update(ctx context.Context, toUpdate models.PAT) (models.PAT, error)
 	Regenerate(ctx context.Context, userID, id string, newExpiresAt time.Time) (models.PAT, string, error)
+	IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error)
 	ListAllowedRoles(ctx context.Context, scopes []string) ([]role.Role, error)
 }

@@ -200,6 +200,65 @@ func (_c *UserPATService_Get_Call) RunAndReturn(run func(context.Context, string
 	return _c
 }
 
+// IsTitleAvailable provides a mock function with given fields: ctx, userID, orgID, title
+func (_m *UserPATService) IsTitleAvailable(ctx context.Context, userID string, orgID string, title string) (bool, error) {
+	ret := _m.Called(ctx, userID, orgID, title)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsTitleAvailable")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (bool, error)); ok {
+		return rf(ctx, userID, orgID, title)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) bool); ok {
+		r0 = rf(ctx, userID, orgID, title)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, userID, orgID, title)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserPATService_IsTitleAvailable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsTitleAvailable'
+type UserPATService_IsTitleAvailable_Call struct {
+	*mock.Call
+}
+
+// IsTitleAvailable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - orgID string
+//   - title string
+func (_e *UserPATService_Expecter) IsTitleAvailable(ctx interface{}, userID interface{}, orgID interface{}, title interface{}) *UserPATService_IsTitleAvailable_Call {
+	return &UserPATService_IsTitleAvailable_Call{Call: _e.mock.On("IsTitleAvailable", ctx, userID, orgID, title)}
+}
+
+func (_c *UserPATService_IsTitleAvailable_Call) Run(run func(ctx context.Context, userID string, orgID string, title string)) *UserPATService_IsTitleAvailable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *UserPATService_IsTitleAvailable_Call) Return(_a0 bool, _a1 error) *UserPATService_IsTitleAvailable_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserPATService_IsTitleAvailable_Call) RunAndReturn(run func(context.Context, string, string, string) (bool, error)) *UserPATService_IsTitleAvailable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, userID, orgID, query
 func (_m *UserPATService) List(ctx context.Context, userID string, orgID string, query *rql.Query) (models.PATList, error) {
 	ret := _m.Called(ctx, userID, orgID, query)
