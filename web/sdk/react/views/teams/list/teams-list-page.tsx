@@ -199,67 +199,68 @@ const TeamsTable = ({
         [userAccessOnTeam, onTeamClick, onDeleteTeamClick]
     );
 
-    return (
-        <DataTable
-            data={teams ?? []}
-            isLoading={isLoading}
-            columns={columns}
-            defaultSort={{ name: 'name', order: 'asc' }}
-        >
-            <Flex direction="column" gap={7} className={styles.tableWrapper}>
-                <Flex justify="between" gap={3}>
-                    <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
-                        {isLoading ? (
-                            <Skeleton height="34px" width="500px" />
-                        ) : (
-                            <DataTable.Search placeholder="Search by title" />
-                        )}
-                        {canListOrgGroups ? (
-                            <Select
-                                defaultValue={teamsSelectOptions[0].value}
-                                onValueChange={onOrgTeamsFilterChange}
-                            >
-                                <Select.Trigger style={{ minWidth: '140px' }}>
-                                    <Select.Value />
-                                </Select.Trigger>
-                                <Select.Content>
-                                    {teamsSelectOptions.map(opt => (
-                                        <Select.Item value={opt.value} key={opt.value}>
-                                            {opt.label}
-                                        </Select.Item>
-                                    ))}
-                                </Select.Content>
-                            </Select>
-                        ) : null}
-                    </Flex>
-                    {isLoading ? (
-                        <Skeleton height="34px" width="64px" />
-                    ) : (
-                        <Tooltip
-                            message={AuthTooltipMessage}
-                            side="left"
-                            disabled={canCreateGroup}
-                        >
-                            <Button
-                                disabled={!canCreateGroup}
-                                onClick={onAddTeamClick}
-                                data-test-id="frontier-sdk-add-team-btn"
-                            >
-                                Add team
-                            </Button>
-                        </Tooltip>
-                    )}
-                </Flex>
-                <DataTable.Content
-                    emptyState={noDataChildren}
-                    classNames={{
-                        root: styles.tableRoot,
-                        header: styles.tableHeader
-                    }}
-                />
-            </Flex>
-        </DataTable>
-    );
+  return (
+    <DataTable
+      data={teams ?? []}
+      isLoading={isLoading}
+      columns={columns}
+      defaultSort={{ name: 'name', order: 'asc' }}
+      onRowClick={row => onTeamClick?.(row.id)}
+    >
+      <Flex direction="column" gap={7} className={styles.tableWrapper}>
+        <Flex justify="between" gap={3}>
+          <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+            {isLoading ? (
+              <Skeleton height="34px" width="500px" />
+            ) : (
+              <DataTable.Search placeholder="Search by title" />
+            )}
+            {canListOrgGroups ? (
+              <Select
+                defaultValue={teamsSelectOptions[0].value}
+                onValueChange={onOrgTeamsFilterChange}
+              >
+                <Select.Trigger style={{ minWidth: '140px' }}>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  {teamsSelectOptions.map(opt => (
+                    <Select.Item value={opt.value} key={opt.value}>
+                      {opt.label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select>
+            ) : null}
+          </Flex>
+          {isLoading ? (
+            <Skeleton height="34px" width="64px" />
+          ) : (
+            <Tooltip
+              message={AuthTooltipMessage}
+              side="left"
+              disabled={canCreateGroup}
+            >
+              <Button
+                disabled={!canCreateGroup}
+                onClick={onAddTeamClick}
+                data-test-id="frontier-sdk-add-team-btn"
+              >
+                Add team
+              </Button>
+            </Tooltip>
+          )}
+        </Flex>
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{
+            root: styles.tableRoot,
+            header: styles.tableHeader
+          }}
+        />
+      </Flex>
+    </DataTable>
+  );
 };
 
 const noDataChildren = (
