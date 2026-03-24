@@ -68,6 +68,23 @@ type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
 }
 
+type RoleService interface {
+	Get(ctx context.Context, idOrName string) (Role, error)
+}
+
+// Role contains the minimal role info needed by organization service
+type Role struct {
+	ID   string
+	Name string
+}
+
+// RoleServiceFunc is an adapter to allow use of ordinary functions as RoleService
+type RoleServiceFunc func(ctx context.Context, idOrName string) (Role, error)
+
+func (f RoleServiceFunc) Get(ctx context.Context, idOrName string) (Role, error) {
+	return f(ctx, idOrName)
+}
+
 type Service struct {
 	repository            Repository
 	relationService       RelationService
@@ -76,11 +93,13 @@ type Service struct {
 	policyService         PolicyService
 	prefService           PreferencesService
 	auditRecordRepository AuditRecordRepository
+	roleService           RoleService
 }
 
 func NewService(repository Repository, relationService RelationService,
 	userService UserService, authnService AuthnService, policyService PolicyService,
-	prefService PreferencesService, auditRecordRepository AuditRecordRepository) *Service {
+	prefService PreferencesService, auditRecordRepository AuditRecordRepository,
+	roleService RoleService) *Service {
 	return &Service{
 		repository:            repository,
 		relationService:       relationService,
@@ -89,6 +108,7 @@ func NewService(repository Repository, relationService RelationService,
 		policyService:         policyService,
 		prefService:           prefService,
 		auditRecordRepository: auditRecordRepository,
+		roleService:           roleService,
 	}
 }
 
@@ -381,25 +401,35 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string
 		return err
 	}
 
+	// look up owner role UUID for comparisons
+	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
+	if err != nil {
+		return fmt.Errorf("failed to get owner role: %w", err)
+	}
+
 	// check if user currently has owner role
 	isCurrentlyOwner := false
 	for _, p := range existingPolicies {
-		if p.RoleID == schema.RoleOrganizationOwner {
+		if p.RoleID == ownerRole.ID {
 			isCurrentlyOwner = true
 			break
 		}
 	}
 
-	// if demoting from owner, check minimum owner constraint
-	if isCurrentlyOwner && roleID != schema.RoleOrganizationOwner {
+	// ensure org always has at least 1 owner after the role change
+	if roleID != ownerRole.ID {
 		ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
 			OrgID:  orgID,
-			RoleID: schema.RoleOrganizationOwner,
+			RoleID: ownerRole.ID,
 		})
 		if err != nil {
 			return err
 		}
-		if len(ownerPolicies) == 1 {
+		remainingOwners := len(ownerPolicies)
+		if isCurrentlyOwner {
+			remainingOwners--
+		}
+		if remainingOwners < 1 {
 			return ErrLastOwnerRole
 		}
 	}

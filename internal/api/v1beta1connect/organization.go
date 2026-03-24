@@ -540,6 +540,18 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 	userID := request.Msg.GetUserId()
 	roleID := request.Msg.GetRoleId()
 
+	// Validate user_id is not empty
+	if userID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidUserID)
+	}
+
+	// Validate role exists
+	if _, err := h.roleService.Get(ctx, roleID); err != nil {
+		errorLogger.LogServiceError(ctx, request, "SetOrganizationMemberRole.roleService.Get", err,
+			zap.String("role_id", roleID))
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidRoleID)
+	}
+
 	if err := h.orgService.SetMemberRole(ctx, orgID, userID, roleID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "SetOrganizationMemberRole", err,
 			zap.String("org_id", orgID),
