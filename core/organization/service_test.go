@@ -278,7 +278,7 @@ func TestService_ListByUser(t *testing.T) {
 		mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
 		mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
 
 		// LookupResources should be called with user ID/type, not PAT
 		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
@@ -315,7 +315,7 @@ func TestService_ListByUser(t *testing.T) {
 		mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
 		mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
 
 		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
 			Object:       relation.Object{Namespace: schema.OrganizationNamespace},
@@ -343,7 +343,7 @@ func TestService_ListByUser(t *testing.T) {
 		mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
 		mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
 
 		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
 			Object:       relation.Object{Namespace: schema.OrganizationNamespace},
