@@ -364,20 +364,7 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 // Note: This assumes one role per user per org. If multiple roles need to be supported,
 // consider accepting a list of roles or providing separate Add/Remove methods.
 func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID string) error {
-	// validate org exists
-	_, err := s.repository.GetByID(ctx, orgID)
-	if err != nil {
-		return err
-	}
-
-	// validate user exists
-	_, err = s.userService.GetByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	// validate role exists
-	_, err = s.roleService.Get(ctx, newRoleID)
+	err := s.validateSetMemberRoleRequest(ctx, orgID, userID, newRoleID)
 	if err != nil {
 		return err
 	}
@@ -482,6 +469,26 @@ func (s Service) replaceUserOrgPolicies(ctx context.Context, orgID, userID, newR
 		PrincipalID:   userID,
 		PrincipalType: schema.UserPrincipal,
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateSetMemberRoleRequest validates that org, user, and role exist
+func (s Service) validateSetMemberRoleRequest(ctx context.Context, orgID, userID, newRoleID string) error {
+	_, err := s.Get(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.userService.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.roleService.Get(ctx, newRoleID)
 	if err != nil {
 		return err
 	}
