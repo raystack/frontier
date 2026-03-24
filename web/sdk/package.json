@@ -72,12 +72,9 @@
     "@raystack/eslint-config": "workspace:^",
     "@raystack/frontier-tsconfig": "workspace:^",
     "@size-limit/preset-small-lib": "^8.2.6",
-    "@stitches/react": "^1.2.8",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.17",
     "@types/node": "^22.10.0",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
     "@types/uuid": "^10.0.0",
     "@types/validator": "^13.15.1",
     "esbuild-css-modules-plugin": "^2.7.1",
@@ -108,6 +105,8 @@
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-router": "1.58.17",
     "axios": "^1.9.0",
+    "@raystack/apsara-v1": "npm:@raystack/apsara@1.0.0-rc.1",
+    "@base-ui/react": "1.2.0",
     "class-variance-authority": "^0.7.1",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
@@ -121,14 +120,18 @@
   },
   "peerDependencies": {
     "@raystack/apsara": ">=0.30.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@types/react": "^19",
+    "react": "^19",
+    "react-dom": "^19"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "@types/react": {
       "optional": true
     },
     "svelte": {

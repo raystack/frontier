@@ -1,15 +1,13 @@
 import React from "react";
 import { Flex } from "@raystack/apsara";
-import { CSS } from "@stitches/react";
 
 type SheetFooterProps = {
   children?: React.ReactNode;
-  css?: CSS;
 };
 
-export function SheetFooter({ children, css }: SheetFooterProps) {
+export function SheetFooter({ children }: SheetFooterProps) {
   // @ts-ignore
-  return <Flex style={{ ...styles.footer, ...css }}>{children}</Flex>;
+  return <Flex style={styles.footer}>{children}</Flex>;
 }
 
 const styles = {
@@ -20,6 +18,6 @@ const styles = {
     position: "absolute",
     justifyContent: "space-between",
     padding: "18px 32px",
-    borderTop: "1px solid $gray4",
+    borderTop: "1px solid var(--rs-color-border-base-primary)",
   },
 };
