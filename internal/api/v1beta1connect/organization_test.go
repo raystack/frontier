@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
@@ -1342,6 +1343,145 @@ func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
 			}
 			mockDep := &ConnectHandler{serviceUserService: mockSvcUserService, orgService: mockOrgService}
 			resp, err := mockDep.ListOrganizationServiceUsers(ctx, tt.request)
+			assert.Equal(t, tt.want, resp)
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_SetOrganizationMemberRole(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest]
+		want    *connect.Response[frontierv1beta1.SetOrganizationMemberRoleResponse]
+		wantErr error
+	}{
+		{
+			name:  "should return invalid argument error if user_id is empty",
+			setup: nil,
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "",
+				RoleId: "some-role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrInvalidUserID),
+		},
+		{
+			name: "should return not found error if org does not exist",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(organization.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
+		},
+		{
+			name: "should return not found error if org is disabled",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(organization.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return not found error if user does not exist",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(user.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			name: "should return not found error if role does not exist",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(role.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrInvalidRoleID),
+		},
+		{
+			name: "should return not found error if role id is invalid",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(role.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrInvalidRoleID),
+		},
+		{
+			name: "should return failed precondition error if removing last owner",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(organization.ErrLastOwnerRole)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrMinAdminCount),
+		},
+		{
+			name: "should return internal error for unknown errors",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(errors.New("unknown error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success on valid request",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "user-id",
+				RoleId: "role-id",
+			}),
+			want:    connect.NewResponse(&frontierv1beta1.SetOrganizationMemberRoleResponse{}),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockOrgSrv)
+			}
+			mockDep := &ConnectHandler{orgService: mockOrgSrv}
+			resp, err := mockDep.SetOrganizationMemberRole(context.Background(), tt.request)
 			assert.Equal(t, tt.want, resp)
 			assert.Equal(t, tt.wantErr, err)
 		})
