@@ -385,8 +385,11 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string
 		PrincipalID:   userID,
 		PrincipalType: schema.UserPrincipal,
 	})
-	if err != nil && !errors.Is(err, policy.ErrNotExist) {
-		return err
+	if err != nil {
+		// no existing policies is fine, user might be new to org
+		if !errors.Is(err, policy.ErrNotExist) {
+			return err
+		}
 	}
 
 	// look up owner role UUID for comparisons
