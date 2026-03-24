@@ -363,7 +363,7 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 //
 // Note: This assumes one role per user per org. If multiple roles need to be supported,
 // consider accepting a list of roles or providing separate Add/Remove methods.
-func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string) error {
+func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID string) error {
 	// validate org exists
 	if _, err := s.repository.GetByID(ctx, orgID); err != nil {
 		return err
@@ -408,7 +408,7 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string
 	}
 
 	// ensure org always has at least 1 owner after the role change
-	if roleID != ownerRole.ID {
+	if newRoleID != ownerRole.ID {
 		ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
 			OrgID:  orgID,
 			RoleID: ownerRole.ID,
@@ -434,7 +434,7 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, roleID string
 
 	// create new policy with new role
 	if _, err := s.policyService.Create(ctx, policy.Policy{
-		RoleID:        roleID,
+		RoleID:        newRoleID,
 		ResourceID:    orgID,
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   userID,
