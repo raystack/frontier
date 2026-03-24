@@ -365,37 +365,68 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 // consider accepting a list of roles or providing separate Add/Remove methods.
 func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID string) error {
 	// validate org exists
-	if _, err := s.repository.GetByID(ctx, orgID); err != nil {
+	_, err := s.repository.GetByID(ctx, orgID)
+	if err != nil {
 		return err
 	}
 
 	// validate user exists
-	if _, err := s.userService.GetByID(ctx, userID); err != nil {
+	_, err = s.userService.GetByID(ctx, userID)
+	if err != nil {
 		return err
 	}
 
-	// List only org-level policies (OrgID filter sets resource_type = 'app/organization').
-	// Project and group policies are intentionally not touched because:
-	// - Org owner/admin get implicit project access via SpiceDB (org->project_get)
-	// - Explicit project policies are for users who need project-specific access
-	// - On role change, user loses implicit project access if moving away from owner/admin,
-	//   but keeps any explicit project policies granted independently
-	existingPolicies, err := s.policyService.List(ctx, policy.Filter{
+	// get user's current org-level policies
+	existingPolicies, err := s.getUserOrgPolicies(ctx, orgID, userID)
+	if err != nil {
+		return err
+	}
+
+	// check minimum owner constraint
+	err = s.validateMinOwnerConstraint(ctx, orgID, newRoleID, existingPolicies)
+	if err != nil {
+		return err
+	}
+
+	// delete existing policies and create new one
+	err = s.replaceUserOrgPolicies(ctx, orgID, userID, newRoleID, existingPolicies)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getUserOrgPolicies returns the user's org-level policies.
+// Project and group policies are intentionally not included because:
+// - Org owner/admin get implicit project access via SpiceDB (org->project_get)
+// - Explicit project policies are for users who need project-specific access
+func (s Service) getUserOrgPolicies(ctx context.Context, orgID, userID string) ([]policy.Policy, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
 		OrgID:         orgID,
 		PrincipalID:   userID,
 		PrincipalType: schema.UserPrincipal,
 	})
 	if err != nil {
 		// no existing policies is fine, user might be new to org
-		if !errors.Is(err, policy.ErrNotExist) {
-			return err
+		if errors.Is(err, policy.ErrNotExist) {
+			return nil, nil
 		}
+		return nil, err
 	}
+	return policies, nil
+}
 
-	// look up owner role UUID for comparisons
+// validateMinOwnerConstraint ensures org always has at least 1 owner after role change
+func (s Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existingPolicies []policy.Policy) error {
 	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
 	if err != nil {
 		return fmt.Errorf("failed to get owner role: %w", err)
+	}
+
+	// if assigning owner role, no constraint to check
+	if newRoleID == ownerRole.ID {
+		return nil
 	}
 
 	// check if user currently has owner role
@@ -407,39 +438,45 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 		}
 	}
 
-	// ensure org always has at least 1 owner after the role change
-	if newRoleID != ownerRole.ID {
-		ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
-			OrgID:  orgID,
-			RoleID: ownerRole.ID,
-		})
-		if err != nil {
-			return err
-		}
-		remainingOwners := len(ownerPolicies)
-		if isCurrentlyOwner {
-			remainingOwners--
-		}
-		if remainingOwners < 1 {
-			return ErrLastOwnerRole
-		}
+	// count current owners
+	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:  orgID,
+		RoleID: ownerRole.ID,
+	})
+	if err != nil {
+		return err
 	}
 
+	remainingOwners := len(ownerPolicies)
+	if isCurrentlyOwner {
+		remainingOwners--
+	}
+	if remainingOwners < 1 {
+		return ErrLastOwnerRole
+	}
+
+	return nil
+}
+
+// replaceUserOrgPolicies deletes existing policies and creates a new one with the given role
+func (s Service) replaceUserOrgPolicies(ctx context.Context, orgID, userID, newRoleID string, existingPolicies []policy.Policy) error {
 	// delete existing policies
 	for _, p := range existingPolicies {
-		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+		err := s.policyService.Delete(ctx, p.ID)
+		if err != nil {
 			return err
 		}
 	}
 
 	// create new policy with new role
-	if _, err := s.policyService.Create(ctx, policy.Policy{
+	_, err := s.policyService.Create(ctx, policy.Policy{
 		RoleID:        newRoleID,
 		ResourceID:    orgID,
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   userID,
 		PrincipalType: schema.UserPrincipal,
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 
