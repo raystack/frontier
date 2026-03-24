@@ -376,6 +376,12 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 		return err
 	}
 
+	// validate role exists
+	_, err = s.roleService.Get(ctx, newRoleID)
+	if err != nil {
+		return err
+	}
+
 	// get user's current org-level policies
 	existingPolicies, err := s.getUserOrgPolicies(ctx, orgID, userID)
 	if err != nil {
