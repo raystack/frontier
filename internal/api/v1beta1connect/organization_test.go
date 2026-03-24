@@ -1455,7 +1455,7 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 				RoleId: "role-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrMinAdminCount),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrLastOwnerRole),
 		},
 		{
 			name: "should return internal error for unknown errors",
