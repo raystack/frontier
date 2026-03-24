@@ -32,6 +32,10 @@ export default defineConfig(() => {
       },
     },
     plugins: [react(), svgr(), tsconfigPaths()],
+    resolve: {
+      // Force a single React runtime across app + linked workspace SDK packages
+      dedupe: ["react", "react-dom"],
+    },
     define: {
       "process.env": process.env,
     },
