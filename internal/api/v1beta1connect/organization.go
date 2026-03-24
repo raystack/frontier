@@ -540,8 +540,8 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 	userID := request.Msg.GetUserId()
 	roleID := request.Msg.GetRoleId()
 
-	// Validate user_id is not empty
-	if userID == "" {
+	// Validate user_id format
+	if userID == "" || !utils.IsValidUUID(userID) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidUserID)
 	}
 

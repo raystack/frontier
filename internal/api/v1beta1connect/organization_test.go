@@ -1369,13 +1369,24 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrInvalidUserID),
 		},
 		{
+			name:  "should return invalid argument error if user_id is not a valid UUID",
+			setup: nil,
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "invalid-user-id",
+				RoleId: "some-role-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrInvalidUserID),
+		},
+		{
 			name: "should return not found error if org does not exist",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(organization.ErrNotExist)
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    nil,
@@ -1384,11 +1395,11 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		{
 			name: "should return not found error if org is disabled",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(organization.ErrDisabled)
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(organization.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    nil,
@@ -1397,11 +1408,11 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		{
 			name: "should return not found error if user does not exist",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(user.ErrNotExist)
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(user.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    nil,
@@ -1410,11 +1421,11 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		{
 			name: "should return not found error if role does not exist",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(role.ErrNotExist)
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(role.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    nil,
@@ -1423,11 +1434,11 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		{
 			name: "should return not found error if role id is invalid",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(role.ErrInvalidID)
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(role.ErrInvalidID)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    nil,
@@ -1436,11 +1447,11 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		{
 			name: "should return failed precondition error if removing last owner",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(organization.ErrLastOwnerRole)
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(organization.ErrLastOwnerRole)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    nil,
@@ -1449,11 +1460,11 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		{
 			name: "should return internal error for unknown errors",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(errors.New("unknown error"))
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(errors.New("unknown error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    nil,
@@ -1462,11 +1473,11 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		{
 			name: "should return success on valid request",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "user-id", "role-id").Return(nil)
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "role-id").Return(nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
 				OrgId:  testOrgID,
-				UserId: "user-id",
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
 				RoleId: "role-id",
 			}),
 			want:    connect.NewResponse(&frontierv1beta1.SetOrganizationMemberRoleResponse{}),
