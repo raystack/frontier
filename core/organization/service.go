@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/core/preference"
 
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/authenticate"
 
@@ -69,20 +70,7 @@ type AuditRecordRepository interface {
 }
 
 type RoleService interface {
-	Get(ctx context.Context, idOrName string) (Role, error)
-}
-
-// Role contains the minimal role info needed by organization service
-type Role struct {
-	ID   string
-	Name string
-}
-
-// RoleServiceFunc is an adapter to allow use of ordinary functions as RoleService
-type RoleServiceFunc func(ctx context.Context, idOrName string) (Role, error)
-
-func (f RoleServiceFunc) Get(ctx context.Context, idOrName string) (Role, error) {
-	return f(ctx, idOrName)
+	Get(ctx context.Context, idOrName string) (role.Role, error)
 }
 
 type Service struct {

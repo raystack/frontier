@@ -416,16 +416,8 @@ func buildAPIDependencies(
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
-	// Adapter to convert role.Service to organization.RoleService
-	orgRoleService := organization.RoleServiceFunc(func(ctx context.Context, idOrName string) (organization.Role, error) {
-		r, err := roleService.Get(ctx, idOrName)
-		if err != nil {
-			return organization.Role{}, err
-		}
-		return organization.Role{ID: r.ID, Name: r.Name}, nil
-	})
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
-		authnService, policyService, preferenceService, auditRecordRepository, orgRoleService)
+		authnService, policyService, preferenceService, auditRecordRepository, roleService)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, auditRecordRepository)
 
