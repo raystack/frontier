@@ -13,6 +13,8 @@ import (
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/core/user"
 	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
@@ -366,4 +368,186 @@ func TestService_ListByUser(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
 	})
+}
+
+func TestService_SetMemberRole(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	userID := uuid.New().String()
+	ownerRoleID := uuid.New().String()
+	memberRoleID := uuid.New().String()
+
+	tests := []struct {
+		name      string
+		setup     func(*mocks.Repository, *mocks.UserService, *mocks.RoleService, *mocks.PolicyService)
+		orgID     string
+		userID    string
+		newRoleID string
+		wantErr   error
+	}{
+		{
+			name: "should return error if org does not exist",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   organization.ErrNotExist,
+		},
+		{
+			name: "should return error if org is disabled",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{State: organization.Disabled}, nil)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   organization.ErrDisabled,
+		},
+		{
+			name: "should return error if user does not exist",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{}, user.ErrNotExist)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   user.ErrNotExist,
+		},
+		{
+			name: "should return error if role does not exist",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{}, role.ErrNotExist)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   role.ErrNotExist,
+		},
+		{
+			name: "should return error if demoting last owner",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member"}, nil)
+				// get user's existing policies - user is owner
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "policy-1", RoleID: ownerRoleID}}, nil)
+				// get owner role for comparison
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				// count owners - only 1
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:  orgID,
+					RoleID: ownerRoleID,
+				}).Return([]policy.Policy{{ID: "policy-1", RoleID: ownerRoleID}}, nil)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   organization.ErrLastOwnerRole,
+		},
+		{
+			name: "should succeed when changing role with multiple owners",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member"}, nil)
+				// get user's existing policies - user is owner
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "policy-1", RoleID: ownerRoleID}}, nil)
+				// get owner role for comparison
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				// count owners - 2 owners exist
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:  orgID,
+					RoleID: ownerRoleID,
+				}).Return([]policy.Policy{
+					{ID: "policy-1", RoleID: ownerRoleID},
+					{ID: "policy-2", RoleID: ownerRoleID},
+				}, nil)
+				// delete existing policy
+				policySvc.EXPECT().Delete(ctx, "policy-1").Return(nil)
+				// create new policy
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID:        memberRoleID,
+					ResourceID:    orgID,
+					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return(policy.Policy{}, nil)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   nil,
+		},
+		{
+			name: "should succeed when promoting to owner",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				// get user's existing policies - user is member
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "policy-1", RoleID: memberRoleID}}, nil)
+				// get owner role for comparison
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				// no owner count check needed when promoting to owner
+				// delete existing policy
+				policySvc.EXPECT().Delete(ctx, "policy-1").Return(nil)
+				// create new policy
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID:        ownerRoleID,
+					ResourceID:    orgID,
+					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return(policy.Policy{}, nil)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: ownerRoleID,
+			wantErr:   nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := mocks.NewRepository(t)
+			mockRelationSvc := mocks.NewRelationService(t)
+			mockUserSvc := mocks.NewUserService(t)
+			mockAuthnSvc := mocks.NewAuthnService(t)
+			mockPolicySvc := mocks.NewPolicyService(t)
+			mockPrefSvc := mocks.NewPreferencesService(t)
+			mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
+			mockRoleSvc := mocks.NewRoleService(t)
+
+			if tt.setup != nil {
+				tt.setup(mockRepo, mockUserSvc, mockRoleSvc, mockPolicySvc)
+			}
+
+			svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+
+			err := svc.SetMemberRole(ctx, tt.orgID, tt.userID, tt.newRoleID)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
