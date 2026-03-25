@@ -225,8 +225,8 @@ importers:
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.71.2(react@18.3.1))
       '@raystack/proton':
-        specifier: 0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24
-        version: 0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.1.0-dcca57385227df0690df54d66f73b3baacfc580d
+        version: 0.1.0-dcca57385227df0690df54d66f73b3baacfc580d(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
         specifier: ^5.90.2
         version: 5.90.21(react@18.3.1)
@@ -2300,6 +2300,14 @@ packages:
 
   '@raystack/proton@0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24':
     resolution: {integrity: sha512-Nj1RUxpbd+jTQ7GD9ZEsrXzjc51X04CIT56yNkDUxC7ymrstYZEFxURmvDvPrx6sS1MyjMaMU+++KPuAO4pOMg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.0.0
+    peerDependenciesMeta:
+      '@tanstack/react-query':
+        optional: true
+
+  '@raystack/proton@0.1.0-dcca57385227df0690df54d66f73b3baacfc580d':
+    resolution: {integrity: sha512-KEQwx7obRikkAqIVzFMMDlpic2YBjHnkPB5KBeQ0/ljJQ6ik8EHWrYiPGXgfwQ2UKVcZSJ89UAMBddN5PCtovw==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
     peerDependenciesMeta:
@@ -9862,6 +9870,20 @@ snapshots:
       - '@types/react-dom'
 
   '@raystack/proton@0.1.0-d8accdc231fe7e3b23b38c0535b2aa92da42cf24(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@bufbuild/protobuf': 2.11.0
+      '@connectrpc/connect': 2.1.1(@bufbuild/protobuf@2.11.0)
+      '@connectrpc/connect-query': 2.1.1(@bufbuild/protobuf@2.11.0)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.11.0))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@protobuf-ts/runtime': 2.11.1
+      '@protobuf-ts/runtime-rpc': 2.11.1
+    optionalDependencies:
+      '@tanstack/react-query': 5.90.21(react@18.3.1)
+    transitivePeerDependencies:
+      - '@tanstack/query-core'
+      - react
+      - react-dom
+
+  '@raystack/proton@0.1.0-dcca57385227df0690df54d66f73b3baacfc580d(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@bufbuild/protobuf': 2.11.0
       '@connectrpc/connect': 2.1.1(@bufbuild/protobuf@2.11.0)
