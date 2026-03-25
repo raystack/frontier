@@ -1431,6 +1431,19 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeNotFound, ErrUserNotExist),
 		},
 		{
+			name: "should return failed precondition error if user is not a member of the org",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "9f256f86-31a3-11ec-8d3d-0242ac130005").Return(organization.ErrNotMember)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+				OrgId:  testOrgID,
+				UserId: "9f256f86-31a3-11ec-8d3d-0242ac130004",
+				RoleId: "9f256f86-31a3-11ec-8d3d-0242ac130005",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotMember),
+		},
+		{
 			name: "should return not found error if role does not exist",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "9f256f86-31a3-11ec-8d3d-0242ac130005").Return(role.ErrNotExist)

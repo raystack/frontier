@@ -429,6 +429,24 @@ func TestService_SetMemberRole(t *testing.T) {
 			wantErr:   role.ErrNotExist,
 		},
 		{
+			name: "should return error if user is not a member of the org",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member"}, nil)
+				// get user's existing policies - empty, user is not a member
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{}, nil)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   organization.ErrNotMember,
+		},
+		{
 			name: "should return error if demoting last owner",
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
