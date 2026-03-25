@@ -3659,6 +3659,144 @@ var _ interface {
 	ErrorName() string
 } = ServiceUserTokenValidationError{}
 
+// Validate checks the field values on PATScope with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PATScope) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PATScope with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PATScopeMultiError, or nil
+// if none found.
+func (m *PATScope) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PATScope) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetRoleId()); err != nil {
+		err = PATScopeValidationError{
+			field:  "RoleId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for ResourceType
+
+	for idx, item := range m.GetResourceIds() {
+		_, _ = idx, item
+
+		if err := m._validateUuid(item); err != nil {
+			err = PATScopeValidationError{
+				field:  fmt.Sprintf("ResourceIds[%v]", idx),
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return PATScopeMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *PATScope) _validateUuid(uuid string) error {
+	if matched := _models_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// PATScopeMultiError is an error wrapping multiple validation errors returned
+// by PATScope.ValidateAll() if the designated constraints aren't met.
+type PATScopeMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PATScopeMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PATScopeMultiError) AllErrors() []error { return m }
+
+// PATScopeValidationError is the validation error returned by
+// PATScope.Validate if the designated constraints aren't met.
+type PATScopeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PATScopeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PATScopeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PATScopeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PATScopeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PATScopeValidationError) ErrorName() string { return "PATScopeValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PATScopeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPATScope.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PATScopeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PATScopeValidationError{}
+
 // Validate checks the field values on PAT with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -3689,6 +3827,40 @@ func (m *PAT) validate(all bool) error {
 	// no validation rules for OrgId
 
 	// no validation rules for Token
+
+	for idx, item := range m.GetScopes() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PATValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PATValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PATValidationError{
+					field:  fmt.Sprintf("Scopes[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if all {
 		switch v := interface{}(m.GetExpiresAt()).(type) {

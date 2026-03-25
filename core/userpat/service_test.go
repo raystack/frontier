@@ -43,9 +43,17 @@ func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleServi
 			Name:   "test-role",
 			Scopes: []string{schema.OrganizationNamespace},
 		}}, nil).Maybe()
+	roleSvc.On("Get", mock.Anything, mock.Anything).
+		Return(role.Role{
+			ID:     "role-1",
+			Name:   "test-role",
+			Scopes: []string{schema.OrganizationNamespace},
+		}, nil).Maybe()
 	policySvc := mocks.NewPolicyService(t)
 	policySvc.On("Create", mock.Anything, mock.Anything).
 		Return(policy.Policy{}, nil).Maybe()
+	policySvc.On("List", mock.Anything, mock.Anything).
+		Return([]policy.Policy{}, nil).Maybe()
 	auditRepo := mocks.NewAuditRecordRepository(t)
 	auditRepo.On("Create", mock.Anything, mock.Anything).
 		Return(auditmodels.AuditRecord{}, nil).Maybe()
@@ -70,7 +78,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
@@ -90,7 +98,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:    true,
@@ -110,7 +118,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
@@ -130,7 +138,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
@@ -150,7 +158,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:    true,
@@ -176,7 +184,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr:   true,
@@ -199,13 +207,12 @@ func TestService_Create(t *testing.T) {
 		{
 			name: "should create token successfully with correct fields",
 			req: userpat.CreateRequest{
-				UserID:     "user-1",
-				OrgID:      "org-1",
-				Title:      "my-token",
-				RoleIDs:    []string{"role-1"},
-				ProjectIDs: []string{"proj-1"},
-				ExpiresAt:  futureExpiry,
-				Metadata:   map[string]any{"env": "staging"},
+				UserID:    "user-1",
+				OrgID:     "org-1",
+				Title:     "my-token",
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
+				ExpiresAt: futureExpiry,
+				Metadata:  map[string]any{"env": "staging"},
 			},
 			wantErr: false,
 			setup: func() *userpat.Service {
@@ -264,7 +271,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr: false,
@@ -301,7 +308,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr: false,
@@ -337,7 +344,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr: false,
@@ -368,7 +375,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr: false,
@@ -388,7 +395,7 @@ func TestService_Create(t *testing.T) {
 				UserID:    "user-1",
 				OrgID:     "org-1",
 				Title:     "my-token",
-				RoleIDs:   []string{"role-1"},
+				Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 				ExpiresAt: time.Now().Add(24 * time.Hour),
 			},
 			wantErr: false,
@@ -440,7 +447,7 @@ func TestService_Create_UniquePATs(t *testing.T) {
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "my-token",
-		RoleIDs:   []string{"role-1"},
+		Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
 
@@ -475,7 +482,7 @@ func TestService_Create_HashVerification(t *testing.T) {
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "my-token",
-		RoleIDs:   []string{"role-1"},
+		Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err != nil {
@@ -510,13 +517,16 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 	auditRepo := mocks.NewAuditRecordRepository(t)
 	auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
-	roleSvc := mocks.NewRoleService(t)
-	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"org-role-1"}}).Return([]role.Role{{
+	orgRole := role.Role{
 		ID:          "org-role-1",
 		Name:        "org_viewer",
 		Permissions: []string{"app_organization_get"},
 		Scopes:      []string{schema.OrganizationNamespace},
-	}}, nil)
+	}
+
+	roleSvc := mocks.NewRoleService(t)
+	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"org-role-1"}}).Return([]role.Role{orgRole}, nil)
+	roleSvc.On("Get", mock.Anything, "org-role-1").Return(orgRole, nil).Maybe()
 
 	policySvc := mocks.NewPolicyService(t)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
@@ -526,13 +536,14 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
+	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "org-token",
-		RoleIDs:   []string{"org-role-1"},
+		Scopes:    []models.PATScope{{RoleID: "org-role-1", ResourceType: schema.OrganizationNamespace}},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err != nil {
@@ -552,13 +563,16 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 	auditRepo := mocks.NewAuditRecordRepository(t)
 	auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
-	roleSvc := mocks.NewRoleService(t)
-	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{{
+	projRole := role.Role{
 		ID:          "proj-role-1",
 		Name:        "proj_viewer",
 		Permissions: []string{"app_project_get"},
 		Scopes:      []string{schema.ProjectNamespace},
-	}}, nil)
+	}
+
+	roleSvc := mocks.NewRoleService(t)
+	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{projRole}, nil)
+	roleSvc.On("Get", mock.Anything, "proj-role-1").Return(projRole, nil).Maybe()
 
 	policySvc := mocks.NewPolicyService(t)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
@@ -569,13 +583,14 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 		PrincipalType: schema.PATPrincipal,
 		GrantRelation: schema.PATGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
+	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "all-projects-token",
-		RoleIDs:   []string{"proj-role-1"},
+		Scopes:    []models.PATScope{{RoleID: "proj-role-1", ResourceType: schema.ProjectNamespace}},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err != nil {
@@ -595,13 +610,16 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 	auditRepo := mocks.NewAuditRecordRepository(t)
 	auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
-	roleSvc := mocks.NewRoleService(t)
-	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{{
+	projRole := role.Role{
 		ID:          "proj-role-1",
 		Name:        "proj_viewer",
 		Permissions: []string{"app_project_get"},
 		Scopes:      []string{schema.ProjectNamespace},
-	}}, nil)
+	}
+
+	roleSvc := mocks.NewRoleService(t)
+	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{projRole}, nil)
+	roleSvc.On("Get", mock.Anything, "proj-role-1").Return(projRole, nil).Maybe()
 
 	policySvc := mocks.NewPolicyService(t)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
@@ -618,15 +636,15 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
 	}).Return(policy.Policy{ID: "pol-2"}, nil)
+	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
-		UserID:     "user-1",
-		OrgID:      "org-1",
-		Title:      "specific-projects-token",
-		RoleIDs:    []string{"proj-role-1"},
-		ProjectIDs: []string{"proj-a", "proj-b"},
-		ExpiresAt:  time.Now().Add(24 * time.Hour),
+		UserID:    "user-1",
+		OrgID:     "org-1",
+		Title:     "specific-projects-token",
+		Scopes:    []models.PATScope{{RoleID: "proj-role-1", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-a", "proj-b"}}},
+		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
@@ -659,7 +677,7 @@ func TestService_CreatePolicies_DeniedPermission(t *testing.T) {
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "admin-token",
-		RoleIDs:   []string{"admin-role"},
+		Scopes:    []models.PATScope{{RoleID: "admin-role", ResourceType: schema.OrganizationNamespace}},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err == nil {
@@ -689,7 +707,7 @@ func TestService_CreatePolicies_RoleFetchError(t *testing.T) {
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "bad-token",
-		RoleIDs:   []string{"bad-role"},
+		Scopes:    []models.PATScope{{RoleID: "bad-role", ResourceType: schema.OrganizationNamespace}},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err == nil {
@@ -723,7 +741,7 @@ func TestService_CreatePolicies_UnsupportedScope(t *testing.T) {
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "group-token",
-		RoleIDs:   []string{"group-role"},
+		Scopes:    []models.PATScope{{RoleID: "group-role", ResourceType: schema.GroupNamespace}},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err == nil {
@@ -754,10 +772,13 @@ func TestService_CreatePolicies_MissingRoleID(t *testing.T) {
 
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
-		UserID:    "user-1",
-		OrgID:     "org-1",
-		Title:     "missing-role-token",
-		RoleIDs:   []string{"role-a", "role-b"},
+		UserID: "user-1",
+		OrgID:  "org-1",
+		Title:  "missing-role-token",
+		Scopes: []models.PATScope{
+			{RoleID: "role-a", ResourceType: schema.OrganizationNamespace},
+			{RoleID: "role-b", ResourceType: schema.OrganizationNamespace},
+		},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err == nil {
@@ -784,7 +805,7 @@ func TestService_CreatePolicies_NoRoles(t *testing.T) {
 		UserID:    "user-1",
 		OrgID:     "org-1",
 		Title:     "no-roles-token",
-		RoleIDs:   nil,
+		Scopes:    nil,
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err != nil {
@@ -818,8 +839,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		roleIDs    []string
-		projectIDs []string
+		scopes     []models.PATScope
 		roles      []role.Role
 		want       []wantPolicy
 		config     *userpat.Config // nil = use defaultConfig
@@ -828,9 +848,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 		wantErrMsg string
 	}{
 		{
-			name:       "ex1: org_manager + project_owner, all projects",
-			roleIDs:    []string{"org-mgr-id", "proj-owner-id"},
-			projectIDs: nil,
+			name: "ex1: org_manager + project_owner, all projects",
+			scopes: []models.PATScope{
+				{RoleID: "org-mgr-id", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "proj-owner-id", ResourceType: schema.ProjectNamespace},
+			},
 			roles: []role.Role{
 				{ID: "org-mgr-id", Name: "app_organization_manager", Permissions: []string{"app_organization_get", "app_organization_update"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "proj-owner-id", Name: "app_project_owner", Permissions: []string{"app_project_get", "app_project_update", "app_project_delete"}, Scopes: []string{schema.ProjectNamespace}},
@@ -841,9 +863,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "ex2: org_viewer + project_viewer, all projects",
-			roleIDs:    []string{"org-viewer-id", "proj-viewer-id"},
-			projectIDs: nil,
+			name: "ex2: org_viewer + project_viewer, all projects",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
@@ -854,9 +878,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "ex3: org_viewer + project_owner, specific projects",
-			roleIDs:    []string{"org-viewer-id", "proj-owner-id"},
-			projectIDs: []string{"proj-1", "proj-2"},
+			name: "ex3: org_viewer + project_owner, specific projects",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "proj-owner-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1", "proj-2"}},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "proj-owner-id", Name: "app_project_owner", Permissions: []string{"app_project_get", "app_project_update", "app_project_delete"}, Scopes: []string{schema.ProjectNamespace}},
@@ -868,9 +894,10 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "ex4: org_viewer only, no project access",
-			roleIDs:    []string{"org-viewer-id"},
-			projectIDs: nil,
+			name: "ex4: org_viewer only, no project access",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 			},
@@ -882,9 +909,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 		// ── Multiple roles of same scope ─────────────────────────────────
 
 		{
-			name:       "multiple org roles create separate org policies",
-			roleIDs:    []string{"org-viewer-id", "org-billing-id"},
-			projectIDs: nil,
+			name: "multiple org roles create separate org policies",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "org-billing-id", ResourceType: schema.OrganizationNamespace},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "org-billing-id", Name: "app_organization_billing_viewer", Permissions: []string{"app_organization_billingview"}, Scopes: []string{schema.OrganizationNamespace}},
@@ -895,9 +924,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "multiple project roles, all projects → separate pat_granted policies",
-			roleIDs:    []string{"proj-viewer-id", "proj-editor-id"},
-			projectIDs: nil,
+			name: "multiple project roles, all projects → separate pat_granted policies",
+			scopes: []models.PATScope{
+				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace},
+				{RoleID: "proj-editor-id", ResourceType: schema.ProjectNamespace},
+			},
 			roles: []role.Role{
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				{ID: "proj-editor-id", Name: "app_project_editor", Permissions: []string{"app_project_get", "app_project_update"}, Scopes: []string{schema.ProjectNamespace}},
@@ -908,9 +939,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "multiple project roles, specific projects → policy per role per project",
-			roleIDs:    []string{"proj-viewer-id", "proj-editor-id"},
-			projectIDs: []string{"proj-1", "proj-2"},
+			name: "multiple project roles, specific projects → policy per role per project",
+			scopes: []models.PATScope{
+				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1", "proj-2"}},
+				{RoleID: "proj-editor-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1", "proj-2"}},
+			},
 			roles: []role.Role{
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				{ID: "proj-editor-id", Name: "app_project_editor", Permissions: []string{"app_project_get", "app_project_update"}, Scopes: []string{schema.ProjectNamespace}},
@@ -926,9 +959,10 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 		// ── Scope isolation ──────────────────────────────────────────────
 
 		{
-			name:       "project role scoped to proj-1 only: no policy on proj-2",
-			roleIDs:    []string{"proj-viewer-id"},
-			projectIDs: []string{"proj-1"},
+			name: "project role scoped to proj-1 only: no policy on proj-2",
+			scopes: []models.PATScope{
+				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1"}},
+			},
 			roles: []role.Role{
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 			},
@@ -939,21 +973,24 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "org role does not create project policies even when projectIDs provided",
-			roleIDs:    []string{"org-viewer-id"},
-			projectIDs: []string{"proj-1", "proj-2"},
+			name: "org role does not create project policies when scoped to org",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 			},
-			// Org-scoped role ignores projectIDs entirely — only org policy created
+			// Org-scoped role creates only org policy
 			want: []wantPolicy{
 				{RoleID: "org-viewer-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "granted"},
 			},
 		},
 		{
-			name:       "mixed roles with specific projects: org on org, project on projects only",
-			roleIDs:    []string{"org-viewer-id", "proj-editor-id"},
-			projectIDs: []string{"proj-1"},
+			name: "mixed roles with specific projects: org on org, project on projects only",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "proj-editor-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1"}},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "proj-editor-id", Name: "app_project_editor", Permissions: []string{"app_project_get", "app_project_update"}, Scopes: []string{schema.ProjectNamespace}},
@@ -964,9 +1001,10 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "single project role, single project",
-			roleIDs:    []string{"proj-viewer-id"},
-			projectIDs: []string{"proj-1"},
+			name: "single project role, single project",
+			scopes: []models.PATScope{
+				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1"}},
+			},
 			roles: []role.Role{
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 			},
@@ -975,9 +1013,10 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 		{
-			name:       "single project role, three projects",
-			roleIDs:    []string{"proj-viewer-id"},
-			projectIDs: []string{"proj-1", "proj-2", "proj-3"},
+			name: "single project role, three projects",
+			scopes: []models.PATScope{
+				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1", "proj-2", "proj-3"}},
+			},
 			roles: []role.Role{
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 			},
@@ -991,9 +1030,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 		// ── Error cases ──────────────────────────────────────────────────
 
 		{
-			name:       "denied permission blocks all policy creation",
-			roleIDs:    []string{"org-viewer-id", "org-admin-id"},
-			projectIDs: nil,
+			name: "denied permission blocks all policy creation",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "org-admin-id", ResourceType: schema.OrganizationNamespace},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "org-admin-id", Name: "app_organization_admin", Permissions: []string{"app_organization_administer"}, Scopes: []string{schema.OrganizationNamespace}},
@@ -1010,9 +1051,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			wantErrIs: paterrors.ErrDeniedRole,
 		},
 		{
-			name:       "unsupported scope rejects before any policy creation",
-			roleIDs:    []string{"org-viewer-id", "group-role-id"},
-			projectIDs: nil,
+			name: "unsupported scope rejects before any policy creation",
+			scopes: []models.PATScope{
+				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "group-role-id", ResourceType: schema.GroupNamespace},
+			},
 			roles: []role.Role{
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "group-role-id", Name: "app_group_manager", Permissions: []string{"app_group_get"}, Scopes: []string{schema.GroupNamespace}},
@@ -1022,20 +1065,23 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			wantErrIs: paterrors.ErrUnsupportedScope,
 		},
 		{
-			name:       "role with mixed supported and unsupported scopes is rejected",
-			roleIDs:    []string{"mixed-scope-id"},
-			projectIDs: nil,
+			name: "role with mixed scopes is allowed when requested resource type is supported",
+			scopes: []models.PATScope{
+				{RoleID: "mixed-scope-id", ResourceType: schema.ProjectNamespace},
+			},
 			roles: []role.Role{
 				{ID: "mixed-scope-id", Name: "mixed_role", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace, schema.GroupNamespace}},
 			},
-			want:      nil,
-			wantErr:   true,
-			wantErrIs: paterrors.ErrUnsupportedScope,
+			want: []wantPolicy{
+				{RoleID: "mixed-scope-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "pat_granted"},
+			},
+			wantErr: false,
 		},
 		{
-			name:       "role with empty scopes is unsupported",
-			roleIDs:    []string{"no-scope-id"},
-			projectIDs: nil,
+			name: "role with empty scopes is unsupported",
+			scopes: []models.PATScope{
+				{RoleID: "no-scope-id", ResourceType: ""},
+			},
 			roles: []role.Role{
 				{ID: "no-scope-id", Name: "custom_role", Permissions: []string{"app_organization_get"}, Scopes: nil},
 			},
@@ -1044,9 +1090,11 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			wantErrIs: paterrors.ErrUnsupportedScope,
 		},
 		{
-			name:       "role count mismatch: requested 2 but found 1",
-			roleIDs:    []string{"role-a", "role-b"},
-			projectIDs: nil,
+			name: "role count mismatch: requested 2 but found 1",
+			scopes: []models.PATScope{
+				{RoleID: "role-a", ResourceType: schema.OrganizationNamespace},
+				{RoleID: "role-b", ResourceType: schema.OrganizationNamespace},
+			},
 			roles: []role.Role{
 				{ID: "role-a", Name: "role_a", Scopes: []string{schema.OrganizationNamespace}},
 			},
@@ -1077,9 +1125,27 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			auditRepo := mocks.NewAuditRecordRepository(t)
 			auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
+			// --- extract role IDs from scopes for the role service mock
+			var scopeRoleIDs []string
+			for _, s := range tt.scopes {
+				scopeRoleIDs = append(scopeRoleIDs, s.RoleID)
+			}
+
 			// --- roleService: return the test's roles
 			roleSvc := mocks.NewRoleService(t)
-			roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: tt.roleIDs}).Return(tt.roles, nil)
+			roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: scopeRoleIDs}).Return(tt.roles, nil)
+			// createPoliciesFromScopes calls Get per scope
+			if !tt.wantErr {
+				roleMap := make(map[string]role.Role, len(tt.roles))
+				for _, r := range tt.roles {
+					roleMap[r.ID] = r
+				}
+				for _, sc := range tt.scopes {
+					if r, ok := roleMap[sc.RoleID]; ok {
+						roleSvc.On("Get", mock.Anything, sc.RoleID).Return(r, nil).Maybe()
+					}
+				}
+			}
 
 			// --- policyService: capture all Create calls
 			var captured []policy.Policy
@@ -1089,15 +1155,15 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 					captured = append(captured, args.Get(1).(policy.Policy))
 				}).
 				Return(policy.Policy{ID: "pol-gen"}, nil).Maybe()
+			policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 			svc := userpat.NewService(log.NewNoop(), repo, cfg, orgSvc, roleSvc, policySvc, auditRepo)
 			_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
-				UserID:     "user-1",
-				OrgID:      "org-1",
-				Title:      "test-token",
-				RoleIDs:    tt.roleIDs,
-				ProjectIDs: tt.projectIDs,
-				ExpiresAt:  time.Now().Add(24 * time.Hour),
+				UserID:    "user-1",
+				OrgID:     "org-1",
+				Title:     "test-token",
+				Scopes:    tt.scopes,
+				ExpiresAt: time.Now().Add(24 * time.Hour),
 			})
 
 			// --- assert error
@@ -1180,12 +1246,14 @@ func TestService_CreatePolicies_PolicyCreateFailure(t *testing.T) {
 	orgSvc := mocks.NewOrganizationService(t)
 	auditRepo := mocks.NewAuditRecordRepository(t)
 
+	orgViewerRole := role.Role{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}}
+	orgBillingRole := role.Role{ID: "org-billing-id", Name: "app_organization_billing", Permissions: []string{"app_organization_billingview"}, Scopes: []string{schema.OrganizationNamespace}}
+
 	roleSvc := mocks.NewRoleService(t)
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"org-viewer-id", "org-billing-id"}}).
-		Return([]role.Role{
-			{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
-			{ID: "org-billing-id", Name: "app_organization_billing", Permissions: []string{"app_organization_billingview"}, Scopes: []string{schema.OrganizationNamespace}},
-		}, nil)
+		Return([]role.Role{orgViewerRole, orgBillingRole}, nil)
+	roleSvc.On("Get", mock.Anything, "org-viewer-id").Return(orgViewerRole, nil).Maybe()
+	roleSvc.On("Get", mock.Anything, "org-billing-id").Return(orgBillingRole, nil).Maybe()
 
 	// first policy Create succeeds, second fails
 	policySvc := mocks.NewPolicyService(t)
@@ -1198,10 +1266,13 @@ func TestService_CreatePolicies_PolicyCreateFailure(t *testing.T) {
 
 	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
-		UserID:    "user-1",
-		OrgID:     "org-1",
-		Title:     "fail-token",
-		RoleIDs:   []string{"org-viewer-id", "org-billing-id"},
+		UserID: "user-1",
+		OrgID:  "org-1",
+		Title:  "fail-token",
+		Scopes: []models.PATScope{
+			{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
+			{RoleID: "org-billing-id", ResourceType: schema.OrganizationNamespace},
+		},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
 	if err == nil {
@@ -1896,7 +1967,7 @@ func TestService_Update(t *testing.T) {
 		UserID:   "user-1",
 		ID:       "pat-1",
 		Title:    "new-title",
-		RoleIDs:  []string{"role-1"},
+		Scopes:   []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 		Metadata: map[string]any{"key": "val"},
 	}
 
@@ -1933,10 +2004,10 @@ func TestService_Update(t *testing.T) {
 		{
 			name: "should return ErrNotFound when PAT belongs to different user",
 			input: models.PAT{
-				UserID:  "user-2",
-				ID:      "pat-1",
-				Title:   "new-title",
-				RoleIDs: []string{"role-1"},
+				UserID: "user-2",
+				ID:     "pat-1",
+				Title:  "new-title",
+				Scopes: []models.PATScope{{RoleID: "role-1", ResourceType: schema.OrganizationNamespace}},
 			},
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
@@ -2068,6 +2139,7 @@ func TestService_Update(t *testing.T) {
 				roleSvc := mocks.NewRoleService(t)
 				roleSvc.EXPECT().List(mock.Anything, mock.Anything).
 					Return([]role.Role{validRole}, nil)
+				roleSvc.On("Get", mock.Anything, mock.Anything).Return(validRole, nil).Maybe()
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
@@ -2101,6 +2173,7 @@ func TestService_Update(t *testing.T) {
 				roleSvc := mocks.NewRoleService(t)
 				roleSvc.EXPECT().List(mock.Anything, mock.Anything).
 					Return([]role.Role{validRole}, nil)
+				roleSvc.On("Get", mock.Anything, mock.Anything).Return(validRole, nil).Maybe()
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()

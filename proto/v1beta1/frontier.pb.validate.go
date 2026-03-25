@@ -46244,9 +46244,9 @@ func (m *CreateCurrentUserPATRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetRoleIds()) < 1 {
+	if len(m.GetScopes()) < 1 {
 		err := CreateCurrentUserPATRequestValidationError{
-			field:  "RoleIds",
+			field:  "Scopes",
 			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
@@ -46255,36 +46255,36 @@ func (m *CreateCurrentUserPATRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	for idx, item := range m.GetRoleIds() {
+	for idx, item := range m.GetScopes() {
 		_, _ = idx, item
 
-		if err := m._validateUuid(item); err != nil {
-			err = CreateCurrentUserPATRequestValidationError{
-				field:  fmt.Sprintf("RoleIds[%v]", idx),
-				reason: "value must be a valid UUID",
-				cause:  err,
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateCurrentUserPATRequestValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateCurrentUserPATRequestValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-			if !all {
-				return err
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateCurrentUserPATRequestValidationError{
+					field:  fmt.Sprintf("Scopes[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
-			errors = append(errors, err)
-		}
-
-	}
-
-	for idx, item := range m.GetProjectIds() {
-		_, _ = idx, item
-
-		if err := m._validateUuid(item); err != nil {
-			err = CreateCurrentUserPATRequestValidationError{
-				field:  fmt.Sprintf("ProjectIds[%v]", idx),
-				reason: "value must be a valid UUID",
-				cause:  err,
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
 		}
 
 	}
@@ -47648,9 +47648,9 @@ func (m *UpdateCurrentUserPATRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetRoleIds()) < 1 {
+	if len(m.GetScopes()) < 1 {
 		err := UpdateCurrentUserPATRequestValidationError{
-			field:  "RoleIds",
+			field:  "Scopes",
 			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
@@ -47659,36 +47659,36 @@ func (m *UpdateCurrentUserPATRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	for idx, item := range m.GetRoleIds() {
+	for idx, item := range m.GetScopes() {
 		_, _ = idx, item
 
-		if err := m._validateUuid(item); err != nil {
-			err = UpdateCurrentUserPATRequestValidationError{
-				field:  fmt.Sprintf("RoleIds[%v]", idx),
-				reason: "value must be a valid UUID",
-				cause:  err,
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UpdateCurrentUserPATRequestValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UpdateCurrentUserPATRequestValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-			if !all {
-				return err
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpdateCurrentUserPATRequestValidationError{
+					field:  fmt.Sprintf("Scopes[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
-			errors = append(errors, err)
-		}
-
-	}
-
-	for idx, item := range m.GetProjectIds() {
-		_, _ = idx, item
-
-		if err := m._validateUuid(item); err != nil {
-			err = UpdateCurrentUserPATRequestValidationError{
-				field:  fmt.Sprintf("ProjectIds[%v]", idx),
-				reason: "value must be a valid UUID",
-				cause:  err,
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
 		}
 
 	}
