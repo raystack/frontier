@@ -24783,10 +24783,11 @@ func (m *SetOrganizationMemberRoleRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
-		err := SetOrganizationMemberRoleRequestValidationError{
+	if err := m._validateUuid(m.GetOrgId()); err != nil {
+		err = SetOrganizationMemberRoleRequestValidationError{
 			field:  "OrgId",
-			reason: "value length must be at least 3 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -24794,10 +24795,11 @@ func (m *SetOrganizationMemberRoleRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetUserId()) < 3 {
-		err := SetOrganizationMemberRoleRequestValidationError{
+	if err := m._validateUuid(m.GetUserId()); err != nil {
+		err = SetOrganizationMemberRoleRequestValidationError{
 			field:  "UserId",
-			reason: "value length must be at least 3 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -24805,10 +24807,11 @@ func (m *SetOrganizationMemberRoleRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetRoleId()) < 3 {
-		err := SetOrganizationMemberRoleRequestValidationError{
+	if err := m._validateUuid(m.GetRoleId()); err != nil {
+		err = SetOrganizationMemberRoleRequestValidationError{
 			field:  "RoleId",
-			reason: "value length must be at least 3 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -24818,6 +24821,14 @@ func (m *SetOrganizationMemberRoleRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return SetOrganizationMemberRoleRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *SetOrganizationMemberRoleRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

@@ -536,14 +536,13 @@ func (h *ConnectHandler) RemoveOrganizationUser(ctx context.Context, request *co
 func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetOrganizationMemberRoleResponse], error) {
 	errorLogger := NewErrorLogger()
 
+	if err := request.Msg.Validate(); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
 	orgID := request.Msg.GetOrgId()
 	userID := request.Msg.GetUserId()
 	roleID := request.Msg.GetRoleId()
-
-	// Validate user_id format
-	if userID == "" || !utils.IsValidUUID(userID) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidUserID)
-	}
 
 	if err := h.orgService.SetMemberRole(ctx, orgID, userID, roleID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "SetOrganizationMemberRole", err,
