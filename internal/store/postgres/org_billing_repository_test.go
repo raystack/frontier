@@ -108,7 +108,7 @@ func TestPrepareDataQuery(t *testing.T) {
 			wantErr:        false,
 		},
 		{
-			name: "query with invalid filter column",
+			name: "query with invalid filter",
 			rqlQuery: &rql.Query{
 				Filters: []rql.Filter{
 					{
