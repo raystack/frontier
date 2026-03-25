@@ -495,7 +495,9 @@ func (s Service) validateSetMemberRoleRequest(ctx context.Context, orgID, userID
 
 	// validate role is valid for organization scope
 	// role must be either: a global org role OR an org-specific role for this org
-	isGlobalOrgRole := fetchedRole.OrgID == "" && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace)
+	// global roles have OrgID as empty string or nil UUID "00000000-0000-0000-0000-000000000000"
+	isGlobalRole := fetchedRole.OrgID == "" || fetchedRole.OrgID == "00000000-0000-0000-0000-000000000000"
+	isGlobalOrgRole := isGlobalRole && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace)
 	isOrgSpecificRole := fetchedRole.OrgID == orgID
 	if !isGlobalOrgRole && !isOrgSpecificRole {
 		return ErrInvalidOrgRole
