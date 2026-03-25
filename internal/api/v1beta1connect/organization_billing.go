@@ -23,8 +23,7 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
 	}
 
-	err = rql.ValidateQuery(rqlQuery, orgbilling.AggregatedOrganization{})
-	if err != nil {
+	if err := validateRQLQueryWithIlike(rqlQuery, orgbilling.AggregatedOrganization{}); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
 
