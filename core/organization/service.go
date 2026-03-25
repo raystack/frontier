@@ -395,19 +395,12 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 // - Org owner/admin get implicit project access via SpiceDB (org->project_get)
 // - Explicit project policies are for users who need project-specific access
 func (s Service) getUserOrgPolicies(ctx context.Context, orgID, userID string) ([]policy.Policy, error) {
-	policies, err := s.policyService.List(ctx, policy.Filter{
+	// policy service returns empty list if no policies found, not an error
+	return s.policyService.List(ctx, policy.Filter{
 		OrgID:         orgID,
 		PrincipalID:   userID,
 		PrincipalType: schema.UserPrincipal,
 	})
-	if err != nil {
-		// no existing policies is fine, user might be new to org
-		if errors.Is(err, policy.ErrNotExist) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return policies, nil
 }
 
 // validateMinOwnerConstraint ensures org always has at least 1 owner after role change
@@ -431,7 +424,12 @@ func (s Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleI
 		}
 	}
 
-	// count current owners
+	// if user is not currently an owner, changing their role won't reduce owner count
+	if !isCurrentlyOwner {
+		return nil
+	}
+
+	// count current owners - if this is the only owner, reject the change
 	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
 		OrgID:  orgID,
 		RoleID: ownerRole.ID,
@@ -440,11 +438,7 @@ func (s Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleI
 		return err
 	}
 
-	remainingOwners := len(ownerPolicies)
-	if isCurrentlyOwner {
-		remainingOwners--
-	}
-	if remainingOwners < 1 {
+	if len(ownerPolicies) <= 1 {
 		return ErrLastOwnerRole
 	}
 
