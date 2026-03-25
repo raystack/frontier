@@ -561,6 +561,8 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrInvalidRoleID)
+		case errors.Is(err, organization.ErrInvalidOrgRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidOrgRole)
 		case errors.Is(err, organization.ErrLastOwnerRole):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastOwnerRole)
 		default:

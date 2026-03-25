@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/raystack/frontier/core/audit"
@@ -487,9 +488,17 @@ func (s Service) validateSetMemberRoleRequest(ctx context.Context, orgID, userID
 		return err
 	}
 
-	_, err = s.roleService.Get(ctx, newRoleID)
+	fetchedRole, err := s.roleService.Get(ctx, newRoleID)
 	if err != nil {
 		return err
+	}
+
+	// validate role is valid for organization scope
+	// role must be either: a global org role OR an org-specific role for this org
+	isGlobalOrgRole := fetchedRole.OrgID == "" && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace)
+	isOrgSpecificRole := fetchedRole.OrgID == orgID
+	if !isGlobalOrgRole && !isOrgSpecificRole {
+		return ErrInvalidOrgRole
 	}
 
 	return nil

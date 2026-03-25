@@ -36,6 +36,7 @@ var (
 	ErrInvitationExpired           = errors.New("invitation expired")
 	ErrAlreadyMember               = errors.New("user is already a member of the organization")
 	ErrNotMember                   = errors.New("user is not a member of the organization")
+	ErrInvalidOrgRole              = errors.New("role is not valid for organization scope")
 	ErrEmptyEmailID                = errors.New("email id is empty")
 	ErrEmailConflict               = errors.New("user email can't be updated")
 	ErrCustomerNotFound            = errors.New("customer doesn't exist")

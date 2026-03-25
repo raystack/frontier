@@ -429,11 +429,24 @@ func TestService_SetMemberRole(t *testing.T) {
 			wantErr:   role.ErrNotExist,
 		},
 		{
+			name: "should return error if role is not valid for org scope",
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				// role exists but has project scope, not org scope
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "project-role", Scopes: []string{schema.ProjectNamespace}}, nil)
+			},
+			orgID:     orgID,
+			userID:    userID,
+			newRoleID: memberRoleID,
+			wantErr:   organization.ErrInvalidOrgRole,
+		},
+		{
 			name: "should return error if user is not a member of the org",
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
-				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member"}, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member", Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - empty, user is not a member
 				policySvc.EXPECT().List(ctx, policy.Filter{
 					OrgID:         orgID,
@@ -451,7 +464,7 @@ func TestService_SetMemberRole(t *testing.T) {
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
-				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member"}, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member", Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - user is owner
 				policySvc.EXPECT().List(ctx, policy.Filter{
 					OrgID:         orgID,
@@ -459,7 +472,7 @@ func TestService_SetMemberRole(t *testing.T) {
 					PrincipalType: schema.UserPrincipal,
 				}).Return([]policy.Policy{{ID: "policy-1", RoleID: ownerRoleID}}, nil)
 				// get owner role for comparison
-				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// count owners - only 1
 				policySvc.EXPECT().List(ctx, policy.Filter{
 					OrgID:  orgID,
@@ -476,7 +489,7 @@ func TestService_SetMemberRole(t *testing.T) {
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
-				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member"}, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member", Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - user is owner
 				policySvc.EXPECT().List(ctx, policy.Filter{
 					OrgID:         orgID,
@@ -484,7 +497,7 @@ func TestService_SetMemberRole(t *testing.T) {
 					PrincipalType: schema.UserPrincipal,
 				}).Return([]policy.Policy{{ID: "policy-1", RoleID: ownerRoleID}}, nil)
 				// get owner role for comparison
-				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// count owners - 2 owners exist
 				policySvc.EXPECT().List(ctx, policy.Filter{
 					OrgID:  orgID,
@@ -514,7 +527,7 @@ func TestService_SetMemberRole(t *testing.T) {
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
-				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - user is member
 				policySvc.EXPECT().List(ctx, policy.Filter{
 					OrgID:         orgID,
@@ -522,7 +535,7 @@ func TestService_SetMemberRole(t *testing.T) {
 					PrincipalType: schema.UserPrincipal,
 				}).Return([]policy.Policy{{ID: "policy-1", RoleID: memberRoleID}}, nil)
 				// get owner role for comparison
-				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// no owner count check needed when promoting to owner
 				// delete existing policy
 				policySvc.EXPECT().Delete(ctx, "policy-1").Return(nil)
