@@ -46552,22 +46552,22 @@ var _ interface {
 	ErrorName() string
 } = ListRolesForPATResponseValidationError{}
 
-// Validate checks the field values on ListCurrentUserPATsRequest with the
+// Validate checks the field values on SearchCurrentUserPATsRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ListCurrentUserPATsRequest) Validate() error {
+func (m *SearchCurrentUserPATsRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ListCurrentUserPATsRequest with the
+// ValidateAll checks the field values on SearchCurrentUserPATsRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ListCurrentUserPATsRequestMultiError, or nil if none found.
-func (m *ListCurrentUserPATsRequest) ValidateAll() error {
+// SearchCurrentUserPATsRequestMultiError, or nil if none found.
+func (m *SearchCurrentUserPATsRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ListCurrentUserPATsRequest) validate(all bool) error {
+func (m *SearchCurrentUserPATsRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -46575,7 +46575,7 @@ func (m *ListCurrentUserPATsRequest) validate(all bool) error {
 	var errors []error
 
 	if err := m._validateUuid(m.GetOrgId()); err != nil {
-		err = ListCurrentUserPATsRequestValidationError{
+		err = SearchCurrentUserPATsRequestValidationError{
 			field:  "OrgId",
 			reason: "value must be a valid UUID",
 			cause:  err,
@@ -46590,7 +46590,7 @@ func (m *ListCurrentUserPATsRequest) validate(all bool) error {
 		switch v := interface{}(m.GetQuery()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ListCurrentUserPATsRequestValidationError{
+				errors = append(errors, SearchCurrentUserPATsRequestValidationError{
 					field:  "Query",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46598,7 +46598,7 @@ func (m *ListCurrentUserPATsRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ListCurrentUserPATsRequestValidationError{
+				errors = append(errors, SearchCurrentUserPATsRequestValidationError{
 					field:  "Query",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46607,7 +46607,7 @@ func (m *ListCurrentUserPATsRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetQuery()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ListCurrentUserPATsRequestValidationError{
+			return SearchCurrentUserPATsRequestValidationError{
 				field:  "Query",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -46616,13 +46616,13 @@ func (m *ListCurrentUserPATsRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ListCurrentUserPATsRequestMultiError(errors)
+		return SearchCurrentUserPATsRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-func (m *ListCurrentUserPATsRequest) _validateUuid(uuid string) error {
+func (m *SearchCurrentUserPATsRequest) _validateUuid(uuid string) error {
 	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
 		return errors.New("invalid uuid format")
 	}
@@ -46630,13 +46630,13 @@ func (m *ListCurrentUserPATsRequest) _validateUuid(uuid string) error {
 	return nil
 }
 
-// ListCurrentUserPATsRequestMultiError is an error wrapping multiple
-// validation errors returned by ListCurrentUserPATsRequest.ValidateAll() if
+// SearchCurrentUserPATsRequestMultiError is an error wrapping multiple
+// validation errors returned by SearchCurrentUserPATsRequest.ValidateAll() if
 // the designated constraints aren't met.
-type ListCurrentUserPATsRequestMultiError []error
+type SearchCurrentUserPATsRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ListCurrentUserPATsRequestMultiError) Error() string {
+func (m SearchCurrentUserPATsRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -46645,11 +46645,12 @@ func (m ListCurrentUserPATsRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ListCurrentUserPATsRequestMultiError) AllErrors() []error { return m }
+func (m SearchCurrentUserPATsRequestMultiError) AllErrors() []error { return m }
 
-// ListCurrentUserPATsRequestValidationError is the validation error returned
-// by ListCurrentUserPATsRequest.Validate if the designated constraints aren't met.
-type ListCurrentUserPATsRequestValidationError struct {
+// SearchCurrentUserPATsRequestValidationError is the validation error returned
+// by SearchCurrentUserPATsRequest.Validate if the designated constraints
+// aren't met.
+type SearchCurrentUserPATsRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -46657,24 +46658,24 @@ type ListCurrentUserPATsRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ListCurrentUserPATsRequestValidationError) Field() string { return e.field }
+func (e SearchCurrentUserPATsRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ListCurrentUserPATsRequestValidationError) Reason() string { return e.reason }
+func (e SearchCurrentUserPATsRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ListCurrentUserPATsRequestValidationError) Cause() error { return e.cause }
+func (e SearchCurrentUserPATsRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ListCurrentUserPATsRequestValidationError) Key() bool { return e.key }
+func (e SearchCurrentUserPATsRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ListCurrentUserPATsRequestValidationError) ErrorName() string {
-	return "ListCurrentUserPATsRequestValidationError"
+func (e SearchCurrentUserPATsRequestValidationError) ErrorName() string {
+	return "SearchCurrentUserPATsRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ListCurrentUserPATsRequestValidationError) Error() string {
+func (e SearchCurrentUserPATsRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -46686,14 +46687,14 @@ func (e ListCurrentUserPATsRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sListCurrentUserPATsRequest.%s: %s%s",
+		"invalid %sSearchCurrentUserPATsRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ListCurrentUserPATsRequestValidationError{}
+var _ error = SearchCurrentUserPATsRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -46701,24 +46702,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ListCurrentUserPATsRequestValidationError{}
+} = SearchCurrentUserPATsRequestValidationError{}
 
-// Validate checks the field values on ListCurrentUserPATsResponse with the
+// Validate checks the field values on SearchCurrentUserPATsResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ListCurrentUserPATsResponse) Validate() error {
+func (m *SearchCurrentUserPATsResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ListCurrentUserPATsResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// ListCurrentUserPATsResponseMultiError, or nil if none found.
-func (m *ListCurrentUserPATsResponse) ValidateAll() error {
+// ValidateAll checks the field values on SearchCurrentUserPATsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SearchCurrentUserPATsResponseMultiError, or nil if none found.
+func (m *SearchCurrentUserPATsResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ListCurrentUserPATsResponse) validate(all bool) error {
+func (m *SearchCurrentUserPATsResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -46732,7 +46733,7 @@ func (m *ListCurrentUserPATsResponse) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ListCurrentUserPATsResponseValidationError{
+					errors = append(errors, SearchCurrentUserPATsResponseValidationError{
 						field:  fmt.Sprintf("Pats[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -46740,7 +46741,7 @@ func (m *ListCurrentUserPATsResponse) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, ListCurrentUserPATsResponseValidationError{
+					errors = append(errors, SearchCurrentUserPATsResponseValidationError{
 						field:  fmt.Sprintf("Pats[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -46749,7 +46750,7 @@ func (m *ListCurrentUserPATsResponse) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return ListCurrentUserPATsResponseValidationError{
+				return SearchCurrentUserPATsResponseValidationError{
 					field:  fmt.Sprintf("Pats[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46763,7 +46764,7 @@ func (m *ListCurrentUserPATsResponse) validate(all bool) error {
 		switch v := interface{}(m.GetPagination()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ListCurrentUserPATsResponseValidationError{
+				errors = append(errors, SearchCurrentUserPATsResponseValidationError{
 					field:  "Pagination",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46771,7 +46772,7 @@ func (m *ListCurrentUserPATsResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ListCurrentUserPATsResponseValidationError{
+				errors = append(errors, SearchCurrentUserPATsResponseValidationError{
 					field:  "Pagination",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -46780,7 +46781,7 @@ func (m *ListCurrentUserPATsResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetPagination()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ListCurrentUserPATsResponseValidationError{
+			return SearchCurrentUserPATsResponseValidationError{
 				field:  "Pagination",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -46789,19 +46790,19 @@ func (m *ListCurrentUserPATsResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ListCurrentUserPATsResponseMultiError(errors)
+		return SearchCurrentUserPATsResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// ListCurrentUserPATsResponseMultiError is an error wrapping multiple
-// validation errors returned by ListCurrentUserPATsResponse.ValidateAll() if
-// the designated constraints aren't met.
-type ListCurrentUserPATsResponseMultiError []error
+// SearchCurrentUserPATsResponseMultiError is an error wrapping multiple
+// validation errors returned by SearchCurrentUserPATsResponse.ValidateAll()
+// if the designated constraints aren't met.
+type SearchCurrentUserPATsResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ListCurrentUserPATsResponseMultiError) Error() string {
+func (m SearchCurrentUserPATsResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -46810,12 +46811,12 @@ func (m ListCurrentUserPATsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ListCurrentUserPATsResponseMultiError) AllErrors() []error { return m }
+func (m SearchCurrentUserPATsResponseMultiError) AllErrors() []error { return m }
 
-// ListCurrentUserPATsResponseValidationError is the validation error returned
-// by ListCurrentUserPATsResponse.Validate if the designated constraints
-// aren't met.
-type ListCurrentUserPATsResponseValidationError struct {
+// SearchCurrentUserPATsResponseValidationError is the validation error
+// returned by SearchCurrentUserPATsResponse.Validate if the designated
+// constraints aren't met.
+type SearchCurrentUserPATsResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -46823,24 +46824,24 @@ type ListCurrentUserPATsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e ListCurrentUserPATsResponseValidationError) Field() string { return e.field }
+func (e SearchCurrentUserPATsResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ListCurrentUserPATsResponseValidationError) Reason() string { return e.reason }
+func (e SearchCurrentUserPATsResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ListCurrentUserPATsResponseValidationError) Cause() error { return e.cause }
+func (e SearchCurrentUserPATsResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ListCurrentUserPATsResponseValidationError) Key() bool { return e.key }
+func (e SearchCurrentUserPATsResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ListCurrentUserPATsResponseValidationError) ErrorName() string {
-	return "ListCurrentUserPATsResponseValidationError"
+func (e SearchCurrentUserPATsResponseValidationError) ErrorName() string {
+	return "SearchCurrentUserPATsResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ListCurrentUserPATsResponseValidationError) Error() string {
+func (e SearchCurrentUserPATsResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -46852,14 +46853,14 @@ func (e ListCurrentUserPATsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sListCurrentUserPATsResponse.%s: %s%s",
+		"invalid %sSearchCurrentUserPATsResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ListCurrentUserPATsResponseValidationError{}
+var _ error = SearchCurrentUserPATsResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -46867,7 +46868,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ListCurrentUserPATsResponseValidationError{}
+} = SearchCurrentUserPATsResponseValidationError{}
 
 // Validate checks the field values on GetCurrentUserPATRequest with the rules
 // defined in the proto definition for this message. If any rules are

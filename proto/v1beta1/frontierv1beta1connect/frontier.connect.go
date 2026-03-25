@@ -540,9 +540,9 @@ const (
 	// FrontierServiceListRolesForPATProcedure is the fully-qualified name of the FrontierService's
 	// ListRolesForPAT RPC.
 	FrontierServiceListRolesForPATProcedure = "/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT"
-	// FrontierServiceListCurrentUserPATsProcedure is the fully-qualified name of the FrontierService's
-	// ListCurrentUserPATs RPC.
-	FrontierServiceListCurrentUserPATsProcedure = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPATs"
+	// FrontierServiceSearchCurrentUserPATsProcedure is the fully-qualified name of the
+	// FrontierService's SearchCurrentUserPATs RPC.
+	FrontierServiceSearchCurrentUserPATsProcedure = "/raystack.frontier.v1beta1.FrontierService/SearchCurrentUserPATs"
 	// FrontierServiceGetCurrentUserPATProcedure is the fully-qualified name of the FrontierService's
 	// GetCurrentUserPAT RPC.
 	FrontierServiceGetCurrentUserPATProcedure = "/raystack.frontier.v1beta1.FrontierService/GetCurrentUserPAT"
@@ -763,7 +763,7 @@ type FrontierServiceClient interface {
 	// Personal Access Token
 	CreateCurrentUserPAT(context.Context, *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error)
 	ListRolesForPAT(context.Context, *connect.Request[v1beta1.ListRolesForPATRequest]) (*connect.Response[v1beta1.ListRolesForPATResponse], error)
-	ListCurrentUserPATs(context.Context, *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error)
+	SearchCurrentUserPATs(context.Context, *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error)
 	GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error)
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
@@ -1802,10 +1802,10 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("ListRolesForPAT")),
 			connect.WithClientOptions(opts...),
 		),
-		listCurrentUserPATs: connect.NewClient[v1beta1.ListCurrentUserPATsRequest, v1beta1.ListCurrentUserPATsResponse](
+		searchCurrentUserPATs: connect.NewClient[v1beta1.SearchCurrentUserPATsRequest, v1beta1.SearchCurrentUserPATsResponse](
 			httpClient,
-			baseURL+FrontierServiceListCurrentUserPATsProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserPATs")),
+			baseURL+FrontierServiceSearchCurrentUserPATsProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("SearchCurrentUserPATs")),
 			connect.WithClientOptions(opts...),
 		),
 		getCurrentUserPAT: connect.NewClient[v1beta1.GetCurrentUserPATRequest, v1beta1.GetCurrentUserPATResponse](
@@ -2013,7 +2013,7 @@ type frontierServiceClient struct {
 	createAuditRecord              *connect.Client[v1beta1.CreateAuditRecordRequest, v1beta1.CreateAuditRecordResponse]
 	createCurrentUserPAT           *connect.Client[v1beta1.CreateCurrentUserPATRequest, v1beta1.CreateCurrentUserPATResponse]
 	listRolesForPAT                *connect.Client[v1beta1.ListRolesForPATRequest, v1beta1.ListRolesForPATResponse]
-	listCurrentUserPATs            *connect.Client[v1beta1.ListCurrentUserPATsRequest, v1beta1.ListCurrentUserPATsResponse]
+	searchCurrentUserPATs          *connect.Client[v1beta1.SearchCurrentUserPATsRequest, v1beta1.SearchCurrentUserPATsResponse]
 	getCurrentUserPAT              *connect.Client[v1beta1.GetCurrentUserPATRequest, v1beta1.GetCurrentUserPATResponse]
 	deleteCurrentUserPAT           *connect.Client[v1beta1.DeleteCurrentUserPATRequest, v1beta1.DeleteCurrentUserPATResponse]
 	updateCurrentUserPAT           *connect.Client[v1beta1.UpdateCurrentUserPATRequest, v1beta1.UpdateCurrentUserPATResponse]
@@ -2893,9 +2893,9 @@ func (c *frontierServiceClient) ListRolesForPAT(ctx context.Context, req *connec
 	return c.listRolesForPAT.CallUnary(ctx, req)
 }
 
-// ListCurrentUserPATs calls raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs.
-func (c *frontierServiceClient) ListCurrentUserPATs(ctx context.Context, req *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error) {
-	return c.listCurrentUserPATs.CallUnary(ctx, req)
+// SearchCurrentUserPATs calls raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs.
+func (c *frontierServiceClient) SearchCurrentUserPATs(ctx context.Context, req *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error) {
+	return c.searchCurrentUserPATs.CallUnary(ctx, req)
 }
 
 // GetCurrentUserPAT calls raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT.
@@ -3129,7 +3129,7 @@ type FrontierServiceHandler interface {
 	// Personal Access Token
 	CreateCurrentUserPAT(context.Context, *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error)
 	ListRolesForPAT(context.Context, *connect.Request[v1beta1.ListRolesForPATRequest]) (*connect.Response[v1beta1.ListRolesForPATResponse], error)
-	ListCurrentUserPATs(context.Context, *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error)
+	SearchCurrentUserPATs(context.Context, *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error)
 	GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error)
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
@@ -4164,10 +4164,10 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("ListRolesForPAT")),
 		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListCurrentUserPATsHandler := connect.NewUnaryHandler(
-		FrontierServiceListCurrentUserPATsProcedure,
-		svc.ListCurrentUserPATs,
-		connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserPATs")),
+	frontierServiceSearchCurrentUserPATsHandler := connect.NewUnaryHandler(
+		FrontierServiceSearchCurrentUserPATsProcedure,
+		svc.SearchCurrentUserPATs,
+		connect.WithSchema(frontierServiceMethods.ByName("SearchCurrentUserPATs")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceGetCurrentUserPATHandler := connect.NewUnaryHandler(
@@ -4542,8 +4542,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceCreateCurrentUserPATHandler.ServeHTTP(w, r)
 		case FrontierServiceListRolesForPATProcedure:
 			frontierServiceListRolesForPATHandler.ServeHTTP(w, r)
-		case FrontierServiceListCurrentUserPATsProcedure:
-			frontierServiceListCurrentUserPATsHandler.ServeHTTP(w, r)
+		case FrontierServiceSearchCurrentUserPATsProcedure:
+			frontierServiceSearchCurrentUserPATsHandler.ServeHTTP(w, r)
 		case FrontierServiceGetCurrentUserPATProcedure:
 			frontierServiceGetCurrentUserPATHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteCurrentUserPATProcedure:
@@ -5243,8 +5243,8 @@ func (UnimplementedFrontierServiceHandler) ListRolesForPAT(context.Context, *con
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListRolesForPAT is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListCurrentUserPATs(context.Context, *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs is not implemented"))
+func (UnimplementedFrontierServiceHandler) SearchCurrentUserPATs(context.Context, *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error) {

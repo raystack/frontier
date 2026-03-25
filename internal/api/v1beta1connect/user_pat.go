@@ -333,7 +333,7 @@ func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	return pbPAT
 }
 
-func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *connect.Request[frontierv1beta1.ListCurrentUserPATsRequest]) (*connect.Response[frontierv1beta1.ListCurrentUserPATsResponse], error) {
+func (h *ConnectHandler) SearchCurrentUserPATs(ctx context.Context, request *connect.Request[frontierv1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[frontierv1beta1.SearchCurrentUserPATsResponse], error) {
 	errorLogger := NewErrorLogger()
 
 	principal, err := h.GetLoggedInPrincipal(ctx)
@@ -356,7 +356,7 @@ func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *conne
 
 	result, err := h.userPATService.List(ctx, userID, request.Msg.GetOrgId(), rqlQuery)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListCurrentUserPATs", err,
+		errorLogger.LogServiceError(ctx, request, "SearchCurrentUserPATs", err,
 			zap.String("user_id", userID),
 			zap.String("org_id", request.Msg.GetOrgId()))
 
@@ -373,7 +373,7 @@ func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *conne
 		pbPATs = append(pbPATs, transformPATToPB(pat, ""))
 	}
 
-	return connect.NewResponse(&frontierv1beta1.ListCurrentUserPATsResponse{
+	return connect.NewResponse(&frontierv1beta1.SearchCurrentUserPATsResponse{
 		Pats: pbPATs,
 		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
 			Offset:     uint32(result.Page.Offset),
