@@ -40,7 +40,7 @@ require (
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.7.0
-	github.com/raystack/salt v0.6.2
+	github.com/raystack/salt v0.6.3
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/cors v1.11.1
 	github.com/spf13/cobra v1.8.1
