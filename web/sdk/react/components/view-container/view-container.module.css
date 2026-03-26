@@ -1,0 +1,12 @@
+.container {
+  background-color: var(--rs-color-background-base-primary);
+  width: 100%;
+  height: 100%;
+  padding: var(--rs-space-9) var(--rs-space-11);
+  overflow: auto;
+}
+
+.content {
+  max-width: 1512px;
+  width: 100%;
+}

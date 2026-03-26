@@ -7,6 +7,8 @@ import MagiclinkVerify from './pages/MagiclinkVerify';
 import Subscribe from './pages/Subscribe';
 import Updates from './pages/Updates';
 import Organization from './pages/Organization';
+import Settings from './pages/Settings';
+import General from './pages/settings/General';
 
 function Router() {
   return (
@@ -20,6 +22,9 @@ function Router() {
         <Route path="/subscribe" element={<Subscribe />} />
         <Route path="/updates" element={<Updates />} />
         <Route path="/organizations/:orgId" element={<Organization />} />
+        <Route path="/:orgId/settings" element={<Settings />}>
+          <Route path="general" element={<General />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

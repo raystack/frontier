@@ -47,6 +47,8 @@ export default function Home() {
           {organizations.map(org => (
             <Flex
               key={org.id}
+              direction="column"
+              gap="small"
               style={{
                 padding: 'var(--rs-space-5)',
                 border: '1px solid var(--rs-color-border-base-secondary)'
@@ -57,6 +59,12 @@ export default function Home() {
                 data-test-id={`[organization-link-${org.id}]`}
               >
                 {org.title}
+              </Link>
+              <Link
+                to={`/${org.name}/settings`}
+                data-test-id={`[organization-new-ui-link-${org.name}]`}
+              >
+                {org.title} (NEW UI)
               </Link>
             </Flex>
           ))}
