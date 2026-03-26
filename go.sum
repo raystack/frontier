@@ -1922,8 +1922,6 @@ github.com/prometheus/statsd_exporter v0.22.7 h1:7Pji/i2GuhK6Lu7DHrtTkFmNBCudCPT
 github.com/prometheus/statsd_exporter v0.22.7/go.mod h1:N/TevpjkIh9ccs6nuzY3jQn9dFqnUakOjnEuMPJJJnI=
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/rakyll/embedmd v0.0.0-20171029212350-c8060a0752a2/go.mod h1:7jOTMgqac46PZcF54q6l2hkLEG8op93fZu61KmxWDV4=
-github.com/raystack/salt v0.6.2 h1:GPUQ6j3h3cFd3k42Lds1xbG672yvhUjO9ut9oAJqW9M=
-github.com/raystack/salt v0.6.2/go.mod h1:Dwc5VlPevdY56XgYjWd+Ubkil7ohCM4526dkAuWnGN4=
 github.com/raystack/salt v0.6.3 h1:ZfSumyhvRIx9nf2g9aQKDRdSJQuQ+e6+TC2FnOfpv60=
 github.com/raystack/salt v0.6.3/go.mod h1:3f9NBwwtuniW5xOsyQ3ntcugFVTFDDZBqHw6rX6+8w4=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
