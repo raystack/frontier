@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/customer/mocks"
+	"github.com/raystack/frontier/billing/stripeprovider"
 	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
 	"github.com/stripe/stripe-go/v79"
 	"github.com/stripe/stripe-go/v79/client"
@@ -72,7 +73,7 @@ func TestService_Create(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -104,7 +105,7 @@ func TestService_Create(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -168,7 +169,7 @@ func TestService_Create(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 	}
@@ -261,7 +262,7 @@ func TestService_Update(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -284,7 +285,7 @@ func TestService_Update(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -332,7 +333,7 @@ func TestService_Update(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 	}
@@ -387,7 +388,7 @@ func TestService_GetByID(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -404,7 +405,7 @@ func TestService_GetByID(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 	}
@@ -471,7 +472,7 @@ func TestService_List(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -488,7 +489,7 @@ func TestService_List(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+				return customer.NewService(stripeprovider.New(stripeClient), mockRepo, cfg, mockCredit)
 			},
 		},
 	}

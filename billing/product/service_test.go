@@ -11,6 +11,7 @@ import (
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/product/mocks"
+	"github.com/raystack/frontier/billing/stripeprovider"
 	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
 	"github.com/stripe/stripe-go/v79/client"
 )
@@ -81,7 +82,7 @@ func TestService_Create(t *testing.T) {
 						"product_id":    "1",
 					},
 				}, &stripe.Product{}).Return(nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 		{
@@ -222,8 +223,9 @@ func TestService_Create(t *testing.T) {
 					BillingScheme: stripe.String("per_unit"),
 					Nickname:      stripe.String("price1"),
 					Recurring: &stripe.PriceRecurringParams{
-						Interval:  stripe.String("month"),
-						UsageType: stripe.String("licensed"),
+						AggregateUsage: stripe.String("sum"),
+						Interval:       stripe.String("month"),
+						UsageType:      stripe.String("licensed"),
 					},
 				}, &stripe.Price{
 					ID: "",
@@ -242,7 +244,7 @@ func TestService_Create(t *testing.T) {
 					Name:       "feature1",
 					ProductIDs: []string{"1"},
 				}, nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}
@@ -330,7 +332,7 @@ func TestService_GetByID(t *testing.T) {
 					},
 				}, nil)
 
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}
@@ -420,7 +422,7 @@ func TestService_Update(t *testing.T) {
 				mockFeatureRepo.EXPECT().List(ctx, product.Filter{
 					ProductID: "1",
 				}).Return([]product.Feature{}, nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}
@@ -519,7 +521,7 @@ func TestService_CreatePrice(t *testing.T) {
 				}, &stripe.Price{
 					ID: "",
 				}).Return(nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}
@@ -618,7 +620,7 @@ func TestService_UpdatePrice(t *testing.T) {
 					ID: "",
 				}).Return(nil)
 
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}
@@ -680,7 +682,7 @@ func TestService_UpsertFeature(t *testing.T) {
 					Title:      "Feature 1",
 					ProductIDs: []string{"1"},
 				}, nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 		{
@@ -719,7 +721,7 @@ func TestService_UpsertFeature(t *testing.T) {
 					Title:      "Feature 1.1",
 					ProductIDs: []string{"1"},
 				}, nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}
@@ -781,7 +783,7 @@ func TestService_AddFeatureToProduct(t *testing.T) {
 					Title:      "Feature 1",
 					ProductIDs: []string{"1", "2"},
 				}, nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}
@@ -833,7 +835,7 @@ func TestService_RemoveFeatureFromProduct(t *testing.T) {
 					Title:      "Feature 1",
 					ProductIDs: []string{"1"},
 				}, nil)
-				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+				return product.NewService(stripeprovider.New(stripeClient), mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
 	}

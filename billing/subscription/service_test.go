@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/billing/product"
+	"github.com/raystack/frontier/billing/stripeprovider"
 	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
 
 	"github.com/raystack/frontier/billing"
@@ -160,7 +161,7 @@ func TestService_Cancel(t *testing.T) {
 				}).Return(nil)
 			}
 
-			svc := subscription.NewService(stripeClient, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
+			svc := subscription.NewService(stripeprovider.New(stripeClient), billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
 			_, err := svc.Cancel(context.Background(), tt.id, tt.immediate)
 
 			if tt.wantErr != nil {
@@ -452,7 +453,7 @@ func TestService_SyncWithProvider(t *testing.T) {
 			}
 
 			svc := subscription.NewService(
-				stripeClient,
+				stripeprovider.New(stripeClient),
 				billing.Config{
 					ProductConfig: billing.ProductConfig{
 						SeatChangeBehavior: "exact",
@@ -767,7 +768,7 @@ func TestService_DeleteByCustomer(t *testing.T) {
 				tt.setup(mockRepo, mockBackend, mockPlanSvc, mockProdSvc)
 			}
 
-			svc := subscription.NewService(stripeClient, billing.Config{}, mockRepo, nil, mockPlanSvc, nil, mockProdSvc, nil)
+			svc := subscription.NewService(stripeprovider.New(stripeClient), billing.Config{}, mockRepo, nil, mockPlanSvc, nil, mockProdSvc, nil)
 			err := svc.DeleteByCustomer(context.Background(), tt.cust)
 
 			if tt.wantErr != nil {
