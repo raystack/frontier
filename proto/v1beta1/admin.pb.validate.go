@@ -16279,6 +16279,324 @@ var _ interface {
 	ErrorName() string
 } = ListAuditRecordsResponseValidationError{}
 
+// Validate checks the field values on SearchOrganizationPATsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchOrganizationPATsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchOrganizationPATsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SearchOrganizationPATsRequestMultiError, or nil if none found.
+func (m *SearchOrganizationPATsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationPATsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetOrgId()); err != nil {
+		err = SearchOrganizationPATsRequestValidationError{
+			field:  "OrgId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetQuery()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationPATsRequestValidationError{
+					field:  "Query",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationPATsRequestValidationError{
+					field:  "Query",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetQuery()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationPATsRequestValidationError{
+				field:  "Query",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationPATsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *SearchOrganizationPATsRequest) _validateUuid(uuid string) error {
+	if matched := _admin_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// SearchOrganizationPATsRequestMultiError is an error wrapping multiple
+// validation errors returned by SearchOrganizationPATsRequest.ValidateAll()
+// if the designated constraints aren't met.
+type SearchOrganizationPATsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationPATsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationPATsRequestMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationPATsRequestValidationError is the validation error
+// returned by SearchOrganizationPATsRequest.Validate if the designated
+// constraints aren't met.
+type SearchOrganizationPATsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationPATsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationPATsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchOrganizationPATsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationPATsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationPATsRequestValidationError) ErrorName() string {
+	return "SearchOrganizationPATsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationPATsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationPATsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationPATsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationPATsRequestValidationError{}
+
+// Validate checks the field values on SearchOrganizationPATsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchOrganizationPATsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchOrganizationPATsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SearchOrganizationPATsResponseMultiError, or nil if none found.
+func (m *SearchOrganizationPATsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationPATsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetOrganizationPats() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SearchOrganizationPATsResponseValidationError{
+						field:  fmt.Sprintf("OrganizationPats[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SearchOrganizationPATsResponseValidationError{
+						field:  fmt.Sprintf("OrganizationPats[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SearchOrganizationPATsResponseValidationError{
+					field:  fmt.Sprintf("OrganizationPats[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagination()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagination()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationPATsResponseValidationError{
+				field:  "Pagination",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationPATsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationPATsResponseMultiError is an error wrapping multiple
+// validation errors returned by SearchOrganizationPATsResponse.ValidateAll()
+// if the designated constraints aren't met.
+type SearchOrganizationPATsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationPATsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationPATsResponseMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationPATsResponseValidationError is the validation error
+// returned by SearchOrganizationPATsResponse.Validate if the designated
+// constraints aren't met.
+type SearchOrganizationPATsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationPATsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationPATsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchOrganizationPATsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationPATsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationPATsResponseValidationError) ErrorName() string {
+	return "SearchOrganizationPATsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationPATsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationPATsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationPATsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationPATsResponseValidationError{}
+
 // Validate checks the field values on
 // SearchOrganizationsResponse_OrganizationResult with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -18416,3 +18734,378 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SearchOrganizationServiceUsersResponse_OrganizationServiceUserValidationError{}
+
+// Validate checks the field values on SearchOrganizationPATsResponse_CreatedBy
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *SearchOrganizationPATsResponse_CreatedBy) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// SearchOrganizationPATsResponse_CreatedBy with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in
+// SearchOrganizationPATsResponse_CreatedByMultiError, or nil if none found.
+func (m *SearchOrganizationPATsResponse_CreatedBy) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationPATsResponse_CreatedBy) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	// no validation rules for Email
+
+	if len(errors) > 0 {
+		return SearchOrganizationPATsResponse_CreatedByMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationPATsResponse_CreatedByMultiError is an error wrapping
+// multiple validation errors returned by
+// SearchOrganizationPATsResponse_CreatedBy.ValidateAll() if the designated
+// constraints aren't met.
+type SearchOrganizationPATsResponse_CreatedByMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationPATsResponse_CreatedByMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationPATsResponse_CreatedByMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationPATsResponse_CreatedByValidationError is the validation
+// error returned by SearchOrganizationPATsResponse_CreatedBy.Validate if the
+// designated constraints aren't met.
+type SearchOrganizationPATsResponse_CreatedByValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationPATsResponse_CreatedByValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationPATsResponse_CreatedByValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchOrganizationPATsResponse_CreatedByValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationPATsResponse_CreatedByValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationPATsResponse_CreatedByValidationError) ErrorName() string {
+	return "SearchOrganizationPATsResponse_CreatedByValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationPATsResponse_CreatedByValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationPATsResponse_CreatedBy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationPATsResponse_CreatedByValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationPATsResponse_CreatedByValidationError{}
+
+// Validate checks the field values on
+// SearchOrganizationPATsResponse_OrganizationPAT with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SearchOrganizationPATsResponse_OrganizationPAT) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// SearchOrganizationPATsResponse_OrganizationPAT with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in
+// SearchOrganizationPATsResponse_OrganizationPATMultiError, or nil if none found.
+func (m *SearchOrganizationPATsResponse_OrganizationPAT) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationPATsResponse_OrganizationPAT) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	if all {
+		switch v := interface{}(m.GetCreatedBy()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "CreatedBy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "CreatedBy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedBy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationPATsResponse_OrganizationPATValidationError{
+				field:  "CreatedBy",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetScopes() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+						field:  fmt.Sprintf("Scopes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  fmt.Sprintf("Scopes[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationPATsResponse_OrganizationPATValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetExpiresAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "ExpiresAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "ExpiresAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExpiresAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationPATsResponse_OrganizationPATValidationError{
+				field:  "ExpiresAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetLastUsedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "LastUsedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationPATsResponse_OrganizationPATValidationError{
+					field:  "LastUsedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLastUsedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationPATsResponse_OrganizationPATValidationError{
+				field:  "LastUsedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationPATsResponse_OrganizationPATMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationPATsResponse_OrganizationPATMultiError is an error
+// wrapping multiple validation errors returned by
+// SearchOrganizationPATsResponse_OrganizationPAT.ValidateAll() if the
+// designated constraints aren't met.
+type SearchOrganizationPATsResponse_OrganizationPATMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationPATsResponse_OrganizationPATMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationPATsResponse_OrganizationPATMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationPATsResponse_OrganizationPATValidationError is the
+// validation error returned by
+// SearchOrganizationPATsResponse_OrganizationPAT.Validate if the designated
+// constraints aren't met.
+type SearchOrganizationPATsResponse_OrganizationPATValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationPATsResponse_OrganizationPATValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationPATsResponse_OrganizationPATValidationError) Reason() string {
+	return e.reason
+}
+
+// Cause function returns cause value.
+func (e SearchOrganizationPATsResponse_OrganizationPATValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationPATsResponse_OrganizationPATValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationPATsResponse_OrganizationPATValidationError) ErrorName() string {
+	return "SearchOrganizationPATsResponse_OrganizationPATValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationPATsResponse_OrganizationPATValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationPATsResponse_OrganizationPAT.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationPATsResponse_OrganizationPATValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationPATsResponse_OrganizationPATValidationError{}
