@@ -4,7 +4,8 @@ import { Outlet, useParams, useLocation, Navigate } from 'react-router-dom';
 import { useFrontier } from '@raystack/frontier/react';
 
 const NAV_ITEMS = [
-  { label: 'General', path: 'general' }
+  { label: 'General', path: 'general' },
+  { label: 'Preferences', path: 'preferences' }
 ];
 
 export default function Settings() {
