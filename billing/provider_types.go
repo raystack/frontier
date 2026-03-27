@@ -300,6 +300,7 @@ type CreateBillingPortalParams struct {
 
 type ProviderInvoice struct {
 	ID                 string
+	CustomerProviderID string
 	Status             string
 	EffectiveAt        int64
 	HostedURL          string

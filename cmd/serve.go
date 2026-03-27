@@ -59,6 +59,7 @@ import (
 	"github.com/raystack/frontier/billing/product"
 
 	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/billing/stripeprovider"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/stripe/stripe-go/v79/client"
 
@@ -489,6 +490,7 @@ func buildAPIDependencies(
 		GetStripeClientFunc = getStripeClient
 	}
 	stripeClient := GetStripeClientFunc(logger, cfg)
+	billingProvider := stripeprovider.New(stripeClient)
 
 	billingCustomerRepository := postgres.NewBillingCustomerRepository(dbc)
 	creditService := credit.NewService(
@@ -497,35 +499,35 @@ func buildAPIDependencies(
 		auditRecordRepository,
 	)
 	customerService := customer.NewService(
-		stripeClient,
+		billingProvider,
 		billingCustomerRepository, cfg.Billing, creditService)
 	featureRepository := postgres.NewBillingFeatureRepository(dbc)
 	priceRepository := postgres.NewBillingPriceRepository(dbc)
 	productService := product.NewService(
-		stripeClient,
+		billingProvider,
 		postgres.NewBillingProductRepository(dbc),
 		priceRepository,
 		featureRepository,
 	)
 	planService := plan.NewService(
-		stripeClient,
+		billingProvider,
 		postgres.NewBillingPlanRepository(dbc),
 		productService,
 		featureRepository,
 		priceRepository,
 	)
 	subscriptionService := subscription.NewService(
-		stripeClient, cfg.Billing,
+		billingProvider, cfg.Billing,
 		postgres.NewBillingSubscriptionRepository(dbc),
 		customerService, planService, organizationService,
 		productService, creditService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService,
 		planService, organizationService)
-	checkoutService := checkout.NewService(stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
+	checkoutService := checkout.NewService(billingProvider, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
 		customerService, planService, subscriptionService, productService, creditService, organizationService,
 		authnService)
 
-	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc),
+	invoiceService := invoice.NewService(billingProvider, postgres.NewBillingInvoiceRepository(dbc),
 		customerService, creditService, productService, dbc, cfg.Billing)
 
 	usageService := usage.NewService(creditService)

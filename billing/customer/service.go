@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/robfig/cron/v3"
-	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
@@ -18,10 +17,6 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
-
-	"github.com/raystack/frontier/pkg/metadata"
-
-	"github.com/stripe/stripe-go/v79/client"
 )
 
 type Repository interface {
@@ -40,7 +35,7 @@ type CreditService interface {
 }
 
 type Service struct {
-	stripeClient  *client.API
+	provider      billing.Provider
 	repository    Repository
 	creditService CreditService
 
@@ -49,10 +44,10 @@ type Service struct {
 	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, repository Repository, cfg billing.Config,
+func NewService(provider billing.Provider, repository Repository, cfg billing.Config,
 	creditService CreditService) *Service {
 	return &Service{
-		stripeClient:  stripeClient,
+		provider:      provider,
 		repository:    repository,
 		mu:            sync.Mutex{},
 		syncDelay:     cfg.RefreshInterval.Customer,
@@ -90,59 +85,42 @@ func (s *Service) Create(ctx context.Context, customer Customer, offline bool) (
 
 	// offline mode, we don't need to create the customer in billing provider
 	if !offline {
-		stripeCustomer, err := s.RegisterToProvider(ctx, customer)
+		providerCustomer, err := s.RegisterToProvider(ctx, customer)
 		if err != nil {
 			return Customer{}, err
 		}
-		customer.ProviderID = stripeCustomer.ID
+		customer.ProviderID = providerCustomer.ID
 	}
 	return s.repository.Create(ctx, customer)
 }
 
-func (s *Service) RegisterToProvider(ctx context.Context, customer Customer) (*stripe.Customer, error) {
-	// create a new customer in stripe
-	var customerTaxes []*stripe.CustomerTaxIDDataParams = nil
+func (s *Service) RegisterToProvider(ctx context.Context, customer Customer) (*billing.ProviderCustomer, error) {
+	var taxIDs []billing.ProviderTaxID
 	for _, tax := range customer.TaxData {
-		customerTaxes = append(customerTaxes, &stripe.CustomerTaxIDDataParams{
-			Type:  stripe.String(tax.Type),
-			Value: stripe.String(tax.ID),
+		taxIDs = append(taxIDs, billing.ProviderTaxID{
+			Type:  tax.Type,
+			Value: tax.ID,
 		})
 	}
-	// create a new customer in stripe
-	stripeCustomer, err := s.stripeClient.Customers.New(&stripe.CustomerParams{
-		Params: stripe.Params{
-			Context: ctx,
+	return s.provider.CreateCustomer(ctx, billing.CreateCustomerParams{
+		Email: customer.Email,
+		Name:  customer.Name,
+		Phone: customer.Phone,
+		Address: billing.ProviderAddress{
+			City:       customer.Address.City,
+			Country:    customer.Address.Country,
+			Line1:      customer.Address.Line1,
+			Line2:      customer.Address.Line2,
+			PostalCode: customer.Address.PostalCode,
+			State:      customer.Address.State,
 		},
-		Address: &stripe.AddressParams{
-			City:       &customer.Address.City,
-			Country:    &customer.Address.Country,
-			Line1:      &customer.Address.Line1,
-			Line2:      &customer.Address.Line2,
-			PostalCode: &customer.Address.PostalCode,
-			State:      &customer.Address.State,
-		},
-		Email:     &customer.Email,
-		Name:      &customer.Name,
-		Phone:     &customer.Phone,
-		TaxIDData: customerTaxes,
+		TaxIDs: taxIDs,
 		Metadata: map[string]string{
 			"org_id":     customer.OrgID,
 			"managed_by": "frontier",
 		},
-		TestClock: customer.StripeTestClockID,
+		TestClockID: customer.StripeTestClockID,
 	})
-	if err != nil {
-		if stripeErr, ok := err.(*stripe.Error); ok {
-			switch stripeErr.Code {
-			case stripe.ErrorCodeParameterMissing:
-				// stripe error
-				return nil, fmt.Errorf("missing parameter while registering to biller: %s", stripeErr.Error())
-			}
-		}
-		return nil, fmt.Errorf("failed to register in billing provider: %w", err)
-	}
-
-	return stripeCustomer, nil
 }
 
 func (s *Service) RegisterToProviderIfRequired(ctx context.Context, customerID string) (Customer, error) {
@@ -151,11 +129,11 @@ func (s *Service) RegisterToProviderIfRequired(ctx context.Context, customerID s
 		return Customer{}, err
 	}
 	if custmr.IsOffline() {
-		stripeCustomer, err := s.RegisterToProvider(ctx, custmr)
+		providerCustomer, err := s.RegisterToProvider(ctx, custmr)
 		if err != nil {
 			return Customer{}, err
 		}
-		custmr.ProviderID = stripeCustomer.ID
+		custmr.ProviderID = providerCustomer.ID
 		return s.repository.UpdateByID(ctx, custmr)
 	}
 	return custmr, nil
@@ -170,38 +148,27 @@ func (s *Service) Update(ctx context.Context, customer Customer) (Customer, erro
 	// Always infer org_id from existing customer (ignore from request for security)
 	customer.OrgID = existingCustomer.OrgID
 
-	// update a customer in stripe
-	stripeCustomer, err := s.stripeClient.Customers.Update(existingCustomer.ProviderID, &stripe.CustomerParams{
-		Params: stripe.Params{
-			Context: ctx,
+	providerCustomer, err := s.provider.UpdateCustomer(ctx, existingCustomer.ProviderID, billing.UpdateCustomerParams{
+		Email: customer.Email,
+		Name:  customer.Name,
+		Phone: customer.Phone,
+		Address: billing.ProviderAddress{
+			City:       customer.Address.City,
+			Country:    customer.Address.Country,
+			Line1:      customer.Address.Line1,
+			Line2:      customer.Address.Line2,
+			PostalCode: customer.Address.PostalCode,
+			State:      customer.Address.State,
 		},
-		Address: &stripe.AddressParams{
-			City:       &customer.Address.City,
-			Country:    &customer.Address.Country,
-			Line1:      &customer.Address.Line1,
-			Line2:      &customer.Address.Line2,
-			PostalCode: &customer.Address.PostalCode,
-			State:      &customer.Address.State,
-		},
-		Email: &customer.Email,
-		Name:  &customer.Name,
-		Phone: &customer.Phone,
 		Metadata: map[string]string{
 			"org_id":     existingCustomer.OrgID,
 			"managed_by": "frontier",
 		},
 	})
 	if err != nil {
-		if stripeErr, ok := err.(*stripe.Error); ok {
-			switch stripeErr.Code {
-			case stripe.ErrorCodeParameterMissing:
-				// stripe error
-				return Customer{}, fmt.Errorf("missing parameter while registering to biller: %s", stripeErr.Error())
-			}
-		}
-		return Customer{}, fmt.Errorf("failed to register in billing provider: %w", err)
+		return Customer{}, err
 	}
-	customer.ProviderID = stripeCustomer.ID
+	customer.ProviderID = providerCustomer.ID
 	return s.repository.UpdateByID(ctx, customer)
 }
 
@@ -278,25 +245,8 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 	// TODO: cancel and delete all subscriptions before deleting the customer
 
 	if customer.ProviderID != "" {
-		// deleting customer cancel all of its plans
-		if _, err = s.stripeClient.Customers.Del(customer.ProviderID, &stripe.CustomerParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-		}); err != nil {
-			var throw = true
-			// Try to safely cast a generic error to a stripe.Error so that we can get at
-			// some additional Stripe-specific information about what went wrong.
-			if stripeErr, ok := err.(*stripe.Error); ok {
-				// The Code field will contain a basic identifier for the failure.
-				if stripeErr.Code == stripe.ErrorCodeResourceMissing {
-					// it's ok if the customer is already deleted
-					throw = false
-				}
-			}
-			if throw {
-				return fmt.Errorf("failed to delete customer from billing provider: %w", err)
-			}
+		if err = s.provider.DeleteCustomer(ctx, customer.ProviderID); err != nil {
+			return err
 		}
 	}
 
@@ -315,40 +265,31 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 		return paymentMethods, nil
 	}
 
-	stripePaymentMethodItr := s.stripeClient.PaymentMethods.List(&stripe.PaymentMethodListParams{
-		Customer: stripe.String(customer.ProviderID),
-		ListParams: stripe.ListParams{
-			Context: ctx,
-		},
-		Expand: []*string{
-			stripe.String("data.customer"),
-		},
-	})
+	providerMethods, err := s.provider.ListPaymentMethods(ctx, customer.ProviderID)
+	if err != nil {
+		return nil, err
+	}
 
-	for stripePaymentMethodItr.Next() {
-		stripePaymentMethod := stripePaymentMethodItr.PaymentMethod()
-		pm := PaymentMethod{
-			ID:         "",
-			CustomerID: customer.ID,
-			ProviderID: stripePaymentMethod.ID,
-			Type:       string(stripePaymentMethod.Type),
-			Metadata:   metadata.FromString(stripePaymentMethod.Metadata),
-			CreatedAt:  time.Unix(stripePaymentMethod.Created, 0),
+	for _, pm := range providerMethods {
+		m := PaymentMethod{
+			ID:              "",
+			CustomerID:      customer.ID,
+			ProviderID:      pm.ID,
+			Type:            pm.Type,
+			CardBrand:       pm.CardBrand,
+			CardLast4:       pm.CardLast4,
+			CardExpiryMonth: pm.CardExpiryMonth,
+			CardExpiryYear:  pm.CardExpiryYear,
+			Metadata:        pm.Metadata,
+			CreatedAt:       time.Unix(pm.CreatedAt, 0),
 		}
-		if stripePaymentMethod.Type == stripe.PaymentMethodTypeCard {
-			pm.CardBrand = string(stripePaymentMethod.Card.Brand)
-			pm.CardLast4 = stripePaymentMethod.Card.Last4
-			pm.CardExpiryMonth = stripePaymentMethod.Card.ExpMonth
-			pm.CardExpiryYear = stripePaymentMethod.Card.ExpYear
-		}
-		// set default method, if any
-		if stripePaymentMethod.Customer.InvoiceSettings != nil && stripePaymentMethod.Customer.InvoiceSettings.DefaultPaymentMethod != nil {
-			if stripePaymentMethod.Customer.InvoiceSettings.DefaultPaymentMethod.ID == stripePaymentMethod.ID {
-				pm.Metadata["default"] = true
+		if pm.IsDefault {
+			if m.Metadata == nil {
+				m.Metadata = make(map[string]any)
 			}
+			m.Metadata["default"] = true
 		}
-
-		paymentMethods = append(paymentMethods, pm)
+		paymentMethods = append(paymentMethods, m)
 	}
 	return paymentMethods, nil
 }
@@ -421,17 +362,13 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	stripeCustomer, err := s.stripeClient.Customers.Get(customr.ProviderID, &stripe.CustomerParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-	})
+	providerCustomer, err := s.provider.GetCustomer(ctx, customr.ProviderID)
 	if err != nil {
-		return fmt.Errorf("failed to get customer from billing provider: %w", err)
+		return err
 	}
 
 	var shouldUpdate bool
-	if stripeCustomer.Deleted {
+	if providerCustomer.Deleted {
 		// customer is deleted in the billing provider, we don't enable them back automatically
 		if customr.State != DisabledState {
 			customr.State = DisabledState
@@ -440,12 +377,12 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 	}
 	if customr.IsActive() {
 		// don't update for disabled state
-		if stripeCustomer.TaxIDs != nil {
+		if len(providerCustomer.TaxIDs) > 0 {
 			var taxData []Tax
-			for _, taxID := range stripeCustomer.TaxIDs.Data {
+			for _, taxID := range providerCustomer.TaxIDs {
 				taxData = append(taxData, Tax{
 					ID:   taxID.Value,
-					Type: string(taxID.Type),
+					Type: taxID.Type,
 				})
 			}
 			if !slices.EqualFunc(customr.TaxData, taxData, func(a Tax, b Tax) bool {
@@ -455,39 +392,37 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 				shouldUpdate = true
 			}
 		}
-		if stripeCustomer.Phone != customr.Phone {
-			customr.Phone = stripeCustomer.Phone
+		if providerCustomer.Phone != customr.Phone {
+			customr.Phone = providerCustomer.Phone
 			shouldUpdate = true
 		}
-		if stripeCustomer.Email != "" && stripeCustomer.Email != customr.Email {
-			customr.Email = stripeCustomer.Email
+		if providerCustomer.Email != "" && providerCustomer.Email != customr.Email {
+			customr.Email = providerCustomer.Email
 			shouldUpdate = true
 		}
-		if stripeCustomer.Name != customr.Name {
-			customr.Name = stripeCustomer.Name
+		if providerCustomer.Name != customr.Name {
+			customr.Name = providerCustomer.Name
 			shouldUpdate = true
 		}
-		if stripeCustomer.Currency != "" && string(stripeCustomer.Currency) != customr.Currency {
-			customr.Currency = string(stripeCustomer.Currency)
+		if providerCustomer.Currency != "" && providerCustomer.Currency != customr.Currency {
+			customr.Currency = providerCustomer.Currency
 			shouldUpdate = true
 		}
-		if stripeCustomer.Address != nil {
-			if stripeCustomer.Address.City != customr.Address.City ||
-				stripeCustomer.Address.Country != customr.Address.Country ||
-				stripeCustomer.Address.Line1 != customr.Address.Line1 ||
-				stripeCustomer.Address.Line2 != customr.Address.Line2 ||
-				stripeCustomer.Address.PostalCode != customr.Address.PostalCode ||
-				stripeCustomer.Address.State != customr.Address.State {
-				customr.Address = Address{
-					City:       stripeCustomer.Address.City,
-					Country:    stripeCustomer.Address.Country,
-					Line1:      stripeCustomer.Address.Line1,
-					Line2:      stripeCustomer.Address.Line2,
-					PostalCode: stripeCustomer.Address.PostalCode,
-					State:      stripeCustomer.Address.State,
-				}
-				shouldUpdate = true
+		if providerCustomer.Address.City != customr.Address.City ||
+			providerCustomer.Address.Country != customr.Address.Country ||
+			providerCustomer.Address.Line1 != customr.Address.Line1 ||
+			providerCustomer.Address.Line2 != customr.Address.Line2 ||
+			providerCustomer.Address.PostalCode != customr.Address.PostalCode ||
+			providerCustomer.Address.State != customr.Address.State {
+			customr.Address = Address{
+				City:       providerCustomer.Address.City,
+				Country:    providerCustomer.Address.Country,
+				Line1:      providerCustomer.Address.Line1,
+				Line2:      providerCustomer.Address.Line2,
+				PostalCode: providerCustomer.Address.PostalCode,
+				State:      providerCustomer.Address.State,
 			}
+			shouldUpdate = true
 		}
 	}
 	if shouldUpdate {

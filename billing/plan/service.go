@@ -9,9 +9,9 @@ import (
 
 	"github.com/raystack/frontier/pkg/metadata"
 
+	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/stripe/stripe-go/v79/client"
 )
 
 type Repository interface {
@@ -51,15 +51,15 @@ type FeatureRepository interface {
 
 type Service struct {
 	planRepository    Repository
-	stripeClient      *client.API
+	provider          billing.Provider
 	productService    ProductService
 	featureRepository FeatureRepository
 	priceRepository   PriceRepository
 }
 
-func NewService(stripeClient *client.API, planRepository Repository, productService ProductService, featureRepository FeatureRepository, priceRepository PriceRepository) *Service {
+func NewService(provider billing.Provider, planRepository Repository, productService ProductService, featureRepository FeatureRepository, priceRepository PriceRepository) *Service {
 	return &Service{
-		stripeClient:      stripeClient,
+		provider:          provider,
 		planRepository:    planRepository,
 		productService:    productService,
 		featureRepository: featureRepository,

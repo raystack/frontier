@@ -7,13 +7,12 @@ import (
 	"strings"
 
 	"github.com/mcuadros/go-defaults"
-	"github.com/stripe/stripe-go/v79"
 
 	"golang.org/x/exp/slices"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/stripe/stripe-go/v79/client"
 )
 
 type Repository interface {
@@ -41,16 +40,16 @@ type FeatureRepository interface {
 }
 
 type Service struct {
-	stripeClient      *client.API
+	provider          billing.Provider
 	productRepository Repository
 	priceRepository   PriceRepository
 	featureRepository FeatureRepository
 }
 
-func NewService(stripeClient *client.API, productRepository Repository,
+func NewService(provider billing.Provider, productRepository Repository,
 	priceRepository PriceRepository, featureRepository FeatureRepository) *Service {
 	return &Service{
-		stripeClient:      stripeClient,
+		provider:          provider,
 		priceRepository:   priceRepository,
 		productRepository: productRepository,
 		featureRepository: featureRepository,
@@ -69,13 +68,10 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 	}
 	product.Name = strings.ToLower(product.Name)
 
-	_, err := s.stripeClient.Products.New(&stripe.ProductParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		ID:          &product.ProviderID,
-		Name:        &product.Title,
-		Description: &product.Description,
+	err := s.provider.CreateProduct(ctx, billing.CreateProductParams{
+		ID:          product.ProviderID,
+		Name:        product.Title,
+		Description: product.Description,
 		Metadata: map[string]string{
 			"name":          product.Name,
 			"credit_amount": fmt.Sprintf("%d", product.Config.CreditAmount),
@@ -186,13 +182,10 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		existingProduct.Metadata = product.Metadata
 	}
 
-	// update product in stripe
-	_, err = s.stripeClient.Products.Update(existingProduct.ProviderID, &stripe.ProductParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		Name:        &existingProduct.Title,
-		Description: &existingProduct.Description,
+	// update product in provider
+	err = s.provider.UpdateProduct(ctx, existingProduct.ProviderID, billing.UpdateProductParams{
+		Name:        existingProduct.Title,
+		Description: existingProduct.Description,
 		Metadata: map[string]string{
 			"name":       existingProduct.Name,
 			"plan_ids":   strings.Join(existingProduct.PlanIDs, ","),
@@ -252,37 +245,27 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 	price.Interval = strings.ToLower(price.Interval)
 	price.Name = strings.ToLower(price.Name)
 
-	providerParams := &stripe.PriceParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		Product:       &price.ProductID,
-		Nickname:      &price.Name,
-		BillingScheme: stripe.String(price.BillingScheme.ToStripe()),
-		Currency:      &price.Currency,
-		UnitAmount:    &price.Amount,
+	providerID, err := s.provider.CreatePrice(ctx, billing.CreatePriceParams{
+		ProductID:        price.ProductID,
+		Name:             price.Name,
+		Amount:           price.Amount,
+		Currency:         price.Currency,
+		BillingScheme:    price.BillingScheme.ToStripe(),
+		Interval:         price.Interval,
+		UsageType:        price.UsageType.ToStripe(),
+		MeteredAggregate: price.MeteredAggregate,
 		Metadata: map[string]string{
 			"name":       price.Name,
 			"product_id": price.ProductID,
 			"price_id":   price.ID,
 			"managed_by": "frontier",
 		},
-	}
-	if price.Interval != "" {
-		providerParams.Recurring = &stripe.PriceRecurringParams{
-			Interval:  stripe.String(price.Interval),
-			UsageType: stripe.String(price.UsageType.ToStripe()),
-		}
-		if price.UsageType == PriceUsageTypeMetered {
-			providerParams.Recurring.AggregateUsage = stripe.String(price.MeteredAggregate)
-		}
-	}
-	stripePrice, err := s.stripeClient.Prices.New(providerParams)
+	})
 	if err != nil {
 		return Price{}, err
 	}
 
-	price.ProviderID = stripePrice.ID
+	price.ProviderID = providerID
 	return s.priceRepository.Create(ctx, price)
 }
 
@@ -318,11 +301,8 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 		existingPrice.Metadata = price.Metadata
 	}
 
-	_, err = s.stripeClient.Prices.Update(existingPrice.ProviderID, &stripe.PriceParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		Nickname: &existingPrice.Name,
+	err = s.provider.UpdatePrice(ctx, existingPrice.ProviderID, billing.UpdatePriceParams{
+		Name: existingPrice.Name,
 		Metadata: map[string]string{
 			"product_id": price.ProductID,
 			"price_id":   price.ID,

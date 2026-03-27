@@ -168,8 +168,13 @@ func fromStripeCheckoutSession(cs *stripe.CheckoutSession) *billing.ProviderChec
 }
 
 func fromStripeInvoice(si *stripe.Invoice) *billing.ProviderInvoice {
+	var customerProviderID string
+	if si.Customer != nil {
+		customerProviderID = si.Customer.ID
+	}
 	pi := &billing.ProviderInvoice{
 		ID:                 si.ID,
+		CustomerProviderID: customerProviderID,
 		Status:             string(si.Status),
 		EffectiveAt:        si.EffectiveAt,
 		HostedURL:          si.HostedInvoiceURL,

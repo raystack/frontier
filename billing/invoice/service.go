@@ -16,7 +16,6 @@ import (
 	"github.com/raystack/frontier/billing/product"
 
 	"github.com/robfig/cron/v3"
-	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
@@ -28,7 +27,6 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/metadata"
-	"github.com/stripe/stripe-go/v79/client"
 )
 
 const (
@@ -66,7 +64,7 @@ type Locker interface {
 }
 
 type Service struct {
-	stripeClient    *client.API
+	provider        billing.Provider
 	repository      Repository
 	customerService CustomerService
 	creditService   CreditService
@@ -89,11 +87,11 @@ type Service struct {
 	paymentMethodConfig []billing.PaymentMethodConfig
 }
 
-func NewService(stripeClient *client.API, invoiceRepository Repository,
+func NewService(provider billing.Provider, invoiceRepository Repository,
 	customerService CustomerService, creditService CreditService, productService ProductService,
 	locker Locker, cfg billing.Config) *Service {
 	return &Service{
-		stripeClient:                  stripeClient,
+		provider:                      provider,
 		repository:                    invoiceRepository,
 		customerService:               customerService,
 		creditService:                 creditService,
@@ -228,30 +226,25 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		return err
 	}
 
-	var errs []error
-	stripeInvoices := s.stripeClient.Invoices.List(&stripe.InvoiceListParams{
-		Customer: stripe.String(customr.ProviderID),
-		ListParams: stripe.ListParams{
-			Context: ctx,
-		},
-		Expand: []*string{
-			stripe.String("data.lines"),
-		},
-	})
-	for stripeInvoices.Next() {
-		stripeInvoice := stripeInvoices.Invoice()
+	providerInvoices, err := s.provider.ListInvoices(ctx, customr.ProviderID)
+	if err != nil {
+		return fmt.Errorf("failed to list invoices: %w", err)
+	}
 
+	var errs []error
+	for _, pi := range providerInvoices {
 		// check if already present, if yes, update else create new
 		existingInvoice, ok := utils.FindFirst(invoiceObs, func(i Invoice) bool {
-			return i.ProviderID == stripeInvoice.ID
+			return i.ProviderID == pi.ID
 		})
+		var upsertErr error
 		if ok {
-			err = s.upsert(ctx, customr.ID, &existingInvoice, stripeInvoice)
+			upsertErr = s.upsert(ctx, customr.ID, &existingInvoice, pi)
 		} else {
-			err = s.upsert(ctx, customr.ID, nil, stripeInvoice)
+			upsertErr = s.upsert(ctx, customr.ID, nil, pi)
 		}
-		if err != nil {
-			errs = append(errs, err)
+		if upsertErr != nil {
+			errs = append(errs, upsertErr)
 		}
 
 		// add jitter
@@ -260,27 +253,24 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 	if len(errs) > 0 {
 		return errors.Join(errs...)
 	}
-	if err := stripeInvoices.Err(); err != nil {
-		return fmt.Errorf("failed to list invoices: %w", err)
-	}
 	return nil
 }
 
 func (s *Service) upsert(ctx context.Context, customerID string,
-	existingInvoice *Invoice, stripeInvoice *stripe.Invoice) error {
+	existingInvoice *Invoice, pi billing.ProviderInvoice) error {
 	if existingInvoice != nil {
 		// already present in our system, update it if needed
 		updateNeeded := false
-		if existingInvoice.State != State(stripeInvoice.Status) {
-			existingInvoice.State = State(stripeInvoice.Status)
+		if existingInvoice.State != State(pi.Status) {
+			existingInvoice.State = State(pi.Status)
 			updateNeeded = true
 		}
-		if stripeInvoice.EffectiveAt != 0 && existingInvoice.EffectiveAt != utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt) {
-			existingInvoice.EffectiveAt = utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt)
+		if pi.EffectiveAt != 0 && existingInvoice.EffectiveAt != utils.AsTimeFromEpoch(pi.EffectiveAt) {
+			existingInvoice.EffectiveAt = utils.AsTimeFromEpoch(pi.EffectiveAt)
 			updateNeeded = true
 		}
-		if stripeInvoice.HostedInvoiceURL != "" && existingInvoice.HostedURL != stripeInvoice.HostedInvoiceURL {
-			existingInvoice.HostedURL = stripeInvoice.HostedInvoiceURL
+		if pi.HostedURL != "" && existingInvoice.HostedURL != pi.HostedURL {
+			existingInvoice.HostedURL = pi.HostedURL
 			updateNeeded = true
 		}
 
@@ -290,7 +280,7 @@ func (s *Service) upsert(ctx context.Context, customerID string,
 			}
 		}
 	} else {
-		if _, err := s.repository.Create(ctx, stripeInvoiceToInvoice(customerID, stripeInvoice)); err != nil {
+		if _, err := s.repository.Create(ctx, providerInvoiceToInvoice(customerID, pi)); err != nil {
 			return fmt.Errorf("failed to create invoice for customer %s: %w", customerID, err)
 		}
 	}
@@ -324,82 +314,70 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 		return Invoice{}, nil
 	}
 
-	stripeInvoice, err := s.stripeClient.Invoices.Upcoming(&stripe.InvoiceUpcomingParams{
-		Customer: stripe.String(custmr.ProviderID),
-		Params: stripe.Params{
-			Context: ctx,
-		},
-	})
+	providerInvoice, err := s.provider.GetUpcomingInvoice(ctx, custmr.ProviderID)
 	if err != nil {
-		var stripeErr *stripe.Error
-		if errors.As(err, &stripeErr) && stripeErr.Code == stripe.ErrorCodeInvoiceUpcomingNone {
-			logger.Debug(fmt.Sprintf("no upcoming invoice: %v", stripeErr))
+		if errors.Is(err, billing.ErrNoUpcomingInvoice) {
+			logger.Debug(fmt.Sprintf("no upcoming invoice: %v", err))
 			return Invoice{}, nil
 		}
 		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", err)
 	}
 
-	return stripeInvoiceToInvoice(customerID, stripeInvoice), nil
+	return providerInvoiceToInvoice(customerID, *providerInvoice), nil
 }
 
-func stripeInvoiceToInvoice(customerID string, stripeInvoice *stripe.Invoice) Invoice {
+func providerInvoiceToInvoice(customerID string, pi billing.ProviderInvoice) Invoice {
 	var effectiveAt time.Time
-	if stripeInvoice.EffectiveAt != 0 {
-		effectiveAt = time.Unix(stripeInvoice.EffectiveAt, 0)
+	if pi.EffectiveAt != 0 {
+		effectiveAt = time.Unix(pi.EffectiveAt, 0)
 	}
 	var dueDate time.Time
-	if stripeInvoice.DueDate != 0 {
-		dueDate = time.Unix(stripeInvoice.DueDate, 0)
-	} else if stripeInvoice.NextPaymentAttempt != 0 {
-		dueDate = time.Unix(stripeInvoice.NextPaymentAttempt, 0)
+	if pi.DueDate != 0 {
+		dueDate = time.Unix(pi.DueDate, 0)
+	} else if pi.NextPaymentAttempt != 0 {
+		dueDate = time.Unix(pi.NextPaymentAttempt, 0)
 	}
 	var createdAt time.Time
-	if stripeInvoice.Created != 0 {
-		createdAt = time.Unix(stripeInvoice.Created, 0)
+	if pi.CreatedAt != 0 {
+		createdAt = time.Unix(pi.CreatedAt, 0)
 	}
 	var periodStartAt time.Time
-	if stripeInvoice.PeriodStart != 0 {
-		periodStartAt = time.Unix(stripeInvoice.PeriodStart, 0)
+	if pi.PeriodStart != 0 {
+		periodStartAt = time.Unix(pi.PeriodStart, 0)
 	}
 	var periodEndAt time.Time
-	if stripeInvoice.PeriodEnd != 0 {
-		periodEndAt = time.Unix(stripeInvoice.PeriodEnd, 0)
+	if pi.PeriodEnd != 0 {
+		periodEndAt = time.Unix(pi.PeriodEnd, 0)
 	}
 	var items []Item
-	if stripeInvoice.Lines != nil {
-		for _, line := range stripeInvoice.Lines.Data {
-			item := Item{
-				ID:         line.Metadata[ItemIDMetadataKey],
-				ProviderID: line.ID,
-				Name:       line.Description,
-				Type:       ItemType(line.Metadata[ItemTypeMetadataKey]),
-				Quantity:   line.Quantity,
-			}
-			if line.Price != nil {
-				item.UnitAmount = line.Price.UnitAmount
-			}
-			if line.Period != nil {
-				if line.Period.Start != 0 {
-					startAt := utils.AsTimeFromEpoch(line.Period.Start)
-					item.TimeRangeStart = &startAt
-				}
-				if line.Period.End != 0 {
-					endAt := utils.AsTimeFromEpoch(line.Period.End)
-					item.TimeRangeEnd = &endAt
-				}
-			}
-			items = append(items, item)
+	for _, li := range pi.LineItems {
+		item := Item{
+			ID:         li.Metadata[ItemIDMetadataKey],
+			ProviderID: li.ID,
+			Name:       li.Description,
+			Type:       ItemType(li.Metadata[ItemTypeMetadataKey]),
+			Quantity:   li.Quantity,
+			UnitAmount: li.UnitAmount,
 		}
+		if li.PeriodStart != 0 {
+			startAt := utils.AsTimeFromEpoch(li.PeriodStart)
+			item.TimeRangeStart = &startAt
+		}
+		if li.PeriodEnd != 0 {
+			endAt := utils.AsTimeFromEpoch(li.PeriodEnd)
+			item.TimeRangeEnd = &endAt
+		}
+		items = append(items, item)
 	}
 	return Invoice{
 		ID:            "",
-		ProviderID:    stripeInvoice.ID,
+		ProviderID:    pi.ID,
 		CustomerID:    customerID,
-		State:         State(stripeInvoice.Status),
-		Currency:      string(stripeInvoice.Currency),
-		Amount:        stripeInvoice.Total,
-		HostedURL:     stripeInvoice.HostedInvoiceURL,
-		Metadata:      metadata.FromString(stripeInvoice.Metadata),
+		State:         State(pi.Status),
+		Currency:      pi.Currency,
+		Amount:        pi.Total,
+		HostedURL:     pi.HostedURL,
+		Metadata:      metadata.FromString(pi.Metadata),
 		EffectiveAt:   effectiveAt,
 		DueAt:         dueDate,
 		CreatedAt:     createdAt,
@@ -540,14 +518,14 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 				TimeRangeEnd:   &endRange,
 			},
 		}
-		newStripeInvoice, err := s.CreateInProvider(ctx, c, CreditOverdraftDescription,
+		newProviderInvoice, err := s.CreateInProvider(ctx, c, CreditOverdraftDescription,
 			items, s.creditOverdraftInvoiceCurrency)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("failed to create invoice for customer %s: %w", c.ID, err))
 			continue
 		}
 		// sync back new invoice
-		if err := s.upsert(ctx, c.ID, nil, newStripeInvoice); err != nil {
+		if err := s.upsert(ctx, c.ID, nil, *newProviderInvoice); err != nil {
 			errs = append(errs, fmt.Errorf("failed to sync invoice for customer %s: %w", c.ID, err))
 			continue
 		}
@@ -580,7 +558,7 @@ func abs(x int64) int64 {
 // Once created the invoice object will be synced back within system using
 // regular syncer/webhook loop.
 func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer,
-	description string, items []Item, currency string) (*stripe.Invoice, error) {
+	description string, items []Item, currency string) (*billing.ProviderInvoice, error) {
 	amountSubtotal := int64(0)
 	// validate items if any
 	for _, item := range items {
@@ -607,46 +585,31 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 
 	var daysUntilDue *int64
 	if custmrDetails.DueInDays > 0 {
-		daysUntilDue = stripe.Int64(custmrDetails.DueInDays)
+		d := custmrDetails.DueInDays
+		daysUntilDue = &d
 	}
 
 	// invoice payment methods on the basis of amount subtotal
-	var paymentMethodTypes []*string
+	var paymentMethodTypes []string
 	for _, paymentMethodConfig := range s.paymentMethodConfig {
 		if paymentMethodConfig.IsAllowedForAmount(amountSubtotal) {
-			paymentMethodTypes = append(paymentMethodTypes, stripe.String(paymentMethodConfig.Type))
+			paymentMethodTypes = append(paymentMethodTypes, paymentMethodConfig.Type)
 		}
 	}
 
-	stripeInvoice, err := s.stripeClient.Invoices.New(&stripe.InvoiceParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		Customer:         stripe.String(custmr.ProviderID),
-		AutoAdvance:      stripe.Bool(true),
-		DaysUntilDue:     daysUntilDue,
-		CollectionMethod: stripe.String(string(stripe.InvoiceCollectionMethodSendInvoice)),
-		Description:      stripe.String(description),
-		AutomaticTax: &stripe.InvoiceAutomaticTaxParams{
-			Enabled: stripe.Bool(s.stripeAutoTax),
-		},
-		Currency:                    stripe.String(currency),
-		PendingInvoiceItemsBehavior: stripe.String("include"),
+	providerInvoice, err := s.provider.CreateInvoice(ctx, billing.CreateInvoiceParams{
+		CustomerProviderID: custmr.ProviderID,
+		AutoAdvance:        true,
+		DaysUntilDue:       daysUntilDue,
+		CollectionMethod:   "send_invoice",
+		Description:        description,
+		AutoTax:            s.stripeAutoTax,
+		Currency:           currency,
 		Metadata: map[string]string{
 			"org_id":     custmr.OrgID,
 			"managed_by": "frontier",
 		},
-		PaymentSettings: &stripe.InvoicePaymentSettingsParams{
-			PaymentMethodTypes: paymentMethodTypes,
-			PaymentMethodOptions: &stripe.InvoicePaymentSettingsPaymentMethodOptionsParams{
-				CustomerBalance: &stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceParams{
-					FundingType: stripe.String(string(stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceFundingTypeBankTransfer)),
-					BankTransfer: &stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceBankTransferParams{
-						Type: stripe.String("us_bank_transfer"),
-					},
-				},
-			},
-		},
+		PaymentMethodTypes: paymentMethodTypes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create invoice: %w", err)
@@ -660,41 +623,32 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 			ItemIDMetadataKey:   item.ID,
 			ItemTypeMetadataKey: item.Type.String(),
 		}
-		var itemPeriod *stripe.InvoiceItemPeriodParams
+		var periodStart, periodEnd *int64
 		if item.TimeRangeStart != nil && item.TimeRangeEnd != nil {
-			itemPeriod = &stripe.InvoiceItemPeriodParams{
-				Start: stripe.Int64(item.TimeRangeStart.Unix()),
-				End:   stripe.Int64(item.TimeRangeEnd.Unix()),
-			}
+			s := item.TimeRangeStart.Unix()
+			e := item.TimeRangeEnd.Unix()
+			periodStart = &s
+			periodEnd = &e
 		}
 
-		_, err = s.stripeClient.InvoiceItems.New(&stripe.InvoiceItemParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-			Customer:    stripe.String(custmr.ProviderID),
-			Currency:    stripe.String(custmr.Currency),
-			Invoice:     stripe.String(stripeInvoice.ID),
-			UnitAmount:  &item.UnitAmount,
-			Quantity:    &item.Quantity,
-			Metadata:    itemMetadata,
-			Description: stripe.String(item.Name),
-			Period:      itemPeriod,
+		err = s.provider.CreateInvoiceItem(ctx, billing.CreateInvoiceItemParams{
+			CustomerProviderID: custmr.ProviderID,
+			InvoiceProviderID:  providerInvoice.ID,
+			Currency:           custmr.Currency,
+			UnitAmount:         item.UnitAmount,
+			Quantity:           item.Quantity,
+			Description:        item.Name,
+			Metadata:           itemMetadata,
+			PeriodStart:        periodStart,
+			PeriodEnd:          periodEnd,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create invoice item: %w", err)
 		}
 	}
 
-	// fetch updated stripe invoice
-	return s.stripeClient.Invoices.Get(stripeInvoice.ID, &stripe.InvoiceParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		Expand: []*string{
-			stripe.String("lines"),
-		},
-	})
+	// fetch updated invoice
+	return s.provider.GetInvoice(ctx, providerInvoice.ID)
 }
 
 // Reconcile checks all paid invoices and reconciles them with the system.
@@ -789,13 +743,13 @@ func (s *Service) reconcileCreditInvoice(ctx context.Context, inv Invoice) error
 }
 
 func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
-	stripeInvoice, err := s.stripeClient.Invoices.Get(id, &stripe.InvoiceParams{})
+	providerInvoice, err := s.provider.GetInvoice(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	customrs, err := s.customerService.List(ctx, customer.Filter{
-		ProviderID: stripeInvoice.Customer.ID,
+		ProviderID: providerInvoice.CustomerProviderID,
 	})
 	if err != nil {
 		return err

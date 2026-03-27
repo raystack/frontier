@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
-	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
@@ -34,7 +33,6 @@ import (
 	"github.com/raystack/frontier/billing/product"
 
 	"github.com/raystack/frontier/billing/customer"
-	"github.com/stripe/stripe-go/v79/client"
 )
 
 const (
@@ -104,7 +102,7 @@ type AuthnService interface {
 
 type Service struct {
 	stripeAutoTax       bool
-	stripeClient        *client.API
+	provider            billing.Provider
 	repository          Repository
 	customerService     CustomerService
 	planService         PlanService
@@ -121,13 +119,13 @@ type Service struct {
 	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, cfg billing.Config, repository Repository,
+func NewService(provider billing.Provider, cfg billing.Config, repository Repository,
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, productService ProductService,
 	creditService CreditService, orgService OrganizationService,
 	authnService AuthnService) *Service {
 	s := &Service{
-		stripeClient:        stripeClient,
+		provider:            provider,
 		stripeAutoTax:       cfg.StripeAutoTax,
 		repository:          repository,
 		customerService:     customerService,
@@ -227,7 +225,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	}
 
 	// Determine address collection setting based on whether customer already has minimum required address
-	addressCollectionParam := string(stripe.CheckoutSessionBillingAddressCollectionAuto)
+	addressCollectionParam := "auto"
 	if billingCustomer.HasMinimumRequiredAddress() {
 		addressCollectionParam = "never"
 	}
@@ -249,7 +247,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 
 		// create subscription items
-		var subsItems []*stripe.CheckoutSessionLineItemParams
+		var lineItems []billing.CheckoutLineItemInput
 
 		userCount, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
 		if err != nil {
@@ -277,35 +275,32 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				if productPrice.IsLicensed() && planProduct.HasPerSeatBehavior() {
 					quantity = userCount
 				}
-				itemParams := &stripe.CheckoutSessionLineItemParams{
-					Price:    stripe.String(productPrice.ProviderID),
-					Quantity: stripe.Int64(quantity),
-				}
-				subsItems = append(subsItems, itemParams)
+				lineItems = append(lineItems, billing.CheckoutLineItemInput{
+					PriceProviderID: productPrice.ProviderID,
+					Quantity:        quantity,
+				})
 			}
 		}
 
-		var trialDays *int64 = nil
+		var trialDays *int64
 		// if trial is enabled and user has not trialed before, set trial days
 		userHasTrialedBefore, err := s.subscriptionService.HasUserSubscribedBefore(ctx, billingCustomer.ID, plan.ID)
 		if err != nil {
 			return Checkout{}, err
 		}
 		if plan.TrialDays > 0 && !ch.SkipTrial && !userHasTrialedBefore {
-			trialDays = stripe.Int64(plan.TrialDays)
+			td := plan.TrialDays
+			trialDays = &td
 		}
 
 		// create subscription checkout link
-		stripeCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
-				Enabled: stripe.Bool(s.stripeAutoTax),
-			},
-			Currency:  stripe.String(billingCustomer.Currency),
-			Customer:  stripe.String(billingCustomer.ProviderID),
-			LineItems: subsItems,
+		providerCheckout, err := s.provider.CreateCheckoutSession(ctx, billing.CreateCheckoutSessionParams{
+			CustomerProviderID: billingCustomer.ProviderID,
+			Currency:           billingCustomer.Currency,
+			Mode:               "subscription",
+			SuccessURL:         ch.SuccessUrl,
+			CancelURL:          ch.CancelUrl,
+			LineItems:          lineItems,
 			Metadata: map[string]string{
 				"org_id":               billingCustomer.OrgID,
 				"plan_id":              ch.PlanID,
@@ -313,30 +308,20 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
 			},
-			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(addressCollectionParam),
+			AutoTax:   s.stripeAutoTax,
+			ExpiresAt: time.Now().Add(SessionValidity).Unix(),
+			SubscriptionMetadata: map[string]string{
+				"description":                       fmt.Sprintf("Checkout for %s", plan.Name),
+				"org_id":                            billingCustomer.OrgID,
+				CheckoutIDMetadataKey:               checkoutID,
+				subscription.InitiatorIDMetadataKey: currentPrincipal.ID,
+				"managed_by":                        "frontier",
 			},
-			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
-				Metadata: map[string]string{
-					"org_id":                            billingCustomer.OrgID,
-					CheckoutIDMetadataKey:               checkoutID,
-					subscription.InitiatorIDMetadataKey: currentPrincipal.ID,
-					"managed_by":                        "frontier",
-				},
-				TrialPeriodDays: trialDays,
-				TrialSettings: &stripe.CheckoutSessionSubscriptionDataTrialSettingsParams{
-					EndBehavior: &stripe.CheckoutSessionSubscriptionDataTrialSettingsEndBehaviorParams{
-						MissingPaymentMethod: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
-					},
-				},
-			},
-			AllowPromotionCodes:     stripe.Bool(true),
-			CancelURL:               stripe.String(ch.CancelUrl),
-			SuccessURL:              stripe.String(ch.SuccessUrl),
-			ExpiresAt:               stripe.Int64(time.Now().Add(SessionValidity).Unix()),
-			PaymentMethodCollection: stripe.String(string(stripe.PaymentLinkPaymentMethodCollectionIfRequired)),
+			TrialDays:               trialDays,
+			CancelAtTrialEnd:        true,
+			AddressCollection:       addressCollectionParam,
+			AllowPromotionCodes:     true,
+			PaymentMethodCollection: "if_required",
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
@@ -344,23 +329,23 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 		return s.repository.Create(ctx, Checkout{
 			ID:               checkoutID,
-			ProviderID:       stripeCheckout.ID,
+			ProviderID:       providerCheckout.ID,
 			CustomerID:       billingCustomer.ID,
 			PlanID:           plan.ID,
 			SkipTrial:        ch.SkipTrial,
 			CancelAfterTrial: ch.CancelAfterTrial,
 			CancelUrl:        ch.CancelUrl,
 			SuccessUrl:       ch.SuccessUrl,
-			CheckoutUrl:      stripeCheckout.URL,
-			State:            string(stripeCheckout.Status),
-			PaymentStatus:    string(stripeCheckout.PaymentStatus),
+			CheckoutUrl:      providerCheckout.URL,
+			State:            providerCheckout.Status,
+			PaymentStatus:    providerCheckout.PaymentStatus,
 			Metadata: map[string]any{
 				"plan_name":            plan.Name,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"org_id":               billingCustomer.OrgID,
 				"customer_name":        billingCustomer.Name,
 			},
-			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
+			ExpireAt: utils.AsTimeFromEpoch(providerCheckout.ExpiresAt),
 		})
 	}
 
@@ -373,7 +358,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			return Checkout{}, fmt.Errorf("invalid product, no prices found")
 		}
 
-		var subsItems []*stripe.CheckoutSessionLineItemParams
+		var lineItems []billing.CheckoutLineItemInput
 		var minQ int64 = MinimumProductQuantity
 		var maxQ int64 = MaximumProductQuantity
 		var adjustableQuantity bool = true
@@ -393,50 +378,47 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 		amountSubtotal := int64(0)
 		for _, productPrice := range chProduct.Prices {
-			itemParams := &stripe.CheckoutSessionLineItemParams{
-				Price: stripe.String(productPrice.ProviderID),
-				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
-					Enabled: stripe.Bool(adjustableQuantity),
-				},
+			item := billing.CheckoutLineItemInput{
+				PriceProviderID: productPrice.ProviderID,
 			}
 			if adjustableQuantity {
-				itemParams.AdjustableQuantity.Minimum = stripe.Int64(minQ)
-				itemParams.AdjustableQuantity.Maximum = stripe.Int64(maxQ)
+				item.AdjustableQuantity = &billing.AdjustableQuantity{
+					Enabled: true,
+					Minimum: minQ,
+					Maximum: maxQ,
+				}
+			} else {
+				item.AdjustableQuantity = &billing.AdjustableQuantity{
+					Enabled: false,
+				}
 			}
 			if productPrice.UsageType == product.PriceUsageTypeLicensed {
-				itemParams.Quantity = stripe.Int64(defaultQ)
+				item.Quantity = defaultQ
 			}
 
 			if productPrice.Currency == s.defaultCurrency {
 				amountSubtotal += productPrice.Amount * defaultQ
 			}
 
-			subsItems = append(subsItems, itemParams)
+			lineItems = append(lineItems, item)
 		}
 
 		// plan payment methods on the basis of amount subtotal
-		var paymentMethodTypes []*string
+		var paymentMethodTypes []string
 		for _, paymentMethodConfig := range s.paymentMethodConfig {
 			if paymentMethodConfig.IsAllowedForAmount(amountSubtotal) {
-				paymentMethodTypes = append(paymentMethodTypes, stripe.String(paymentMethodConfig.Type))
+				paymentMethodTypes = append(paymentMethodTypes, paymentMethodConfig.Type)
 			}
 		}
 
 		// create one time checkout link
-		stripeCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
-				Enabled: stripe.Bool(s.stripeAutoTax),
-			},
-			Currency: stripe.String(s.defaultCurrency),
-			Customer: stripe.String(billingCustomer.ProviderID),
-			InvoiceCreation: &stripe.CheckoutSessionInvoiceCreationParams{
-				Enabled: stripe.Bool(true),
-			},
-			LineItems: subsItems,
-			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
+		providerCheckout, err := s.provider.CreateCheckoutSession(ctx, billing.CreateCheckoutSessionParams{
+			CustomerProviderID: billingCustomer.ProviderID,
+			Currency:           s.defaultCurrency,
+			Mode:               "payment",
+			SuccessURL:         ch.SuccessUrl,
+			CancelURL:          ch.CancelUrl,
+			LineItems:          lineItems,
 			Metadata: map[string]string{
 				"org_id":               billingCustomer.OrgID,
 				"product_name":         chProduct.Name,
@@ -445,22 +427,12 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
 			},
-			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(addressCollectionParam),
-			},
-			AllowPromotionCodes: stripe.Bool(true),
-			CancelURL:           stripe.String(ch.CancelUrl),
-			SuccessURL:          stripe.String(ch.SuccessUrl),
-			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			AutoTax:             s.stripeAutoTax,
+			ExpiresAt:           time.Now().Add(SessionValidity).Unix(),
+			InvoiceCreation:     true,
 			PaymentMethodTypes:  paymentMethodTypes,
-			PaymentMethodOptions: &stripe.CheckoutSessionPaymentMethodOptionsParams{
-				CustomerBalance: &stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceParams{
-					FundingType: stripe.String(string(stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceFundingTypeBankTransfer)),
-					BankTransfer: &stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceBankTransferParams{
-						Type: stripe.String(string(stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceBankTransferTypeUSBankTransfer)),
-					},
-				},
-			},
+			AddressCollection:   addressCollectionParam,
+			AllowPromotionCodes: true,
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to buy product at billing provider: %w", err)
@@ -468,21 +440,21 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 		return s.repository.Create(ctx, Checkout{
 			ID:            checkoutID,
-			ProviderID:    stripeCheckout.ID,
+			ProviderID:    providerCheckout.ID,
 			CustomerID:    billingCustomer.ID,
 			ProductID:     chProduct.ID,
 			CancelUrl:     ch.CancelUrl,
 			SuccessUrl:    ch.SuccessUrl,
-			CheckoutUrl:   stripeCheckout.URL,
-			State:         string(stripeCheckout.Status),
-			PaymentStatus: string(stripeCheckout.PaymentStatus),
+			CheckoutUrl:   providerCheckout.URL,
+			State:         providerCheckout.Status,
+			PaymentStatus: providerCheckout.PaymentStatus,
 			Metadata: map[string]any{
 				"product_name":         chProduct.Name,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"org_id":               billingCustomer.OrgID,
 				"customer_name":        billingCustomer.Name,
 			},
-			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
+			ExpireAt: utils.AsTimeFromEpoch(providerCheckout.ExpiresAt),
 		})
 	}
 
@@ -555,35 +527,25 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			continue
 		}
 
-		checkoutSession, err := s.stripeClient.CheckoutSessions.Get(ch.ProviderID, &stripe.CheckoutSessionParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-			Expand: []*string{
-				stripe.String("line_items.data.price.product"),
-			},
-		})
+		checkoutSession, err := s.provider.GetCheckoutSession(ctx, ch.ProviderID)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("failed to get checkout session from billing provider: %w", err))
 			continue
 		}
-		if ch.PaymentStatus != string(checkoutSession.PaymentStatus) {
-			ch.PaymentStatus = string(checkoutSession.PaymentStatus)
+		if ch.PaymentStatus != checkoutSession.PaymentStatus {
+			ch.PaymentStatus = checkoutSession.PaymentStatus
 		}
-		if ch.State != string(checkoutSession.Status) {
-			ch.State = string(checkoutSession.Status)
+		if ch.State != checkoutSession.Status {
+			ch.State = checkoutSession.Status
 		}
-		if checkoutSession.Subscription != nil {
-			ch.Metadata[ProviderIDSubscriptionMetadataKey] = checkoutSession.Subscription.ID
+		if checkoutSession.SubscriptionID != "" {
+			ch.Metadata[ProviderIDSubscriptionMetadataKey] = checkoutSession.SubscriptionID
 		}
 		ch.Metadata[AmountTotalMetadataKey] = checkoutSession.AmountTotal
 		ch.Metadata[CurrencyMetadataKey] = checkoutSession.Currency
-		if checkoutSession.LineItems != nil {
-			for _, lintitem := range checkoutSession.LineItems.Data {
-				if lintitem.Price != nil && lintitem.Price.Product != nil &&
-					lintitem.Price.Product.ID == ch.ProductID {
-					ch.Metadata[ProductQuantityMetadataKey] = lintitem.Quantity
-				}
+		for _, lineItem := range checkoutSession.LineItems {
+			if lineItem.ProductID == ch.ProductID {
+				ch.Metadata[ProductQuantityMetadataKey] = lineItem.Quantity
 			}
 		}
 		if checks[idx], err = s.repository.UpdateByID(ctx, ch); err != nil {
@@ -733,12 +695,7 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 		return "", err
 	}
 
-	stripeSubscription, err := s.stripeClient.Subscriptions.Get(subProviderID,
-		&stripe.SubscriptionParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-		})
+	providerSubscription, err := s.provider.GetSubscription(ctx, subProviderID)
 	if err != nil {
 		return "", fmt.Errorf("failed to get subscription from billing provider: %w", err)
 	}
@@ -746,22 +703,22 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 	// create subscription
 	md := metadata.Build(ch.Metadata)
 	md[CheckoutIDMetadataKey] = ch.ID
-	md[subscription.ProviderTestResource] = !stripeSubscription.Livemode
+	md[subscription.ProviderTestResource] = !providerSubscription.Livemode
 	sub, err := s.subscriptionService.Create(ctx, subscription.Subscription{
 		ID:          uuid.New().String(),
 		ProviderID:  subProviderID,
 		CustomerID:  ch.CustomerID,
 		PlanID:      ch.PlanID,
-		State:       string(stripeSubscription.Status),
+		State:       providerSubscription.Status,
 		Metadata:    md,
-		TrialEndsAt: utils.AsTimeFromEpoch(stripeSubscription.TrialEnd),
+		TrialEndsAt: utils.AsTimeFromEpoch(providerSubscription.TrialEnd),
 	})
 	if err != nil {
 		return "", err
 	}
 
 	// if set to cancel after trial, schedule a phase to cancel the subscription
-	if ch.CancelAfterTrial && stripeSubscription.TrialEnd > 0 {
+	if ch.CancelAfterTrial && providerSubscription.TrialEnd > 0 {
 		_, err := s.subscriptionService.Cancel(ctx, sub.ID, false)
 		if err != nil {
 			return "", fmt.Errorf("failed to schedule cancel of subscription after trial: %w", err)
@@ -787,16 +744,13 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 	}
 
 	// create payment method setup checkout link
-	stripeCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		Customer:   stripe.String(billingCustomer.ProviderID),
-		Currency:   stripe.String(billingCustomer.Currency),
-		Mode:       stripe.String(string(stripe.CheckoutSessionModeSetup)),
-		CancelURL:  stripe.String(ch.CancelUrl),
-		SuccessURL: stripe.String(ch.SuccessUrl),
-		ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+	providerCheckout, err := s.provider.CreateCheckoutSession(ctx, billing.CreateCheckoutSessionParams{
+		CustomerProviderID: billingCustomer.ProviderID,
+		Currency:           billingCustomer.Currency,
+		Mode:               "setup",
+		SuccessURL:         ch.SuccessUrl,
+		CancelURL:          ch.CancelUrl,
+		ExpiresAt:          time.Now().Add(SessionValidity).Unix(),
 		Metadata: map[string]string{
 			"org_id":      billingCustomer.OrgID,
 			"checkout_id": checkoutID,
@@ -809,13 +763,13 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 
 	return s.repository.Create(ctx, Checkout{
 		ID:          checkoutID,
-		ProviderID:  stripeCheckout.ID,
+		ProviderID:  providerCheckout.ID,
 		CustomerID:  billingCustomer.ID,
 		CancelUrl:   ch.CancelUrl,
 		SuccessUrl:  ch.SuccessUrl,
-		CheckoutUrl: stripeCheckout.URL,
-		State:       string(stripeCheckout.Status),
-		ExpireAt:    utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
+		CheckoutUrl: providerCheckout.URL,
+		State:       providerCheckout.Status,
+		ExpireAt:    utils.AsTimeFromEpoch(providerCheckout.ExpiresAt),
 		Metadata: map[string]any{
 			"mode":          "setup",
 			"org_id":        billingCustomer.OrgID,
@@ -832,30 +786,20 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 
 	checkoutID := uuid.New().String()
 
-	sessionParams := &stripe.BillingPortalSessionParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		Customer: stripe.String(billingCustomer.ProviderID),
-	}
-
-	if ch.CancelUrl != "" {
-		sessionParams.ReturnURL = stripe.String(ch.CancelUrl)
-	}
-
-	session, err := s.stripeClient.BillingPortalSessions.New(sessionParams)
-
+	portalURL, err := s.provider.CreateBillingPortalSession(ctx, billing.CreateBillingPortalParams{
+		CustomerProviderID: billingCustomer.ProviderID,
+		ReturnURL:          ch.CancelUrl,
+	})
 	if err != nil {
 		return Checkout{}, fmt.Errorf("failed to create session for customer portal: %w", err)
 	}
 
 	return Checkout{
 		ID:          checkoutID,
-		ProviderID:  session.ID,
 		CustomerID:  billingCustomer.ID,
 		CancelUrl:   ch.CancelUrl,
 		SuccessUrl:  ch.SuccessUrl,
-		CheckoutUrl: session.URL,
+		CheckoutUrl: portalURL,
 		Metadata: map[string]any{
 			"mode": "customer_portal",
 		},
@@ -878,9 +822,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		return nil, nil, err
 	}
 
-	autoTaxParams := &stripe.SubscriptionAutomaticTaxParams{
-		Enabled: stripe.Bool(s.stripeAutoTax),
-	}
+	autoTax := s.stripeAutoTax
 
 	// checkout could be for a plan or a product
 	if ch.PlanID != "" && !billingCustomer.IsOffline() {
@@ -903,7 +845,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		}
 
 		// create subscription items
-		var subsItems []*stripe.SubscriptionItemsParams
+		var subsItems []billing.SubscriptionItemInput
 		userCount, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get member count: %w", err)
@@ -931,55 +873,48 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 					quantity = userCount
 				}
 
-				itemParams := &stripe.SubscriptionItemsParams{
-					Price:    stripe.String(productPrice.ProviderID),
-					Quantity: stripe.Int64(quantity),
+				subsItems = append(subsItems, billing.SubscriptionItemInput{
+					PriceProviderID: productPrice.ProviderID,
+					Quantity:        quantity,
 					Metadata: map[string]string{
 						"org_id":     billingCustomer.OrgID,
 						"product_id": planProduct.ID,
 					},
-				}
-				subsItems = append(subsItems, itemParams)
+				})
 				totalExpectedPrice += productPrice.Amount * quantity
 			}
 		}
 
-		var trialDays *int64 = nil
+		var trialDays *int64
 		if plan.TrialDays > 0 && !ch.SkipTrial {
-			trialDays = stripe.Int64(plan.TrialDays)
+			td := plan.TrialDays
+			trialDays = &td
 		}
 
 		if totalExpectedPrice == 0 {
 			// if total price is 0, disable auto tax. This ensures that when the subscription is created without
 			// user billing details while onboarding, creating 0 amount invoice doesn't fail
 			// This will be toggled back on when the user changes it's plan to a paid one
-			autoTaxParams.Enabled = stripe.Bool(false)
+			autoTax = false
 		}
 
-		var couponID *string
+		couponID := ""
 		if ch.ProviderCouponID != "" {
-			couponID = stripe.String(ch.ProviderCouponID)
+			couponID = ch.ProviderCouponID
 		}
 		// create subscription directly
-		stripeSubscription, err := s.stripeClient.Subscriptions.New(&stripe.SubscriptionParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-			AutomaticTax: autoTaxParams,
-			Customer:     stripe.String(billingCustomer.ProviderID),
-			Currency:     stripe.String(billingCustomer.Currency),
-			Items:        subsItems,
+		providerSubscription, err := s.provider.CreateSubscription(ctx, billing.CreateSubscriptionParams{
+			CustomerProviderID: billingCustomer.ProviderID,
+			Currency:           billingCustomer.Currency,
+			Items:              subsItems,
 			Metadata: map[string]string{
 				"org_id":     billingCustomer.OrgID,
 				"managed_by": "frontier",
 			},
-			TrialPeriodDays: trialDays,
-			TrialSettings: &stripe.SubscriptionTrialSettingsParams{
-				EndBehavior: &stripe.SubscriptionTrialSettingsEndBehaviorParams{
-					MissingPaymentMethod: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
-				},
-			},
-			Coupon: couponID,
+			TrialDays:        trialDays,
+			AutoTax:          autoTax,
+			CancelAtTrialEnd: true,
+			CouponID:         couponID,
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription at billing provider: %w", err)
@@ -988,27 +923,27 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		// register subscription in frontier
 		subs, err := s.subscriptionService.Create(ctx, subscription.Subscription{
 			ID:         uuid.New().String(),
-			ProviderID: stripeSubscription.ID,
+			ProviderID: providerSubscription.ID,
 			CustomerID: billingCustomer.ID,
 			PlanID:     plan.ID,
 			Metadata: map[string]any{
 				"org_id":                          billingCustomer.OrgID,
 				"delegated":                       "true",
 				"checkout_id":                     ch.ID,
-				subscription.ProviderTestResource: !stripeSubscription.Livemode,
+				subscription.ProviderTestResource: !providerSubscription.Livemode,
 			},
-			State:                string(stripeSubscription.Status),
-			TrialEndsAt:          utils.AsTimeFromEpoch(stripeSubscription.TrialEnd),
-			BillingCycleAnchorAt: utils.AsTimeFromEpoch(stripeSubscription.BillingCycleAnchor),
-			CurrentPeriodStartAt: utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodStart),
-			CurrentPeriodEndAt:   utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodEnd),
+			State:                providerSubscription.Status,
+			TrialEndsAt:          utils.AsTimeFromEpoch(providerSubscription.TrialEnd),
+			BillingCycleAnchorAt: utils.AsTimeFromEpoch(providerSubscription.BillingCycleAnchor),
+			CurrentPeriodStartAt: utils.AsTimeFromEpoch(providerSubscription.CurrentPeriodStart),
+			CurrentPeriodEndAt:   utils.AsTimeFromEpoch(providerSubscription.CurrentPeriodEnd),
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)
 		}
 
 		// if set to cancel after trial, schedule a phase to cancel the subscription
-		if ch.CancelAfterTrial && stripeSubscription.TrialEnd > 0 {
+		if ch.CancelAfterTrial && providerSubscription.TrialEnd > 0 {
 			_, err := s.subscriptionService.Cancel(ctx, subs.ID, false)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to schedule cancel of subscription after trial: %w", err)
