@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	svc "github.com/raystack/frontier/core/aggregates/orgpats"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/store/postgres"
@@ -35,8 +36,11 @@ func (h *ConnectHandler) SearchOrganizationPATs(ctx context.Context, request *co
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
 
-	// Cap limit
+	// Cap limit — override user-requested limit if it exceeds max
 	if rqlQuery.Limit <= 0 || rqlQuery.Limit > orgPATsMaxLimit {
+		grpczap.Extract(ctx).Warn("overriding requested limit to max allowed",
+			zap.Int("requested_limit", rqlQuery.Limit),
+			zap.Int("applied_limit", orgPATsDefaultLimit))
 		rqlQuery.Limit = orgPATsDefaultLimit
 	}
 
