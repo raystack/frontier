@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stripe/stripe-go/v79"
-
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -15,7 +13,6 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/core/user"
-	"github.com/stripe/stripe-go/v79/webhook"
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
 
@@ -66,6 +63,7 @@ type InvoiceService interface {
 
 type Service struct {
 	billingConf     billing.Config
+	billingProvider billing.Provider
 	checkoutService CheckoutService
 	customerService CustomerService
 	orgService      OrganizationService
@@ -78,13 +76,15 @@ type Service struct {
 	sf singleflight.Group
 }
 
-func NewService(billingConf billing.Config, organizationService OrganizationService,
+func NewService(billingConf billing.Config, billingProvider billing.Provider,
+	organizationService OrganizationService,
 	checkoutService CheckoutService, customerService CustomerService,
 	planService PlanService, userService UserService,
 	subsService SubscriptionService, creditService CreditService,
 	invoiceService InvoiceService) *Service {
 	return &Service{
 		billingConf:     billingConf,
+		billingProvider: billingProvider,
 		orgService:      organizationService,
 		checkoutService: checkoutService,
 		customerService: customerService,
@@ -186,45 +186,27 @@ func getCustomerName(org organization.Organization) string {
 
 func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEvent) error {
 	stdLogger := grpczap.Extract(ctx).With(zap.String("provider", payload.Name))
-	if payload.Name != "stripe" {
-		return fmt.Errorf("provider not supported")
-	}
-	if len(p.billingConf.StripeWebhookSecrets) == 0 {
-		return fmt.Errorf("no stripe webhook secrets configured")
-	}
 
 	webhookSignature, ok := customer.GetStripeWebhookSignatureFromContext(ctx)
 	if !ok {
 		return fmt.Errorf("missing billing provider webhook signature")
 	}
 
-	// try all secrets to parse the event, useful for rotating secrets
-	var parseErrs []error
-	var evt stripe.Event
-	for _, secret := range p.billingConf.StripeWebhookSecrets {
-		var err error
-		evt, err = webhook.ConstructEvent(payload.Body, webhookSignature, secret)
-		if err != nil {
-			parseErrs = append(parseErrs, err)
-			continue
-		}
-		break
-	}
-	if len(parseErrs) > 0 {
-		return fmt.Errorf("failed to construct event: %w", errors.Join(parseErrs...))
+	evt, err := p.billingProvider.VerifyWebhook(payload.Body, webhookSignature, p.billingConf.StripeWebhookSecrets)
+	if err != nil {
+		return err
 	}
 	ctx = context.WithoutCancel(ctx)
 
 	// limit all executions to 1 per second per event type
 	currentExecutionUnit := time.Now().Second()
-	providerID := evt.GetObjectValue("id")
+	providerID := evt.ObjectID
 
 	go func() {
 		// don't block the webhook and process it in the background
 		switch evt.Type {
-		case stripe.EventTypeCheckoutSessionCompleted,
-			stripe.EventTypeCheckoutSessionAsyncPaymentSucceeded:
-			// trigger checkout sync
+		case billing.EventCheckoutCompleted,
+			billing.EventCheckoutPaymentSucceeded:
 			deDupKey := fmt.Sprintf("checkout-%s-%d", providerID, currentExecutionUnit)
 			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
 				return nil, p.checkoutService.TriggerSyncByProviderID(ctx, providerID)
@@ -232,11 +214,10 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			if err != nil {
 				stdLogger.Error("error syncing checkout", zap.Error(err), zap.String("provider_id", providerID))
 			}
-		case stripe.EventTypeCustomerCreated,
-			stripe.EventTypeCustomerUpdated,
-			stripe.EventTypeCustomerSourceCreated,
-			stripe.EventTypeCustomerSourceUpdated:
-			// trigger customer sync
+		case billing.EventCustomerCreated,
+			billing.EventCustomerUpdated,
+			billing.EventCustomerSourceCreated,
+			billing.EventCustomerSourceUpdated:
 			deDupKey := fmt.Sprintf("customer-%s-%d", providerID, currentExecutionUnit)
 			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
 				return nil, p.customerService.TriggerSyncByProviderID(ctx, providerID)
@@ -244,10 +225,9 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			if err != nil {
 				stdLogger.Error("error syncing customer", zap.Error(err), zap.String("provider_id", providerID))
 			}
-		case stripe.EventTypeCustomerSubscriptionCreated,
-			stripe.EventTypeCustomerSubscriptionUpdated,
-			stripe.EventTypeCustomerSubscriptionDeleted:
-			// trigger subscriptions sync
+		case billing.EventSubscriptionCreated,
+			billing.EventSubscriptionUpdated,
+			billing.EventSubscriptionDeleted:
 			deDupKey := fmt.Sprintf("subscription-%s-%d", providerID, currentExecutionUnit)
 			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
 				return nil, p.subsService.TriggerSyncByProviderID(ctx, providerID)
@@ -255,8 +235,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			if err != nil {
 				stdLogger.Error("error syncing subscription", zap.Error(err), zap.String("provider_id", providerID))
 			}
-		case stripe.EventTypeInvoicePaid:
-			// trigger invoice sync
+		case billing.EventInvoicePaid:
 			deDupKey := fmt.Sprintf("invoice-%s-%d", providerID, currentExecutionUnit)
 			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
 				return nil, p.invoiceService.TriggerSyncByProviderID(ctx, providerID)
