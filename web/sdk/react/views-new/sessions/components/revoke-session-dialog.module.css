@@ -1,0 +1,12 @@
+.detailRow {
+  padding: var(--rs-space-5) 0;
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+}
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  width: 120px;
+  flex-shrink: 0;
+}
