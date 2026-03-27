@@ -223,9 +223,8 @@ func TestService_Create(t *testing.T) {
 					BillingScheme: stripe.String("per_unit"),
 					Nickname:      stripe.String("price1"),
 					Recurring: &stripe.PriceRecurringParams{
-						AggregateUsage: stripe.String("sum"),
-						Interval:       stripe.String("month"),
-						UsageType:      stripe.String("licensed"),
+						Interval:  stripe.String("month"),
+						UsageType: stripe.String("licensed"),
 					},
 				}, &stripe.Price{
 					ID: "",

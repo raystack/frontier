@@ -167,7 +167,7 @@ func (p *Provider) CreatePrice(ctx context.Context, params billing.CreatePricePa
 			Interval:  stripe.String(params.Interval),
 			UsageType: stripe.String(params.UsageType),
 		}
-		if params.MeteredAggregate != "" {
+		if params.UsageType == "metered" && params.MeteredAggregate != "" {
 			pp.Recurring.AggregateUsage = stripe.String(params.MeteredAggregate)
 		}
 	}
