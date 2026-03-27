@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
+	"github.com/raystack/frontier/core/aggregates/orgpats"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
 	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	svc "github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
@@ -319,6 +320,10 @@ type EventService interface {
 type OrgTokensService interface {
 	Search(ctx context.Context, id string, query *rql.Query) (orgtokens.OrganizationTokens, error)
 	Export(ctx context.Context, orgID string) ([]byte, string, error)
+}
+
+type OrgPATsService interface {
+	Search(ctx context.Context, orgID string, query *rql.Query) (orgpats.OrganizationPATs, error)
 }
 
 type OrgServiceUserService interface {
