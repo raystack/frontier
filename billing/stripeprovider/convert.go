@@ -133,6 +133,9 @@ func fromStripeSchedule(ss *stripe.SubscriptionSchedule) *billing.ProviderSchedu
 			if item.Price.Product != nil {
 				pi.ProductID = item.Price.Product.ID
 			}
+			if item.Price.Recurring != nil {
+				pi.Interval = string(item.Price.Recurring.Interval)
+			}
 			pp.Items = append(pp.Items, pi)
 		}
 		ps.Phases = append(ps.Phases, pp)
@@ -206,6 +209,17 @@ func fromStripeInvoice(si *stripe.Invoice) *billing.ProviderInvoice {
 		}
 	}
 	return pi
+}
+
+// mapBillingScheme converts Frontier's billing scheme values to Stripe's.
+// Stripe uses "per_unit" where Frontier uses "flat".
+func mapBillingScheme(scheme string) string {
+	switch scheme {
+	case "flat":
+		return "per_unit"
+	default:
+		return scheme
+	}
 }
 
 func toAnyMap(m map[string]string) map[string]any {

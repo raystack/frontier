@@ -35,11 +35,11 @@ func (p *Provider) CreateCustomer(ctx context.Context, params billing.CreateCust
 		})
 	}
 	sc, err := p.client.Customers.New(&stripe.CustomerParams{
-		Params:  stripe.Params{Context: ctx},
-		Email:   &params.Email,
-		Name:    &params.Name,
-		Phone:   &params.Phone,
-		Address: toStripeAddress(params.Address),
+		Params:    stripe.Params{Context: ctx},
+		Email:     &params.Email,
+		Name:      &params.Name,
+		Phone:     &params.Phone,
+		Address:   toStripeAddress(params.Address),
 		TaxIDData: taxIDs,
 		Metadata:  params.Metadata,
 		TestClock: params.TestClockID,
@@ -157,7 +157,7 @@ func (p *Provider) CreatePrice(ctx context.Context, params billing.CreatePricePa
 		Params:        stripe.Params{Context: ctx},
 		Product:       &params.ProductID,
 		Nickname:      &params.Name,
-		BillingScheme: stripe.String(params.BillingScheme),
+		BillingScheme: stripe.String(mapBillingScheme(params.BillingScheme)),
 		Currency:      &params.Currency,
 		UnitAmount:    &params.Amount,
 		Metadata:      params.Metadata,
@@ -375,8 +375,8 @@ func (p *Provider) CreateCheckoutSession(ctx context.Context, params billing.Cre
 		AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
 			Enabled: stripe.Bool(params.AutoTax),
 		},
-		CancelURL:          stripe.String(params.CancelURL),
-		SuccessURL:         stripe.String(params.SuccessURL),
+		CancelURL:           stripe.String(params.CancelURL),
+		SuccessURL:          stripe.String(params.SuccessURL),
 		AllowPromotionCodes: stripe.Bool(params.AllowPromotionCodes),
 	}
 	if params.ExpiresAt > 0 {
@@ -611,7 +611,7 @@ func (p *Provider) VerifyWebhook(payload []byte, signature string, secrets []str
 	}, nil
 }
 
-// mapStripeEventType converts Stripe event types to provider-neutral constants.
+// mapStripeEventType converts Stripe event types to billing.Event* constants.
 func mapStripeEventType(t string) string {
 	switch t {
 	case string(stripe.EventTypeCheckoutSessionCompleted):

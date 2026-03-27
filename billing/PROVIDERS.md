@@ -5,10 +5,10 @@ implementations must satisfy.
 
 ## Overview
 
-`billing.Provider` abstracts all communication with an external billing service
-(Stripe, Polar, etc.). Billing services in Frontier never call provider APIs
-directly — they operate through this interface using provider-neutral types
-defined in `billing/provider_types.go`.
+`billing.Provider` is the interface between Frontier's billing services and
+external billing APIs (Stripe, Polar, etc.). Services call this interface
+instead of provider SDKs directly. The types in `billing/provider_types.go`
+carry data between services and provider implementations.
 
 The Stripe implementation lives in `billing/stripeprovider/` and serves as the
 reference.
@@ -130,7 +130,7 @@ when the period ends).
 
 - `VerifyWebhook` validates the webhook signature and parses the event. The
   `secrets` slice supports secret rotation — try each until one succeeds.
-- Return provider-neutral event types (see `billing.Event*` constants). Unknown
+- Return `billing.Event*` constants for recognized event types. Unknown
   event types should be returned as-is — the caller ignores unrecognized types.
 
 ## Background Sync

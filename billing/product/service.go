@@ -250,9 +250,9 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 		Name:             price.Name,
 		Amount:           price.Amount,
 		Currency:         price.Currency,
-		BillingScheme:    price.BillingScheme.ToStripe(),
+		BillingScheme:    price.BillingScheme.String(),
 		Interval:         price.Interval,
-		UsageType:        price.UsageType.ToStripe(),
+		UsageType:        price.UsageType.String(),
 		MeteredAggregate: price.MeteredAggregate,
 		Metadata: map[string]string{
 			"name":       price.Name,

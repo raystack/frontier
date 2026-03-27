@@ -950,7 +950,9 @@ func (s *Service) findPlanByProviderPhase(ctx context.Context, providerPhase bil
 		}
 		if len(productPlanIDs) == 0 {
 			productPlanIDs = append(productPlanIDs, prod.PlanIDs...)
-			// Phase items don't have interval directly; we rely on the plan filter
+			if phaseItem.Interval != "" {
+				interval = phaseItem.Interval
+			}
 			continue
 		}
 		productPlanIDs = utils.Intersection(productPlanIDs, prod.PlanIDs)

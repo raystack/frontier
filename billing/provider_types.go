@@ -1,10 +1,6 @@
 package billing
 
-// Provider-neutral types for billing operations.
-// These types carry exactly the data that billing services need,
-// without coupling to any specific provider's SDK.
-
-// --- Customer types ---
+// Types shared between billing services and Provider implementations.
 
 type ProviderCustomer struct {
 	ID       string
@@ -63,8 +59,6 @@ type ProviderPaymentMethod struct {
 	CreatedAt       int64
 }
 
-// --- Product and price types ---
-
 type CreateProductParams struct {
 	ID          string
 	Name        string
@@ -79,15 +73,15 @@ type UpdateProductParams struct {
 }
 
 type CreatePriceParams struct {
-	ProductID       string
-	Name            string
-	Amount          int64
-	Currency        string
-	BillingScheme   string
-	Interval        string
-	UsageType       string
+	ProductID        string
+	Name             string
+	Amount           int64
+	Currency         string
+	BillingScheme    string
+	Interval         string
+	UsageType        string
 	MeteredAggregate string
-	Metadata        map[string]string
+	Metadata         map[string]string
 }
 
 type UpdatePriceParams struct {
@@ -95,22 +89,20 @@ type UpdatePriceParams struct {
 	Metadata map[string]string
 }
 
-// --- Subscription types ---
-
 type ProviderSubscription struct {
-	ID                   string
-	Status               string
-	CanceledAt           int64
-	EndedAt              int64
-	TrialEnd             int64
-	CurrentPeriodStart   int64
-	CurrentPeriodEnd     int64
-	BillingCycleAnchor   int64
-	Livemode             bool
-	AutomaticTaxEnabled  bool
-	Items                []ProviderSubscriptionItem
-	Schedule             *ProviderScheduleRef
-	Metadata             map[string]string
+	ID                  string
+	Status              string
+	CanceledAt          int64
+	EndedAt             int64
+	TrialEnd            int64
+	CurrentPeriodStart  int64
+	CurrentPeriodEnd    int64
+	BillingCycleAnchor  int64
+	Livemode            bool
+	AutomaticTaxEnabled bool
+	Items               []ProviderSubscriptionItem
+	Schedule            *ProviderScheduleRef
+	Metadata            map[string]string
 }
 
 // ProviderScheduleRef is the schedule info embedded in a subscription response.
@@ -173,8 +165,6 @@ type InvoiceItemInterval struct {
 	IntervalCount int64
 }
 
-// --- Schedule types ---
-
 type ProviderSchedule struct {
 	ID           string
 	CurrentPhase *ProviderCurrentPhase
@@ -199,6 +189,7 @@ type ProviderPhaseItem struct {
 	PriceID   string
 	ProductID string
 	Quantity  int64
+	Interval  string
 	Metadata  map[string]string
 }
 
@@ -210,18 +201,18 @@ type UpdateScheduleParams struct {
 }
 
 type SchedulePhaseInput struct {
-	Items               []SchedulePhaseItemInput
-	Currency            string
-	StartDate           *int64
-	EndDate             *int64
-	EndDateNow          bool
-	Iterations          *int64
-	Metadata            map[string]string
-	AutoTax             bool
-	Description         string
-	TrialEnd            *int64
-	ProrationBehavior   string
-	CollectionMethod    string
+	Items             []SchedulePhaseItemInput
+	Currency          string
+	StartDate         *int64
+	EndDate           *int64
+	EndDateNow        bool
+	Iterations        *int64
+	Metadata          map[string]string
+	AutoTax           bool
+	Description       string
+	TrialEnd          *int64
+	ProrationBehavior string
+	CollectionMethod  string
 }
 
 type SchedulePhaseItemInput struct {
@@ -230,16 +221,14 @@ type SchedulePhaseItemInput struct {
 	Metadata map[string]string
 }
 
-// --- Checkout types ---
-
 type ProviderCheckoutSession struct {
-	ID            string
-	URL           string
-	Status        string
-	PaymentStatus string
-	ExpiresAt     int64
-	AmountTotal   int64
-	Currency      string
+	ID             string
+	URL            string
+	Status         string
+	PaymentStatus  string
+	ExpiresAt      int64
+	AmountTotal    int64
+	Currency       string
 	SubscriptionID string
 	LineItems      []ProviderCheckoutLineItem
 }
@@ -266,7 +255,7 @@ type CreateCheckoutSessionParams struct {
 	CancelAtTrialEnd     bool
 
 	// Payment-specific
-	InvoiceCreation  bool
+	InvoiceCreation    bool
 	PaymentMethodTypes []string
 
 	// Address collection
@@ -295,8 +284,6 @@ type CreateBillingPortalParams struct {
 	CustomerProviderID string
 	ReturnURL          string
 }
-
-// --- Invoice types ---
 
 type ProviderInvoice struct {
 	ID                 string
@@ -349,14 +336,12 @@ type CreateInvoiceItemParams struct {
 	PeriodEnd          *int64
 }
 
-// --- Webhook types ---
-
 type WebhookEvent struct {
-	Type       string
-	ObjectID   string
+	Type     string
+	ObjectID string
 }
 
-// Well-known webhook event types (provider-neutral).
+// Well-known webhook event types.
 const (
 	EventCheckoutCompleted        = "checkout.completed"
 	EventCheckoutPaymentSucceeded = "checkout.async_payment_succeeded"
@@ -370,10 +355,6 @@ const (
 	EventInvoicePaid              = "invoice.paid"
 )
 
-// --- Error types ---
-
-// ErrNotFoundInProvider signals that the resource was not found at the provider.
-// Services use this to handle "already deleted" or "not yet created" cases.
 var ErrNotFoundInProvider = errNotFoundInProvider{}
 
 type errNotFoundInProvider struct{}
@@ -382,7 +363,6 @@ func (e errNotFoundInProvider) Error() string {
 	return "resource not found in billing provider"
 }
 
-// ErrNoUpcomingInvoice signals that there is no upcoming invoice for the customer.
 var ErrNoUpcomingInvoice = errNoUpcomingInvoice{}
 
 type errNoUpcomingInvoice struct{}

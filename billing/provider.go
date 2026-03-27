@@ -2,10 +2,8 @@ package billing
 
 import "context"
 
-// Provider abstracts billing provider operations (Stripe, Polar, etc.).
-// Each method maps to a logical billing API operation.
-// Implementations translate between provider-specific types and the neutral
-// types defined in this package.
+// Provider is the interface for billing operations (Stripe, Polar, etc.).
+// Implementations handle the translation to/from provider-specific SDKs.
 type Provider interface {
 	// Customer operations
 	CreateCustomer(ctx context.Context, params CreateCustomerParams) (*ProviderCustomer, error)

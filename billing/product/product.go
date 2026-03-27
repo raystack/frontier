@@ -94,14 +94,8 @@ func BuildPriceUsageType(s string) PriceUsageType {
 	return PriceUsageTypeLicensed
 }
 
-func (p PriceUsageType) ToStripe() string {
-	switch p {
-	case PriceUsageTypeLicensed:
-		return "licensed"
-	case PriceUsageTypeMetered:
-		return "metered"
-	}
-	return ""
+func (p PriceUsageType) String() string {
+	return string(p)
 }
 
 func (price Price) IsLicensed() bool {
@@ -125,14 +119,8 @@ func BuildBillingScheme(s string) BillingScheme {
 	return BillingSchemeFlat
 }
 
-func (b BillingScheme) ToStripe() string {
-	switch b {
-	case BillingSchemeFlat:
-		return "per_unit"
-	case BillingSchemeTiered:
-		return "tiered"
-	}
-	return ""
+func (b BillingScheme) String() string {
+	return string(b)
 }
 
 type PriceTierMode string
