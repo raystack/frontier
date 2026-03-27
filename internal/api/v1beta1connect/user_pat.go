@@ -38,13 +38,12 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 	}
 
 	created, patValue, err := h.userPATService.Create(ctx, userpat.CreateRequest{
-		UserID:     principal.User.ID,
-		OrgID:      request.Msg.GetOrgId(),
-		Title:      request.Msg.GetTitle(),
-		RoleIDs:    request.Msg.GetRoleIds(),
-		ProjectIDs: request.Msg.GetProjectIds(),
-		ExpiresAt:  request.Msg.GetExpiresAt().AsTime(),
-		Metadata:   metadata.BuildFromProto(request.Msg.GetMetadata()),
+		UserID:    principal.User.ID,
+		OrgID:     request.Msg.GetOrgId(),
+		Title:     request.Msg.GetTitle(),
+		Scopes:    protoScopesToModel(request.Msg.GetScopes()),
+		ExpiresAt: request.Msg.GetExpiresAt().AsTime(),
+		Metadata:  metadata.BuildFromProto(request.Msg.GetMetadata()),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateCurrentUserPAT", err,
@@ -64,6 +63,8 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole)
 		case errors.Is(err, paterrors.ErrUnsupportedScope):
 			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
+		case errors.Is(err, paterrors.ErrScopeMismatch):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -188,12 +189,11 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 	}
 
 	updated, err := h.userPATService.Update(ctx, models.PAT{
-		UserID:     principal.User.ID,
-		ID:         request.Msg.GetId(),
-		Title:      request.Msg.GetTitle(),
-		RoleIDs:    request.Msg.GetRoleIds(),
-		ProjectIDs: request.Msg.GetProjectIds(),
-		Metadata:   metadata.BuildFromProto(request.Msg.GetMetadata()),
+		UserID:   principal.User.ID,
+		ID:       request.Msg.GetId(),
+		Title:    request.Msg.GetTitle(),
+		Scopes:   protoScopesToModel(request.Msg.GetScopes()),
+		Metadata: metadata.BuildFromProto(request.Msg.GetMetadata()),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateCurrentUserPAT", err,
@@ -213,6 +213,8 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole)
 		case errors.Is(err, paterrors.ErrUnsupportedScope):
 			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
+		case errors.Is(err, paterrors.ErrScopeMismatch):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -306,15 +308,14 @@ func (h *ConnectHandler) CheckCurrentUserPATTitle(ctx context.Context, request *
 
 func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	pbPAT := &frontierv1beta1.PAT{
-		Id:         pat.ID,
-		Title:      pat.Title,
-		UserId:     pat.UserID,
-		OrgId:      pat.OrgID,
-		RoleIds:    pat.RoleIDs,
-		ProjectIds: pat.ProjectIDs,
-		ExpiresAt:  timestamppb.New(pat.ExpiresAt),
-		CreatedAt:  timestamppb.New(pat.CreatedAt),
-		UpdatedAt:  timestamppb.New(pat.UpdatedAt),
+		Id:        pat.ID,
+		Title:     pat.Title,
+		UserId:    pat.UserID,
+		OrgId:     pat.OrgID,
+		Scopes:    modelScopesToProto(pat.Scopes),
+		ExpiresAt: timestamppb.New(pat.ExpiresAt),
+		CreatedAt: timestamppb.New(pat.CreatedAt),
+		UpdatedAt: timestamppb.New(pat.UpdatedAt),
 	}
 	if patValue != "" {
 		pbPAT.Token = patValue
@@ -328,12 +329,34 @@ func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 			pbPAT.Metadata = metaPB
 		}
 	}
-	pbPAT.RoleIds = pat.RoleIDs
-	pbPAT.ProjectIds = pat.ProjectIDs
 	return pbPAT
 }
 
-func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *connect.Request[frontierv1beta1.ListCurrentUserPATsRequest]) (*connect.Response[frontierv1beta1.ListCurrentUserPATsResponse], error) {
+func protoScopesToModel(pbScopes []*frontierv1beta1.PATScope) []models.PATScope {
+	scopes := make([]models.PATScope, 0, len(pbScopes))
+	for _, s := range pbScopes {
+		scopes = append(scopes, models.PATScope{
+			RoleID:       s.GetRoleId(),
+			ResourceType: s.GetResourceType(),
+			ResourceIDs:  s.GetResourceIds(),
+		})
+	}
+	return scopes
+}
+
+func modelScopesToProto(scopes []models.PATScope) []*frontierv1beta1.PATScope {
+	pbScopes := make([]*frontierv1beta1.PATScope, 0, len(scopes))
+	for _, s := range scopes {
+		pbScopes = append(pbScopes, &frontierv1beta1.PATScope{
+			RoleId:       s.RoleID,
+			ResourceType: s.ResourceType,
+			ResourceIds:  s.ResourceIDs,
+		})
+	}
+	return pbScopes
+}
+
+func (h *ConnectHandler) SearchCurrentUserPATs(ctx context.Context, request *connect.Request[frontierv1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[frontierv1beta1.SearchCurrentUserPATsResponse], error) {
 	errorLogger := NewErrorLogger()
 
 	principal, err := h.GetLoggedInPrincipal(ctx)
@@ -356,7 +379,7 @@ func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *conne
 
 	result, err := h.userPATService.List(ctx, userID, request.Msg.GetOrgId(), rqlQuery)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListCurrentUserPATs", err,
+		errorLogger.LogServiceError(ctx, request, "SearchCurrentUserPATs", err,
 			zap.String("user_id", userID),
 			zap.String("org_id", request.Msg.GetOrgId()))
 
@@ -373,7 +396,7 @@ func (h *ConnectHandler) ListCurrentUserPATs(ctx context.Context, request *conne
 		pbPATs = append(pbPATs, transformPATToPB(pat, ""))
 	}
 
-	return connect.NewResponse(&frontierv1beta1.ListCurrentUserPATsResponse{
+	return connect.NewResponse(&frontierv1beta1.SearchCurrentUserPATsResponse{
 		Pats: pbPATs,
 		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
 			Offset:     uint32(result.Page.Offset),
