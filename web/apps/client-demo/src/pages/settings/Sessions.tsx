@@ -1,5 +1,7 @@
 import { SessionsView } from '@raystack/frontier/react';
 
 export default function Sessions() {
-  return <SessionsView />;
+  return <SessionsView onLogout={() => {
+    window.location.href = '/login';
+  }} />;
 }
