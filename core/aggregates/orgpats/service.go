@@ -116,8 +116,12 @@ func (s *Service) resolveAllProjectsScope(ctx context.Context, orgID string, pat
 			projectIDs = append(projectIDs, p.ID)
 		}
 
+		// Copy per PAT to avoid slice aliasing — multiple PATs from the same user
+		// would otherwise share the same underlying array.
 		for _, ref := range refs {
-			pats[ref.patIdx].Scopes[ref.scopeIdx].ResourceIDs = projectIDs
+			idsCopy := make([]string, len(projectIDs))
+			copy(idsCopy, projectIDs)
+			pats[ref.patIdx].Scopes[ref.scopeIdx].ResourceIDs = idsCopy
 		}
 	}
 
