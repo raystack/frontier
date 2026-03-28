@@ -1,0 +1,150 @@
+'use client';
+
+import { useState } from 'react';
+import { create } from '@bufbuild/protobuf';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+  FrontierServiceQueries,
+  DeletePolicyRequestSchema,
+  CreatePolicyRequestSchema,
+  ListPoliciesRequestSchema
+} from '@raystack/proton/frontier';
+import type { Role, Policy } from '@raystack/proton/frontier';
+import {
+  Button,
+  Text,
+  Dialog,
+  Flex,
+  toastManager
+} from '@raystack/apsara-v1';
+
+export interface UpdateRoleDialogProps {
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
+  memberId: string;
+  role: Role;
+  organizationId: string;
+  refetch: () => void;
+}
+
+export function UpdateRoleDialog({
+  open,
+  onOpenChange,
+  memberId,
+  role,
+  organizationId,
+  refetch
+}: UpdateRoleDialogProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { data: policiesData } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    create(ListPoliciesRequestSchema, {
+      orgId: organizationId,
+      userId: memberId
+    }),
+    { enabled: open && !!memberId }
+  );
+
+  const { mutateAsync: deletePolicy } = useMutation(
+    FrontierServiceQueries.deletePolicy
+  );
+
+  const { mutateAsync: createPolicy } = useMutation(
+    FrontierServiceQueries.createPolicy
+  );
+
+  const handleUpdate = async () => {
+    setIsLoading(true);
+    try {
+      const resource = `app/organization:${organizationId}`;
+      const principal = `app/user:${memberId}`;
+      const policies = policiesData?.policies || [];
+
+      const deleteResults = await Promise.allSettled(
+        policies.map((p: Policy) => {
+          const req = create(DeletePolicyRequestSchema, {
+            id: p.id as string
+          });
+          return deletePolicy(req);
+        })
+      );
+
+      const deleteErrors = deleteResults
+        .filter(
+          (result): result is PromiseRejectedResult =>
+            result.status === 'rejected'
+        )
+        .map(result => result.reason);
+
+      if (deleteErrors.length > 0) {
+        console.warn('Some policy deletions failed:', deleteErrors);
+      }
+
+      const createReq = create(CreatePolicyRequestSchema, {
+        body: {
+          roleId: role.id as string,
+          title: role.name as string,
+          resource,
+          principal
+        }
+      });
+      await createPolicy(createReq);
+
+      toastManager.add({ title: 'Member role updated', type: 'success' });
+      refetch();
+      onOpenChange(false);
+    } catch (error: unknown) {
+      toastManager.add({
+        title: 'Something went wrong',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update member role',
+        type: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content width={400} showCloseButton={false}>
+        <Dialog.Body>
+          <Flex direction="column" gap={3}>
+            <Text size="large" weight="medium">
+              Update role
+            </Text>
+            <Text size="small" variant="secondary">
+              This action will remove access to all projects where the user
+              doesn&apos;t have an explicit project-level role.
+            </Text>
+          </Flex>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Flex justify="end" gap={5}>
+            <Button
+              variant="outline"
+              color="neutral"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="solid"
+              color="accent"
+              onClick={handleUpdate}
+              disabled={isLoading}
+              loading={isLoading}
+              loaderText="Updating..."
+            >
+              Update
+            </Button>
+          </Flex>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  );
+}
