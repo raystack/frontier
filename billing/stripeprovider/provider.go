@@ -409,12 +409,16 @@ func (p *Provider) CreateCheckoutSession(ctx context.Context, params billing.Cre
 		sp.LineItems = append(sp.LineItems, item)
 	}
 	if params.Mode == "subscription" && params.SubscriptionMetadata != nil {
-		sp.SubscriptionData = &stripe.CheckoutSessionSubscriptionDataParams{
-			Metadata: params.SubscriptionMetadata,
+		md := make(map[string]string, len(params.SubscriptionMetadata))
+		for k, v := range params.SubscriptionMetadata {
+			md[k] = v
 		}
-		if desc, ok := params.SubscriptionMetadata["description"]; ok {
+		sp.SubscriptionData = &stripe.CheckoutSessionSubscriptionDataParams{
+			Metadata: md,
+		}
+		if desc, ok := md["description"]; ok {
 			sp.SubscriptionData.Description = stripe.String(desc)
-			delete(sp.SubscriptionData.Metadata, "description")
+			delete(md, "description")
 		}
 		if params.TrialDays != nil {
 			sp.SubscriptionData.TrialPeriodDays = params.TrialDays
