@@ -286,6 +286,9 @@ func (p *Provider) GetSchedule(ctx context.Context, scheduleID string) (*billing
 		Expand: []*string{stripe.String("phases.items.price.product")},
 	})
 	if err != nil {
+		if stripeErr, ok := err.(*stripe.Error); ok && stripeErr.Code == stripe.ErrorCodeResourceMissing {
+			return nil, billing.ErrNotFoundInProvider
+		}
 		return nil, fmt.Errorf("failed to get subscription schedule from billing provider: %w", err)
 	}
 	return fromStripeSchedule(ss), nil
@@ -464,6 +467,9 @@ func (p *Provider) GetCheckoutSession(ctx context.Context, providerID string) (*
 		Expand: []*string{stripe.String("line_items.data.price.product")},
 	})
 	if err != nil {
+		if stripeErr, ok := err.(*stripe.Error); ok && stripeErr.Code == stripe.ErrorCodeResourceMissing {
+			return nil, billing.ErrNotFoundInProvider
+		}
 		return nil, fmt.Errorf("failed to get checkout session from billing provider: %w", err)
 	}
 	return fromStripeCheckoutSession(cs), nil
@@ -588,6 +594,9 @@ func (p *Provider) GetInvoice(ctx context.Context, providerID string) (*billing.
 		Expand: []*string{stripe.String("lines")},
 	})
 	if err != nil {
+		if stripeErr, ok := err.(*stripe.Error); ok && stripeErr.Code == stripe.ErrorCodeResourceMissing {
+			return nil, billing.ErrNotFoundInProvider
+		}
 		return nil, fmt.Errorf("failed to get invoice: %w", err)
 	}
 	return fromStripeInvoice(si), nil
@@ -596,6 +605,9 @@ func (p *Provider) GetInvoice(ctx context.Context, providerID string) (*billing.
 // --- Webhook ---
 
 func (p *Provider) VerifyWebhook(payload []byte, signature string, secrets []string) (*billing.WebhookEvent, error) {
+	if len(secrets) == 0 {
+		return nil, fmt.Errorf("no webhook secrets configured")
+	}
 	var parseErrs []error
 	var evt stripe.Event
 	for _, secret := range secrets {

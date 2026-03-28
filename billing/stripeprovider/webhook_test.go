@@ -60,6 +60,14 @@ func TestVerifyWebhook_BadSignature(t *testing.T) {
 	}
 }
 
+func TestVerifyWebhook_NoSecrets(t *testing.T) {
+	p := New(nil)
+	_, err := p.VerifyWebhook([]byte("{}"), "t=0,v1=abc", nil)
+	if err == nil {
+		t.Fatal("expected error for empty secrets")
+	}
+}
+
 func TestVerifyWebhook_UnknownEventType(t *testing.T) {
 	p := New(nil)
 	secret := "whsec_test"
