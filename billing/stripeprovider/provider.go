@@ -126,6 +126,9 @@ func (p *Provider) ListPaymentMethods(ctx context.Context, customerProviderID st
 		}
 		methods = append(methods, m)
 	}
+	if err := iter.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list payment methods: %w", err)
+	}
 	return methods, nil
 }
 
