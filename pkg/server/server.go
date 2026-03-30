@@ -52,6 +52,7 @@ type UIConfigApiResponse struct {
 	TokenProductId    string                    `json:"token_product_id"`
 	OrganizationTypes []string                  `json:"organization_types"`
 	Webhooks          WebhooksConfigApiResponse `json:"webhooks"`
+	Terminology       TerminologyConfig         `json:"terminology"`
 }
 
 func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
@@ -94,6 +95,7 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 				Webhooks: WebhooksConfigApiResponse{
 					EnableDelete: uiConfig.Webhooks.EnableDelete,
 				},
+				Terminology: uiConfig.Terminology,
 			}
 			json.NewEncoder(w).Encode(confResp)
 		})

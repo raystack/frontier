@@ -17,14 +17,29 @@ type WebhooksConfig struct {
 	EnableDelete bool `yaml:"enable_delete" mapstructure:"enable_delete" default:"false"`
 }
 
+type EntityTerminology struct {
+	Singular string `yaml:"singular" mapstructure:"singular" json:"singular"`
+	Plural   string `yaml:"plural" mapstructure:"plural" json:"plural"`
+}
+
+type TerminologyConfig struct {
+	Organization *EntityTerminology `yaml:"organization" mapstructure:"organization" json:"organization,omitempty"`
+	Project      *EntityTerminology `yaml:"project" mapstructure:"project" json:"project,omitempty"`
+	Team         *EntityTerminology `yaml:"team" mapstructure:"team" json:"team,omitempty"`
+	Member       *EntityTerminology `yaml:"member" mapstructure:"member" json:"member,omitempty"`
+	User         *EntityTerminology `yaml:"user" mapstructure:"user" json:"user,omitempty"`
+	AppName      string             `yaml:"app_name" mapstructure:"app_name" json:"appName,omitempty"`
+}
+
 type UIConfig struct {
-	Port              int            `yaml:"port" mapstructure:"port"`
-	Title             string         `yaml:"title" mapstructure:"title"`
-	Logo              string         `yaml:"logo" mapstructure:"logo"`
-	AppURL            string         `yaml:"app_url" mapstructure:"app_url"`
-	TokenProductId    string         `yaml:"token_product_id" mapstructure:"token_product_id"`
-	OrganizationTypes []string       `yaml:"organization_types" mapstructure:"organization_types"`
-	Webhooks          WebhooksConfig `yaml:"webhooks" mapstructure:"webhooks"`
+	Port              int               `yaml:"port" mapstructure:"port"`
+	Title             string            `yaml:"title" mapstructure:"title"`
+	Logo              string            `yaml:"logo" mapstructure:"logo"`
+	AppURL            string            `yaml:"app_url" mapstructure:"app_url"`
+	TokenProductId    string            `yaml:"token_product_id" mapstructure:"token_product_id"`
+	OrganizationTypes []string          `yaml:"organization_types" mapstructure:"organization_types"`
+	Webhooks          WebhooksConfig    `yaml:"webhooks" mapstructure:"webhooks"`
+	Terminology       TerminologyConfig `yaml:"terminology" mapstructure:"terminology"`
 }
 
 type ConnectConfig struct {
