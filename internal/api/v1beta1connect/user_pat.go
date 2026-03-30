@@ -65,6 +65,8 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
 		case errors.Is(err, paterrors.ErrScopeMismatch):
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, paterrors.ErrProjectForbidden):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -214,6 +216,8 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 		case errors.Is(err, paterrors.ErrUnsupportedScope):
 			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
 		case errors.Is(err, paterrors.ErrScopeMismatch):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, paterrors.ErrProjectForbidden):
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)

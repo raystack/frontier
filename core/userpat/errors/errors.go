@@ -16,4 +16,5 @@ var (
 	ErrUnsupportedScope = errors.New("role scope is not supported for personal access tokens")
 	ErrScopeMismatch    = errors.New("role does not support the specified scope")
 	ErrRoleNotFound     = errors.New("one or more requested roles do not exist")
+	ErrProjectForbidden = errors.New("user does not have access to one or more specified projects")
 )

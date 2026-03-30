@@ -12,8 +12,10 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/role"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
@@ -40,6 +42,10 @@ type PolicyService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type ProjectService interface {
+	ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error)
+}
+
 type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord models.AuditRecord) (models.AuditRecord, error)
 }
@@ -51,12 +57,13 @@ type Service struct {
 	orgService            OrganizationService
 	roleService           RoleService
 	policyService         PolicyService
+	projectService        ProjectService
 	auditRecordRepository AuditRecordRepository
 	deniedPerms           map[string]struct{}
 }
 
 func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService,
-	roleService RoleService, policyService PolicyService, auditRecordRepository AuditRecordRepository) *Service {
+	roleService RoleService, policyService PolicyService, projectService ProjectService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repo:                  repo,
 		config:                config,
@@ -64,6 +71,7 @@ func NewService(logger log.Logger, repo Repository, config Config, orgService Or
 		orgService:            orgService,
 		roleService:           roleService,
 		policyService:         policyService,
+		projectService:        projectService,
 		auditRecordRepository: auditRecordRepository,
 		deniedPerms:           config.DeniedPermissionsSet(),
 	}
@@ -221,6 +229,9 @@ func (s *Service) Update(ctx context.Context, toUpdate patmodels.PAT) (patmodels
 	if err := s.validateScopes(ctx, toUpdate.Scopes); err != nil {
 		return patmodels.PAT{}, err
 	}
+	if err := s.validateProjectAccess(ctx, toUpdate.UserID, existing.OrgID, toUpdate.Scopes); err != nil {
+		return patmodels.PAT{}, err
+	}
 
 	oldTitle, oldScopes, err := s.captureOldScope(ctx, &existing)
 	if err != nil {
@@ -337,6 +348,9 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (patmodels.PAT,
 	}
 
 	if err := s.validateScopes(ctx, req.Scopes); err != nil {
+		return patmodels.PAT{}, "", err
+	}
+	if err := s.validateProjectAccess(ctx, req.UserID, req.OrgID, req.Scopes); err != nil {
 		return patmodels.PAT{}, "", err
 	}
 
@@ -464,6 +478,45 @@ func (s *Service) validateScopes(ctx context.Context, scopes []patmodels.PATScop
 		if !slices.Contains(r.Scopes, sc.ResourceType) {
 			return fmt.Errorf("role %s does not support resource type %s: %w", sc.RoleID, sc.ResourceType, paterrors.ErrScopeMismatch)
 		}
+	}
+	return nil
+}
+
+// validateProjectAccess checks that the user has access to all project resource IDs in the scopes.
+func (s *Service) validateProjectAccess(ctx context.Context, userID, orgID string, scopes []patmodels.PATScope) error {
+	var projectIDs []string
+	for _, sc := range scopes {
+		if sc.ResourceType == schema.ProjectNamespace {
+			projectIDs = append(projectIDs, sc.ResourceIDs...)
+		}
+	}
+	if len(projectIDs) == 0 {
+		return nil
+	}
+
+	principal := authenticate.Principal{
+		ID:   userID,
+		Type: schema.UserPrincipal,
+	}
+	userProjects, err := s.projectService.ListByUser(ctx, principal, project.Filter{OrgID: orgID})
+	if err != nil {
+		return fmt.Errorf("listing user projects: %w", err)
+	}
+
+	userProjectSet := make(map[string]bool, len(userProjects))
+	for _, p := range userProjects {
+		userProjectSet[p.ID] = true
+	}
+
+	var forbidden []string
+	for _, id := range projectIDs {
+		if !userProjectSet[id] {
+			forbidden = append(forbidden, id)
+		}
+	}
+	if len(forbidden) > 0 {
+		s.logger.Error("user does not have access to projects", "project_ids", forbidden)
+		return paterrors.ErrProjectForbidden
 	}
 	return nil
 }
