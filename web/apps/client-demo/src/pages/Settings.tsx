@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Flex, Sidebar, Text } from '@raystack/apsara';
-import { Outlet, useParams, useLocation, Navigate } from 'react-router-dom';
+import { Outlet, useParams, useLocation, Navigate, Link } from 'react-router-dom';
 import { useFrontier } from '@raystack/frontier/react';
 
 const NAV_ITEMS = [
@@ -50,7 +50,7 @@ export default function Settings() {
               return (
                 <Sidebar.Item
                   key={item.path}
-                  href={fullPath}
+                  as={<Link to={fullPath} />}
                   active={isActive}
                   data-test-id={`[settings-nav-${item.path}]`}
                 >

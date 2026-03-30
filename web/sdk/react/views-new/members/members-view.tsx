@@ -81,17 +81,18 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
     showInvitations: canCreateInvite
   });
 
-  const isLoading = isOrgMembersLoading || isPermissionsFetching;
+  const isLoading = !organization?.id || isOrgMembersLoading || isPermissionsFetching;
 
   const [roleFilter, setRoleFilter] = useState('all');
 
   const filteredMembers = useMemo(() => {
     if (roleFilter === 'all') return members;
     return members.filter(member => {
+      if (roleFilter === 'invited') return member.invited;
       if (member.invited) return false;
       const userRoles = member.id ? memberRoles[member.id] : [];
       return userRoles?.some(r => r.id === roleFilter);
-    });
+    }) || [];
   }, [members, roleFilter, memberRoles]);
 
   const columns = useMemo(
@@ -116,7 +117,7 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
         data={filteredMembers}
         columns={columns}
         isLoading={isLoading}
-        defaultSort={{ name: 'title', order: 'asc' }}
+        defaultSort={{ name: 'name', order: 'asc' }}
         mode="client"
       >
         <Flex direction="column" gap={7}>
@@ -124,7 +125,7 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
             <Flex gap={3} align="center">
               {isLoading ? (
                 <>
-                  <Skeleton height="34px" width="280px" />
+                  <Skeleton height="34px" width="360px" />
                   <Skeleton height="34px" width="80px" />
                 </>
               ) : (
@@ -132,6 +133,7 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
                   <DataTable.Search
                     placeholder="Search by name or email"
                     size="large"
+                    width={360}
                   />
                   <Select
                     value={roleFilter}
@@ -147,6 +149,7 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
                           {role.title || role.name}
                         </Select.Item>
                       ))}
+                      <Select.Item value="invited">Invited</Select.Item>
                     </Select.Content>
                   </Select>
                 </>
@@ -185,8 +188,7 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
               />
             }
             classNames={{
-              root: styles.tableRoot,
-              header: styles.tableHeader
+              root: styles.tableRoot
             }}
           />
         </Flex>

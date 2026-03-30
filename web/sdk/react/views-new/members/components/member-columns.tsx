@@ -36,43 +36,32 @@ export const getColumns = ({
   menuHandle: MenuHandle;
 }): DataTableColumnDef<MemberWithInvite, MemberWithInvite>[] => [
     {
-      header: '',
-      accessorKey: 'avatar',
-      enableSorting: false,
-      styles: {
-        cell: { width: 'var(--rs-space-5)' }
-      },
-      cell: ({ row, getValue }) => {
-        const id = row.original?.id || '';
-        const fallback =
-          row.original?.title || row.original?.email || row.original?.userId;
-        return (
-          <Avatar
-            src={getValue() as string}
-            fallback={getInitials(fallback)}
-            color={getAvatarColor(id)}
-            size={5}
-            radius="small"
-          />
-        );
-      }
-    },
-    {
-      header: 'Title',
+      header: 'Name',
       accessorKey: 'title',
       cell: ({ row, getValue }) => {
+        const id = row.original?.id || '';
         const title = getValue() as string;
         const email = row.original.email || row.original.userId;
+        const fallback = title || email;
         return (
-          <Flex direction="column" gap={1}>
-            {title && (
-              <Text size="regular" weight="medium">
-                {title}
+          <Flex align="center" gap={4}>
+            <Avatar
+              src={row.original?.avatar as string}
+              fallback={getInitials(fallback)}
+              color={getAvatarColor(id)}
+              size={5}
+              radius="small"
+            />
+            <Flex direction="column" gap={1}>
+              {title && (
+                <Text size="regular" weight="medium">
+                  {title}
+                </Text>
+              )}
+              <Text size="small" variant="secondary">
+                {email}
               </Text>
-            )}
-            <Text size="small" variant="secondary">
-              {email}
-            </Text>
+            </Flex>
           </Flex>
         );
       }
