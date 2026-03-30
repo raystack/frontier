@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import {
@@ -18,32 +18,45 @@ import {
   toastManager
 } from '@raystack/apsara-v1';
 
+export interface UpdateRoleDialogHandle {
+  open: (memberId: string, role: Role) => void;
+}
+
 export interface UpdateRoleDialogProps {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
-  memberId: string;
-  role: Role;
   organizationId: string;
   refetch: () => void;
 }
 
-export function UpdateRoleDialog({
-  open,
-  onOpenChange,
-  memberId,
-  role,
-  organizationId,
-  refetch
-}: UpdateRoleDialogProps) {
+export const UpdateRoleDialog = forwardRef<
+  UpdateRoleDialogHandle,
+  UpdateRoleDialogProps
+>(function UpdateRoleDialog({ organizationId, refetch }, ref) {
+  const [state, setState] = useState<{
+    open: boolean;
+    memberId: string;
+    role: Role | null;
+  }>({ open: false, memberId: '', role: null });
   const [isLoading, setIsLoading] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    open: (memberId: string, role: Role) =>
+      setState({ open: true, memberId, role })
+  }));
+
+  const handleOpenChange = (value: boolean) => {
+    if (!value) {
+      setState({ open: false, memberId: '', role: null });
+      refetch();
+    }
+  };
 
   const { data: policiesData } = useQuery(
     FrontierServiceQueries.listPolicies,
     create(ListPoliciesRequestSchema, {
       orgId: organizationId,
-      userId: memberId
+      userId: state.memberId
     }),
-    { enabled: open && !!memberId }
+    { enabled: state.open && !!state.memberId && !!state.role }
   );
 
   const { mutateAsync: deletePolicy } = useMutation(
@@ -55,10 +68,11 @@ export function UpdateRoleDialog({
   );
 
   const handleUpdate = async () => {
+    if (!state.role) return;
     setIsLoading(true);
     try {
       const resource = `app/organization:${organizationId}`;
-      const principal = `app/user:${memberId}`;
+      const principal = `app/user:${state.memberId}`;
       const policies = policiesData?.policies || [];
 
       const deleteResults = await Promise.allSettled(
@@ -83,8 +97,8 @@ export function UpdateRoleDialog({
 
       const createReq = create(CreatePolicyRequestSchema, {
         body: {
-          roleId: role.id as string,
-          title: role.name as string,
+          roleId: state.role.id as string,
+          title: state.role.name as string,
           resource,
           principal
         }
@@ -93,7 +107,7 @@ export function UpdateRoleDialog({
 
       toastManager.add({ title: 'Member role updated', type: 'success' });
       refetch();
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (error: unknown) {
       toastManager.add({
         title: 'Something went wrong',
@@ -109,7 +123,7 @@ export function UpdateRoleDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={state.open} onOpenChange={handleOpenChange}>
       <Dialog.Content width={400} showCloseButton={false}>
         <Dialog.Body>
           <Flex direction="column" gap={3}>
@@ -127,7 +141,7 @@ export function UpdateRoleDialog({
             <Button
               variant="outline"
               color="neutral"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
@@ -147,4 +161,4 @@ export function UpdateRoleDialog({
       </Dialog.Content>
     </Dialog>
   );
-}
+});

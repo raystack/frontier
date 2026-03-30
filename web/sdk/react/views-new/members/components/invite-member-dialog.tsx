@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -35,27 +35,43 @@ const inviteSchema = yup.object({
 
 type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 
-export interface InviteMemberDialogProps {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
-  showTeamField?: boolean;
+export interface InviteMemberDialogHandle {
+  open: () => void;
 }
 
-export function InviteMemberDialog({
-  open,
-  onOpenChange,
-  showTeamField = true
-}: InviteMemberDialogProps) {
+export interface InviteMemberDialogProps {
+  showTeamField?: boolean;
+  refetch: () => void;
+}
+
+export const InviteMemberDialog = forwardRef<
+  InviteMemberDialogHandle,
+  InviteMemberDialogProps
+>(function InviteMemberDialog({ showTeamField = true, refetch }, ref) {
+  const [isOpen, setIsOpen] = useState(false);
   const {
     watch,
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting }
   } = useForm({
     resolver: yupResolver(inviteSchema)
   });
   const { activeOrganization: organization } = useFrontier();
+
+  useImperativeHandle(ref, () => ({
+    open: () => setIsOpen(true)
+  }));
+
+  const handleOpenChange = (value: boolean) => {
+    setIsOpen(value);
+    if (!value) {
+      reset();
+      refetch();
+    }
+  };
 
   const { data: orgRolesData, isLoading: isOrgRolesLoading } = useQuery(
     FrontierServiceQueries.listOrganizationRoles,
@@ -104,7 +120,7 @@ export function InviteMemberDialog({
     {
       onSuccess: () => {
         toastManager.add({ title: 'User(s) invited', type: 'success' });
-        onOpenChange(false);
+        handleOpenChange(false);
       },
       onError: (error: Error) => {
         toastManager.add({
@@ -162,7 +178,7 @@ export function InviteMemberDialog({
   }, [isSubmitting, values]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Content width={600}>
         <Dialog.Header>
           <Dialog.Title>Invite people</Dialog.Title>
@@ -277,4 +293,4 @@ export function InviteMemberDialog({
       </Dialog.Content>
     </Dialog>
   );
-}
+});

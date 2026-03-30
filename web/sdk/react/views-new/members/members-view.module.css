@@ -1,8 +1,16 @@
-.searchInput {
-  width: 280px;
-}
-
 .roleFilter {
   width: auto;
   min-width: 80px;
+}
+
+.tableRoot {
+  border: none;
+}
+
+.tableHeader {
+  display: none;
+}
+
+.menuContent {
+  min-width: 180px;
 }
