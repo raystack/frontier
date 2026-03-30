@@ -32,6 +32,25 @@ ui:
   token_product_id: ""
   # list of organization industry types
   organization_types: []
+  # custom terminology to rename entities in the admin UI
+  # all fields are optional — omitted entities use defaults
+  # terminology:
+  #   organization:
+  #     singular: "Workspace"
+  #     plural: "Workspaces"
+  #   project:
+  #     singular: "Project"
+  #     plural: "Projects"
+  #   team:
+  #     singular: "Team"
+  #     plural: "Teams"
+  #   member:
+  #     singular: "Member"
+  #     plural: "Members"
+  #   user:
+  #     singular: "User"
+  #     plural: "Users"
+  #   app_name: "Frontier Admin"
 
 app:
   connect:
