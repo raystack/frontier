@@ -31,3 +31,4 @@ claude.md
 .cursor
 docs/dist/
 .vercel
+docs/.output
