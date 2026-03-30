@@ -2543,8 +2543,8 @@ func TestService_IsTitleAvailable(t *testing.T) {
 	}
 }
 
-func TestService_ValidateProjectsInOrg(t *testing.T) {
-	t.Run("should reject project not in org", func(t *testing.T) {
+func TestService_ValidateProjectAccess(t *testing.T) {
+	t.Run("should reject project user has no access to", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
 		repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
 		roleSvc := mocks.NewRoleService(t)
@@ -2574,7 +2574,7 @@ func TestService_ValidateProjectsInOrg(t *testing.T) {
 		}
 	})
 
-	t.Run("should allow project in org", func(t *testing.T) {
+	t.Run("should allow project user has access to", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
 		repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").Return(int64(0), nil)
 		repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
