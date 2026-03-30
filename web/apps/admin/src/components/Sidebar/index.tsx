@@ -114,12 +114,12 @@ const useNavigationItems = (): NavigationItemsTypes[] => {
     },
     // {
     //   name: t.project({ plural: true, case: "capital" }),
-    //   to: `/projects`,
+    //   to: `/${paths.projects}`,
     // },
 
     // {
     //   name: t.team({ plural: true, case: "capital" }),
-    //   to: `/groups`,
+    //   to: `/${paths.teams}`,
     // },
   ];
 };
