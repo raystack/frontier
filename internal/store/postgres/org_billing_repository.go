@@ -22,6 +22,8 @@ const (
 	OPERATOR_NOT_IN    = "notin"
 	OPERATOR_LIKE      = "like"
 	OPERATOR_NOT_LIKE  = "notlike"
+	OPERATOR_ILIKE     = "ilike"
+	OPERATOR_NOT_ILIKE = "notilike"
 )
 
 const (
@@ -415,6 +417,10 @@ func processStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.S
 	case OPERATOR_NOT_LIKE:
 		// some semi string sql types like UUID require casting to text to support like operator
 		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string))))
+	case OPERATOR_ILIKE:
+		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT ILIKE '%s'`, filter.Name, filter.Value.(string))))
+	case OPERATOR_NOT_ILIKE:
+		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT NOT ILIKE '%s'`, filter.Name, filter.Value.(string))))
 	default:
 		query = query.Where(goqu.Ex{filter.Name: goqu.Op{filter.Operator: filter.Value.(string)}})
 	}
