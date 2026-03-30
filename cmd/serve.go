@@ -420,8 +420,6 @@ func buildAPIDependencies(
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository, roleService)
 
-	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, auditRecordRepository)
-
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
@@ -465,6 +463,8 @@ func buildAPIDependencies(
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService, policyService,
 		authnService, serviceUserService, groupService)
+
+	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
 
 	orgPATsRepository := postgres.NewOrgPATsRepository(dbc)
 	orgPATsService := orgpats.NewService(orgPATsRepository, projectService)
