@@ -2570,7 +2570,7 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 			t.Fatal("expected error, got nil")
 		}
 		if !errors.Is(err, paterrors.ErrProjectForbidden) {
-			t.Errorf("expected ErrProjectNotInOrg, got %v", err)
+			t.Errorf("expected ErrProjectForbidden, got %v", err)
 		}
 	})
 
