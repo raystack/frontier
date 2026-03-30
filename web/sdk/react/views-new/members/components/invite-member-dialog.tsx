@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -35,20 +35,13 @@ const inviteSchema = yup.object({
 
 type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 
-export interface InviteMemberDialogHandle {
-  open: () => void;
-}
-
 export interface InviteMemberDialogProps {
+  handle: ReturnType<typeof Dialog.createHandle>;
   showTeamField?: boolean;
   refetch: () => void;
 }
 
-export const InviteMemberDialog = forwardRef<
-  InviteMemberDialogHandle,
-  InviteMemberDialogProps
->(function InviteMemberDialog({ showTeamField = true, refetch }, ref) {
-  const [isOpen, setIsOpen] = useState(false);
+export function InviteMemberDialog({ handle, showTeamField = true, refetch }: InviteMemberDialogProps) {
   const {
     watch,
     register,
@@ -61,13 +54,8 @@ export const InviteMemberDialog = forwardRef<
   });
   const { activeOrganization: organization } = useFrontier();
 
-  useImperativeHandle(ref, () => ({
-    open: () => setIsOpen(true)
-  }));
-
-  const handleOpenChange = (value: boolean) => {
-    setIsOpen(value);
-    if (!value) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
       reset();
       refetch();
     }
@@ -120,7 +108,7 @@ export const InviteMemberDialog = forwardRef<
     {
       onSuccess: () => {
         toastManager.add({ title: 'User(s) invited', type: 'success' });
-        handleOpenChange(false);
+        handle.close();
       },
       onError: (error: Error) => {
         toastManager.add({
@@ -178,7 +166,7 @@ export const InviteMemberDialog = forwardRef<
   }, [isSubmitting, values]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog handle={handle} onOpenChange={handleOpenChange}>
       <Dialog.Content width={600}>
         <Dialog.Header>
           <Dialog.Title>Invite people</Dialog.Title>
@@ -293,4 +281,4 @@ export const InviteMemberDialog = forwardRef<
       </Dialog.Content>
     </Dialog>
   );
-});
+}

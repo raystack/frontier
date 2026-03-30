@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { useState } from 'react';
 import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import {
@@ -18,36 +18,21 @@ import {
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
 
-export interface RemoveMemberDialogHandle {
-  open: (memberId: string, invited: string) => void;
-}
+export type RemoveMemberPayload = { memberId: string; invited: string };
 
 export interface RemoveMemberDialogProps {
+  handle: ReturnType<typeof Dialog.createHandle<RemoveMemberPayload>>;
   refetch: () => void;
 }
 
-export const RemoveMemberDialog = forwardRef<
-  RemoveMemberDialogHandle,
-  RemoveMemberDialogProps
->(function RemoveMemberDialog({ refetch }, ref) {
+export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps) {
   const { activeOrganization } = useFrontier();
   const organizationId = activeOrganization?.id ?? '';
-  const [state, setState] = useState<{
-    open: boolean;
-    memberId: string;
-    invited: string;
-  }>({ open: false, memberId: '', invited: 'false' });
   const [isLoading, setIsLoading] = useState(false);
   const t = useTerminology();
 
-  useImperativeHandle(ref, () => ({
-    open: (memberId: string, invited: string) =>
-      setState({ open: true, memberId, invited })
-  }));
-
-  const handleOpenChange = (value: boolean) => {
-    if (!value) {
-      setState({ open: false, memberId: '', invited: 'false' });
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
       refetch();
     }
   };
@@ -56,7 +41,7 @@ export const RemoveMemberDialog = forwardRef<
     FrontierServiceQueries.deleteOrganizationInvitation,
     {
       onSuccess: () => {
-        handleOpenChange(false);
+        handle.close();
         toastManager.add({ title: 'Member deleted', type: 'success' });
       },
       onError: (error: Error) => {
@@ -73,7 +58,7 @@ export const RemoveMemberDialog = forwardRef<
     FrontierServiceQueries.removeOrganizationUser,
     {
       onSuccess: () => {
-        handleOpenChange(false);
+        handle.close();
         toastManager.add({ title: 'Member deleted', type: 'success' });
       },
       onError: (error: Error) => {
@@ -86,19 +71,19 @@ export const RemoveMemberDialog = forwardRef<
     }
   );
 
-  const deleteMember = async () => {
+  const deleteMember = async (memberId: string, invited: string) => {
     setIsLoading(true);
     try {
-      if (state.invited === 'true') {
+      if (invited === 'true') {
         const req = create(DeleteOrganizationInvitationRequestSchema, {
           orgId: organizationId,
-          id: state.memberId
+          id: memberId
         });
         await deleteInvitation(req);
       } else {
         const req = create(RemoveOrganizationUserRequestSchema, {
           id: organizationId,
-          userId: state.memberId
+          userId: memberId
         });
         await removeUser(req);
       }
@@ -117,42 +102,49 @@ export const RemoveMemberDialog = forwardRef<
   };
 
   return (
-    <Dialog open={state.open} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={400}>
-        <Dialog.Header>
-          <Dialog.Title>Remove member?</Dialog.Title>
-        </Dialog.Header>
-        <Dialog.Body>
-          <Text size="regular" variant="secondary">
-            Are you sure you want to remove this member from the{' '}
-            {t.organization({ case: 'lower' })}?
-          </Text>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Flex justify="end" gap={5}>
-            <Button
-              variant="outline"
-              color="neutral"
-              onClick={() => handleOpenChange(false)}
-              data-test-id="cancel-remove-member-dialog"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="solid"
-              color="danger"
-              onClick={deleteMember}
-              data-test-id="confirm-remove-member-dialog"
-              disabled={isLoading}
-              loading={isLoading}
-              loaderText="Removing..."
-            >
-              Remove
-            </Button>
-          </Flex>
-        </Dialog.Footer>
-      </Dialog.Content>
+    <Dialog handle={handle} onOpenChange={handleOpenChange}>
+      {({ payload: rawPayload }) => {
+        const payload = rawPayload as RemoveMemberPayload | undefined;
+        return (
+          <Dialog.Content width={400}>
+            <Dialog.Header>
+              <Dialog.Title>Remove member?</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <Text size="regular" variant="secondary">
+                Are you sure you want to remove this member from the{' '}
+                {t.organization({ case: 'lower' })}?
+              </Text>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Flex justify="end" gap={5}>
+                <Button
+                  variant="outline"
+                  color="neutral"
+                  onClick={() => handle.close()}
+                  data-test-id="cancel-remove-member-dialog"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="solid"
+                  color="danger"
+                  onClick={() =>
+                    payload && deleteMember(payload.memberId, payload.invited)
+                  }
+                  data-test-id="confirm-remove-member-dialog"
+                  disabled={isLoading}
+                  loading={isLoading}
+                  loaderText="Removing..."
+                >
+                  Remove
+                </Button>
+              </Flex>
+            </Dialog.Footer>
+          </Dialog.Content>
+        );
+      }}
     </Dialog>
   );
-});
+}

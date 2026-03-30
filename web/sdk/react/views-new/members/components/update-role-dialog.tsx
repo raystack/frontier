@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { useState } from 'react';
 import { create } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import {
@@ -18,45 +18,55 @@ import {
   toastManager
 } from '@raystack/apsara-v1';
 
-export interface UpdateRoleDialogHandle {
-  open: (memberId: string, role: Role) => void;
-}
+export type UpdateRolePayload = { memberId: string; role: Role };
 
 export interface UpdateRoleDialogProps {
+  handle: ReturnType<typeof Dialog.createHandle<UpdateRolePayload>>;
   organizationId: string;
   refetch: () => void;
 }
 
-export const UpdateRoleDialog = forwardRef<
-  UpdateRoleDialogHandle,
-  UpdateRoleDialogProps
->(function UpdateRoleDialog({ organizationId, refetch }, ref) {
-  const [state, setState] = useState<{
-    open: boolean;
-    memberId: string;
-    role: Role | null;
-  }>({ open: false, memberId: '', role: null });
-  const [isLoading, setIsLoading] = useState(false);
-
-  useImperativeHandle(ref, () => ({
-    open: (memberId: string, role: Role) =>
-      setState({ open: true, memberId, role })
-  }));
-
-  const handleOpenChange = (value: boolean) => {
-    if (!value) {
-      setState({ open: false, memberId: '', role: null });
+export function UpdateRoleDialog({ handle, organizationId, refetch }: UpdateRoleDialogProps) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
       refetch();
     }
   };
+
+  return (
+    <Dialog handle={handle} onOpenChange={handleOpenChange}>
+      {({ payload: rawPayload }) => {
+        const payload = rawPayload as UpdateRolePayload | undefined;
+        return payload ? (
+          <UpdateRoleContent
+            payload={payload}
+            organizationId={organizationId}
+            onClose={() => handle.close()}
+          />
+        ) : null;
+      }}
+    </Dialog>
+  );
+}
+
+function UpdateRoleContent({
+  payload,
+  organizationId,
+  onClose
+}: {
+  payload: UpdateRolePayload;
+  organizationId: string;
+  onClose: () => void;
+}) {
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data: policiesData } = useQuery(
     FrontierServiceQueries.listPolicies,
     create(ListPoliciesRequestSchema, {
       orgId: organizationId,
-      userId: state.memberId
+      userId: payload.memberId
     }),
-    { enabled: state.open && !!state.memberId && !!state.role }
+    { enabled: !!payload.memberId && !!payload.role }
   );
 
   const { mutateAsync: deletePolicy } = useMutation(
@@ -68,11 +78,10 @@ export const UpdateRoleDialog = forwardRef<
   );
 
   const handleUpdate = async () => {
-    if (!state.role) return;
     setIsLoading(true);
     try {
       const resource = `app/organization:${organizationId}`;
-      const principal = `app/user:${state.memberId}`;
+      const principal = `app/user:${payload.memberId}`;
       const policies = policiesData?.policies || [];
 
       const deleteResults = await Promise.allSettled(
@@ -97,8 +106,8 @@ export const UpdateRoleDialog = forwardRef<
 
       const createReq = create(CreatePolicyRequestSchema, {
         body: {
-          roleId: state.role.id as string,
-          title: state.role.name as string,
+          roleId: payload.role.id as string,
+          title: payload.role.name as string,
           resource,
           principal
         }
@@ -106,8 +115,7 @@ export const UpdateRoleDialog = forwardRef<
       await createPolicy(createReq);
 
       toastManager.add({ title: 'Member role updated', type: 'success' });
-      refetch();
-      handleOpenChange(false);
+      onClose();
     } catch (error: unknown) {
       toastManager.add({
         title: 'Something went wrong',
@@ -123,42 +131,40 @@ export const UpdateRoleDialog = forwardRef<
   };
 
   return (
-    <Dialog open={state.open} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={400} showCloseButton={false}>
-        <Dialog.Body>
-          <Flex direction="column" gap={3}>
-            <Text size="large" weight="medium">
-              Update role
-            </Text>
-            <Text size="small" variant="secondary">
-              This action will remove access to all projects where the user
-              doesn&apos;t have an explicit project-level role.
-            </Text>
-          </Flex>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Flex justify="end" gap={5}>
-            <Button
-              variant="outline"
-              color="neutral"
-              onClick={() => handleOpenChange(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="solid"
-              color="accent"
-              onClick={handleUpdate}
-              disabled={isLoading}
-              loading={isLoading}
-              loaderText="Updating..."
-            >
-              Update
-            </Button>
-          </Flex>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+    <Dialog.Content width={400} showCloseButton={false}>
+      <Dialog.Body>
+        <Flex direction="column" gap={3}>
+          <Text size="large" weight="medium">
+            Update role
+          </Text>
+          <Text size="small" variant="secondary">
+            This action will remove access to all projects where the user
+            doesn&apos;t have an explicit project-level role.
+          </Text>
+        </Flex>
+      </Dialog.Body>
+      <Dialog.Footer>
+        <Flex justify="end" gap={5}>
+          <Button
+            variant="outline"
+            color="neutral"
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="solid"
+            color="accent"
+            onClick={handleUpdate}
+            disabled={isLoading}
+            loading={isLoading}
+            loaderText="Updating..."
+          >
+            Update
+          </Button>
+        </Flex>
+      </Dialog.Footer>
+    </Dialog.Content>
   );
-});
+}

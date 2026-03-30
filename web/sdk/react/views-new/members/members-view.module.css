@@ -1,6 +1,7 @@
 .roleFilter {
   width: auto;
   min-width: 80px;
+  box-shadow: none;
 }
 
 .tableRoot {

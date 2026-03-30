@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ExclamationTriangleIcon, TrashIcon, UpdateIcon } from '@radix-ui/react-icons';
 import {
   Button,
@@ -10,9 +10,9 @@ import {
   Select,
   EmptyState,
   DataTable,
+  Dialog,
   Menu
 } from '@raystack/apsara-v1';
-import { Menu as BaseMenu } from '@base-ui/react';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useOrganizationMembers } from '../../hooks/useOrganizationMembers';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -21,12 +21,15 @@ import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { getColumns, type MemberMenuPayload } from './components/member-columns';
-import { InviteMemberDialog, type InviteMemberDialogHandle } from './components/invite-member-dialog';
-import { RemoveMemberDialog, type RemoveMemberDialogHandle } from './components/remove-member-dialog';
-import { UpdateRoleDialog, type UpdateRoleDialogHandle } from './components/update-role-dialog';
+import { InviteMemberDialog } from './components/invite-member-dialog';
+import { RemoveMemberDialog, type RemoveMemberPayload } from './components/remove-member-dialog';
+import { UpdateRoleDialog, type UpdateRolePayload } from './components/update-role-dialog';
 import styles from './members-view.module.css';
 
-const memberMenuHandle = BaseMenu.createHandle<MemberMenuPayload>();
+const memberMenuHandle = Menu.createHandle<MemberMenuPayload>();
+const inviteDialogHandle = Dialog.createHandle();
+const removeMemberDialogHandle = Dialog.createHandle<RemoveMemberPayload>();
+const updateRoleDialogHandle = Dialog.createHandle<UpdateRolePayload>();
 
 export interface MembersViewProps {
   showTeamField?: boolean;
@@ -90,10 +93,6 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
       return userRoles?.some(r => r.id === roleFilter);
     });
   }, [members, roleFilter, memberRoles]);
-
-  const inviteDialogRef = useRef<InviteMemberDialogHandle>(null);
-  const removeMemberRef = useRef<RemoveMemberDialogHandle>(null);
-  const updateRoleRef = useRef<UpdateRoleDialogHandle>(null);
 
   const columns = useMemo(
     () =>
@@ -164,7 +163,7 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
                   <Button
                     variant="solid"
                     color="accent"
-                    onClick={() => inviteDialogRef.current?.open()}
+                    onClick={() => inviteDialogHandle.open(null)}
                     disabled={!canCreateInvite}
                     data-test-id="frontier-sdk-invite-member-btn"
                   >
@@ -197,50 +196,53 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
         {({ payload: rawPayload }) => {
           const payload = rawPayload as MemberMenuPayload | undefined;
           return (
-          <Menu.Content align="end" className={styles.menuContent}>
-            {payload?.canUpdateRole &&
-              payload.excludedRoles.map(role => (
+            <Menu.Content align="end" className={styles.menuContent}>
+              {payload?.canUpdateRole &&
+                payload.excludedRoles.map(role => (
+                  <Menu.Item
+                    key={role.id}
+                    leadingIcon={<UpdateIcon />}
+                    onClick={() =>
+                      updateRoleDialogHandle.openWithPayload({
+                        memberId: payload.memberId,
+                        role
+                      })
+                    }
+                    data-test-id={`update-role-${role.name}-dropdown-item`}
+                  >
+                    Make {role.title}
+                  </Menu.Item>
+                ))}
+              {payload?.canRemove && (
                 <Menu.Item
-                  key={role.id}
-                  leadingIcon={<UpdateIcon />}
+                  leadingIcon={<TrashIcon />}
                   onClick={() =>
-                    updateRoleRef.current?.open(payload.memberId, role)
+                    removeMemberDialogHandle.openWithPayload({
+                      memberId: payload.memberId,
+                      invited: String(payload.invited)
+                    })
                   }
-                  data-test-id={`update-role-${role.name}-dropdown-item`}
+                  data-test-id="remove-member-dropdown-item"
                 >
-                  Make {role.title}
+                  Remove
                 </Menu.Item>
-              ))}
-            {payload?.canRemove && (
-              <Menu.Item
-                leadingIcon={<TrashIcon />}
-                onClick={() =>
-                  removeMemberRef.current?.open(
-                    payload.memberId,
-                    String(payload.invited)
-                  )
-                }
-                data-test-id="remove-member-dropdown-item"
-              >
-                Remove
-              </Menu.Item>
-            )}
-          </Menu.Content>
+              )}
+            </Menu.Content>
           );
         }}
       </Menu>
 
       <InviteMemberDialog
-        ref={inviteDialogRef}
+        handle={inviteDialogHandle}
         showTeamField={showTeamField}
         refetch={refetch}
       />
       <RemoveMemberDialog
-        ref={removeMemberRef}
+        handle={removeMemberDialogHandle}
         refetch={refetch}
       />
       <UpdateRoleDialog
-        ref={updateRoleRef}
+        handle={updateRoleDialogHandle}
         organizationId={organization?.id ?? ''}
         refetch={refetch}
       />
