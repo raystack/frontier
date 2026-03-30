@@ -12,6 +12,7 @@ import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "../../../../utils/co
 import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { getColumns } from "./columns";
 import { useDebounceValue } from "usehooks-ts";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -45,6 +46,7 @@ const NoTokens = () => {
 };
 
 const ErrorState = () => {
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
@@ -52,13 +54,14 @@ const ErrorState = () => {
         subHeading: styles["empty-state-subheading"],
       }}
       heading="Error Loading Tokens"
-      subHeading="Something went wrong while loading organization tokens. Please try refreshing the page."
+      subHeading={`Something went wrong while loading ${t.organization({ case: "lower" })} tokens. Please try refreshing the page.`}
       icon={<ExclamationTriangleIcon />}
     />
   );
 };
 
 export function OrganizationTokensView() {
+  const t = useTerminology();
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const {
@@ -69,7 +72,7 @@ export function OrganizationTokensView() {
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
-  const title = `Tokens | ${organization?.title} | Organizations`;
+  const title = `Tokens | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const computedQuery = useMemo(() => {
     const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
@@ -129,7 +132,7 @@ export function OrganizationTokensView() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  const columns = useMemo(() => getColumns(), []);
+  const columns = useMemo(() => getColumns({ t }), [t]);
 
   return (
     <Flex justify="center">
