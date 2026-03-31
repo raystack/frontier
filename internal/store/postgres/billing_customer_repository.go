@@ -45,15 +45,16 @@ type Customer struct {
 	OrgID      string  `db:"org_id"`
 	ProviderID *string `db:"provider_id"` // this could be empty if the customer is created as offline
 
-	Name      string             `db:"name"`
-	Email     string             `db:"email"`
-	Phone     *string            `db:"phone"`
-	Currency  string             `db:"currency"`
-	Address   types.NullJSONText `db:"address"`
-	Metadata  types.NullJSONText `db:"metadata"`
-	Tax       Tax                `db:"tax"`
-	CreditMin int64              `db:"credit_min"`
-	DueInDays int64              `db:"due_in_days"`
+	Name        string             `db:"name"`
+	Email       string             `db:"email"`
+	Phone       *string            `db:"phone"`
+	Currency    string             `db:"currency"`
+	Address     types.NullJSONText `db:"address"`
+	Metadata    types.NullJSONText `db:"metadata"`
+	Tax         Tax                `db:"tax"`
+	CreditMin   int64              `db:"credit_min"`
+	DueInDays   int64              `db:"due_in_days"`
+	PaymentMode string             `db:"payment_mode"`
 
 	State     string     `db:"state"`
 	CreatedAt time.Time  `db:"created_at"`
