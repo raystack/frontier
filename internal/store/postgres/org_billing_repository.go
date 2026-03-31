@@ -297,7 +297,7 @@ func getSubQuery() *goqu.SelectDataset {
 		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_TRIAL_ENDS_AT),
 		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CURRENT_PERIOD_END_AT).As(COLUMN_SUBSCRIPTION_CYCLE_END_AT),
 		goqu.L(fmt.Sprintf(
-			"CASE WHEN %s.credit_min IS NOT NULL AND %s.credit_min > 0 THEN 'postpaid' ELSE 'prepaid' END",
+			"CASE WHEN %s.credit_min IS NOT NULL AND %s.credit_min < 0 THEN 'postpaid' ELSE 'prepaid' END",
 			TABLE_BILLING_CUSTOMERS, TABLE_BILLING_CUSTOMERS,
 		)).As(COLUMN_PAYMENT_MODE),
 		goqu.Literal("ROW_NUMBER() OVER (PARTITION BY ? ORDER BY ? DESC)", goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID),
