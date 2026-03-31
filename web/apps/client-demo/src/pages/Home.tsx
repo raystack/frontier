@@ -4,7 +4,6 @@ import {
   Button,
   DataTable,
   Flex,
-  Navbar,
   Text,
   getAvatarColor,
   type DataTableColumnDef,
@@ -194,33 +193,37 @@ export default function Home() {
 
   return (
     <main style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar>
-        <Navbar.Start>
-          <Text size="large" weight="bold">
-            Frontier
-          </Text>
-        </Navbar.Start>
-        <Navbar.End>
-          <Flex align="center" gap="small">
-            <Avatar
-              src={user?.avatar}
-              fallback={userInitial}
-              color={avatarColor}
-              size={2}
-            />
-            <Text size="small">{user?.title || user?.email}</Text>
-            <Button
-              variant="outline"
-              color="neutral"
-              size="small"
-              data-test-id="[logout-button]"
-              onClick={logout}
-            >
-              Logout
-            </Button>
-          </Flex>
-        </Navbar.End>
-      </Navbar>
+      <Flex
+        as="nav"
+        justify="between"
+        align="center"
+        style={{
+          padding: 'var(--rs-space-3) var(--rs-space-5)',
+          borderBottom: '1px solid var(--rs-color-border-base-secondary)',
+        }}
+      >
+        <Text size="large" weight="bold">
+          Frontier
+        </Text>
+        <Flex align="center" gap="small">
+          <Avatar
+            src={user?.avatar}
+            fallback={userInitial}
+            color={avatarColor}
+            size={2}
+          />
+          <Text size="small">{user?.title || user?.email}</Text>
+          <Button
+            variant="outline"
+            color="neutral"
+            size="small"
+            data-test-id="[logout-button]"
+            onClick={logout}
+          >
+            Logout
+          </Button>
+        </Flex>
+      </Flex>
       <Flex direction="column" style={{ flex: 1, padding: 'var(--rs-space-5)' }}>
         <DataTable
           columns={columns}
