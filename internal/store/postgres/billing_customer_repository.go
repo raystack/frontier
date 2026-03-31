@@ -52,8 +52,9 @@ type Customer struct {
 	Address   types.NullJSONText `db:"address"`
 	Metadata  types.NullJSONText `db:"metadata"`
 	Tax       Tax                `db:"tax"`
-	CreditMin int64              `db:"credit_min"`
-	DueInDays int64              `db:"due_in_days"`
+	CreditMin   int64              `db:"credit_min"`
+	DueInDays   int64              `db:"due_in_days"`
+	PaymentMode string             `db:"payment_mode"`
 
 	State     string     `db:"state"`
 	CreatedAt time.Time  `db:"created_at"`
