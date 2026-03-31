@@ -74,11 +74,13 @@ function getColumns(
       header: 'Status',
       cell: ({ row }) => <Text>{STATUS_LABELS[row.original.status]}</Text>,
       enableGrouping: true,
+      enableHiding: true,
       groupLabelsMap: STATUS_LABELS,
     },
     {
       accessorKey: 'date',
       header: 'Date',
+      enableHiding: true,
       cell: ({ row }) => {
         const { status, timestamp } = row.original;
         const prefix = status === 'joined' ? 'Joined' : 'Invited';
@@ -300,6 +302,7 @@ export default function Home() {
                   <MagnifyingGlassIcon />
                 </IconButton>
               )}
+              <DataTable.DisplayControls />
               <Separator orientation="vertical" size="small" />
               <DropdownMenu>
                 <DropdownMenu.Trigger asChild>
