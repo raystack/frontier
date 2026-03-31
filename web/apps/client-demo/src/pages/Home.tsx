@@ -26,6 +26,7 @@ type OrgRow = {
   name: string;
   status: 'joined' | 'invited' | 'expired';
   date: string;
+  timestamp: number;
   invitationId?: string;
 };
 
@@ -35,6 +36,27 @@ const STATUS_LABELS: Record<OrgRow['status'], string> = {
   expired: 'Invite Expired',
 };
 
+function timeAgo(ts: number): string {
+  if (!ts) return '-';
+  const seconds = Math.floor((Date.now() - ts) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(months / 12);
+  return `${years}y ago`;
+}
+
+function tsToMs(ts?: { seconds?: bigint; nanos?: number }): number {
+  if (!ts?.seconds) return 0;
+  return Number(ts.seconds) * 1000;
+}
+
 function getColumns(
   onAccept: (row: OrgRow) => void,
   onOpen: (row: OrgRow, e: MouseEvent) => void
@@ -43,24 +65,27 @@ function getColumns(
     {
       accessorKey: 'name',
       header: 'Organization',
-      enableColumnFilter: true,
       cell: ({ getValue }) => <Text weight="medium">{getValue() as string}</Text>,
     },
     {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => <Text>{STATUS_LABELS[row.original.status]}</Text>,
-      filterType: 'select',
-      filterOptions: Object.entries(STATUS_LABELS).map(([value, label]) => ({
-        value,
-        label,
-      })),
-      enableColumnFilter: true,
+      enableGrouping: true,
+      groupLabelsMap: STATUS_LABELS,
     },
     {
       accessorKey: 'date',
       header: 'Date',
-      cell: ({ getValue }) => <Text variant="secondary">{getValue() as string}</Text>,
+      cell: ({ row }) => {
+        const { status, timestamp } = row.original;
+        const prefix = status === 'joined' ? 'Joined' : 'Invited';
+        return (
+          <Text variant="secondary">
+            {timestamp ? `${prefix} ${timeAgo(timestamp)}` : '-'}
+          </Text>
+        );
+      },
     },
     {
       accessorKey: 'id',
@@ -115,11 +140,6 @@ function getColumns(
   ];
 }
 
-function formatDate(ts?: { seconds?: bigint; nanos?: number }): string {
-  if (!ts?.seconds) return '-';
-  return new Date(Number(ts.seconds) * 1000).toLocaleDateString();
-}
-
 export default function Home() {
   const { isAuthorized } = useContext(AuthContext);
   const { user, organizations } = useFrontier();
@@ -168,7 +188,8 @@ export default function Home() {
       orgId: org.id,
       name: org.title || org.name || org.id,
       status: 'joined' as const,
-      date: formatDate(org.createdAt),
+      date: STATUS_LABELS['joined'],
+      timestamp: tsToMs(org.createdAt),
     }));
 
     const joinedOrgIds = new Set(organizations.map((o) => o.id));
@@ -181,14 +202,16 @@ export default function Home() {
           ? Number(inv.expiresAt.seconds) * 1000
           : 0;
         const isExpired = expiresMs > 0 && expiresMs < now;
+        const status = isExpired ? ('expired' as const) : ('invited' as const);
 
         return {
           id: inv.id,
           orgId: inv.orgId,
           invitationId: inv.id,
           name: org?.title || org?.name || inv.orgId,
-          status: isExpired ? ('expired' as const) : ('invited' as const),
-          date: formatDate(inv.createdAt),
+          status,
+          date: STATUS_LABELS[status],
+          timestamp: tsToMs(inv.createdAt),
         };
       });
 
@@ -237,7 +260,7 @@ export default function Home() {
 
   return (
     <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', margin: 0 }}>
-      <Navbar style={{ padding: '0 var(--rs-space-5)', minHeight: 'auto', height: 44 }}>
+      <Navbar>
         <Navbar.Start>
           <Text size="large" weight="bold">
             Frontier
@@ -272,7 +295,10 @@ export default function Home() {
           defaultSort={{ name: 'status', order: 'asc' }}
         >
           <Flex direction="column" style={{ width: '100%' }}>
-            <DataTable.Toolbar />
+            <Flex align="center" gap="small" style={{ padding: 'var(--rs-space-3) 0' }}>
+              <DataTable.Search size="small" />
+              <DataTable.GroupBy />
+            </Flex>
             <DataTable.Content />
           </Flex>
         </DataTable>
