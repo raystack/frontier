@@ -67,19 +67,22 @@ function getColumns(
     {
       accessorKey: 'name',
       header: 'Organization',
+      enableSorting: true,
       cell: ({ getValue }) => <Text weight="medium">{getValue() as string}</Text>,
     },
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ row }) => <Text>{STATUS_LABELS[row.original.status]}</Text>,
+      enableSorting: true,
       enableGrouping: true,
       enableHiding: true,
       groupLabelsMap: STATUS_LABELS,
+      cell: ({ row }) => <Text>{STATUS_LABELS[row.original.status]}</Text>,
     },
     {
       accessorKey: 'date',
       header: 'Date',
+      enableSorting: true,
       enableHiding: true,
       cell: ({ row }) => {
         const { status, timestamp } = row.original;
@@ -302,7 +305,6 @@ export default function Home() {
                   <MagnifyingGlassIcon />
                 </IconButton>
               )}
-              <DataTable.DisplayControls />
               <Separator orientation="vertical" size="small" />
               <DropdownMenu>
                 <DropdownMenu.Trigger asChild>
@@ -334,6 +336,7 @@ export default function Home() {
           </Navbar.End>
         </Navbar>
         <Flex direction="column" style={{ flex: 1, padding: 'var(--rs-space-5)' }}>
+          <DataTable.Toolbar />
           <DataTable.Content />
         </Flex>
       </DataTable>
