@@ -1,4 +1,4 @@
-import { Flex, Select, Skeleton } from '@raystack/apsara-v1';
+import { Flex, Select } from '@raystack/apsara-v1';
 import { SunIcon, MoonIcon, GearIcon } from '@radix-ui/react-icons';
 import { BellIcon, BellSlashIcon } from '@raystack/apsara-v1/icons';
 import { ViewContainer } from '~/react/components/view-container';
@@ -8,8 +8,12 @@ import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 import { PreferenceRow } from './components/preference-row';
 import { useTheme } from '@raystack/apsara';
 import styles from './preferences-view.module.css';
+import { ReactNode } from 'react';
 
-export function PreferencesView() {
+interface PreferencesViewProps {
+  children?: ReactNode;
+}
+export function PreferencesView({ children }: PreferencesViewProps) {
   const { theme, setTheme } = useTheme();
   const { preferences, isLoading, isFetching, updatePreferences } =
     usePreferences({});
@@ -74,6 +78,7 @@ export function PreferencesView() {
             </Select.Content>
           </Select>
         </PreferenceRow>
+        {children}
       </Flex>
     </ViewContainer>
   );
