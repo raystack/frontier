@@ -297,7 +297,6 @@ export default function Home() {
           <Flex direction="column" style={{ width: '100%' }}>
             <Flex align="center" gap="small" style={{ padding: 'var(--rs-space-3) 0' }}>
               <DataTable.Search size="small" />
-              <DataTable.GroupBy />
             </Flex>
             <DataTable.Content />
           </Flex>
