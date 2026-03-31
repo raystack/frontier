@@ -1,9 +1,9 @@
 'use client';
 
 import {
-    DotsHorizontalIcon,
-    Pencil1Icon,
-    TrashIcon
+  DotsHorizontalIcon,
+  Pencil1Icon,
+  TrashIcon
 } from '@radix-ui/react-icons';
 import { Text, DropdownMenu, DataTableColumnDef } from '@raystack/apsara';
 import type { Group } from '@raystack/proton/frontier';
@@ -11,52 +11,52 @@ import orgStyles from '../../../components/organization/organization.module.css'
 import React from 'react';
 
 export const getColumns = (
-    userAccessOnTeam: Record<string, string[]>,
-    onTeamClick?: (teamId: string) => void,
-    onDeleteTeamClick?: (teamId: string) => void
+  userAccessOnTeam: Record<string, string[]>,
+  onTeamClick?: (teamId: string) => void,
+  onDeleteTeamClick?: (teamId: string) => void
 ): DataTableColumnDef<Group, unknown>[] => [
-  {
-    header: 'Title',
-    accessorKey: 'title',
-    cell: ({ row, getValue }) => <Text>{getValue() as string}</Text>
-  },
-  {
-    header: 'Members',
-    accessorKey: 'members_count',
-    cell: ({ row, getValue }) => {
-      const value = getValue() as string;
-      return value ? <Text>{value} members</Text> : null;
+    {
+      header: 'Title',
+      accessorKey: 'title',
+      cell: ({ row, getValue }) => <Text>{getValue() as string}</Text>
+    },
+    {
+      header: 'Members',
+      accessorKey: 'membersCount',
+      cell: ({ row, getValue }) => {
+        const value = getValue() as string;
+        return value ? <Text>{value} members</Text> : null;
+      }
+    },
+    {
+      header: '',
+      accessorKey: 'id',
+      enableSorting: false,
+      cell: ({ row, getValue }) => (
+        <TeamActions
+          team={row.original as Group}
+          userAccessOnTeam={userAccessOnTeam}
+          onTeamClick={onTeamClick}
+          onDeleteTeamClick={onDeleteTeamClick}
+        />
+      )
     }
-  },
-  {
-    header: '',
-    accessorKey: 'id',
-    enableSorting: false,
-    cell: ({ row, getValue }) => (
-      <TeamActions
-        team={row.original as Group}
-        userAccessOnTeam={userAccessOnTeam}
-        onTeamClick={onTeamClick}
-        onDeleteTeamClick={onDeleteTeamClick}
-      />
-    )
-  }
-];
+  ];
 
 const TeamActions = ({
-    team,
-    userAccessOnTeam,
-    onTeamClick,
-    onDeleteTeamClick
+  team,
+  userAccessOnTeam,
+  onTeamClick,
+  onDeleteTeamClick
 }: {
-    team: Group;
-    userAccessOnTeam: Record<string, string[]>;
-    onTeamClick?: (teamId: string) => void;
-    onDeleteTeamClick?: (teamId: string) => void;
+  team: Group;
+  userAccessOnTeam: Record<string, string[]>;
+  onTeamClick?: (teamId: string) => void;
+  onDeleteTeamClick?: (teamId: string) => void;
 }) => {
-    const canUpdateTeam = (userAccessOnTeam[team.id!] ?? []).includes('update');
-    const canDeleteTeam = (userAccessOnTeam[team.id!] ?? []).includes('delete');
-    const canDoActions = canUpdateTeam || canDeleteTeam;
+  const canUpdateTeam = (userAccessOnTeam[team.id!] ?? []).includes('update');
+  const canDeleteTeam = (userAccessOnTeam[team.id!] ?? []).includes('delete');
+  const canDoActions = canUpdateTeam || canDeleteTeam;
 
   function onDeleteClick(e: React.MouseEvent) {
     e.stopPropagation();

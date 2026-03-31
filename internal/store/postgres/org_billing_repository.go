@@ -48,6 +48,7 @@ const (
 	COLUMN_UPDATED_AT                = "updated_at"
 	COLUMN_ROW_NUM                   = "row_num"
 	COLUMN_PLAN_INTERVAL             = "plan_interval"
+	COLUMN_PAYMENT_MODE              = "payment_mode"
 	COLUMN_COUNT                     = "count"
 	COLUMN_VALUES                    = "values"
 )
@@ -70,7 +71,7 @@ type OrgBilling struct {
 	SubscriptionState      sql.NullString `db:"subscription_state"`
 	PlanInterval           sql.NullString `db:"plan_interval"`
 	Country                sql.NullString `db:"country"`
-	PaymentMode            string         `db:"payment_mode"`
+	PaymentMode            sql.NullString `db:"payment_mode"`
 	PlanID                 sql.NullString `db:"plan_id"`
 }
 
@@ -98,7 +99,7 @@ func (o *OrgBilling) transformToAggregatedOrganization() svc.AggregatedOrganizat
 		PlanName:               o.PlanName.String,
 		PlanInterval:           o.PlanInterval.String,
 		SubscriptionState:      o.SubscriptionState.String,
-		PaymentMode:            o.PaymentMode,
+		PaymentMode:            o.PaymentMode.String,
 		SubscriptionCycleEndAt: o.SubscriptionCycleEndAt.Time,
 		PlanID:                 o.PlanID.String,
 	}
@@ -202,6 +203,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 		goqu.I(COLUMN_SUBSCRIPTION_STATE),
 		goqu.I(COLUMN_SUBSCRIPTION_CYCLE_END_AT),
 		goqu.I(COLUMN_PLAN_INTERVAL),
+		goqu.I(COLUMN_PAYMENT_MODE),
 	}
 
 	rankedSubscriptions := getSubQuery()
@@ -237,6 +239,7 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 		COLUMN_PLAN_NAME,
 		COLUMN_SUBSCRIPTION_STATE,
 		COLUMN_PLAN_INTERVAL,
+		COLUMN_PAYMENT_MODE,
 	}
 
 	if len(rql.GroupBy) == 0 {
@@ -293,6 +296,7 @@ func getSubQuery() *goqu.SelectDataset {
 		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_STATE).As(COLUMN_SUBSCRIPTION_STATE),
 		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_TRIAL_ENDS_AT),
 		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CURRENT_PERIOD_END_AT).As(COLUMN_SUBSCRIPTION_CYCLE_END_AT),
+		goqu.I(TABLE_BILLING_CUSTOMERS + "." + COLUMN_PAYMENT_MODE).As(COLUMN_PAYMENT_MODE),
 		goqu.Literal("ROW_NUMBER() OVER (PARTITION BY ? ORDER BY ? DESC)", goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID),
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
@@ -328,6 +332,7 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu
 		COLUMN_SUBSCRIPTION_STATE,
 		COLUMN_SUBSCRIPTION_CYCLE_END_AT,
 		COLUMN_PLAN_INTERVAL,
+		COLUMN_PAYMENT_MODE,
 	}
 
 	for _, filter := range rqlInput.Filters {
