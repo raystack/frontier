@@ -29,6 +29,7 @@ import (
 	connecthealth "connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
+	"connectrpc.com/validate"
 	"github.com/gorilla/securecookie"
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
@@ -151,6 +152,8 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService, cfg.PAT)
 	auditInterceptor := connectinterceptors.NewAuditInterceptor(deps.AuditService)
 
+	validateInterceptor := validate.NewInterceptor()
+
 	interceptors := connect.WithInterceptors(
 		otelInterceptor,
 		connectinterceptors.UnaryConnectLoggerInterceptor(zapLogger.Desugar(), loggerOpts),
@@ -158,6 +161,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		sessionInterceptor,
 		authNInterceptor,
 		authZInterceptor,
+		validateInterceptor,
 		auditInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 

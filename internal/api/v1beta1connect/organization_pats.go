@@ -23,10 +23,6 @@ const orgPATsMaxLimit = 30
 func (h *ConnectHandler) SearchOrganizationPATs(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationPATsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationPATsResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if request.Msg.Validate() != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
-	}
-
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), svc.PATSearchFields{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))

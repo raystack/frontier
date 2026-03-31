@@ -29,10 +29,6 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
-
 	if err := h.userPATService.ValidateExpiry(request.Msg.GetExpiresAt().AsTime()); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -86,10 +82,6 @@ func (h *ConnectHandler) GetCurrentUserPAT(ctx context.Context, request *connect
 	}
 	if principal.User == nil {
 		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
-	}
-
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	pat, err := h.userPATService.Get(ctx, principal.User.ID, request.Msg.GetId())
@@ -153,10 +145,6 @@ func (h *ConnectHandler) DeleteCurrentUserPAT(ctx context.Context, request *conn
 		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
-
 	if err := h.userPATService.Delete(ctx, principal.User.ID, request.Msg.GetId()); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteCurrentUserPAT", err,
 			zap.String("user_id", principal.User.ID),
@@ -184,10 +172,6 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 	}
 	if principal.User == nil {
 		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
-	}
-
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	updated, err := h.userPATService.Update(ctx, models.PAT{
@@ -240,9 +224,6 @@ func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *
 		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
 	if request.Msg.GetExpiresAt() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("expires_at is required"))
 	}
@@ -285,10 +266,6 @@ func (h *ConnectHandler) CheckCurrentUserPATTitle(ctx context.Context, request *
 	}
 	if principal.User == nil {
 		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
-	}
-
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
 	available, err := h.userPATService.IsTitleAvailable(ctx, principal.User.ID, request.Msg.GetOrgId(), request.Msg.GetTitle())
@@ -368,10 +345,6 @@ func (h *ConnectHandler) SearchCurrentUserPATs(ctx context.Context, request *con
 		return nil, err
 	}
 	userID, _ := principal.ResolveSubject()
-
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), models.PAT{})
 	if err != nil {

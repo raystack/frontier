@@ -536,10 +536,6 @@ func (h *ConnectHandler) RemoveOrganizationUser(ctx context.Context, request *co
 func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetOrganizationMemberRoleResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
-
 	orgID := request.Msg.GetOrgId()
 	userID := request.Msg.GetUserId()
 	roleID := request.Msg.GetRoleId()
