@@ -28,4 +28,6 @@ jobs:
         with:
           push: true
           file: "./Dockerfile.dev"
-          tags: raystack/frontier:dev
+          tags: |
+            raystack/frontier:dev
+            raystack/frontier:${{ github.sha }}
