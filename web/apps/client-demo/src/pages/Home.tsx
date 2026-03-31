@@ -236,8 +236,8 @@ export default function Home() {
   const userInitial = user?.title?.[0] || user?.email?.[0] || '?';
 
   return (
-    <main style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar>
+    <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', margin: 0 }}>
+      <Navbar style={{ padding: '0 var(--rs-space-5)', minHeight: 'auto', height: 44 }}>
         <Navbar.Start>
           <Text size="large" weight="bold">
             Frontier
