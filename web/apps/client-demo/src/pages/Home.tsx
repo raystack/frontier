@@ -226,6 +226,7 @@ export default function Home() {
           columns={columns}
           data={rows}
           isLoading={isInvitationsLoading}
+          defaultSort={{ name: 'status', order: 'asc' }}
         >
           <Flex direction="column" style={{ width: '100%' }}>
             <DataTable.Toolbar />
