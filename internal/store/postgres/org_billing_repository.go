@@ -71,7 +71,7 @@ type OrgBilling struct {
 	SubscriptionState      sql.NullString `db:"subscription_state"`
 	PlanInterval           sql.NullString `db:"plan_interval"`
 	Country                sql.NullString `db:"country"`
-	PaymentMode            string         `db:"payment_mode"`
+	PaymentMode            sql.NullString `db:"payment_mode"`
 	PlanID                 sql.NullString `db:"plan_id"`
 }
 
@@ -99,7 +99,7 @@ func (o *OrgBilling) transformToAggregatedOrganization() svc.AggregatedOrganizat
 		PlanName:               o.PlanName.String,
 		PlanInterval:           o.PlanInterval.String,
 		SubscriptionState:      o.SubscriptionState.String,
-		PaymentMode:            o.PaymentMode,
+		PaymentMode:            o.PaymentMode.String,
 		SubscriptionCycleEndAt: o.SubscriptionCycleEndAt.Time,
 		PlanID:                 o.PlanID.String,
 	}
