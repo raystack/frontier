@@ -71,6 +71,7 @@ function getColumns(
           return (
             <Button
               size="small"
+              style={{ minWidth: 64 }}
               data-test-id={`[accept-invite-${row.original.invitationId}]`}
               onClick={(e: MouseEvent) => {
                 e.stopPropagation();
@@ -81,11 +82,23 @@ function getColumns(
             </Button>
           );
         }
+        if (status === 'expired') {
+          return (
+            <Button
+              size="small"
+              style={{ minWidth: 64 }}
+              disabled
+            >
+              Join
+            </Button>
+          );
+        }
         if (status === 'joined') {
           return (
             <Button
               variant="outline"
               size="small"
+              style={{ minWidth: 64 }}
               data-test-id={`[open-org-${row.original.orgId}]`}
               onClick={(e: MouseEvent) => {
                 e.stopPropagation();
