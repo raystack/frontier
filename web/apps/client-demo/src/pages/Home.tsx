@@ -10,7 +10,7 @@ import {
   getAvatarColor,
   type DataTableColumnDef,
 } from '@raystack/apsara';
-import { useFrontier } from '@raystack/frontier/react';
+import { useFrontier, useTerminology } from '@raystack/frontier/react';
 import {
   useMutation,
   useQuery,
@@ -150,6 +150,7 @@ function getColumns(
 export default function Home() {
   const { isAuthorized } = useContext(AuthContext);
   const { user, organizations } = useFrontier();
+  const t = useTerminology();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -279,7 +280,7 @@ export default function Home() {
         <Navbar>
           <Navbar.Start>
             <Text size="large" weight="bold">
-              Frontier
+              {t.appName()}
             </Text>
           </Navbar.Start>
           <Navbar.End>
