@@ -3,6 +3,7 @@ import {
   Avatar,
   Button,
   DataTable,
+  DropdownMenu,
   Flex,
   Navbar,
   Text,
@@ -295,22 +296,32 @@ export default function Home() {
                 </IconButton>
               )}
               <Separator orientation="vertical" size="small" />
-              <Avatar
-                src={user?.avatar}
-                fallback={userInitial}
-                color={avatarColor}
-                size={2}
-              />
-              <Text size="small">{user?.title || user?.email}</Text>
-              <Button
-                variant="outline"
-                color="neutral"
-                size="small"
-                data-test-id="[logout-button]"
-                onClick={logout}
-              >
-                Logout
-              </Button>
+              <DropdownMenu>
+                <DropdownMenu.Trigger asChild>
+                  <button
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    data-test-id="[user-menu-trigger]"
+                  >
+                    <Avatar
+                      src={user?.avatar}
+                      fallback={userInitial}
+                      color={avatarColor}
+                      size={3}
+                    />
+                  </button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content>
+                  <DropdownMenu.Item disabled>
+                    {user?.email}
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    onClick={logout}
+                    data-test-id="[logout-button]"
+                  >
+                    Logout
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu>
             </Flex>
           </Navbar.End>
         </Navbar>
