@@ -17,8 +17,9 @@ import {
   useQueryClient,
 } from '@raystack/frontier/hooks';
 import { useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useMemo, useCallback, type MouseEvent } from 'react';
-import { toast } from '@raystack/apsara';
+import { useContext, useEffect, useMemo, useCallback, useState, type MouseEvent } from 'react';
+import { toast, IconButton, Separator } from '@raystack/apsara';
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
 type OrgRow = {
   id: string;
@@ -255,6 +256,8 @@ export default function Home() {
     }
   }
 
+  const [showSearch, setShowSearch] = useState(false);
+
   const avatarColor = getAvatarColor(user?.id || '');
   const userInitial = user?.title?.[0] || user?.email?.[0] || '?';
 
@@ -271,10 +274,27 @@ export default function Home() {
             <Text size="large" weight="bold">
               Frontier
             </Text>
-            <DataTable.Search size="small" />
           </Navbar.Start>
           <Navbar.End>
             <Flex align="center" gap="small">
+              {showSearch ? (
+                <DataTable.Search
+                  showClearButton
+                  size="small"
+                  onBlur={(e) => {
+                    if (!e.target.value) setShowSearch(false);
+                  }}
+                />
+              ) : (
+                <IconButton
+                  size={3}
+                  aria-label="Search"
+                  onClick={() => setShowSearch(true)}
+                >
+                  <MagnifyingGlassIcon />
+                </IconButton>
+              )}
+              <Separator orientation="vertical" size="small" />
               <Avatar
                 src={user?.avatar}
                 fallback={userInitial}
