@@ -7,6 +7,7 @@ import MagiclinkVerify from './pages/MagiclinkVerify';
 import Subscribe from './pages/Subscribe';
 import Updates from './pages/Updates';
 import Organization from './pages/Organization';
+
 function Router() {
   return (
     <BrowserRouter>
