@@ -34,15 +34,26 @@ export default function Home() {
         style={{ height: '100vh', width: '100vw' }}
         direction="column"
       >
-        <Button
-          variant="outline"
-          color="neutral"
-          size="small"
-          data-test-id="[logout-button]"
-          onClick={logout}
-        >
-          Logout
-        </Button>
+        <Flex gap="small">
+          <Link to="/invitations">
+            <Button
+              variant="outline"
+              size="small"
+              data-test-id="[invitations-link]"
+            >
+              Invitations
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            color="neutral"
+            size="small"
+            data-test-id="[logout-button]"
+            onClick={logout}
+          >
+            Logout
+          </Button>
+        </Flex>
         <Flex direction="row" wrap="wrap" gap={'medium'}>
           {organizations.map(org => (
             <Flex

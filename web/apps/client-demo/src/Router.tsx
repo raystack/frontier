@@ -7,6 +7,7 @@ import MagiclinkVerify from './pages/MagiclinkVerify';
 import Subscribe from './pages/Subscribe';
 import Updates from './pages/Updates';
 import Organization from './pages/Organization';
+import Invitations from './pages/Invitations';
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
         <Route path="/magiclink-verify" element={<MagiclinkVerify />} />
         <Route path="/subscribe" element={<Subscribe />} />
         <Route path="/updates" element={<Updates />} />
+        <Route path="/invitations" element={<Invitations />} />
         <Route path="/organizations/:orgId" element={<Organization />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
