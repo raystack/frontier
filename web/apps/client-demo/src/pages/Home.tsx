@@ -260,48 +260,44 @@ export default function Home() {
 
   return (
     <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', margin: 0 }}>
-      <Navbar>
-        <Navbar.Start>
-          <Text size="large" weight="bold">
-            Frontier
-          </Text>
-        </Navbar.Start>
-        <Navbar.End>
-          <Flex align="center" gap="small">
-            <Avatar
-              src={user?.avatar}
-              fallback={userInitial}
-              color={avatarColor}
-              size={2}
-            />
-            <Text size="small">{user?.title || user?.email}</Text>
-            <Button
-              variant="outline"
-              color="neutral"
-              size="small"
-              data-test-id="[logout-button]"
-              onClick={logout}
-            >
-              Logout
-            </Button>
-          </Flex>
-        </Navbar.End>
-      </Navbar>
-      <Flex direction="column" style={{ flex: 1, padding: 'var(--rs-space-5)' }}>
-        <DataTable
-          columns={columns}
-          data={rows}
-          isLoading={isInvitationsLoading}
-          defaultSort={{ name: 'status', order: 'asc' }}
-        >
-          <Flex direction="column" style={{ width: '100%' }}>
-            <Flex align="center" gap="small" style={{ padding: 'var(--rs-space-3) 0' }}>
-              <DataTable.Search size="small" />
+      <DataTable
+        columns={columns}
+        data={rows}
+        isLoading={isInvitationsLoading}
+        defaultSort={{ name: 'status', order: 'asc' }}
+      >
+        <Navbar>
+          <Navbar.Start>
+            <Text size="large" weight="bold">
+              Frontier
+            </Text>
+            <DataTable.Search size="small" />
+          </Navbar.Start>
+          <Navbar.End>
+            <Flex align="center" gap="small">
+              <Avatar
+                src={user?.avatar}
+                fallback={userInitial}
+                color={avatarColor}
+                size={2}
+              />
+              <Text size="small">{user?.title || user?.email}</Text>
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                data-test-id="[logout-button]"
+                onClick={logout}
+              >
+                Logout
+              </Button>
             </Flex>
-            <DataTable.Content />
-          </Flex>
-        </DataTable>
-      </Flex>
+          </Navbar.End>
+        </Navbar>
+        <Flex direction="column" style={{ flex: 1, padding: 'var(--rs-space-5)' }}>
+          <DataTable.Content />
+        </Flex>
+      </DataTable>
     </main>
   );
 }
