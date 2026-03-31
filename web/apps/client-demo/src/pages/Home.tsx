@@ -17,7 +17,7 @@ import {
   useQueryClient,
 } from '@raystack/frontier/hooks';
 import { useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useMemo, useCallback } from 'react';
+import { useContext, useEffect, useMemo, useCallback, type MouseEvent } from 'react';
 import { toast } from '@raystack/apsara';
 
 type OrgRow = {
@@ -36,7 +36,8 @@ const STATUS_LABELS: Record<OrgRow['status'], string> = {
 };
 
 function getColumns(
-  onAccept: (row: OrgRow) => void
+  onAccept: (row: OrgRow) => void,
+  onOpen: (row: OrgRow, e: MouseEvent) => void
 ): DataTableColumnDef<OrgRow, unknown>[] {
   return [
     {
@@ -48,27 +49,7 @@ function getColumns(
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ row }) => {
-        const status = row.original.status;
-        if (status === 'invited') {
-          return (
-            <Flex gap="small" align="center">
-              <Text>{STATUS_LABELS[status]}</Text>
-              <Button
-                size="small"
-                data-test-id={`[accept-invite-${row.original.invitationId}]`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAccept(row.original);
-                }}
-              >
-                Accept
-              </Button>
-            </Flex>
-          );
-        }
-        return <Text>{STATUS_LABELS[status]}</Text>;
-      },
+      cell: ({ row }) => <Text>{STATUS_LABELS[row.original.status]}</Text>,
       filterType: 'select',
       filterOptions: Object.entries(STATUS_LABELS).map(([value, label]) => ({
         value,
@@ -80,6 +61,43 @@ function getColumns(
       accessorKey: 'date',
       header: 'Date',
       cell: ({ getValue }) => <Text variant="secondary">{getValue() as string}</Text>,
+    },
+    {
+      accessorKey: 'id',
+      header: '',
+      cell: ({ row }) => {
+        const { status } = row.original;
+        if (status === 'invited') {
+          return (
+            <Button
+              size="small"
+              data-test-id={`[accept-invite-${row.original.invitationId}]`}
+              onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                onAccept(row.original);
+              }}
+            >
+              Join
+            </Button>
+          );
+        }
+        if (status === 'joined') {
+          return (
+            <Button
+              variant="outline"
+              size="small"
+              data-test-id={`[open-org-${row.original.orgId}]`}
+              onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                onOpen(row.original, e);
+              }}
+            >
+              Open
+            </Button>
+          );
+        }
+        return null;
+      },
     },
   ];
 }
@@ -178,7 +196,19 @@ export default function Home() {
     [acceptInvitation, queryClient],
   );
 
-  const columns = useMemo(() => getColumns(handleAccept), [handleAccept]);
+  const handleOpen = useCallback(
+    (row: OrgRow, e: MouseEvent) => {
+      const path = `/organizations/${row.orgId}`;
+      if (e.metaKey || e.ctrlKey) {
+        window.open(path, '_blank');
+      } else {
+        navigate(path);
+      }
+    },
+    [navigate],
+  );
+
+  const columns = useMemo(() => getColumns(handleAccept, handleOpen), [handleAccept, handleOpen]);
 
   async function logout() {
     try {
