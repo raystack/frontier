@@ -27,7 +27,7 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
       <SidePanel.Header
         title={organization?.title || t.organization({ case: "capital" })}
         icon={
-          <Avatar fallback={organization?.title?.[0]} color={avatarColor} />
+          <Avatar src={organization?.avatar} fallback={organization?.title?.[0]} color={avatarColor} />
         }
       />
       <SidePanel.Section>
