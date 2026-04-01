@@ -124,7 +124,8 @@ export const usePlans = () => {
             toast.error("You don't have permission to perform this action"),
           InvalidArgument: e =>
             toast.error('Checkout failed', { description: e.message }),
-          NotFound: e => toast.error('Not found', { description: e.message })
+          NotFound: e => toast.error('Not found', { description: e.message }),
+          Default: e => toast.error('Checkout failed', { description: e.message })
         });
       }
     },
@@ -169,7 +170,9 @@ export const usePlans = () => {
                 description: err.message
               }),
             NotFound: err =>
-              toast.error('Not found', { description: err.message })
+              toast.error('Not found', { description: err.message }),
+            Default: err =>
+              toast.error('Failed to change plan', { description: err.message })
           });
         }
       }

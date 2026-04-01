@@ -20,7 +20,11 @@ export function handleConnectError(
     error instanceof ConnectError
       ? error
       : new ConnectError(
-          error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE
+          typeof error === 'string'
+            ? error
+            : error instanceof Error
+              ? error.message
+              : DEFAULT_ERROR_MESSAGE
         );
 
   const defaultHandler =
