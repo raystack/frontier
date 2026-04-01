@@ -18,7 +18,7 @@ import {
   useQueryClient,
 } from '@raystack/frontier/hooks';
 import { useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useMemo, useCallback, useState, useRef, type MouseEvent } from 'react';
+import { useContext, useEffect, useMemo, useCallback, useState, type MouseEvent } from 'react';
 import { toast, IconButton, Separator } from '@raystack/apsara';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
@@ -264,7 +264,6 @@ export default function Home() {
   }
 
   const [showSearch, setShowSearch] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
 
   const avatarColor = getAvatarColor(user?.id || '');
   const userInitial = user?.title?.[0] || user?.email?.[0] || '?';
@@ -287,7 +286,7 @@ export default function Home() {
             <Flex align="center" gap="small">
               {showSearch ? (
                 <DataTable.Search
-                  ref={searchRef}
+                  autoFocus
                   showClearButton
                   size="small"
                   onBlur={(e) => {
@@ -298,10 +297,7 @@ export default function Home() {
                 <IconButton
                   size={3}
                   aria-label="Search"
-                  onClick={() => {
-                    setShowSearch(true);
-                    setTimeout(() => searchRef.current?.focus(), 0);
-                  }}
+                  onClick={() => setShowSearch(true)}
                 >
                   <MagnifyingGlassIcon />
                 </IconButton>
