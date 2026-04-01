@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/serviceuser"
 
@@ -32,6 +34,7 @@ type UserService interface {
 }
 
 type ServiceuserService interface {
+	Get(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 	GetByIDs(ctx context.Context, ids []string) ([]serviceuser.ServiceUser, error)
 	FilterSudos(ctx context.Context, ids []string) ([]string, error)
 }
@@ -39,7 +42,12 @@ type ServiceuserService interface {
 type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
+	Delete(ctx context.Context, id string) error
 	ProjectMemberCount(ctx context.Context, ids []string) ([]policy.MemberCount, error)
+}
+
+type RoleService interface {
+	Get(ctx context.Context, id string) (role.Role, error)
 }
 
 type AuthnService interface {
@@ -47,6 +55,7 @@ type AuthnService interface {
 }
 
 type GroupService interface {
+	Get(ctx context.Context, id string) (group.Group, error)
 	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
 }
@@ -59,11 +68,12 @@ type Service struct {
 	policyService   PolicyService
 	authnService    AuthnService
 	groupService    GroupService
+	roleService     RoleService
 }
 
 func NewService(repository Repository, relationService RelationService, userService UserService,
 	policyService PolicyService, authnService AuthnService, suserService ServiceuserService,
-	groupService GroupService) *Service {
+	groupService GroupService, roleService RoleService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
@@ -72,6 +82,7 @@ func NewService(repository Repository, relationService RelationService, userServ
 		authnService:    authnService,
 		suserService:    suserService,
 		groupService:    groupService,
+		roleService:     roleService,
 	}
 }
 
@@ -346,6 +357,104 @@ func (s Service) Enable(ctx context.Context, id string) error {
 
 func (s Service) Disable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Disabled)
+}
+
+// SetMemberRole sets a principal's role in a project.
+// It deletes any existing project-level policies for the principal and creates a new one.
+// Supported principal types: user, service user, group.
+func (s Service) SetMemberRole(ctx context.Context, projectID, principalID, principalType, newRoleID string) error {
+	prj, err := s.Get(ctx, projectID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.validatePrincipal(ctx, prj.Organization.ID, principalID, principalType); err != nil {
+		return err
+	}
+
+	if err := s.validateProjectRole(ctx, newRoleID); err != nil {
+		return err
+	}
+
+	existingPolicies, err := s.policyService.List(ctx, policy.Filter{
+		ProjectID:     projectID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, p := range existingPolicies {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+			return err
+		}
+	}
+
+	_, err = s.policyService.Create(ctx, policy.Policy{
+		RoleID:        newRoleID,
+		ResourceID:    projectID,
+		ResourceType:  schema.ProjectNamespace,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	return err
+}
+
+// validatePrincipal checks that the principal exists and belongs to the org.
+// For users, org membership is checked via org-level policies.
+// For service users and groups, org membership is checked via their org ID field.
+func (s Service) validatePrincipal(ctx context.Context, orgID, principalID, principalType string) error {
+	switch principalType {
+	case schema.UserPrincipal:
+		if _, err := s.userService.GetByID(ctx, principalID); err != nil {
+			return err
+		}
+		orgPolicies, err := s.policyService.List(ctx, policy.Filter{
+			OrgID:         orgID,
+			PrincipalID:   principalID,
+			PrincipalType: principalType,
+		})
+		if err != nil {
+			return err
+		}
+		if len(orgPolicies) == 0 {
+			return ErrNotOrgMember
+		}
+	case schema.ServiceUserPrincipal:
+		su, err := s.suserService.Get(ctx, principalID)
+		if err != nil {
+			return err
+		}
+		if su.OrgID != orgID {
+			return ErrNotOrgMember
+		}
+	case schema.GroupPrincipal:
+		grp, err := s.groupService.Get(ctx, principalID)
+		if err != nil {
+			return err
+		}
+		if grp.OrganizationID != orgID {
+			return ErrNotOrgMember
+		}
+	default:
+		return ErrInvalidPrincipalType
+	}
+
+	return nil
+}
+
+func (s Service) validateProjectRole(ctx context.Context, roleID string) error {
+	fetchedRole, err := s.roleService.Get(ctx, roleID)
+	if err != nil {
+		return err
+	}
+
+	if !slices.Contains(fetchedRole.Scopes, schema.ProjectNamespace) {
+		return ErrInvalidProjectRole
+	}
+
+	return nil
 }
 
 // DeleteModel doesn't delete the nested resource, only itself

@@ -5,9 +5,11 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
@@ -358,6 +360,48 @@ func (h *ConnectHandler) DisableProject(ctx context.Context, request *connect.Re
 		return nil, translateProjectServiceError(err)
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableProjectResponse{}), nil
+}
+
+func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetProjectMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetProjectMemberRoleResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	projectID := request.Msg.GetProjectId()
+	principalID := request.Msg.GetPrincipalId()
+	principalType := request.Msg.GetPrincipalType()
+	roleID := request.Msg.GetRoleId()
+
+	if err := h.projectService.SetMemberRole(ctx, projectID, principalID, principalType, roleID); err != nil {
+		errorLogger.LogServiceError(ctx, request, "SetProjectMemberRole", err,
+			zap.String("project_id", projectID),
+			zap.String("principal_id", principalID),
+			zap.String("principal_type", principalType),
+			zap.String("role_id", roleID))
+
+		switch {
+		case errors.Is(err, project.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, serviceuser.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
+		case errors.Is(err, group.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		case errors.Is(err, project.ErrNotOrgMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, role.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrInvalidRoleID)
+		case errors.Is(err, role.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidRoleID)
+		case errors.Is(err, project.ErrInvalidProjectRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidProjectRole)
+		case errors.Is(err, project.ErrInvalidPrincipalType):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.SetProjectMemberRoleResponse{}), nil
 }
 
 func transformProjectToPB(prj project.Project) (*frontierv1beta1.Project, error) {
