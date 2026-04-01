@@ -60,8 +60,9 @@ export default defineConfig(() => {
     },
     plugins: [devConfigsPlugin(), react(), svgr(), tsconfigPaths()],
     resolve: {
-      // Force a single React runtime across app + linked workspace SDK packages
-      dedupe: ["react", "react-dom"],
+      // Force single instances of React and query libraries across app and SDK
+      // to prevent duplicate context issues (e.g. "No QueryClient set")
+      dedupe: ["react", "react-dom", "@tanstack/react-query", "@connectrpc/connect-query"],
     },
     define: {
       "process.env": process.env,
