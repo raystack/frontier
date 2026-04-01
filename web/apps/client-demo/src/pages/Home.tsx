@@ -27,7 +27,6 @@ type OrgRow = {
   orgId: string;
   name: string;
   status: 'joined' | 'invited' | 'expired';
-  date: string;
   timestamp: number;
   invitationId?: string;
 };
@@ -80,13 +79,13 @@ function getColumns(
       cell: ({ row }) => <Text>{STATUS_LABELS[row.original.status]}</Text>,
     },
     {
-      accessorKey: 'date',
+      accessorKey: 'timestamp',
       header: 'Date',
       enableSorting: true,
       enableHiding: true,
       cell: ({ row }) => {
         const { status, timestamp } = row.original;
-        const prefix = status === 'joined' ? 'Joined' : 'Invited';
+        const prefix = STATUS_LABELS[status];
         return (
           <Text variant="secondary">
             {timestamp ? `${prefix} ${timeAgo(timestamp)}` : '-'}
@@ -196,7 +195,6 @@ export default function Home() {
       orgId: org.id,
       name: org.title || org.name || org.id,
       status: 'joined' as const,
-      date: STATUS_LABELS['joined'],
       timestamp: tsToMs(org.createdAt),
     }));
 
@@ -218,7 +216,6 @@ export default function Home() {
           invitationId: inv.id,
           name: org?.title || org?.name || inv.orgId,
           status,
-          date: STATUS_LABELS[status],
           timestamp: tsToMs(inv.createdAt),
         };
       });
