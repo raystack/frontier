@@ -9,6 +9,7 @@ export {
 
 // Re-export Connect utilities
 export { ConnectError, Code } from '@connectrpc/connect';
+export { handleConnectError } from '../utils/error';
 
 // Re-export Frontier service queries for convenience
 export { FrontierServiceQueries } from '@raystack/proton/frontier';

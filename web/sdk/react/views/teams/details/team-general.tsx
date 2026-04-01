@@ -26,6 +26,7 @@ import {
     type Organization
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import { handleConnectError } from '~/utils/error';
 
 const teamSchema = yup
     .object({
@@ -104,11 +105,6 @@ export const TeamGeneral = ({
         {
             onSuccess: () => {
                 toast.success('Team updated');
-            },
-            onError: error => {
-                toast.error('Something went wrong', {
-                    description: error.message || 'Failed to update team'
-                });
             }
         }
     );
@@ -126,7 +122,17 @@ export const TeamGeneral = ({
             }
         });
 
-        await updateTeam(request);
+        try {
+            await updateTeam(request);
+        } catch (error) {
+            handleConnectError(error, {
+                AlreadyExists: () => toast.error('Team already exists'),
+                PermissionDenied: () => toast.error('You don\'t have permission to perform this action'),
+                InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
+                NotFound: (err) => toast.error('Not found', { description: err.message }),
+                Default: (err) => toast.error('Something went wrong', { description: err.message }),
+            });
+        }
     }
 
     return (

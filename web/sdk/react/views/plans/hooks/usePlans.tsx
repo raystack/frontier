@@ -7,6 +7,7 @@ import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { PlanMetadata } from '~/src/types';
 import { NIL as NIL_UUID } from 'uuid';
 import { useMutation, FrontierServiceQueries } from '~hooks';
+import { handleConnectError } from '~/utils/error';
 import { create } from '@bufbuild/protobuf';
 import {
   type Plan,
@@ -45,7 +46,6 @@ export const usePlans = () => {
   const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
   const {
     activeOrganization,
-    billingAccount,
     config,
     activeSubscription,
     subscriptions,
@@ -56,36 +56,15 @@ export const usePlans = () => {
 
   // Setup mutations
   const { mutateAsync: createCheckoutMutation, isPending: isCheckoutPending } =
-    useMutation(FrontierServiceQueries.createCheckout, {
-      onError: (err: Error) => {
-        console.error(err);
-        toast.error('Checkout failed', {
-          description: err?.message
-        });
-      }
-    });
+    useMutation(FrontierServiceQueries.createCheckout);
   const {
     mutateAsync: changeSubscriptionMutation,
     isPending: isChangePlanPending
-  } = useMutation(FrontierServiceQueries.changeSubscription, {
-    onError: (err: Error) => {
-      console.error(err);
-      toast.error('Failed to change plan', {
-        description: err?.message
-      });
-    }
-  });
+  } = useMutation(FrontierServiceQueries.changeSubscription);
   const {
     mutateAsync: cancelSubscriptionMutation,
     isPending: isCancelPending
-  } = useMutation(FrontierServiceQueries.cancelSubscription, {
-    onError: (err: Error) => {
-      console.error(err);
-      toast.error('Failed to cancel subscription', {
-        description: err?.message
-      });
-    }
-  });
+  } = useMutation(FrontierServiceQueries.cancelSubscription);
 
   const isLoading = isCheckoutPending || isChangePlanPending || isCancelPending;
 
@@ -140,15 +119,17 @@ export const usePlans = () => {
           }
         }
       } catch (err: unknown) {
-        console.error(err);
-        toast.error('Failed to prepare checkout', {
-          description: (err as Error)?.message
+        handleConnectError(err, {
+          PermissionDenied: () =>
+            toast.error("You don't have permission to perform this action"),
+          InvalidArgument: e =>
+            toast.error('Checkout failed', { description: e.message }),
+          NotFound: e => toast.error('Not found', { description: e.message })
         });
       }
     },
     [
       activeOrganization?.id,
-      billingAccount?.id,
       config?.billing?.cancelUrl,
       config?.billing?.successUrl,
       config?.billing?.cancelAfterTrial,
@@ -163,20 +144,33 @@ export const usePlans = () => {
   const changePlan = useCallback(
     async ({ planId, onSuccess, immediate = false }: changePlanOptions) => {
       if (activeSubscription?.id) {
-        const resp = await changeSubscriptionMutation(
-          create(ChangeSubscriptionRequestSchema, {
-            id: activeSubscription?.id,
-            change: {
-              case: 'planChange',
-              value: {
-                plan: planId,
-                immediate: immediate
+        try {
+          const resp = await changeSubscriptionMutation(
+            create(ChangeSubscriptionRequestSchema, {
+              id: activeSubscription?.id,
+              change: {
+                case: 'planChange',
+                value: {
+                  plan: planId,
+                  immediate: immediate
+                }
               }
-            }
-          })
-        );
-        if (resp?.phase) {
-          onSuccess();
+            })
+          );
+          if (resp?.phase) {
+            onSuccess();
+          }
+        } catch (error) {
+          handleConnectError(error, {
+            PermissionDenied: () =>
+              toast.error("You don't have permission to perform this action"),
+            InvalidArgument: err =>
+              toast.error('Failed to change plan', {
+                description: err.message
+              }),
+            NotFound: err =>
+              toast.error('Not found', { description: err.message })
+          });
         }
       }
     },
@@ -274,14 +268,27 @@ export const usePlans = () => {
   const cancelSubscription = useCallback(
     async ({ onSuccess }: cancelSubscriptionOptions) => {
       if (activeSubscription?.id) {
-        const resp = await cancelSubscriptionMutation(
-          create(CancelSubscriptionRequestSchema, {
-            id: activeSubscription?.id,
-            immediate: false
-          })
-        );
-        if (resp) {
-          onSuccess();
+        try {
+          const resp = await cancelSubscriptionMutation(
+            create(CancelSubscriptionRequestSchema, {
+              id: activeSubscription?.id,
+              immediate: false
+            })
+          );
+          if (resp) {
+            onSuccess();
+          }
+        } catch (error) {
+          handleConnectError(error, {
+            PermissionDenied: () =>
+              toast.error("You don't have permission to perform this action"),
+            NotFound: err =>
+              toast.error('Not found', { description: err.message }),
+            Default: err =>
+              toast.error('Failed to cancel subscription', {
+                description: err.message
+              })
+          });
         }
       }
     },
