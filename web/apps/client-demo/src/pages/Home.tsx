@@ -103,7 +103,7 @@ function getColumns(
             <Button
               size="small"
               style={{ minWidth: 64 }}
-              data-test-id={`[accept-invite-${row.original.invitationId}]`}
+              data-test-id={`accept-invite-${row.original.invitationId}`}
               onClick={(e: MouseEvent) => {
                 e.stopPropagation();
                 onAccept(row.original);
@@ -130,7 +130,7 @@ function getColumns(
               variant="outline"
               size="small"
               style={{ minWidth: 64 }}
-              data-test-id={`[open-org-${row.original.orgId}]`}
+              data-test-id={`open-org-${row.original.orgId}`}
               onClick={(e: MouseEvent) => {
                 e.stopPropagation();
                 onOpen(row.original, e);
@@ -291,7 +291,7 @@ export default function Home() {
                   }}
                 />
               ) : (
-                <IconButton
+                <IconButton data-test-id="navbar-search-icon"
                   size={3}
                   aria-label="Search"
                   onClick={() => setShowSearch(true)}
@@ -304,7 +304,7 @@ export default function Home() {
                 <DropdownMenu.Trigger asChild>
                   <button
                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                    data-test-id="[user-menu-trigger]"
+                    data-test-id="user-menu-trigger"
                   >
                     <Avatar
                       src={user?.avatar}
@@ -320,7 +320,7 @@ export default function Home() {
                   </DropdownMenu.Item>
                   <DropdownMenu.Item
                     onClick={logout}
-                    data-test-id="[logout-button]"
+                    data-test-id="logout-button"
                   >
                     Logout
                   </DropdownMenu.Item>
