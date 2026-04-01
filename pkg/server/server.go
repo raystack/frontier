@@ -160,8 +160,8 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		connectinterceptors.UnaryConnectErrorResponseInterceptor(),
 		sessionInterceptor,
 		authNInterceptor,
-		authZInterceptor,
 		validateInterceptor,
+		authZInterceptor,
 		auditInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 
