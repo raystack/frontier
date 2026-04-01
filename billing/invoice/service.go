@@ -502,8 +502,8 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 		var alreadyInvoiced bool
 		if lastOverdraftInvoice != nil {
 			for _, item := range lastOverdraftInvoice.Items {
-				if item.TimeRangeEnd != nil && item.TimeRangeStart.Before(startRange) {
-					// if before the start range, update the start range
+				if item.TimeRangeEnd != nil && !item.TimeRangeStart.After(startRange) {
+					// if at or before the start range, update the start range
 					startRange = *item.TimeRangeEnd
 				}
 
