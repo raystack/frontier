@@ -60,7 +60,8 @@ function tsToMs(ts?: { seconds?: bigint; nanos?: number }): number {
 
 function getColumns(
   onAccept: (row: OrgRow) => void,
-  onOpen: (row: OrgRow, e: MouseEvent) => void
+  onOpen: (row: OrgRow, e: MouseEvent) => void,
+  acceptingId: string | null
 ): DataTableColumnDef<OrgRow, unknown>[] {
   return [
     {
@@ -100,10 +101,14 @@ function getColumns(
       cell: ({ row }) => {
         const { status } = row.original;
         if (status === 'invited') {
+          const isAccepting = acceptingId === row.original.invitationId;
           return (
             <Button
               size="small"
               style={{ minWidth: 64 }}
+              disabled={isAccepting}
+              loading={isAccepting}
+              loaderText="Joining..."
               data-test-id={`accept-invite-${row.original.invitationId}`}
               onClick={(e: MouseEvent) => {
                 e.stopPropagation();
@@ -152,6 +157,7 @@ export default function Home() {
   const { user, organizations } = useFrontier();
   const t = useTerminology();
   const navigate = useNavigate();
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const logoutMutation = useMutation(FrontierServiceQueries.authLogout);
@@ -226,6 +232,7 @@ export default function Home() {
 
   const handleAccept = useCallback(
     async (row: OrgRow) => {
+      setAcceptingId(row.invitationId!);
       try {
         await acceptInvitation({ id: row.invitationId!, orgId: row.orgId });
         toast.success('Invitation accepted');
@@ -233,6 +240,8 @@ export default function Home() {
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Something went wrong';
         toast.error(`Failed to accept: ${message}`);
+      } finally {
+        setAcceptingId(null);
       }
     },
     [acceptInvitation, queryClient],
@@ -250,7 +259,7 @@ export default function Home() {
     [navigate],
   );
 
-  const columns = useMemo(() => getColumns(handleAccept, handleOpen), [handleAccept, handleOpen]);
+  const columns = useMemo(() => getColumns(handleAccept, handleOpen, acceptingId), [handleAccept, handleOpen, acceptingId]);
 
   async function logout() {
     try {
