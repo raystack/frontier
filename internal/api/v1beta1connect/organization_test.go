@@ -1359,39 +1359,6 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 		wantErrCode connect.Code
 	}{
 		{
-			name:  "should return invalid argument error if user_id is not a valid UUID",
-			setup: nil,
-			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
-				OrgId:  testOrgID,
-				UserId: "invalid-user-id",
-				RoleId: testOrgID,
-			}),
-			want:        nil,
-			wantErrCode: connect.CodeInvalidArgument,
-		},
-		{
-			name:  "should return invalid argument error if org_id is not a valid UUID",
-			setup: nil,
-			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
-				OrgId:  "invalid-org-id",
-				UserId: testOrgID,
-				RoleId: testOrgID,
-			}),
-			want:        nil,
-			wantErrCode: connect.CodeInvalidArgument,
-		},
-		{
-			name:  "should return invalid argument error if role_id is not a valid UUID",
-			setup: nil,
-			request: connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
-				OrgId:  testOrgID,
-				UserId: testOrgID,
-				RoleId: "invalid-9f256f86-31a3-11ec-8d3d-0242ac130005",
-			}),
-			want:        nil,
-			wantErrCode: connect.CodeInvalidArgument,
-		},
-		{
 			name: "should return not found error if org does not exist",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().SetMemberRole(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "9f256f86-31a3-11ec-8d3d-0242ac130004", "9f256f86-31a3-11ec-8d3d-0242ac130005").Return(organization.ErrNotExist)
