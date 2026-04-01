@@ -85,10 +85,11 @@ function getColumns(
       enableHiding: true,
       cell: ({ row }) => {
         const { status, timestamp } = row.original;
-        const prefix = STATUS_LABELS[status];
+        const label = STATUS_LABELS[status];
+        if (!timestamp) return <Text variant="secondary">{label}</Text>;
         return (
           <Text variant="secondary">
-            {timestamp ? `${prefix} ${timeAgo(timestamp)}` : '-'}
+            {`${label} ${timeAgo(timestamp)}`}
           </Text>
         );
       },
@@ -195,7 +196,7 @@ export default function Home() {
       orgId: org.id,
       name: org.title || org.name || org.id,
       status: 'joined' as const,
-      timestamp: tsToMs(org.createdAt),
+      timestamp: 0,
     }));
 
     const joinedOrgIds = new Set(organizations.map((o) => o.id));
