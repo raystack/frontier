@@ -54,18 +54,11 @@ function transformFilter(
     value = convertFilterValue(filter.value);
   }
 
-  // TODO: add support for ilike in RQL and backend
-  // Transform ilike operator to like only for string values
-  const operator =
-    filter.operator === "ilike" && value.case === "stringValue"
-      ? "like"
-      : filter.operator;
-
   const fieldName = fieldNameMapping?.[filter.name] ?? filter.name;
 
   return create(RQLFilterSchema, {
     name: fieldName,
-    operator,
+    operator: filter.operator,
     value,
   });
 }

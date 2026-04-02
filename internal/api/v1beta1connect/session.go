@@ -96,10 +96,6 @@ func (h *ConnectHandler) RevokeSession(ctx context.Context, request *connect.Req
 		return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 	}
 
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
-	}
-
 	sessionID, err := uuid.Parse(request.Msg.GetSessionId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidSessionID)
@@ -169,10 +165,6 @@ func (h *ConnectHandler) PingUserSession(ctx context.Context, request *connect.R
 func (h *ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
-	}
-
 	// Manual validation for user_id since protobuf validation is not working
 	userID := request.Msg.GetUserId()
 	if userID == "" {
@@ -209,10 +201,6 @@ func (h *ConnectHandler) ListUserSessions(ctx context.Context, request *connect.
 // Revoke a specific session for a specific user (admin only).
 func (h *ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeUserSessionRequest]) (*connect.Response[frontierv1beta1.RevokeUserSessionResponse], error) {
 	errorLogger := NewErrorLogger()
-
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
-	}
 
 	sessionID, err := uuid.Parse(request.Msg.GetSessionId())
 	if err != nil {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./list.module.css";
+import { useTerminology } from "../../../hooks/useTerminology";
 import {
   Button,
   Flex,
@@ -58,6 +59,7 @@ export function CreateOrganizationPanel({
   countries: countriesProp = [],
   onSuccess,
 }: CreateOrganizationPanelProps) {
+  const t = useTerminology();
   const [countries, setCountries] = useState<string[]>(countriesProp);
   const industries = organizationTypes;
 
@@ -88,12 +90,12 @@ export function CreateOrganizationPanel({
   useEffect(() => {
     if (mutationError) {
       if (mutationError.message?.includes("already exists")) {
-        setError("name", { message: "Organization name already exists" });
+        setError("name", { message: `${t.organization({ case: "capital" })} name already exists` });
       } else {
         console.error("Unable to create new org:", mutationError);
       }
     }
-  }, [mutationError, setError]);
+  }, [mutationError, setError, t]);
 
   async function onSubmit(data: OrgCreateSchema) {
     try {
@@ -131,7 +133,7 @@ export function CreateOrganizationPanel({
           className={styles["side-panel"]}
         >
           <SidePanel.Header
-            title="Add new organization"
+            title={`Add new ${t.organization({ case: "lower" })}`}
             actions={[
               <IconButton
                 key="close-edit-org-panel-icon"
@@ -163,29 +165,29 @@ export function CreateOrganizationPanel({
                         style={{ width: "100%" }}
                       >
                         <AvatarUpload {...field} data-test-id="avatar-upload" />
-                        <Text>Pick a logo for your organization</Text>
+                        <Text>Pick a logo for your {t.organization({ case: "lower" })}</Text>
                       </Flex>
                     </>
                   );
                 }}
               />
-              <InputField {...register("title")} label="Organization title" />
+              <InputField {...register("title")} label={`${t.organization({ case: "capital" })} title`} />
               <InputField
                 {...register("orgOwnerEmail")}
-                label="Organization owner"
+                label={`${t.organization({ case: "capital" })} owner`}
                 error={errors.orgOwnerEmail?.message}
               />
               <InputField
                 {...register("name")}
                 prefix={appUrl}
-                label="Organization URL"
-                helperText="This will be your organization unique web address"
+                label={`${t.organization({ case: "capital" })} URL`}
+                helperText={`This will be your ${t.organization({ case: "lower" })} unique web address`}
                 error={errors.name?.message}
               />
               <InputField
                 {...register("size")}
                 type="number"
-                label="Organization size"
+                label={`${t.organization({ case: "capital" })} size`}
                 error={errors.size?.message}
               />
               <Controller
@@ -195,7 +197,7 @@ export function CreateOrganizationPanel({
                   return (
                     <Flex direction="column" gap={2}>
                       <Label htmlFor="org-type-select">
-                        Organization industry
+                        {t.organization({ case: "capital" })} industry
                       </Label>
                       <Select
                         {...field}
@@ -226,7 +228,7 @@ export function CreateOrganizationPanel({
               />
               {showOtherTypeField ? (
                 <InputField
-                  label="Organization industry (other)"
+                  label={`${t.organization({ case: "capital" })} industry (other)`}
                   {...register("otherType")}
                   error={errors.otherType?.message}
                 />

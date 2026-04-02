@@ -9,7 +9,7 @@ COPY web ./web
 RUN make admin-app
 
 # Build the Go binary
-FROM golang:1.23.1-alpine3.20 AS builder
+FROM golang:1.24.4-alpine3.21 AS builder
 RUN apk add --no-cache make
 WORKDIR /app
 

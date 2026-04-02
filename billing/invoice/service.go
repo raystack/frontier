@@ -492,6 +492,9 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 					break
 				}
 			}
+			if lastOverdraftInvoice != nil {
+				break
+			}
 		}
 
 		// check if invoice line items are of type credit and matches the current range

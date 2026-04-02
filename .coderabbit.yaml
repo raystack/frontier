@@ -2,6 +2,8 @@
 language: "en-US"
 early_access: false
 reviews:
+  path_filters:
+    - "!proto/**"
   profile: "chill"
   request_changes_workflow: false
   high_level_summary: true

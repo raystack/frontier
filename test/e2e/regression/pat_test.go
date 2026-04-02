@@ -142,13 +142,12 @@ func (s *PATRegressionTestSuite) createOrgAndProjects(ctxAdmin context.Context, 
 	return orgID, proj1ID, proj2ID
 }
 
-func (s *PATRegressionTestSuite) createPAT(ctxAdmin context.Context, orgID, title string, roleIDs, projectIDs []string) (string, string) {
+func (s *PATRegressionTestSuite) createPAT(ctxAdmin context.Context, orgID, title string, scopes []*frontierv1beta1.PATScope) (string, string) {
 	patResp, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
-		Title:      title,
-		OrgId:      orgID,
-		RoleIds:    roleIDs,
-		ProjectIds: projectIDs,
-		ExpiresAt:  timestamppb.New(time.Now().Add(24 * time.Hour)),
+		Title:     title,
+		OrgId:     orgID,
+		Scopes:    scopes,
+		ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
 	}))
 	s.Require().NoError(err)
 	s.Require().NotEmpty(patResp.Msg.GetPat().GetToken())
@@ -168,10 +167,10 @@ func (s *PATRegressionTestSuite) TestPATScope_OrgViewer_ProjectViewer() {
 	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	orgID, proj1ID, proj2ID := s.createOrgAndProjects(ctxAdmin, "org-pat-ov-pv", "pat-ov-pv-p1", "pat-ov-pv-p2")
 
-	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-ov-pv",
-		[]string{s.roleID(schema.RoleOrganizationViewer), s.roleID(schema.RoleProjectViewer)},
-		[]string{proj1ID},
-	)
+	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-ov-pv", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+		{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace, ResourceIds: []string{proj1ID}},
+	})
 	patCtx := getPATCtx(patToken)
 
 	s.Run("org get allowed", func() {
@@ -219,10 +218,9 @@ func (s *PATRegressionTestSuite) TestPATScope_OrgOwner() {
 	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	orgID, proj1ID, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-oo", "pat-oo-p1", "")
 
-	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-oo",
-		[]string{s.roleID(schema.RoleOrganizationOwner)},
-		nil,
-	)
+	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-oo", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationOwner), ResourceType: schema.OrganizationNamespace},
+	})
 	patCtx := getPATCtx(patToken)
 
 	s.Run("org get allowed", func() {
@@ -243,10 +241,10 @@ func (s *PATRegressionTestSuite) TestPATScope_OrgViewer_AllProjects() {
 	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	orgID, proj1ID, proj2ID := s.createOrgAndProjects(ctxAdmin, "org-pat-ov-ap", "pat-ov-ap-p1", "pat-ov-ap-p2")
 
-	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-ov-ap",
-		[]string{s.roleID(schema.RoleOrganizationViewer), s.roleID(schema.RoleProjectOwner)},
-		nil, // empty = all projects
-	)
+	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-ov-ap", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+		{RoleId: s.roleID(schema.RoleProjectOwner), ResourceType: schema.ProjectNamespace}, // empty resource_ids = all projects
+	})
 	patCtx := getPATCtx(patToken)
 
 	s.Run("org get allowed", func() {
@@ -267,10 +265,9 @@ func (s *PATRegressionTestSuite) TestPATScope_BillingManager() {
 	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	orgID, proj1ID, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-bm", "pat-bm-p1", "")
 
-	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-bm",
-		[]string{s.roleID("app_billing_manager")},
-		nil,
-	)
+	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-bm", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID("app_billing_manager"), ResourceType: schema.OrganizationNamespace},
+	})
 	patCtx := getPATCtx(patToken)
 
 	s.Run("org billingview allowed", func() {
@@ -301,10 +298,9 @@ func (s *PATRegressionTestSuite) TestPATScope_Interceptor() {
 	s.Require().NoError(err)
 	orgID := createOrgResp.Msg.GetOrganization().GetId()
 
-	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-interceptor",
-		[]string{s.roleID(schema.RoleOrganizationViewer)},
-		nil,
-	)
+	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-interceptor", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+	})
 	patCtx := getPATCtx(patToken)
 
 	// UpdateOrganization requires update permission — PAT only has viewer scope
@@ -330,10 +326,9 @@ func (s *PATRegressionTestSuite) TestPATScope_FederatedCheck() {
 	s.Require().NoError(err)
 	orgID := createOrgResp.Msg.GetOrganization().GetId()
 
-	patID, _ := s.createPAT(ctxAdmin, orgID, "pat-federated",
-		[]string{s.roleID(schema.RoleOrganizationViewer)},
-		nil,
-	)
+	patID, _ := s.createPAT(ctxAdmin, orgID, "pat-federated", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+	})
 
 	patSubject := schema.JoinNamespaceAndResourceID(schema.PATPrincipal, patID)
 	orgResource := schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID)

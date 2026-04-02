@@ -537,6 +537,56 @@ func (_c *ProjectService_ListUsers_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// SetMemberRole provides a mock function with given fields: ctx, projectID, principalID, principalType, newRoleID
+func (_m *ProjectService) SetMemberRole(ctx context.Context, projectID string, principalID string, principalType string, newRoleID string) error {
+	ret := _m.Called(ctx, projectID, principalID, principalType, newRoleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetMemberRole")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, projectID, principalID, principalType, newRoleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ProjectService_SetMemberRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetMemberRole'
+type ProjectService_SetMemberRole_Call struct {
+	*mock.Call
+}
+
+// SetMemberRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - projectID string
+//   - principalID string
+//   - principalType string
+//   - newRoleID string
+func (_e *ProjectService_Expecter) SetMemberRole(ctx interface{}, projectID interface{}, principalID interface{}, principalType interface{}, newRoleID interface{}) *ProjectService_SetMemberRole_Call {
+	return &ProjectService_SetMemberRole_Call{Call: _e.mock.On("SetMemberRole", ctx, projectID, principalID, principalType, newRoleID)}
+}
+
+func (_c *ProjectService_SetMemberRole_Call) Run(run func(ctx context.Context, projectID string, principalID string, principalType string, newRoleID string)) *ProjectService_SetMemberRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *ProjectService_SetMemberRole_Call) Return(_a0 error) *ProjectService_SetMemberRole_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ProjectService_SetMemberRole_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *ProjectService_SetMemberRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: ctx, toUpdate
 func (_m *ProjectService) Update(ctx context.Context, toUpdate project.Project) (project.Project, error) {
 	ret := _m.Called(ctx, toUpdate)

@@ -7,6 +7,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import type { User } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { UserDetailsSecurityContent } from "./security/security";
+import { useTerminology } from "../../../hooks/useTerminology";
 
 interface UserDetailContentProps {
   user: User;
@@ -32,6 +33,7 @@ interface UserDetailsByUserIdProps {
 }
 
 export const UserDetailsByUserId = ({ userId, currentPath, onNavigate }: UserDetailsByUserIdProps) => {
+  const t = useTerminology();
   const { data, isLoading, refetch } = useQuery(
     AdminServiceQueries.searchUsers,
     { query: { search: userId } },
@@ -60,11 +62,11 @@ export const UserDetailsByUserId = ({ userId, currentPath, onNavigate }: UserDet
         align="center"
         justify="center"
       >
-        <PageTitle title="User not found" />
+        <PageTitle title={`${t.user({ case: "capital" })} not found`} />
         <EmptyState
           icon={<UserIcon />}
-          heading="User not found"
-          subHeading="The user you are looking for does not exist."
+          heading={`${t.user({ case: "capital" })} not found`}
+          subHeading={`The ${t.user({ case: "lower" })} you are looking for does not exist.`}
         />
       </Flex>
     );

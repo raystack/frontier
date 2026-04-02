@@ -51,6 +51,7 @@ type ConnectHandler struct {
 	orgBillingService                OrgBillingService
 	orgInvoicesService               OrgInvoicesService
 	orgTokensService                 OrgTokensService
+	orgPATsService                   OrgPATsService
 	orgUsersService                  OrgUsersService
 	orgProjectsService               OrgProjectsService
 	projectUsersService              ProjectUsersService
@@ -100,6 +101,7 @@ func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHand
 		orgBillingService:                deps.OrgBillingService,
 		orgInvoicesService:               deps.OrgInvoicesService,
 		orgTokensService:                 deps.OrgTokensService,
+		orgPATsService:                   deps.OrgPATsService,
 		orgUsersService:                  deps.OrgUsersService,
 		orgProjectsService:               deps.OrgProjectsService,
 		projectUsersService:              deps.ProjectUsersService,
