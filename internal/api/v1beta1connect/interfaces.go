@@ -356,6 +356,7 @@ type ProjectService interface {
 	ListGroups(ctx context.Context, id string) ([]group.Group, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
+	SetMemberRole(ctx context.Context, projectID, principalID, principalType, newRoleID string) error
 }
 
 type OrgUsersService interface {

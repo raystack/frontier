@@ -14,14 +14,16 @@ import (
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/project/mocks"
 	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 func mockService(t *testing.T) (*mocks.Repository, *mocks.UserService, *mocks.ServiceuserService,
-	*mocks.RelationService, *mocks.PolicyService, *mocks.AuthnService, *mocks.GroupService) {
+	*mocks.RelationService, *mocks.PolicyService, *mocks.AuthnService, *mocks.GroupService, *mocks.RoleService) {
 	t.Helper()
 
 	repo := mocks.NewRepository(t)
@@ -31,7 +33,8 @@ func mockService(t *testing.T) (*mocks.Repository, *mocks.UserService, *mocks.Se
 	policyService := mocks.NewPolicyService(t)
 	authnService := mocks.NewAuthnService(t)
 	groupService := mocks.NewGroupService(t)
-	return repo, userService, suserService, relationService, policyService, authnService, groupService
+	roleService := mocks.NewRoleService(t)
+	return repo, userService, suserService, relationService, policyService, authnService, groupService, roleService
 }
 
 func TestService_Get(t *testing.T) {
@@ -53,12 +56,13 @@ func TestService_Get(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().GetByID(ctx, tid.String()).Return(project.Project{
 					ID:   tid.String(),
 					Name: "test",
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -70,12 +74,13 @@ func TestService_Get(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().GetByName(ctx, "test").Return(project.Project{
 					ID:   tid.String(),
 					Name: "test",
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -114,9 +119,10 @@ func TestService_Create(t *testing.T) {
 			prj:     testProj,
 			wantErr: true,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				authnService.EXPECT().GetPrincipal(ctx).Return(authenticate.Principal{}, errors.New("not found"))
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -131,7 +137,8 @@ func TestService_Create(t *testing.T) {
 				},
 			},
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				authnService.EXPECT().GetPrincipal(ctx).Return(authenticate.Principal{
 					ID:   "test-user",
 					Type: schema.UserPrincipal,
@@ -164,7 +171,7 @@ func TestService_Create(t *testing.T) {
 					PrincipalID:   "test-user",
 					PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -208,7 +215,8 @@ func TestService_List(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().List(ctx, project.Filter{
 					OrgID: "org-id",
 				}).Return([]project.Project{
@@ -220,7 +228,7 @@ func TestService_List(t *testing.T) {
 						},
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -240,7 +248,8 @@ func TestService_List(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().List(ctx, project.Filter{
 					WithMemberCount: true,
 				}).Return([]project.Project{
@@ -259,7 +268,7 @@ func TestService_List(t *testing.T) {
 						Count: 1,
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -322,7 +331,8 @@ func TestService_ListByUser(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				relationService.EXPECT().LookupResources(ctx, relation.Relation{
 					Object: relation.Object{
 						Namespace: schema.ProjectNamespace,
@@ -359,7 +369,7 @@ func TestService_ListByUser(t *testing.T) {
 						},
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -381,7 +391,8 @@ func TestService_ListByUser(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				policyService.EXPECT().List(ctx, policy.Filter{
 					PrincipalType: schema.UserPrincipal,
 					PrincipalID:   "user-id",
@@ -409,7 +420,7 @@ func TestService_ListByUser(t *testing.T) {
 						},
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -438,7 +449,8 @@ func TestService_ListByUser(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				policyService.EXPECT().List(ctx, policy.Filter{
 					PrincipalType: schema.UserPrincipal,
 					PrincipalID:   "user-id",
@@ -490,7 +502,7 @@ func TestService_ListByUser(t *testing.T) {
 						},
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -514,7 +526,8 @@ func TestService_ListByUser(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				// LookupResources for user's project memberships (resolved from PAT)
 				relationService.EXPECT().LookupResources(ctx, relation.Relation{
 					Object: relation.Object{
@@ -551,7 +564,7 @@ func TestService_ListByUser(t *testing.T) {
 						},
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -577,7 +590,8 @@ func TestService_ListByUser(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				// Direct policies for user (resolved from PAT)
 				policyService.EXPECT().List(ctx, policy.Filter{
 					PrincipalType: schema.UserPrincipal,
@@ -626,7 +640,7 @@ func TestService_ListByUser(t *testing.T) {
 						},
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -642,7 +656,8 @@ func TestService_ListByUser(t *testing.T) {
 			want:    []project.Project{},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				// User has projects
 				relationService.EXPECT().LookupResources(ctx, relation.Relation{
 					Object: relation.Object{
@@ -667,7 +682,7 @@ func TestService_ListByUser(t *testing.T) {
 					RelationName: schema.GetPermission,
 				}).Return([]string{"project-id-2"}, nil)
 
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -711,7 +726,8 @@ func TestService_ListUsers(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().GetByName(ctx, "project-id").Return(project.Project{
 					ID: "project-id",
 				}, nil)
@@ -732,7 +748,7 @@ func TestService_ListUsers(t *testing.T) {
 						ID: "user-id",
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -772,7 +788,8 @@ func TestService_ListServiceUsers(t *testing.T) {
 			want:    []serviceuser.ServiceUser{},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().GetByName(ctx, "project-id").Return(project.Project{
 					ID: "project-id",
 				}, nil)
@@ -787,7 +804,7 @@ func TestService_ListServiceUsers(t *testing.T) {
 					},
 					RelationName: "",
 				}).Return([]string{}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -802,7 +819,8 @@ func TestService_ListServiceUsers(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().GetByName(ctx, "project-id").Return(project.Project{
 					ID: "project-id",
 				}, nil)
@@ -824,7 +842,7 @@ func TestService_ListServiceUsers(t *testing.T) {
 						ID: "user-id",
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -858,7 +876,8 @@ func TestService_ListGroups(t *testing.T) {
 			want:    []group.Group{},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().GetByName(ctx, "project-id").Return(project.Project{
 					ID: "project-id",
 				}, nil)
@@ -867,7 +886,7 @@ func TestService_ListGroups(t *testing.T) {
 					ProjectID:     "project-id",
 					PrincipalType: schema.GroupPrincipal,
 				}).Return([]policy.Policy{}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 		{
@@ -880,7 +899,8 @@ func TestService_ListGroups(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				repo.EXPECT().GetByName(ctx, "project-id").Return(project.Project{
 					ID: "project-id",
 				}, nil)
@@ -899,7 +919,7 @@ func TestService_ListGroups(t *testing.T) {
 						ID: "group-id",
 					},
 				}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -931,7 +951,8 @@ func TestService_DeleteModel(t *testing.T) {
 			id:      "project-id",
 			wantErr: false,
 			setup: func() *project.Service {
-				repo, userService, suserService, relationService, policyService, authnService, groupService := mockService(t)
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
 				relationService.EXPECT().Delete(ctx, relation.Relation{
 					Object: relation.Object{
 						ID:        "project-id",
@@ -939,7 +960,7 @@ func TestService_DeleteModel(t *testing.T) {
 					},
 				}).Return(nil)
 				repo.EXPECT().Delete(ctx, "project-id").Return(nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
 		},
 	}
@@ -948,6 +969,276 @@ func TestService_DeleteModel(t *testing.T) {
 			s := tt.setup()
 			if err := s.DeleteModel(ctx, tt.id); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteModel() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestService_SetMemberRole(t *testing.T) {
+	ctx := context.Background()
+	projectID := uuid.New().String()
+	orgID := uuid.New().String()
+	userID := uuid.New().String()
+	suID := uuid.New().String()
+	groupID := uuid.New().String()
+	roleID := uuid.New().String()
+
+	tests := []struct {
+		name          string
+		projectID     string
+		principalID   string
+		principalType string
+		roleID        string
+		setup         func(*mocks.Repository, *mocks.UserService, *mocks.ServiceuserService, *mocks.GroupService, *mocks.PolicyService, *mocks.RoleService)
+		wantErr       error
+	}{
+		{
+			name:          "should return error if project does not exist",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{}, project.ErrNotExist)
+			},
+			wantErr: project.ErrNotExist,
+		},
+		{
+			name:          "should return error if user does not exist",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{}, user.ErrNotExist)
+			},
+			wantErr: user.ErrNotExist,
+		},
+		{
+			name:          "should return error if service user does not exist",
+			projectID:     projectID,
+			principalID:   suID,
+			principalType: schema.ServiceUserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				suserSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+			},
+			wantErr: serviceuser.ErrNotExist,
+		},
+		{
+			name:          "should return error if group does not exist",
+			projectID:     projectID,
+			principalID:   groupID,
+			principalType: schema.GroupPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				groupSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
+			},
+			wantErr: group.ErrNotExist,
+		},
+		{
+			name:          "should return error for invalid principal type",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: "invalid",
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+			},
+			wantErr: project.ErrInvalidPrincipalType,
+		},
+		{
+			name:          "should return error if user is not an org member",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{}, nil)
+			},
+			wantErr: project.ErrNotOrgMember,
+		},
+		{
+			name:          "should return error if role does not exist",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{}, role.ErrNotExist)
+			},
+			wantErr: role.ErrNotExist,
+		},
+		{
+			name:          "should return error if role scope is not project",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+			},
+			wantErr: project.ErrInvalidProjectRole,
+		},
+		{
+			name:          "should succeed for user with no existing project policies",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.ProjectNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: roleID, ResourceID: projectID, ResourceType: schema.ProjectNamespace,
+					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return(policy.Policy{}, nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name:          "should replace existing policies on role change",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.ProjectNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "old-p1"}, {ID: "old-p2"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "old-p1").Return(nil)
+				policySvc.EXPECT().Delete(ctx, "old-p2").Return(nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: roleID, ResourceID: projectID, ResourceType: schema.ProjectNamespace,
+					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return(policy.Policy{}, nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name:          "should return error if service user belongs to different org",
+			projectID:     projectID,
+			principalID:   suID,
+			principalType: schema.ServiceUserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				suserSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: "different-org"}, nil)
+			},
+			wantErr: project.ErrNotOrgMember,
+		},
+		{
+			name:          "should return error if group belongs to different org",
+			projectID:     projectID,
+			principalID:   groupID,
+			principalType: schema.GroupPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				groupSvc.EXPECT().Get(ctx, groupID).Return(group.Group{ID: groupID, OrganizationID: "different-org"}, nil)
+			},
+			wantErr: project.ErrNotOrgMember,
+		},
+		{
+			name:          "should succeed for service user principal",
+			projectID:     projectID,
+			principalID:   suID,
+			principalType: schema.ServiceUserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				suserSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.ProjectNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal,
+				}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: roleID, ResourceID: projectID, ResourceType: schema.ProjectNamespace,
+					PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal,
+				}).Return(policy.Policy{}, nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name:          "should succeed for group principal",
+			projectID:     projectID,
+			principalID:   groupID,
+			principalType: schema.GroupPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				groupSvc.EXPECT().Get(ctx, groupID).Return(group.Group{ID: groupID, OrganizationID: orgID}, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.ProjectNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: groupID, PrincipalType: schema.GroupPrincipal,
+				}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: roleID, ResourceID: projectID, ResourceType: schema.ProjectNamespace,
+					PrincipalID: groupID, PrincipalType: schema.GroupPrincipal,
+				}).Return(policy.Policy{}, nil)
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := mocks.NewRepository(t)
+			userSvc := mocks.NewUserService(t)
+			suserSvc := mocks.NewServiceuserService(t)
+			groupSvc := mocks.NewGroupService(t)
+			policySvc := mocks.NewPolicyService(t)
+			roleSvc := mocks.NewRoleService(t)
+			relationSvc := mocks.NewRelationService(t)
+			authnSvc := mocks.NewAuthnService(t)
+
+			if tt.setup != nil {
+				tt.setup(repo, userSvc, suserSvc, groupSvc, policySvc, roleSvc)
+			}
+
+			svc := project.NewService(repo, relationSvc, userSvc, policySvc, authnSvc, suserSvc, groupSvc, roleSvc)
+			err := svc.SetMemberRole(ctx, tt.projectID, tt.principalID, tt.principalType, tt.roleID)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}
