@@ -22,7 +22,7 @@ export default defineConfig(() => [
       js: "'use client'"
     },
     format: ['cjs', 'esm'],
-    external: ['react', 'svelte', 'vue', 'solid-js'],
+    external: ['react', 'react-dom', 'svelte', 'vue', 'solid-js'],
     dts: true,
     loader: {
       '.svg': 'dataurl',

@@ -1,4 +1,6 @@
 import '@raystack/apsara/style.css';
+import '@raystack/apsara-v1/style.css';
+import '@raystack/apsara-v1/normalize.css';
 
 export { AvatarUpload } from './components/avatar-upload';
 export { Container } from './components/Container';
@@ -24,6 +26,11 @@ export { useConnectQueryPolling } from './hooks/useConnectQueryPolling';
 export { usePreferences } from './hooks/usePreferences';
 export { Layout } from './components/Layout';
 export { PageHeader } from './components/common/page-header';
+
+export { ImageUpload } from './components/image-upload';
+export { ViewContainer } from './components/view-container';
+export { ViewHeader } from './components/view-header';
+export { GeneralView } from './views-new/general';
 
 export type {
   FrontierClientOptions,

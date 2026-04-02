@@ -27,6 +27,7 @@ type OrgRow = {
   orgId: string;
   name: string;
   status: 'joined' | 'invited' | 'expired';
+  slug: string;
   timestamp: number;
   invitationId?: string;
 };
@@ -61,7 +62,8 @@ function tsToMs(ts?: { seconds?: bigint; nanos?: number }): number {
 function getColumns(
   onAccept: (row: OrgRow) => void,
   onOpen: (row: OrgRow, e: MouseEvent) => void,
-  acceptingId: string | null
+  acceptingId: string | null,
+  navigate: (path: string) => void
 ): DataTableColumnDef<OrgRow, unknown>[] {
   return [
     {
@@ -132,18 +134,31 @@ function getColumns(
         }
         if (status === 'joined') {
           return (
-            <Button
-              variant="outline"
-              size="small"
-              style={{ minWidth: 64 }}
-              data-test-id={`open-org-${row.original.orgId}`}
-              onClick={(e: MouseEvent) => {
-                e.stopPropagation();
-                onOpen(row.original, e);
-              }}
-            >
-              Open
-            </Button>
+            <Flex gap={4}>
+              <Button
+                variant="outline"
+                size="small"
+                data-test-id={`open-org-${row.original.orgId}`}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                  onOpen(row.original, e);
+                }}
+              >
+                Open
+              </Button>
+              <Button
+                variant="outline"
+                size="small"
+                style={{ minWidth: 64 }}
+                data-test-id={`open-org-${row.original.orgId}`}
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                  navigate(`/${row.original.slug}/settings`);
+                }}
+              >
+                Open (NEW UI)
+              </Button>
+            </Flex>
           );
         }
         return null;
@@ -201,6 +216,7 @@ export default function Home() {
       id: org.id,
       orgId: org.id,
       name: org.title || org.name || org.id,
+      slug: org.name,
       status: 'joined' as const,
       timestamp: 0,
     }));
@@ -222,6 +238,7 @@ export default function Home() {
           orgId: inv.orgId,
           invitationId: inv.id,
           name: org?.title || org?.name || inv.orgId,
+          slug: org?.name,
           status,
           timestamp: tsToMs(inv.createdAt),
         };
@@ -259,7 +276,7 @@ export default function Home() {
     [navigate],
   );
 
-  const columns = useMemo(() => getColumns(handleAccept, handleOpen, acceptingId), [handleAccept, handleOpen, acceptingId]);
+  const columns = useMemo(() => getColumns(handleAccept, handleOpen, acceptingId, navigate), [handleAccept, handleOpen, acceptingId, navigate]);
 
   async function logout() {
     try {
