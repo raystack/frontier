@@ -12,6 +12,7 @@ import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
 import {
   FrontierServiceQueries,
+  GetBillingAccountRequestSchema,
   GetOrganizationKycResponseSchema,
   type Organization,
   type User,
@@ -183,11 +184,10 @@ export const OrganizationDetailsView = ({
     refetch: fetchBillingAccountDetails,
   } = useQuery(
     FrontierServiceQueries.getBillingAccount,
-    {
-      orgId: organizationId || "",
+    create(GetBillingAccountRequestSchema, {
       id: firstBillingAccountId,
       withBillingDetails: true,
-    },
+    }),
     {
       enabled: !!organizationId && !!firstBillingAccountId,
       select: (data) => ({
