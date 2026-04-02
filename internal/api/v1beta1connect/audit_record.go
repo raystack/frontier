@@ -30,11 +30,6 @@ const (
 func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect.Request[frontierv1beta1.CreateAuditRecordRequest]) (*connect.Response[frontierv1beta1.CreateAuditRecordResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	// Validate the request parameters
-	if err := request.Msg.Validate(); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
-
 	actor := request.Msg.GetActor()
 	// Validate the actor type for non-system actors. ZeroUUID is a special case for system actors.
 	if actor.GetId() != uuid.Nil.String() && !slices.Contains([]string{schema.ServiceUserPrincipal, schema.UserPrincipal}, actor.GetType()) {

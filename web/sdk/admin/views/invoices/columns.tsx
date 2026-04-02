@@ -6,8 +6,15 @@ import {
   TimeStamp,
   timestampToDate,
 } from "../../utils/connect-timestamp";
+import { TerminologyEntity } from "../../hooks/useTerminology";
 
-export const getColumns = (): DataTableColumnDef<
+interface GetColumnsOptions {
+  t: {
+    organization: TerminologyEntity;
+  };
+}
+
+export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
   SearchInvoicesResponse_Invoice,
   unknown
 >[] => {
@@ -42,7 +49,7 @@ export const getColumns = (): DataTableColumnDef<
     },
     {
       accessorKey: "orgTitle",
-      header: "Organization",
+      header: t.organization({ case: "capital" }),
       cell: ({ row, getValue }) => {
         return getValue() as string;
       },

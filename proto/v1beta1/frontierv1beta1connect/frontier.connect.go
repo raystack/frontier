@@ -203,6 +203,9 @@ const (
 	// FrontierServiceRemoveOrganizationUserProcedure is the fully-qualified name of the
 	// FrontierService's RemoveOrganizationUser RPC.
 	FrontierServiceRemoveOrganizationUserProcedure = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser"
+	// FrontierServiceSetOrganizationMemberRoleProcedure is the fully-qualified name of the
+	// FrontierService's SetOrganizationMemberRole RPC.
+	FrontierServiceSetOrganizationMemberRoleProcedure = "/raystack.frontier.v1beta1.FrontierService/SetOrganizationMemberRole"
 	// FrontierServiceGetOrganizationKycProcedure is the fully-qualified name of the FrontierService's
 	// GetOrganizationKyc RPC.
 	FrontierServiceGetOrganizationKycProcedure = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationKyc"
@@ -281,6 +284,9 @@ const (
 	// FrontierServiceDeleteProjectProcedure is the fully-qualified name of the FrontierService's
 	// DeleteProject RPC.
 	FrontierServiceDeleteProjectProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteProject"
+	// FrontierServiceSetProjectMemberRoleProcedure is the fully-qualified name of the FrontierService's
+	// SetProjectMemberRole RPC.
+	FrontierServiceSetProjectMemberRoleProcedure = "/raystack.frontier.v1beta1.FrontierService/SetProjectMemberRole"
 	// FrontierServiceCreatePolicyProcedure is the fully-qualified name of the FrontierService's
 	// CreatePolicy RPC.
 	FrontierServiceCreatePolicyProcedure = "/raystack.frontier.v1beta1.FrontierService/CreatePolicy"
@@ -540,9 +546,9 @@ const (
 	// FrontierServiceListRolesForPATProcedure is the fully-qualified name of the FrontierService's
 	// ListRolesForPAT RPC.
 	FrontierServiceListRolesForPATProcedure = "/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT"
-	// FrontierServiceListCurrentUserPATsProcedure is the fully-qualified name of the FrontierService's
-	// ListCurrentUserPATs RPC.
-	FrontierServiceListCurrentUserPATsProcedure = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPATs"
+	// FrontierServiceSearchCurrentUserPATsProcedure is the fully-qualified name of the
+	// FrontierService's SearchCurrentUserPATs RPC.
+	FrontierServiceSearchCurrentUserPATsProcedure = "/raystack.frontier.v1beta1.FrontierService/SearchCurrentUserPATs"
 	// FrontierServiceGetCurrentUserPATProcedure is the fully-qualified name of the FrontierService's
 	// GetCurrentUserPAT RPC.
 	FrontierServiceGetCurrentUserPATProcedure = "/raystack.frontier.v1beta1.FrontierService/GetCurrentUserPAT"
@@ -624,6 +630,7 @@ type FrontierServiceClient interface {
 	ListOrganizationUsers(context.Context, *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error)
 	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
 	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
+	SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error)
 	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
@@ -652,6 +659,7 @@ type FrontierServiceClient interface {
 	EnableProject(context.Context, *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error)
 	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
 	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
+	SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error)
 	// Policies
 	CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error)
 	GetPolicy(context.Context, *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error)
@@ -763,7 +771,7 @@ type FrontierServiceClient interface {
 	// Personal Access Token
 	CreateCurrentUserPAT(context.Context, *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error)
 	ListRolesForPAT(context.Context, *connect.Request[v1beta1.ListRolesForPATRequest]) (*connect.Response[v1beta1.ListRolesForPATResponse], error)
-	ListCurrentUserPATs(context.Context, *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error)
+	SearchCurrentUserPATs(context.Context, *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error)
 	GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error)
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
@@ -1124,6 +1132,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationUser")),
 			connect.WithClientOptions(opts...),
 		),
+		setOrganizationMemberRole: connect.NewClient[v1beta1.SetOrganizationMemberRoleRequest, v1beta1.SetOrganizationMemberRoleResponse](
+			httpClient,
+			baseURL+FrontierServiceSetOrganizationMemberRoleProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("SetOrganizationMemberRole")),
+			connect.WithClientOptions(opts...),
+		),
 		getOrganizationKyc: connect.NewClient[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse](
 			httpClient,
 			baseURL+FrontierServiceGetOrganizationKycProcedure,
@@ -1278,6 +1292,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceDeleteProjectProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("DeleteProject")),
+			connect.WithClientOptions(opts...),
+		),
+		setProjectMemberRole: connect.NewClient[v1beta1.SetProjectMemberRoleRequest, v1beta1.SetProjectMemberRoleResponse](
+			httpClient,
+			baseURL+FrontierServiceSetProjectMemberRoleProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("SetProjectMemberRole")),
 			connect.WithClientOptions(opts...),
 		),
 		createPolicy: connect.NewClient[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse](
@@ -1802,10 +1822,10 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("ListRolesForPAT")),
 			connect.WithClientOptions(opts...),
 		),
-		listCurrentUserPATs: connect.NewClient[v1beta1.ListCurrentUserPATsRequest, v1beta1.ListCurrentUserPATsResponse](
+		searchCurrentUserPATs: connect.NewClient[v1beta1.SearchCurrentUserPATsRequest, v1beta1.SearchCurrentUserPATsResponse](
 			httpClient,
-			baseURL+FrontierServiceListCurrentUserPATsProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserPATs")),
+			baseURL+FrontierServiceSearchCurrentUserPATsProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("SearchCurrentUserPATs")),
 			connect.WithClientOptions(opts...),
 		),
 		getCurrentUserPAT: connect.NewClient[v1beta1.GetCurrentUserPATRequest, v1beta1.GetCurrentUserPATResponse](
@@ -1900,6 +1920,7 @@ type frontierServiceClient struct {
 	listOrganizationUsers          *connect.Client[v1beta1.ListOrganizationUsersRequest, v1beta1.ListOrganizationUsersResponse]
 	addOrganizationUsers           *connect.Client[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse]
 	removeOrganizationUser         *connect.Client[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse]
+	setOrganizationMemberRole      *connect.Client[v1beta1.SetOrganizationMemberRoleRequest, v1beta1.SetOrganizationMemberRoleResponse]
 	getOrganizationKyc             *connect.Client[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse]
 	listOrganizationServiceUsers   *connect.Client[v1beta1.ListOrganizationServiceUsersRequest, v1beta1.ListOrganizationServiceUsersResponse]
 	listOrganizationInvitations    *connect.Client[v1beta1.ListOrganizationInvitationsRequest, v1beta1.ListOrganizationInvitationsResponse]
@@ -1926,6 +1947,7 @@ type frontierServiceClient struct {
 	enableProject                  *connect.Client[v1beta1.EnableProjectRequest, v1beta1.EnableProjectResponse]
 	disableProject                 *connect.Client[v1beta1.DisableProjectRequest, v1beta1.DisableProjectResponse]
 	deleteProject                  *connect.Client[v1beta1.DeleteProjectRequest, v1beta1.DeleteProjectResponse]
+	setProjectMemberRole           *connect.Client[v1beta1.SetProjectMemberRoleRequest, v1beta1.SetProjectMemberRoleResponse]
 	createPolicy                   *connect.Client[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse]
 	getPolicy                      *connect.Client[v1beta1.GetPolicyRequest, v1beta1.GetPolicyResponse]
 	listPolicies                   *connect.Client[v1beta1.ListPoliciesRequest, v1beta1.ListPoliciesResponse]
@@ -2013,7 +2035,7 @@ type frontierServiceClient struct {
 	createAuditRecord              *connect.Client[v1beta1.CreateAuditRecordRequest, v1beta1.CreateAuditRecordResponse]
 	createCurrentUserPAT           *connect.Client[v1beta1.CreateCurrentUserPATRequest, v1beta1.CreateCurrentUserPATResponse]
 	listRolesForPAT                *connect.Client[v1beta1.ListRolesForPATRequest, v1beta1.ListRolesForPATResponse]
-	listCurrentUserPATs            *connect.Client[v1beta1.ListCurrentUserPATsRequest, v1beta1.ListCurrentUserPATsResponse]
+	searchCurrentUserPATs          *connect.Client[v1beta1.SearchCurrentUserPATsRequest, v1beta1.SearchCurrentUserPATsResponse]
 	getCurrentUserPAT              *connect.Client[v1beta1.GetCurrentUserPATRequest, v1beta1.GetCurrentUserPATResponse]
 	deleteCurrentUserPAT           *connect.Client[v1beta1.DeleteCurrentUserPATRequest, v1beta1.DeleteCurrentUserPATResponse]
 	updateCurrentUserPAT           *connect.Client[v1beta1.UpdateCurrentUserPATRequest, v1beta1.UpdateCurrentUserPATResponse]
@@ -2313,6 +2335,12 @@ func (c *frontierServiceClient) RemoveOrganizationUser(ctx context.Context, req 
 	return c.removeOrganizationUser.CallUnary(ctx, req)
 }
 
+// SetOrganizationMemberRole calls
+// raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole.
+func (c *frontierServiceClient) SetOrganizationMemberRole(ctx context.Context, req *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error) {
+	return c.setOrganizationMemberRole.CallUnary(ctx, req)
+}
+
 // GetOrganizationKyc calls raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc.
 func (c *frontierServiceClient) GetOrganizationKyc(ctx context.Context, req *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error) {
 	return c.getOrganizationKyc.CallUnary(ctx, req)
@@ -2450,6 +2478,11 @@ func (c *frontierServiceClient) DisableProject(ctx context.Context, req *connect
 // DeleteProject calls raystack.frontier.v1beta1.FrontierService.DeleteProject.
 func (c *frontierServiceClient) DeleteProject(ctx context.Context, req *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error) {
 	return c.deleteProject.CallUnary(ctx, req)
+}
+
+// SetProjectMemberRole calls raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole.
+func (c *frontierServiceClient) SetProjectMemberRole(ctx context.Context, req *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error) {
+	return c.setProjectMemberRole.CallUnary(ctx, req)
 }
 
 // CreatePolicy calls raystack.frontier.v1beta1.FrontierService.CreatePolicy.
@@ -2893,9 +2926,9 @@ func (c *frontierServiceClient) ListRolesForPAT(ctx context.Context, req *connec
 	return c.listRolesForPAT.CallUnary(ctx, req)
 }
 
-// ListCurrentUserPATs calls raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs.
-func (c *frontierServiceClient) ListCurrentUserPATs(ctx context.Context, req *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error) {
-	return c.listCurrentUserPATs.CallUnary(ctx, req)
+// SearchCurrentUserPATs calls raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs.
+func (c *frontierServiceClient) SearchCurrentUserPATs(ctx context.Context, req *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error) {
+	return c.searchCurrentUserPATs.CallUnary(ctx, req)
 }
 
 // GetCurrentUserPAT calls raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT.
@@ -2990,6 +3023,7 @@ type FrontierServiceHandler interface {
 	ListOrganizationUsers(context.Context, *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error)
 	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
 	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
+	SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error)
 	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
@@ -3018,6 +3052,7 @@ type FrontierServiceHandler interface {
 	EnableProject(context.Context, *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error)
 	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
 	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
+	SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error)
 	// Policies
 	CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error)
 	GetPolicy(context.Context, *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error)
@@ -3129,7 +3164,7 @@ type FrontierServiceHandler interface {
 	// Personal Access Token
 	CreateCurrentUserPAT(context.Context, *connect.Request[v1beta1.CreateCurrentUserPATRequest]) (*connect.Response[v1beta1.CreateCurrentUserPATResponse], error)
 	ListRolesForPAT(context.Context, *connect.Request[v1beta1.ListRolesForPATRequest]) (*connect.Response[v1beta1.ListRolesForPATResponse], error)
-	ListCurrentUserPATs(context.Context, *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error)
+	SearchCurrentUserPATs(context.Context, *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error)
 	GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error)
 	DeleteCurrentUserPAT(context.Context, *connect.Request[v1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[v1beta1.DeleteCurrentUserPATResponse], error)
 	UpdateCurrentUserPAT(context.Context, *connect.Request[v1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[v1beta1.UpdateCurrentUserPATResponse], error)
@@ -3486,6 +3521,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationUser")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceSetOrganizationMemberRoleHandler := connect.NewUnaryHandler(
+		FrontierServiceSetOrganizationMemberRoleProcedure,
+		svc.SetOrganizationMemberRole,
+		connect.WithSchema(frontierServiceMethods.ByName("SetOrganizationMemberRole")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceGetOrganizationKycHandler := connect.NewUnaryHandler(
 		FrontierServiceGetOrganizationKycProcedure,
 		svc.GetOrganizationKyc,
@@ -3640,6 +3681,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceDeleteProjectProcedure,
 		svc.DeleteProject,
 		connect.WithSchema(frontierServiceMethods.ByName("DeleteProject")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceSetProjectMemberRoleHandler := connect.NewUnaryHandler(
+		FrontierServiceSetProjectMemberRoleProcedure,
+		svc.SetProjectMemberRole,
+		connect.WithSchema(frontierServiceMethods.ByName("SetProjectMemberRole")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceCreatePolicyHandler := connect.NewUnaryHandler(
@@ -4164,10 +4211,10 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("ListRolesForPAT")),
 		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceListCurrentUserPATsHandler := connect.NewUnaryHandler(
-		FrontierServiceListCurrentUserPATsProcedure,
-		svc.ListCurrentUserPATs,
-		connect.WithSchema(frontierServiceMethods.ByName("ListCurrentUserPATs")),
+	frontierServiceSearchCurrentUserPATsHandler := connect.NewUnaryHandler(
+		FrontierServiceSearchCurrentUserPATsProcedure,
+		svc.SearchCurrentUserPATs,
+		connect.WithSchema(frontierServiceMethods.ByName("SearchCurrentUserPATs")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceGetCurrentUserPATHandler := connect.NewUnaryHandler(
@@ -4316,6 +4363,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceAddOrganizationUsersHandler.ServeHTTP(w, r)
 		case FrontierServiceRemoveOrganizationUserProcedure:
 			frontierServiceRemoveOrganizationUserHandler.ServeHTTP(w, r)
+		case FrontierServiceSetOrganizationMemberRoleProcedure:
+			frontierServiceSetOrganizationMemberRoleHandler.ServeHTTP(w, r)
 		case FrontierServiceGetOrganizationKycProcedure:
 			frontierServiceGetOrganizationKycHandler.ServeHTTP(w, r)
 		case FrontierServiceListOrganizationServiceUsersProcedure:
@@ -4368,6 +4417,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceDisableProjectHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteProjectProcedure:
 			frontierServiceDeleteProjectHandler.ServeHTTP(w, r)
+		case FrontierServiceSetProjectMemberRoleProcedure:
+			frontierServiceSetProjectMemberRoleHandler.ServeHTTP(w, r)
 		case FrontierServiceCreatePolicyProcedure:
 			frontierServiceCreatePolicyHandler.ServeHTTP(w, r)
 		case FrontierServiceGetPolicyProcedure:
@@ -4542,8 +4593,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceCreateCurrentUserPATHandler.ServeHTTP(w, r)
 		case FrontierServiceListRolesForPATProcedure:
 			frontierServiceListRolesForPATHandler.ServeHTTP(w, r)
-		case FrontierServiceListCurrentUserPATsProcedure:
-			frontierServiceListCurrentUserPATsHandler.ServeHTTP(w, r)
+		case FrontierServiceSearchCurrentUserPATsProcedure:
+			frontierServiceSearchCurrentUserPATsHandler.ServeHTTP(w, r)
 		case FrontierServiceGetCurrentUserPATProcedure:
 			frontierServiceGetCurrentUserPATHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteCurrentUserPATProcedure:
@@ -4791,6 +4842,10 @@ func (UnimplementedFrontierServiceHandler) RemoveOrganizationUser(context.Contex
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser is not implemented"))
 }
 
+func (UnimplementedFrontierServiceHandler) SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole is not implemented"))
+}
+
 func (UnimplementedFrontierServiceHandler) GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc is not implemented"))
 }
@@ -4893,6 +4948,10 @@ func (UnimplementedFrontierServiceHandler) DisableProject(context.Context, *conn
 
 func (UnimplementedFrontierServiceHandler) DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteProject is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error) {
@@ -5243,8 +5302,8 @@ func (UnimplementedFrontierServiceHandler) ListRolesForPAT(context.Context, *con
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListRolesForPAT is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) ListCurrentUserPATs(context.Context, *connect.Request[v1beta1.ListCurrentUserPATsRequest]) (*connect.Response[v1beta1.ListCurrentUserPATsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListCurrentUserPATs is not implemented"))
+func (UnimplementedFrontierServiceHandler) SearchCurrentUserPATs(context.Context, *connect.Request[v1beta1.SearchCurrentUserPATsRequest]) (*connect.Response[v1beta1.SearchCurrentUserPATsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) GetCurrentUserPAT(context.Context, *connect.Request[v1beta1.GetCurrentUserPATRequest]) (*connect.Response[v1beta1.GetCurrentUserPATResponse], error) {

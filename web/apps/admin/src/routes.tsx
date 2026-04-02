@@ -31,6 +31,7 @@ import {
   OrganizationInvoicesView,
   OrganizationTokensView,
   OrganizationApisView,
+  useAdminPaths,
 } from "@raystack/frontier/admin";
 
 import { UsersPage } from "./pages/users/UsersPage";
@@ -40,6 +41,7 @@ import { AuditLogsPage } from "./pages/audit-logs/AuditLogsPage";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
+  const paths = useAdminPaths();
 
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
@@ -58,20 +60,20 @@ export default memo(function AppRoutes() {
   ) : isAdmin ? (
     <Routes>
       <Route path="/" element={<App />}>
-        <Route index element={<Navigate to="/organizations" />} />
-        <Route path="organizations" element={<OrganizationListPage />} />
+        <Route index element={<Navigate to={`/${paths.organizations}`} />} />
+        <Route path={paths.organizations} element={<OrganizationListPage />} />
         <Route
-          path="organizations/:organizationId"
+          path={`${paths.organizations}/:organizationId`}
           element={<OrganizationDetailsPage />}>
-          <Route index element={<Navigate to="members" replace />} />
-          <Route path="members" element={<OrganizationMembersView />} />
+          <Route index element={<Navigate to={paths.members} replace />} />
+          <Route path={paths.members} element={<OrganizationMembersView />} />
           <Route path="security" element={<OrganizationSecurity />} />
-          <Route path="projects" element={<OrganizationProjectsView />} />
+          <Route path={paths.projects} element={<OrganizationProjectsView />} />
           <Route path="invoices" element={<OrganizationInvoicesView />} />
           <Route path="tokens" element={<OrganizationTokensView />} />
           <Route path="apis" element={<OrganizationApisView />} />
         </Route>
-        <Route path="users" element={<UsersPage />}>
+        <Route path={paths.users} element={<UsersPage />}>
           <Route path=":userId" element={<UsersPage />} />
           <Route path=":userId/security" element={<UsersPage />} />
         </Route>
@@ -85,7 +87,7 @@ export default memo(function AppRoutes() {
         <Route path="roles" element={<RolesPage />}>
           <Route path=":roleId" element={<RolesPage />} />
         </Route>
-        
+
         <Route path="products" element={<ProductsPage />}>
           <Route path=":productId" element={<ProductsPage />} />
         </Route>
@@ -102,7 +104,7 @@ export default memo(function AppRoutes() {
           <Route path="create" element={<WebhooksPage />} />
           <Route path=":webhookId" element={<WebhooksPage />} />
         </Route>
-        <Route path="*" element={<Navigate to="/organizations" />} />
+        <Route path="*" element={<Navigate to={`/${paths.organizations}`} />} />
       </Route>
     </Routes>
   ) : (
