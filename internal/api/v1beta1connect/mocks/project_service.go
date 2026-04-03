@@ -537,6 +537,55 @@ func (_c *ProjectService_ListUsers_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// RemoveMember provides a mock function with given fields: ctx, projectID, principalID, principalType
+func (_m *ProjectService) RemoveMember(ctx context.Context, projectID string, principalID string, principalType string) error {
+	ret := _m.Called(ctx, projectID, principalID, principalType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveMember")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, projectID, principalID, principalType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ProjectService_RemoveMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveMember'
+type ProjectService_RemoveMember_Call struct {
+	*mock.Call
+}
+
+// RemoveMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - projectID string
+//   - principalID string
+//   - principalType string
+func (_e *ProjectService_Expecter) RemoveMember(ctx interface{}, projectID interface{}, principalID interface{}, principalType interface{}) *ProjectService_RemoveMember_Call {
+	return &ProjectService_RemoveMember_Call{Call: _e.mock.On("RemoveMember", ctx, projectID, principalID, principalType)}
+}
+
+func (_c *ProjectService_RemoveMember_Call) Run(run func(ctx context.Context, projectID string, principalID string, principalType string)) *ProjectService_RemoveMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *ProjectService_RemoveMember_Call) Return(_a0 error) *ProjectService_RemoveMember_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ProjectService_RemoveMember_Call) RunAndReturn(run func(context.Context, string, string, string) error) *ProjectService_RemoveMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetMemberRole provides a mock function with given fields: ctx, projectID, principalID, principalType, newRoleID
 func (_m *ProjectService) SetMemberRole(ctx context.Context, projectID string, principalID string, principalType string, newRoleID string) error {
 	ret := _m.Called(ctx, projectID, principalID, principalType, newRoleID)

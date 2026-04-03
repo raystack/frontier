@@ -82,9 +82,11 @@ const (
 	OrgMemberDeletedEvent EventName = "app.organization.member.deleted"
 	OrgKycUpdatedEvent    EventName = "app.organization.kyc.updated"
 
-	ProjectCreatedEvent EventName = "app.project.created"
-	ProjectUpdatedEvent EventName = "app.project.updated"
-	ProjectDeletedEvent EventName = "app.project.deleted"
+	ProjectCreatedEvent       EventName = "app.project.created"
+	ProjectUpdatedEvent       EventName = "app.project.updated"
+	ProjectDeletedEvent       EventName = "app.project.deleted"
+	ProjectMemberRoleSetEvent EventName = "app.project.member.role.set"
+	ProjectMemberRemovedEvent EventName = "app.project.member.removed"
 
 	ResourceCreatedEvent EventName = "app.resource.created"
 	ResourceUpdatedEvent EventName = "app.resource.updated"
