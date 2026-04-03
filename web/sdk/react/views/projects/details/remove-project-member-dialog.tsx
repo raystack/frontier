@@ -1,9 +1,7 @@
 'use client';
 
 import { Button, Flex, Text, toast, Image, Dialog } from '@raystack/apsara';
-import { useEffect, useMemo } from 'react';
 import {
-    useQuery,
     useMutation,
     createConnectQueryKey,
     useTransport
@@ -11,8 +9,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import {
     FrontierServiceQueries,
-    ListPoliciesRequestSchema,
-    DeletePolicyRequestSchema,
+    RemoveProjectMemberRequestSchema,
     ListProjectUsersRequestSchema,
     ListProjectGroupsRequestSchema
 } from '@raystack/proton/frontier';
@@ -25,13 +22,15 @@ export interface RemoveProjectMemberDialogProps {
     onOpenChange?: (value: boolean) => void;
     projectId: string;
     memberId: string;
+    memberType?: 'user' | 'group';
 }
 
 export const RemoveProjectMemberDialog = ({
     open,
     onOpenChange,
     projectId,
-    memberId
+    memberId,
+    memberType = 'user'
 }: RemoveProjectMemberDialogProps) => {
     const queryClient = useQueryClient();
     const transport = useTransport();
@@ -40,25 +39,8 @@ export const RemoveProjectMemberDialog = ({
         onOpenChange?.(value);
     };
 
-    const { data: policiesData, error: policiesError } = useQuery(
-        FrontierServiceQueries.listPolicies,
-        create(ListPoliciesRequestSchema, {
-            projectId: projectId || '',
-            userId: memberId || ''
-        }),
-        { enabled: !!projectId && !!memberId && open }
-    );
-
-    useEffect(() => {
-        if (policiesError) {
-            toast.error('Something went wrong', { description: (policiesError as Error).message });
-        }
-    }, [policiesError]);
-
-    const policies = useMemo(() => policiesData?.policies ?? [], [policiesData]);
-
-    const { mutateAsync: deletePolicy, isPending } = useMutation(
-        FrontierServiceQueries.deletePolicy,
+    const { mutateAsync: removeProjectMember, isPending } = useMutation(
+        FrontierServiceQueries.removeProjectMember,
         {
             onError: (err: Error) =>
                 toast.error('Something went wrong', { description: err.message })
@@ -67,10 +49,12 @@ export const RemoveProjectMemberDialog = ({
 
     async function onConfirm() {
         try {
-            await Promise.all(
-                (policies || []).map(p =>
-                    deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' }))
-                )
+            await removeProjectMember(
+                create(RemoveProjectMemberRequestSchema, {
+                    projectId: projectId,
+                    principalId: memberId,
+                    principalType: memberType === 'group' ? 'app/group' : 'app/user'
+                })
             );
             if (projectId) {
                 await queryClient.invalidateQueries({
@@ -99,7 +83,7 @@ export const RemoveProjectMemberDialog = ({
             handleOpenChange(false);
             toast.success('Member removed');
         } catch (error) {
-            console.error('Failed to delete policies:', error);
+            console.error('Failed to remove member:', error);
         }
     }
 
@@ -162,4 +146,3 @@ export const RemoveProjectMemberDialog = ({
         </Dialog>
     );
 };
-

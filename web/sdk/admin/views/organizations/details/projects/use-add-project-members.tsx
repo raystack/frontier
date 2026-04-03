@@ -3,7 +3,7 @@ import { OrganizationContext } from "../contexts/organization-context";
 import { toast } from "@raystack/apsara";
 import { DEFAULT_ROLES } from "../../../../utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
-import { FrontierServiceQueries, ListProjectUsersRequestSchema, CreatePolicyRequestSchema } from "@raystack/proton/frontier";
+import { FrontierServiceQueries, ListProjectUsersRequestSchema, SetProjectMemberRoleRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
@@ -48,23 +48,20 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
       : nonMembers;
   }, [nonMembers, searchQuery]);
 
-  const { mutateAsync: createPolicy } = useMutation(
-    FrontierServiceQueries.createPolicy,
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole,
   );
 
   const addMember = useCallback(
     async (userId: string) => {
       if (!userId || !projectId) return;
       try {
-        const principal = `app/user:${userId}`;
-        const resource = `app/project:${projectId}`;
-        await createPolicy(
-          create(CreatePolicyRequestSchema, {
-            body: {
-              roleId: DEFAULT_ROLES.PROJECT_VIEWER,
-              principal,
-              resource,
-            },
+        await setProjectMemberRole(
+          create(SetProjectMemberRoleRequestSchema, {
+            projectId,
+            principalId: userId,
+            principalType: "app/user",
+            roleId: DEFAULT_ROLES.PROJECT_VIEWER,
           }),
         );
         toast.success(`${memberLabel} added`);
@@ -79,7 +76,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
         });
       }
     },
-    [projectId, createPolicy, refetch, projectMembers, memberLabel],
+    [projectId, setProjectMemberRole, refetch, projectMembers, memberLabel],
   );
 
   return {

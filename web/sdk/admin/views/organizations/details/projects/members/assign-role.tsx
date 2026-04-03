@@ -15,14 +15,10 @@ import type {
 } from "@raystack/proton/frontier";
 import {
   FrontierServiceQueries,
-  FrontierService,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema,
-  CreatePolicyRequestSchema,
+  SetProjectMemberRoleRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { useMutation, useTransport } from "@connectrpc/connect-query";
-import { createClient } from "@connectrpc/connect";
+import { useMutation } from "@connectrpc/connect-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,8 +46,6 @@ export const AssignRole = ({
   onRoleUpdate,
   onClose,
 }: AssignRoleProps) => {
-  const transport = useTransport();
-
   const {
     handleSubmit,
     watch,
@@ -64,12 +58,8 @@ export const AssignRole = ({
     resolver: zodResolver(formSchema),
   });
 
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy,
-  );
-
-  const { mutateAsync: createPolicy } = useMutation(
-    FrontierServiceQueries.createPolicy,
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole,
   );
 
   const roleIds = watch("roleIds");
@@ -97,43 +87,18 @@ export const AssignRole = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      const client = createClient(FrontierService, transport);
-      const policiesResp = await client.listPolicies(
-        create(ListPoliciesRequestSchema, {
-          projectId: projectId,
-          userId: user?.id,
-        }),
-      );
-      const policies = policiesResp.policies || [];
-
-      const removedRolesPolicies = policies.filter(
-        (policy) => !(policy.roleId && data.roleIds.has(policy.roleId)),
-      );
-      await Promise.all(
-        removedRolesPolicies.map((policy) =>
-          deletePolicy(
-            create(DeletePolicyRequestSchema, { id: policy.id || "" }),
-          ),
-        ),
-      );
-
-      const resource = `app/project:${projectId}`;
-      const principal = `app/user:${user?.id}`;
-
       const assignedRolesArr = Array.from(data.roleIds);
-      await Promise.all(
-        assignedRolesArr.map((roleId) =>
-          createPolicy(
-            create(CreatePolicyRequestSchema, {
-              body: {
-                roleId,
-                resource,
-                principal,
-              },
-            }),
-          ),
-        ),
-      );
+
+      for (const roleId of assignedRolesArr) {
+        await setProjectMemberRole(
+          create(SetProjectMemberRoleRequestSchema, {
+            projectId,
+            principalId: user?.id || "",
+            principalType: "app/user",
+            roleId,
+          }),
+        );
+      }
 
       if (onRoleUpdate) {
         onRoleUpdate({

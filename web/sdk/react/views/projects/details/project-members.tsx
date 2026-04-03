@@ -36,7 +36,7 @@ import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
     FrontierServiceQueries,
     ListOrganizationUsersRequestSchema,
-    CreatePolicyForProjectRequestSchema,
+    SetProjectMemberRoleRequestSchema,
     type Group,
     type User,
     type Role
@@ -233,8 +233,8 @@ const AddMemberDropdown = ({
         setQuery(e.target.value);
     }
 
-    const { mutate: createPolicyForProject, isPending: isCreatingPolicy } = useMutation(
-        FrontierServiceQueries.createPolicyForProject,
+    const { mutate: setProjectMemberRole, isPending: isCreatingPolicy } = useMutation(
+        FrontierServiceQueries.setProjectMemberRole,
         {
             onSuccess: () => {
                 toast.success('Member added');
@@ -249,29 +249,31 @@ const AddMemberDropdown = ({
     const addMember = useCallback(
         (userId: string) => {
             if (!userId || !organization?.id || !projectId) return;
-            const principal = `${PERMISSIONS.UserNamespace}:${userId}`;
-            createPolicyForProject(
-                create(CreatePolicyForProjectRequestSchema, {
+            setProjectMemberRole(
+                create(SetProjectMemberRoleRequestSchema, {
                     projectId: projectId,
-                    body: { roleId: PERMISSIONS.RoleProjectViewer, principal }
+                    principalId: userId,
+                    principalType: PERMISSIONS.UserNamespace,
+                    roleId: PERMISSIONS.RoleProjectViewer
                 })
             );
         },
-        [createPolicyForProject, organization?.id, projectId]
+        [setProjectMemberRole, organization?.id, projectId]
     );
 
     const addTeam = useCallback(
         (teamId: string) => {
             if (!teamId || !organization?.id || !projectId) return;
-            const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
-            createPolicyForProject(
-                create(CreatePolicyForProjectRequestSchema, {
+            setProjectMemberRole(
+                create(SetProjectMemberRoleRequestSchema, {
                     projectId: projectId,
-                    body: { roleId: PERMISSIONS.RoleProjectViewer, principal }
+                    principalId: teamId,
+                    principalType: PERMISSIONS.GroupNamespace,
+                    roleId: PERMISSIONS.RoleProjectViewer
                 })
             );
         },
-        [createPolicyForProject, organization?.id, projectId]
+        [setProjectMemberRole, organization?.id, projectId]
     );
 
     return (
