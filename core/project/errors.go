@@ -11,4 +11,5 @@ var (
 	ErrInvalidProjectRole   = errors.New("role is not valid for project scope")
 	ErrNotOrgMember         = errors.New("user is not a member of the organization")
 	ErrInvalidPrincipalType = errors.New("invalid principal type")
+	ErrNotMember            = errors.New("principal is not a member of the project")
 )

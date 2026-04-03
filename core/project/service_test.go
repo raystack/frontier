@@ -1243,3 +1243,121 @@ func TestService_SetMemberRole(t *testing.T) {
 		})
 	}
 }
+
+func TestService_RemoveMember(t *testing.T) {
+	ctx := context.Background()
+	projectID := uuid.New().String()
+	userID := uuid.New().String()
+
+	tests := []struct {
+		name          string
+		projectID     string
+		principalID   string
+		principalType string
+		setup         func(*mocks.Repository, *mocks.PolicyService)
+		wantErr       error
+	}{
+		{
+			name:          "should return error if project does not exist",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			setup: func(repo *mocks.Repository, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{}, project.ErrNotExist)
+			},
+			wantErr: project.ErrNotExist,
+		},
+		{
+			name:          "should return error for invalid principal type",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: "app/invalid",
+			setup: func(repo *mocks.Repository, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID}, nil)
+			},
+			wantErr: project.ErrInvalidPrincipalType,
+		},
+		{
+			name:          "should return error if principal has no project policies",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			setup: func(repo *mocks.Repository, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{}, nil)
+			},
+			wantErr: project.ErrNotMember,
+		},
+		{
+			name:          "should delete all project policies for the principal",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			setup: func(repo *mocks.Repository, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				policySvc.EXPECT().Delete(ctx, "p2").Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name:          "should work for service user principal",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.ServiceUserPrincipal,
+			setup: func(repo *mocks.Repository, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.ServiceUserPrincipal,
+				}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name:          "should work for group principal",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.GroupPrincipal,
+			setup: func(repo *mocks.Repository, policySvc *mocks.PolicyService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.GroupPrincipal,
+				}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := mocks.NewRepository(t)
+			policySvc := mocks.NewPolicyService(t)
+			relationSvc := mocks.NewRelationService(t)
+			userSvc := mocks.NewUserService(t)
+			suserSvc := mocks.NewServiceuserService(t)
+			groupSvc := mocks.NewGroupService(t)
+			roleSvc := mocks.NewRoleService(t)
+			authnSvc := mocks.NewAuthnService(t)
+
+			if tt.setup != nil {
+				tt.setup(repo, policySvc)
+			}
+
+			svc := project.NewService(repo, relationSvc, userSvc, policySvc, authnSvc, suserSvc, groupSvc, roleSvc)
+			err := svc.RemoveMember(ctx, tt.projectID, tt.principalID, tt.principalType)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
