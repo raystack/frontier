@@ -145,6 +145,7 @@ export const ProjectMembers = ({
                                     canUpdateProject={canUpdateProject}
                                     refetch={refetch}
                                     members={members}
+                                    roles={roles}
                                 />
                             </Tooltip>
                         )}
@@ -166,6 +167,7 @@ interface AddMemberDropdownProps {
     projectId: string;
     canUpdateProject: boolean;
     members?: User[];
+    roles?: Role[];
     refetch?: () => void;
 }
 
@@ -173,6 +175,7 @@ const AddMemberDropdown = ({
     projectId,
     canUpdateProject,
     members,
+    roles = [],
     refetch
 }: AddMemberDropdownProps) => {
     const [query, setQuery] = useState('');
