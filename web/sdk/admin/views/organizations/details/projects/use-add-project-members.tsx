@@ -3,7 +3,7 @@ import { OrganizationContext } from "../contexts/organization-context";
 import { toast } from "@raystack/apsara";
 import { DEFAULT_ROLES } from "../../../../utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
-import { FrontierServiceQueries, ListProjectUsersRequestSchema, SetProjectMemberRoleRequestSchema } from "@raystack/proton/frontier";
+import { FrontierServiceQueries, ListProjectUsersRequestSchema, ListRolesRequestSchema, SetProjectMemberRoleRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
@@ -48,20 +48,34 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
       : nonMembers;
   }, [nonMembers, searchQuery]);
 
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: "enabled",
+      scopes: ["app/project"],
+    }),
+    { enabled: !!projectId }
+  );
+
+  const viewerRoleId = useMemo(
+    () => rolesData?.roles?.find((r) => r.name === DEFAULT_ROLES.PROJECT_VIEWER)?.id ?? "",
+    [rolesData],
+  );
+
   const { mutateAsync: setProjectMemberRole } = useMutation(
     FrontierServiceQueries.setProjectMemberRole,
   );
 
   const addMember = useCallback(
     async (userId: string) => {
-      if (!userId || !projectId) return;
+      if (!userId || !projectId || !viewerRoleId) return;
       try {
         await setProjectMemberRole(
           create(SetProjectMemberRoleRequestSchema, {
             projectId,
             principalId: userId,
             principalType: "app/user",
-            roleId: DEFAULT_ROLES.PROJECT_VIEWER,
+            roleId: viewerRoleId,
           }),
         );
         toast.success(`${memberLabel} added`);
@@ -76,7 +90,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
         });
       }
     },
-    [projectId, setProjectMemberRole, refetch, projectMembers, memberLabel],
+    [projectId, setProjectMemberRole, refetch, projectMembers, memberLabel, viewerRoleId],
   );
 
   return {

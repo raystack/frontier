@@ -23,6 +23,7 @@ import {
   CreateServiceUserTokenRequestSchema,
   ListOrganizationServiceUsersRequestSchema,
   ListOrganizationProjectsRequestSchema,
+  ListRolesRequestSchema,
   ListServiceUserTokensRequestSchema,
   ListServiceUserTokensResponseSchema,
   ServiceUserRequestBodySchema
@@ -98,6 +99,20 @@ export const AddServiceAccountDialog = ({
     return orderBy(list, ['title'], ['asc']);
   }, [projectsData]);
 
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: open }
+  );
+
+  const ownerRoleId = useMemo(
+    () => rolesData?.roles?.find(r => r.name === PERMISSIONS.RoleProjectOwner)?.id ?? '',
+    [rolesData]
+  );
+
   const { mutateAsync: createServiceUser } = useMutation(
     FrontierServiceQueries.createServiceUser
   );
@@ -127,12 +142,13 @@ export const AddServiceAccountDialog = ({
         const serviceUserId = serviceUserResponse.serviceuser?.id;
         if (!serviceUserId) return;
 
+        if (!ownerRoleId) throw new Error('Project owner role not found');
         await setProjectMemberRole(
           create(SetProjectMemberRoleRequestSchema, {
             projectId: data.project_id,
             principalId: serviceUserId,
             principalType: PERMISSIONS.ServiceUserPrincipal,
-            roleId: PERMISSIONS.RoleProjectOwner
+            roleId: ownerRoleId
           })
         );
 

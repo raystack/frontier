@@ -233,6 +233,11 @@ const AddMemberDropdown = ({
         setQuery(e.target.value);
     }
 
+    const viewerRole = useMemo(
+        () => (roles as Role[]).find((r: Role) => r.name === PERMISSIONS.RoleProjectViewer),
+        [roles]
+    );
+
     const { mutate: setProjectMemberRole, isPending: isCreatingPolicy } = useMutation(
         FrontierServiceQueries.setProjectMemberRole,
         {
@@ -248,32 +253,32 @@ const AddMemberDropdown = ({
 
     const addMember = useCallback(
         (userId: string) => {
-            if (!userId || !organization?.id || !projectId) return;
+            if (!userId || !organization?.id || !projectId || !viewerRole?.id) return;
             setProjectMemberRole(
                 create(SetProjectMemberRoleRequestSchema, {
                     projectId: projectId,
                     principalId: userId,
                     principalType: PERMISSIONS.UserNamespace,
-                    roleId: PERMISSIONS.RoleProjectViewer
+                    roleId: viewerRole.id
                 })
             );
         },
-        [setProjectMemberRole, organization?.id, projectId]
+        [setProjectMemberRole, organization?.id, projectId, viewerRole]
     );
 
     const addTeam = useCallback(
         (teamId: string) => {
-            if (!teamId || !organization?.id || !projectId) return;
+            if (!teamId || !organization?.id || !projectId || !viewerRole?.id) return;
             setProjectMemberRole(
                 create(SetProjectMemberRoleRequestSchema, {
                     projectId: projectId,
                     principalId: teamId,
                     principalType: PERMISSIONS.GroupNamespace,
-                    roleId: PERMISSIONS.RoleProjectViewer
+                    roleId: viewerRole.id
                 })
             );
         },
-        [setProjectMemberRole, organization?.id, projectId]
+        [setProjectMemberRole, organization?.id, projectId, viewerRole]
     );
 
     return (

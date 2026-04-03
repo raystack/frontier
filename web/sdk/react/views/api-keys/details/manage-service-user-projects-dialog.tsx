@@ -20,6 +20,7 @@ import {
   FrontierServiceQueries,
   ListServiceUserProjectsRequestSchema,
   ListOrganizationProjectsRequestSchema,
+  ListRolesRequestSchema,
   SetProjectMemberRoleRequestSchema,
   RemoveProjectMemberRequestSchema,
   Project
@@ -153,6 +154,20 @@ export default function ManageServiceUserProjectsDialog({
     setAddedProjectsMap(permMap);
   }, [addedProjects]);
 
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: open }
+  );
+
+  const ownerRoleId = useMemo(
+    () => rolesData?.roles?.find(r => r.name === PERMISSIONS.RoleProjectOwner)?.id ?? '',
+    [rolesData]
+  );
+
   const { mutateAsync: setProjectMemberRole } = useMutation(
     FrontierServiceQueries.setProjectMemberRole
   );
@@ -170,12 +185,13 @@ export default function ManageServiceUserProjectsDialog({
         }));
 
         if (value) {
+          if (!ownerRoleId) throw new Error('Project owner role not found');
           await setProjectMemberRole(
             create(SetProjectMemberRoleRequestSchema, {
               projectId,
               principalId: serviceUserId,
               principalType: PERMISSIONS.ServiceUserPrincipal,
-              roleId: PERMISSIONS.RoleProjectOwner
+              roleId: ownerRoleId
             })
           );
           setAddedProjectsMap(prev => ({
