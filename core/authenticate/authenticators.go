@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
@@ -130,6 +131,30 @@ func authenticateWithAccessToken(ctx context.Context, s *Service) (Principal, er
 				ID:          currentUser.ID,
 				Type:        schema.ServiceUserPrincipal,
 				ServiceUser: &currentUser,
+			}, nil
+		}
+
+		if claims[token.SubTypeClaimsKey] == schema.PATPrincipal {
+			patID := userID // sub = PAT ID
+			pat, err := s.userPATService.GetByID(ctx, patID)
+			if err != nil {
+				s.log.Debug("failed to get PAT", "err", err)
+				return Principal{}, errors.ErrUnauthenticated
+			}
+			if pat.ExpiresAt.Before(time.Now()) {
+				s.log.Debug("PAT has expired", "pat_id", patID)
+				return Principal{}, errors.ErrUnauthenticated
+			}
+			currentUser, err := s.userService.GetByID(ctx, pat.UserID)
+			if err != nil {
+				s.log.Debug("failed to get PAT owner", "err", err)
+				return Principal{}, errors.ErrUnauthenticated
+			}
+			return Principal{
+				ID:   pat.ID,
+				Type: schema.PATPrincipal,
+				PAT:  &pat,
+				User: &currentUser,
 			}, nil
 		}
 
