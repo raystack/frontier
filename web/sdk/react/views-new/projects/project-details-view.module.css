@@ -11,3 +11,42 @@
 .menuContent {
   min-width: 160px;
 }
+
+.addMemberContent {
+  width: 228px;
+}
+
+.addMemberMenuList {
+  max-height: 256px;
+  overflow-y: auto;
+}
+
+.addMemberMenuItem {
+  width: 100%;
+}
+
+.addMemberMenuItemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.addMemberEmptyState {
+  min-height: 200px;
+}
+
+.addMemberSeparator {
+  margin: var(--rs-space-2) calc(var(--rs-space-3) * -1);
+}
+
+.addMemberToggleBtn {
+  justify-content: flex-start;
+}
+
+.addMemberContent:has(input[value]:not([value=''])):not(:has([role='option']))
+  .addMemberFooter
+  > :first-child {
+  display: none;
+}

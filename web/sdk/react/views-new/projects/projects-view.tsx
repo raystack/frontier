@@ -28,6 +28,7 @@ import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
 import { DeleteProjectDialog, type DeleteProjectPayload } from './components/delete-project-dialog';
 import styles from './projects-view.module.css';
+import { useTerminology } from '~/react/hooks/useTerminology';
 
 const projectMenuHandle = Menu.createHandle<ProjectMenuPayload>();
 const addProjectDialogHandle = Dialog.createHandle();
@@ -42,7 +43,7 @@ export interface ProjectsViewProps {
 
 export function ProjectsView({
   title = 'Projects',
-  description = 'Manage projects for this project.',
+  description,
   onProjectClick
 }: ProjectsViewProps) {
   const {
@@ -56,6 +57,7 @@ export function ProjectsView({
   });
 
   const { activeOrganization: organization } = useFrontier();
+  const t = useTerminology();
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
@@ -112,7 +114,7 @@ export function ProjectsView({
 
   return (
     <ViewContainer>
-      <ViewHeader title={title} description={description} />
+      <ViewHeader title={title} description={description ?? `Manage projects for this ${t.organization({ case: 'lower' })}`} />
 
       <DataTable
         data={projects ?? []}

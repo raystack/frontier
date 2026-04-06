@@ -9,8 +9,6 @@ import {
 } from '@radix-ui/react-icons';
 import {
   Breadcrumb,
-  Button,
-  Tooltip,
   Skeleton,
   Flex,
   EmptyState,
@@ -45,7 +43,6 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
-import { AuthTooltipMessage } from '../../utils';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
@@ -66,6 +63,7 @@ import {
   type MemberRow,
   type MemberMenuPayload
 } from './components/member-columns';
+import { AddMemberMenu } from './components/add-member-menu';
 import styles from './project-details-view.module.css';
 
 interface ProjectGroupRolePair {
@@ -435,24 +433,12 @@ export function ProjectDetailsView({
             {isLoading ? (
               <Skeleton height="34px" width="120px" />
             ) : (
-              <Tooltip>
-                <Tooltip.Trigger
-                  disabled={canUpdateProject}
-                  render={<span />}
-                >
-                  <Button
-                    variant="solid"
-                    color="accent"
-                    disabled={!canUpdateProject}
-                    data-test-id="frontier-sdk-add-project-member-btn"
-                  >
-                    Add a member
-                  </Button>
-                </Tooltip.Trigger>
-                {!canUpdateProject && (
-                  <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
-                )}
-              </Tooltip>
+              <AddMemberMenu
+                projectId={projectId}
+                canUpdateProject={canUpdateProject}
+                members={projectUsers.users}
+                refetch={refetchMembers}
+              />
             )}
           </Flex>
           <DataTable.Content

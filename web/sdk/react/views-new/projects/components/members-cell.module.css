@@ -1,0 +1,9 @@
+.avatar {
+  border: none;
+  outline: 1px solid var(--rs-color-background-base-primary);
+  margin-left: calc(var(--rs-space-3) * -1);
+}
+
+.avatar:first-child {
+  margin-left: 0;
+}
