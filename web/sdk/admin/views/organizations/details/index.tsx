@@ -184,7 +184,6 @@ export const OrganizationDetailsView = ({
   } = useQuery(
     FrontierServiceQueries.getBillingAccount,
     {
-      orgId: organizationId || "",
       id: firstBillingAccountId,
       withBillingDetails: true,
     },

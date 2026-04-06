@@ -1,7 +1,7 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ReactNode } from '@tanstack/react-router';
+import { type ReactNode } from 'react';
 import { Button, Flex, Text, Switch, Skeleton } from '@raystack/apsara';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';

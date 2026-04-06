@@ -18,6 +18,7 @@ import Projects from './pages/settings/Projects';
 import ProjectDetails from './pages/settings/ProjectDetails';
 import Teams from './pages/settings/Teams';
 import TeamDetails from './pages/settings/TeamDetails';
+import ServiceAccounts from './pages/settings/ServiceAccounts';
 
 function Router() {
   return (
@@ -42,6 +43,7 @@ function Router() {
           <Route path="projects/:projectId" element={<ProjectDetails />} />
           <Route path="teams" element={<Teams />} />
           <Route path="teams/:teamId" element={<TeamDetails />} />
+          <Route path="service-accounts" element={<ServiceAccounts />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

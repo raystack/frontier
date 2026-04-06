@@ -11,7 +11,8 @@ const NAV_ITEMS = [
   { label: 'Members', path: 'members' },
   { label: 'Security', path: 'security' },
   { label: 'Projects', path: 'projects' },
-  { label: 'Teams', path: 'teams' }
+  { label: 'Teams', path: 'teams' },
+  { label: 'Service Accounts', path: 'service-accounts' }
 ];
 
 export default function Settings() {
