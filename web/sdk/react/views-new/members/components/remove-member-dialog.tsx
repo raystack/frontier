@@ -17,6 +17,7 @@ import {
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
+import { handleConnectError } from '~/utils/error';
 
 export type RemoveMemberPayload = { memberId: string; invited: string };
 
@@ -43,13 +44,6 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
       onSuccess: () => {
         handle.close();
         toastManager.add({ title: 'Member deleted', type: 'success' });
-      },
-      onError: (error: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: error?.message || 'Failed to delete invitation',
-          type: 'error'
-        });
       }
     }
   );
@@ -60,13 +54,6 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
       onSuccess: () => {
         handle.close();
         toastManager.add({ title: 'Member deleted', type: 'success' });
-      },
-      onError: (error: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: error?.message || 'Failed to remove user',
-          type: 'error'
-        });
       }
     }
   );
@@ -87,14 +74,11 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
         });
         await removeUser(req);
       }
-    } catch (error: unknown) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Failed to remove member',
-        type: 'error'
+    } catch (error) {
+      handleConnectError(error, {
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     } finally {
       setIsLoading(false);
