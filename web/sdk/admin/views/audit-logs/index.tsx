@@ -28,6 +28,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import SidePanelDetails from "./sidepanel-details";
 import { useQueryClient } from "@tanstack/react-query";
 import { AUDIT_LOG_QUERY_KEY } from "./util";
+import { useTerminology } from "../../hooks/useTerminology";
 
 const NoAuditLogs = () => {
   return (
@@ -70,6 +71,7 @@ export type AuditLogsViewProps = {
 };
 
 export default function AuditLogsView({ appName, onExportCsv, onNavigate }: AuditLogsViewProps = {}) {
+  const t = useTerminology();
   const queryClient = useQueryClient();
   const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;
@@ -153,8 +155,9 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
         groupCountMap: infiniteData
           ? getGroupCountMapFromFirstPage(infiniteData)
           : {},
+        t,
       }),
-    [infiniteData],
+    [infiniteData, t],
   );
 
   const loading = isLoading || isFetchingNextPage;

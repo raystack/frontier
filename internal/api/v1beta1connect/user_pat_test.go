@@ -46,7 +46,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -63,7 +63,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -82,7 +82,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
 			}),
 			want:    nil,
@@ -101,7 +101,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(time.Now().Add(48 * time.Hour)),
 			}),
 			want:    nil,
@@ -122,7 +122,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -143,7 +143,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -164,7 +164,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -185,7 +185,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -206,7 +206,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -227,7 +227,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -248,7 +248,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
@@ -267,7 +267,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					return req.UserID == testUserID &&
 						req.OrgID == testOrgID &&
 						req.Title == "my-token" &&
-						len(req.RoleIDs) == 1 && req.RoleIDs[0] == testRoleID
+						len(req.Scopes) == 1 && req.Scopes[0].RoleID == testRoleID
 				})).Return(models.PAT{
 					ID:        "pat-1",
 					UserID:    testUserID,
@@ -281,7 +281,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want: &frontierv1beta1.CreateCurrentUserPATResponse{
@@ -291,6 +291,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					OrgId:     testOrgID,
 					Title:     "my-token",
 					Token:     "fpt_abc123",
+					Scopes:    []*frontierv1beta1.PATScope{},
 					ExpiresAt: timestamppb.New(testTime),
 					CreatedAt: timestamppb.New(testCreatedAt),
 					UpdatedAt: timestamppb.New(testCreatedAt),
@@ -322,7 +323,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
 				Title:     "my-token",
 				OrgId:     testOrgID,
-				RoleIds:   []string{testRoleID},
+				Scopes:    []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 				ExpiresAt: timestamppb.New(testTime),
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -337,6 +338,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 					OrgId:     testOrgID,
 					Title:     "my-token",
 					Token:     "fpt_xyz789",
+					Scopes:    []*frontierv1beta1.PATScope{},
 					ExpiresAt: timestamppb.New(testTime),
 					CreatedAt: timestamppb.New(testCreatedAt),
 					UpdatedAt: timestamppb.New(testCreatedAt),
@@ -489,7 +491,7 @@ func TestHandler_GetCurrentUserPAT(t *testing.T) {
 						UserID:    testUserID,
 						OrgID:     "org-1",
 						Title:     "my-token",
-						RoleIDs:   []string{"role-1"},
+						Scopes:    []models.PATScope{{RoleID: "role-1", ResourceType: "app/organization"}},
 						ExpiresAt: testExpiry,
 						CreatedAt: testCreatedAt,
 						UpdatedAt: testCreatedAt,
@@ -504,7 +506,7 @@ func TestHandler_GetCurrentUserPAT(t *testing.T) {
 					UserId:    testUserID,
 					OrgId:     "org-1",
 					Title:     "my-token",
-					RoleIds:   []string{"role-1"},
+					Scopes:    []*frontierv1beta1.PATScope{{RoleId: "role-1", ResourceType: "app/organization"}},
 					ExpiresAt: timestamppb.New(testExpiry),
 					CreatedAt: timestamppb.New(testCreatedAt),
 					UpdatedAt: timestamppb.New(testCreatedAt),
@@ -577,6 +579,7 @@ func TestTransformPATToPB(t *testing.T) {
 				UserId:    "user-1",
 				OrgId:     "org-1",
 				Title:     "my-token",
+				Scopes:    []*frontierv1beta1.PATScope{},
 				ExpiresAt: timestamppb.New(testTime),
 				CreatedAt: timestamppb.New(testCreatedAt),
 				UpdatedAt: timestamppb.New(testCreatedAt),
@@ -600,6 +603,7 @@ func TestTransformPATToPB(t *testing.T) {
 				OrgId:     "org-1",
 				Title:     "my-token",
 				Token:     "fpt_abc123",
+				Scopes:    []*frontierv1beta1.PATScope{},
 				ExpiresAt: timestamppb.New(testTime),
 				CreatedAt: timestamppb.New(testCreatedAt),
 				UpdatedAt: timestamppb.New(testCreatedAt),
@@ -623,6 +627,7 @@ func TestTransformPATToPB(t *testing.T) {
 				UserId:     "user-1",
 				OrgId:      "org-1",
 				Title:      "my-token",
+				Scopes:     []*frontierv1beta1.PATScope{},
 				ExpiresAt:  timestamppb.New(testTime),
 				CreatedAt:  timestamppb.New(testCreatedAt),
 				UpdatedAt:  timestamppb.New(testCreatedAt),
@@ -648,6 +653,7 @@ func TestTransformPATToPB(t *testing.T) {
 				OrgId:     "org-1",
 				Title:     "my-token",
 				Token:     "fpt_xyz",
+				Scopes:    []*frontierv1beta1.PATScope{},
 				ExpiresAt: timestamppb.New(testTime),
 				CreatedAt: timestamppb.New(testCreatedAt),
 				UpdatedAt: timestamppb.New(testCreatedAt),
@@ -933,7 +939,7 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 		UserID:    testUserID,
 		OrgID:     testOrgID,
 		Title:     "updated-title",
-		RoleIDs:   []string{testRoleID},
+		Scopes:    []models.PATScope{{RoleID: testRoleID, ResourceType: "app/organization"}},
 		ExpiresAt: testTime,
 		CreatedAt: testTime,
 		UpdatedAt: testTime,
@@ -951,9 +957,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "updated-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "updated-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated),
 		},
@@ -966,9 +972,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "updated-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "updated-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated),
 		},
@@ -984,9 +990,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 					Return(models.PAT{}, paterrors.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "updated-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "updated-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: connect.NewError(connect.CodeFailedPrecondition, paterrors.ErrDisabled),
 		},
@@ -1002,9 +1008,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 					Return(models.PAT{}, paterrors.ErrNotFound)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "updated-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "updated-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: connect.NewError(connect.CodeNotFound, paterrors.ErrNotFound),
 		},
@@ -1020,9 +1026,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 					Return(models.PAT{}, paterrors.ErrConflict)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "duplicate-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "duplicate-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: connect.NewError(connect.CodeAlreadyExists, paterrors.ErrConflict),
 		},
@@ -1038,9 +1044,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 					Return(models.PAT{}, paterrors.ErrRoleNotFound)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "updated-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "updated-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrRoleNotFound),
 		},
@@ -1056,9 +1062,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 					Return(models.PAT{}, errors.New("unexpected error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "updated-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "updated-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
@@ -1074,9 +1080,9 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 					Return(updatedPAT, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
-				Id:      testPATID,
-				Title:   "updated-title",
-				RoleIds: []string{testRoleID},
+				Id:     testPATID,
+				Title:  "updated-title",
+				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
 			wantErr: nil,
 		},
@@ -1128,7 +1134,7 @@ func TestHandler_RegenerateCurrentUserPAT(t *testing.T) {
 		UserID:    testUserID,
 		OrgID:     testOrgID,
 		Title:     "my-token",
-		RoleIDs:   []string{testRoleID},
+		Scopes:    []models.PATScope{{RoleID: testRoleID, ResourceType: "app/organization"}},
 		ExpiresAt: futureExpiry,
 		CreatedAt: testTime,
 		UpdatedAt: testTime,

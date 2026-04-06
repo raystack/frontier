@@ -17,8 +17,15 @@ import {
   TimeStamp,
   timestampToDate,
 } from "../../../../utils/connect-timestamp";
+import { TerminologyEntity } from "../../../../hooks/useTerminology";
 
-export const getColumns = (): DataTableColumnDef<
+interface GetColumnsOptions {
+  t: {
+    member: TerminologyEntity;
+  };
+}
+
+export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
   SearchOrganizationTokensResponse_OrganizationToken,
   unknown
 >[] => {
@@ -72,7 +79,7 @@ export const getColumns = (): DataTableColumnDef<
     },
     {
       accessorKey: "userId",
-      header: "Member",
+      header: t.member({ case: "capital" }),
       cell: ({ row, getValue }) => {
         const userId = (getValue() as string) || "";
         const title = row.original.userTitle || userId;

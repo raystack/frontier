@@ -15,6 +15,7 @@ import {
 } from "../../../../utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { useDebounceValue } from "usehooks-ts";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -50,6 +51,7 @@ const NoInvoices = () => {
 };
 
 const ErrorState = () => {
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
@@ -57,13 +59,14 @@ const ErrorState = () => {
         subHeading: styles["empty-state-subheading"],
       }}
       heading="Error Loading Invoices"
-      subHeading="Something went wrong while loading organization invoices. Please try refreshing the page."
+      subHeading={`Something went wrong while loading ${t.organization({ case: "lower" })} invoices. Please try refreshing the page.`}
       icon={<ExclamationTriangleIcon />}
     />
   );
 };
 
 export function OrganizationInvoicesView() {
+  const t = useTerminology();
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
 
@@ -75,7 +78,7 @@ export function OrganizationInvoicesView() {
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
-  const title = `Invoices | ${organization?.title} | Organizations`;
+  const title = `Invoices | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const computedQuery = useMemo(() => {
     const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);

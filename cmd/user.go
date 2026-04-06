@@ -65,11 +65,6 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			err := reqBody.ValidateAll()
-			if err != nil {
-				return err
-			}
-
 			if reqBody.GetName() == "" {
 				reqBody.Name = str.GenerateUserSlug(reqBody.GetEmail())
 			}
@@ -124,11 +119,6 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 
 			var reqBody frontierv1beta1.UserRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
-				return err
-			}
-
-			err := reqBody.ValidateAll()
-			if err != nil {
 				return err
 			}
 

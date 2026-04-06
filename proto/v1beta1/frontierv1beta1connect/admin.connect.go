@@ -213,6 +213,9 @@ const (
 	// AdminServiceExportAuditRecordsProcedure is the fully-qualified name of the AdminService's
 	// ExportAuditRecords RPC.
 	AdminServiceExportAuditRecordsProcedure = "/raystack.frontier.v1beta1.AdminService/ExportAuditRecords"
+	// AdminServiceSearchOrganizationPATsProcedure is the fully-qualified name of the AdminService's
+	// SearchOrganizationPATs RPC.
+	AdminServiceSearchOrganizationPATsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationPATs"
 )
 
 // AdminServiceClient is a client for the raystack.frontier.v1beta1.AdminService service.
@@ -313,6 +316,7 @@ type AdminServiceClient interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportAuditRecords(context.Context, *connect.Request[v1beta1.ExportAuditRecordsRequest]) (*connect.ServerStreamForClient[httpbody.HttpBody], error)
+	SearchOrganizationPATs(context.Context, *connect.Request[v1beta1.SearchOrganizationPATsRequest]) (*connect.Response[v1beta1.SearchOrganizationPATsResponse], error)
 }
 
 // NewAdminServiceClient constructs a client for the raystack.frontier.v1beta1.AdminService service.
@@ -692,6 +696,12 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(adminServiceMethods.ByName("ExportAuditRecords")),
 			connect.WithClientOptions(opts...),
 		),
+		searchOrganizationPATs: connect.NewClient[v1beta1.SearchOrganizationPATsRequest, v1beta1.SearchOrganizationPATsResponse](
+			httpClient,
+			baseURL+AdminServiceSearchOrganizationPATsProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationPATs")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -758,6 +768,7 @@ type adminServiceClient struct {
 	revokeUserSession                        *connect.Client[v1beta1.RevokeUserSessionRequest, v1beta1.RevokeUserSessionResponse]
 	listAuditRecords                         *connect.Client[v1beta1.ListAuditRecordsRequest, v1beta1.ListAuditRecordsResponse]
 	exportAuditRecords                       *connect.Client[v1beta1.ExportAuditRecordsRequest, httpbody.HttpBody]
+	searchOrganizationPATs                   *connect.Client[v1beta1.SearchOrganizationPATsRequest, v1beta1.SearchOrganizationPATsResponse]
 }
 
 // ListAllUsers calls raystack.frontier.v1beta1.AdminService.ListAllUsers.
@@ -1075,6 +1086,11 @@ func (c *adminServiceClient) ExportAuditRecords(ctx context.Context, req *connec
 	return c.exportAuditRecords.CallServerStream(ctx, req)
 }
 
+// SearchOrganizationPATs calls raystack.frontier.v1beta1.AdminService.SearchOrganizationPATs.
+func (c *adminServiceClient) SearchOrganizationPATs(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationPATsRequest]) (*connect.Response[v1beta1.SearchOrganizationPATsResponse], error) {
+	return c.searchOrganizationPATs.CallUnary(ctx, req)
+}
+
 // AdminServiceHandler is an implementation of the raystack.frontier.v1beta1.AdminService service.
 type AdminServiceHandler interface {
 	// Users
@@ -1173,6 +1189,7 @@ type AdminServiceHandler interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportAuditRecords(context.Context, *connect.Request[v1beta1.ExportAuditRecordsRequest], *connect.ServerStream[httpbody.HttpBody]) error
+	SearchOrganizationPATs(context.Context, *connect.Request[v1beta1.SearchOrganizationPATsRequest]) (*connect.Response[v1beta1.SearchOrganizationPATsResponse], error)
 }
 
 // NewAdminServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -1548,6 +1565,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(adminServiceMethods.ByName("ExportAuditRecords")),
 		connect.WithHandlerOptions(opts...),
 	)
+	adminServiceSearchOrganizationPATsHandler := connect.NewUnaryHandler(
+		AdminServiceSearchOrganizationPATsProcedure,
+		svc.SearchOrganizationPATs,
+		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationPATs")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/raystack.frontier.v1beta1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AdminServiceListAllUsersProcedure:
@@ -1672,6 +1695,8 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceListAuditRecordsHandler.ServeHTTP(w, r)
 		case AdminServiceExportAuditRecordsProcedure:
 			adminServiceExportAuditRecordsHandler.ServeHTTP(w, r)
+		case AdminServiceSearchOrganizationPATsProcedure:
+			adminServiceSearchOrganizationPATsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1923,4 +1948,8 @@ func (UnimplementedAdminServiceHandler) ListAuditRecords(context.Context, *conne
 
 func (UnimplementedAdminServiceHandler) ExportAuditRecords(context.Context, *connect.Request[v1beta1.ExportAuditRecordsRequest], *connect.ServerStream[httpbody.HttpBody]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ExportAuditRecords is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) SearchOrganizationPATs(context.Context, *connect.Request[v1beta1.SearchOrganizationPATsRequest]) (*connect.Response[v1beta1.SearchOrganizationPATsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationPATs is not implemented"))
 }

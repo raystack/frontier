@@ -25,6 +25,63 @@ func (_m *GroupService) EXPECT() *GroupService_Expecter {
 	return &GroupService_Expecter{mock: &_m.Mock}
 }
 
+// Get provides a mock function with given fields: ctx, id
+func (_m *GroupService) Get(ctx context.Context, id string) (group.Group, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 group.Group
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (group.Group, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) group.Group); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(group.Group)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GroupService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type GroupService_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *GroupService_Expecter) Get(ctx interface{}, id interface{}) *GroupService_Get_Call {
+	return &GroupService_Get_Call{Call: _e.mock.On("Get", ctx, id)}
+}
+
+func (_c *GroupService_Get_Call) Run(run func(ctx context.Context, id string)) *GroupService_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GroupService_Get_Call) Return(_a0 group.Group, _a1 error) *GroupService_Get_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GroupService_Get_Call) RunAndReturn(run func(context.Context, string) (group.Group, error)) *GroupService_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByIDs provides a mock function with given fields: ctx, ids
 func (_m *GroupService) GetByIDs(ctx context.Context, ids []string) ([]group.Group, error) {
 	ret := _m.Called(ctx, ids)
