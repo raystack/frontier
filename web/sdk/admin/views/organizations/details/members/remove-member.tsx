@@ -7,6 +7,7 @@ import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
 import { ConnectError } from "@connectrpc/connect";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
   organizationId: string;
@@ -21,6 +22,7 @@ export const RemoveMember = ({
   onRemove,
   onClose,
 }: RemoveMemberProps) => {
+  const t = useTerminology();
   const { mutateAsync: removeOrganizationUser, isPending } = useMutation(
     FrontierServiceQueries.removeOrganizationUser,
   );
@@ -37,13 +39,13 @@ export const RemoveMember = ({
       if (onRemove) {
         onRemove(user);
       }
-      toast.success("Member removed successfully");
+      toast.success(`${t.member({ case: "capital" })} removed successfully`);
     } catch (error) {
       const message =
         error instanceof ConnectError
           ? error.message
           : "Unknown error";
-      toast.error(`Failed to remove member: ${message}`);
+      toast.error(`Failed to remove ${t.member({ case: "lower" })}: ${message}`);
       console.error(error);
     }
   }
@@ -52,18 +54,18 @@ export const RemoveMember = ({
     <Dialog open onOpenChange={onClose}>
       <Dialog.Content width={400}>
         <Dialog.Header>
-          <Dialog.Title>Remove Member</Dialog.Title>
+          <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
           <Dialog.CloseButton data-test-id="remove-member-close-button" />
         </Dialog.Header>
         <Dialog.Body>
           <Flex direction="column" gap={7}>
             <Text variant="secondary">
-              Removing this member will revoke all their access to the
-              organization. This action cannot be undone. The member will lose
+              Removing this {t.member({ case: "lower" })} will revoke all their access to the{" "}
+              {t.organization({ case: "lower" })}. This action cannot be undone. The {t.member({ case: "lower" })} will lose
               all assigned roles and permissions immediately.
             </Text>
             <Text variant="secondary">
-              Are you sure you want to remove this member?
+              Are you sure you want to remove this {t.member({ case: "lower" })}?
             </Text>
           </Flex>
         </Dialog.Body>

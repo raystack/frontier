@@ -12,6 +12,7 @@ import { createClient } from "@connectrpc/connect";
 import styles from "./members.module.css";
 
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
+import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
   projectId: string;
@@ -26,6 +27,7 @@ export const RemoveMember = ({
   onRemove,
   onClose,
 }: RemoveMemberProps) => {
+  const t = useTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const transport = useTransport();
 
@@ -57,9 +59,9 @@ export const RemoveMember = ({
         onRemove(user);
       }
 
-      toast.success("Member removed successfully");
+      toast.success(`${t.member({ case: "capital" })} removed successfully`);
     } catch (error) {
-      toast.error("Failed to remove member");
+      toast.error(`Failed to remove ${t.member({ case: "lower" })}`);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -74,18 +76,18 @@ export const RemoveMember = ({
         className={styles["action-dialog-content"]}
       >
         <Dialog.Header>
-          <Dialog.Title>Remove Member</Dialog.Title>
+          <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
           <Dialog.CloseButton data-test-id="remove-member-close-button" />
         </Dialog.Header>
         <Dialog.Body>
           <Flex direction="column" gap={7}>
             <Text variant="secondary">
-              Removing this member will revoke all their access to the project.
-              This action cannot be undone. The member will lose all assigned
+              Removing this {t.member({ case: "lower" })} will revoke all their access to the {t.project({ case: "lower" })}.
+              This action cannot be undone. The {t.member({ case: "lower" })} will lose all assigned
               roles and permissions immediately.
             </Text>
             <Text variant="secondary">
-              Are you sure you want to remove this member?
+              Are you sure you want to remove this {t.member({ case: "lower" })}?
             </Text>
           </Flex>
         </Dialog.Body>
