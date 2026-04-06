@@ -108,7 +108,7 @@
     "@raystack/apsara-v1": "npm:@raystack/apsara@1.0.0-rc.2",
     "class-variance-authority": "^0.7.1",
     "dayjs": "^1.11.13",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.1",
     "query-string": "^8.2.0",
     "react-hook-form": "^7.57.0",
     "react-image-crop": "^10.1.8",
