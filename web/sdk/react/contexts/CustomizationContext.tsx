@@ -1,6 +1,7 @@
 import React, { createContext, ReactNode, useContext } from 'react';
 import { merge } from 'lodash';
 import type { FrontierClientCustomizationOptions } from '../../shared/types';
+import { TerminologyProvider } from '../../shared/terminology';
 
 const defaultCustomization: Required<FrontierClientCustomizationOptions> = {
   terminology: {
@@ -39,7 +40,9 @@ export const CustomizationProvider: React.FC<CustomizationProviderProps> = ({
 
   return (
     <CustomizationContext.Provider value={mergedConfig}>
-      {children}
+      <TerminologyProvider terminology={mergedConfig.terminology}>
+        {children}
+      </TerminologyProvider>
     </CustomizationContext.Provider>
   );
 };

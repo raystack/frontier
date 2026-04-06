@@ -1,0 +1,32 @@
+{
+  "title": "Frontier Admin",
+  "app_url": "localhost:5173",
+  "token_product_id": "token",
+  "organization_types": [],
+  "webhooks": {
+    "enable_delete": false
+  },
+  "terminology": {
+    "organization": {
+      "singular": "Organization",
+      "plural": "Organizations"
+    },
+    "project": {
+      "singular": "Project",
+      "plural": "Projects"
+    },
+    "team": {
+      "singular": "Team",
+      "plural": "Teams"
+    },
+    "member": {
+      "singular": "Member",
+      "plural": "Members"
+    },
+    "user": {
+      "singular": "User",
+      "plural": "Users"
+    },
+    "appName": "Frontier Admin"
+  }
+}

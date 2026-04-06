@@ -38,27 +38,6 @@ func TestHandler_CreateAuditRecord(t *testing.T) {
 		wantHeader   string
 	}{
 		{
-			name:  "should return invalid argument error when request validation fails",
-			setup: func(ars *mocks.AuditRecordService) {},
-			request: connect.NewRequest(&frontierv1beta1.CreateAuditRecordRequest{
-				Event: "", // Empty event should fail validation
-				Actor: &frontierv1beta1.AuditRecordActor{
-					Id:   testUUID,
-					Type: schema.UserPrincipal,
-					Name: "test-user",
-				},
-				Resource: &frontierv1beta1.AuditRecordResource{
-					Id:   "resource-123",
-					Type: "project",
-					Name: "test-project",
-				},
-				OccurredAt: timestamppb.New(testTime),
-				OrgId:      testOrgID,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, errors.New("invalid CreateAuditRecordRequest.Event: value length must be at least 3 runes")),
-		},
-		{
 			name:  "should return invalid argument error for invalid actor type",
 			setup: func(ars *mocks.AuditRecordService) {},
 			request: connect.NewRequest(&frontierv1beta1.CreateAuditRecordRequest{

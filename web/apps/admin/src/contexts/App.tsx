@@ -11,6 +11,7 @@ import {
   type User,
 } from "@raystack/proton/frontier";
 import { Config, defaultConfig } from "~/utils/constants";
+import { AdminConfigProvider } from "@raystack/frontier/admin";
 
 interface AppContextValue {
   isAdmin: boolean;
@@ -62,7 +63,9 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
         config,
         user,
       }}>
-      {children}
+      <AdminConfigProvider config={config}>
+        {children}
+      </AdminConfigProvider>
     </AppContext.Provider>
   );
 };

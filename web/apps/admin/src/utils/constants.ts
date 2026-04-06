@@ -17,6 +17,20 @@ export interface WebhooksConfig {
   enable_delete: boolean;
 }
 
+export interface EntityTerminologies {
+  singular: string;
+  plural: string;
+}
+
+export interface AdminTerminologyConfig {
+  organization?: EntityTerminologies;
+  project?: EntityTerminologies;
+  team?: EntityTerminologies;
+  member?: EntityTerminologies;
+  user?: EntityTerminologies;
+  appName?: string;
+}
+
 export interface Config {
   title: string;
   logo?: string;
@@ -24,7 +38,17 @@ export interface Config {
   token_product_id?: string;
   organization_types?: string[];
   webhooks?: WebhooksConfig;
+  terminology?: AdminTerminologyConfig;
 }
+
+export const defaultTerminology: Required<AdminTerminologyConfig> = {
+  organization: { singular: "Organization", plural: "Organizations" },
+  project: { singular: "Project", plural: "Projects" },
+  team: { singular: "Team", plural: "Teams" },
+  member: { singular: "Member", plural: "Members" },
+  user: { singular: "User", plural: "Users" },
+  appName: "Frontier Admin",
+};
 
 export const defaultConfig: Config = {
   title: "Frontier Admin",
@@ -34,6 +58,7 @@ export const defaultConfig: Config = {
   webhooks: {
     enable_delete: false,
   },
+  terminology: defaultTerminology,
 };
 
 export const NULL_DATE = "0001-01-01T00:00:00Z";
