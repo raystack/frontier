@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
@@ -141,7 +140,7 @@ func authenticateWithAccessToken(ctx context.Context, s *Service) (Principal, er
 				s.log.Debug("failed to get PAT", "err", err)
 				return Principal{}, errors.ErrUnauthenticated
 			}
-			if pat.ExpiresAt.Before(time.Now()) {
+			if pat.ExpiresAt.Before(s.Now()) {
 				s.log.Debug("PAT has expired", "pat_id", patID)
 				return Principal{}, errors.ErrUnauthenticated
 			}
