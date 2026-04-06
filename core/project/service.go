@@ -401,6 +401,42 @@ func (s Service) SetMemberRole(ctx context.Context, projectID, principalID, prin
 	return err
 }
 
+// RemoveMember removes a principal from a project by deleting all their project-level policies.
+// Supported principal types: user, service user, group.
+func (s Service) RemoveMember(ctx context.Context, projectID, principalID, principalType string) error {
+	_, err := s.Get(ctx, projectID)
+	if err != nil {
+		return err
+	}
+
+	switch principalType {
+	case schema.UserPrincipal, schema.ServiceUserPrincipal, schema.GroupPrincipal:
+	default:
+		return ErrInvalidPrincipalType
+	}
+
+	existingPolicies, err := s.policyService.List(ctx, policy.Filter{
+		ProjectID:     projectID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(existingPolicies) == 0 {
+		return ErrNotMember
+	}
+
+	for _, p := range existingPolicies {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // validatePrincipal checks that the principal exists and belongs to the org.
 // For users, org membership is checked via org-level policies.
 // For service users and groups, org membership is checked via their org ID field.

@@ -287,6 +287,9 @@ const (
 	// FrontierServiceSetProjectMemberRoleProcedure is the fully-qualified name of the FrontierService's
 	// SetProjectMemberRole RPC.
 	FrontierServiceSetProjectMemberRoleProcedure = "/raystack.frontier.v1beta1.FrontierService/SetProjectMemberRole"
+	// FrontierServiceRemoveProjectMemberProcedure is the fully-qualified name of the FrontierService's
+	// RemoveProjectMember RPC.
+	FrontierServiceRemoveProjectMemberProcedure = "/raystack.frontier.v1beta1.FrontierService/RemoveProjectMember"
 	// FrontierServiceCreatePolicyProcedure is the fully-qualified name of the FrontierService's
 	// CreatePolicy RPC.
 	FrontierServiceCreatePolicyProcedure = "/raystack.frontier.v1beta1.FrontierService/CreatePolicy"
@@ -660,6 +663,7 @@ type FrontierServiceClient interface {
 	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
 	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
 	SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error)
+	RemoveProjectMember(context.Context, *connect.Request[v1beta1.RemoveProjectMemberRequest]) (*connect.Response[v1beta1.RemoveProjectMemberResponse], error)
 	// Policies
 	CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error)
 	GetPolicy(context.Context, *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error)
@@ -1298,6 +1302,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceSetProjectMemberRoleProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("SetProjectMemberRole")),
+			connect.WithClientOptions(opts...),
+		),
+		removeProjectMember: connect.NewClient[v1beta1.RemoveProjectMemberRequest, v1beta1.RemoveProjectMemberResponse](
+			httpClient,
+			baseURL+FrontierServiceRemoveProjectMemberProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("RemoveProjectMember")),
 			connect.WithClientOptions(opts...),
 		),
 		createPolicy: connect.NewClient[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse](
@@ -1948,6 +1958,7 @@ type frontierServiceClient struct {
 	disableProject                 *connect.Client[v1beta1.DisableProjectRequest, v1beta1.DisableProjectResponse]
 	deleteProject                  *connect.Client[v1beta1.DeleteProjectRequest, v1beta1.DeleteProjectResponse]
 	setProjectMemberRole           *connect.Client[v1beta1.SetProjectMemberRoleRequest, v1beta1.SetProjectMemberRoleResponse]
+	removeProjectMember            *connect.Client[v1beta1.RemoveProjectMemberRequest, v1beta1.RemoveProjectMemberResponse]
 	createPolicy                   *connect.Client[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse]
 	getPolicy                      *connect.Client[v1beta1.GetPolicyRequest, v1beta1.GetPolicyResponse]
 	listPolicies                   *connect.Client[v1beta1.ListPoliciesRequest, v1beta1.ListPoliciesResponse]
@@ -2483,6 +2494,11 @@ func (c *frontierServiceClient) DeleteProject(ctx context.Context, req *connect.
 // SetProjectMemberRole calls raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole.
 func (c *frontierServiceClient) SetProjectMemberRole(ctx context.Context, req *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error) {
 	return c.setProjectMemberRole.CallUnary(ctx, req)
+}
+
+// RemoveProjectMember calls raystack.frontier.v1beta1.FrontierService.RemoveProjectMember.
+func (c *frontierServiceClient) RemoveProjectMember(ctx context.Context, req *connect.Request[v1beta1.RemoveProjectMemberRequest]) (*connect.Response[v1beta1.RemoveProjectMemberResponse], error) {
+	return c.removeProjectMember.CallUnary(ctx, req)
 }
 
 // CreatePolicy calls raystack.frontier.v1beta1.FrontierService.CreatePolicy.
@@ -3053,6 +3069,7 @@ type FrontierServiceHandler interface {
 	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
 	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
 	SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error)
+	RemoveProjectMember(context.Context, *connect.Request[v1beta1.RemoveProjectMemberRequest]) (*connect.Response[v1beta1.RemoveProjectMemberResponse], error)
 	// Policies
 	CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error)
 	GetPolicy(context.Context, *connect.Request[v1beta1.GetPolicyRequest]) (*connect.Response[v1beta1.GetPolicyResponse], error)
@@ -3687,6 +3704,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceSetProjectMemberRoleProcedure,
 		svc.SetProjectMemberRole,
 		connect.WithSchema(frontierServiceMethods.ByName("SetProjectMemberRole")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceRemoveProjectMemberHandler := connect.NewUnaryHandler(
+		FrontierServiceRemoveProjectMemberProcedure,
+		svc.RemoveProjectMember,
+		connect.WithSchema(frontierServiceMethods.ByName("RemoveProjectMember")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceCreatePolicyHandler := connect.NewUnaryHandler(
@@ -4419,6 +4442,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceDeleteProjectHandler.ServeHTTP(w, r)
 		case FrontierServiceSetProjectMemberRoleProcedure:
 			frontierServiceSetProjectMemberRoleHandler.ServeHTTP(w, r)
+		case FrontierServiceRemoveProjectMemberProcedure:
+			frontierServiceRemoveProjectMemberHandler.ServeHTTP(w, r)
 		case FrontierServiceCreatePolicyProcedure:
 			frontierServiceCreatePolicyHandler.ServeHTTP(w, r)
 		case FrontierServiceGetPolicyProcedure:
@@ -4952,6 +4977,10 @@ func (UnimplementedFrontierServiceHandler) DeleteProject(context.Context, *conne
 
 func (UnimplementedFrontierServiceHandler) SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) RemoveProjectMember(context.Context, *connect.Request[v1beta1.RemoveProjectMemberRequest]) (*connect.Response[v1beta1.RemoveProjectMemberResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveProjectMember is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) CreatePolicy(context.Context, *connect.Request[v1beta1.CreatePolicyRequest]) (*connect.Response[v1beta1.CreatePolicyResponse], error) {

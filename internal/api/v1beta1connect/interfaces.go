@@ -357,6 +357,7 @@ type ProjectService interface {
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	SetMemberRole(ctx context.Context, projectID, principalID, principalType, newRoleID string) error
+	RemoveMember(ctx context.Context, projectID, principalID, principalType string) error
 }
 
 type OrgUsersService interface {

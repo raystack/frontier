@@ -401,7 +401,44 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 		}
 	}
 
+	audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRoleSetEvent, audit.ProjectTarget(projectID), map[string]string{
+		"principal_id":   principalID,
+		"principal_type": principalType,
+		"role_id":        roleID,
+	})
 	return connect.NewResponse(&frontierv1beta1.SetProjectMemberRoleResponse{}), nil
+}
+
+func (h *ConnectHandler) RemoveProjectMember(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveProjectMemberRequest]) (*connect.Response[frontierv1beta1.RemoveProjectMemberResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	projectID := request.Msg.GetProjectId()
+	principalID := request.Msg.GetPrincipalId()
+	principalType := request.Msg.GetPrincipalType()
+
+	if err := h.projectService.RemoveMember(ctx, projectID, principalID, principalType); err != nil {
+		errorLogger.LogServiceError(ctx, request, "RemoveProjectMember", err,
+			zap.String("project_id", projectID),
+			zap.String("principal_id", principalID),
+			zap.String("principal_type", principalType))
+
+		switch {
+		case errors.Is(err, project.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
+		case errors.Is(err, project.ErrNotMember):
+			return nil, connect.NewError(connect.CodeNotFound, project.ErrNotMember)
+		case errors.Is(err, project.ErrInvalidPrincipalType):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRemovedEvent, audit.ProjectTarget(projectID), map[string]string{
+		"principal_id":   principalID,
+		"principal_type": principalType,
+	})
+	return connect.NewResponse(&frontierv1beta1.RemoveProjectMemberResponse{}), nil
 }
 
 func transformProjectToPB(prj project.Project) (*frontierv1beta1.Project, error) {
