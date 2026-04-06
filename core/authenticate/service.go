@@ -90,6 +90,7 @@ type TokenService interface {
 
 type UserPATService interface {
 	Validate(ctx context.Context, value string) (patModels.PAT, error)
+	GetByID(ctx context.Context, id string) (patModels.PAT, error)
 }
 
 type Service struct {
@@ -690,6 +691,9 @@ func (s Service) BuildToken(ctx context.Context, principal Principal, metadata m
 	metadata[token.SubTypeClaimsKey] = principal.Type
 	if principal.Type == schema.UserPrincipal && s.config.Token.Claims.AddUserEmailClaim {
 		metadata[token.SubEmailClaimsKey] = principal.User.Email
+	}
+	if principal.Type == schema.PATPrincipal && principal.User != nil {
+		metadata[token.UserIDClaimKey] = principal.User.ID
 	}
 	return s.internalTokenService.Build(principal.ID, metadata)
 }
