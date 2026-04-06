@@ -36,6 +36,7 @@ export { ProfileView } from './views-new/profile';
 export { SessionsView } from './views-new/sessions';
 export { MembersView } from './views-new/members';
 export { SecurityView } from './views-new/security';
+export { ProjectsView, ProjectDetailsView } from './views-new/projects';
 
 export type {
   FrontierClientOptions,
