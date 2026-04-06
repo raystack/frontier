@@ -55,6 +55,7 @@ type CustomerService interface {
 type CreditService interface {
 	Add(ctx context.Context, cred credit.Credit) error
 	GetBalanceForRange(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
+	GetBalanceForRangeWithoutOverdraft(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
 }
 
 type ProductService interface {
@@ -502,8 +503,8 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 		var alreadyInvoiced bool
 		if lastOverdraftInvoice != nil {
 			for _, item := range lastOverdraftInvoice.Items {
-				if item.TimeRangeEnd != nil && !item.TimeRangeStart.After(startRange) {
-					// if at or before the start range, update the start range
+				if item.TimeRangeEnd != nil && item.TimeRangeStart.Before(startRange) {
+					// if before the start range, update the start range
 					startRange = *item.TimeRangeEnd
 				}
 
@@ -522,7 +523,7 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 			continue
 		}
 
-		balance, err := s.creditService.GetBalanceForRange(ctx, c.ID, startRange, endRange)
+		balance, err := s.creditService.GetBalanceForRangeWithoutOverdraft(ctx, c.ID, startRange, endRange)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("failed to get balance for customer %s: %w", c.ID, err))
 			continue
