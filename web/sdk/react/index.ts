@@ -31,6 +31,7 @@ export { ImageUpload } from './components/image-upload';
 export { ViewContainer } from './components/view-container';
 export { ViewHeader } from './components/view-header';
 export { GeneralView } from './views-new/general';
+export { PreferencesView, PreferenceRow } from './views-new/preferences';
 
 export type {
   FrontierClientOptions,

@@ -9,6 +9,7 @@ import Updates from './pages/Updates';
 import Organization from './pages/Organization';
 import Settings from './pages/Settings';
 import General from './pages/settings/General';
+import Preferences from './pages/settings/Preferences';
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
         <Route path="/organizations/:orgId" element={<Organization />} />
         <Route path="/:orgId/settings" element={<Settings />}>
           <Route path="general" element={<General />} />
+          <Route path="preferences" element={<Preferences />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

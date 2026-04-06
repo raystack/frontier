@@ -9,7 +9,7 @@ export interface ViewContainerProps extends ComponentProps<typeof Flex> {
 
 export function ViewContainer({ children, contentProps, className, ...props }: ViewContainerProps) {
   return (
-    <Flex direction="column" className={cx(styles.container, className)} {...props}>
+    <Flex direction="column" align="center" className={cx(styles.container, className)} {...props}>
       <Flex direction="column" gap={7} {...contentProps} className={cx(styles.content, contentProps?.className)}>
         {children}
       </Flex>
