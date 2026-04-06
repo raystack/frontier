@@ -12,8 +12,10 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/role"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
@@ -40,6 +42,10 @@ type PolicyService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type ProjectService interface {
+	ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error)
+}
+
 type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord models.AuditRecord) (models.AuditRecord, error)
 }
@@ -51,12 +57,13 @@ type Service struct {
 	orgService            OrganizationService
 	roleService           RoleService
 	policyService         PolicyService
+	projectService        ProjectService
 	auditRecordRepository AuditRecordRepository
 	deniedPerms           map[string]struct{}
 }
 
 func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService,
-	roleService RoleService, policyService PolicyService, auditRecordRepository AuditRecordRepository) *Service {
+	roleService RoleService, policyService PolicyService, projectService ProjectService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repo:                  repo,
 		config:                config,
@@ -64,19 +71,19 @@ func NewService(logger log.Logger, repo Repository, config Config, orgService Or
 		orgService:            orgService,
 		roleService:           roleService,
 		policyService:         policyService,
+		projectService:        projectService,
 		auditRecordRepository: auditRecordRepository,
 		deniedPerms:           config.DeniedPermissionsSet(),
 	}
 }
 
 type CreateRequest struct {
-	UserID     string
-	OrgID      string
-	Title      string
-	RoleIDs    []string
-	ProjectIDs []string
-	ExpiresAt  time.Time
-	Metadata   map[string]any
+	UserID    string
+	OrgID     string
+	Title     string
+	Scopes    []patmodels.PATScope
+	ExpiresAt time.Time
+	Metadata  map[string]any
 }
 
 // ValidateExpiry checks that the given expiry time is in the future and within
@@ -219,12 +226,14 @@ func (s *Service) Update(ctx context.Context, toUpdate patmodels.PAT) (patmodels
 		return patmodels.PAT{}, err
 	}
 
-	roles, err := s.resolveAndValidateRoles(ctx, toUpdate.RoleIDs)
-	if err != nil {
+	if err := s.validateScopes(ctx, toUpdate.Scopes); err != nil {
+		return patmodels.PAT{}, err
+	}
+	if err := s.validateProjectAccess(ctx, toUpdate.UserID, existing.OrgID, toUpdate.Scopes); err != nil {
 		return patmodels.PAT{}, err
 	}
 
-	oldTitle, oldRoleIDs, oldProjectIDs, err := s.captureOldScope(ctx, &existing)
+	oldTitle, oldScopes, err := s.captureOldScope(ctx, &existing)
 	if err != nil {
 		return patmodels.PAT{}, err
 	}
@@ -238,7 +247,7 @@ func (s *Service) Update(ctx context.Context, toUpdate patmodels.PAT) (patmodels
 		return patmodels.PAT{}, fmt.Errorf("updating PAT: %w", err)
 	}
 
-	if err := s.replacePolicies(ctx, toUpdate.ID, existing.OrgID, roles, toUpdate.ProjectIDs); err != nil {
+	if err := s.replacePolicies(ctx, toUpdate.ID, existing.OrgID, toUpdate.Scopes); err != nil {
 		return patmodels.PAT{}, err
 	}
 
@@ -246,7 +255,7 @@ func (s *Service) Update(ctx context.Context, toUpdate patmodels.PAT) (patmodels
 		return patmodels.PAT{}, fmt.Errorf("enriching PAT scope: %w", err)
 	}
 
-	s.auditUpdate(ctx, updated, toUpdate, oldTitle, oldRoleIDs, oldProjectIDs)
+	s.auditUpdate(ctx, updated, toUpdate, oldTitle, oldScopes)
 
 	return updated, nil
 }
@@ -263,18 +272,18 @@ func (s *Service) getOwnedPAT(ctx context.Context, userID, id string) (patmodels
 	return pat, nil
 }
 
-// captureOldScope enriches the PAT with its current scope and returns old title, role IDs, and project IDs for audit.
-func (s *Service) captureOldScope(ctx context.Context, pat *patmodels.PAT) (string, []string, []string, error) {
+// captureOldScope enriches the PAT with its current scope and returns old title and scopes for audit.
+func (s *Service) captureOldScope(ctx context.Context, pat *patmodels.PAT) (string, []patmodels.PATScope, error) {
 	oldTitle := pat.Title
 	if err := s.enrichWithScope(ctx, pat); err != nil {
-		return "", nil, nil, fmt.Errorf("enriching old PAT scope: %w", err)
+		return "", nil, fmt.Errorf("enriching old PAT scope: %w", err)
 	}
-	return oldTitle, pat.RoleIDs, pat.ProjectIDs, nil
+	return oldTitle, pat.Scopes, nil
 }
 
-// replacePolicies deletes existing policies and creates new ones.
+// replacePolicies deletes existing policies and creates new ones from scopes.
 // Re-checks PAT existence after delete to guard against concurrent soft-delete.
-func (s *Service) replacePolicies(ctx context.Context, patID, orgID string, roles []role.Role, projectIDs []string) error {
+func (s *Service) replacePolicies(ctx context.Context, patID, orgID string, scopes []patmodels.PATScope) error {
 	if err := s.deletePolicies(ctx, patID); err != nil {
 		return fmt.Errorf("deleting old policies: %w", err)
 	}
@@ -284,20 +293,18 @@ func (s *Service) replacePolicies(ctx context.Context, patID, orgID string, role
 		return fmt.Errorf("PAT deleted concurrently: %w", err)
 	}
 
-	if err := s.createPolicies(ctx, patID, orgID, roles, projectIDs); err != nil {
+	if err := s.createPolicies(ctx, patID, orgID, scopes); err != nil {
 		return fmt.Errorf("creating new policies: %w", err)
 	}
 	return nil
 }
 
 // auditUpdate creates an audit record for the PAT update. Errors are logged, not returned.
-func (s *Service) auditUpdate(ctx context.Context, updated patmodels.PAT, toUpdate patmodels.PAT, oldTitle string, oldRoleIDs []string, oldProjectIDs []string) {
+func (s *Service) auditUpdate(ctx context.Context, updated patmodels.PAT, toUpdate patmodels.PAT, oldTitle string, oldScopes []patmodels.PATScope) {
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATUpdatedEvent, updated, time.Now().UTC(), map[string]any{
-		"role_ids":        toUpdate.RoleIDs,
-		"project_ids":     toUpdate.ProjectIDs,
-		"old_title":       oldTitle,
-		"old_role_ids":    oldRoleIDs,
-		"old_project_ids": oldProjectIDs,
+		"scopes":     updated.Scopes,
+		"old_title":  oldTitle,
+		"old_scopes": oldScopes,
 	}); err != nil {
 		s.logger.Error("failed to create audit record for PAT update", "pat_id", toUpdate.ID, "error", err)
 	}
@@ -340,8 +347,10 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (patmodels.PAT,
 		return patmodels.PAT{}, "", paterrors.ErrLimitExceeded
 	}
 
-	roles, err := s.resolveAndValidateRoles(ctx, req.RoleIDs)
-	if err != nil {
+	if err := s.validateScopes(ctx, req.Scopes); err != nil {
+		return patmodels.PAT{}, "", err
+	}
+	if err := s.validateProjectAccess(ctx, req.UserID, req.OrgID, req.Scopes); err != nil {
 		return patmodels.PAT{}, "", err
 	}
 
@@ -364,14 +373,16 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (patmodels.PAT,
 		return patmodels.PAT{}, "", err
 	}
 
-	if err := s.createPolicies(ctx, created.ID, req.OrgID, roles, req.ProjectIDs); err != nil {
+	if err := s.createPolicies(ctx, created.ID, req.OrgID, req.Scopes); err != nil {
 		return patmodels.PAT{}, "", fmt.Errorf("creating policies: %w", err)
 	}
 
-	// TODO: move audit record creation into the same transaction as PAT creation to avoid partial state where PAT exists but audit record doesn't.
+	if err := s.enrichWithScope(ctx, &created); err != nil {
+		return patmodels.PAT{}, "", fmt.Errorf("enriching PAT scope: %w", err)
+	}
+
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATCreatedEvent, created, created.CreatedAt, map[string]any{
-		"role_ids":    req.RoleIDs,
-		"project_ids": req.ProjectIDs,
+		"scopes": created.Scopes,
 	}); err != nil {
 		s.logger.Error("failed to create audit record for PAT", "pat_id", created.ID, "error", err)
 	}
@@ -411,9 +422,7 @@ func (s *Service) createAuditRecord(ctx context.Context, event pkgAuditRecord.Ev
 	return nil
 }
 
-// resolveAndValidateRoles fetches the requested roles and validates they are allowed for PATs.
-// All validation (existence, permissions, scopes) happens here so callers can fail fast
-// before persisting any state.
+// resolveAndValidateRoles fetches roles by IDs and validates they exist and have no denied permissions.
 func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string) ([]role.Role, error) {
 	if len(roleIDs) == 0 {
 		return nil, nil
@@ -437,38 +446,95 @@ func (s *Service) resolveAndValidateRoles(ctx context.Context, roleIDs []string)
 		return nil, err
 	}
 
-	for _, r := range roles {
-		if len(r.Scopes) == 0 {
-			return nil, fmt.Errorf("role %s has no scopes defined: %w", r.Name, paterrors.ErrUnsupportedScope)
-		}
-		for _, scope := range r.Scopes {
-			if scope != schema.ProjectNamespace && scope != schema.OrganizationNamespace {
-				return nil, fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, paterrors.ErrUnsupportedScope)
-			}
-		}
-	}
-
 	return roles, nil
 }
 
-// createPolicies creates SpiceDB policies for the PAT based on the already-validated roles and project scope.
-// Each role is categorized by its Scopes field:
-//   - Org-scoped role -> policy on the org with default "granted" relation
-//   - Project-scoped role, all projects (projectIDs empty) -> policy on org with "pat_granted" relation
-//   - Project-scoped role, specific projects -> one policy per project with default "granted" relation
-func (s *Service) createPolicies(ctx context.Context, patID, orgID string, roles []role.Role, projectIDs []string) error {
+// validateScopes resolves roles, validates permissions, and checks scope-role compatibility.
+func (s *Service) validateScopes(ctx context.Context, scopes []patmodels.PATScope) error {
+	// Deduplicate role IDs
+	roleIDs := make([]string, 0, len(scopes))
+	for _, sc := range scopes {
+		roleIDs = append(roleIDs, sc.RoleID)
+	}
+	roleIDs = pkgUtils.Deduplicate(roleIDs)
+
+	roles, err := s.resolveAndValidateRoles(ctx, roleIDs)
+	if err != nil {
+		return err
+	}
+
+	roleMap := make(map[string]role.Role, len(roles))
 	for _, r := range roles {
-		var err error
-		switch {
-		case slices.Contains(r.Scopes, schema.ProjectNamespace):
-			err = s.createProjectScopedPolicies(ctx, patID, orgID, r, projectIDs)
-		case slices.Contains(r.Scopes, schema.OrganizationNamespace):
-			err = s.createOrgScopedPolicy(ctx, patID, orgID, r)
-		default:
-			err = fmt.Errorf("role %s has scopes %v: %w", r.Name, r.Scopes, paterrors.ErrUnsupportedScope)
+		roleMap[r.ID] = r
+	}
+
+	supportedResourceTypes := []string{schema.OrganizationNamespace, schema.ProjectNamespace}
+
+	for _, sc := range scopes {
+		if !slices.Contains(supportedResourceTypes, sc.ResourceType) {
+			return fmt.Errorf("resource type %s: %w", sc.ResourceType, paterrors.ErrUnsupportedScope)
 		}
-		if err != nil {
-			return err
+		r := roleMap[sc.RoleID]
+		if !slices.Contains(r.Scopes, sc.ResourceType) {
+			return fmt.Errorf("role %s does not support resource type %s: %w", sc.RoleID, sc.ResourceType, paterrors.ErrScopeMismatch)
+		}
+	}
+	return nil
+}
+
+// validateProjectAccess checks that the user has access to all project resource IDs in the scopes.
+func (s *Service) validateProjectAccess(ctx context.Context, userID, orgID string, scopes []patmodels.PATScope) error {
+	var projectIDs []string
+	for _, sc := range scopes {
+		if sc.ResourceType == schema.ProjectNamespace {
+			projectIDs = append(projectIDs, sc.ResourceIDs...)
+		}
+	}
+	if len(projectIDs) == 0 {
+		return nil
+	}
+
+	principal := authenticate.Principal{
+		ID:   userID,
+		Type: schema.UserPrincipal,
+	}
+	userProjects, err := s.projectService.ListByUser(ctx, principal, project.Filter{OrgID: orgID})
+	if err != nil {
+		return fmt.Errorf("listing user projects: %w", err)
+	}
+
+	userProjectSet := make(map[string]bool, len(userProjects))
+	for _, p := range userProjects {
+		userProjectSet[p.ID] = true
+	}
+
+	var forbidden []string
+	for _, id := range projectIDs {
+		if !userProjectSet[id] {
+			forbidden = append(forbidden, id)
+		}
+	}
+	if len(forbidden) > 0 {
+		s.logger.Error("user does not have access to projects", "project_ids", forbidden)
+		return paterrors.ErrProjectForbidden
+	}
+	return nil
+}
+
+// createPolicies creates SpiceDB policies from pre-validated scopes.
+func (s *Service) createPolicies(ctx context.Context, patID, orgID string, scopes []patmodels.PATScope) error {
+	for _, sc := range scopes {
+		switch sc.ResourceType {
+		case schema.OrganizationNamespace:
+			if err := s.createOrgScopedPolicy(ctx, patID, orgID, sc.RoleID); err != nil {
+				return err
+			}
+		case schema.ProjectNamespace:
+			if err := s.createProjectScopedPolicies(ctx, patID, orgID, sc.RoleID, sc.ResourceIDs); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("unsupported resource type %s: %w", sc.ResourceType, paterrors.ErrUnsupportedScope)
 		}
 	}
 	return nil
@@ -537,54 +603,53 @@ func (s *Service) validateRolePermissions(roles []role.Role) error {
 }
 
 // createOrgScopedPolicy creates a policy on the org with the default "granted" relation.
-func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID string, r role.Role) error {
+func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleID string) error {
 	if _, err := s.policyService.Create(ctx, policy.Policy{
-		RoleID:        r.ID,
+		RoleID:        roleID,
 		ResourceID:    orgID,
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   patID,
 		PrincipalType: schema.PATPrincipal,
 	}); err != nil {
-		return fmt.Errorf("creating org policy for role %s: %w", r.Name, err)
+		return fmt.Errorf("creating org policy for role %s: %w", roleID, err)
 	}
 	return nil
 }
 
 // createProjectScopedPolicies creates policies for a project-scoped role.
-// If projectIDs is empty, it creates a single policy on the org with "pat_granted" relation
+// If resourceIDs is empty, it creates a single policy on the org with "pat_granted" relation
 // (cascades to all projects). Otherwise, it creates one policy per project with default "granted".
-func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID string, r role.Role, projectIDs []string) error {
-	if len(projectIDs) == 0 {
-		// all projects -> policy on org with "pat_granted"
+func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID, roleID string, resourceIDs []string) error {
+	if len(resourceIDs) == 0 {
 		if _, err := s.policyService.Create(ctx, policy.Policy{
-			RoleID:        r.ID,
+			RoleID:        roleID,
 			ResourceID:    orgID,
 			ResourceType:  schema.OrganizationNamespace,
 			PrincipalID:   patID,
 			PrincipalType: schema.PATPrincipal,
 			GrantRelation: schema.PATGrantRelationName,
 		}); err != nil {
-			return fmt.Errorf("creating org pat_granted policy for role %s: %w", r.Name, err)
+			return fmt.Errorf("creating all-projects policy for role %s: %w", roleID, err)
 		}
 		return nil
 	}
 
-	// specific projects -> one policy per project
-	for _, projectID := range projectIDs {
+	for _, resourceID := range resourceIDs {
 		if _, err := s.policyService.Create(ctx, policy.Policy{
-			RoleID:        r.ID,
-			ResourceID:    projectID,
+			RoleID:        roleID,
+			ResourceID:    resourceID,
 			ResourceType:  schema.ProjectNamespace,
 			PrincipalID:   patID,
 			PrincipalType: schema.PATPrincipal,
 		}); err != nil {
-			return fmt.Errorf("creating project policy for role %s on project %s: %w", r.Name, projectID, err)
+			return fmt.Errorf("creating project policy for role %s on %s: %w", roleID, resourceID, err)
 		}
 	}
 	return nil
 }
 
-// enrichWithScope derives role_ids and project_ids from the PAT's SpiceDB policies.
+// enrichWithScope derives scopes from the PAT's policies.
+// Groups policies by role ID + resource type to reconstruct PATScope entries.
 func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   pat.ID,
@@ -594,24 +659,56 @@ func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error
 		return fmt.Errorf("listing policies for PAT %s: %w", pat.ID, err)
 	}
 
-	var roleIDs []string
-	allProjects := false
-	var projectIDs []string
+	type scopeKey struct {
+		roleID       string
+		resourceType string
+	}
+	scopeMap := make(map[scopeKey]*patmodels.PATScope)
+	allProjects := make(map[scopeKey]bool)
+
 	for _, pol := range policies {
-		roleIDs = append(roleIDs, pol.RoleID)
-		if pol.ResourceType == schema.ProjectNamespace {
-			projectIDs = append(projectIDs, pol.ResourceID)
+		var key scopeKey
+		var isAllProjects bool
+
+		switch {
+		case pol.ResourceType == schema.ProjectNamespace:
+			key = scopeKey{pol.RoleID, schema.ProjectNamespace}
+		case pol.GrantRelation == schema.PATGrantRelationName:
+			key = scopeKey{pol.RoleID, schema.ProjectNamespace}
+			isAllProjects = true
+		case pol.ResourceType == schema.OrganizationNamespace:
+			key = scopeKey{pol.RoleID, schema.OrganizationNamespace}
+		default:
+			// This should never match — createPolicies and validateScopes
+			// only allow app/organization and app/project resource types.
+			s.logger.Warn("skipping policy with unsupported resource type during PAT scope enrichment",
+				"pat_id", pat.ID, "policy_id", pol.ID, "resource_type", pol.ResourceType)
+			continue
 		}
-		if pol.GrantRelation == schema.PATGrantRelationName {
-			allProjects = true
+
+		sc, ok := scopeMap[key]
+		if !ok {
+			sc = &patmodels.PATScope{
+				RoleID:       key.roleID,
+				ResourceType: key.resourceType,
+			}
+			scopeMap[key] = sc
+		}
+
+		if isAllProjects {
+			allProjects[key] = true
+			sc.ResourceIDs = nil
+		} else if !allProjects[key] {
+			sc.ResourceIDs = append(sc.ResourceIDs, pol.ResourceID)
 		}
 	}
 
-	pat.RoleIDs = pkgUtils.Deduplicate(roleIDs)
-	if !allProjects {
-		pat.ProjectIDs = pkgUtils.Deduplicate(projectIDs)
+	scopes := make([]patmodels.PATScope, 0, len(scopeMap))
+	for _, sc := range scopeMap {
+		sc.ResourceIDs = pkgUtils.Deduplicate(sc.ResourceIDs)
+		scopes = append(scopes, *sc)
 	}
-	// allProjects → pat.ProjectIDs stays nil (empty = all projects, matching create semantics)
+	pat.Scopes = scopes
 	return nil
 }
 

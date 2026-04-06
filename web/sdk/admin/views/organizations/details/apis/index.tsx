@@ -19,6 +19,7 @@ import {
 } from "../../../../utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
 import { useDebounceValue } from "usehooks-ts";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const NoCredentials = () => {
   return (
@@ -61,6 +62,7 @@ const TRANSFORM_OPTIONS = {
 };
 
 export function OrganizationApisView() {
+  const t = useTerminology();
   const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const {
@@ -86,7 +88,7 @@ export function OrganizationApisView() {
       null,
     );
 
-  const title = `API | ${organization?.title} | Organizations`;
+  const title = `API | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   useEffect(() => {
     setSearchVisibility(true);
@@ -162,8 +164,9 @@ export function OrganizationApisView() {
         groupCountMap: infiniteData
           ? getGroupCountMapFromFirstPage(infiniteData)
           : {},
+        t,
       }),
-    [infiniteData],
+    [infiniteData, t],
   );
 
   return (

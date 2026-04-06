@@ -21,6 +21,7 @@ import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/co
 import { useQueryClient } from "@tanstack/react-query";
 import { FrontierServiceQueries, UpdateOrganizationRequestSchema, type Organization, OrganizationSchema } from "@raystack/proton/frontier";
 import { create, type JsonObject } from "@bufbuild/protobuf";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 const orgUpdateSchema = z
   .object({
@@ -77,6 +78,7 @@ function getDefaultValue(organization: Organization, industries: string[]) {
 }
 
 export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
+  const t = useTerminology();
   const { organization, appUrl, countries: countriesFromContext = [], organizationTypes: industries = [] } = useContext(OrganizationContext);
   const [countries, setCountries] = useState<string[]>(countriesFromContext);
   const queryClient = useQueryClient();
@@ -122,12 +124,12 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (mutationError) {
       if (mutationError.message?.includes("already exists")) {
-        setError("name", { message: "Organization name already exists" });
+        setError("name", { message: `${t.organization({ case: "capital" })} name already exists` });
       } else {
         console.error("Unable to update organization:", mutationError);
       }
     }
-  }, [mutationError, setError]);
+  }, [mutationError, setError, t]);
 
   async function onSubmit(data: OrgUpdateSchema) {
     try {
@@ -164,7 +166,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
           className={styles["side-panel"]}
         >
           <SidePanel.Header
-            title="Edit organization"
+            title={`Edit ${t.organization({ case: "lower" })}`}
             actions={[
               <IconButton
                 key="close-edit-org-panel-icon"
@@ -196,24 +198,24 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                         style={{ width: "100%" }}
                       >
                         <AvatarUpload {...field} data-test-id="avatar-upload" />
-                        <Text>Pick a logo for your organization</Text>
+                        <Text>Pick a logo for your {t.organization({ case: "lower" })}</Text>
                       </Flex>
                     </>
                   );
                 }}
               />
-              <InputField {...register("title")} label="Organization title" />
+              <InputField {...register("title")} label={`${t.organization({ case: "capital" })} title`} />
               <InputField
                 {...register("name")}
                 prefix={appUrl}
-                label="Organization URL"
-                helperText="This will be your organization unique web address"
+                label={`${t.organization({ case: "capital" })} URL`}
+                helperText={`This will be your ${t.organization({ case: "lower" })} unique web address`}
                 error={errors.name?.message}
               />
               <InputField
                 {...register("size")}
                 type="number"
-                label="Organization size"
+                label={`${t.organization({ case: "capital" })} size`}
                 error={errors.size?.message}
               />
               <Controller
@@ -223,7 +225,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                   return (
                     <Flex direction="column" gap={2}>
                       <Label htmlFor="org-type-select">
-                        Organization industry
+                        {t.organization({ case: "capital" })} industry
                       </Label>
                       <Select
                         {...field}
@@ -254,7 +256,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
               />
               {showOtherTypeField ? (
                 <InputField
-                  label="Organization industry (other)"
+                  label={`${t.organization({ case: "capital" })} industry (other)`}
                   {...register("otherType")}
                   error={errors.otherType?.message}
                 />
