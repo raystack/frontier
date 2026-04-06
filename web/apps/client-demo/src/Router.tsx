@@ -12,6 +12,7 @@ import General from './pages/settings/General';
 import Preferences from './pages/settings/Preferences';
 import Profile from './pages/settings/Profile';
 import Sessions from './pages/settings/Sessions';
+import Members from './pages/settings/Members';
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
           <Route path="preferences" element={<Preferences />} />
           <Route path="profile" element={<Profile />} />
           <Route path="sessions" element={<Sessions />} />
+          <Route path="members" element={<Members />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
