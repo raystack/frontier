@@ -10,6 +10,7 @@ import Organization from './pages/Organization';
 import Settings from './pages/Settings';
 import General from './pages/settings/General';
 import Preferences from './pages/settings/Preferences';
+import Profile from './pages/settings/Profile';
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
         <Route path="/:orgId/settings" element={<Settings />}>
           <Route path="general" element={<General />} />
           <Route path="preferences" element={<Preferences />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

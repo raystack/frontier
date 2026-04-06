@@ -5,7 +5,8 @@ import { useFrontier } from '@raystack/frontier/react';
 
 const NAV_ITEMS = [
   { label: 'General', path: 'general' },
-  { label: 'Preferences', path: 'preferences' }
+  { label: 'Preferences', path: 'preferences' },
+  { label: 'Profile', path: 'profile' }
 ];
 
 export default function Settings() {
