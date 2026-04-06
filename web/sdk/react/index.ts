@@ -35,6 +35,7 @@ export { PreferencesView, PreferenceRow } from './views-new/preferences';
 export { ProfileView } from './views-new/profile';
 export { SessionsView } from './views-new/sessions';
 export { MembersView } from './views-new/members';
+export { SecurityView } from './views-new/security';
 
 export type {
   FrontierClientOptions,

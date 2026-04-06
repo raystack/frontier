@@ -8,7 +8,8 @@ const NAV_ITEMS = [
   { label: 'Preferences', path: 'preferences' },
   { label: 'Profile', path: 'profile' },
   { label: 'Sessions', path: 'sessions' },
-  { label: 'Members', path: 'members' }
+  { label: 'Members', path: 'members' },
+  { label: 'Security', path: 'security' }
 ];
 
 export default function Settings() {
