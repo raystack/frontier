@@ -1,0 +1,15 @@
+.sessionRow {
+  padding: var(--rs-space-7) 0;
+  border-bottom: 1px solid var(--rs-color-border-base-primary);
+}
+
+.dot {
+  color: var(--rs-color-foreground-base-tertiary);
+  flex-shrink: 0;
+  width: var(--rs-space-3);
+  height: var(--rs-space-3);
+}
+
+.stateContainer {
+  padding: var(--rs-space-7) 0;
+}
