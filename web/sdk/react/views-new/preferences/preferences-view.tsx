@@ -79,7 +79,7 @@ export function PreferencesView({ children }: PreferencesViewProps) {
           </Select>
         </PreferenceRow>
         {children}
-      </Flex>
-    </ViewContainer>
+      </Flex >
+    </ViewContainer >
   );
 }

@@ -170,7 +170,6 @@ func (s *BillingRegressionTestSuite) TestBillingCustomerAPI() {
 		s.Assert().NotNil(createCustomerResp)
 
 		getCustomerResp, err := s.testBench.Client.GetBillingAccount(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetBillingAccountRequest{
-			OrgId:  createOrgResp.Msg.GetOrganization().GetId(),
 			Id:     createCustomerResp.Msg.GetBillingAccount().GetId(),
 			Expand: []string{"organization"},
 		}))
@@ -260,7 +259,6 @@ func (s *BillingRegressionTestSuite) TestBillingCustomerAPI() {
 		s.Assert().NotNil(createCustomerResp)
 
 		getCustomerResp, err := s.testBench.Client.GetBillingAccount(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetBillingAccountRequest{
-			OrgId:  createOrgResp.Msg.GetOrganization().GetId(),
 			Id:     createCustomerResp.Msg.GetBillingAccount().GetId(),
 			Expand: []string{"organization"},
 		}))

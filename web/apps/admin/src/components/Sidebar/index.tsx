@@ -26,6 +26,7 @@ import CpuChipIcon from "~/assets/icons/cpu-chip.svg?react";
 import { AppContext } from "~/contexts/App";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { Link, useLocation } from "react-router-dom";
+import { useTerminology, useAdminPaths } from "@raystack/frontier/admin";
 
 export type NavigationItemsTypes = {
   to?: string;
@@ -36,90 +37,96 @@ export type NavigationItemsTypes = {
 
 const BRAND_NAME = "Frontier";
 
-const navigationItems: NavigationItemsTypes[] = [
-  {
-    name: "Organizations",
-    to: `/organizations`,
-    icon: <OrganizationIcon />,
-  },
-  {
-    name: "Users",
-    to: `/users`,
-    icon: <UserIcon />,
-  },
-  {
-    name: "Audit Logs",
-    to: `/audit-logs`,
-    icon: <CpuChipIcon />,
-  },
-  {
-    name: "Invoices",
-    to: `/invoices`,
-    icon: <InvoicesIcon />,
-  },
-  {
-    name: "Authorization",
-    subItems: [
-      {
-        name: "Roles",
-        to: `/roles`,
-        icon: <RolesIcon />,
-      },
-    ],
-  },
-  {
-    name: "Billing",
-    subItems: [
-      {
-        name: "Products",
-        to: `/products`,
-        icon: <ProductsIcon />,
-      },
-      {
-        name: "Plans",
-        to: `/plans`,
-        icon: <PlansIcon />,
-      },
-    ],
-  },
-  {
-    name: "Features",
-    subItems: [
-      {
-        name: "Webhooks",
-        to: `/webhooks`,
-        icon: <WebhooksIcon />,
-      },
-    ],
-  },
-  {
-    name: "Settings",
-    subItems: [
-      {
-        name: "Preferences",
-        to: `/preferences`,
-        icon: <PreferencesIcon />,
-      },
-      {
-        name: "Admins",
-        to: `/super-admins`,
-        icon: <AdminsIcon />,
-      },
-    ],
-  },
-  // {
-  //   name: "Projects",
-  //   to: `/projects`,
-  // },
+const useNavigationItems = (): NavigationItemsTypes[] => {
+  const t = useTerminology();
+  const paths = useAdminPaths();
 
-  // {
-  //   name: "Groups",
-  //   to: `/groups`,
-  // },
-];
+  return [
+    {
+      name: t.organization({ plural: true, case: "capital" }),
+      to: `/${paths.organizations}`,
+      icon: <OrganizationIcon />,
+    },
+    {
+      name: t.user({ plural: true, case: "capital" }),
+      to: `/${paths.users}`,
+      icon: <UserIcon />,
+    },
+    {
+      name: "Audit Logs",
+      to: `/audit-logs`,
+      icon: <CpuChipIcon />,
+    },
+    {
+      name: "Invoices",
+      to: `/invoices`,
+      icon: <InvoicesIcon />,
+    },
+    {
+      name: "Authorization",
+      subItems: [
+        {
+          name: "Roles",
+          to: `/roles`,
+          icon: <RolesIcon />,
+        },
+      ],
+    },
+    {
+      name: "Billing",
+      subItems: [
+        {
+          name: "Products",
+          to: `/products`,
+          icon: <ProductsIcon />,
+        },
+        {
+          name: "Plans",
+          to: `/plans`,
+          icon: <PlansIcon />,
+        },
+      ],
+    },
+    {
+      name: "Features",
+      subItems: [
+        {
+          name: "Webhooks",
+          to: `/webhooks`,
+          icon: <WebhooksIcon />,
+        },
+      ],
+    },
+    {
+      name: "Settings",
+      subItems: [
+        {
+          name: "Preferences",
+          to: `/preferences`,
+          icon: <PreferencesIcon />,
+        },
+        {
+          name: "Admins",
+          to: `/super-admins`,
+          icon: <AdminsIcon />,
+        },
+      ],
+    },
+    // {
+    //   name: t.project({ plural: true, case: "capital" }),
+    //   to: `/${paths.projects}`,
+    // },
+
+    // {
+    //   name: t.team({ plural: true, case: "capital" }),
+    //   to: `/${paths.teams}`,
+    // },
+  ];
+};
 
 export default function IAMSidebar() {
   const location = useLocation();
+  const navigationItems = useNavigationItems();
 
   const isActive = (navlink?: string) => {
     const firstPathPart = location.pathname.split("/")[1];

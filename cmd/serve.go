@@ -13,6 +13,7 @@ import (
 
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
+	"github.com/raystack/frontier/core/aggregates/orgpats"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
 	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	"github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
@@ -417,9 +418,7 @@ func buildAPIDependencies(
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
-		authnService, policyService, preferenceService, auditRecordRepository)
-
-	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, auditRecordRepository)
+		authnService, policyService, preferenceService, auditRecordRepository, roleService)
 
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService)
 
@@ -463,7 +462,12 @@ func buildAPIDependencies(
 	metaschemaService := metaschema.NewService(metaschemaRepository)
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService, policyService,
-		authnService, serviceUserService, groupService)
+		authnService, serviceUserService, groupService, roleService)
+
+	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
+
+	orgPATsRepository := postgres.NewOrgPATsRepository(dbc)
+	orgPATsService := orgpats.NewService(orgPATsRepository, projectService)
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
@@ -607,6 +611,7 @@ func buildAPIDependencies(
 		OrgBillingService:                orgBillingService,
 		OrgInvoicesService:               orgInvoicesService,
 		OrgTokensService:                 orgTokensService,
+		OrgPATsService:                   orgPATsService,
 		OrgUsersService:                  orgUserService,
 		OrgProjectsService:               orgProjectsService,
 		OrgServiceUserCredentialsService: orgServiceUserCredentialsService,
