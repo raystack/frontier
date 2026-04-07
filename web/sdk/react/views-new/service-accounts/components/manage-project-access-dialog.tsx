@@ -346,7 +346,7 @@ export function ManageProjectAccessDialog({
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={640} className={styles.manageAccessDialogContent}>
+      <Dialog.Content width={1024} className={styles.manageAccessDialogContent}>
         <Dialog.Header>
           <Dialog.Title>Manage Project Access</Dialog.Title>
         </Dialog.Header>

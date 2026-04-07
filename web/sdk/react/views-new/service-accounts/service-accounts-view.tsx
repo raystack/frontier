@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ExclamationTriangleIcon, KeyboardIcon, TrashIcon } from '@radix-ui/react-icons';
 import {
   Button,
@@ -36,11 +36,13 @@ import {
   DeleteServiceAccountDialog,
   type DeleteServiceAccountPayload
 } from './components/delete-service-account-dialog';
+import { ManageProjectAccessDialog } from './components/manage-project-access-dialog';
 import styles from './service-accounts-view.module.css';
 
 const serviceAccountMenuHandle = Menu.createHandle<ServiceAccountMenuPayload>();
 const addDialogHandle = Dialog.createHandle();
 const deleteDialogHandle = AlertDialog.createHandle<DeleteServiceAccountPayload>();
+const manageAccessDialogHandle = Dialog.createHandle<string>();
 
 export interface ServiceAccountsViewProps {
   onServiceAccountClick?: (id: string) => void;
@@ -82,6 +84,7 @@ export function ServiceAccountsView({
   );
 
   const orgId = organization?.id ?? '';
+  const [manageAccessServiceUserId, setManageAccessServiceUserId] = useState('');
 
   const {
     data: serviceUsersData,
@@ -231,10 +234,12 @@ export function ServiceAccountsView({
               {payload?.canManageAccess && (
                 <Menu.Item
                   leadingIcon={<KeyboardIcon />}
-                  onClick={() =>
-                    payload &&
-                    onServiceAccountClick?.(payload.serviceAccountId)
-                  }
+                  onClick={() => {
+                    if (payload) {
+                      setManageAccessServiceUserId(payload.serviceAccountId);
+                      manageAccessDialogHandle.open(null);
+                    }
+                  }}
                   data-test-id="frontier-sdk-manage-access-menu-item"
                 >
                   Manage Access
@@ -267,6 +272,12 @@ export function ServiceAccountsView({
         handle={deleteDialogHandle}
         refetch={handleRefetch}
       />
+      {manageAccessServiceUserId && (
+        <ManageProjectAccessDialog
+          handle={manageAccessDialogHandle}
+          serviceUserId={manageAccessServiceUserId}
+        />
+      )}
     </ViewContainer>
   );
 }
