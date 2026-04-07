@@ -22,6 +22,17 @@ export { OrganizationInvoicesView } from "./views/organizations/details/invoices
 export { OrganizationTokensView } from "./views/organizations/details/tokens";
 export { OrganizationApisView } from "./views/organizations/details/apis";
 
+// context exports
+export {
+  AdminConfigProvider,
+  useAdminConfig,
+  type AdminConfigProviderProps,
+} from "./contexts/AdminConfigContext";
+
+// hook exports
+export { useTerminology } from "./hooks/useTerminology";
+export { useAdminPaths, type AdminPaths } from "./hooks/useAdminPaths";
+
 // utils exports
 export {
   getConnectNextPageParam,
@@ -33,3 +44,9 @@ export {
   transformDataTableQueryToRQLRequest,
   type TransformOptions,
 } from "./utils/transform-query";
+export {
+  type Config,
+  type AdminTerminologyConfig,
+  defaultConfig,
+  defaultTerminology,
+} from "./utils/constants";

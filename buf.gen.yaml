@@ -4,15 +4,13 @@ managed:
   enabled: true
   disable:
     - module: buf.build/googleapis/googleapis
-    - module: buf.build/envoyproxy/protoc-gen-validate
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
   override:
     - file_option: "go_package"
       value: "github.com/raystack/frontier/proto/v1beta1;frontierv1beta1"
 plugins:
   - remote: "buf.build/protocolbuffers/go:v1.30.0"
-    out: "proto"
-    opt: "paths=source_relative"
-  - remote: "buf.build/bufbuild/validate-go:v1.0.0"
     out: "proto"
     opt: "paths=source_relative"
   - remote: buf.build/connectrpc/go:v1.18.1

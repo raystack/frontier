@@ -341,6 +341,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*connect.Request[frontierv1beta1.RemoveOrganizationUserRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetId()}, schema.UpdatePermission, req)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/SetOrganizationMemberRole": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.PolicyManagePermission, req)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.ListOrganizationInvitationsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.InvitationListPermission, req)
@@ -507,6 +511,14 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.FrontierService/DeleteProject": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.DeleteProjectRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.Msg.GetId()}, schema.DeletePermission, req)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/SetProjectMemberRole": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.SetProjectMemberRoleRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.Msg.GetProjectId()}, schema.UpdatePermission, req)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/RemoveProjectMember": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.RemoveProjectMemberRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.Msg.GetProjectId()}, schema.UpdatePermission, req)
 	},
 
 	// roles
@@ -714,8 +726,8 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*connect.Request[frontierv1beta1.CreateCurrentUserPATRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
 	},
-	frontierv1beta1connect.FrontierServiceListCurrentUserPATsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		pbreq := req.(*connect.Request[frontierv1beta1.ListCurrentUserPATsRequest])
+	frontierv1beta1connect.FrontierServiceSearchCurrentUserPATsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.SearchCurrentUserPATsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
 	},
 
@@ -997,6 +1009,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx, req)
+	},
+	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationPATs": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUsers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
