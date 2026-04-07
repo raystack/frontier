@@ -185,12 +185,13 @@ func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *
 		return nil, err
 	}
 
+	subjectID, _ := principal.ResolveSubject()
 	var createdPreferences []preference.Preference
 	for _, prefBody := range req.Msg.GetBodies() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
 			Name:         prefBody.GetName(),
 			Value:        prefBody.GetValue(),
-			ResourceID:   principal.ID,
+			ResourceID:   subjectID,
 			ResourceType: schema.UserPrincipal,
 			ScopeType:    prefBody.GetScopeType(),
 			ScopeID:      prefBody.GetScopeId(),
@@ -227,8 +228,9 @@ func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *co
 	// 1. Scoped DB values (if scope provided)
 	// 2. Global DB values
 	// 3. Trait defaults
+	subjectID, _ := principal.ResolveSubject()
 	prefs, err := h.preferenceService.LoadUserPreferences(ctx, preference.Filter{
-		UserID:    principal.ID,
+		UserID:    subjectID,
 		ScopeType: req.Msg.GetScopeType(),
 		ScopeID:   req.Msg.GetScopeId(),
 	})
