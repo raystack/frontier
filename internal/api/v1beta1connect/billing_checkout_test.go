@@ -55,7 +55,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				SetupBody: &frontierv1beta1.CheckoutSetupBody{
@@ -90,7 +89,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				SetupBody: &frontierv1beta1.CheckoutSetupBody{
@@ -130,7 +128,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				SubscriptionBody: &frontierv1beta1.CheckoutSubscriptionBody{
@@ -176,7 +173,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				ProductBody: &frontierv1beta1.CheckoutProductBody{
@@ -208,7 +204,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 			}),
@@ -225,7 +220,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				SubscriptionBody: &frontierv1beta1.CheckoutSubscriptionBody{
@@ -246,7 +240,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				ProductBody: &frontierv1beta1.CheckoutProductBody{
@@ -267,7 +260,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				SetupBody: &frontierv1beta1.CheckoutSetupBody{
@@ -287,7 +279,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				SetupBody: &frontierv1beta1.CheckoutSetupBody{
@@ -307,7 +298,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				SubscriptionBody: &frontierv1beta1.CheckoutSubscriptionBody{
@@ -328,7 +318,6 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
 				OrgId:      "org-123",
-				BillingId:  "customer-123",
 				SuccessUrl: "https://example.com/success",
 				CancelUrl:  "https://example.com/cancel",
 				ProductBody: &frontierv1beta1.CheckoutProductBody{
@@ -515,8 +504,7 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.ListCheckoutsRequest{
-				OrgId:     "",
-				BillingId: "test-billing-id",
+				OrgId: "",
 			}),
 			want:        nil,
 			wantErr:     true,
@@ -532,8 +520,7 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 				}).Return(nil, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.ListCheckoutsRequest{
-				OrgId:     "test-org-id",
-				BillingId: "test-billing-id",
+				OrgId: "test-org-id",
 			}),
 			want:        nil,
 			wantErr:     true,
@@ -549,8 +536,7 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 				}).Return([]checkout.Checkout{}, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.ListCheckoutsRequest{
-				OrgId:     "test-org-id",
-				BillingId: "test-billing-id",
+				OrgId: "test-org-id",
 			}),
 			want: connect.NewResponse(&frontierv1beta1.ListCheckoutsResponse{
 				CheckoutSessions: []*frontierv1beta1.CheckoutSession{},
@@ -594,8 +580,7 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 				}, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.ListCheckoutsRequest{
-				OrgId:     "test-org-id",
-				BillingId: "test-billing-id",
+				OrgId: "test-org-id",
 			}),
 			want: func() *connect.Response[frontierv1beta1.ListCheckoutsResponse] {
 				createdAt := time.Now()
@@ -683,39 +668,11 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 		wantErrMsg  error
 	}{
 		{
-			name: "should return error if org_id is empty",
-			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
-				cs.EXPECT().GetByID(mock.Anything, "test-checkout-id").Return(checkout.Checkout{}, errors.New("not found"))
-			},
-			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
-				OrgId: "",
-				Id:    "test-checkout-id",
-			}),
-			want:        nil,
-			wantErr:     true,
-			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
-		},
-		{
 			name: "should return error if id is empty",
 			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
-				OrgId: "test-org-id",
-				Id:    "",
-			}),
-			want:        nil,
-			wantErr:     true,
-			wantErrCode: connect.CodeInvalidArgument,
-			wantErrMsg:  ErrBadRequest,
-		},
-		{
-			name: "should return error if both org_id and id are empty",
-			setup: func(cs *mocks.CheckoutService, custSvc *mocks.CustomerService) {
-			},
-			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
-				OrgId: "",
-				Id:    "",
+				Id: "",
 			}),
 			want:        nil,
 			wantErr:     true,
@@ -728,8 +685,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 				cs.EXPECT().GetByID(mock.Anything, "test-checkout-id").Return(checkout.Checkout{}, errors.New("service error"))
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
-				OrgId: "test-org-id",
-				Id:    "test-checkout-id",
+				Id: "test-checkout-id",
 			}),
 			want:        nil,
 			wantErr:     true,
@@ -756,8 +712,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 				}, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
-				OrgId: "test-org-id",
-				Id:    "test-checkout-id",
+				Id: "test-checkout-id",
 			}),
 			want: func() *connect.Response[frontierv1beta1.GetCheckoutResponse] {
 				createdAt := time.Now()
@@ -800,8 +755,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 				}, nil)
 			},
 			req: connect.NewRequest(&frontierv1beta1.GetCheckoutRequest{
-				OrgId: "test-org-id",
-				Id:    "test-checkout-id-2",
+				Id: "test-checkout-id-2",
 			}),
 			want: func() *connect.Response[frontierv1beta1.GetCheckoutResponse] {
 				createdAt := time.Now()
