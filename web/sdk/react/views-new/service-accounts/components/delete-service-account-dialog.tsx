@@ -32,12 +32,6 @@ export function DeleteServiceAccountDialog({ handle, refetch }: DeleteServiceAcc
   const transport = useTransport();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      refetch();
-    }
-  };
-
   const { mutateAsync: deleteServiceUser } = useMutation(
     FrontierServiceQueries.deleteServiceUser
   );
@@ -64,6 +58,7 @@ export function DeleteServiceAccountDialog({ handle, refetch }: DeleteServiceAcc
       });
 
       handle.close();
+      refetch();
       toastManager.add({ title: 'Service account deleted', type: 'success' });
     } catch (error: unknown) {
       toastManager.add({
@@ -77,7 +72,7 @@ export function DeleteServiceAccountDialog({ handle, refetch }: DeleteServiceAcc
   };
 
   return (
-    <AlertDialog handle={handle} onOpenChange={handleOpenChange}>
+    <AlertDialog handle={handle}>
       {({ payload: rawPayload }) => {
         const payload = rawPayload as DeleteServiceAccountPayload | undefined;
         return (

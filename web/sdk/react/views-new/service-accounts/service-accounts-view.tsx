@@ -102,10 +102,10 @@ export function ServiceAccountsView({
     [serviceUsersData]
   );
 
-  const isLoading =
-    isActiveOrganizationLoading ||
-    isPermissionsFetching ||
-    isServiceUsersLoading;
+  const isPermissionsLoading =
+    isActiveOrganizationLoading || isPermissionsFetching;
+
+  const isLoading = isPermissionsLoading || isServiceUsersLoading;
 
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
@@ -128,7 +128,7 @@ export function ServiceAccountsView({
     refetch();
   };
 
-  const hasNoAccess = !canUpdateWorkspace && !isLoading;
+  const hasNoAccess = !canUpdateWorkspace && !isPermissionsLoading;
   const hasNoServiceAccounts =
     canUpdateWorkspace && !isLoading && serviceUsers.length === 0;
 
