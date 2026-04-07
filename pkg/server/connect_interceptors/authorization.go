@@ -57,6 +57,15 @@ func (a *AuthorizationInterceptor) WrapStreamingHandler(next connect.StreamingHa
 
 func (a *AuthorizationInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		// block PAT from endpoints that require direct user session or are cross-org
+		if patDeniedEndpoints[req.Spec().Procedure] {
+			principal, err := a.h.GetLoggedInPrincipal(ctx)
+			if err == nil && principal.Type == schema.PATPrincipal {
+				return nil, connect.NewError(connect.CodePermissionDenied,
+					fmt.Errorf("this operation is not allowed with a personal access token"))
+			}
+		}
+
 		// check if authorization needs to be skipped
 		if authorizationSkipEndpoints[req.Spec().Procedure] {
 			return next(ctx, req)
@@ -141,6 +150,17 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUserPAT":     true,
 	"/raystack.frontier.v1beta1.FrontierService/RegenerateCurrentUserPAT": true,
 	"/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT":          true,
+}
+
+// patDeniedEndpoints lists endpoints that (org scoped) PATs cannot call. Will be called by SDK(UI)
+var patDeniedEndpoints = map[string]bool{
+	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization":           true,
+	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization":             true,
+	"/raystack.frontier.v1beta1.FrontierService/AcceptOrganizationInvitation": true,
+	"/raystack.frontier.v1beta1.FrontierService/ListSessions":                 true,
+	"/raystack.frontier.v1beta1.FrontierService/PingUserSession":              true,
+	"/raystack.frontier.v1beta1.FrontierService/RevokeSession":                true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPAT":         true,
 }
 
 // authorizationValidationMap stores path to validation function
