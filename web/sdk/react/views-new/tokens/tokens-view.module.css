@@ -1,0 +1,19 @@
+.balancePanel {
+  padding: var(--rs-space-5);
+  border-radius: var(--rs-radius-2);
+  border: 0.5px solid var(--rs-color-border-base-secondary);
+}
+
+.coinIcon {
+  height: 48px;
+  width: 48px;
+}
+
+.callout {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tableRoot {
+  border: none;
+}
