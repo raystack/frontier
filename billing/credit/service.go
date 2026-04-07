@@ -19,6 +19,7 @@ type TransactionRepository interface {
 	List(ctx context.Context, flt Filter) ([]Transaction, error)
 	GetByID(ctx context.Context, id string) (Transaction, error)
 	GetBalanceForRange(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
+	GetBalanceForRangeWithoutOverdraft(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
 }
 
 type CustomerRepository interface {
@@ -162,6 +163,12 @@ func (s Service) GetTotalDebitedAmount(ctx context.Context, accountID string) (i
 // start time is inclusive, end time is exclusive
 func (s Service) GetBalanceForRange(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error) {
 	return s.transactionRepository.GetBalanceForRange(ctx, accountID, start, end)
+}
+
+// GetBalanceForRangeWithoutOverdraft returns the balance for the given accountID within the given time range
+// excluding credit transactions sourced from overdraft reconciliation
+func (s Service) GetBalanceForRangeWithoutOverdraft(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error) {
+	return s.transactionRepository.GetBalanceForRangeWithoutOverdraft(ctx, accountID, start, end)
 }
 
 func (s Service) GetByID(ctx context.Context, id string) (Transaction, error) {

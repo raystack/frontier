@@ -200,6 +200,65 @@ func (_c *TransactionRepository_GetBalanceForRange_Call) RunAndReturn(run func(c
 	return _c
 }
 
+// GetBalanceForRangeWithoutOverdraft provides a mock function with given fields: ctx, accountID, start, end
+func (_m *TransactionRepository) GetBalanceForRangeWithoutOverdraft(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error) {
+	ret := _m.Called(ctx, accountID, start, end)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBalanceForRangeWithoutOverdraft")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time) (int64, error)); ok {
+		return rf(ctx, accountID, start, end)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time) int64); ok {
+		r0 = rf(ctx, accountID, start, end)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, time.Time, time.Time) error); ok {
+		r1 = rf(ctx, accountID, start, end)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBalanceForRangeWithoutOverdraft'
+type TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call struct {
+	*mock.Call
+}
+
+// GetBalanceForRangeWithoutOverdraft is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountID string
+//   - start time.Time
+//   - end time.Time
+func (_e *TransactionRepository_Expecter) GetBalanceForRangeWithoutOverdraft(ctx interface{}, accountID interface{}, start interface{}, end interface{}) *TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call {
+	return &TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call{Call: _e.mock.On("GetBalanceForRangeWithoutOverdraft", ctx, accountID, start, end)}
+}
+
+func (_c *TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call) Run(run func(ctx context.Context, accountID string, start time.Time, end time.Time)) *TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(time.Time), args[3].(time.Time))
+	})
+	return _c
+}
+
+func (_c *TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call) Return(_a0 int64, _a1 error) *TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call) RunAndReturn(run func(context.Context, string, time.Time, time.Time) (int64, error)) *TransactionRepository_GetBalanceForRangeWithoutOverdraft_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByID provides a mock function with given fields: ctx, id
 func (_m *TransactionRepository) GetByID(ctx context.Context, id string) (credit.Transaction, error) {
 	ret := _m.Called(ctx, id)

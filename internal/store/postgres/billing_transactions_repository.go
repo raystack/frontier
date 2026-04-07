@@ -494,3 +494,64 @@ func (r BillingTransactionRepository) GetBalanceForRange(ctx context.Context, ac
 	}
 	return amount, nil
 }
+
+func (r BillingTransactionRepository) getCreditBalanceExcludingSource(ctx context.Context, tx *sqlx.Tx, accountID string,
+	start *time.Time, end *time.Time, excludeSource string) (*int64, error) {
+	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+		"account_id": accountID,
+		"type":       credit.CreditType,
+	}).Where(goqu.C("source").Neq(excludeSource))
+	if start != nil {
+		stmt = stmt.Where(goqu.Ex{
+			"created_at": goqu.Op{"gte": *start},
+		})
+	}
+	if end != nil {
+		stmt = stmt.Where(goqu.Ex{
+			"created_at": goqu.Op{"lt": *end},
+		})
+	}
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	var creditBalance *int64
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetCreditBalanceExcludingSource", func(ctx context.Context) error {
+		return tx.QueryRowxContext(ctx, query, params...).Scan(&creditBalance)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+	return creditBalance, nil
+}
+
+// GetBalanceForRangeWithoutOverdraft returns the balance excluding credit transactions
+// with source 'system.overdraft'. This prevents reconciliation credits from inflating
+// the balance when calculating credit overdraft invoices.
+func (r BillingTransactionRepository) GetBalanceForRangeWithoutOverdraft(ctx context.Context, accountID string, start time.Time,
+	end time.Time) (int64, error) {
+	var amount int64
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	}, func(tx *sqlx.Tx) error {
+		debitBalance, err := r.getDebitBalance(ctx, tx, accountID, &start, &end)
+		if err != nil {
+			return fmt.Errorf("failed to get debit balance: %w", err)
+		}
+		creditBalance, err := r.getCreditBalanceExcludingSource(ctx, tx, accountID, &start, &end, credit.SourceSystemOverdraftEvent)
+		if err != nil {
+			return fmt.Errorf("failed to get credit balance: %w", err)
+		}
+		if creditBalance == nil {
+			creditBalance = new(int64)
+		}
+		if debitBalance == nil {
+			debitBalance = new(int64)
+		}
+		amount = *creditBalance - *debitBalance
+		return nil
+	}); err != nil {
+		return 0, fmt.Errorf("failed to get balance: %w", err)
+	}
+	return amount, nil
+}
