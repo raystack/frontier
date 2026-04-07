@@ -67,3 +67,9 @@ func (v *Validator) Validate(ctx context.Context, value string) (models.PAT, err
 
 	return pat, nil
 }
+
+// GetByID retrieves a PAT by ID. Used by the access token authenticator
+// to reconstruct the PAT principal from JWT claims.
+func (v *Validator) GetByID(ctx context.Context, id string) (models.PAT, error) {
+	return v.repo.GetByID(ctx, id)
+}

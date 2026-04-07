@@ -12,6 +12,8 @@ import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
 import {
   FrontierServiceQueries,
+  GetBillingAccountRequestSchema,
+  GetBillingBalanceRequestSchema,
   GetOrganizationKycResponseSchema,
   type Organization,
   type User,
@@ -183,10 +185,10 @@ export const OrganizationDetailsView = ({
     refetch: fetchBillingAccountDetails,
   } = useQuery(
     FrontierServiceQueries.getBillingAccount,
-    {
+    create(GetBillingAccountRequestSchema, {
       id: firstBillingAccountId,
       withBillingDetails: true,
-    },
+    }),
     {
       enabled: !!organizationId && !!firstBillingAccountId,
       select: (data) => ({
@@ -207,10 +209,9 @@ export const OrganizationDetailsView = ({
     refetch: fetchTokenBalance,
   } = useQuery(
     FrontierServiceQueries.getBillingBalance,
-    {
-      orgId: organizationId || "",
+    create(GetBillingBalanceRequestSchema, {
       id: firstBillingAccountId,
-    },
+    }),
     {
       enabled: !!organizationId && !!firstBillingAccountId,
       select: (data) => String(data?.balance?.amount || "0"),

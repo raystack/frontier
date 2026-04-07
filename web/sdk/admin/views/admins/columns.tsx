@@ -1,12 +1,16 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
+import { TerminologyEntity } from "../../hooks/useTerminology";
 
 export const getColumns: (options?: {
   onNavigateToOrg?: (orgId: string) => void;
+  t?: {
+    organization: TerminologyEntity;
+  };
 }) => DataTableColumnDef<
   User | ServiceUser,
   unknown
->[] = ({ onNavigateToOrg } = {}) => {
+>[] = ({ onNavigateToOrg, t } = {}) => {
   return [
     {
       header: "Title",
@@ -36,7 +40,7 @@ export const getColumns: (options?: {
       },
     },
     {
-      header: "Organization",
+      header: t?.organization({ case: "capital" }) || "Organization",
       accessorKey: "orgId",
       cell: (info) => {
         const org_id = info.getValue() as string;
