@@ -8,6 +8,9 @@ search:
   enabled: true
   placeholder: Search documentation...
 
+llms:
+  enabled: true
+
 footer:
   copyright: "Raystack"
   links:
