@@ -10,7 +10,8 @@ const NAV_ITEMS = [
   { label: 'Sessions', path: 'sessions' },
   { label: 'Members', path: 'members' },
   { label: 'Security', path: 'security' },
-  { label: 'Projects', path: 'projects' }
+  { label: 'Projects', path: 'projects' },
+  { label: 'Billing', path: 'billing' }
 ];
 
 export default function Settings() {
