@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -488,7 +489,11 @@ func TestService_SetMemberRole(t *testing.T) {
 			name: "should succeed when changing role with multiple owners",
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, auditRepo *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil).Times(2)
-				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil).Times(2)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{
+					ID:    userID,
+					Title: "test-user",
+					Email: "test-user@acme.dev",
+				}, nil).Times(2)
 				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member", Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - user is owner
 				policySvc.EXPECT().List(ctx, policy.Filter{
@@ -517,7 +522,17 @@ func TestService_SetMemberRole(t *testing.T) {
 					PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
 				// audit logging
-				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
+					if ar.Target == nil {
+						return false
+					}
+					return ar.Event == pkgAuditRecord.OrganizationMemberRoleChangedEvent &&
+						ar.Resource.ID == orgID &&
+						ar.Target.ID == userID &&
+						ar.Target.Metadata["email"] == "test-user@acme.dev" &&
+						ar.Target.Metadata["role_id"] == memberRoleID &&
+						ar.OrgID == orgID
+				})).Return(auditrecord.AuditRecord{}, nil).Once()
 			},
 			orgID:     orgID,
 			userID:    userID,
@@ -528,7 +543,11 @@ func TestService_SetMemberRole(t *testing.T) {
 			name: "should succeed when promoting to owner",
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, auditRepo *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil).Times(2)
-				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil).Times(2)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{
+					ID:    userID,
+					Title: "test-user",
+					Email: "test-user@acme.dev",
+				}, nil).Times(2)
 				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - user is member
 				policySvc.EXPECT().List(ctx, policy.Filter{
@@ -550,7 +569,17 @@ func TestService_SetMemberRole(t *testing.T) {
 					PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
 				// audit logging
-				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
+					if ar.Target == nil {
+						return false
+					}
+					return ar.Event == pkgAuditRecord.OrganizationMemberRoleChangedEvent &&
+						ar.Resource.ID == orgID &&
+						ar.Target.ID == userID &&
+						ar.Target.Metadata["email"] == "test-user@acme.dev" &&
+						ar.Target.Metadata["role_id"] == ownerRoleID &&
+						ar.OrgID == orgID
+				})).Return(auditrecord.AuditRecord{}, nil).Once()
 			},
 			orgID:     orgID,
 			userID:    userID,
