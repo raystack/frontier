@@ -1,5 +1,5 @@
 {
   "framework": null,
-  "buildCommand": "npx @raystack/chronicle@0.4.0  build --preset=vercel --content=./docs",
+  "buildCommand": "npx @raystack/chronicle@0.5.2  build --preset=vercel --content=./docs",
   "installCommand": "echo 'skip'"
 }
