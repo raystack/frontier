@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { ClipboardEvent, KeyboardEvent, useMemo } from 'react';
 import { Button, Dialog, Flex, InputField, Skeleton } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -150,11 +150,11 @@ export function AddTokensDialog({ handle }: AddTokensDialogProps) {
                   {...register('tokens', { valueAsNumber: true })}
                   placeholder="Enter no. of tokens"
                   helperText={productDescription}
-                  onKeyDown={(e: React.KeyboardEvent) =>
+                  onKeyDown={(e: KeyboardEvent) =>
                     ['e', 'E', '+', '-', '.'].includes(e.key) &&
                     e.preventDefault()
                   }
-                  onPaste={(e: React.ClipboardEvent) => {
+                  onPaste={(e: ClipboardEvent) => {
                     const pastedText = e.clipboardData.getData('text/plain');
                     const parsedValue = parseInt(pastedText);
                     e.preventDefault();
