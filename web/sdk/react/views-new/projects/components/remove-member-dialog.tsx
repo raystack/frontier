@@ -19,6 +19,7 @@ import { handleConnectError } from '~/utils/error';
 export interface RemoveMemberPayload {
   memberId: string;
   projectId: string;
+  memberType?: 'user' | 'group';
 }
 
 type AlertDialogHandle = ReturnType<
@@ -78,7 +79,7 @@ function RemoveMemberForm({
         create(RemoveProjectMemberRequestSchema, {
           projectId: payload.projectId,
           principalId: payload.memberId,
-          principalType: 'app/user'
+          principalType: payload.memberType === 'group' ? 'app/group' : 'app/user'
         })
       );
       toastManager.add({ title: 'Member removed', type: 'success' });

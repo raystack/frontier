@@ -220,7 +220,7 @@ export default function ManageServiceUserProjectsDialog({
         }));
       }
     },
-    [serviceUserId, setProjectMemberRole, removeProjectMember]
+    [serviceUserId, ownerRoleId, setProjectMemberRole, removeProjectMember]
   );
 
   const columns = getColumns({

@@ -128,6 +128,10 @@ export const AddServiceAccountDialog = ({
   const onSubmit = useCallback(
     async (data: FormData) => {
       if (!orgId) return;
+      if (!ownerRoleId) {
+        toast.error('Project owner role not found');
+        return;
+      }
 
       try {
         const serviceUserResponse = await createServiceUser(
@@ -141,8 +145,6 @@ export const AddServiceAccountDialog = ({
 
         const serviceUserId = serviceUserResponse.serviceuser?.id;
         if (!serviceUserId) return;
-
-        if (!ownerRoleId) throw new Error('Project owner role not found');
         await setProjectMemberRole(
           create(SetProjectMemberRoleRequestSchema, {
             projectId: data.project_id,
@@ -200,6 +202,7 @@ export const AddServiceAccountDialog = ({
     },
     [
       orgId,
+      ownerRoleId,
       createServiceUser,
       setProjectMemberRole,
       createServiceUserToken,
