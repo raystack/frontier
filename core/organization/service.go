@@ -416,8 +416,8 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 			Type: pkgAuditRecord.UserType,
 			Name: usr.Title,
 			Metadata: map[string]any{
-				"email":    usr.Email,
-				"role_id":  newRoleID,
+				"email":   usr.Email,
+				"role_id": newRoleID,
 			},
 		},
 		OrgID:      orgID,

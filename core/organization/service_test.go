@@ -379,7 +379,7 @@ func TestService_SetMemberRole(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		setup     func(*mocks.Repository, *mocks.UserService, *mocks.RoleService, *mocks.PolicyService)
+		setup     func(*mocks.Repository, *mocks.UserService, *mocks.RoleService, *mocks.PolicyService, *mocks.AuditRecordRepository)
 		orgID     string
 		userID    string
 		newRoleID string
@@ -387,7 +387,7 @@ func TestService_SetMemberRole(t *testing.T) {
 	}{
 		{
 			name: "should return error if org does not exist",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, _ *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			orgID:     orgID,
@@ -397,7 +397,7 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should return error if org is disabled",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, _ *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{State: organization.Disabled}, nil)
 			},
 			orgID:     orgID,
@@ -407,7 +407,7 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should return error if user does not exist",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, _ *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{}, user.ErrNotExist)
 			},
@@ -418,7 +418,7 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should return error if role does not exist",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, _ *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
 				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{}, role.ErrNotExist)
@@ -430,7 +430,7 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should return error if role is not valid for org scope",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, _ *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
 				// role exists but has project scope, not org scope
@@ -443,7 +443,7 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should return error if user is not a member of the org",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, _ *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
 				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member", Scopes: []string{schema.OrganizationNamespace}}, nil)
@@ -461,7 +461,7 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should return error if demoting last owner",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, _ *mocks.AuditRecordRepository) {
 				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
 				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member", Scopes: []string{schema.OrganizationNamespace}}, nil)
@@ -486,9 +486,9 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should succeed when changing role with multiple owners",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
-				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
-				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, auditRepo *mocks.AuditRecordRepository) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil).Times(2)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil).Times(2)
 				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: "member", Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - user is owner
 				policySvc.EXPECT().List(ctx, policy.Filter{
@@ -516,6 +516,8 @@ func TestService_SetMemberRole(t *testing.T) {
 					PrincipalID:   userID,
 					PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
+				// audit logging
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			orgID:     orgID,
 			userID:    userID,
@@ -524,9 +526,9 @@ func TestService_SetMemberRole(t *testing.T) {
 		},
 		{
 			name: "should succeed when promoting to owner",
-			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService) {
-				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil)
-				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, auditRepo *mocks.AuditRecordRepository) {
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil).Times(2)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil).Times(2)
 				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// get user's existing policies - user is member
 				policySvc.EXPECT().List(ctx, policy.Filter{
@@ -547,6 +549,8 @@ func TestService_SetMemberRole(t *testing.T) {
 					PrincipalID:   userID,
 					PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
+				// audit logging
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			orgID:     orgID,
 			userID:    userID,
@@ -567,7 +571,7 @@ func TestService_SetMemberRole(t *testing.T) {
 			mockRoleSvc := mocks.NewRoleService(t)
 
 			if tt.setup != nil {
-				tt.setup(mockRepo, mockUserSvc, mockRoleSvc, mockPolicySvc)
+				tt.setup(mockRepo, mockUserSvc, mockRoleSvc, mockPolicySvc, mockAuditRecordRepo)
 			}
 
 			svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
