@@ -447,7 +447,8 @@ export function ProjectDetailsView({
                   payload &&
                   removeMemberDialogHandle.openWithPayload({
                     memberId: payload.memberId,
-                    projectId
+                    projectId,
+                    memberType: payload.isTeam ? 'group' : 'user'
                   })
                 }
                 data-test-id="frontier-sdk-remove-member-btn"

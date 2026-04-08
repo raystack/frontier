@@ -38,7 +38,7 @@ export const getColumns = (
     canUpdateProject: boolean,
     projectId: string,
     refetch: () => void,
-    onRemoveMember?: (memberId: string) => void
+    onRemoveMember?: (memberId: string, memberType: 'user' | 'group') => void
 ): DataTableColumnDef<RowMember, unknown>[] => [
     {
         header: '',
@@ -149,10 +149,10 @@ const MembersActions = ({
     canUpdateProject?: boolean;
     excludedRoles: Role[];
     refetch: () => void;
-    onRemoveMember?: (memberId: string) => void;
+    onRemoveMember?: (memberId: string, memberType: 'user' | 'group') => void;
 }) => {
     function removeMember() {
-        onRemoveMember?.(member?.id as string);
+        onRemoveMember?.(member?.id as string, member?.isTeam ? 'group' : 'user');
     }
 
     const { mutateAsync: setMemberRole } = useMutation(

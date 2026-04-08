@@ -48,7 +48,8 @@ export const ProjectDetailPage = ({
     const [deleteProjectState, setDeleteProjectState] = useState({ open: false });
     const [removeMemberState, setRemoveMemberState] = useState({
         open: false,
-        memberId: ''
+        memberId: '',
+        memberType: 'user' as 'user' | 'group'
     });
 
     const {
@@ -190,8 +191,8 @@ export const ProjectDetailPage = ({
         }
     };
 
-    const onRemoveMember = (memberId: string) => {
-        setRemoveMemberState({ open: true, memberId });
+    const onRemoveMember = (memberId: string, memberType: 'user' | 'group' = 'user') => {
+        setRemoveMemberState({ open: true, memberId, memberType });
     };
 
     return (
@@ -257,6 +258,7 @@ export const ProjectDetailPage = ({
                 onOpenChange={handleRemoveMemberOpenChange}
                 projectId={projectId}
                 memberId={removeMemberState.memberId}
+                memberType={removeMemberState.memberType}
             />
         </Flex>
     );
