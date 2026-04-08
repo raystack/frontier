@@ -80,6 +80,7 @@ const (
 	OrgDisabledEvent      EventName = "app.organization.disabled"
 	OrgMemberCreatedEvent EventName = "app.organization.member.created"
 	OrgMemberDeletedEvent EventName = "app.organization.member.deleted"
+	OrgMemberRoleSetEvent EventName = "app.organization.member.role.set"
 	OrgKycUpdatedEvent    EventName = "app.organization.kyc.updated"
 
 	ProjectCreatedEvent       EventName = "app.project.created"

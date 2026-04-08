@@ -36,6 +36,7 @@ const (
 	OrganizationInvitedEvent            Event = "organization.invited"
 	OrganizationMemberAddedEvent        Event = "organization.added"
 	OrganizationMemberRemovedEvent      Event = "organization.removed"
+	OrganizationMemberRoleChangedEvent  Event = "organization.role_changed"
 	OrganizationInvitationAcceptedEvent Event = "organization.accepted"
 
 	// KYC Events

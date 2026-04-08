@@ -393,6 +393,45 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 		return err
 	}
 
+	// audit logging
+	org, err := s.repository.GetByID(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	usr, err := s.userService.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	_, auditErr := s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
+		Resource: auditrecord.Resource{
+			ID:   orgID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:   userID,
+			Type: pkgAuditRecord.UserType,
+			Name: usr.Title,
+			Metadata: map[string]any{
+				"email":    usr.Email,
+				"role_id":  newRoleID,
+			},
+		},
+		OrgID:      orgID,
+		OccurredAt: time.Now(),
+	})
+	if auditErr != nil {
+		return auditErr
+	}
+
+	audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberRoleSetEvent, audit.Target{
+		ID:   userID,
+		Type: schema.UserPrincipal,
+	})
+
 	return nil
 }
 
