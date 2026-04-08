@@ -4,6 +4,8 @@ import { customFetch } from '@/utils/custom-fetch';
 import { FrontierProvider } from '@raystack/frontier/react';
 import Router from './Router';
 import { v4 as uuid } from 'uuid';
+import './styles.css';
+import '@raystack/apsara/normalize.css';
 
 const customHeaders = {
   'X-Request-ID': () => `client-demo:${uuid()}`

@@ -1,0 +1,61 @@
+.iconButton {
+  position: relative;
+  width: var(--rs-space-14);
+  height: var(--rs-space-14);
+  border-radius: var(--rs-radius-4);
+  overflow: hidden;
+  border: 1px dashed var(--rs-color-border-accent-primary);
+  padding: 0;
+}
+
+.avatar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--rs-radius-4);
+  transition: opacity 100ms ease-in-out;
+}
+
+/* When avatar is present, hide the dashed border */
+.iconButton:has(.avatar) {
+  border-color: transparent;
+}
+
+/* On hover, hide avatar and restore dashed border */
+.iconButton:hover .avatar {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.iconButton:hover {
+  border-color: var(--rs-color-border-accent-primary);
+}
+
+.uploadIcon {
+  width: 44px !important;
+  height: 44px !important;
+  color: var(--rs-color-foreground-accent-primary);
+}
+
+.inputFileField {
+  display: none;
+}
+
+.cropImageContainer {
+  max-width: 400px;
+  height: 100%;
+}
+
+.reactCrop {
+  max-width: 100%;
+}
+
+.reactCrop:focus {
+  border-color: transparent;
+}
+
+.previewImg {
+  max-height: 280px !important;
+  object-fit: contain;
+}

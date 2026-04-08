@@ -1,4 +1,6 @@
 import '@raystack/apsara/style.css';
+import '@raystack/apsara-v1/style.css';
+import '@raystack/apsara-v1/normalize.css';
 
 export { AvatarUpload } from './components/avatar-upload';
 export { Container } from './components/Container';
@@ -17,12 +19,24 @@ export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider, queryClient } from './contexts/FrontierProvider';
 export { CustomizationProvider } from './contexts/CustomizationContext';
 
+export { useTerminology } from './hooks/useTerminology';
 export { useTokens } from './hooks/useTokens';
 export { useBillingPermission } from './hooks/useBillingPermission';
 export { useConnectQueryPolling } from './hooks/useConnectQueryPolling';
 export { usePreferences } from './hooks/usePreferences';
 export { Layout } from './components/Layout';
 export { PageHeader } from './components/common/page-header';
+
+export { ImageUpload } from './components/image-upload';
+export { ViewContainer } from './components/view-container';
+export { ViewHeader } from './components/view-header';
+export { GeneralView } from './views-new/general';
+export { PreferencesView, PreferenceRow } from './views-new/preferences';
+export { ProfileView } from './views-new/profile';
+export { SessionsView } from './views-new/sessions';
+export { MembersView } from './views-new/members';
+export { SecurityView } from './views-new/security';
+export { ProjectsView, ProjectDetailsView } from './views-new/projects';
 
 export type {
   FrontierClientOptions,

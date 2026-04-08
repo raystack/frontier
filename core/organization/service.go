@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/raystack/frontier/core/audit"
@@ -12,6 +13,7 @@ import (
 	"github.com/raystack/frontier/core/preference"
 
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/authenticate"
 
@@ -68,6 +70,10 @@ type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
 }
 
+type RoleService interface {
+	Get(ctx context.Context, idOrName string) (role.Role, error)
+}
+
 type Service struct {
 	repository            Repository
 	relationService       RelationService
@@ -76,11 +82,13 @@ type Service struct {
 	policyService         PolicyService
 	prefService           PreferencesService
 	auditRecordRepository AuditRecordRepository
+	roleService           RoleService
 }
 
 func NewService(repository Repository, relationService RelationService,
 	userService UserService, authnService AuthnService, policyService PolicyService,
-	prefService PreferencesService, auditRecordRepository AuditRecordRepository) *Service {
+	prefService PreferencesService, auditRecordRepository AuditRecordRepository,
+	roleService RoleService) *Service {
 	return &Service{
 		repository:            repository,
 		relationService:       relationService,
@@ -89,6 +97,7 @@ func NewService(repository Repository, relationService RelationService,
 		policyService:         policyService,
 		prefService:           prefService,
 		auditRecordRepository: auditRecordRepository,
+		roleService:           roleService,
 	}
 }
 
@@ -308,19 +317,25 @@ func (s Service) ListByUser(ctx context.Context, principal authenticate.Principa
 		defer promCollect()
 	}
 
+	subjectID, subjectType := principal.ResolveSubject()
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        principal.ID,
-			Namespace: principal.Type,
+			ID:        subjectID,
+			Namespace: subjectType,
 		},
 		RelationName: schema.MembershipPermission,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	if principal.PAT != nil {
+		subjectIDs = utils.Intersection(subjectIDs, []string{principal.PAT.OrgID})
+	}
+
 	if len(subjectIDs) == 0 {
 		// no organizations
 		return []Organization{}, nil
@@ -341,6 +356,153 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 		}
 	}
 	return err
+}
+
+// SetMemberRole atomically changes a user's role in an organization.
+// It deletes existing org-level policies and creates a new one with the specified role.
+// Returns ErrLastOwnerRole if this would remove the last owner.
+//
+// Note: This assumes one role per user per org. If multiple roles need to be supported,
+// consider accepting a list of roles or providing separate Add/Remove methods.
+func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID string) error {
+	err := s.validateSetMemberRoleRequest(ctx, orgID, userID, newRoleID)
+	if err != nil {
+		return err
+	}
+
+	// get user's current org-level policies
+	existingPolicies, err := s.getUserOrgPolicies(ctx, orgID, userID)
+	if err != nil {
+		return err
+	}
+
+	// user must already be a member (have at least one org-level policy)
+	if len(existingPolicies) == 0 {
+		return ErrNotMember
+	}
+
+	// check minimum owner constraint
+	err = s.validateMinOwnerConstraint(ctx, orgID, newRoleID, existingPolicies)
+	if err != nil {
+		return err
+	}
+
+	// delete existing policies and create new one
+	err = s.replaceUserOrgPolicies(ctx, orgID, userID, newRoleID, existingPolicies)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getUserOrgPolicies returns the user's org-level policies.
+// Project and group policies are intentionally not included because:
+// - Org owner/admin get implicit project access via SpiceDB (org->project_get)
+// - Explicit project policies are for users who need project-specific access
+func (s Service) getUserOrgPolicies(ctx context.Context, orgID, userID string) ([]policy.Policy, error) {
+	// policy service returns empty list if no policies found, not an error
+	return s.policyService.List(ctx, policy.Filter{
+		OrgID:         orgID,
+		PrincipalID:   userID,
+		PrincipalType: schema.UserPrincipal,
+	})
+}
+
+// validateMinOwnerConstraint ensures org always has at least 1 owner after role change
+func (s Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existingPolicies []policy.Policy) error {
+	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
+	if err != nil {
+		return fmt.Errorf("failed to get owner role: %w", err)
+	}
+
+	// if assigning owner role, no constraint to check
+	if newRoleID == ownerRole.ID {
+		return nil
+	}
+
+	// check if user currently has owner role
+	isCurrentlyOwner := false
+	for _, p := range existingPolicies {
+		if p.RoleID == ownerRole.ID {
+			isCurrentlyOwner = true
+			break
+		}
+	}
+
+	// if user is not currently an owner, changing their role won't reduce owner count
+	if !isCurrentlyOwner {
+		return nil
+	}
+
+	// count current owners - if this is the only owner, reject the change
+	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:  orgID,
+		RoleID: ownerRole.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(ownerPolicies) <= 1 {
+		return ErrLastOwnerRole
+	}
+
+	return nil
+}
+
+// replaceUserOrgPolicies deletes existing policies and creates a new one with the given role
+func (s Service) replaceUserOrgPolicies(ctx context.Context, orgID, userID, newRoleID string, existingPolicies []policy.Policy) error {
+	// delete existing policies
+	for _, p := range existingPolicies {
+		err := s.policyService.Delete(ctx, p.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// create new policy with new role
+	_, err := s.policyService.Create(ctx, policy.Policy{
+		RoleID:        newRoleID,
+		ResourceID:    orgID,
+		ResourceType:  schema.OrganizationNamespace,
+		PrincipalID:   userID,
+		PrincipalType: schema.UserPrincipal,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateSetMemberRoleRequest validates that org, user, and role exist
+func (s Service) validateSetMemberRoleRequest(ctx context.Context, orgID, userID, newRoleID string) error {
+	_, err := s.Get(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.userService.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	fetchedRole, err := s.roleService.Get(ctx, newRoleID)
+	if err != nil {
+		return err
+	}
+
+	// validate role is valid for organization scope
+	// role must be either: a global org role OR an org-specific role for this org
+	isGlobalRole := utils.IsNullUUID(fetchedRole.OrgID)
+	isGlobalOrgRole := isGlobalRole && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace)
+	isOrgSpecificRole := fetchedRole.OrgID == orgID
+	if !isGlobalOrgRole && !isOrgSpecificRole {
+		return ErrInvalidOrgRole
+	}
+
+	return nil
 }
 
 // RemoveUsers removes users from an organization as members

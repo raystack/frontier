@@ -6,6 +6,7 @@ import { createConnectQueryKey, useMutation, useTransport } from "@connectrpc/co
 import { FrontierServiceQueries, DisableOrganizationRequestSchema, EnableOrganizationRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface componentConfigType {
   btnColor: "danger" | "accent";
@@ -19,6 +20,7 @@ interface componentConfigType {
 }
 
 const BlockOrganizationDialog = () => {
+  const t = useTerminology();
   const { organization } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -38,7 +40,7 @@ const BlockOrganizationDialog = () => {
           }),
         });
         setIsDialogOpen(false);
-        toast.success("Organization blocked");
+        toast.success(`${t.organization({ case: "capital" })} blocked`);
       },
       onError: (error) => {
         toast.error("Something went wrong", {
@@ -62,7 +64,7 @@ const BlockOrganizationDialog = () => {
           }),
         });
         setIsDialogOpen(false);
-        toast.success("Organization unblocked");
+        toast.success(`${t.organization({ case: "capital" })} unblocked`);
       },
       onError: (error) => {
         toast.error("Something went wrong", {

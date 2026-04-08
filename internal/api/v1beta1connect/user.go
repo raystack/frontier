@@ -343,8 +343,9 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 		}
 	}
 
+	subjectID, _ := principal.ResolveSubject()
 	updatedUser, err := h.userService.Update(ctx, user.User{
-		ID:       principal.ID,
+		ID:       subjectID,
 		Title:    request.Msg.GetBody().GetTitle(),
 		Avatar:   request.Msg.GetBody().GetAvatar(),
 		Name:     request.Msg.GetBody().GetName(),
@@ -453,8 +454,9 @@ func (h *ConnectHandler) ListUserGroups(ctx context.Context, request *connect.Re
 	errorLogger := NewErrorLogger()
 	var groups []*frontierv1beta1.Group
 
-	groupsList, err := h.groupService.ListByUser(ctx, request.Msg.GetId(), schema.UserPrincipal,
-		group.Filter{OrganizationID: request.Msg.GetOrgId()})
+	groupsList, err := h.groupService.ListByUser(ctx, authenticate.Principal{
+		ID: request.Msg.GetId(), Type: schema.UserPrincipal,
+	}, group.Filter{OrganizationID: request.Msg.GetOrgId()})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListUserGroups.ListByUser", err,
 			zap.String("user_id", request.Msg.GetId()),
@@ -496,7 +498,7 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 	var groupsPb []*frontierv1beta1.Group
 	var accessPairsPb []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair
 
-	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, principal.Type,
+	groupsList, err := h.groupService.ListByUser(ctx, principal,
 		group.Filter{
 			OrganizationID:  request.Msg.GetOrgId(),
 			WithMemberCount: request.Msg.GetWithMemberCount(),
@@ -836,7 +838,9 @@ func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connec
 	errorLogger := NewErrorLogger()
 	userID := request.Msg.GetId()
 
-	projList, err := h.projectService.ListByUser(ctx, userID, schema.UserPrincipal, project.Filter{})
+	projList, err := h.projectService.ListByUser(ctx, authenticate.Principal{
+		ID: userID, Type: schema.UserPrincipal,
+	}, project.Filter{})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectsByUser.ListByUser", err,
 			zap.String("user_id", userID))
@@ -877,7 +881,7 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 	}
 
 	paginate := pagination.NewPagination(request.Msg.GetPageNum(), request.Msg.GetPageSize())
-	projList, err := h.projectService.ListByUser(ctx, principal.ID, principal.Type, project.Filter{
+	projList, err := h.projectService.ListByUser(ctx, principal, project.Filter{
 		OrgID:           request.Msg.GetOrgId(),
 		NonInherited:    request.Msg.GetNonInherited(),
 		WithMemberCount: request.Msg.GetWithMemberCount(),

@@ -141,7 +141,6 @@ const ServiceAccountsTable = ({
 }: ServiceAccountsTableProps) => {
   const columns = getColumns({
     dateFormat: dateFormat || DEFAULT_DATE_FORMAT,
-    onServiceAccountClick,
     onDeleteClick
   });
 
@@ -152,6 +151,7 @@ const ServiceAccountsTable = ({
       isLoading={isLoading}
       defaultSort={{ name: 'createdAt', order: 'desc' }}
       mode="client"
+      onRowClick={row => onServiceAccountClick?.(row.id)}
     >
       <Flex direction="column" gap={7} className={styles.tableWrapper}>
         <Flex justify="between" gap={3}>
@@ -203,10 +203,7 @@ export default function ApiKeysListPage({
     organization?.id
   );
 
-  const {
-    data: serviceUsersData,
-    isLoading: isServiceUsersLoading
-  } = useQuery(
+  const { data: serviceUsersData, isLoading: isServiceUsersLoading } = useQuery(
     FrontierServiceQueries.listOrganizationServiceUsers,
     create(ListOrganizationServiceUsersRequestSchema, {
       id: organization?.id ?? ''
@@ -216,7 +213,10 @@ export default function ApiKeysListPage({
     }
   );
 
-  const serviceUsers = useMemo(() => serviceUsersData?.serviceusers ?? [], [serviceUsersData]);
+  const serviceUsers = useMemo(
+    () => serviceUsersData?.serviceusers ?? [],
+    [serviceUsersData]
+  );
 
   const isLoading =
     isActiveOrganizationLoading ||
@@ -255,13 +255,25 @@ export default function ApiKeysListPage({
 
   return (
     <Flex direction="column" className={sharedStyles.pageWrapper}>
-      <Flex direction="column" className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}>
-        <Flex direction="row" justify="between" align="center" className={sharedStyles.header}>
+      <Flex
+        direction="column"
+        className={`${sharedStyles.container} ${sharedStyles.containerFlex}`}
+      >
+        <Flex
+          direction="row"
+          justify="between"
+          align="center"
+          className={sharedStyles.header}
+        >
           <ApiKeysHeader isLoading={isLoading} />
         </Flex>
         {canUpdateWorkspace || isLoading ? (
           serviceAccountsCount > 0 || isLoading ? (
-            <Flex direction="column" gap={9} className={sharedStyles.contentWrapper}>
+            <Flex
+              direction="column"
+              gap={9}
+              className={sharedStyles.contentWrapper}
+            >
               <ServiceAccountsTable
                 isLoading={isLoading}
                 serviceUsers={serviceUsers}

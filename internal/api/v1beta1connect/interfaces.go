@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
+	"github.com/raystack/frontier/core/aggregates/orgpats"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
 	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	svc "github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
@@ -47,6 +48,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/userpat"
+	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -123,6 +125,7 @@ type OrganizationService interface {
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt organization.Filter) ([]organization.Organization, error)
 	AddUsers(ctx context.Context, orgID string, userID []string) error
+	SetMemberRole(ctx context.Context, orgID, userID, roleID string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -302,7 +305,7 @@ type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
-	ListByUser(ctx context.Context, principalId, principalType string, flt group.Filter) ([]group.Group, error)
+	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
 	AddUsers(ctx context.Context, groupID string, userID []string) error
 	RemoveUsers(ctx context.Context, groupID string, userID []string) error
 	Enable(ctx context.Context, id string) error
@@ -317,6 +320,10 @@ type EventService interface {
 type OrgTokensService interface {
 	Search(ctx context.Context, id string, query *rql.Query) (orgtokens.OrganizationTokens, error)
 	Export(ctx context.Context, orgID string) ([]byte, string, error)
+}
+
+type OrgPATsService interface {
+	Search(ctx context.Context, orgID string, query *rql.Query) (orgpats.OrganizationPATs, error)
 }
 
 type OrgServiceUserService interface {
@@ -342,13 +349,15 @@ type ProjectService interface {
 	Get(ctx context.Context, idOrName string) (project.Project, error)
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
 	List(ctx context.Context, f project.Filter) ([]project.Project, error)
-	ListByUser(ctx context.Context, principalID, principalType string, flt project.Filter) ([]project.Project, error)
+	ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
 	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
 	ListServiceUsers(ctx context.Context, id string, permissionFilter string) ([]serviceuser.ServiceUser, error)
 	ListGroups(ctx context.Context, id string) ([]group.Group, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
+	SetMemberRole(ctx context.Context, projectID, principalID, principalType, newRoleID string) error
+	RemoveMember(ctx context.Context, projectID, principalID, principalType string) error
 }
 
 type OrgUsersService interface {
@@ -400,5 +409,12 @@ type AuditRecordService interface {
 
 type UserPATService interface {
 	ValidateExpiry(expiresAt time.Time) error
-	Create(ctx context.Context, req userpat.CreateRequest) (userpat.PAT, string, error)
+	Create(ctx context.Context, req userpat.CreateRequest) (models.PAT, string, error)
+	List(ctx context.Context, userID, orgID string, query *rql.Query) (models.PATList, error)
+	Get(ctx context.Context, userID, id string) (models.PAT, error)
+	Delete(ctx context.Context, userID, id string) error
+	Update(ctx context.Context, toUpdate models.PAT) (models.PAT, error)
+	Regenerate(ctx context.Context, userID, id string, newExpiresAt time.Time) (models.PAT, string, error)
+	IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error)
+	ListAllowedRoles(ctx context.Context, scopes []string) ([]role.Role, error)
 }

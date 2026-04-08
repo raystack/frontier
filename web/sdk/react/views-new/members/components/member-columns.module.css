@@ -1,0 +1,11 @@
+.pendingText {
+  color: var(--rs-color-foreground-base-tertiary);
+}
+
+.actionsCell {
+  visibility: hidden;
+}
+
+tr:hover .actionsCell {
+  visibility: visible;
+}

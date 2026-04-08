@@ -55,7 +55,10 @@ const (
 	SessionRevokedEvent Event = "session.revoked"
 
 	// PAT Events
-	PATCreatedEvent Event = "pat.created"
+	PATCreatedEvent     Event = "pat.created"
+	PATUpdatedEvent     Event = "pat.updated"
+	PATRegeneratedEvent Event = "pat.regenerated"
+	PATRevokedEvent     Event = "pat.revoked"
 
 	SystemActor = "system"
 

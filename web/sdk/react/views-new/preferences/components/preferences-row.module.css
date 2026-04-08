@@ -1,0 +1,10 @@
+.row {
+  padding: var(--rs-space-7) 0;
+  border-bottom: 1px dashed var(--rs-color-border-base-primary);
+}
+.content {
+  flex: 1;
+}
+.children {
+  min-width: 135px;
+}

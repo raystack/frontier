@@ -164,7 +164,7 @@ const MembersActions = ({
             userId: member.isTeam ? undefined : (member.id as string),
             groupId: member.isTeam ? (member.id as string) : undefined
         }),
-        { enabled: !!projectId && !!member?.id }
+        { enabled: !!projectId && !!member?.id && !!canUpdateProject }
     );
 
     useEffect(() => {

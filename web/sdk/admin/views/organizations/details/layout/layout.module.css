@@ -57,6 +57,12 @@
   color: var(--rs-color-foreground-danger-primary);
 }
 
+.invite-users-emails-textarea {
+  resize: vertical;
+  width: 100%;
+  max-height: var(--rs-space-17);
+}
+
 .add-token-dialog-tokens-field::-webkit-inner-spin-button,
 .add-token-dialog-tokens-field::-webkit-outer-spin-button {
   -webkit-appearance: none;

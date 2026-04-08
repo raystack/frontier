@@ -57,6 +57,15 @@ func (a *AuthorizationInterceptor) WrapStreamingHandler(next connect.StreamingHa
 
 func (a *AuthorizationInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		// block PAT from endpoints that require direct user session or are cross-org
+		if patDeniedEndpoints[req.Spec().Procedure] {
+			principal, err := a.h.GetLoggedInPrincipal(ctx)
+			if err == nil && principal.Type == schema.PATPrincipal {
+				return nil, connect.NewError(connect.CodePermissionDenied,
+					fmt.Errorf("this operation is not allowed with a personal access token"))
+			}
+		}
+
 		// check if authorization needs to be skipped
 		if authorizationSkipEndpoints[req.Spec().Procedure] {
 			return next(ctx, req)
@@ -134,6 +143,24 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListSessions":    true,
 	"/raystack.frontier.v1beta1.FrontierService/PingUserSession": true,
 	"/raystack.frontier.v1beta1.FrontierService/RevokeSession":   true,
+
+	"/raystack.frontier.v1beta1.FrontierService/CheckCurrentUserPATTitle": true,
+	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUserPAT":        true,
+	"/raystack.frontier.v1beta1.FrontierService/DeleteCurrentUserPAT":     true,
+	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUserPAT":     true,
+	"/raystack.frontier.v1beta1.FrontierService/RegenerateCurrentUserPAT": true,
+	"/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT":          true,
+}
+
+// patDeniedEndpoints lists endpoints that (org scoped) PATs cannot call. Will be called by SDK(UI)
+var patDeniedEndpoints = map[string]bool{
+	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization":           true,
+	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization":             true,
+	"/raystack.frontier.v1beta1.FrontierService/AcceptOrganizationInvitation": true,
+	"/raystack.frontier.v1beta1.FrontierService/ListSessions":                 true,
+	"/raystack.frontier.v1beta1.FrontierService/PingUserSession":              true,
+	"/raystack.frontier.v1beta1.FrontierService/RevokeSession":                true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPAT":         true,
 }
 
 // authorizationValidationMap stores path to validation function
@@ -334,6 +361,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*connect.Request[frontierv1beta1.RemoveOrganizationUserRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetId()}, schema.UpdatePermission, req)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/SetOrganizationMemberRole": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.PolicyManagePermission, req)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.ListOrganizationInvitationsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.InvitationListPermission, req)
@@ -500,6 +531,14 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.FrontierService/DeleteProject": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.DeleteProjectRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.Msg.GetId()}, schema.DeletePermission, req)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/SetProjectMemberRole": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.SetProjectMemberRoleRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.Msg.GetProjectId()}, schema.UpdatePermission, req)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/RemoveProjectMember": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.RemoveProjectMemberRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.Msg.GetProjectId()}, schema.UpdatePermission, req)
 	},
 
 	// roles
@@ -705,6 +744,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	// personal access tokens
 	frontierv1beta1connect.FrontierServiceCreateCurrentUserPATProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.CreateCurrentUserPATRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+	},
+	frontierv1beta1connect.FrontierServiceSearchCurrentUserPATsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.SearchCurrentUserPATsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
 	},
 
@@ -986,6 +1029,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx, req)
+	},
+	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationPATs": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUsers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {

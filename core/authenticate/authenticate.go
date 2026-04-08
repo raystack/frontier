@@ -7,6 +7,8 @@ import (
 
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	pat "github.com/raystack/frontier/core/userpat/models"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
@@ -42,6 +44,8 @@ const (
 	// ClientCredentialsClientAssertion is used to authenticate using client_id and client_secret
 	// that provides access token for the client
 	ClientCredentialsClientAssertion ClientAssertion = "client_credentials"
+	// PATClientAssertion is used to authenticate using Personal Access Token
+	PATClientAssertion ClientAssertion = "pat"
 	// PassthroughHeaderClientAssertion is used to authenticate using headers passed by the client
 	// this is non secure way of authenticating client in test environments
 	PassthroughHeaderClientAssertion ClientAssertion = "passthrough_header"
@@ -53,9 +57,10 @@ func (a ClientAssertion) String() string {
 
 var APIAssertions = []ClientAssertion{
 	SessionClientAssertion,
+	PATClientAssertion,
 	AccessTokenClientAssertion,
-	OpaqueTokenClientAssertion,
 	JWTGrantClientAssertion,
+	OpaqueTokenClientAssertion,
 	// ClientCredentialsClientAssertion should be removed in future to avoid DDOS attacks on CPU
 	// and should only be allowed to be used get access token for the client
 	ClientCredentialsClientAssertion,
@@ -131,9 +136,19 @@ type Principal struct {
 	// ID is the unique identifier of principal
 	ID string
 	// Type is the namespace of principal
-	// E.g. app/user, app/serviceuser
+	// E.g. app/user, app/serviceuser, app/pat
 	Type string
 
 	User        *user.User
 	ServiceUser *serviceuser.ServiceUser
+	PAT         *pat.PAT
+}
+
+// ResolveSubject returns the subject ID and type for authorization queries.
+// For PAT principals, it resolves to the underlying user.
+func (p Principal) ResolveSubject() (id string, subjectType string) {
+	if p.PAT != nil {
+		return p.PAT.UserID, schema.UserPrincipal
+	}
+	return p.ID, p.Type
 }

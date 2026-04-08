@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
+	patErrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server/consts"
 	sessionutils "github.com/raystack/frontier/pkg/session"
@@ -301,6 +302,11 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
 			return principal, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, errors.ErrUnauthenticated):
+			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
+		case errors.Is(err, patErrors.ErrMalformedPAT),
+			errors.Is(err, patErrors.ErrNotFound),
+			errors.Is(err, patErrors.ErrExpired),
+			errors.Is(err, patErrors.ErrDisabled):
 			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
 			return principal, connect.NewError(connect.CodeInternal, err)

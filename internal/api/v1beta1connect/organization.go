@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
@@ -144,6 +145,11 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, organization.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(err, relation.ErrSubjectNotAllowed):
+			errorLogger.LogServiceError(ctx, request, "CreateOrganization.Create", err,
+				zap.String("org_name", request.Msg.GetBody().GetName()),
+				zap.String("org_title", request.Msg.GetBody().GetTitle()))
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 		default:
 			errorLogger.LogServiceError(ctx, request, "CreateOrganization.Create", err,
 				zap.String("org_name", request.Msg.GetBody().GetName()),
@@ -525,6 +531,42 @@ func (h *ConnectHandler) RemoveOrganizationUser(ctx context.Context, request *co
 	}
 
 	return connect.NewResponse(&frontierv1beta1.RemoveOrganizationUserResponse{}), nil
+}
+
+func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetOrganizationMemberRoleResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	orgID := request.Msg.GetOrgId()
+	userID := request.Msg.GetUserId()
+	roleID := request.Msg.GetRoleId()
+
+	if err := h.orgService.SetMemberRole(ctx, orgID, userID, roleID); err != nil {
+		errorLogger.LogServiceError(ctx, request, "SetOrganizationMemberRole", err,
+			zap.String("org_id", orgID),
+			zap.String("user_id", userID),
+			zap.String("role_id", roleID))
+
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, organization.ErrNotMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrInvalidRoleID)
+		case errors.Is(err, organization.ErrInvalidOrgRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidOrgRole)
+		case errors.Is(err, organization.ErrLastOwnerRole):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastOwnerRole)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.SetOrganizationMemberRoleResponse{}), nil
 }
 
 func (h *ConnectHandler) EnableOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.EnableOrganizationRequest]) (*connect.Response[frontierv1beta1.EnableOrganizationResponse], error) {

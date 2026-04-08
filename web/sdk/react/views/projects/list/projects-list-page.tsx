@@ -208,69 +208,70 @@ const ProjectsTable = ({
         [userAccessOnProject, onProjectClick, onDeleteProjectClick]
     );
 
-    return (
-        <DataTable
-            data={projects ?? []}
-            isLoading={isLoading}
-            defaultSort={{ name: 'title', order: 'asc' }}
-            columns={columns}
-            mode="client"
-        >
-            <Flex direction="column" gap={7} className={styles.tableWrapper}>
-                <Flex justify="between" gap={3}>
-                    <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
-                        {isLoading ? (
-                            <Skeleton height="34px" width="500px" />
-                        ) : (
-                            <DataTable.Search placeholder="Search by title " size="large" />
-                        )}
-                        {canListOrgProjects ? (
-                            <Select
-                                defaultValue={projectsSelectOptions[0].value}
-                                onValueChange={onOrgProjectsFilterChange}
-                            >
-                                <Select.Trigger style={{ minWidth: '140px' }}>
-                                    <Select.Value />
-                                </Select.Trigger>
-                                <Select.Content>
-                                    {projectsSelectOptions.map(opt => (
-                                        <Select.Item value={opt.value} key={opt.value}>
-                                            {opt.label}
-                                        </Select.Item>
-                                    ))}
-                                </Select.Content>
-                            </Select>
-                        ) : null}
-                    </Flex>
-                    {isLoading ? (
-                        <Skeleton height={'34px'} width={'64px'} />
-                    ) : (
-                        <Tooltip
-                            message={AuthTooltipMessage}
-                            side="left"
-                            disabled={canCreateProject}
-                        >
-                            <Button
-                                disabled={!canCreateProject}
-                                style={{ width: 'fit-content' }}
-                                onClick={onAddProjectClick}
-                                data-test-id="frontier-sdk-add-project-button"
-                            >
-                                Add project
-                            </Button>
-                        </Tooltip>
-                    )}
-                </Flex>
-                <DataTable.Content
-                    emptyState={noDataChildren}
-                    classNames={{
-                        root: styles.tableRoot,
-                        header: styles.tableHeader
-                    }}
-                />
-            </Flex>
-        </DataTable>
-    );
+  return (
+    <DataTable
+      data={projects ?? []}
+      onRowClick={row => onProjectClick?.(row.id)}
+      isLoading={isLoading}
+      defaultSort={{ name: 'title', order: 'asc' }}
+      columns={columns}
+      mode="client"
+    >
+      <Flex direction="column" gap={7} className={styles.tableWrapper}>
+        <Flex justify="between" gap={3}>
+          <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+            {isLoading ? (
+              <Skeleton height="34px" width="500px" />
+            ) : (
+              <DataTable.Search placeholder="Search by title " size="large" />
+            )}
+            {canListOrgProjects ? (
+              <Select
+                defaultValue={projectsSelectOptions[0].value}
+                onValueChange={onOrgProjectsFilterChange}
+              >
+                <Select.Trigger style={{ minWidth: '140px' }}>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  {projectsSelectOptions.map(opt => (
+                    <Select.Item value={opt.value} key={opt.value}>
+                      {opt.label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select>
+            ) : null}
+          </Flex>
+          {isLoading ? (
+            <Skeleton height={'34px'} width={'64px'} />
+          ) : (
+            <Tooltip
+              message={AuthTooltipMessage}
+              side="left"
+              disabled={canCreateProject}
+            >
+              <Button
+                disabled={!canCreateProject}
+                style={{ width: 'fit-content' }}
+                onClick={onAddProjectClick}
+                data-test-id="frontier-sdk-add-project-button"
+              >
+                Add project
+              </Button>
+            </Tooltip>
+          )}
+        </Flex>
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{
+            root: styles.tableRoot,
+            header: styles.tableHeader
+          }}
+        />
+      </Flex>
+    </DataTable>
+  );
 };
 
 const noDataChildren = (

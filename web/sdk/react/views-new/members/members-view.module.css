@@ -1,0 +1,14 @@
+.roleFilter {
+  width: auto;
+  min-width: 80px;
+  box-shadow: none;
+}
+
+.tableRoot {
+  border: none;
+}
+
+
+.menuContent {
+  min-width: 180px;
+}

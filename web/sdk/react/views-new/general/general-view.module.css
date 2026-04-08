@@ -1,0 +1,12 @@
+.section {
+  padding: var(--rs-space-9) 0;
+  border-bottom: 1px solid var(--rs-color-border-base-primary);
+}
+
+.formFields {
+  max-width: 320px;
+}
+
+.fitContent {
+  width: fit-content;
+}

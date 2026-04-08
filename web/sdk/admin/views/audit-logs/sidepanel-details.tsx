@@ -17,6 +17,8 @@ import ActorCell from "./actor-cell";
 import SidepanelListItemLink from "./sidepanel-list-link";
 import { isZeroUUID } from "../../utils/helper";
 import SidepanelListId from "./sidepanel-list-id";
+import { useTerminology } from "../../hooks/useTerminology";
+import { useAdminPaths } from "../../hooks/useAdminPaths";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
@@ -38,6 +40,8 @@ export default function SidePanelDetails({
   onNavigate,
   ...rest
 }: SidePanelDetailsProps) {
+  const t = useTerminology();
+  const paths = useAdminPaths();
   const { actor, event, resource, occurredAt, id, orgId, orgName, target } =
     rest;
   const date = dayjs(timestampToDate(occurredAt));
@@ -68,7 +72,7 @@ export default function SidePanelDetails({
           <List.Header>Overview</List.Header>
           <SidepanelListItemLink
             isLink={actor?.type !== ACTOR_TYPES.SYSTEM}
-            href={`/users/${actor?.id}`}
+            href={`/${paths.users}/${actor?.id}`}
             label="Actor"
             onNavigate={onNavigate}
             data-test-id="actor-link">
@@ -76,8 +80,8 @@ export default function SidePanelDetails({
           </SidepanelListItemLink>
           <SidepanelListItemLink
             isLink={!!orgId && !isZeroUUID(orgId)}
-            href={`/organizations/${orgId}`}
-            label="Organization"
+            href={`/${paths.organizations}/${orgId}`}
+            label={t.organization({ case: "capital" })}
             onNavigate={onNavigate}
             data-test-id="actor-link">
             {orgName || "-"}

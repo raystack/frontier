@@ -4,23 +4,19 @@ import (
 	"context"
 	"time"
 
-	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/core/userpat/models"
+	"github.com/raystack/salt/rql"
 )
 
-type PAT struct {
-	ID         string `rql:"name=id,type=string"`
-	UserID     string `rql:"name=user_id,type=string"`
-	OrgID      string `rql:"name=org_id,type=string"`
-	Title      string `rql:"name=title,type=string"`
-	SecretHash string `json:"-"`
-	Metadata   metadata.Metadata
-	LastUsedAt *time.Time `rql:"name=last_used_at,type=datetime"`
-	ExpiresAt  time.Time  `rql:"name=expires_at,type=datetime"`
-	CreatedAt  time.Time  `rql:"name=created_at,type=datetime"`
-	UpdatedAt  time.Time  `rql:"name=updated_at,type=datetime"`
-}
-
 type Repository interface {
-	Create(ctx context.Context, pat PAT) (PAT, error)
+	Create(ctx context.Context, pat models.PAT) (models.PAT, error)
 	CountActive(ctx context.Context, userID, orgID string) (int64, error)
+	GetByID(ctx context.Context, id string) (models.PAT, error)
+	List(ctx context.Context, userID, orgID string, query *rql.Query) (models.PATList, error)
+	GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error)
+	IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error)
+	UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error
+	Update(ctx context.Context, pat models.PAT) (models.PAT, error)
+	Regenerate(ctx context.Context, id, secretHash string, expiresAt time.Time) (models.PAT, error)
+	Delete(ctx context.Context, id string) error
 }

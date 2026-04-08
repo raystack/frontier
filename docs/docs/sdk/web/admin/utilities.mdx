@@ -129,6 +129,69 @@ const query = transformDataTableQueryToRQLRequest(tableQuery, {
 
 ---
 
+## `useTerminology`
+
+Hook that returns customizable entity labels based on the terminology config provided via `AdminConfigProvider`. Allows deployments to rename entities (e.g. "Organization" to "Workspace") across the UI without code changes.
+
+The terminology is configured at runtime via the `/configs` endpoint:
+
+```json
+{
+  "terminology": {
+    "organization": { "singular": "Workspace", "plural": "Workspaces" },
+    "user": { "singular": "Person", "plural": "People" }
+  }
+}
+```
+
+### Usage
+
+```tsx
+import { useTerminology } from "@raystack/frontier/admin";
+
+const MyView = () => {
+  const t = useTerminology();
+
+  return (
+    <div>
+      <h1>{t.organization({ plural: true, case: "capital" })}</h1>
+      <p>Create a new {t.organization({ case: "lower" })}</p>
+    </div>
+  );
+};
+```
+
+### Options
+
+Each entity function accepts an optional options object:
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `plural` | `boolean` | Use plural form. Defaults to `false`. |
+| `case` | `"lower" \| "upper" \| "capital"` | Text casing. Returns the configured value as-is when omitted. |
+
+### Available entities
+
+`t.organization()`, `t.project()`, `t.team()`, `t.member()`, `t.user()`, `t.appName()`
+
+---
+
+## `useAdminPaths`
+
+Hook that returns URL-safe slugs derived from terminology config, for use in dynamic routing.
+
+```tsx
+import { useAdminPaths } from "@raystack/frontier/admin";
+
+const paths = useAdminPaths();
+// Default: { organizations: "organizations", users: "users", projects: "projects", ... }
+// With custom terminology: { organizations: "workspaces", users: "people", ... }
+
+navigate(`/${paths.organizations}/${id}`);
+```
+
+---
+
 ## `ConnectRPCPaginatedResponse`
 
 Type for paginated API responses.

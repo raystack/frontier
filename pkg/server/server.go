@@ -29,6 +29,7 @@ import (
 	connecthealth "connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
+	"connectrpc.com/validate"
 	"github.com/gorilla/securecookie"
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
@@ -52,6 +53,7 @@ type UIConfigApiResponse struct {
 	TokenProductId    string                    `json:"token_product_id"`
 	OrganizationTypes []string                  `json:"organization_types"`
 	Webhooks          WebhooksConfigApiResponse `json:"webhooks"`
+	Terminology       TerminologyConfig         `json:"terminology"`
 }
 
 func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
@@ -94,6 +96,7 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 				Webhooks: WebhooksConfigApiResponse{
 					EnableDelete: uiConfig.Webhooks.EnableDelete,
 				},
+				Terminology: uiConfig.Terminology,
 			}
 			json.NewEncoder(w).Encode(confResp)
 		})
@@ -146,8 +149,10 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService, cfg.Authentication.Session.Headers)
 	authZInterceptor := connectinterceptors.NewAuthorizationInterceptor(frontierService)
-	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService)
+	sessionInterceptor := connectinterceptors.NewSessionInterceptor(sessionCookieCutter, cfg.Authentication.Session, frontierService, cfg.PAT)
 	auditInterceptor := connectinterceptors.NewAuditInterceptor(deps.AuditService)
+
+	validateInterceptor := validate.NewInterceptor()
 
 	interceptors := connect.WithInterceptors(
 		otelInterceptor,
@@ -155,6 +160,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		connectinterceptors.UnaryConnectErrorResponseInterceptor(),
 		sessionInterceptor,
 		authNInterceptor,
+		validateInterceptor,
 		authZInterceptor,
 		auditInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())

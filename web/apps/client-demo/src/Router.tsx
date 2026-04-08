@@ -7,6 +7,15 @@ import MagiclinkVerify from './pages/MagiclinkVerify';
 import Subscribe from './pages/Subscribe';
 import Updates from './pages/Updates';
 import Organization from './pages/Organization';
+import Settings from './pages/Settings';
+import General from './pages/settings/General';
+import Preferences from './pages/settings/Preferences';
+import Profile from './pages/settings/Profile';
+import Sessions from './pages/settings/Sessions';
+import Members from './pages/settings/Members';
+import Security from './pages/settings/Security';
+import Projects from './pages/settings/Projects';
+import ProjectDetails from './pages/settings/ProjectDetails';
 
 function Router() {
   return (
@@ -20,6 +29,16 @@ function Router() {
         <Route path="/subscribe" element={<Subscribe />} />
         <Route path="/updates" element={<Updates />} />
         <Route path="/organizations/:orgId" element={<Organization />} />
+        <Route path="/:orgId/settings" element={<Settings />}>
+          <Route path="general" element={<General />} />
+          <Route path="preferences" element={<Preferences />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="sessions" element={<Sessions />} />
+          <Route path="members" element={<Members />} />
+          <Route path="security" element={<Security />} />
+          <Route path="projects" element={<Projects />} />
+          <Route path="projects/:projectId" element={<ProjectDetails />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

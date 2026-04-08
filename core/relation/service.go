@@ -5,6 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Service struct {
@@ -35,6 +39,12 @@ func (s Service) Create(ctx context.Context, rel Relation) (Relation, error) {
 
 	err = s.authzRepository.Add(ctx, createdRelation)
 	if err != nil {
+		// PAT subjects may be rejected by the authz schema for relations they are not allowed on
+		if createdRelation.Subject.Namespace == schema.PATPrincipal {
+			if st, ok := status.FromError(err); ok && st.Code() == codes.InvalidArgument {
+				return Relation{}, fmt.Errorf("%w: %s", ErrSubjectNotAllowed, st.Message())
+			}
+		}
 		return Relation{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
 	}
 

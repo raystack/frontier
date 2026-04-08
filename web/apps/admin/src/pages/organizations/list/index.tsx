@@ -1,5 +1,6 @@
 import {
   OrganizationListView,
+  useAdminPaths,
 } from "@raystack/frontier/admin";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,7 @@ async function loadCountries(): Promise<string[]> {
 export function OrganizationListPage() {
   const navigate = useNavigate();
   const { config } = useContext(AppContext);
+  const paths = useAdminPaths();
   const [countries, setCountries] = useState<string[]>([]);
 
   useEffect(() => {
@@ -24,8 +26,8 @@ export function OrganizationListPage() {
   }, []);
 
   const onNavigateToOrg = useCallback(
-    (id: string) => navigate(`/organizations/${id}`),
-    [navigate],
+    (id: string) => navigate(`/${paths.organizations}/${id}`),
+    [navigate, paths.organizations],
   );
 
   const onExportCsv = useCallback(async () => {

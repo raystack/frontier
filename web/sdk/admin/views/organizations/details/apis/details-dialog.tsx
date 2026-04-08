@@ -11,6 +11,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { timestampToDayjs } from "../../../../utils/connect-timestamp";
+import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface ServiceUserDetailsDialogProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ export const ServiceUserDetailsDialog = ({
   serviceUser,
   onClose,
 }: ServiceUserDetailsDialogProps) => {
+  const t = useTerminology();
   const { id = "", orgId = "", title = "" } = serviceUser || {};
 
   const projectsRequest = useMemo(
@@ -100,7 +102,7 @@ export const ServiceUserDetailsDialog = ({
                   : ""}
               </Tabs.Trigger>
               <Tabs.Trigger value="projects">
-                Projects{" "}
+                {t.project({ plural: true, case: "capital" })}{" "}
                 {!isProjectLoading && projects.length > 0
                   ? `(${projects.length})`
                   : ""}

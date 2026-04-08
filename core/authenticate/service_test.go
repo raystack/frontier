@@ -76,7 +76,7 @@ func TestService_GetPrincipal(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *authenticate.Service {
-				return authenticate.NewService(nil, authenticate.Config{}, nil, nil, nil, nil, nil, nil, nil)
+				return authenticate.NewService(nil, authenticate.Config{}, nil, nil, nil, nil, nil, nil, nil, nil)
 			},
 		},
 		{
@@ -111,7 +111,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 		{
@@ -135,7 +135,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				mockSessionService.EXPECT().ExtractFromContext(mock.Anything).Return(mockSess, nil)
 
 				return authenticate.NewService(log.NewLogrus(), authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 		{
@@ -163,7 +163,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 		{
@@ -181,7 +181,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).Return("", map[string]interface{}{}, errors.New("invalid token"))
 
 				return authenticate.NewService(log.NewLogrus(), authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 		{
@@ -208,7 +208,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 		{
@@ -226,7 +226,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				mockServiceUserService.EXPECT().GetByJWT(mock.Anything, string(tokenBytes)).Return(serviceuser.ServiceUser{}, errors.New("invalid"))
 
 				return authenticate.NewService(log.NewLogrus(), authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 		{
@@ -253,7 +253,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 		{
@@ -280,7 +280,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
 	}
@@ -339,7 +339,7 @@ func TestService_StartFlow(t *testing.T) {
 			wantErr: authenticate.ErrUnsupportedMethod,
 			setup: func() *authenticate.Service {
 				return authenticate.NewService(nil, authenticate.Config{}, nil, nil,
-					nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil, nil)
 			},
 		},
 		{
@@ -370,7 +370,7 @@ func TestService_StartFlow(t *testing.T) {
 						TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
 					},
 					mockFlowRepo, mockDialer, nil, nil,
-					nil, nil, nil)
+					nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -402,7 +402,7 @@ func TestService_StartFlow(t *testing.T) {
 						TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
 					},
 					mockFlowRepo, mockDialer, nil, nil,
-					nil, nil, nil)
+					nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -433,7 +433,7 @@ func TestService_StartFlow(t *testing.T) {
 						MailOTP: authenticate.MailOTPConfig{},
 					},
 					mockFlowRepo, mockDialer, nil, nil,
-					nil, nil, nil)
+					nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}

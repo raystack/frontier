@@ -1,0 +1,146 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  Button,
+  Flex,
+  Text,
+  AlertDialog
+} from '@raystack/apsara-v1';
+import { toastManager } from '@raystack/apsara-v1';
+import { useMutation } from '@connectrpc/connect-query';
+import {
+  FrontierServiceQueries,
+  ListPoliciesRequestSchema,
+  DeletePolicyRequestSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import { useQuery } from '@connectrpc/connect-query';
+
+export interface RemoveMemberPayload {
+  memberId: string;
+  projectId: string;
+}
+
+type AlertDialogHandle = ReturnType<
+  typeof AlertDialog.createHandle<RemoveMemberPayload>
+>;
+
+export interface RemoveMemberDialogProps {
+  handle: AlertDialogHandle;
+  refetch: () => void;
+}
+
+export function RemoveMemberDialog({
+  handle,
+  refetch
+}: RemoveMemberDialogProps) {
+  return (
+    <AlertDialog handle={handle}>
+      {({ payload }) => {
+        const p = payload as RemoveMemberPayload | undefined;
+        return (
+          <AlertDialog.Content width={400}>
+            {p ? (
+              <RemoveMemberForm
+                payload={p}
+                handle={handle}
+                refetch={refetch}
+              />
+            ) : null}
+          </AlertDialog.Content>
+        );
+      }}
+    </AlertDialog>
+  );
+}
+
+interface RemoveMemberFormProps {
+  payload: RemoveMemberPayload;
+  handle: AlertDialogHandle;
+  refetch: () => void;
+}
+
+function RemoveMemberForm({
+  payload,
+  handle,
+  refetch
+}: RemoveMemberFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { data: policiesData } = useQuery(
+    FrontierServiceQueries.listPolicies,
+    create(ListPoliciesRequestSchema, {
+      projectId: payload.projectId,
+      userId: payload.memberId
+    }),
+    { enabled: !!payload.projectId && !!payload.memberId }
+  );
+
+  const policies = policiesData?.policies ?? [];
+
+  const { mutateAsync: deletePolicy } = useMutation(
+    FrontierServiceQueries.deletePolicy
+  );
+
+  async function handleRemove() {
+    setIsLoading(true);
+    try {
+      await Promise.all(
+        policies.map(p =>
+          deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' }))
+        )
+      );
+      toastManager.add({ title: 'Member removed', type: 'success' });
+      refetch();
+      handle.close();
+    } catch (error) {
+      toastManager.add({
+        title: 'Something went wrong',
+        description:
+          error instanceof Error ? error.message : 'Failed to remove member',
+        type: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <AlertDialog.Header>
+        <AlertDialog.Title>Remove project member</AlertDialog.Title>
+      </AlertDialog.Header>
+      <AlertDialog.Body>
+        <Text size="small" variant="secondary">
+          Are you sure you want to remove this member from the project? This
+          action cannot be undone.
+        </Text>
+      </AlertDialog.Body>
+      <AlertDialog.Footer>
+        <Flex gap={5} justify="end">
+          <Button
+            variant="outline"
+            color="neutral"
+            onClick={() => handle.close()}
+            disabled={isLoading}
+            data-test-id="frontier-sdk-cancel-remove-member-btn"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="solid"
+            color="danger"
+            onClick={handleRemove}
+            disabled={isLoading}
+            loading={isLoading}
+            loaderText="Removing..."
+            data-test-id="frontier-sdk-remove-member-btn"
+          >
+            Remove
+          </Button>
+        </Flex>
+      </AlertDialog.Footer>
+    </>
+  );
+}
