@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, MouseEvent } from 'react';
 import {
   DotsHorizontalIcon,
   CheckCircledIcon,
@@ -129,7 +129,7 @@ export function ServiceAccountDetailsView({
           <Breadcrumb size="small">
             <Breadcrumb.Item
               href="#"
-              onClick={(e: React.MouseEvent) => {
+              onClick={(e: MouseEvent) => {
                 e.preventDefault();
                 onNavigateToServiceAccounts?.();
               }}
