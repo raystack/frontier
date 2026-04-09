@@ -135,7 +135,7 @@ func (s *Service) enrichUserActor(ctx context.Context, actor Actor) (Actor, erro
 	}
 	user, err := s.userService.GetByID(ctx, session.UserID)
 	if err != nil {
-		if errors.Is(err, userpkg.ErrNoUsersFound) {
+		if errors.Is(err, userpkg.ErrNotExist) {
 			return Actor{}, ErrActorNotFound
 		}
 		return Actor{}, err
