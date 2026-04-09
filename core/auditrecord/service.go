@@ -13,6 +13,7 @@ import (
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
+	patModels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -39,19 +40,25 @@ type ServiceUserService interface {
 	Get(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 }
 
+type UserPATService interface {
+	GetByID(ctx context.Context, id string) (patModels.PAT, error)
+}
+
 type Service struct {
 	repository     Repository
 	userService    UserService
 	serviceUser    ServiceUserService
 	sessionService SessionService
+	userPATService UserPATService
 }
 
-func NewService(repository Repository, userService UserService, serviceUserService ServiceUserService, sessionService SessionService) *Service {
+func NewService(repository Repository, userService UserService, serviceUserService ServiceUserService, sessionService SessionService, userPATService UserPATService) *Service {
 	return &Service{
 		repository:     repository,
 		userService:    userService,
 		serviceUser:    serviceUserService,
 		sessionService: sessionService,
+		userPATService: userPATService,
 	}
 }
 
@@ -125,6 +132,28 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 			return AuditRecord{}, false, err
 		}
 		auditRecord.Actor.Title = serviceUser.Title
+
+	case auditRecord.Actor.Type == schema.PATPrincipal:
+		pat, err := s.userPATService.GetByID(ctx, auditRecord.Actor.ID)
+		if err != nil {
+			return AuditRecord{}, false, ErrActorNotFound
+		}
+		auditRecord.Actor.Name = pat.Title
+		auditRecord.Actor.Title = pat.Title
+
+		user, err := s.userService.GetByID(ctx, pat.UserID)
+		if err != nil {
+			return AuditRecord{}, false, ErrActorNotFound
+		}
+		if auditRecord.Actor.Metadata == nil {
+			auditRecord.Actor.Metadata = make(map[string]any)
+		}
+		auditRecord.Actor.Metadata["user"] = map[string]any{
+			"id":    user.ID,
+			"name":  user.Name,
+			"title": user.Title,
+			"email": user.Email,
+		}
 	}
 
 	createdRecord, err := s.repository.Create(ctx, auditRecord)
@@ -169,12 +198,19 @@ func computeHash(auditRecord AuditRecord) string {
 // SetAuditRecordActorContext sets the audit record actor in context
 // It accepts an Actor struct but stores it as a map to avoid layer violations in repositories
 func SetAuditRecordActorContext(ctx context.Context, actor Actor) context.Context {
+	var metadataMap map[string]interface{}
+	if actor.Metadata != nil {
+		metadataMap = make(map[string]interface{}, len(actor.Metadata))
+		for k, v := range actor.Metadata {
+			metadataMap[k] = v
+		}
+	}
 	actorMap := map[string]interface{}{
 		"id":       actor.ID,
 		"type":     actor.Type,
 		"name":     actor.Name,
 		"title":    actor.Title,
-		"metadata": actor.Metadata,
+		"metadata": metadataMap,
 	}
 	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actorMap)
 }

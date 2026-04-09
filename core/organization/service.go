@@ -106,7 +106,17 @@ func extractPrincipalInfo(principal authenticate.Principal) (string, map[string]
 	metadata := make(map[string]any)
 	var name string
 
-	if principal.User != nil {
+	if principal.PAT != nil {
+		name = principal.PAT.Title
+		if principal.User != nil {
+			metadata["user"] = map[string]any{
+				"id":    principal.User.ID,
+				"name":  principal.User.Name,
+				"title": principal.User.Title,
+				"email": principal.User.Email,
+			}
+		}
+	} else if principal.User != nil {
 		name = principal.User.Title
 		metadata["email"] = principal.User.Email
 	} else if principal.ServiceUser != nil {
@@ -121,6 +131,8 @@ func mapPrincipalTypeToAuditType(principalType string) pkgAuditRecord.EntityType
 	switch principalType {
 	case schema.ServiceUserPrincipal:
 		return pkgAuditRecord.ServiceUserType
+	case schema.PATPrincipal:
+		return pkgAuditRecord.PATType
 	default:
 		return pkgAuditRecord.UserType
 	}
