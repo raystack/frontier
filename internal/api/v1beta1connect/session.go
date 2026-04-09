@@ -35,7 +35,7 @@ func (h *ConnectHandler) ListSessions(ctx context.Context, request *connect.Requ
 	sessions, err := h.sessionService.List(ctx, principal.ID)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListSessions.List", err,
-			zap.String("user_id", principal.ID))
+			zap.String("principal_id", principal.ID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -115,7 +115,7 @@ func (h *ConnectHandler) RevokeSession(ctx context.Context, request *connect.Req
 	if err := h.sessionService.Delete(ctx, sessionID); err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "RevokeSession", err,
 			zap.String("session_id", sessionID.String()),
-			zap.String("user_id", principal.ID))
+			zap.String("principal_id", principal.ID))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
