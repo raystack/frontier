@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	patModels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -1216,7 +1217,7 @@ func TestService_Create_PATActorEnrichment(t *testing.T) {
 	t.Run("PAT not found returns ErrActorNotFound", func(t *testing.T) {
 		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
 
-		patSvc.EXPECT().GetByID(mock.Anything, "pat-missing").Return(patModels.PAT{}, errors.New("pat not found"))
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-missing").Return(patModels.PAT{}, paterrors.ErrNotFound)
 
 		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
 		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
@@ -1234,6 +1235,29 @@ func TestService_Create_PATActorEnrichment(t *testing.T) {
 		assert.ErrorIs(t, err, auditrecord.ErrActorNotFound)
 	})
 
+	t.Run("PAT lookup DB error passes through", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		dbErr := errors.New("database connection failed")
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-db-err").Return(patModels.PAT{}, dbErr)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:   "pat-db-err",
+				Type: schema.PATPrincipal,
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, dbErr)
+		assert.NotErrorIs(t, err, auditrecord.ErrActorNotFound)
+	})
+
 	t.Run("PAT found but user not found returns ErrActorNotFound", func(t *testing.T) {
 		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
 
@@ -1243,7 +1267,7 @@ func TestService_Create_PATActorEnrichment(t *testing.T) {
 			Title:  "Orphan Token",
 		}, nil)
 
-		userSvc.EXPECT().GetByID(mock.Anything, "user-deleted").Return(user.User{}, errors.New("user not found"))
+		userSvc.EXPECT().GetByID(mock.Anything, "user-deleted").Return(user.User{}, user.ErrNotExist)
 
 		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
 		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
@@ -1259,6 +1283,35 @@ func TestService_Create_PATActorEnrichment(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, auditrecord.ErrActorNotFound)
+	})
+
+	t.Run("PAT found but user lookup DB error passes through", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-user-db-err").Return(patModels.PAT{
+			ID:     "pat-user-db-err",
+			UserID: "user-db-err",
+			Title:  "Token",
+		}, nil)
+
+		dbErr := errors.New("database timeout")
+		userSvc.EXPECT().GetByID(mock.Anything, "user-db-err").Return(user.User{}, dbErr)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:   "pat-user-db-err",
+				Type: schema.PATPrincipal,
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, dbErr)
+		assert.NotErrorIs(t, err, auditrecord.ErrActorNotFound)
 	})
 }
 

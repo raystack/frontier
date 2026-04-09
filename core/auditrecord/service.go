@@ -13,6 +13,7 @@ import (
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	patModels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/auditrecord"
@@ -136,14 +137,20 @@ func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRec
 	case auditRecord.Actor.Type == schema.PATPrincipal:
 		pat, err := s.userPATService.GetByID(ctx, auditRecord.Actor.ID)
 		if err != nil {
-			return AuditRecord{}, false, ErrActorNotFound
+			if errors.Is(err, paterrors.ErrNotFound) {
+				return AuditRecord{}, false, ErrActorNotFound
+			}
+			return AuditRecord{}, false, err
 		}
 		auditRecord.Actor.Name = pat.Title
 		auditRecord.Actor.Title = pat.Title
 
 		user, err := s.userService.GetByID(ctx, pat.UserID)
 		if err != nil {
-			return AuditRecord{}, false, ErrActorNotFound
+			if errors.Is(err, userpkg.ErrNotExist) {
+				return AuditRecord{}, false, ErrActorNotFound
+			}
+			return AuditRecord{}, false, err
 		}
 		if auditRecord.Actor.Metadata == nil {
 			auditRecord.Actor.Metadata = make(map[string]any)
