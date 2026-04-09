@@ -29,15 +29,13 @@ export interface DeleteTeamDialogProps {
 
 export function DeleteTeamDialog({ handle, refetch }: DeleteTeamDialogProps) {
   const { activeOrganization: organization } = useFrontier();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const { mutateAsync: deleteTeam } = useMutation(
+  const { mutateAsync: deleteTeam, isPending } = useMutation(
     FrontierServiceQueries.deleteGroup
   );
 
   const handleDelete = async (teamId: string) => {
     if (!organization?.id || !teamId) return;
-    setIsLoading(true);
     try {
       await deleteTeam(
         create(DeleteGroupRequestSchema, {
@@ -55,10 +53,8 @@ export function DeleteTeamDialog({ handle, refetch }: DeleteTeamDialogProps) {
           error instanceof Error ? error.message : 'Failed to delete team',
         type: 'error'
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }
 
   return (
     <AlertDialog handle={handle}>
@@ -82,7 +78,7 @@ export function DeleteTeamDialog({ handle, refetch }: DeleteTeamDialogProps) {
                   variant="outline"
                   color="neutral"
                   onClick={() => handle.close()}
-                  disabled={isLoading}
+                  disabled={isPending}
                   data-test-id="frontier-sdk-cancel-delete-team-btn"
                 >
                   Cancel
@@ -93,8 +89,8 @@ export function DeleteTeamDialog({ handle, refetch }: DeleteTeamDialogProps) {
                   onClick={() =>
                     payload && handleDelete(payload.teamId)
                   }
-                  disabled={isLoading}
-                  loading={isLoading}
+                  disabled={isPending}
+                  loading={isPending}
                   loaderText="Deleting..."
                   data-test-id="frontier-sdk-delete-team-btn"
                 >

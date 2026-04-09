@@ -19,8 +19,8 @@ import {
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../../contexts/FrontierContext';
-import { AuthTooltipMessage } from '../../../utils';
-import { filterUsersfromUsers, getInitials } from '../../../../utils';
+import { AuthTooltipMessage } from '~/react/utils';
+import { filterUsersfromUsers, getInitials } from '~/utils';
 import styles from '../team-details-view.module.css';
 
 interface AddMemberMenuProps {

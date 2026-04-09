@@ -13,6 +13,7 @@ import type { Group } from '@raystack/proton/frontier';
 export interface TeamMenuPayload {
   teamId: string;
   title: string;
+  name: string;
   canUpdate: boolean;
   canDelete: boolean;
 }
@@ -36,7 +37,7 @@ export function getColumns({
     },
     {
       header: 'Members',
-      accessorKey: 'members_count',
+      accessorKey: 'membersCount',
       enableSorting: false,
       cell: ({ getValue }) => {
         const value = getValue() as number;
@@ -56,7 +57,7 @@ export function getColumns({
       },
       cell: ({ row }) => {
         const team = row.original as Group;
-        const access = userAccessOnTeam[team.id!] ?? [];
+        const access = userAccessOnTeam[team.id] ?? [];
         const canUpdate = access.includes('update');
         const canDelete = access.includes('delete');
 
@@ -69,6 +70,7 @@ export function getColumns({
               payload={{
                 teamId: team.id || '',
                 title: team.title || '',
+                name: team.name || '',
                 canUpdate,
                 canDelete
               }}
