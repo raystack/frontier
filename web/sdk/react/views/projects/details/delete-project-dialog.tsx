@@ -26,6 +26,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import orgStyles from '../../../components/organization/organization.module.css';
+import { handleConnectError } from '~/utils/error';
 
 const projectSchema = yup
     .object({
@@ -93,9 +94,7 @@ export const DeleteProjectDialog = ({
                 toast.success('Project deleted');
                 onDeleteSuccess?.();
                 handleOpenChange(false);
-            },
-            onError: (err: Error) =>
-                toast.error('Something went wrong', { description: err.message })
+            }
         }
     );
 
@@ -103,7 +102,15 @@ export const DeleteProjectDialog = ({
         if (!organization?.id || !projectId) return;
         if (data.title !== project?.title)
             return setError('title', { message: 'Project title does not match' });
-        await deleteProject(create(DeleteProjectRequestSchema, { id: projectId }));
+        try {
+            await deleteProject(create(DeleteProjectRequestSchema, { id: projectId }));
+        } catch (error) {
+            handleConnectError(error, {
+                PermissionDenied: () => toast.error('You don\'t have permission to perform this action'),
+                NotFound: (err) => toast.error('Not found', { description: err.message }),
+                Default: (err) => toast.error('Something went wrong', { description: err.message }),
+            });
+        }
     }
 
     const title = watch('title', '');

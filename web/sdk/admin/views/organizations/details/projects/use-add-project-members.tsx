@@ -5,6 +5,7 @@ import { DEFAULT_ROLES } from "../../../../utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, ListProjectUsersRequestSchema, CreatePolicyRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface useAddProjectMembersProps {
@@ -70,8 +71,12 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
         await refetch();
         return projectMembers;
       } catch (error: unknown) {
-        console.error(error);
-        toast.error("Something went wrong");
+        handleConnectError(error, {
+          AlreadyExists: () => toast.error(`${memberLabel} already exists in this project`),
+          PermissionDenied: () => toast.error("You don't have permission to perform this action"),
+          InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
+          Default: (err) => toast.error('Something went wrong', { description: err.message }),
+        });
       }
     },
     [projectId, createPolicy, refetch, projectMembers, memberLabel],

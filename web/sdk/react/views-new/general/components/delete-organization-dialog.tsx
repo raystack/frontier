@@ -20,6 +20,7 @@ import {
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
 import styles from './delete-organization-dialog.module.css';
+import { handleConnectError } from '~/utils/error';
 
 const deleteOrgSchema = yup
   .object({
@@ -79,14 +80,11 @@ export const DeleteOrganizationDialog = ({
         type: 'success'
       });
       onDeleteSuccess?.();
-    } catch (error: unknown) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error
-            ? error.message
-            : `Failed to delete ${orgLabel}`,
-        type: 'error'
+    } catch (error) {
+      handleConnectError(error, {
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     }
   }

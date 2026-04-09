@@ -20,6 +20,7 @@ import {
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
+import { handleConnectError } from '~/utils/error';
 
 const domainSchema = yup
   .object({
@@ -75,13 +76,6 @@ export function AddDomainDialog({
           });
         }
         onDomainAdded(data?.domain?.id ?? '');
-      },
-      onError: (error: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: error.message,
-          type: 'error'
-        });
       }
     }
   );
@@ -89,12 +83,21 @@ export function AddDomainDialog({
   async function onSubmit(data: FormData) {
     if (!organization?.id) return;
 
-    await createOrganizationDomain(
-      create(CreateOrganizationDomainRequestSchema, {
-        orgId: organization.id,
-        domain: data.domain
-      })
-    );
+    try {
+      await createOrganizationDomain(
+        create(CreateOrganizationDomainRequestSchema, {
+          orgId: organization.id,
+          domain: data.domain
+        })
+      );
+    } catch (error) {
+      handleConnectError(error, {
+        AlreadyExists: () => toastManager.add({ title: 'Domain already exists', type: 'error' }),
+        InvalidArgument: (err) => toastManager.add({ title: 'Invalid input', description: err.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
+      });
+    }
   }
 
   const handleOpenChange = (open: boolean) => {
