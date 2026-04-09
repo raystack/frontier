@@ -488,7 +488,12 @@ func TestService_SetMemberRole(t *testing.T) {
 		{
 			name: "should succeed when changing role with multiple owners",
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, auditRepo *mocks.AuditRecordRepository) {
-				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil).Times(2)
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{
+					ID:    orgID,
+					Name:  "test-org",
+					Title: "Test Organization",
+					State: organization.Enabled,
+				}, nil).Times(2)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{
 					ID:    userID,
 					Title: "test-user",
@@ -528,6 +533,7 @@ func TestService_SetMemberRole(t *testing.T) {
 					}
 					return ar.Event == pkgAuditRecord.OrganizationMemberRoleChangedEvent &&
 						ar.Resource.ID == orgID &&
+						ar.Resource.Name == "Test Organization" &&
 						ar.Target.ID == userID &&
 						ar.Target.Metadata["email"] == "test-user@acme.dev" &&
 						ar.Target.Metadata["role_id"] == memberRoleID &&
@@ -542,7 +548,12 @@ func TestService_SetMemberRole(t *testing.T) {
 		{
 			name: "should succeed when promoting to owner",
 			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, roleSvc *mocks.RoleService, policySvc *mocks.PolicyService, auditRepo *mocks.AuditRecordRepository) {
-				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{ID: orgID, State: organization.Enabled}, nil).Times(2)
+				repo.EXPECT().GetByID(ctx, orgID).Return(organization.Organization{
+					ID:    orgID,
+					Name:  "test-org",
+					Title: "Test Organization",
+					State: organization.Enabled,
+				}, nil).Times(2)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{
 					ID:    userID,
 					Title: "test-user",
@@ -575,6 +586,7 @@ func TestService_SetMemberRole(t *testing.T) {
 					}
 					return ar.Event == pkgAuditRecord.OrganizationMemberRoleChangedEvent &&
 						ar.Resource.ID == orgID &&
+						ar.Resource.Name == "Test Organization" &&
 						ar.Target.ID == userID &&
 						ar.Target.Metadata["email"] == "test-user@acme.dev" &&
 						ar.Target.Metadata["role_id"] == ownerRoleID &&

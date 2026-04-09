@@ -427,9 +427,11 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 		return auditErr
 	}
 
-	audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberRoleSetEvent, audit.Target{
+	audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
 		ID:   userID,
 		Type: schema.UserPrincipal,
+	}, map[string]string{
+		"role_id": newRoleID,
 	})
 
 	return nil
