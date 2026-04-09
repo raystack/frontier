@@ -64,107 +64,138 @@ func NewService(repository Repository, userService UserService, serviceUserServi
 }
 
 func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRecord, bool, error) {
-	// Check for idempotency key conflicts
 	if auditRecord.IdempotencyKey != "" {
-		existingRecord, err := s.repository.GetByIdempotencyKey(ctx, auditRecord.IdempotencyKey)
-		if err == nil {
-			existingHash := computeHash(existingRecord)
-			newHash := computeHash(auditRecord)
-
-			if existingHash == newHash {
-				// Same request - return existing (idempotent success)
-				// Return true to indicate this was an idempotency replay
-				return existingRecord, true, nil
-			} else {
-				// Different request with same key - conflict
-				return AuditRecord{}, false, ErrIdempotencyKeyConflict
-			}
-		} else if !errors.Is(err, ErrNotFound) {
+		existingRecord, isReplay, err := s.checkIdempotency(ctx, auditRecord)
+		if err != nil {
 			return AuditRecord{}, false, err
 		}
-		// If err is ErrNotFound, proceed to create the record
+		if isReplay {
+			return existingRecord, true, nil
+		}
 	}
 
-	// enrich actor info
-	switch {
-	case auditRecord.Actor.ID == uuid.Nil.String():
-		auditRecord.Actor.Type = auditrecord.SystemActor
-		auditRecord.Actor.Name = auditrecord.SystemActor
-
-	case auditRecord.Actor.Type == schema.UserPrincipal:
-		actorUUID, err := uuid.Parse(auditRecord.Actor.ID)
-		if err != nil {
-			return AuditRecord{}, false, ErrActorNotFound
-		}
-		session, err := s.sessionService.Get(ctx, actorUUID)
-		if err != nil {
-			if errors.Is(err, frontiersession.ErrNoSession) {
-				return AuditRecord{}, false, ErrActorNotFound
-			}
-			return AuditRecord{}, false, err
-		}
-		user, err := s.userService.GetByID(ctx, session.UserID)
-		if err != nil {
-			if errors.Is(err, userpkg.ErrNoUsersFound) {
-				return AuditRecord{}, false, ErrActorNotFound
-			}
-			return AuditRecord{}, false, err
-		}
-		auditRecord.Actor.Name = user.Name
-		auditRecord.Actor.Title = user.Title
-
-		if auditRecord.Actor.Metadata == nil {
-			auditRecord.Actor.Metadata = make(map[string]any)
-		}
-
-		// enrich with session metadata
-		auditRecord.Actor.Metadata[consts.AuditSessionMetadataKey] = session.Metadata
-
-		// check if the user is a superuser
-		if isSudo, err := s.userService.IsSudo(ctx, user.ID, schema.PlatformSudoPermission); err != nil {
-			return AuditRecord{}, false, err
-		} else if isSudo {
-			auditRecord.Actor.Metadata[consts.AuditActorSuperUserKey] = true
-		}
-
-	case auditRecord.Actor.Type == schema.ServiceUserPrincipal:
-		serviceUser, err := s.serviceUser.Get(ctx, auditRecord.Actor.ID)
-		if err != nil {
-			return AuditRecord{}, false, err
-		}
-		auditRecord.Actor.Title = serviceUser.Title
-
-	case auditRecord.Actor.Type == schema.PATPrincipal:
-		pat, err := s.userPATService.GetByID(ctx, auditRecord.Actor.ID)
-		if err != nil {
-			if errors.Is(err, paterrors.ErrNotFound) {
-				return AuditRecord{}, false, ErrActorNotFound
-			}
-			return AuditRecord{}, false, err
-		}
-		auditRecord.Actor.Name = pat.Title
-		auditRecord.Actor.Title = pat.Title
-
-		user, err := s.userService.GetByID(ctx, pat.UserID)
-		if err != nil {
-			if errors.Is(err, userpkg.ErrNotExist) {
-				return AuditRecord{}, false, ErrActorNotFound
-			}
-			return AuditRecord{}, false, err
-		}
-		if auditRecord.Actor.Metadata == nil {
-			auditRecord.Actor.Metadata = make(map[string]any)
-		}
-		auditRecord.Actor.Metadata["user"] = map[string]any{
-			"id":    user.ID,
-			"name":  user.Name,
-			"title": user.Title,
-			"email": user.Email,
-		}
+	enrichedActor, err := s.enrichActor(ctx, auditRecord.Actor)
+	if err != nil {
+		return AuditRecord{}, false, err
 	}
+	auditRecord.Actor = enrichedActor
 
 	createdRecord, err := s.repository.Create(ctx, auditRecord)
 	return createdRecord, false, err
+}
+
+// checkIdempotency returns (existingRecord, true, nil) if this is a replay of a previous request,
+// or (empty, false, nil) if no duplicate exists and creation should proceed.
+func (s *Service) checkIdempotency(ctx context.Context, auditRecord AuditRecord) (AuditRecord, bool, error) {
+	existingRecord, err := s.repository.GetByIdempotencyKey(ctx, auditRecord.IdempotencyKey)
+	if errors.Is(err, ErrNotFound) {
+		return AuditRecord{}, false, nil
+	}
+	if err != nil {
+		return AuditRecord{}, false, err
+	}
+	if computeHash(existingRecord) == computeHash(auditRecord) {
+		return existingRecord, true, nil
+	}
+	return AuditRecord{}, false, ErrIdempotencyKeyConflict
+}
+
+func (s *Service) enrichActor(ctx context.Context, actor Actor) (Actor, error) {
+	switch {
+	case actor.ID == uuid.Nil.String():
+		return s.enrichSystemActor(actor), nil
+	case actor.Type == schema.UserPrincipal:
+		return s.enrichUserActor(ctx, actor)
+	case actor.Type == schema.ServiceUserPrincipal:
+		return s.enrichServiceUserActor(ctx, actor)
+	case actor.Type == schema.PATPrincipal:
+		return s.enrichPATActor(ctx, actor)
+	default:
+		return actor, nil
+	}
+}
+
+func (s *Service) enrichSystemActor(actor Actor) Actor {
+	actor.Type = auditrecord.SystemActor
+	actor.Name = auditrecord.SystemActor
+	return actor
+}
+
+func (s *Service) enrichUserActor(ctx context.Context, actor Actor) (Actor, error) {
+	sessionUUID, err := uuid.Parse(actor.ID)
+	if err != nil {
+		return Actor{}, ErrActorNotFound
+	}
+	session, err := s.sessionService.Get(ctx, sessionUUID)
+	if err != nil {
+		if errors.Is(err, frontiersession.ErrNoSession) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	user, err := s.userService.GetByID(ctx, session.UserID)
+	if err != nil {
+		if errors.Is(err, userpkg.ErrNoUsersFound) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	actor.Name = user.Name
+	actor.Title = user.Title
+
+	if actor.Metadata == nil {
+		actor.Metadata = make(map[string]any)
+	}
+	actor.Metadata[consts.AuditSessionMetadataKey] = session.Metadata
+
+	isSudo, err := s.userService.IsSudo(ctx, user.ID, schema.PlatformSudoPermission)
+	if err != nil {
+		return Actor{}, err
+	}
+	if isSudo {
+		actor.Metadata[consts.AuditActorSuperUserKey] = true
+	}
+
+	return actor, nil
+}
+
+func (s *Service) enrichServiceUserActor(ctx context.Context, actor Actor) (Actor, error) {
+	serviceUser, err := s.serviceUser.Get(ctx, actor.ID)
+	if err != nil {
+		return Actor{}, err
+	}
+	actor.Title = serviceUser.Title
+	return actor, nil
+}
+
+func (s *Service) enrichPATActor(ctx context.Context, actor Actor) (Actor, error) {
+	pat, err := s.userPATService.GetByID(ctx, actor.ID)
+	if err != nil {
+		if errors.Is(err, paterrors.ErrNotFound) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	actor.Name = pat.Title
+	actor.Title = pat.Title
+
+	user, err := s.userService.GetByID(ctx, pat.UserID)
+	if err != nil {
+		if errors.Is(err, userpkg.ErrNotExist) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	if actor.Metadata == nil {
+		actor.Metadata = make(map[string]any)
+	}
+	actor.Metadata["user"] = map[string]any{
+		"id":    user.ID,
+		"name":  user.Name,
+		"title": user.Title,
+		"email": user.Email,
+	}
+	return actor, nil
 }
 
 func (s *Service) List(ctx context.Context, query *rql.Query) (AuditRecordsList, error) {
