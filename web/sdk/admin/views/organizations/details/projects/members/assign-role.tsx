@@ -1,9 +1,9 @@
 import {
   Button,
+  Checkbox,
   Dialog,
   Flex,
   Label,
-  Radio,
   Text,
   toast,
 } from "@raystack/apsara";
@@ -106,17 +106,20 @@ export const AssignRole = ({
                 Taking this action may result in changes in the role which might
                 lead to changes in access of the user.
               </Text>
-              <div role="radiogroup" aria-labelledby="roles-group">
+              <div role="group" aria-labelledby="roles-group">
                 <Flex direction="column" gap={4}>
                   {roles.map((role) => {
                     const htmlId = `role-${role.id}`;
+                    const checked = selectedRoleId === role.id;
                     return (
                       <Flex gap={3} key={role.id}>
-                        <Radio
+                        <Checkbox
                           id={htmlId}
-                          data-test-id={`role-radio-${role.id}`}
-                          checked={selectedRoleId === role.id}
-                          onCheckedChange={() => setValue("roleId", role.id || "")}
+                          data-test-id={`role-checkbox-${role.id}`}
+                          checked={checked}
+                          onCheckedChange={() =>
+                            setValue("roleId", role.id || "")
+                          }
                         />
                         <Label htmlFor={htmlId}>{role.title}</Label>
                       </Flex>
