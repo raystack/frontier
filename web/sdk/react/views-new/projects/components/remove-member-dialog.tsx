@@ -16,6 +16,7 @@ import {
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { useQuery } from '@connectrpc/connect-query';
+import { handleConnectError } from '~/utils/error';
 
 export interface RemoveMemberPayload {
   memberId: string;
@@ -95,11 +96,10 @@ function RemoveMemberForm({
       refetch();
       handle.close();
     } catch (error) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error ? error.message : 'Failed to remove member',
-        type: 'error'
+      handleConnectError(error, {
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     } finally {
       setIsLoading(false);

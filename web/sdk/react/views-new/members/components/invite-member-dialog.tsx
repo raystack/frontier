@@ -26,6 +26,7 @@ import {
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { PERMISSIONS } from '../../../../utils';
+import { handleConnectError } from '~/utils/error';
 
 const inviteSchema = yup.object({
   type: yup.string().required(),
@@ -109,13 +110,6 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
       onSuccess: () => {
         toastManager.add({ title: 'User(s) invited', type: 'success' });
         handle.close();
-      },
-      onError: (error: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: error?.message || 'Failed to create invitation',
-          type: 'error'
-        });
       }
     }
   );
@@ -141,14 +135,12 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
           roleIds: [type]
         });
         await createInvitation(req);
-      } catch (error: unknown) {
-        toastManager.add({
-          title: 'Something went wrong',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Failed to create invitation',
-          type: 'error'
+      } catch (error) {
+        handleConnectError(error, {
+          AlreadyExists: () => toastManager.add({ title: 'Invitation already exists', type: 'error' }),
+          InvalidArgument: (err) => toastManager.add({ title: 'Invalid input', description: err.message, type: 'error' }),
+          PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+          Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
         });
       }
     },

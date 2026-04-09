@@ -343,8 +343,9 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 		}
 	}
 
+	subjectID, _ := principal.ResolveSubject()
 	updatedUser, err := h.userService.Update(ctx, user.User{
-		ID:       principal.ID,
+		ID:       subjectID,
 		Title:    request.Msg.GetBody().GetTitle(),
 		Avatar:   request.Msg.GetBody().GetAvatar(),
 		Name:     request.Msg.GetBody().GetName(),
