@@ -206,9 +206,6 @@ const (
 	// FrontierServiceSetOrganizationMemberRoleProcedure is the fully-qualified name of the
 	// FrontierService's SetOrganizationMemberRole RPC.
 	FrontierServiceSetOrganizationMemberRoleProcedure = "/raystack.frontier.v1beta1.FrontierService/SetOrganizationMemberRole"
-	// FrontierServiceAddOrganizationMembersProcedure is the fully-qualified name of the
-	// FrontierService's AddOrganizationMembers RPC.
-	FrontierServiceAddOrganizationMembersProcedure = "/raystack.frontier.v1beta1.FrontierService/AddOrganizationMembers"
 	// FrontierServiceGetOrganizationKycProcedure is the fully-qualified name of the FrontierService's
 	// GetOrganizationKyc RPC.
 	FrontierServiceGetOrganizationKycProcedure = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationKyc"
@@ -637,7 +634,6 @@ type FrontierServiceClient interface {
 	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
 	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
 	SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error)
-	AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error)
 	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
@@ -1144,12 +1140,6 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceSetOrganizationMemberRoleProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("SetOrganizationMemberRole")),
-			connect.WithClientOptions(opts...),
-		),
-		addOrganizationMembers: connect.NewClient[v1beta1.AddOrganizationMembersRequest, v1beta1.AddOrganizationMembersResponse](
-			httpClient,
-			baseURL+FrontierServiceAddOrganizationMembersProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("AddOrganizationMembers")),
 			connect.WithClientOptions(opts...),
 		),
 		getOrganizationKyc: connect.NewClient[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse](
@@ -1941,7 +1931,6 @@ type frontierServiceClient struct {
 	addOrganizationUsers           *connect.Client[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse]
 	removeOrganizationUser         *connect.Client[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse]
 	setOrganizationMemberRole      *connect.Client[v1beta1.SetOrganizationMemberRoleRequest, v1beta1.SetOrganizationMemberRoleResponse]
-	addOrganizationMembers         *connect.Client[v1beta1.AddOrganizationMembersRequest, v1beta1.AddOrganizationMembersResponse]
 	getOrganizationKyc             *connect.Client[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse]
 	listOrganizationServiceUsers   *connect.Client[v1beta1.ListOrganizationServiceUsersRequest, v1beta1.ListOrganizationServiceUsersResponse]
 	listOrganizationInvitations    *connect.Client[v1beta1.ListOrganizationInvitationsRequest, v1beta1.ListOrganizationInvitationsResponse]
@@ -2361,11 +2350,6 @@ func (c *frontierServiceClient) RemoveOrganizationUser(ctx context.Context, req 
 // raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole.
 func (c *frontierServiceClient) SetOrganizationMemberRole(ctx context.Context, req *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error) {
 	return c.setOrganizationMemberRole.CallUnary(ctx, req)
-}
-
-// AddOrganizationMembers calls raystack.frontier.v1beta1.FrontierService.AddOrganizationMembers.
-func (c *frontierServiceClient) AddOrganizationMembers(ctx context.Context, req *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error) {
-	return c.addOrganizationMembers.CallUnary(ctx, req)
 }
 
 // GetOrganizationKyc calls raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc.
@@ -3056,7 +3040,6 @@ type FrontierServiceHandler interface {
 	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
 	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
 	SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error)
-	AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error)
 	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
@@ -3559,12 +3542,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceSetOrganizationMemberRoleProcedure,
 		svc.SetOrganizationMemberRole,
 		connect.WithSchema(frontierServiceMethods.ByName("SetOrganizationMemberRole")),
-		connect.WithHandlerOptions(opts...),
-	)
-	frontierServiceAddOrganizationMembersHandler := connect.NewUnaryHandler(
-		FrontierServiceAddOrganizationMembersProcedure,
-		svc.AddOrganizationMembers,
-		connect.WithSchema(frontierServiceMethods.ByName("AddOrganizationMembers")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceGetOrganizationKycHandler := connect.NewUnaryHandler(
@@ -4411,8 +4388,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceRemoveOrganizationUserHandler.ServeHTTP(w, r)
 		case FrontierServiceSetOrganizationMemberRoleProcedure:
 			frontierServiceSetOrganizationMemberRoleHandler.ServeHTTP(w, r)
-		case FrontierServiceAddOrganizationMembersProcedure:
-			frontierServiceAddOrganizationMembersHandler.ServeHTTP(w, r)
 		case FrontierServiceGetOrganizationKycProcedure:
 			frontierServiceGetOrganizationKycHandler.ServeHTTP(w, r)
 		case FrontierServiceListOrganizationServiceUsersProcedure:
@@ -4894,10 +4869,6 @@ func (UnimplementedFrontierServiceHandler) RemoveOrganizationUser(context.Contex
 
 func (UnimplementedFrontierServiceHandler) SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole is not implemented"))
-}
-
-func (UnimplementedFrontierServiceHandler) AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AddOrganizationMembers is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error) {
