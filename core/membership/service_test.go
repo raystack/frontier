@@ -2,6 +2,7 @@ package membership_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -26,12 +27,13 @@ func TestService_AddOrganizationMember(t *testing.T) {
 	viewerRoleID := uuid.New().String()
 
 	tests := []struct {
-		name    string
-		setup   func(*mocks.PolicyService, *mocks.RelationService, *mocks.RoleService, *mocks.OrgService, *mocks.UserService, *mocks.AuditRecordRepository)
-		orgID   string
-		userID  string
-		roleID  string
-		wantErr error
+		name           string
+		setup          func(*mocks.PolicyService, *mocks.RelationService, *mocks.RoleService, *mocks.OrgService, *mocks.UserService, *mocks.AuditRecordRepository)
+		orgID          string
+		userID         string
+		roleID         string
+		wantErr        error
+		wantErrContain string
 	}{
 		{
 			name: "should return error if org does not exist",
@@ -259,6 +261,88 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			roleID:  viewerRoleID,
 			wantErr: nil,
 		},
+		{
+			name: "should return error if listing existing policies fails",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID}, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{
+					ID:     viewerRoleID,
+					Scopes: []string{schema.OrganizationNamespace},
+				}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return(nil, errors.New("db connection error"))
+			},
+			orgID:          orgID,
+			userID:         userID,
+			roleID:         viewerRoleID,
+			wantErrContain: "db connection error",
+		},
+		{
+			name: "should return error if policy creation fails",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID}, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{
+					ID:     viewerRoleID,
+					Scopes: []string{schema.OrganizationNamespace},
+				}, nil)
+				// not already a member
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{}, nil)
+				// replacePolicy: list existing
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{}, nil)
+				// policy creation fails
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, errors.New("policy create failed"))
+			},
+			orgID:          orgID,
+			userID:         userID,
+			roleID:         viewerRoleID,
+			wantErrContain: "policy create failed",
+		},
+		{
+			name: "should return error if relation creation fails",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID}, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{
+					ID:     viewerRoleID,
+					Scopes: []string{schema.OrganizationNamespace},
+				}, nil)
+				// not already a member
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{}, nil)
+				// replacePolicy succeeds
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+				// orgRoleToRelation
+				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{
+					ID: ownerRoleID,
+				}, nil)
+				// replaceRelation: deletes succeed
+				relSvc.EXPECT().Delete(ctx, mock.Anything).Return(nil).Times(2)
+				// relation creation fails
+				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, errors.New("spicedb unavailable"))
+			},
+			orgID:          orgID,
+			userID:         userID,
+			roleID:         viewerRoleID,
+			wantErrContain: "spicedb unavailable",
+		},
 	}
 
 	for _, tt := range tests {
@@ -280,6 +364,8 @@ func TestService_AddOrganizationMember(t *testing.T) {
 
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
+			} else if tt.wantErrContain != "" {
+				assert.ErrorContains(t, err, tt.wantErrContain)
 			} else {
 				assert.NoError(t, err)
 			}
