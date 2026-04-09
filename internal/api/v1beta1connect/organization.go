@@ -569,6 +569,30 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 	return connect.NewResponse(&frontierv1beta1.SetOrganizationMemberRoleResponse{}), nil
 }
 
+func (h *ConnectHandler) AddOrganizationMembers(ctx context.Context, request *connect.Request[frontierv1beta1.AddOrganizationMembersRequest]) (*connect.Response[frontierv1beta1.AddOrganizationMembersResponse], error) {
+	orgID := request.Msg.GetOrgId()
+
+	var results []*frontierv1beta1.OrgMemberResult
+	for _, member := range request.Msg.GetMembers() {
+		result := &frontierv1beta1.OrgMemberResult{
+			UserId: member.GetUserId(),
+		}
+
+		if err := h.membershipService.AddOrganizationMember(ctx, orgID, member.GetUserId(), schema.UserPrincipal, member.GetRoleId()); err != nil {
+			result.Success = false
+			result.Error = err.Error()
+		} else {
+			result.Success = true
+		}
+
+		results = append(results, result)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.AddOrganizationMembersResponse{
+		Results: results,
+	}), nil
+}
+
 func (h *ConnectHandler) EnableOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.EnableOrganizationRequest]) (*connect.Response[frontierv1beta1.EnableOrganizationResponse], error) {
 	errorLogger := NewErrorLogger()
 

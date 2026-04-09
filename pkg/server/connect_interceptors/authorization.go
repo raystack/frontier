@@ -365,6 +365,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.PolicyManagePermission, req)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/AddOrganizationMembers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.AddOrganizationMembersRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.UpdatePermission, req)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.ListOrganizationInvitationsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.InvitationListPermission, req)
