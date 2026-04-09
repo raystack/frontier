@@ -1,14 +1,13 @@
 import {
   Button,
-  Checkbox,
   Dialog,
   Flex,
   Label,
+  Radio,
   Text,
   toast,
 } from "@raystack/apsara";
 import styles from "./members.module.css";
-import { useCallback } from "react";
 import type {
   SearchProjectUsersResponse_ProjectUser,
   Role,
@@ -32,9 +31,7 @@ interface AssignRoleProps {
 }
 
 const formSchema = z.object({
-  roleIds: z.instanceof(Set<string>).refine((set) => set.size > 0, {
-    message: "At least one role must be selected",
-  }),
+  roleId: z.string().min(1, "A role must be selected"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -46,6 +43,8 @@ export const AssignRole = ({
   onRoleUpdate,
   onClose,
 }: AssignRoleProps) => {
+  const currentRoleId = user?.roleIds?.[0] || "";
+
   const {
     handleSubmit,
     watch,
@@ -53,7 +52,7 @@ export const AssignRole = ({
     formState: { isSubmitting, errors },
   } = useForm<FormData>({
     defaultValues: {
-      roleIds: new Set(user?.roleIds || []),
+      roleId: currentRoleId,
     },
     resolver: zodResolver(formSchema),
   });
@@ -62,48 +61,23 @@ export const AssignRole = ({
     FrontierServiceQueries.setProjectMemberRole,
   );
 
-  const roleIds = watch("roleIds");
-
-  function onCheckedChange(value: boolean | string, roleId?: string) {
-    if (!roleId) return;
-    const currentRoles = new Set(roleIds);
-
-    if (value) {
-      currentRoles.add(roleId);
-    } else {
-      currentRoles.delete(roleId);
-    }
-
-    setValue("roleIds", currentRoles);
-  }
-
-  const checkRole = useCallback(
-    (roleId?: string) => {
-      if (!roleId) return false;
-      return roleIds?.has(roleId) || false;
-    },
-    [roleIds],
-  );
+  const selectedRoleId = watch("roleId");
 
   const onSubmit = async (data: FormData) => {
     try {
-      const assignedRolesArr = Array.from(data.roleIds);
-
-      for (const roleId of assignedRolesArr) {
-        await setProjectMemberRole(
-          create(SetProjectMemberRoleRequestSchema, {
-            projectId,
-            principalId: user?.id || "",
-            principalType: "app/user",
-            roleId,
-          }),
-        );
-      }
+      await setProjectMemberRole(
+        create(SetProjectMemberRoleRequestSchema, {
+          projectId,
+          principalId: user?.id || "",
+          principalType: "app/user",
+          roleId: data.roleId,
+        }),
+      );
 
       if (onRoleUpdate) {
         onRoleUpdate({
           ...user,
-          roleIds: assignedRolesArr,
+          roleIds: [data.roleId],
         } as SearchProjectUsersResponse_ProjectUser);
       }
 
@@ -132,27 +106,24 @@ export const AssignRole = ({
                 Taking this action may result in changes in the role which might
                 lead to changes in access of the user.
               </Text>
-              <div role="group" aria-labelledby="roles-group">
+              <div role="radiogroup" aria-labelledby="roles-group">
                 <Flex direction="column" gap={4}>
                   {roles.map((role) => {
                     const htmlId = `role-${role.id}`;
-                    const checked = checkRole(role.id);
                     return (
                       <Flex gap={3} key={role.id}>
-                        <Checkbox
+                        <Radio
                           id={htmlId}
-                          data-test-id={`role-checkbox-${role.id}`}
-                          checked={checked}
-                          onCheckedChange={(value) =>
-                            onCheckedChange(value, role.id)
-                          }
+                          data-test-id={`role-radio-${role.id}`}
+                          checked={selectedRoleId === role.id}
+                          onCheckedChange={() => setValue("roleId", role.id || "")}
                         />
                         <Label htmlFor={htmlId}>{role.title}</Label>
                       </Flex>
                     );
                   })}
-                  {errors.roleIds && (
-                    <Text variant="danger">{errors.roleIds.message}</Text>
+                  {errors.roleId && (
+                    <Text variant="danger">{errors.roleId.message}</Text>
                   )}
                 </Flex>
               </div>
