@@ -104,7 +104,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
-	relationName := s.orgRoleToRelation(roleID)
+	relationName := s.orgRoleToRelation(ctx, roleID)
 	if err := s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
 		return err
 	}
@@ -134,9 +134,8 @@ func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) err
 
 // orgRoleToRelation maps an org role ID to the corresponding SpiceDB relation name.
 // Owner role gets "owner" relation, everything else gets "member" relation.
-func (s *Service) orgRoleToRelation(roleID string) string {
-	// We compare by name constant, not UUID, since the owner role has a well-known name
-	ownerRole, err := s.roleService.Get(context.Background(), schema.RoleOrganizationOwner)
+func (s *Service) orgRoleToRelation(ctx context.Context, roleID string) string {
+	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
 	if err != nil {
 		return schema.MemberRelationName
 	}
