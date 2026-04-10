@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react';
 import ReactCrop, {
   type Crop,
+  type PixelCrop,
+  type PercentCrop,
   centerCrop,
   makeAspectCrop
 } from 'react-image-crop';
@@ -107,7 +109,7 @@ function CropDialog({ open, onOpenChange, imgSrc, onSave }: CropDialogProps) {
             {imgSrc ? (
               <ReactCrop
                 crop={crop}
-                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                onChange={(_: PixelCrop, percentCrop: PercentCrop) => setCrop(percentCrop)}
                 aspect={1}
                 className={styles.reactCrop}
                 data-test-id="frontier-sdk-image-crop-preview"
