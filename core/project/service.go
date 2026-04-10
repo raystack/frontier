@@ -385,6 +385,11 @@ func (s Service) SetMemberRole(ctx context.Context, projectID, principalID, prin
 		return err
 	}
 
+	// skip if the principal already has exactly this role
+	if len(existingPolicies) == 1 && existingPolicies[0].RoleID == newRoleID {
+		return nil
+	}
+
 	for _, p := range existingPolicies {
 		if err := s.policyService.Delete(ctx, p.ID); err != nil {
 			return err
