@@ -182,39 +182,22 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 // replaceRelation deletes all existing explicit relations for the principal+resource
 // and creates a new one with the given relation name.
 // For org: deletes both "owner" and "member" relations, then creates the correct one.
-func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, relationName string) error {
-	// delete existing relations (both owner and member) for this principal
-	for _, rel := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
-		if err := s.relationService.Delete(ctx, relation.Relation{
-			Object: relation.Object{
-				ID:        resourceID,
-				Namespace: resourceType,
-			},
-			Subject: relation.Subject{
-				ID:        principalID,
-				Namespace: principalType,
-			},
-			RelationName: rel,
-		}); err != nil {
-			// relation may not exist, that's fine
-		}
+func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, newRelationName string) error {
+	obj := relation.Object{ID: resourceID, Namespace: resourceType}
+	sub := relation.Subject{ID: principalID, Namespace: principalType}
+
+	// clean up any existing membership relations for this principal
+	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
+		_ = s.relationService.Delete(ctx, relation.Relation{
+			Object: obj, Subject: sub, RelationName: name,
+		})
 	}
 
-	// create new relation
 	if _, err := s.relationService.Create(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        resourceID,
-			Namespace: resourceType,
-		},
-		Subject: relation.Subject{
-			ID:        principalID,
-			Namespace: principalType,
-		},
-		RelationName: relationName,
+		Object: obj, Subject: sub, RelationName: newRelationName,
 	}); err != nil {
 		return fmt.Errorf("create relation: %w", err)
 	}
-
 	return nil
 }
 
