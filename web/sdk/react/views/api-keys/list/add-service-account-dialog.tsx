@@ -303,7 +303,7 @@ export const AddServiceAccountDialog = ({
                 type="submit"
                 data-test-id="frontier-sdk-add-service-account-btn"
                 loading={isSubmitting}
-                disabled={isSubmitting || isProjectsLoading}
+                disabled={isSubmitting || isProjectsLoading || !ownerRoleId}
                 loaderText="Creating..."
               >
                 Create

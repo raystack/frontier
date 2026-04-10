@@ -16,6 +16,11 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { handleConnectError } from '~/utils/error';
 
+const PRINCIPAL_TYPES = {
+  USER: 'app/user',
+  GROUP: 'app/group',
+} as const;
+
 export interface RemoveMemberPayload {
   memberId: string;
   projectId: string;
@@ -79,7 +84,7 @@ function RemoveMemberForm({
         create(RemoveProjectMemberRequestSchema, {
           projectId: payload.projectId,
           principalId: payload.memberId,
-          principalType: payload.memberType === 'group' ? 'app/group' : 'app/user'
+          principalType: payload.memberType === 'group' ? PRINCIPAL_TYPES.GROUP : PRINCIPAL_TYPES.USER
         })
       );
       toastManager.add({ title: 'Member removed', type: 'success' });

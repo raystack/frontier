@@ -21,6 +21,7 @@ import { useMutation } from "@connectrpc/connect-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SCOPES } from "../../../../../utils/constants";
 
 interface AssignRoleProps {
   projectId: string;
@@ -49,7 +50,7 @@ export const AssignRole = ({
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting, errors, isDirty },
   } = useForm<FormData>({
     defaultValues: {
       roleId: currentRoleId,
@@ -69,7 +70,7 @@ export const AssignRole = ({
         create(SetProjectMemberRoleRequestSchema, {
           projectId,
           principalId: user?.id || "",
-          principalType: "app/user",
+          principalType: SCOPES.USER,
           roleId: data.roleId,
         }),
       );
@@ -118,7 +119,9 @@ export const AssignRole = ({
                           data-test-id={`role-checkbox-${role.id}`}
                           checked={checked}
                           onCheckedChange={() =>
-                            setValue("roleId", role.id || "")
+                            setValue("roleId", role.id || "", {
+                              shouldDirty: true,
+                            })
                           }
                         />
                         <Label htmlFor={htmlId}>{role.title}</Label>
@@ -145,6 +148,7 @@ export const AssignRole = ({
             </Dialog.Close>
             <Button
               type="submit"
+              disabled={!isDirty}
               data-test-id="assign-role-update-button"
               loading={isSubmitting}
               loaderText="Updating..."

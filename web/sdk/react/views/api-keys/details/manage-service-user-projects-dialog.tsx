@@ -185,7 +185,10 @@ export default function ManageServiceUserProjectsDialog({
         }));
 
         if (value) {
-          if (!ownerRoleId) throw new Error('Project owner role not found');
+          if (!ownerRoleId) {
+            toast.error('Project owner role not found');
+            return;
+          }
           await setProjectMemberRole(
             create(SetProjectMemberRoleRequestSchema, {
               projectId,

@@ -25,6 +25,11 @@ import {
     type Group
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+
+const PRINCIPAL_TYPES = {
+    USER: 'app/user',
+    GROUP: 'app/group',
+} as const;
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 
 import teamIcon from '~/react/assets/users.svg';
@@ -173,7 +178,7 @@ const MembersActions = ({
                 create(SetProjectMemberRoleRequestSchema, {
                     projectId: projectId,
                     principalId: member?.id as string,
-                    principalType: member.isTeam ? 'app/group' : 'app/user',
+                    principalType: member.isTeam ? PRINCIPAL_TYPES.GROUP : PRINCIPAL_TYPES.USER,
                     roleId: role.id as string
                 })
             );

@@ -17,6 +17,11 @@ import { create } from '@bufbuild/protobuf';
 import cross from '~/react/assets/cross.svg';
 import orgStyles from '../../../components/organization/organization.module.css';
 
+const PRINCIPAL_TYPES = {
+    USER: 'app/user',
+    GROUP: 'app/group',
+} as const;
+
 export interface RemoveProjectMemberDialogProps {
     open: boolean;
     onOpenChange?: (value: boolean) => void;
@@ -53,7 +58,7 @@ export const RemoveProjectMemberDialog = ({
                 create(RemoveProjectMemberRequestSchema, {
                     projectId: projectId,
                     principalId: memberId,
-                    principalType: memberType === 'group' ? 'app/group' : 'app/user'
+                    principalType: memberType === 'group' ? PRINCIPAL_TYPES.GROUP : PRINCIPAL_TYPES.USER
                 })
             );
             if (projectId) {

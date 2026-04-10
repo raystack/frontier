@@ -48,7 +48,7 @@ export const AssignRole = ({
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting, errors, isDirty },
   } = useForm<FormData>({
     defaultValues: {
       roleId: currentRoleId,
@@ -65,17 +65,12 @@ export const AssignRole = ({
   function onCheckedChange(value: boolean | string, roleId?: string) {
     if (!roleId) return;
     if (value) {
-      setValue("roleId", roleId);
+      setValue("roleId", roleId, { shouldDirty: true });
     }
   }
 
   const onSubmit = async (data: FormData) => {
     try {
-      if (data.roleId === currentRoleId) {
-        onClose();
-        return;
-      }
-
       await setMemberRole(
         create(SetOrganizationMemberRoleRequestSchema, {
           orgId: organizationId,
@@ -148,6 +143,7 @@ export const AssignRole = ({
             </Dialog.Close>
             <Button
               type="submit"
+              disabled={!isDirty}
               data-test-id="assign-role-update-button"
               loading={isSubmitting}
               loaderText="Updating..."

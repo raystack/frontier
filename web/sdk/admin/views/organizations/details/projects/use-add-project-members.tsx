@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { toast } from "@raystack/apsara";
-import { DEFAULT_ROLES } from "../../../../utils/constants";
+import { DEFAULT_ROLES, SCOPES } from "../../../../utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, ListProjectUsersRequestSchema, ListRolesRequestSchema, SetProjectMemberRoleRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
@@ -52,7 +52,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       state: "enabled",
-      scopes: ["app/project"],
+      scopes: [SCOPES.PROJECT],
     }),
     { enabled: !!projectId }
   );
@@ -74,7 +74,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
           create(SetProjectMemberRoleRequestSchema, {
             projectId,
             principalId: userId,
-            principalType: "app/user",
+            principalType: SCOPES.USER,
             roleId: viewerRoleId,
           }),
         );
