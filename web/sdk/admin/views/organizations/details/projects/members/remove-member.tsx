@@ -1,14 +1,11 @@
 import { useState } from "react";
 import {
-  FrontierService,
   FrontierServiceQueries,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema,
+  RemoveProjectMemberRequestSchema,
   type SearchProjectUsersResponse_ProjectUser,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { useMutation, useTransport } from "@connectrpc/connect-query";
-import { createClient } from "@connectrpc/connect";
+import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
 import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
@@ -29,30 +26,21 @@ export const RemoveMember = ({
 }: RemoveMemberProps) => {
   const t = useTerminology();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const transport = useTransport();
 
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy,
+  const { mutateAsync: removeProjectMember } = useMutation(
+    FrontierServiceQueries.removeProjectMember,
   );
 
   async function onSubmit() {
     try {
       if (!user) return;
       setIsSubmitting(true);
-      const client = createClient(FrontierService, transport);
-      const policiesResp = await client.listPolicies(
-        create(ListPoliciesRequestSchema, {
+      await removeProjectMember(
+        create(RemoveProjectMemberRequestSchema, {
           projectId: projectId,
-          userId: user?.id,
+          principalId: user.id,
+          principalType: "app/user",
         }),
-      );
-      const policies = policiesResp.policies || [];
-      await Promise.all(
-        policies.map((policy) =>
-          deletePolicy(
-            create(DeletePolicyRequestSchema, { id: policy.id || "" }),
-          ),
-        ),
       );
 
       if (onRemove) {

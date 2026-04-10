@@ -11,16 +11,20 @@ import { toastManager } from '@raystack/apsara-v1';
 import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema
+  RemoveProjectMemberRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import { useQuery } from '@connectrpc/connect-query';
 import { handleConnectError } from '~/utils/error';
+
+const PRINCIPAL_TYPES = {
+  USER: 'app/user',
+  GROUP: 'app/group',
+} as const;
 
 export interface RemoveMemberPayload {
   memberId: string;
   projectId: string;
+  memberType?: 'user' | 'group';
 }
 
 type AlertDialogHandle = ReturnType<
@@ -69,28 +73,19 @@ function RemoveMemberForm({
 }: RemoveMemberFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: policiesData } = useQuery(
-    FrontierServiceQueries.listPolicies,
-    create(ListPoliciesRequestSchema, {
-      projectId: payload.projectId,
-      userId: payload.memberId
-    }),
-    { enabled: !!payload.projectId && !!payload.memberId }
-  );
-
-  const policies = policiesData?.policies ?? [];
-
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
+  const { mutateAsync: removeProjectMember } = useMutation(
+    FrontierServiceQueries.removeProjectMember
   );
 
   async function handleRemove() {
     setIsLoading(true);
     try {
-      await Promise.all(
-        policies.map(p =>
-          deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' }))
-        )
+      await removeProjectMember(
+        create(RemoveProjectMemberRequestSchema, {
+          projectId: payload.projectId,
+          principalId: payload.memberId,
+          principalType: payload.memberType === 'group' ? PRINCIPAL_TYPES.GROUP : PRINCIPAL_TYPES.USER
+        })
       );
       toastManager.add({ title: 'Member removed', type: 'success' });
       refetch();

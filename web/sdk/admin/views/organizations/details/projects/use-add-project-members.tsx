@@ -1,9 +1,9 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { toast } from "@raystack/apsara";
-import { DEFAULT_ROLES } from "../../../../utils/constants";
+import { DEFAULT_ROLES, SCOPES } from "~/admin/utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
-import { FrontierServiceQueries, ListProjectUsersRequestSchema, CreatePolicyRequestSchema } from "@raystack/proton/frontier";
+import { FrontierServiceQueries, ListProjectUsersRequestSchema, ListRolesRequestSchema, SetProjectMemberRoleRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
@@ -48,23 +48,34 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
       : nonMembers;
   }, [nonMembers, searchQuery]);
 
-  const { mutateAsync: createPolicy } = useMutation(
-    FrontierServiceQueries.createPolicy,
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: "enabled",
+      scopes: [SCOPES.PROJECT],
+    }),
+    { enabled: !!projectId }
+  );
+
+  const viewerRoleId = useMemo(
+    () => rolesData?.roles?.find((r) => r.name === DEFAULT_ROLES.PROJECT_VIEWER)?.id ?? "",
+    [rolesData],
+  );
+
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole,
   );
 
   const addMember = useCallback(
     async (userId: string) => {
-      if (!userId || !projectId) return;
+      if (!userId || !projectId || !viewerRoleId) return;
       try {
-        const principal = `app/user:${userId}`;
-        const resource = `app/project:${projectId}`;
-        await createPolicy(
-          create(CreatePolicyRequestSchema, {
-            body: {
-              roleId: DEFAULT_ROLES.PROJECT_VIEWER,
-              principal,
-              resource,
-            },
+        await setProjectMemberRole(
+          create(SetProjectMemberRoleRequestSchema, {
+            projectId,
+            principalId: userId,
+            principalType: SCOPES.USER,
+            roleId: viewerRoleId,
           }),
         );
         toast.success(`${memberLabel} added`);
@@ -79,7 +90,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
         });
       }
     },
-    [projectId, createPolicy, refetch, projectMembers, memberLabel],
+    [projectId, setProjectMemberRole, refetch, projectMembers, memberLabel, viewerRoleId],
   );
 
   return {
