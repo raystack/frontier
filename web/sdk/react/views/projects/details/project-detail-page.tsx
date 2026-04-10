@@ -184,7 +184,7 @@ export const ProjectDetailPage = ({
 
     const handleRemoveMemberOpenChange = (value: boolean) => {
         if (!value) {
-            setRemoveMemberState({ open: false, memberId: '' });
+            setRemoveMemberState({ open: false, memberId: '', memberType: 'user' });
             refetchTeamAndMembers();
         } else {
             setRemoveMemberState(prev => ({ ...prev, open: value }));

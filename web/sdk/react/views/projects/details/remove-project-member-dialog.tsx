@@ -22,7 +22,7 @@ export interface RemoveProjectMemberDialogProps {
     onOpenChange?: (value: boolean) => void;
     projectId: string;
     memberId: string;
-    memberType?: 'user' | 'group';
+    memberType: 'user' | 'group';
 }
 
 export const RemoveProjectMemberDialog = ({
@@ -30,7 +30,7 @@ export const RemoveProjectMemberDialog = ({
     onOpenChange,
     projectId,
     memberId,
-    memberType = 'user'
+    memberType
 }: RemoveProjectMemberDialogProps) => {
     const queryClient = useQueryClient();
     const transport = useTransport();
