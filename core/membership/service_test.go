@@ -92,61 +92,25 @@ func TestService_AddOrganizationMember(t *testing.T) {
 		{
 			name: "should succeed adding a new member with viewer role",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
-				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{
-					ID:    orgID,
-					Title: "Test Org",
-				}, nil)
-				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{
-					ID:     viewerRoleID,
-					Scopes: []string{schema.OrganizationNamespace},
-				}, nil)
+				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID, Title: "Test Org"}, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// not already a member
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					OrgID:         orgID,
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				// replacePolicy: list existing policies for this resource
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{}, nil)
-				// create new policy
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				// create policy
 				policySvc.EXPECT().Create(ctx, policy.Policy{
-					RoleID:        viewerRoleID,
-					ResourceID:    orgID,
-					ResourceType:  schema.OrganizationNamespace,
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
+					RoleID: viewerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
+					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
-				// orgRoleToRelation: look up owner role to compare
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{
-					ID: ownerRoleID,
-				}, nil)
-				// replaceRelation: delete existing owner + member relations
-				relSvc.EXPECT().Delete(ctx, relation.Relation{
-					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
-					RelationName: schema.OwnerRelationName,
-				}).Return(nil)
-				relSvc.EXPECT().Delete(ctx, relation.Relation{
-					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
-					RelationName: schema.MemberRelationName,
-				}).Return(nil)
-				// create member relation (viewer -> member)
+				// orgRoleToRelation: viewer -> member
+				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
+				// create member relation
 				relSvc.EXPECT().Create(ctx, relation.Relation{
-					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
+					Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+					Subject: relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
 					RelationName: schema.MemberRelationName,
 				}).Return(relation.Relation{}, nil)
 				// audit
-				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{
-					ID:    userID,
-					Title: "test-user",
-					Email: "test@acme.dev",
-				}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID, Title: "test-user", Email: "test@acme.dev"}, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			orgID:   orgID,
@@ -157,62 +121,25 @@ func TestService_AddOrganizationMember(t *testing.T) {
 		{
 			name: "should succeed adding a new member with owner role and create owner relation",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
-				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{
-					ID:    orgID,
-					Title: "Test Org",
-				}, nil)
-				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{
-					ID:     ownerRoleID,
-					Name:   schema.RoleOrganizationOwner,
-					Scopes: []string{schema.OrganizationNamespace},
-				}, nil)
+				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID, Title: "Test Org"}, nil)
+				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				// not already a member
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					OrgID:         orgID,
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				// replacePolicy: list existing
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{}, nil)
-				// create new policy
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				// create policy
 				policySvc.EXPECT().Create(ctx, policy.Policy{
-					RoleID:        ownerRoleID,
-					ResourceID:    orgID,
-					ResourceType:  schema.OrganizationNamespace,
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
+					RoleID: ownerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
+					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
-				// orgRoleToRelation: owner role matches
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{
-					ID: ownerRoleID,
-				}, nil)
-				// replaceRelation: delete existing
-				relSvc.EXPECT().Delete(ctx, relation.Relation{
-					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
-					RelationName: schema.OwnerRelationName,
-				}).Return(nil)
-				relSvc.EXPECT().Delete(ctx, relation.Relation{
-					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
-					RelationName: schema.MemberRelationName,
-				}).Return(nil)
-				// create OWNER relation (owner role -> owner relation)
+				// orgRoleToRelation: owner role matches -> owner relation
+				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
+				// create owner relation
 				relSvc.EXPECT().Create(ctx, relation.Relation{
-					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
+					Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+					Subject: relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
 					RelationName: schema.OwnerRelationName,
 				}).Return(relation.Relation{}, nil)
 				// audit
-				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{
-					ID:    userID,
-					Title: "test-user",
-					Email: "test@acme.dev",
-				}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID, Title: "test-user", Email: "test@acme.dev"}, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			orgID:   orgID,
@@ -223,34 +150,14 @@ func TestService_AddOrganizationMember(t *testing.T) {
 		{
 			name: "should succeed with org-specific custom role",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
-				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{
-					ID:    orgID,
-					Title: "Test Org",
-				}, nil)
-				// org-specific role (OrgID matches) — use viewerRoleID as the custom role
-				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{
-					ID:    viewerRoleID,
-					OrgID: orgID,
-				}, nil)
+				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID, Title: "Test Org"}, nil)
+				// org-specific role (OrgID matches)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, OrgID: orgID}, nil)
 				// not already a member
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					OrgID:         orgID,
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				// replacePolicy
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
-				// orgRoleToRelation
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{
-					ID: ownerRoleID,
-				}, nil)
-				// replaceRelation
-				relSvc.EXPECT().Delete(ctx, mock.Anything).Return(nil).Times(2)
+				// orgRoleToRelation: not owner -> member
+				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
 				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
 				// audit
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID, Email: "test@acme.dev"}, nil)
@@ -284,23 +191,8 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			name: "should return error if policy creation fails",
 			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID}, nil)
-				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{
-					ID:     viewerRoleID,
-					Scopes: []string{schema.OrganizationNamespace},
-				}, nil)
-				// not already a member
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					OrgID:         orgID,
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				// replacePolicy: list existing
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{}, nil)
-				// policy creation fails
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, errors.New("policy create failed"))
 			},
 			orgID:          orgID,
@@ -312,30 +204,10 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			name: "should return error if relation creation fails",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID}, nil)
-				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{
-					ID:     viewerRoleID,
-					Scopes: []string{schema.OrganizationNamespace},
-				}, nil)
-				// not already a member
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					OrgID:         orgID,
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				// replacePolicy succeeds
-				policySvc.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{}, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
-				// orgRoleToRelation
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{
-					ID: ownerRoleID,
-				}, nil)
-				// replaceRelation: deletes succeed
-				relSvc.EXPECT().Delete(ctx, mock.Anything).Return(nil).Times(2)
-				// relation creation fails
+				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
 				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, errors.New("spicedb unavailable"))
 			},
 			orgID:          orgID,

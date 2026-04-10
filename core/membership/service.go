@@ -99,13 +99,12 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return ErrAlreadyMember
 	}
 
-	// create policy + relation atomically
-	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID); err != nil {
+	if err := s.createPolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID); err != nil {
 		return err
 	}
 
 	relationName := s.orgRoleToRelation(ctx, roleID)
-	if err := s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
+	if err := s.createRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
 		return err
 	}
 
@@ -146,26 +145,8 @@ func (s *Service) orgRoleToRelation(ctx context.Context, roleID string) string {
 }
 
 // replacePolicy deletes all existing policies for the principal+resource and creates a new one.
-func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string) error {
-	existing, err := s.policyService.List(ctx, policy.Filter{
-		PrincipalID:   principalID,
-		PrincipalType: principalType,
-		ResourceType:  resourceType,
-	})
-	if err != nil {
-		return fmt.Errorf("list policies: %w", err)
-	}
-
-	// delete only policies on this specific resource
-	for _, p := range existing {
-		if p.ResourceID == resourceID {
-			if err := s.policyService.Delete(ctx, p.ID); err != nil {
-				return fmt.Errorf("delete policy %s: %w", p.ID, err)
-			}
-		}
-	}
-
-	_, err = s.policyService.Create(ctx, policy.Policy{
+func (s *Service) createPolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string) error {
+	_, err := s.policyService.Create(ctx, policy.Policy{
 		RoleID:        roleID,
 		ResourceID:    resourceID,
 		ResourceType:  resourceType,
@@ -175,26 +156,14 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 	if err != nil {
 		return fmt.Errorf("create policy: %w", err)
 	}
-
 	return nil
 }
 
-// replaceRelation deletes all existing explicit relations for the principal+resource
-// and creates a new one with the given relation name.
-// For org: deletes both "owner" and "member" relations, then creates the correct one.
-func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, newRelationName string) error {
-	obj := relation.Object{ID: resourceID, Namespace: resourceType}
-	sub := relation.Subject{ID: principalID, Namespace: principalType}
-
-	// clean up any existing membership relations for this principal
-	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
-		_ = s.relationService.Delete(ctx, relation.Relation{
-			Object: obj, Subject: sub, RelationName: name,
-		})
-	}
-
+func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, relationName string) error {
 	if _, err := s.relationService.Create(ctx, relation.Relation{
-		Object: obj, Subject: sub, RelationName: newRelationName,
+		Object:       relation.Object{ID: resourceID, Namespace: resourceType},
+		Subject:      relation.Subject{ID: principalID, Namespace: principalType},
+		RelationName: relationName,
 	}); err != nil {
 		return fmt.Errorf("create relation: %w", err)
 	}
