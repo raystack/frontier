@@ -393,11 +393,6 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 		return ErrNotMember
 	}
 
-	// skip if the user already has exactly this role
-	if len(existingPolicies) == 1 && existingPolicies[0].RoleID == newRoleID {
-		return nil
-	}
-
 	// check minimum owner constraint
 	err = s.validateMinOwnerConstraint(ctx, orgID, newRoleID, existingPolicies)
 	if err != nil {
