@@ -21,7 +21,7 @@ import { useMutation } from "@connectrpc/connect-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { SCOPES } from "../../../../../utils/constants";
+import { SCOPES } from "~/admin/utils/constants";
 
 interface AssignRoleProps {
   projectId: string;

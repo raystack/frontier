@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { toast } from "@raystack/apsara";
-import { DEFAULT_ROLES, SCOPES } from "../../../../utils/constants";
+import { DEFAULT_ROLES, SCOPES } from "~/admin/utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, ListProjectUsersRequestSchema, ListRolesRequestSchema, SetProjectMemberRoleRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
