@@ -33,6 +33,7 @@ func newMocks(t *testing.T) (
 	*mocks.SubscriptionService,
 	*mocks.InvoiceService,
 ) {
+	t.Helper()
 	return mocks.NewOrganizationService(t),
 		mocks.NewProjectService(t),
 		mocks.NewResourceService(t),
