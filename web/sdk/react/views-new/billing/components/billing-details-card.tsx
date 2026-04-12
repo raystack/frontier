@@ -2,7 +2,7 @@
 
 import { Button, Skeleton, Text, Flex, Tooltip } from '@raystack/apsara-v1';
 import type { BillingAccount } from '@raystack/proton/frontier';
-import { converBillingAddressToString } from '../../../utils';
+import { convertBillingAddressToString } from '../../../utils';
 import styles from '../billing-view.module.css';
 
 interface BillingDetailsCardProps {
@@ -24,7 +24,7 @@ export function BillingDetailsCard({
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
   const isButtonDisabled = isLoading || disabled;
 
-  const address = converBillingAddressToString(billingAccount?.address);
+  const address = convertBillingAddressToString(billingAccount?.address);
 
   return (
     <div className={styles.detailsBox}>

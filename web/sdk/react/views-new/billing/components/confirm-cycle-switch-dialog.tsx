@@ -14,7 +14,7 @@ import { getPlanIntervalName, getPlanPrice } from '../../../utils';
 import { DEFAULT_DATE_FORMAT } from '../../../utils/constants';
 import { timestampToDayjs } from '../../../../utils/timestamp';
 import { usePlans } from '../../../views/plans/hooks/usePlans';
-import * as _ from 'lodash';
+import { isEmpty } from 'lodash';
 
 export interface ConfirmCycleSwitchPayload {
   planId: string;
@@ -118,7 +118,7 @@ function ConfirmCycleSwitchContent({
     ? getPlanPrice(nextPlan)
     : { amount: 0, currency: '' };
   const isPaymentMethodRequired =
-    _.isEmpty(paymentMethod) && nextPlanPrice.amount > 0;
+    isEmpty(paymentMethod) && nextPlanPrice.amount > 0;
 
   const activePlanIntervalName = getPlanIntervalName(activePlan);
   const nextPlanIntervalName = getPlanIntervalName(nextPlan);
@@ -164,13 +164,13 @@ function ConfirmCycleSwitchContent({
 
   const isUpgrade =
     (Number(nextPlanMetadata?.weightage) || 0) -
-      (Number(activePlanMetadata?.weightage) || 0) >
+    (Number(activePlanMetadata?.weightage) || 0) >
     0;
 
   const cycleSwitchDate = activeSubscription?.currentPeriodEndAt
     ? timestampToDayjs(activeSubscription?.currentPeriodEndAt)?.format(
-        dateFormat
-      )
+      dateFormat
+    )
     : 'the next billing cycle';
 
   async function onConfirm() {

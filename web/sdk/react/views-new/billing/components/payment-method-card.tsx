@@ -110,6 +110,9 @@ export function PaymentMethodCard({
                 {isPaymentMethodAvailable ? 'Update' : 'Add method'}
               </Button>
             </Tooltip.Trigger>
+            <Tooltip.Content>
+              {AuthTooltipMessage}
+            </Tooltip.Content>
           </Tooltip>
         ) : null}
       </Flex>
@@ -129,6 +132,6 @@ export function PaymentMethodCard({
           {isLoading ? <Skeleton /> : cardExp}
         </Text>
       </Flex>
-    </div>
+    </div >
   );
 }
