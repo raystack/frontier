@@ -106,7 +106,17 @@ func extractPrincipalInfo(principal authenticate.Principal) (string, map[string]
 	metadata := make(map[string]any)
 	var name string
 
-	if principal.User != nil {
+	if principal.PAT != nil {
+		name = principal.PAT.Title
+		if principal.User != nil {
+			metadata["user"] = map[string]any{
+				"id":    principal.User.ID,
+				"name":  principal.User.Name,
+				"title": principal.User.Title,
+				"email": principal.User.Email,
+			}
+		}
+	} else if principal.User != nil {
 		name = principal.User.Title
 		metadata["email"] = principal.User.Email
 	} else if principal.ServiceUser != nil {
@@ -121,6 +131,8 @@ func mapPrincipalTypeToAuditType(principalType string) pkgAuditRecord.EntityType
 	switch principalType {
 	case schema.ServiceUserPrincipal:
 		return pkgAuditRecord.ServiceUserType
+	case schema.PATPrincipal:
+		return pkgAuditRecord.PATType
 	default:
 		return pkgAuditRecord.UserType
 	}
@@ -381,6 +393,11 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 		return ErrNotMember
 	}
 
+	// skip if the user already has exactly this role
+	if len(existingPolicies) == 1 && existingPolicies[0].RoleID == newRoleID {
+		return nil
+	}
+
 	// check minimum owner constraint
 	err = s.validateMinOwnerConstraint(ctx, orgID, newRoleID, existingPolicies)
 	if err != nil {
@@ -392,6 +409,47 @@ func (s Service) SetMemberRole(ctx context.Context, orgID, userID, newRoleID str
 	if err != nil {
 		return err
 	}
+
+	// audit logging
+	org, err := s.repository.GetByID(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	usr, err := s.userService.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	_, auditErr := s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
+		Resource: auditrecord.Resource{
+			ID:   orgID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:   userID,
+			Type: pkgAuditRecord.UserType,
+			Name: usr.Title,
+			Metadata: map[string]any{
+				"email":   usr.Email,
+				"role_id": newRoleID,
+			},
+		},
+		OrgID:      orgID,
+		OccurredAt: time.Now(),
+	})
+	if auditErr != nil {
+		return auditErr
+	}
+
+	audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
+		ID:   userID,
+		Type: schema.UserPrincipal,
+	}, map[string]string{
+		"role_id": newRoleID,
+	})
 
 	return nil
 }

@@ -198,7 +198,8 @@ func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreateCurrentUserPreferences", err,
-				zap.String("user_id", principal.ID),
+				zap.String("principal_id", principal.ID),
+				zap.String("principal_type", principal.Type),
 				zap.String("preference_name", prefBody.GetName()),
 				zap.String("preference_value", prefBody.GetValue()))
 			return nil, handlePreferenceError(err)
@@ -236,7 +237,8 @@ func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *co
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListCurrentUserPreferences", err,
-			zap.String("user_id", principal.ID))
+			zap.String("principal_id", principal.ID),
+			zap.String("principal_type", principal.Type))
 		return nil, handlePreferenceError(err)
 	}
 

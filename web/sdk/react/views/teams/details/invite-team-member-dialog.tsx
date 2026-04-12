@@ -31,6 +31,7 @@ import {
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import orgStyles from '../../../components/organization/organization.module.css';
+import { handleConnectError } from '~/utils/error';
 
 const inviteSchema = yup.object({
     userId: yup.string().required('Member is required'),
@@ -170,13 +171,6 @@ export const InviteTeamMemberDialog = ({
     // Create policy using Connect RPC
     const createPolicyMutation = useMutation(
         FrontierServiceQueries.createPolicy,
-        {
-            onError: error => {
-                toast.error('Something went wrong', {
-                    description: error.message
-                });
-            }
-        }
     );
 
     const addGroupTeamPolicy = useCallback(
@@ -203,13 +197,6 @@ export const InviteTeamMemberDialog = ({
     // Add group users using Connect RPC
     const addGroupUsersMutation = useMutation(
         FrontierServiceQueries.addGroupUsers,
-        {
-            onError: error => {
-                toast.error('Something went wrong', {
-                    description: error.message
-                });
-            }
-        }
     );
 
     async function onSubmit({ role, userId }: InviteSchemaType) {
@@ -221,10 +208,19 @@ export const InviteTeamMemberDialog = ({
             userIds: [userId]
         });
 
-        await addGroupUsersMutation.mutateAsync(request);
-        await addGroupTeamPolicy(role, userId);
-        toast.success('member added');
-        handleOpenChange(false);
+        try {
+            await addGroupUsersMutation.mutateAsync(request);
+            await addGroupTeamPolicy(role, userId);
+            toast.success('member added');
+            handleOpenChange(false);
+        } catch (error) {
+            handleConnectError(error, {
+                AlreadyExists: () => toast.error('Member already exists in this team'),
+                PermissionDenied: () => toast.error('You don\'t have permission to perform this action'),
+                InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
+                Default: (err) => toast.error('Something went wrong', { description: err.message }),
+            });
+        }
     }
 
     const invitableUser = useMemo(

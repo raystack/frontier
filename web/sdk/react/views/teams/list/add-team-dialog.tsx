@@ -22,6 +22,7 @@ import {
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import orgStyles from '../../../components/organization/organization.module.css';
+import { handleConnectError } from '~/utils/error';
 
 const teamSchema = yup
     .object({
@@ -48,6 +49,7 @@ export interface AddTeamDialogProps {
 export const AddTeamDialog = ({ open, onOpenChange }: AddTeamDialogProps) => {
     const {
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
         register,
         reset
@@ -63,11 +65,6 @@ export const AddTeamDialog = ({ open, onOpenChange }: AddTeamDialogProps) => {
                 toast.success('Team added');
                 reset();
                 onOpenChange(false);
-            },
-            onError: error => {
-                toast.error('Something went wrong', {
-                    description: error.message
-                });
             }
         }
     );
@@ -83,7 +80,18 @@ export const AddTeamDialog = ({ open, onOpenChange }: AddTeamDialogProps) => {
             }
         });
 
-        await createTeam(request);
+        try {
+            await createTeam(request);
+        } catch (error) {
+            handleConnectError(error, {
+                AlreadyExists: () => setError('name', {
+                    message: 'A team with this name already exists. Please use a different name.'
+                }),
+                PermissionDenied: () => toast.error('You don\'t have permission to perform this action'),
+                InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
+                Default: (err) => toast.error('Something went wrong', { description: err.message }),
+            });
+        }
     }
 
     return (

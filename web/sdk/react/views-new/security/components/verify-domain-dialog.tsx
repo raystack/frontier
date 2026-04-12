@@ -20,6 +20,7 @@ import {
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useOrganizationDomain } from '../../../hooks/useOrganizationDomain';
+import { handleConnectError } from '~/utils/error';
 
 export type VerifyDomainPayload = { domainId: string };
 
@@ -90,25 +91,27 @@ function VerifyDomainContent({
           });
         }
         handle.close();
-      },
-      onError: (error: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: error.message,
-          type: 'error'
-        });
       }
     });
 
   async function handleVerify() {
     if (!domainId || !organization?.id) return;
 
-    await verifyOrganizationDomain(
-      create(VerifyOrganizationDomainRequestSchema, {
-        orgId: organization.id,
-        id: domainId
-      })
-    );
+    try {
+      await verifyOrganizationDomain(
+        create(VerifyOrganizationDomainRequestSchema, {
+          orgId: organization.id,
+          id: domainId
+        })
+      );
+    } catch (error) {
+      handleConnectError(error, {
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        InvalidArgument: (err) => toastManager.add({ title: 'Invalid input', description: err.message, type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
+      });
+    }
   }
 
   return (

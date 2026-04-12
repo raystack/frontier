@@ -29,6 +29,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { handleSelectValueChange } from '~/react/utils';
 import styles from '../../components/organization/organization.module.css';
+import { handleConnectError } from '~/utils/error';
 
 const inviteSchema = yup.object({
   type: yup.string().required(),
@@ -115,11 +116,6 @@ export const InviteMemberDialog = ({
       onSuccess: () => {
         toast.success('User(s) invited');
         onOpenChange(false);
-      },
-      onError: (error: any) => {
-        toast.error('Something went wrong', {
-          description: error?.message || 'Failed to create invitation'
-        });
       }
     }
   );
@@ -145,9 +141,12 @@ export const InviteMemberDialog = ({
           roleIds: [type]
         });
         await createInvitation(req);
-      } catch (error: any) {
-        toast.error('Something went wrong', {
-          description: error?.message || 'Failed to create invitation'
+      } catch (error) {
+        handleConnectError(error, {
+          AlreadyExists: () => toast.error('Invitation already exists'),
+          InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
+          PermissionDenied: () => toast.error("You don't have permission to perform this action"),
+          Default: (err) => toast.error('Something went wrong', { description: err.message }),
         });
       }
     },

@@ -1,8 +1,22 @@
-import { useQuery, useMutation, createConnectQueryKey, useTransport } from '@connectrpc/connect-query';
-import { UseMutationResult, useQueryClient, UseQueryResult } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  createConnectQueryKey,
+  useTransport
+} from '@connectrpc/connect-query';
+import {
+  UseMutationResult,
+  useQueryClient,
+  UseQueryResult
+} from '@tanstack/react-query';
 import { create } from '@bufbuild/protobuf';
-import { FrontierServiceQueries, CreateCurrentUserPreferencesRequestSchema, ListCurrentUserPreferencesRequestSchema } from '@raystack/proton/frontier';
+import {
+  FrontierServiceQueries,
+  CreateCurrentUserPreferencesRequestSchema,
+  ListCurrentUserPreferencesRequestSchema
+} from '@raystack/proton/frontier';
 import { useCallback, useMemo } from 'react';
+import { handleConnectError } from '~/utils/error';
 
 type Preference = {
   name?: string;
@@ -20,9 +34,7 @@ export interface UsePreferences {
   isFetching: boolean;
   status: 'idle' | 'fetching' | 'loading';
   fetchPreferences: () => void;
-  updatePreferences: (
-    preferences: Preference[]
-  ) => Promise<void>;
+  updatePreferences: (preferences: Preference[]) => Promise<void>;
   fetchPreferencesStatus: UseQueryResult['status'];
   updatePreferencesStatus: UseMutationResult['status'];
 }
@@ -53,7 +65,7 @@ export function usePreferences({
     status: fetchPreferencesStatus
   } = useQuery(
     FrontierServiceQueries.listCurrentUserPreferences,
-create(ListCurrentUserPreferencesRequestSchema, {
+    create(ListCurrentUserPreferencesRequestSchema, {
       scopeType,
       scopeId
     }),
@@ -62,7 +74,10 @@ create(ListCurrentUserPreferencesRequestSchema, {
     }
   );
 
-  const preferences = useMemo(() => getFormattedData(preferencesData?.preferences ?? []), [preferencesData]);
+  const preferences = useMemo(
+    () => getFormattedData(preferencesData?.preferences ?? []),
+    [preferencesData]
+  );
 
   const {
     mutateAsync: updatePreferencesMutation,
@@ -77,29 +92,33 @@ create(ListCurrentUserPreferencesRequestSchema, {
           cardinality: 'finite'
         })
       });
-    },
-    onError: (err) => {
-      console.error(
-        'frontier:sdk:: There is problem with updating user preferences'
-      );
-      console.error(err);
     }
   });
 
-  const updatePreferences = useCallback(async (preferences: Preference[]) => {
-    try {
-      const req = create(CreateCurrentUserPreferencesRequestSchema, {
-        bodies: preferences
-      });
-      await updatePreferencesMutation(req);
-    } catch (err) {
-      console.error(
-        'frontier:sdk:: There is problem with updating user preferences'
-      );
-      console.error(err);
-      throw err;
-    }
-  }, [updatePreferencesMutation]);
+  const updatePreferences = useCallback(
+    async (preferences: Preference[]) => {
+      try {
+        const req = create(CreateCurrentUserPreferencesRequestSchema, {
+          bodies: preferences
+        });
+        await updatePreferencesMutation(req);
+      } catch (err) {
+        handleConnectError(err, {
+          PermissionDenied: () =>
+            console.error(
+              'frontier:sdk:: Permission denied while updating user preferences'
+            ),
+          InvalidArgument: e =>
+            console.error(
+              'frontier:sdk:: Invalid preferences input:',
+              e.message
+            )
+        });
+        throw err;
+      }
+    },
+    [updatePreferencesMutation]
+  );
 
   const status: UsePreferences['status'] = isUpdatingPreferences
     ? 'loading'

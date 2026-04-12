@@ -21,6 +21,7 @@ import {
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import styles from './edit-project-dialog.module.css';
+import { handleConnectError } from '~/utils/error';
 
 const editProjectSchema = yup
   .object({
@@ -117,11 +118,12 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
       refetch();
       handle.close();
     } catch (error) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error ? error.message : 'Failed to update project',
-        type: 'error'
+      handleConnectError(error, {
+        AlreadyExists: () => toastManager.add({ title: 'Project already exists', type: 'error' }),
+        InvalidArgument: (err) => toastManager.add({ title: 'Invalid input', description: err.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     }
   }

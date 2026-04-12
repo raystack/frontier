@@ -34,6 +34,7 @@ import { ViewHeader } from '../../components/view-header';
 import { ImageUpload } from '../../components/image-upload';
 import { DeleteOrganizationDialog } from './components/delete-organization-dialog';
 import styles from './general-view.module.css';
+import { handleConnectError } from '~/utils/error';
 
 const generalSchema = yup
   .object({
@@ -116,13 +117,6 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
           type: 'success'
         });
       },
-      onError: (error: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: error?.message || 'Failed to update',
-          type: 'error'
-        });
-      }
     }
   );
 
@@ -156,14 +150,13 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
         }
       });
       await updateOrganization(req);
-    } catch (error: unknown) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error
-            ? error.message
-            : `Failed to update ${t.organization({ case: 'lower' })}`,
-        type: 'error'
+    } catch (error) {
+      handleConnectError(error, {
+        AlreadyExists: () => toastManager.add({ title: `${t.organization({ case: 'capital' })} already exists`, type: 'error' }),
+        InvalidArgument: (err) => toastManager.add({ title: 'Invalid input', description: err.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     }
   }

@@ -23,6 +23,8 @@ import { ViewHeader } from '../../components/view-header';
 import { ImageUpload } from '../../components/image-upload';
 import styles from './profile-view.module.css';
 
+import { handleConnectError } from '~/utils/error';
+
 const profileSchema = yup
   .object({
     avatar: yup.string().optional(),
@@ -90,11 +92,12 @@ export function ProfileView() {
       if (!user?.id) return;
       await updateCurrentUser({ body: data });
       toastManager.add({ title: 'Updated user', type: 'success' });
-    } catch (err: unknown) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description: err instanceof Error ? err.message : 'Failed to update',
-        type: 'error'
+    } catch (err) {
+      handleConnectError(err, {
+        InvalidArgument: (e) => toastManager.add({ title: 'Invalid input', description: e.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        NotFound: (e) => toastManager.add({ title: 'Not found', description: e.message, type: 'error' }),
+        Default: (e) => toastManager.add({ title: 'Something went wrong', description: e.message, type: 'error' }),
       });
     }
   }

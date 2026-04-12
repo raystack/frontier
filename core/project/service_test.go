@@ -1215,6 +1215,27 @@ func TestService_SetMemberRole(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name:          "should skip delete+create when role is unchanged",
+			projectID:     projectID,
+			principalID:   userID,
+			principalType: schema.UserPrincipal,
+			roleID:        roleID,
+			setup: func(repo *mocks.Repository, userSvc *mocks.UserService, suserSvc *mocks.ServiceuserService, groupSvc *mocks.GroupService, policySvc *mocks.PolicyService, roleSvc *mocks.RoleService) {
+				repo.EXPECT().GetByID(ctx, projectID).Return(project.Project{ID: projectID, Organization: organization.Organization{ID: orgID}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.ProjectNamespace}}, nil)
+				// user already has the same role on this project
+				policySvc.EXPECT().List(ctx, policy.Filter{
+					ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return([]policy.Policy{{ID: "existing-p1", RoleID: roleID}}, nil)
+				// no Delete or Create should be called — early return
+			},
+			wantErr: nil,
+		},
 	}
 
 	for _, tt := range tests {

@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	sessionutils "github.com/raystack/frontier/pkg/session"
 )
 
@@ -52,12 +53,21 @@ func (i *AuthenticationInterceptor) WrapUnary(next connect.UnaryFunc) connect.Un
 
 		// Set audit record actor context - for repositories and audit consumers
 		actorName, actorTitle := authenticate.GetPrincipalNameAndTitle(&principal)
+		actorMetadata := map[string]any{}
+		if principal.Type == schema.PATPrincipal && principal.User != nil {
+			actorMetadata["user"] = map[string]any{
+				"id":    principal.User.ID,
+				"name":  principal.User.Name,
+				"title": principal.User.Title,
+				"email": principal.User.Email,
+			}
+		}
 		ctx = auditrecord.SetAuditRecordActorContext(ctx, auditrecord.Actor{
 			ID:       principal.ID,
 			Type:     principal.Type,
 			Name:     actorName,
 			Title:    actorTitle,
-			Metadata: nil,
+			Metadata: actorMetadata,
 		})
 		return next(ctx, req)
 	})
