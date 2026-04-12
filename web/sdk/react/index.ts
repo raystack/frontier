@@ -37,6 +37,7 @@ export { SessionsView } from './views-new/sessions';
 export { MembersView } from './views-new/members';
 export { SecurityView } from './views-new/security';
 export { ProjectsView, ProjectDetailsView } from './views-new/projects';
+export { TeamsView, TeamDetailsView } from './views-new/teams';
 
 export type {
   FrontierClientOptions,
