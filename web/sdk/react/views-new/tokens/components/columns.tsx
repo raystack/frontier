@@ -1,7 +1,7 @@
 import { Avatar, Flex, Text, getAvatarColor } from '@raystack/apsara-v1';
 import type { DataTableColumnDef } from '@raystack/apsara-v1';
 import type { BillingTransaction } from '@raystack/proton/frontier';
-import * as _ from 'lodash';
+import { has, get } from 'lodash';
 import { getInitials } from '~/utils';
 import {
   isNullTimestamp,
@@ -93,8 +93,8 @@ export function getColumns({
       cell: ({ row, getValue }) => {
         const value = getValue() as string;
         const eventName = (
-          _.has(TxnEventSourceMap, value)
-            ? _.get(TxnEventSourceMap, value)
+          has(TxnEventSourceMap, value)
+            ? get(TxnEventSourceMap, value)
             : row?.original?.description
         ) as string;
         return (

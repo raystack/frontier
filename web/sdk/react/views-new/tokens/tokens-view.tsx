@@ -15,8 +15,7 @@ import {
   Tooltip
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
-import { InfoCircledIcon, PlusIcon } from '@radix-ui/react-icons';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { InfoCircledIcon, PlusIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -37,9 +36,7 @@ import styles from './tokens-view.module.css';
 
 const addTokensDialogHandle = Dialog.createHandle();
 
-export interface TokensViewProps {}
-
-export function TokensView(_props: TokensViewProps = {}) {
+export function TokensView() {
   const {
     config,
     activeOrganization,
