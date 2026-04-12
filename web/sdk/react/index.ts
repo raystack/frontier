@@ -43,6 +43,7 @@ export {
   ServiceAccountsView,
   ServiceAccountDetailsView
 } from './views-new/service-accounts';
+export { PatsView, PATDetailsView } from './views-new/pat';
 
 export type {
   FrontierClientOptions,

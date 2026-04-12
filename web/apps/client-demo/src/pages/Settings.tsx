@@ -13,7 +13,8 @@ const NAV_ITEMS = [
   { label: 'Projects', path: 'projects' },
   { label: 'Tokens', path: 'tokens' },
   { label: 'Teams', path: 'teams' },
-  { label: 'Service Accounts', path: 'service-accounts' }
+  { label: 'Service Accounts', path: 'service-accounts' },
+  { label: 'Personal Access Tokens', path: 'pats' }
 ];
 
 export default function Settings() {

@@ -21,6 +21,8 @@ import Teams from './pages/settings/Teams';
 import TeamDetails from './pages/settings/TeamDetails';
 import ServiceAccounts from './pages/settings/ServiceAccounts';
 import ServiceAccountDetails from './pages/settings/ServiceAccountDetails';
+import Pats from './pages/settings/Pats';
+import PatDetails from './pages/settings/PatDetails';
 
 function Router() {
   return (
@@ -48,6 +50,8 @@ function Router() {
           <Route path="teams/:teamId" element={<TeamDetails />} />
           <Route path="service-accounts" element={<ServiceAccounts />} />
           <Route path="service-accounts/:serviceAccountId" element={<ServiceAccountDetails />} />
+          <Route path="pats" element={<Pats />} />
+          <Route path="pats/:patId" element={<PatDetails />} />
         </Route >
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes >
