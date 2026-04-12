@@ -26,6 +26,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { AuthTooltipMessage } from '~/react/utils';
+import { handleConnectError } from '~/utils/error';
 
 const projectSchema = yup
     .object({
@@ -63,9 +64,7 @@ export const ProjectGeneral = ({
     const { mutateAsync: updateProject } = useMutation(
         FrontierServiceQueries.updateProject,
         {
-            onSuccess: () => toast.success('Project updated successfully'),
-            onError: (error: Error) =>
-                toast.error('Something went wrong', { description: error.message })
+            onSuccess: () => toast.success('Project updated successfully')
         }
     );
 
@@ -110,16 +109,26 @@ export const ProjectGeneral = ({
         if (!organization?.id) return;
         if (!projectId) return;
 
-        await updateProject(
-            create(UpdateProjectRequestSchema, {
-                id: projectId,
-                body: {
-                    name: data.name,
-                    title: data.title,
-                    orgId: organization.id
-                }
-            })
-        );
+        try {
+            await updateProject(
+                create(UpdateProjectRequestSchema, {
+                    id: projectId,
+                    body: {
+                        name: data.name,
+                        title: data.title,
+                        orgId: organization.id
+                    }
+                })
+            );
+        } catch (error) {
+            handleConnectError(error, {
+                AlreadyExists: () => toast.error('Project already exists'),
+                PermissionDenied: () => toast.error('You don\'t have permission to perform this action'),
+                InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
+                NotFound: (err) => toast.error('Not found', { description: err.message }),
+                Default: (err) => toast.error('Something went wrong', { description: err.message }),
+            });
+        }
     }
 
     const isLoading = isPermissionsFetching || isProjectLoading;

@@ -185,19 +185,21 @@ func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *
 		return nil, err
 	}
 
+	subjectID, _ := principal.ResolveSubject()
 	var createdPreferences []preference.Preference
 	for _, prefBody := range req.Msg.GetBodies() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
 			Name:         prefBody.GetName(),
 			Value:        prefBody.GetValue(),
-			ResourceID:   principal.ID,
+			ResourceID:   subjectID,
 			ResourceType: schema.UserPrincipal,
 			ScopeType:    prefBody.GetScopeType(),
 			ScopeID:      prefBody.GetScopeId(),
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreateCurrentUserPreferences", err,
-				zap.String("user_id", principal.ID),
+				zap.String("principal_id", principal.ID),
+				zap.String("principal_type", principal.Type),
 				zap.String("preference_name", prefBody.GetName()),
 				zap.String("preference_value", prefBody.GetValue()))
 			return nil, handlePreferenceError(err)
@@ -227,14 +229,16 @@ func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *co
 	// 1. Scoped DB values (if scope provided)
 	// 2. Global DB values
 	// 3. Trait defaults
+	subjectID, _ := principal.ResolveSubject()
 	prefs, err := h.preferenceService.LoadUserPreferences(ctx, preference.Filter{
-		UserID:    principal.ID,
+		UserID:    subjectID,
 		ScopeType: req.Msg.GetScopeType(),
 		ScopeID:   req.Msg.GetScopeId(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListCurrentUserPreferences", err,
-			zap.String("user_id", principal.ID))
+			zap.String("principal_id", principal.ID),
+			zap.String("principal_type", principal.Type))
 		return nil, handlePreferenceError(err)
 	}
 

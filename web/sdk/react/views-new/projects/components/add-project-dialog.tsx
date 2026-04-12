@@ -19,7 +19,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import slugify from 'slugify';
 import { generateHashFromString } from '../../../utils';
-import { ConnectError, Code } from '@connectrpc/connect';
+import { handleConnectError } from '~/utils/error';
 
 const projectSchema = yup
   .object({
@@ -75,19 +75,14 @@ export function AddProjectDialog({ handle, refetch }: AddProjectDialogProps) {
       refetch();
       handle.close();
     } catch (error) {
-      if (error instanceof ConnectError && error.code === Code.AlreadyExists) {
-        setError('title', {
-          message:
-            'A project with a similar title already exists. Please tweak the title and try again.'
-        });
-      } else {
-        toastManager.add({
-          title: 'Something went wrong',
-          description:
-            error instanceof Error ? error.message : 'Failed to create project',
-          type: 'error'
-        });
-      }
+      handleConnectError(error, {
+        AlreadyExists: () => setError('title', {
+          message: 'A project with a similar title already exists. Please tweak the title and try again.'
+        }),
+        InvalidArgument: (err) => toastManager.add({ title: 'Invalid input', description: err.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
+      });
     }
   }
 

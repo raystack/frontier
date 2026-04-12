@@ -343,8 +343,9 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 		}
 	}
 
+	subjectID, _ := principal.ResolveSubject()
 	updatedUser, err := h.userService.Update(ctx, user.User{
-		ID:       principal.ID,
+		ID:       subjectID,
 		Title:    request.Msg.GetBody().GetTitle(),
 		Avatar:   request.Msg.GetBody().GetAvatar(),
 		Name:     request.Msg.GetBody().GetName(),
@@ -352,7 +353,8 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateCurrentUser.Update", err,
-			zap.String("user_id", principal.ID))
+			zap.String("principal_id", principal.ID),
+			zap.String("principal_type", principal.Type))
 
 		switch {
 		case errors.Is(err, user.ErrNotExist):
@@ -361,7 +363,8 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "UpdateCurrentUser", err,
-				zap.String("user_id", principal.ID))
+				zap.String("principal_id", principal.ID),
+				zap.String("principal_type", principal.Type))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -505,7 +508,8 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 	)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListCurrentUserGroups.ListByUser", err,
-			zap.String("user_id", principal.ID),
+			zap.String("principal_id", principal.ID),
+			zap.String("principal_type", principal.Type),
 			zap.String("org_id", request.Msg.GetOrgId()))
 
 		switch {
@@ -513,7 +517,7 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "ListCurrentUserGroups", err,
-				zap.String("user_id", principal.ID),
+				zap.String("principal_id", principal.ID),
 				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -536,7 +540,7 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.GroupNamespace, resourceIds, request.Msg.GetWithPermissions())
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "ListCurrentUserGroups", err,
-				zap.String("user_id", principal.ID),
+				zap.String("principal_id", principal.ID),
 				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -785,7 +789,8 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 	orgList, err := h.orgService.ListByUser(ctx, principal, orgFilter)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-			zap.String("user_id", principal.ID))
+			zap.String("principal_id", principal.ID),
+			zap.String("principal_type", principal.Type))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -805,7 +810,8 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 		joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-				zap.String("user_id", principal.ID),
+				zap.String("principal_id", principal.ID),
+				zap.String("principal_type", principal.Type),
 				zap.String("user_email", principal.User.Email))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -814,7 +820,8 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 			org, err := h.orgService.Get(ctx, joinableOrg)
 			if err != nil {
 				errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-					zap.String("user_id", principal.ID),
+					zap.String("principal_id", principal.ID),
+					zap.String("principal_type", principal.Type),
 					zap.String("joinable_org_id", joinableOrg))
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
@@ -888,7 +895,8 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListProjectsByCurrentUser", err,
-			zap.String("user_id", principal.ID),
+			zap.String("principal_id", principal.ID),
+			zap.String("principal_type", principal.Type),
 			zap.String("org_id", request.Msg.GetOrgId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -911,7 +919,8 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions())
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "ListProjectsByCurrentUser", err,
-				zap.String("user_id", principal.ID),
+				zap.String("principal_id", principal.ID),
+				zap.String("principal_type", principal.Type),
 				zap.String("org_id", request.Msg.GetOrgId()))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}

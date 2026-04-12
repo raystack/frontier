@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
     DotsHorizontalIcon,
     TrashIcon,
@@ -16,17 +16,20 @@ import {
     type DataTableColumnDef,
     getAvatarColor
 } from '@raystack/apsara';
-import { useQuery, useMutation } from '@connectrpc/connect-query';
+import { useMutation } from '@connectrpc/connect-query';
 import {
     FrontierServiceQueries,
-    ListPoliciesRequestSchema,
-    DeletePolicyRequestSchema,
-    CreatePolicyRequestSchema,
+    SetProjectMemberRoleRequestSchema,
     type Role,
     type User,
     type Group
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+
+const PRINCIPAL_TYPES = {
+    USER: 'app/user',
+    GROUP: 'app/group',
+} as const;
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 
 import teamIcon from '~/react/assets/users.svg';
@@ -40,7 +43,7 @@ export const getColumns = (
     canUpdateProject: boolean,
     projectId: string,
     refetch: () => void,
-    onRemoveMember?: (memberId: string) => void
+    onRemoveMember?: (memberId: string, memberType: 'user' | 'group') => void
 ): DataTableColumnDef<RowMember, unknown>[] => [
     {
         header: '',
@@ -151,40 +154,19 @@ const MembersActions = ({
     canUpdateProject?: boolean;
     excludedRoles: Role[];
     refetch: () => void;
-    onRemoveMember?: (memberId: string) => void;
+    onRemoveMember?: (memberId: string, memberType: 'user' | 'group') => void;
 }) => {
     function removeMember() {
-        onRemoveMember?.(member?.id as string);
+        onRemoveMember?.(member?.id as string, member?.isTeam ? 'group' : 'user');
     }
 
-    const { data: policiesData, refetch: refetchPolicies, error: policiesError } = useQuery(
-        FrontierServiceQueries.listPolicies,
-        create(ListPoliciesRequestSchema, {
-            projectId: projectId,
-            userId: member.isTeam ? undefined : (member.id as string),
-            groupId: member.isTeam ? (member.id as string) : undefined
-        }),
-        { enabled: !!projectId && !!member?.id && !!canUpdateProject }
-    );
-
-    useEffect(() => {
-        if (policiesError) {
-            toast.error('Something went wrong', { description: (policiesError as Error).message });
-        }
-    }, [policiesError]);
-
-    const policies = useMemo(() => policiesData?.policies ?? [], [policiesData]);
-
-    const { mutateAsync: deletePolicy } = useMutation(
-        FrontierServiceQueries.deletePolicy,
+    const { mutateAsync: setMemberRole } = useMutation(
+        FrontierServiceQueries.setProjectMemberRole,
         {
-            onError: (err: Error) =>
-                toast.error('Something went wrong', { description: err.message })
-        }
-    );
-    const { mutateAsync: createPolicy } = useMutation(
-        FrontierServiceQueries.createPolicy,
-        {
+            onSuccess: () => {
+                refetch();
+                toast.success('Project member role updated');
+            },
             onError: (err: Error) =>
                 toast.error('Something went wrong', { description: err.message })
         }
@@ -192,30 +174,14 @@ const MembersActions = ({
 
     async function updateRole(role: Role) {
         try {
-            const resource = `app/project:${projectId}`;
-            const principal = member.isTeam
-                ? `app/group:${member?.id}`
-                : `app/user:${member?.id}`;
-
-            await Promise.all(
-                (policies || []).map(p =>
-                    deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' }))
-                )
-            );
-
-            await createPolicy(
-                create(CreatePolicyRequestSchema, {
-                    body: {
-                        roleId: role.id as string,
-                        title: (role.title || role.name) as string,
-                        resource,
-                        principal
-                    }
+            await setMemberRole(
+                create(SetProjectMemberRoleRequestSchema, {
+                    projectId: projectId,
+                    principalId: member?.id as string,
+                    principalType: member.isTeam ? PRINCIPAL_TYPES.GROUP : PRINCIPAL_TYPES.USER,
+                    roleId: role.id as string
                 })
             );
-            await refetchPolicies();
-            refetch();
-            toast.success('Project member role updated');
         } catch (err) {
             const message = (err as Error)?.message || 'Failed to update role';
             toast.error('Something went wrong', { description: message });
@@ -252,4 +218,3 @@ const MembersActions = ({
         </DropdownMenu>
     ) : null;
 };
-

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Feature, Plan } from '@raystack/proton/frontier';
 
 export interface Strategy {
@@ -47,22 +46,6 @@ export interface Role {
   id: string;
   name: string;
   types: string[];
-}
-
-export interface FrontierClientOptions {
-  endpoint?: string;
-  redirectSignup?: string;
-  redirectLogin?: string;
-}
-
-export interface InitialState {
-  sessionId?: string | null;
-}
-
-export interface FrontierProviderProps {
-  config: FrontierClientOptions;
-  children: React.ReactNode;
-  initialState?: InitialState;
 }
 
 export const IntervalLabelMap = {

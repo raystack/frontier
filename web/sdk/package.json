@@ -111,7 +111,7 @@
     "lodash": "^4.17.21",
     "query-string": "^8.2.0",
     "react-hook-form": "^7.57.0",
-    "react-image-crop": "^10.1.8",
+    "react-image-crop": "^11.0.10",
     "slugify": "^1.6.6",
     "uuid": "^10.0.0",
     "validator": "^13.15.15",

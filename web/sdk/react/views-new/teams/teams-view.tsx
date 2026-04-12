@@ -231,7 +231,7 @@ export function TeamsView({
                     editTeamDialogHandle.openWithPayload({
                       teamId: payload.teamId,
                       title: payload.title,
-                      name: ''
+                      name: payload.name
                     })
                   }
                   data-test-id="frontier-sdk-edit-team-dropdown-item"

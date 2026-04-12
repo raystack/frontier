@@ -198,9 +198,6 @@ export function TeamDetailsView({
     isRolesLoading ||
     isPermissionsFetching;
 
-  const refetchAll = useCallback(() => {
-    refetchMembers();
-  }, [refetchMembers]);
 
   const columns = useMemo(
     () =>
@@ -262,7 +259,7 @@ export function TeamDetailsView({
             }
           })
         );
-        refetchAll();
+        refetchMembers();
         toastManager.add({
           title: 'Member role updated',
           type: 'success'
@@ -278,7 +275,7 @@ export function TeamDetailsView({
         });
       }
     },
-    [queryClient, transport, deletePolicy, createPolicy, teamId, refetchAll]
+    [queryClient, transport, deletePolicy, createPolicy, teamId, refetchMembers]
   );
 
   const handleDeleteSuccess = useCallback(() => {
@@ -352,7 +349,7 @@ export function TeamDetailsView({
                 teamId={teamId}
                 canUpdateGroup={canUpdateGroup}
                 members={members}
-                refetch={refetchAll}
+                refetch={refetchMembers}
               />
             )}
           </Flex>
@@ -429,7 +426,7 @@ export function TeamDetailsView({
       />
       <RemoveMemberDialog
         handle={removeMemberDialogHandle}
-        refetch={refetchAll}
+        refetch={refetchMembers}
       />
     </ViewContainer>
   );

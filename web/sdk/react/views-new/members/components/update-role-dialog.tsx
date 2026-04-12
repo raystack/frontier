@@ -17,6 +17,7 @@ import {
   Flex,
   toastManager
 } from '@raystack/apsara-v1';
+import { handleConnectError } from '~/utils/error';
 
 export type UpdateRolePayload = { memberId: string; role: Role };
 
@@ -116,14 +117,11 @@ function UpdateRoleContent({
 
       toastManager.add({ title: 'Member role updated', type: 'success' });
       onClose();
-    } catch (error: unknown) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Failed to update member role',
-        type: 'error'
+    } catch (error) {
+      handleConnectError(error, {
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     } finally {
       setIsLoading(false);

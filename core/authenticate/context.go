@@ -78,6 +78,9 @@ func GetPrincipalNameAndTitle(principal *Principal) (name, title string) {
 	if principal == nil {
 		return "", ""
 	}
+	if principal.PAT != nil {
+		return "", principal.PAT.Title
+	}
 	if principal.User != nil {
 		return principal.User.Name, principal.User.Title
 	}
