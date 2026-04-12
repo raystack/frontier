@@ -106,7 +106,6 @@ interface FrontierContextProviderProps {
 }
 
 const defaultConfig: FrontierClientOptions = {
-  endpoint: 'http://localhost:8080',
   redirectLogin: 'http://localhost:3000',
   redirectSignup: 'http://localhost:3000/signup',
   redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify',

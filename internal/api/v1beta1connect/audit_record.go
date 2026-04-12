@@ -32,7 +32,7 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 
 	actor := request.Msg.GetActor()
 	// Validate the actor type for non-system actors. ZeroUUID is a special case for system actors.
-	if actor.GetId() != uuid.Nil.String() && !slices.Contains([]string{schema.ServiceUserPrincipal, schema.UserPrincipal}, actor.GetType()) {
+	if actor.GetId() != uuid.Nil.String() && !slices.Contains([]string{schema.ServiceUserPrincipal, schema.UserPrincipal, schema.PATPrincipal}, actor.GetType()) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidActorType)
 	}
 

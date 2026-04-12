@@ -25,6 +25,7 @@ import {
   ListRolesRequestSchema,
 } from "@raystack/proton/frontier";
 import {create} from "@bufbuild/protobuf";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../hooks/useTerminology";
 
 const inviteSchema = z.object({
@@ -98,9 +99,6 @@ export const InviteUser = () => {
   const { mutateAsync: inviteUser } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
     {
-      onError: error => {
-        console.error("Failed to invite user", error);
-      },
       onSuccess: (data: CreateOrganizationInvitationResponse) => {
         const invitedCount = data?.invitations?.length ?? 0;
         toast.success(
@@ -114,11 +112,20 @@ export const InviteUser = () => {
 
   const onSubmit = async (data: InviteSchemaType) => {
     if (!data.organizationId) return;
-    return inviteUser({
-      orgId: data.organizationId,
-      userIds: data?.emails,
-      roleIds: data?.role ? [data?.role] : [],
-    });
+    try {
+      await inviteUser({
+        orgId: data.organizationId,
+        userIds: data?.emails,
+        roleIds: data?.role ? [data?.role] : [],
+      });
+    } catch (error) {
+      handleConnectError(error, {
+        AlreadyExists: () => toast.error('Invitation already exists'),
+        InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
+        PermissionDenied: () => toast.error("You don't have permission to perform this action"),
+        Default: (err) => toast.error('Something went wrong', { description: err.message }),
+      });
+    }
   };
 
   return (

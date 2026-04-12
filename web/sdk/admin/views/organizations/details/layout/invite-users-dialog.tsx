@@ -6,27 +6,35 @@ import {
   Select,
   Text,
   TextArea,
-  toast,
-} from "@raystack/apsara";
-import { useContext, useMemo } from "react";
-import styles from "./layout.module.css";
-import { OrganizationContext } from "../contexts/organization-context";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import { DEFAULT_INVITE_ROLE } from "../types";
-import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
-import { useQueryClient } from "@tanstack/react-query";
-import { FrontierServiceQueries, CreateOrganizationInvitationRequestSchema } from "@raystack/proton/frontier";
-import { create } from "@bufbuild/protobuf";
-import { useTerminology } from "../../../../hooks/useTerminology";
+  toast
+} from '@raystack/apsara';
+import { useContext, useMemo } from 'react';
+import styles from './layout.module.css';
+import { OrganizationContext } from '../contexts/organization-context';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { DEFAULT_INVITE_ROLE } from '../types';
+import {
+  useMutation,
+  createConnectQueryKey,
+  useTransport
+} from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  FrontierServiceQueries,
+  CreateOrganizationInvitationRequestSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import { useTerminology } from '../../../../hooks/useTerminology';
+import { handleConnectError } from '~/utils/error';
 
 const inviteSchema = z.object({
   role: z.string(),
   emails: z
     .string()
-    .transform((value) => value.split(",").map((str) => str.trim()))
-    .pipe(z.array(z.string().email())),
+    .transform(value => value.split(',').map(str => str.trim()))
+    .pipe(z.array(z.string().email()))
 });
 
 type InviteSchemaType = z.infer<typeof inviteSchema>;
@@ -40,56 +48,62 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const { roles = [], organization } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
-  const organizationId = organization?.id || "";
+  const organizationId = organization?.id || '';
 
   const defaultRoleId = useMemo(
-    () => roles?.find((role) => role.name === DEFAULT_INVITE_ROLE)?.id,
-    [roles],
+    () => roles?.find(role => role.name === DEFAULT_INVITE_ROLE)?.id,
+    [roles]
   );
 
   const methods = useForm<InviteSchemaType>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
-      role: defaultRoleId,
-    },
+      role: defaultRoleId
+    }
   });
 
   const { mutateAsync: createInvitation } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
     {
-      onSuccess: (data) => {
+      onSuccess: data => {
         queryClient.invalidateQueries({
           queryKey: createConnectQueryKey({
             schema: FrontierServiceQueries.listOrganizationInvitations,
             transport,
             input: { orgId: organizationId },
-            cardinality: "finite",
-          }),
+            cardinality: 'finite'
+          })
         });
         const inviteCount = data?.invitations?.length ?? 0;
         toast.success(
-          `${t.user({ case: "capital", plural: inviteCount > 1 })} invited`,
+          `${t.user({ case: 'capital', plural: inviteCount > 1 })} invited`
         );
         onOpenChange(false);
-      },
-      onError: (error) => {
-        toast.error("Something went wrong", {
-          description: error.message,
-        });
-        console.error("Unable to invite user:", error);
-      },
-    },
+      }
+    }
   );
 
   const onSubmit = async (data: InviteSchemaType) => {
     if (!organizationId) return;
-    await createInvitation(
-      create(CreateOrganizationInvitationRequestSchema, {
-        orgId: organizationId,
-        userIds: data.emails,
-        roleIds: data.role ? [data.role] : [],
-      }),
-    );
+    try {
+      await createInvitation(
+        create(CreateOrganizationInvitationRequestSchema, {
+          orgId: organizationId,
+          userIds: data.emails,
+          roleIds: data.role ? [data.role] : []
+        })
+      );
+    } catch (error) {
+      handleConnectError(error, {
+        AlreadyExists: () => toast.error('Invitation already exists'),
+        InvalidArgument: err =>
+          toast.error('Invalid input', { description: err.message }),
+        PermissionDenied: () =>
+          toast.error("You don't have permission to perform this action"),
+        Default: err =>
+          toast.error('Something went wrong', { description: err.message })
+      });
+    }
   };
 
   const isSubmitting = methods?.formState?.isSubmitting;
@@ -100,13 +114,13 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             <Dialog.Header>
-              <Dialog.Title>Invite {t.user({ case: "lower" })}</Dialog.Title>
+              <Dialog.Title>Invite {t.user({ case: 'lower' })}</Dialog.Title>
               <Dialog.CloseButton data-test-id="invite-users-close-button" />
             </Dialog.Header>
-            <Dialog.Body className={styles["invite-users-dialog-body"]}>
+            <Dialog.Body className={styles['invite-users-dialog-body']}>
               <Flex direction="column" gap={7}>
                 <Flex direction="column" gap={2}>
-                  <Label className={styles["invite-users-dialog-label"]}>
+                  <Label className={styles['invite-users-dialog-label']}>
                     Emails
                   </Label>
                   <Controller
@@ -117,19 +131,19 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                         {...field}
                         // @ts-expect-error placeholder props not defined in TS
                         placeholder="abc@example.com, xyz@example.com"
-                        className={styles["invite-users-emails-textarea"]}
+                        className={styles['invite-users-emails-textarea']}
                       />
                     )}
                   />
                   {errors?.emails?.message || errors?.emails?.length ? (
-                    <Text size={1} className={styles["form-error-message"]}>
+                    <Text size={1} className={styles['form-error-message']}>
                       {errors?.emails?.message || errors?.emails?.[0]?.message}
                     </Text>
                   ) : null}
                 </Flex>
 
                 <Flex direction="column" gap={2}>
-                  <Label className={styles["invite-users-dialog-label"]}>
+                  <Label className={styles['invite-users-dialog-label']}>
                     Role
                   </Label>
                   <Controller
@@ -147,11 +161,11 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                           </Select.Trigger>
                           <Select.Content
                             className={
-                              styles["invite-users-dialog-roles-content"]
+                              styles['invite-users-dialog-roles-content']
                             }
                           >
-                            {roles?.map((role) => (
-                              <Select.Item key={role.id} value={role.id || ""}>
+                            {roles?.map(role => (
+                              <Select.Item key={role.id} value={role.id || ''}>
                                 {role.title}
                               </Select.Item>
                             ))}
@@ -162,7 +176,7 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                   />
 
                   {errors?.role?.message && (
-                    <Text size={1} className={styles["form-error-message"]}>
+                    <Text size={1} className={styles['form-error-message']}>
                       {errors?.role?.message}
                     </Text>
                   )}

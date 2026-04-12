@@ -13,6 +13,8 @@ import (
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	userpkg "github.com/raystack/frontier/core/user"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
+	patModels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -39,96 +41,161 @@ type ServiceUserService interface {
 	Get(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 }
 
+type UserPATService interface {
+	GetByID(ctx context.Context, id string) (patModels.PAT, error)
+}
+
 type Service struct {
 	repository     Repository
 	userService    UserService
 	serviceUser    ServiceUserService
 	sessionService SessionService
+	userPATService UserPATService
 }
 
-func NewService(repository Repository, userService UserService, serviceUserService ServiceUserService, sessionService SessionService) *Service {
+func NewService(repository Repository, userService UserService, serviceUserService ServiceUserService, sessionService SessionService, userPATService UserPATService) *Service {
 	return &Service{
 		repository:     repository,
 		userService:    userService,
 		serviceUser:    serviceUserService,
 		sessionService: sessionService,
+		userPATService: userPATService,
 	}
 }
 
 func (s *Service) Create(ctx context.Context, auditRecord AuditRecord) (AuditRecord, bool, error) {
-	// Check for idempotency key conflicts
 	if auditRecord.IdempotencyKey != "" {
-		existingRecord, err := s.repository.GetByIdempotencyKey(ctx, auditRecord.IdempotencyKey)
-		if err == nil {
-			existingHash := computeHash(existingRecord)
-			newHash := computeHash(auditRecord)
-
-			if existingHash == newHash {
-				// Same request - return existing (idempotent success)
-				// Return true to indicate this was an idempotency replay
-				return existingRecord, true, nil
-			} else {
-				// Different request with same key - conflict
-				return AuditRecord{}, false, ErrIdempotencyKeyConflict
-			}
-		} else if !errors.Is(err, ErrNotFound) {
+		existingRecord, isReplay, err := s.checkIdempotency(ctx, auditRecord)
+		if err != nil {
 			return AuditRecord{}, false, err
 		}
-		// If err is ErrNotFound, proceed to create the record
+		if isReplay {
+			return existingRecord, true, nil
+		}
 	}
 
-	// enrich actor info
-	switch {
-	case auditRecord.Actor.ID == uuid.Nil.String():
-		auditRecord.Actor.Type = auditrecord.SystemActor
-		auditRecord.Actor.Name = auditrecord.SystemActor
-
-	case auditRecord.Actor.Type == schema.UserPrincipal:
-		actorUUID, err := uuid.Parse(auditRecord.Actor.ID)
-		if err != nil {
-			return AuditRecord{}, false, ErrActorNotFound
-		}
-		session, err := s.sessionService.Get(ctx, actorUUID)
-		if err != nil {
-			if errors.Is(err, frontiersession.ErrNoSession) {
-				return AuditRecord{}, false, ErrActorNotFound
-			}
-			return AuditRecord{}, false, err
-		}
-		user, err := s.userService.GetByID(ctx, session.UserID)
-		if err != nil {
-			if errors.Is(err, userpkg.ErrNoUsersFound) {
-				return AuditRecord{}, false, ErrActorNotFound
-			}
-			return AuditRecord{}, false, err
-		}
-		auditRecord.Actor.Name = user.Name
-		auditRecord.Actor.Title = user.Title
-
-		if auditRecord.Actor.Metadata == nil {
-			auditRecord.Actor.Metadata = make(map[string]any)
-		}
-
-		// enrich with session metadata
-		auditRecord.Actor.Metadata[consts.AuditSessionMetadataKey] = session.Metadata
-
-		// check if the user is a superuser
-		if isSudo, err := s.userService.IsSudo(ctx, user.ID, schema.PlatformSudoPermission); err != nil {
-			return AuditRecord{}, false, err
-		} else if isSudo {
-			auditRecord.Actor.Metadata[consts.AuditActorSuperUserKey] = true
-		}
-
-	case auditRecord.Actor.Type == schema.ServiceUserPrincipal:
-		serviceUser, err := s.serviceUser.Get(ctx, auditRecord.Actor.ID)
-		if err != nil {
-			return AuditRecord{}, false, err
-		}
-		auditRecord.Actor.Title = serviceUser.Title
+	enrichedActor, err := s.enrichActor(ctx, auditRecord.Actor)
+	if err != nil {
+		return AuditRecord{}, false, err
 	}
+	auditRecord.Actor = enrichedActor
 
 	createdRecord, err := s.repository.Create(ctx, auditRecord)
 	return createdRecord, false, err
+}
+
+// checkIdempotency returns (existingRecord, true, nil) if this is a replay of a previous request,
+// or (empty, false, nil) if no duplicate exists and creation should proceed.
+func (s *Service) checkIdempotency(ctx context.Context, auditRecord AuditRecord) (AuditRecord, bool, error) {
+	existingRecord, err := s.repository.GetByIdempotencyKey(ctx, auditRecord.IdempotencyKey)
+	if errors.Is(err, ErrNotFound) {
+		return AuditRecord{}, false, nil
+	}
+	if err != nil {
+		return AuditRecord{}, false, err
+	}
+	if computeHash(existingRecord) == computeHash(auditRecord) {
+		return existingRecord, true, nil
+	}
+	return AuditRecord{}, false, ErrIdempotencyKeyConflict
+}
+
+func (s *Service) enrichActor(ctx context.Context, actor Actor) (Actor, error) {
+	switch {
+	case actor.ID == uuid.Nil.String():
+		return s.enrichSystemActor(actor), nil
+	case actor.Type == schema.UserPrincipal:
+		return s.enrichUserActor(ctx, actor)
+	case actor.Type == schema.ServiceUserPrincipal:
+		return s.enrichServiceUserActor(ctx, actor)
+	case actor.Type == schema.PATPrincipal:
+		return s.enrichPATActor(ctx, actor)
+	default:
+		return actor, nil
+	}
+}
+
+func (s *Service) enrichSystemActor(actor Actor) Actor {
+	actor.Type = auditrecord.SystemActor
+	actor.Name = auditrecord.SystemActor
+	return actor
+}
+
+func (s *Service) enrichUserActor(ctx context.Context, actor Actor) (Actor, error) {
+	sessionUUID, err := uuid.Parse(actor.ID)
+	if err != nil {
+		return Actor{}, ErrActorNotFound
+	}
+	session, err := s.sessionService.Get(ctx, sessionUUID)
+	if err != nil {
+		if errors.Is(err, frontiersession.ErrNoSession) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	user, err := s.userService.GetByID(ctx, session.UserID)
+	if err != nil {
+		if errors.Is(err, userpkg.ErrNotExist) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	actor.Name = user.Name
+	actor.Title = user.Title
+
+	if actor.Metadata == nil {
+		actor.Metadata = make(map[string]any)
+	}
+	actor.Metadata[consts.AuditSessionMetadataKey] = session.Metadata
+
+	isSudo, err := s.userService.IsSudo(ctx, user.ID, schema.PlatformSudoPermission)
+	if err != nil {
+		return Actor{}, err
+	}
+	if isSudo {
+		actor.Metadata[consts.AuditActorSuperUserKey] = true
+	}
+
+	return actor, nil
+}
+
+func (s *Service) enrichServiceUserActor(ctx context.Context, actor Actor) (Actor, error) {
+	serviceUser, err := s.serviceUser.Get(ctx, actor.ID)
+	if err != nil {
+		return Actor{}, err
+	}
+	actor.Title = serviceUser.Title
+	return actor, nil
+}
+
+func (s *Service) enrichPATActor(ctx context.Context, actor Actor) (Actor, error) {
+	pat, err := s.userPATService.GetByID(ctx, actor.ID)
+	if err != nil {
+		if errors.Is(err, paterrors.ErrNotFound) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	actor.Name = pat.Title
+	actor.Title = pat.Title
+
+	user, err := s.userService.GetByID(ctx, pat.UserID)
+	if err != nil {
+		if errors.Is(err, userpkg.ErrNotExist) {
+			return Actor{}, ErrActorNotFound
+		}
+		return Actor{}, err
+	}
+	if actor.Metadata == nil {
+		actor.Metadata = make(map[string]any)
+	}
+	actor.Metadata["user"] = map[string]any{
+		"id":    user.ID,
+		"name":  user.Name,
+		"title": user.Title,
+		"email": user.Email,
+	}
+	return actor, nil
 }
 
 func (s *Service) List(ctx context.Context, query *rql.Query) (AuditRecordsList, error) {
@@ -169,12 +236,19 @@ func computeHash(auditRecord AuditRecord) string {
 // SetAuditRecordActorContext sets the audit record actor in context
 // It accepts an Actor struct but stores it as a map to avoid layer violations in repositories
 func SetAuditRecordActorContext(ctx context.Context, actor Actor) context.Context {
+	var metadataMap map[string]interface{}
+	if actor.Metadata != nil {
+		metadataMap = make(map[string]interface{}, len(actor.Metadata))
+		for k, v := range actor.Metadata {
+			metadataMap[k] = v
+		}
+	}
 	actorMap := map[string]interface{}{
 		"id":       actor.ID,
 		"type":     actor.Type,
 		"name":     actor.Name,
 		"title":    actor.Title,
-		"metadata": actor.Metadata,
+		"metadata": metadataMap,
 	}
 	return context.WithValue(ctx, consts.AuditRecordActorContextKey, actorMap)
 }

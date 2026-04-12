@@ -401,7 +401,7 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 		}
 	}
 
-	audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRoleSetEvent, audit.ProjectTarget(projectID), map[string]string{
+	audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRoleChangedEvent, audit.ProjectTarget(projectID), map[string]string{
 		"principal_id":   principalID,
 		"principal_type": principalType,
 		"role_id":        roleID,

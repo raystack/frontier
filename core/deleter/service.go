@@ -127,7 +127,20 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 }
 
 func (d Service) DeleteProject(ctx context.Context, id string) error {
-	// delete all related resources first
+	// delete all project-level policies (and their rolebinding relations)
+	policies, err := d.policyService.List(ctx, policy.Filter{
+		ProjectID: id,
+	})
+	if err != nil {
+		return err
+	}
+	for _, p := range policies {
+		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+			return fmt.Errorf("failed to delete project while deleting a policy[%s]: %w", p.ID, err)
+		}
+	}
+
+	// delete all related resources
 	resources, err := d.resService.List(ctx, resource.Filter{
 		ProjectID: id,
 	})

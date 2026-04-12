@@ -12,6 +12,8 @@ import (
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	paterrors "github.com/raystack/frontier/core/userpat/errors"
+	patModels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -24,6 +26,11 @@ import (
 func createMockServices(t *testing.T) (*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService, *mocks.SessionService) {
 	t.Helper() // This marks the function as a test helper
 	return mocks.NewRepository(t), mocks.NewUserService(t), mocks.NewServiceUserService(t), mocks.NewSessionService(t)
+}
+
+func createMockServicesWithPAT(t *testing.T) (*mocks.Repository, *mocks.UserService, *mocks.ServiceUserService, *mocks.SessionService, *mocks.UserPATService) {
+	t.Helper()
+	return mocks.NewRepository(t), mocks.NewUserService(t), mocks.NewServiceUserService(t), mocks.NewSessionService(t), mocks.NewUserPATService(t)
 }
 
 // Helper function to create base audit record for testing
@@ -340,7 +347,7 @@ func TestService_Create_Idempotency(t *testing.T) {
 
 			tt.setupMocks(repo, userSvc, serviceuserSvc, sessionSvc)
 
-			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 
 			result, isIdempotent, err := service.Create(context.Background(), tt.auditRecord)
 
@@ -618,7 +625,7 @@ func TestService_Create_ActorEnrichment(t *testing.T) {
 			repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
 			tt.setupMocks(repo, userSvc, serviceuserSvc, sessionSvc)
 
-			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 			result, isIdempotent, err := service.Create(context.Background(), tt.inputRecord)
 
 			if tt.expectError != nil {
@@ -649,7 +656,7 @@ func TestService_Create_RepositoryErrors(t *testing.T) {
 	userSvc.EXPECT().IsSudo(mock.Anything, "user-123", schema.PlatformSudoPermission).Return(false, nil)
 	repo.EXPECT().Create(mock.Anything, mock.Anything).Return(auditrecord.AuditRecord{}, errors.New("database connection failed"))
 
-	service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+	service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 	record := createBaseAuditRecord()
 	record.IdempotencyKey = ""
 
@@ -686,7 +693,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 			return hasOriginal && originalValue == "existing_value" && hasSudo && sudoValue == true
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 		record := auditrecord.AuditRecord{
 			Event: "admin.action",
 			Actor: auditrecord.Actor{
@@ -728,7 +735,7 @@ func TestService_Create_EdgeCases(t *testing.T) {
 			return hasSudo && sudoValue == true && ar.Actor.Metadata != nil
 		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 		record := auditrecord.AuditRecord{
 			Event: "admin.action",
 			Actor: auditrecord.Actor{
@@ -1017,7 +1024,7 @@ func TestService_List(t *testing.T) {
 			repo, userSvc, serviceuserSvc, sessionSvc := createMockServices(t)
 			tt.setupMocks(repo, userSvc, serviceuserSvc, sessionSvc)
 
-			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+			service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 			result, err := service.List(context.Background(), tt.query)
 
 			if tt.expectError != nil {
@@ -1052,7 +1059,7 @@ func TestService_List_EdgeCases(t *testing.T) {
 		}
 		repo.EXPECT().List(mock.Anything, (*rql.Query)(nil)).Return(expectedList, nil)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 		result, err := service.List(context.Background(), nil)
 
 		assert.NoError(t, err)
@@ -1069,10 +1076,315 @@ func TestService_List_EdgeCases(t *testing.T) {
 
 		repo.EXPECT().List(ctx, (*rql.Query)(nil)).Return(auditrecord.AuditRecordsList{}, context.Canceled)
 
-		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc)
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, nil)
 		_, err := service.List(ctx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, context.Canceled, err)
+	})
+}
+
+// TEST 6: PAT actor enrichment
+func TestService_Create_PATActorEnrichment(t *testing.T) {
+	t.Run("PAT actor gets enriched with PAT title and user metadata", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-123").Return(patModels.PAT{
+			ID:     "pat-123",
+			UserID: "user-owner-456",
+			Title:  "My Deploy Token",
+		}, nil)
+
+		userSvc.EXPECT().GetByID(mock.Anything, "user-owner-456").Return(user.User{
+			ID:    "user-owner-456",
+			Name:  "Jane Doe",
+			Title: "DevOps Engineer",
+			Email: "jane@example.com",
+		}, nil)
+
+		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
+			// Verify PAT title is set as name and title
+			if ar.Actor.Name != "My Deploy Token" || ar.Actor.Title != "My Deploy Token" {
+				return false
+			}
+			// Verify user metadata is enriched
+			userMeta, ok := ar.Actor.Metadata["user"].(map[string]any)
+			if !ok {
+				return false
+			}
+			return userMeta["id"] == "user-owner-456" &&
+				userMeta["name"] == "Jane Doe" &&
+				userMeta["title"] == "DevOps Engineer" &&
+				userMeta["email"] == "jane@example.com"
+		})).Return(auditrecord.AuditRecord{ID: "created-pat"}, nil)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		result, isIdempotent, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "pat.used",
+			Actor: auditrecord.Actor{
+				ID:   "pat-123",
+				Type: schema.PATPrincipal,
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, result)
+		assert.False(t, isIdempotent)
+	})
+
+	t.Run("PAT actor with existing metadata preserves it and adds user info", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-456").Return(patModels.PAT{
+			ID:     "pat-456",
+			UserID: "user-789",
+			Title:  "CI Token",
+		}, nil)
+
+		userSvc.EXPECT().GetByID(mock.Anything, "user-789").Return(user.User{
+			ID:    "user-789",
+			Name:  "CI User",
+			Title: "CI User",
+			Email: "ci@example.com",
+		}, nil)
+
+		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
+			// Verify both existing metadata and user info are present
+			_, hasExisting := ar.Actor.Metadata["existing_key"]
+			_, hasUser := ar.Actor.Metadata["user"]
+			return hasExisting && hasUser
+		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		result, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:   "pat-456",
+				Type: schema.PATPrincipal,
+				Metadata: metadata.Metadata{
+					"existing_key": "existing_value",
+				},
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, result)
+	})
+
+	t.Run("PAT actor with nil metadata gets metadata map created", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-nil-meta").Return(patModels.PAT{
+			ID:     "pat-nil-meta",
+			UserID: "user-abc",
+			Title:  "Token No Meta",
+		}, nil)
+
+		userSvc.EXPECT().GetByID(mock.Anything, "user-abc").Return(user.User{
+			ID:    "user-abc",
+			Name:  "Alice",
+			Title: "Alice Title",
+			Email: "alice@example.com",
+		}, nil)
+
+		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(ar auditrecord.AuditRecord) bool {
+			return ar.Actor.Metadata != nil && ar.Actor.Metadata["user"] != nil
+		})).Return(auditrecord.AuditRecord{ID: "created"}, nil)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		result, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:       "pat-nil-meta",
+				Type:     schema.PATPrincipal,
+				Metadata: nil, // nil metadata
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, result)
+	})
+
+	t.Run("PAT not found returns ErrActorNotFound", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-missing").Return(patModels.PAT{}, paterrors.ErrNotFound)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:   "pat-missing",
+				Type: schema.PATPrincipal,
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, auditrecord.ErrActorNotFound)
+	})
+
+	t.Run("PAT lookup DB error passes through", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		dbErr := errors.New("database connection failed")
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-db-err").Return(patModels.PAT{}, dbErr)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:   "pat-db-err",
+				Type: schema.PATPrincipal,
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, dbErr)
+		assert.NotErrorIs(t, err, auditrecord.ErrActorNotFound)
+	})
+
+	t.Run("PAT found but user not found returns ErrActorNotFound", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-orphan").Return(patModels.PAT{
+			ID:     "pat-orphan",
+			UserID: "user-deleted",
+			Title:  "Orphan Token",
+		}, nil)
+
+		userSvc.EXPECT().GetByID(mock.Anything, "user-deleted").Return(user.User{}, user.ErrNotExist)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:   "pat-orphan",
+				Type: schema.PATPrincipal,
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, auditrecord.ErrActorNotFound)
+	})
+
+	t.Run("PAT found but user lookup DB error passes through", func(t *testing.T) {
+		repo, userSvc, serviceuserSvc, sessionSvc, patSvc := createMockServicesWithPAT(t)
+
+		patSvc.EXPECT().GetByID(mock.Anything, "pat-user-db-err").Return(patModels.PAT{
+			ID:     "pat-user-db-err",
+			UserID: "user-db-err",
+			Title:  "Token",
+		}, nil)
+
+		dbErr := errors.New("database timeout")
+		userSvc.EXPECT().GetByID(mock.Anything, "user-db-err").Return(user.User{}, dbErr)
+
+		service := auditrecord.NewService(repo, userSvc, serviceuserSvc, sessionSvc, patSvc)
+		_, _, err := service.Create(context.Background(), auditrecord.AuditRecord{
+			Event: "api.call",
+			Actor: auditrecord.Actor{
+				ID:   "pat-user-db-err",
+				Type: schema.PATPrincipal,
+			},
+			Resource:   auditrecord.Resource{ID: "res-123", Type: "api"},
+			OccurredAt: time.Now(),
+			OrgID:      "org-123",
+		})
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, dbErr)
+		assert.NotErrorIs(t, err, auditrecord.ErrActorNotFound)
+	})
+}
+
+// TEST 7: SetAuditRecordActorContext metadata type conversion
+func TestSetAuditRecordActorContext(t *testing.T) {
+	t.Run("metadata.Metadata is converted to map[string]interface{}", func(t *testing.T) {
+		actor := auditrecord.Actor{
+			ID:    "actor-123",
+			Type:  schema.PATPrincipal,
+			Name:  "Test Token",
+			Title: "Test Token",
+			Metadata: metadata.Metadata{
+				"key1": "value1",
+				"key2": 42,
+				"user": map[string]any{
+					"id":   "user-123",
+					"name": "Test User",
+				},
+			},
+		}
+
+		ctx := auditrecord.SetAuditRecordActorContext(context.Background(), actor)
+
+		// Extract the raw value from context
+		val := ctx.Value(consts.AuditRecordActorContextKey)
+		assert.NotNil(t, val)
+
+		// The value should be assertable as map[string]interface{} (not metadata.Metadata)
+		actorMap, ok := val.(map[string]interface{})
+		assert.True(t, ok, "context value should be map[string]interface{}")
+
+		assert.Equal(t, "actor-123", actorMap["id"])
+		assert.Equal(t, schema.PATPrincipal, actorMap["type"])
+		assert.Equal(t, "Test Token", actorMap["name"])
+		assert.Equal(t, "Test Token", actorMap["title"])
+
+		// Metadata should also be map[string]interface{}, not metadata.Metadata
+		metadataVal, ok := actorMap["metadata"].(map[string]interface{})
+		assert.True(t, ok, "metadata should be map[string]interface{}")
+		assert.Equal(t, "value1", metadataVal["key1"])
+		assert.Equal(t, 42, metadataVal["key2"])
+	})
+
+	t.Run("nil metadata is stored as nil", func(t *testing.T) {
+		actor := auditrecord.Actor{
+			ID:       "actor-nil",
+			Type:     schema.UserPrincipal,
+			Metadata: nil,
+		}
+
+		ctx := auditrecord.SetAuditRecordActorContext(context.Background(), actor)
+		val := ctx.Value(consts.AuditRecordActorContextKey)
+		actorMap, ok := val.(map[string]interface{})
+		assert.True(t, ok)
+
+		// Metadata should be nil, not an empty map
+		assert.Nil(t, actorMap["metadata"])
+	})
+
+	t.Run("empty metadata is stored as empty map", func(t *testing.T) {
+		actor := auditrecord.Actor{
+			ID:       "actor-empty",
+			Type:     schema.UserPrincipal,
+			Metadata: metadata.Metadata{},
+		}
+
+		ctx := auditrecord.SetAuditRecordActorContext(context.Background(), actor)
+		val := ctx.Value(consts.AuditRecordActorContextKey)
+		actorMap, ok := val.(map[string]interface{})
+		assert.True(t, ok)
+
+		metadataVal, ok := actorMap["metadata"].(map[string]interface{})
+		assert.True(t, ok, "empty metadata should still be map[string]interface{}")
+		assert.Empty(t, metadataVal)
 	})
 }

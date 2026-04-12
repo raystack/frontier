@@ -19,14 +19,14 @@ import { orderBy } from 'lodash';
 import {
   FrontierServiceQueries,
   CreateServiceUserRequestSchema,
-  CreatePolicyForProjectRequestSchema,
+  SetProjectMemberRoleRequestSchema,
   CreateServiceUserTokenRequestSchema,
   ListOrganizationServiceUsersRequestSchema,
   ListOrganizationProjectsRequestSchema,
+  ListRolesRequestSchema,
   ListServiceUserTokensRequestSchema,
   ListServiceUserTokensResponseSchema,
-  ServiceUserRequestBodySchema,
-  CreatePolicyForProjectBodySchema
+  ServiceUserRequestBodySchema
 } from '@raystack/proton/frontier';
 import { PERMISSIONS } from '~/utils';
 import { useQueryClient } from '@tanstack/react-query';
@@ -99,12 +99,26 @@ export const AddServiceAccountDialog = ({
     return orderBy(list, ['title'], ['asc']);
   }, [projectsData]);
 
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: open }
+  );
+
+  const ownerRoleId = useMemo(
+    () => rolesData?.roles?.find(r => r.name === PERMISSIONS.RoleProjectOwner)?.id ?? '',
+    [rolesData]
+  );
+
   const { mutateAsync: createServiceUser } = useMutation(
     FrontierServiceQueries.createServiceUser
   );
 
-  const { mutateAsync: createPolicyForProject } = useMutation(
-    FrontierServiceQueries.createPolicyForProject
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole
   );
 
   const { mutateAsync: createServiceUserToken } = useMutation(
@@ -114,6 +128,10 @@ export const AddServiceAccountDialog = ({
   const onSubmit = useCallback(
     async (data: FormData) => {
       if (!orgId) return;
+      if (!ownerRoleId) {
+        toast.error('Project owner role not found');
+        return;
+      }
 
       try {
         const serviceUserResponse = await createServiceUser(
@@ -127,16 +145,12 @@ export const AddServiceAccountDialog = ({
 
         const serviceUserId = serviceUserResponse.serviceuser?.id;
         if (!serviceUserId) return;
-
-        const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceUserId}`;
-
-        await createPolicyForProject(
-          create(CreatePolicyForProjectRequestSchema, {
+        await setProjectMemberRole(
+          create(SetProjectMemberRoleRequestSchema, {
             projectId: data.project_id,
-            body: create(CreatePolicyForProjectBodySchema, {
-              roleId: PERMISSIONS.RoleProjectOwner,
-              principal
-            })
+            principalId: serviceUserId,
+            principalType: PERMISSIONS.ServiceUserPrincipal,
+            roleId: ownerRoleId
           })
         );
 
@@ -188,8 +202,9 @@ export const AddServiceAccountDialog = ({
     },
     [
       orgId,
+      ownerRoleId,
       createServiceUser,
-      createPolicyForProject,
+      setProjectMemberRole,
       createServiceUserToken,
       queryClient,
       transport,
@@ -288,7 +303,7 @@ export const AddServiceAccountDialog = ({
                 type="submit"
                 data-test-id="frontier-sdk-add-service-account-btn"
                 loading={isSubmitting}
-                disabled={isSubmitting || isProjectsLoading}
+                disabled={isSubmitting || isProjectsLoading || !ownerRoleId}
                 loaderText="Creating..."
               >
                 Create

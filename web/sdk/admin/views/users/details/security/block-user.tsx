@@ -12,6 +12,7 @@ import {
   FrontierServiceQueries,
 } from "@raystack/proton/frontier";
 import { useQueryClient } from "@tanstack/react-query";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 type ButtonColorType = ComponentProps<typeof Button>["color"];
@@ -65,9 +66,6 @@ export const BlockUserDialog = () => {
         reset?.();
         onOpenChange(false);
       },
-      onError: error => {
-        console.error("Failed to block user", error);
-      },
     },
   );
   const { mutateAsync: unblockUser, isPending: isUnblockingUser } = useMutation(
@@ -79,9 +77,6 @@ export const BlockUserDialog = () => {
         reset?.();
         onOpenChange(false);
       },
-      onError: error => {
-        console.error("Failed to block user", error);
-      },
     },
   );
 
@@ -91,9 +86,21 @@ export const BlockUserDialog = () => {
     setIsDialogOpen(value);
   };
 
+  const handleAction = async (action: typeof blockUser | typeof unblockUser, errorMessage: string) => {
+    try {
+      await action({ id: user?.id || "" });
+    } catch (error) {
+      handleConnectError(error, {
+        PermissionDenied: () => toast.error("You don't have permission to perform this action"),
+        NotFound: (err) => toast.error('Not found', { description: err.message }),
+        Default: (err) => toast.error(errorMessage, { description: err.message }),
+      });
+    }
+  };
+
   const config = isActive
     ? {
-        onClick: blockUser,
+        onClick: () => handleAction(blockUser, `Failed to block ${t.user({ case: "lower" })}`),
         btnColor: "danger" as ButtonColorType,
         btnText: "Block",
         dialogTitle: `Block ${t.user({ case: "lower" })}`,
@@ -102,7 +109,7 @@ export const BlockUserDialog = () => {
         dialogConfirmLoadingText: "Blocking...",
       }
     : {
-        onClick: unblockUser,
+        onClick: () => handleAction(unblockUser, `Failed to unblock ${t.user({ case: "lower" })}`),
         btnColor: "accent" as ButtonColorType,
         btnText: "Unblock",
         dialogTitle: `Unblock ${t.user({ case: "lower" })}`,
@@ -144,7 +151,7 @@ export const BlockUserDialog = () => {
             data-test-id="admin-security-block-user-submit"
             loading={isSubmitting}
             loaderText={config.dialogConfirmLoadingText}
-            onClick={() => config.onClick({ id: user?.id || "" })}>
+            onClick={config.onClick}>
             {config.dialogConfirmText}
           </Button>
         </Dialog.Footer>

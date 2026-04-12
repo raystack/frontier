@@ -20,12 +20,10 @@ import {
   FrontierServiceQueries,
   ListServiceUserProjectsRequestSchema,
   ListOrganizationProjectsRequestSchema,
-  CreatePolicyForProjectRequestSchema,
-  CreatePolicyForProjectBodySchema,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema,
-  Project,
-  Policy
+  ListRolesRequestSchema,
+  SetProjectMemberRoleRequestSchema,
+  RemoveProjectMemberRequestSchema,
+  Project
 } from '@raystack/proton/frontier';
 import { orderBy } from 'lodash';
 
@@ -156,16 +154,26 @@ export default function ManageServiceUserProjectsDialog({
     setAddedProjectsMap(permMap);
   }, [addedProjects]);
 
-  const { mutateAsync: createPolicyForProject } = useMutation(
-    FrontierServiceQueries.createPolicyForProject
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: open }
   );
 
-  const { mutateAsync: listPolicies } = useMutation(
-    FrontierServiceQueries.listPolicies
+  const ownerRoleId = useMemo(
+    () => rolesData?.roles?.find(r => r.name === PERMISSIONS.RoleProjectOwner)?.id ?? '',
+    [rolesData]
   );
 
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole
+  );
+
+  const { mutateAsync: removeProjectMember } = useMutation(
+    FrontierServiceQueries.removeProjectMember
   );
 
   const onAccessChange = useCallback(
@@ -177,14 +185,16 @@ export default function ManageServiceUserProjectsDialog({
         }));
 
         if (value) {
-          const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceUserId}`;
-          await createPolicyForProject(
-            create(CreatePolicyForProjectRequestSchema, {
+          if (!ownerRoleId) {
+            toast.error('Project owner role not found');
+            return;
+          }
+          await setProjectMemberRole(
+            create(SetProjectMemberRoleRequestSchema, {
               projectId,
-              body: create(CreatePolicyForProjectBodySchema, {
-                roleId: PERMISSIONS.RoleProjectOwner,
-                principal
-              })
+              principalId: serviceUserId,
+              principalType: PERMISSIONS.ServiceUserPrincipal,
+              roleId: ownerRoleId
             })
           );
           setAddedProjectsMap(prev => ({
@@ -192,24 +202,13 @@ export default function ManageServiceUserProjectsDialog({
             [projectId]: { value: true, isLoading: false }
           }));
         } else {
-          const policiesResp = await listPolicies(
-            create(ListPoliciesRequestSchema, {
+          await removeProjectMember(
+            create(RemoveProjectMemberRequestSchema, {
               projectId,
-              userId: serviceUserId,
-              orgId: '',
-              roleId: '',
-              groupId: ''
+              principalId: serviceUserId,
+              principalType: PERMISSIONS.ServiceUserPrincipal
             })
           );
-          const policies = policiesResp?.policies || [];
-          const deletePromises = policies.map((p: Policy) =>
-            deletePolicy(
-              create(DeletePolicyRequestSchema, {
-                id: p.id
-              })
-            )
-          );
-          await Promise.all(deletePromises);
           setAddedProjectsMap(prev => ({
             ...prev,
             [projectId]: { value: false, isLoading: false }
@@ -224,7 +223,7 @@ export default function ManageServiceUserProjectsDialog({
         }));
       }
     },
-    [serviceUserId, createPolicyForProject, listPolicies, deletePolicy]
+    [serviceUserId, ownerRoleId, setProjectMemberRole, removeProjectMember]
   );
 
   const columns = getColumns({

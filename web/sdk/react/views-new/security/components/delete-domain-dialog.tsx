@@ -24,6 +24,7 @@ import {
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useOrganizationDomain } from '../../../hooks/useOrganizationDomain';
+import { handleConnectError } from '~/utils/error';
 
 const domainSchema = yup
   .object({
@@ -109,13 +110,6 @@ function DeleteDomainContent({
           });
         }
         handle.close();
-      },
-      onError: (error: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: error.message,
-          type: 'error'
-        });
       }
     }
   );
@@ -127,12 +121,20 @@ function DeleteDomainContent({
       return setError('domain', { message: 'Domain name does not match' });
     }
 
-    await deleteOrganizationDomain(
-      create(DeleteOrganizationDomainRequestSchema, {
-        id: domain.id,
-        orgId: organization.id
-      })
-    );
+    try {
+      await deleteOrganizationDomain(
+        create(DeleteOrganizationDomainRequestSchema, {
+          id: domain.id,
+          orgId: organization.id
+        })
+      );
+    } catch (error) {
+      handleConnectError(error, {
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
+      });
+    }
   }
 
   const domainName = watch('domain', '');

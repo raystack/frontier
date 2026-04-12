@@ -17,6 +17,10 @@ import Security from './pages/settings/Security';
 import Projects from './pages/settings/Projects';
 import ProjectDetails from './pages/settings/ProjectDetails';
 import Tokens from './pages/settings/Tokens';
+import Teams from './pages/settings/Teams';
+import TeamDetails from './pages/settings/TeamDetails';
+import ServiceAccounts from './pages/settings/ServiceAccounts';
+import ServiceAccountDetails from './pages/settings/ServiceAccountDetails';
 
 function Router() {
   return (
@@ -40,10 +44,14 @@ function Router() {
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:projectId" element={<ProjectDetails />} />
           <Route path="tokens" element={<Tokens />} />
-        </Route>
+          <Route path="teams" element={<Teams />} />
+          <Route path="teams/:teamId" element={<TeamDetails />} />
+          <Route path="service-accounts" element={<ServiceAccounts />} />
+          <Route path="service-accounts/:serviceAccountId" element={<ServiceAccountDetails />} />
+        </Route >
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      </Routes >
+    </BrowserRouter >
   );
 }
 
