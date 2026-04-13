@@ -113,3 +113,18 @@ type Filter struct {
 
 	Pagination *pagination.Pagination
 }
+
+type SearchOrgInvoice struct {
+	ID            string    `rql:"name=id,type=string"`
+	ProviderID    string    `rql:"name=provider_id,type=string"`
+	CustomerID    string    `rql:"name=customer_id,type=string"`
+	State         State     `rql:"name=state,type=string"`
+	Currency      string    `rql:"name=currency,type=string"`
+	Amount        int64     `rql:"name=amount,type=number"`
+	HostedURL     string    `rql:"name=hosted_url,type=string"`
+	DueAt         time.Time `rql:"name=due_at,type=datetime"`
+	EffectiveAt   time.Time `rql:"name=effective_at,type=datetime"`
+	CreatedAt     time.Time `rql:"name=created_at,type=datetime"`
+	PeriodStartAt time.Time `rql:"name=period_start_at,type=datetime"`
+	PeriodEndAt   time.Time `rql:"name=period_end_at,type=datetime"`
+}

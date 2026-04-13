@@ -4,7 +4,7 @@ TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto admin-app compose-up-dev
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "ac2df1932fcddcd7f7ff1af0ded07b14d73b781b"
+PROTON_COMMIT := "2e33515c45d2bfb63ac8d41f8963129d35a59684"
 
 admin-app:
 	@echo " > generating admin build"

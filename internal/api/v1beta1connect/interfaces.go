@@ -248,6 +248,7 @@ type CustomerService interface {
 type InvoiceService interface {
 	List(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
 	ListAll(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
+	SearchOrgInvoices(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query) ([]invoice.Invoice, int64, error)
 	GetUpcoming(ctx context.Context, customerID string) (invoice.Invoice, error)
 	TriggerCreditOverdraftInvoices(ctx context.Context) error
 	SearchInvoices(ctx context.Context, rqlQuery *rql.Query) ([]invoice.InvoiceWithOrganization, error)

@@ -531,6 +531,9 @@ const (
 	// FrontierServiceListInvoicesProcedure is the fully-qualified name of the FrontierService's
 	// ListInvoices RPC.
 	FrontierServiceListInvoicesProcedure = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
+	// FrontierServiceSearchOrgInvoicesProcedure is the fully-qualified name of the FrontierService's
+	// SearchOrgInvoices RPC.
+	FrontierServiceSearchOrgInvoicesProcedure = "/raystack.frontier.v1beta1.FrontierService/SearchOrgInvoices"
 	// FrontierServiceGetUpcomingInvoiceProcedure is the fully-qualified name of the FrontierService's
 	// GetUpcomingInvoice RPC.
 	FrontierServiceGetUpcomingInvoiceProcedure = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
@@ -765,6 +768,7 @@ type FrontierServiceClient interface {
 	TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error)
 	// Invoice
 	ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error)
+	SearchOrgInvoices(context.Context, *connect.Request[v1beta1.SearchOrgInvoicesRequest]) (*connect.Response[v1beta1.SearchOrgInvoicesResponse], error)
 	GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error)
 	// Incoming Webhooks
 	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
@@ -1796,6 +1800,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("ListInvoices")),
 			connect.WithClientOptions(opts...),
 		),
+		searchOrgInvoices: connect.NewClient[v1beta1.SearchOrgInvoicesRequest, v1beta1.SearchOrgInvoicesResponse](
+			httpClient,
+			baseURL+FrontierServiceSearchOrgInvoicesProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("SearchOrgInvoices")),
+			connect.WithClientOptions(opts...),
+		),
 		getUpcomingInvoice: connect.NewClient[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse](
 			httpClient,
 			baseURL+FrontierServiceGetUpcomingInvoiceProcedure,
@@ -2040,6 +2050,7 @@ type frontierServiceClient struct {
 	listBillingTransactions        *connect.Client[v1beta1.ListBillingTransactionsRequest, v1beta1.ListBillingTransactionsResponse]
 	totalDebitedTransactions       *connect.Client[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse]
 	listInvoices                   *connect.Client[v1beta1.ListInvoicesRequest, v1beta1.ListInvoicesResponse]
+	searchOrgInvoices              *connect.Client[v1beta1.SearchOrgInvoicesRequest, v1beta1.SearchOrgInvoicesResponse]
 	getUpcomingInvoice             *connect.Client[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse]
 	billingWebhookCallback         *connect.Client[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse]
 	createProspectPublic           *connect.Client[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse]
@@ -2912,6 +2923,11 @@ func (c *frontierServiceClient) ListInvoices(ctx context.Context, req *connect.R
 	return c.listInvoices.CallUnary(ctx, req)
 }
 
+// SearchOrgInvoices calls raystack.frontier.v1beta1.FrontierService.SearchOrgInvoices.
+func (c *frontierServiceClient) SearchOrgInvoices(ctx context.Context, req *connect.Request[v1beta1.SearchOrgInvoicesRequest]) (*connect.Response[v1beta1.SearchOrgInvoicesResponse], error) {
+	return c.searchOrgInvoices.CallUnary(ctx, req)
+}
+
 // GetUpcomingInvoice calls raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice.
 func (c *frontierServiceClient) GetUpcomingInvoice(ctx context.Context, req *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error) {
 	return c.getUpcomingInvoice.CallUnary(ctx, req)
@@ -3171,6 +3187,7 @@ type FrontierServiceHandler interface {
 	TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error)
 	// Invoice
 	ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error)
+	SearchOrgInvoices(context.Context, *connect.Request[v1beta1.SearchOrgInvoicesRequest]) (*connect.Response[v1beta1.SearchOrgInvoicesResponse], error)
 	GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error)
 	// Incoming Webhooks
 	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
@@ -4198,6 +4215,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("ListInvoices")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceSearchOrgInvoicesHandler := connect.NewUnaryHandler(
+		FrontierServiceSearchOrgInvoicesProcedure,
+		svc.SearchOrgInvoices,
+		connect.WithSchema(frontierServiceMethods.ByName("SearchOrgInvoices")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceGetUpcomingInvoiceHandler := connect.NewUnaryHandler(
 		FrontierServiceGetUpcomingInvoiceProcedure,
 		svc.GetUpcomingInvoice,
@@ -4606,6 +4629,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceTotalDebitedTransactionsHandler.ServeHTTP(w, r)
 		case FrontierServiceListInvoicesProcedure:
 			frontierServiceListInvoicesHandler.ServeHTTP(w, r)
+		case FrontierServiceSearchOrgInvoicesProcedure:
+			frontierServiceSearchOrgInvoicesHandler.ServeHTTP(w, r)
 		case FrontierServiceGetUpcomingInvoiceProcedure:
 			frontierServiceGetUpcomingInvoiceHandler.ServeHTTP(w, r)
 		case FrontierServiceBillingWebhookCallbackProcedure:
@@ -5305,6 +5330,10 @@ func (UnimplementedFrontierServiceHandler) TotalDebitedTransactions(context.Cont
 
 func (UnimplementedFrontierServiceHandler) ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListInvoices is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) SearchOrgInvoices(context.Context, *connect.Request[v1beta1.SearchOrgInvoicesRequest]) (*connect.Response[v1beta1.SearchOrgInvoicesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SearchOrgInvoices is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error) {

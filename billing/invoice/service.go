@@ -41,6 +41,7 @@ type Repository interface {
 	Create(ctx context.Context, invoice Invoice) (Invoice, error)
 	GetByID(ctx context.Context, id string) (Invoice, error)
 	List(ctx context.Context, filter Filter) ([]Invoice, error)
+	SearchOrgInvoices(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query) ([]Invoice, int64, error)
 	UpdateByID(ctx context.Context, invoice Invoice) (Invoice, error)
 	Delete(ctx context.Context, id string) error
 	Search(ctx context.Context, rqlQuery *rql.Query) ([]InvoiceWithOrganization, error)
@@ -309,6 +310,19 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 		return nil, errors.New("customer id is required")
 	}
 	return s.repository.List(ctx, filter)
+}
+
+func (s *Service) SearchOrgInvoices(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query) ([]Invoice, int64, error) {
+	if customerID == "" {
+		return nil, 0, errors.New("customer id is required")
+	}
+	if rqlQuery == nil {
+		return nil, 0, fmt.Errorf("%w: query is required", ErrBadInput)
+	}
+	if len(rqlQuery.GroupBy) > 0 {
+		return nil, 0, fmt.Errorf("%w: group_by is not supported", ErrBadInput)
+	}
+	return s.repository.SearchOrgInvoices(ctx, customerID, nonzeroOnly, rqlQuery)
 }
 
 // GetUpcoming returns the upcoming invoice for the customer based on the

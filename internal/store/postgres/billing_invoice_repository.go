@@ -17,6 +17,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/pkg/db"
+	frontierutils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 )
 
@@ -271,6 +272,83 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 		invoices = append(invoices, invoice)
 	}
 	return invoices, nil
+}
+
+func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query) ([]invoice.Invoice, int64, error) {
+	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
+		Where(goqu.Ex{
+			"customer_id": customerID,
+		})
+
+	if nonzeroOnly {
+		query = query.Where(goqu.Ex{
+			"amount": goqu.Op{"gt": 0},
+		})
+	}
+
+	filterColumns := []string{
+		"id",
+		"provider_id",
+		"customer_id",
+		"state",
+		"currency",
+		"amount",
+		"hosted_url",
+		"due_at",
+		"effective_at",
+		"created_at",
+		"period_start_at",
+		"period_end_at",
+	}
+	withFilters, err := frontierutils.AddRQLFiltersInQuery(query, rqlQuery, filterColumns, invoice.SearchOrgInvoice{})
+	if err != nil {
+		return nil, 0, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
+	}
+
+	searchColumns := []string{"id", "provider_id", "state", "currency", "hosted_url"}
+	withSearch, err := frontierutils.AddRQLSearchInQuery(withFilters, rqlQuery, searchColumns)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
+	}
+
+	withSort, err := frontierutils.AddRQLSortInQuery(withSearch, rqlQuery)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
+	}
+
+	countQuery, countParams, err := withSort.Select(goqu.COUNT("*")).ToSQL()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	var totalCount int64
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "SearchOrgInvoices.Count", func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &totalCount, countQuery, countParams...)
+	}); err != nil {
+		return nil, 0, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	withPagination, _ := frontierutils.AddRQLPaginationInQuery(withSort, rqlQuery)
+	dataQuery, params, err := withPagination.ToSQL()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%w: %w", parseErr, err)
+	}
+
+	var invoiceModels []Invoice
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "SearchOrgInvoices", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &invoiceModels, dataQuery, params...)
+	}); err != nil {
+		return nil, 0, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	invoices := make([]invoice.Invoice, 0, len(invoiceModels))
+	for _, invoiceModel := range invoiceModels {
+		inv, err := invoiceModel.transform()
+		if err != nil {
+			return nil, 0, err
+		}
+		invoices = append(invoices, inv)
+	}
+	return invoices, totalCount, nil
 }
 
 func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoice.Invoice) (invoice.Invoice, error) {
