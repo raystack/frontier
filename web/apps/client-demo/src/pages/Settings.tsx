@@ -14,7 +14,8 @@ const NAV_ITEMS = [
   { label: 'Billing', path: 'billing' },
   { label: 'Tokens', path: 'tokens' },
   { label: 'Teams', path: 'teams' },
-  { label: 'Service Accounts', path: 'service-accounts' }
+  { label: 'Service Accounts', path: 'service-accounts' },
+  { label: 'Plans', path: 'plans' }
 ];
 
 export default function Settings() {

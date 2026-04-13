@@ -1,0 +1,20 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-space-6);
+  width: 272px;
+  min-width: 272px;
+  padding: var(--rs-space-5) var(--rs-space-5) var(--rs-space-9) var(--rs-space-5);
+  box-sizing: border-box;
+  background: var(--rs-color-background-base-primary);
+}
+
+.actionBtn {
+  width: 100%;
+}
+
+.priceLabel {
+  font-size: 22px;
+  line-height: 28px;
+  color: var(--rs-color-foreground-base-primary);
+}

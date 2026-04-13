@@ -22,6 +22,7 @@ import Teams from './pages/settings/Teams';
 import TeamDetails from './pages/settings/TeamDetails';
 import ServiceAccounts from './pages/settings/ServiceAccounts';
 import ServiceAccountDetails from './pages/settings/ServiceAccountDetails';
+import Plans from './pages/settings/Plans';
 
 function Router() {
   return (
@@ -50,6 +51,7 @@ function Router() {
           <Route path="teams/:teamId" element={<TeamDetails />} />
           <Route path="service-accounts" element={<ServiceAccounts />} />
           <Route path="service-accounts/:serviceAccountId" element={<ServiceAccountDetails />} />
+          <Route path="plans" element={<Plans />} />
         </Route >
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes >
