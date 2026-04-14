@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -197,14 +198,16 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			wantErrContain: "policy create failed",
 		},
 		{
-			name: "should return error if relation creation fails",
+			name: "should return error and cleanup policy if relation creation fails",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
 				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
-				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{ID: "created-policy-1"}, nil)
 				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, errors.New("spicedb unavailable"))
+				// compensating delete should be called
+				policySvc.EXPECT().Delete(ctx, "created-policy-1").Return(nil)
 			},
 			orgID:          orgID,
 			userID:         userID,
@@ -226,7 +229,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
+			svc := membership.NewService(log.NewNoop(), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 
 			err := svc.AddOrganizationMember(ctx, tt.orgID, tt.userID, schema.UserPrincipal, tt.roleID)
 
