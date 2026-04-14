@@ -1,0 +1,12 @@
+.plansRow {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--rs-color-background-base-primary);
+}
+
+.featureLabelSpacer {
+  flex: 1;
+  min-width: 0;
+}
