@@ -2,10 +2,12 @@ package v1beta1connect
 
 import (
 	"context"
+	stderrors "errors"
 
 	"connectrpc.com/connect"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
@@ -570,6 +572,7 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 }
 
 func (h *ConnectHandler) AddOrganizationMembers(ctx context.Context, request *connect.Request[frontierv1beta1.AddOrganizationMembersRequest]) (*connect.Response[frontierv1beta1.AddOrganizationMembersResponse], error) {
+	errorLogger := NewErrorLogger()
 	orgID := request.Msg.GetOrgId()
 
 	var results []*frontierv1beta1.OrgMemberResult
@@ -580,7 +583,13 @@ func (h *ConnectHandler) AddOrganizationMembers(ctx context.Context, request *co
 
 		if err := h.membershipService.AddOrganizationMember(ctx, orgID, member.GetUserId(), schema.UserPrincipal, member.GetRoleId()); err != nil {
 			result.Success = false
-			result.Error = err.Error()
+			result.Error = toClientError(err)
+			if !isDomainError(err) {
+				errorLogger.LogServiceError(ctx, request, "AddOrganizationMembers", err,
+					zap.String("org_id", orgID),
+					zap.String("user_id", member.GetUserId()),
+					zap.String("role_id", member.GetRoleId()))
+			}
 		} else {
 			result.Success = true
 		}
@@ -591,6 +600,34 @@ func (h *ConnectHandler) AddOrganizationMembers(ctx context.Context, request *co
 	return connect.NewResponse(&frontierv1beta1.AddOrganizationMembersResponse{
 		Results: results,
 	}), nil
+}
+
+// isDomainError returns true if the error is a known domain error safe to expose to clients.
+func isDomainError(err error) bool {
+	knownErrors := []error{
+		membership.ErrAlreadyMember,
+		membership.ErrInvalidOrgRole,
+		organization.ErrNotExist,
+		organization.ErrDisabled,
+		user.ErrNotExist,
+		user.ErrDisabled,
+		role.ErrNotExist,
+		role.ErrInvalidID,
+	}
+	for _, known := range knownErrors {
+		if stderrors.Is(err, known) {
+			return true
+		}
+	}
+	return false
+}
+
+// toClientError returns a client-safe error message.
+func toClientError(err error) string {
+	if isDomainError(err) {
+		return err.Error()
+	}
+	return ErrInternalServerError.Error()
 }
 
 func (h *ConnectHandler) EnableOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.EnableOrganizationRequest]) (*connect.Response[frontierv1beta1.EnableOrganizationResponse], error) {
