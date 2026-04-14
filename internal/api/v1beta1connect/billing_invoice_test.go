@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -628,6 +629,108 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				assert.Equal(t, uint32(10), got.Msg.GetPagination().GetLimit())
 				assert.Equal(t, uint32(1), got.Msg.GetPagination().GetTotalCount())
 			},
+		},
+		{
+			name: "should pass filter search and sort query to service",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
+			setup: func(is *mocks.InvoiceService) {
+				is.On(
+					"SearchOrgInvoices",
+					mock.Anything,
+					"customer-id",
+					false,
+					mock.MatchedBy(func(q interface{}) bool {
+						query, ok := q.(*rql.Query)
+						if !ok || query == nil {
+							return false
+						}
+						if query.Search != "usd" || len(query.Filters) != 1 || len(query.Sort) != 1 {
+							return false
+						}
+						return query.Filters[0].Name == "state" &&
+							query.Filters[0].Operator == "eq" &&
+							query.Sort[0].Name == "amount" &&
+							query.Sort[0].Order == "asc"
+					}),
+				).Return([]invoice.Invoice{}, int64(0), nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId:             "org-123",
+				NonzeroAmountOnly: false,
+				Query: &frontierv1beta1.RQLRequest{
+					Search: "usd",
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:     "state",
+							Operator: "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{
+								StringValue: "paid",
+							},
+						},
+					},
+					Sort: []*frontierv1beta1.RQLSort{
+						{
+							Name:  "amount",
+							Order: "asc",
+						},
+					},
+					Limit:  20,
+					Offset: 0,
+				},
+			}),
+			wantCode: 0,
+			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+				assert.NotNil(t, got)
+				assert.Len(t, got.Msg.GetInvoices(), 0)
+				assert.Equal(t, uint32(20), got.Msg.GetPagination().GetLimit())
+				assert.Equal(t, uint32(0), got.Msg.GetPagination().GetOffset())
+			},
+		},
+		{
+			name: "should return invalid argument for invalid sort field",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
+			setup: func(is *mocks.InvoiceService) {},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "org-123",
+				Query: &frontierv1beta1.RQLRequest{
+					Sort: []*frontierv1beta1.RQLSort{
+						{
+							Name:  "unknown_field",
+							Order: "asc",
+						},
+					},
+				},
+			}),
+			wantCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should map service bad input to invalid argument for group_by",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
+			setup: func(is *mocks.InvoiceService) {
+				is.On(
+					"SearchOrgInvoices",
+					mock.Anything,
+					"customer-id",
+					false,
+					mock.MatchedBy(func(q interface{}) bool {
+						query, ok := q.(*rql.Query)
+						return ok && query != nil && len(query.GroupBy) == 1 && query.GroupBy[0] == "state"
+					}),
+				).Return(nil, int64(0), fmt.Errorf("%w: group_by is not supported", invoice.ErrBadInput))
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "org-123",
+				Query: &frontierv1beta1.RQLRequest{
+					GroupBy: []string{"state"},
+				},
+			}),
+			wantCode: connect.CodeInvalidArgument,
 		},
 	}
 
