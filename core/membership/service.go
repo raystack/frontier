@@ -77,9 +77,18 @@ func NewService(
 // Unlike the old AddOrganizationUsers RPC, this requires an explicit role_id
 // and supports all principal types (user, serviceuser).
 func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error {
+	// orgService.Get returns ErrDisabled for disabled orgs
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
 		return err
+	}
+
+	usr, err := s.userService.GetByID(ctx, principalID)
+	if err != nil {
+		return err
+	}
+	if usr.State == user.Disabled {
+		return user.ErrDisabled
 	}
 
 	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
@@ -110,7 +119,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	}
 
 	// audit logging
-	s.auditOrgMemberAdded(ctx, org, principalID, principalType, roleID)
+	s.auditOrgMemberAdded(ctx, org, usr, roleID)
 
 	return nil
 }
@@ -173,27 +182,7 @@ func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, 
 	return nil
 }
 
-func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, principalID, principalType, roleID string) {
-	var targetName string
-	targetMetadata := map[string]any{
-		"role_id": roleID,
-	}
-
-	if principalType == schema.UserPrincipal {
-		if usr, err := s.userService.GetByID(ctx, principalID); err == nil {
-			targetName = usr.Title
-			targetMetadata["email"] = usr.Email
-		}
-	}
-
-	var auditEntityType pkgAuditRecord.EntityType
-	switch principalType {
-	case schema.ServiceUserPrincipal:
-		auditEntityType = pkgAuditRecord.ServiceUserType
-	default:
-		auditEntityType = pkgAuditRecord.UserType
-	}
-
+func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, usr user.User, roleID string) {
 	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
 		Resource: auditrecord.Resource{
@@ -202,18 +191,21 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 			Name: org.Title,
 		},
 		Target: &auditrecord.Target{
-			ID:       principalID,
-			Type:     auditEntityType,
-			Name:     targetName,
-			Metadata: targetMetadata,
+			ID:   usr.ID,
+			Type: pkgAuditRecord.UserType,
+			Name: usr.Title,
+			Metadata: map[string]any{
+				"email":   usr.Email,
+				"role_id": roleID,
+			},
 		},
 		OrgID:      org.ID,
 		OccurredAt: time.Now(),
 	})
 
 	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberCreatedEvent, audit.Target{
-		ID:   principalID,
-		Type: principalType,
+		ID:   usr.ID,
+		Type: schema.UserPrincipal,
 	}, map[string]string{
 		"role_id": roleID,
 	})
