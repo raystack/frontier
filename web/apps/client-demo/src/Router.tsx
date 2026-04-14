@@ -16,6 +16,7 @@ import Members from './pages/settings/Members';
 import Security from './pages/settings/Security';
 import Projects from './pages/settings/Projects';
 import ProjectDetails from './pages/settings/ProjectDetails';
+import Billing from './pages/settings/Billing';
 import Tokens from './pages/settings/Tokens';
 import Teams from './pages/settings/Teams';
 import TeamDetails from './pages/settings/TeamDetails';
@@ -43,6 +44,7 @@ function Router() {
           <Route path="security" element={<Security />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:projectId" element={<ProjectDetails />} />
+          <Route path="billing" element={<Billing />} />
           <Route path="tokens" element={<Tokens />} />
           <Route path="teams" element={<Teams />} />
           <Route path="teams/:teamId" element={<TeamDetails />} />
