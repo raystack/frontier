@@ -16,8 +16,10 @@ import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
   ListOrganizationUsersRequestSchema,
-  CreatePolicyForProjectRequestSchema,
-  type User
+  ListRolesRequestSchema,
+  SetProjectMemberRoleRequestSchema,
+  type User,
+  type Role
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../../contexts/FrontierContext';
@@ -80,8 +82,22 @@ export function AddMemberMenu({
     [orgUsers, members]
   );
 
-  const { mutate: createPolicyForProject } = useMutation(
-    FrontierServiceQueries.createPolicyForProject,
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: !!projectId }
+  );
+
+  const viewerRole = useMemo(
+    () => (rolesData?.roles as Role[] ?? []).find((r: Role) => r.name === PERMISSIONS.RoleProjectViewer),
+    [rolesData]
+  );
+
+  const { mutate: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole,
     {
       onSuccess: () => {
         toastManager.add({
@@ -102,30 +118,32 @@ export function AddMemberMenu({
 
   const addMember = useCallback(
     (userId: string) => {
-      if (!userId || !organization?.id || !projectId) return;
-      const principal = `${PERMISSIONS.UserNamespace}:${userId}`;
-      createPolicyForProject(
-        create(CreatePolicyForProjectRequestSchema, {
+      if (!userId || !organization?.id || !projectId || !viewerRole?.id) return;
+      setProjectMemberRole(
+        create(SetProjectMemberRoleRequestSchema, {
           projectId,
-          body: { roleId: PERMISSIONS.RoleProjectViewer, principal }
+          principalId: userId,
+          principalType: PERMISSIONS.UserNamespace,
+          roleId: viewerRole.id
         })
       );
     },
-    [createPolicyForProject, organization?.id, projectId]
+    [setProjectMemberRole, organization?.id, projectId, viewerRole]
   );
 
   const addTeam = useCallback(
     (teamId: string) => {
-      if (!teamId || !organization?.id || !projectId) return;
-      const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
-      createPolicyForProject(
-        create(CreatePolicyForProjectRequestSchema, {
+      if (!teamId || !organization?.id || !projectId || !viewerRole?.id) return;
+      setProjectMemberRole(
+        create(SetProjectMemberRoleRequestSchema, {
           projectId,
-          body: { roleId: PERMISSIONS.RoleProjectViewer, principal }
+          principalId: teamId,
+          principalType: PERMISSIONS.GroupNamespace,
+          roleId: viewerRole.id
         })
       );
     },
-    [createPolicyForProject, organization?.id, projectId]
+    [setProjectMemberRole, organization?.id, projectId, viewerRole]
   );
 
   const toggleShowTeam = useCallback(() => {

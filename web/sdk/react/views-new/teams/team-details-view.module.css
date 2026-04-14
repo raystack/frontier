@@ -1,0 +1,32 @@
+.tableRoot {
+  border: none;
+}
+
+.menuContent {
+  min-width: 160px;
+}
+
+.addMemberContent {
+  width: 228px;
+}
+
+.addMemberMenuList {
+  max-height: 256px;
+  overflow-y: auto;
+}
+
+.addMemberMenuItem {
+  width: 100%;
+}
+
+.addMemberMenuItemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.addMemberEmptyState {
+  min-height: 200px;
+}

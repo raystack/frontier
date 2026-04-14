@@ -23,7 +23,7 @@ import { create } from '@bufbuild/protobuf';
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
 
-export const converBillingAddressToString = (
+export const convertBillingAddressToString = (
   address?: BillingAccountAddress
 ) => {
   if (!address) return '';
@@ -132,7 +132,10 @@ export const checkSimilarPlans = (
  * @param locale - The locale to use for formatting. Defaults to the runtime's default locale.
  * @returns The formatted string (e.g. "1,234,567" in given locale).
  */
-export function getFormattedNumberString(num: number | bigint = 0, locale?: string) {
+export function getFormattedNumberString(
+  num: number | bigint = 0,
+  locale?: string
+) {
   return num.toLocaleString(locale);
 }
 

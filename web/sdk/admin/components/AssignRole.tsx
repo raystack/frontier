@@ -7,26 +7,19 @@ import {
   Text,
   toast,
 } from "@raystack/apsara";
-import { useCallback } from "react";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
   Role,
-  Policy,
 } from "@raystack/proton/frontier";
 import {
-  FrontierService,
   FrontierServiceQueries,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema,
-  CreatePolicyRequestSchema,
+  SetOrganizationMemberRoleRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { useMutation, useTransport } from "@connectrpc/connect-query";
-import { createClient } from "@connectrpc/connect";
+import { useMutation } from "@connectrpc/connect-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { SCOPES } from "../utils/constants";
 
 interface AssignRoleProps {
   organizationId: string;
@@ -37,9 +30,7 @@ interface AssignRoleProps {
 }
 
 const formSchema = z.object({
-  roleIds: z.instanceof(Set<string>).refine((set) => set.size > 0, {
-    message: "At least one role must be selected",
-  }),
+  roleId: z.string().min(1, "A role must be selected"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -51,89 +42,41 @@ export const AssignRole = ({
   onRoleUpdate,
   onClose,
 }: AssignRoleProps) => {
-  const transport = useTransport();
+  const currentRoleId = user?.roleIds?.[0] || "";
 
   const {
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting, errors, isDirty },
   } = useForm<FormData>({
     defaultValues: {
-      roleIds: new Set(user?.roleIds || []),
+      roleId: currentRoleId,
     },
     resolver: zodResolver(formSchema),
   });
 
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy,
+  const { mutateAsync: setMemberRole } = useMutation(
+    FrontierServiceQueries.setOrganizationMemberRole,
   );
 
-  const { mutateAsync: createPolicy } = useMutation(
-    FrontierServiceQueries.createPolicy,
-  );
-
-  const roleIds = watch("roleIds");
+  const selectedRoleId = watch("roleId");
 
   function onCheckedChange(value: boolean | string, roleId?: string) {
     if (!roleId) return;
-    const currentRoles = new Set(roleIds);
-
     if (value) {
-      currentRoles.add(roleId);
-    } else {
-      currentRoles.delete(roleId);
+      setValue("roleId", roleId, { shouldDirty: true });
     }
-
-    setValue("roleIds", currentRoles);
   }
-
-  const checkRole = useCallback(
-    (roleId?: string) => {
-      if (!roleId) return false;
-      return roleIds?.has(roleId) || false;
-    },
-    [roleIds],
-  );
 
   const onSubmit = async (data: FormData) => {
     try {
-      const client = createClient(FrontierService, transport);
-      const policiesResp = await client.listPolicies(
-        create(ListPoliciesRequestSchema, {
+      await setMemberRole(
+        create(SetOrganizationMemberRoleRequestSchema, {
           orgId: organizationId,
           userId: user?.id,
+          roleId: data.roleId,
         }),
-      );
-      const policies = policiesResp.policies || [];
-
-      const removedRolesPolicies = policies.filter(
-        (policy: Policy) => !(policy.roleId && data.roleIds.has(policy.roleId)),
-      );
-      await Promise.all(
-        removedRolesPolicies.map((policy: Policy) =>
-          deletePolicy(
-            create(DeletePolicyRequestSchema, { id: policy.id || "" }),
-          ),
-        ),
-      );
-
-      const resource = `${SCOPES.ORG}:${organizationId}`;
-      const principal = `${SCOPES.USER}:${user?.id}`;
-
-      const assignedRolesArr = Array.from(data.roleIds);
-      await Promise.all(
-        assignedRolesArr.map((roleId) =>
-          createPolicy(
-            create(CreatePolicyRequestSchema, {
-              body: {
-                roleId,
-                resource,
-                principal,
-              },
-            }),
-          ),
-        ),
       );
 
       if (onRoleUpdate) {
@@ -165,7 +108,7 @@ export const AssignRole = ({
                 <Flex direction="column" gap={4}>
                   {roles.map((role) => {
                     const htmlId = `role-${role.id}`;
-                    const checked = checkRole(role.id);
+                    const checked = selectedRoleId === role.id;
                     return (
                       <Flex gap={3} key={role.id}>
                         <Checkbox
@@ -180,8 +123,8 @@ export const AssignRole = ({
                       </Flex>
                     );
                   })}
-                  {errors.roleIds && (
-                    <Text variant="danger">{errors.roleIds.message}</Text>
+                  {errors.roleId && (
+                    <Text variant="danger">{errors.roleId.message}</Text>
                   )}
                 </Flex>
               </div>
@@ -200,6 +143,7 @@ export const AssignRole = ({
             </Dialog.Close>
             <Button
               type="submit"
+              disabled={!isDirty}
               data-test-id="assign-role-update-button"
               loading={isSubmitting}
               loaderText="Updating..."
