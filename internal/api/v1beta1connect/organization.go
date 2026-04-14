@@ -2,7 +2,6 @@ package v1beta1connect
 
 import (
 	"context"
-	stderrors "errors"
 
 	"connectrpc.com/connect"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -615,7 +614,7 @@ func isDomainError(err error) bool {
 		role.ErrInvalidID,
 	}
 	for _, known := range knownErrors {
-		if stderrors.Is(err, known) {
+		if errors.Is(err, known) {
 			return true
 		}
 	}
