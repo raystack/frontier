@@ -78,9 +78,12 @@ func NewService(
 
 // AddOrganizationMember adds a new member to an organization with an explicit role.
 // Returns ErrAlreadyMember if the principal already has a policy on this org.
-// Unlike the old AddOrganizationUsers RPC, this requires an explicit role_id
-// and supports all principal types (user, serviceuser).
+// Only user principals are supported — serviceusers are bound to orgs at creation time.
 func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error {
+	if principalType != schema.UserPrincipal {
+		return ErrInvalidPrincipal
+	}
+
 	// orgService.Get returns ErrDisabled for disabled orgs
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
