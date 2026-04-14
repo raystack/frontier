@@ -16,6 +16,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/log"
 )
 
 type PolicyService interface {
@@ -46,6 +47,7 @@ type AuditRecordRepository interface {
 }
 
 type Service struct {
+	log                   log.Logger
 	policyService         PolicyService
 	relationService       RelationService
 	roleService           RoleService
@@ -55,6 +57,7 @@ type Service struct {
 }
 
 func NewService(
+	logger log.Logger,
 	policyService PolicyService,
 	relationService RelationService,
 	roleService RoleService,
@@ -63,6 +66,7 @@ func NewService(
 	auditRecordRepository AuditRecordRepository,
 ) *Service {
 	return &Service{
+		log:                   logger,
 		policyService:         policyService,
 		relationService:       relationService,
 		roleService:           roleService,
@@ -109,12 +113,22 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return ErrAlreadyMember
 	}
 
-	if err := s.createPolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID); err != nil {
+	createdPolicy, err := s.createPolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID)
+	if err != nil {
 		return err
 	}
 
 	relationName := orgRoleToRelation(fetchedRole)
 	if err := s.createRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
+		// best-effort cleanup to avoid orphaned policy
+		if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
+			s.log.Warn("orphaned policy: relation creation failed and policy cleanup also failed",
+				"policy_id", createdPolicy.ID,
+				"org_id", orgID,
+				"principal_id", principalID,
+				"policy_delete_error", deleteErr,
+			)
+		}
 		return err
 	}
 
@@ -157,8 +171,8 @@ func orgRoleToRelation(r role.Role) string {
 }
 
 // replacePolicy deletes all existing policies for the principal+resource and creates a new one.
-func (s *Service) createPolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string) error {
-	_, err := s.policyService.Create(ctx, policy.Policy{
+func (s *Service) createPolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string) (policy.Policy, error) {
+	created, err := s.policyService.Create(ctx, policy.Policy{
 		RoleID:        roleID,
 		ResourceID:    resourceID,
 		ResourceType:  resourceType,
@@ -166,9 +180,9 @@ func (s *Service) createPolicy(ctx context.Context, resourceID, resourceType, pr
 		PrincipalType: principalType,
 	})
 	if err != nil {
-		return fmt.Errorf("create policy: %w", err)
+		return policy.Policy{}, fmt.Errorf("create policy: %w", err)
 	}
-	return nil
+	return created, nil
 }
 
 func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, relationName string) error {
