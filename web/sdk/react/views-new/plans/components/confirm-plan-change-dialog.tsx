@@ -11,7 +11,7 @@ import {
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { usePlans } from '~/react/views/plans/hooks/usePlans';
+import { usePlans } from '../hooks/use-plans';
 import { useMessages } from '~/react/hooks/useMessages';
 import { getPlanChangeAction } from '~/react/utils';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
@@ -68,7 +68,7 @@ function ConfirmPlanChangeContent({
     allPlans
   } = useFrontier();
 
-  const m = useMessages();
+  const message = useMessages();
 
   const {
     changePlan,
@@ -111,7 +111,7 @@ function ConfirmPlanChangeContent({
     ? `${activePlan?.name}:${newPlanSlug}`
     : '';
   const planChangeMessage = planChangeSlug
-    ? m(`billing.plan_change.${planChangeSlug}`)
+    ? message(`billing.plan_change.${planChangeSlug}`)
     : '';
 
   const defaultDowngradeMessage = newPlan?.title
@@ -190,8 +190,8 @@ function ConfirmPlanChangeContent({
 
   const cycleSwitchDate = activeSubscription?.currentPeriodEndAt
     ? timestampToDayjs(activeSubscription?.currentPeriodEndAt)?.format(
-        config?.dateFormat || DEFAULT_DATE_FORMAT
-      )
+      config?.dateFormat || DEFAULT_DATE_FORMAT
+    )
     : 'the next billing cycle';
 
   const effectiveDateLabel = planAction?.immediate

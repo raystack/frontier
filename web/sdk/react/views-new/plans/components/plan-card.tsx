@@ -1,16 +1,19 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Amount,
   Button,
   Flex,
+  Skeleton,
   Tabs,
   Text
 } from '@raystack/apsara-v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { usePlans } from '~/react/views/plans/hooks/usePlans';
+import { usePlans } from '../hooks/use-plans';
 import { PlanChangeAction, getPlanChangeAction } from '~/react/utils';
+import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
+import { timestampToDayjs } from '~/utils/timestamp';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -43,7 +46,15 @@ export function PlanCard({
     [plan.intervals]
   );
 
-  const { checkBasePlan } = usePlans();
+  const {
+    checkBasePlan,
+    checkoutPlan,
+    checkAlreadyTrialed,
+    hasAlreadyTrialed,
+    isTrialCheckLoading,
+    isCurrentlyTrialing,
+    subscriptions
+  } = usePlans();
 
   const planIntervals = useMemo(
     () =>
@@ -110,6 +121,48 @@ export function PlanCard({
 
   const isFree = !selectedIntervalPricing?.amount;
 
+  // Trial logic
+  const isUpgrade = action.btnLabel === 'Upgrade';
+  const planHasTrial = useMemo(
+    () => plans.some(p => Number(p.trialDays) > 0),
+    [plans]
+  );
+  const planIds = useMemo(() => plans.map(p => p.planId), [plans]);
+
+  useEffect(() => {
+    if (planHasTrial) {
+      checkAlreadyTrialed(planIds);
+    }
+  }, [checkAlreadyTrialed, planHasTrial, planIds]);
+
+  const trialSubscription = subscriptions.find(
+    sub =>
+      planIds.includes(sub.planId || '') &&
+      sub.state === SUBSCRIPTION_STATES.TRIALING
+  );
+
+  const shortDateFormat = config?.shortDateFormat || 'DD MMM';
+  const trialEndDate = trialSubscription?.trialEndsAt
+    ? timestampToDayjs(trialSubscription?.trialEndsAt)?.format(shortDateFormat)
+    : '';
+
+  const showTrialButton =
+    isUpgrade && !hasAlreadyTrialed && planHasTrial && !isCurrentlyTrialing;
+
+  const [isTrialCheckoutLoading, setIsTrialCheckoutLoading] = useState(false);
+
+  const checkoutTrial = useCallback(() => {
+    setIsTrialCheckoutLoading(true);
+    checkoutPlan({
+      planId: selectedIntervalPricing?.planId,
+      isTrial: true,
+      onSuccess: data => {
+        setIsTrialCheckoutLoading(false);
+        window.location.href = data?.checkoutUrl as string;
+      }
+    });
+  }, [checkoutPlan, selectedIntervalPricing?.planId]);
+
   return (
     <Flex direction="column" gap={6} className={styles.card}>
       <Flex direction="column" gap={3}>
@@ -168,6 +221,30 @@ export function PlanCard({
               ))}
             </Tabs.List>
           </Tabs>
+        ) : null}
+        {allowAction ? (
+          <Flex justify="center" align="center" className={styles.trialWrapper}>
+            {isTrialCheckLoading ? (
+              <Skeleton height="32px" width="100%" />
+            ) : trialEndDate ? (
+              <Text size="small" variant="secondary">
+                Trial ends on: {trialEndDate}
+              </Text>
+            ) : showTrialButton ? (
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                onClick={checkoutTrial}
+                disabled={action?.disabled || isTrialCheckoutLoading}
+                loading={isTrialCheckoutLoading}
+                loaderText="Loading..."
+                data-test-id={`frontier-sdk-plan-trial-link-${plan?.slug}`}
+              >
+                Start a free trial
+              </Button>
+            ) : null}
+          </Flex>
         ) : null}
       </Flex>
     </Flex>

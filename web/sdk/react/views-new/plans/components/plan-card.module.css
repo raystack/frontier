@@ -18,3 +18,8 @@
   line-height: 28px;
   color: var(--rs-color-foreground-base-primary);
 }
+
+.trialWrapper {
+  min-height: 32px;
+  width: 100%;
+}

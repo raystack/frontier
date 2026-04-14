@@ -20,7 +20,7 @@ import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { ViewContainer } from '~/react/components/view-container';
 import { ViewHeader } from '~/react/components/view-header';
 import { UpcomingPlanChangeBanner } from '~/react/views-new/billing/components/upcoming-plan-change-banner';
-import { groupPlansPricingByInterval } from '~/react/views/plans/helpers';
+import { groupPlansPricingByInterval } from './helpers';
 import { IntervalKeys, IntervalPricingWithPlan } from '~/src/types';
 import { PlanCard } from './components/plan-card';
 import { FeatureTable } from './components/feature-table';
@@ -33,9 +33,7 @@ import styles from './plans-view.module.css';
 const confirmPlanChangeHandle =
   Dialog.createHandle<ConfirmPlanChangePayload>();
 
-export interface PlansViewProps {}
-
-export function PlansView(_props: PlansViewProps = {}) {
+export function PlansView() {
   const {
     config,
     activeSubscription,
@@ -45,6 +43,7 @@ export function PlansView(_props: PlansViewProps = {}) {
     allPlans,
     isAllPlansLoading
   } = useFrontier();
+  console.log({ basePlan, allPlans });
 
   const { isFetching: isPermissionsFetching, isAllowed: canChangePlan } =
     useBillingPermission();
