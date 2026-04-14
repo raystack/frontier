@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -522,6 +523,140 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 			}
 
 			mockInvoiceService.AssertExpectations(t)
+		})
+	}
+}
+
+func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
+	fixedTime := time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)
+	emptyStruct, _ := structpb.NewStruct(map[string]interface{}{})
+
+	tests := []struct {
+		name          string
+		customerSetup func(custSvc *mocks.CustomerService)
+		setup         func(is *mocks.InvoiceService)
+		request       *connect.Request[frontierv1beta1.SearchOrgInvoicesRequest]
+		wantCode      connect.Code
+		assertResp    func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse])
+	}{
+		{
+			name: "should return invalid argument for invalid rql fields",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
+			setup: func(is *mocks.InvoiceService) {},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "org-123",
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{
+						{
+							Name:        "unknown_field",
+							Operator:    "eq",
+							Value: &frontierv1beta1.RQLFilter_StringValue{StringValue: "x"},
+						},
+					},
+				},
+			}),
+			wantCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return empty response when org billing customer not found",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{}, customer.ErrNotFound)
+			},
+			setup: func(is *mocks.InvoiceService) {},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "org-123",
+				Query: &frontierv1beta1.RQLRequest{
+					Offset: 5,
+					Limit:  10,
+				},
+			}),
+			wantCode: 0,
+			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+				assert.NotNil(t, got)
+				assert.Len(t, got.Msg.GetInvoices(), 0)
+				assert.Equal(t, uint32(5), got.Msg.GetPagination().GetOffset())
+				assert.Equal(t, uint32(10), got.Msg.GetPagination().GetLimit())
+				assert.Equal(t, uint32(0), got.Msg.GetPagination().GetTotalCount())
+			},
+		},
+		{
+			name: "should return invoices and pagination for valid request",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
+			setup: func(is *mocks.InvoiceService) {
+				is.On(
+					"SearchOrgInvoices",
+					mock.Anything,
+					"customer-id",
+					true,
+					mock.MatchedBy(func(q interface{}) bool {
+						query, ok := q.(*rql.Query)
+						return ok && query != nil && query.Limit == 10 && query.Offset == 2
+					}),
+				).Return([]invoice.Invoice{
+					{
+						ID:         "inv-1",
+						CustomerID: "customer-id",
+						ProviderID: "provider-id",
+						State:      invoice.PaidState,
+						Currency:   "usd",
+						Amount:     1000,
+						HostedURL:  "https://example.com/inv-1",
+						Metadata:   metadata.Metadata{},
+						CreatedAt:  fixedTime,
+					},
+				}, int64(1), nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId:             "org-123",
+				NonzeroAmountOnly: true,
+				Query: &frontierv1beta1.RQLRequest{
+					Offset: 2,
+					Limit:  10,
+				},
+			}),
+			wantCode: 0,
+			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+				assert.NotNil(t, got)
+				assert.Len(t, got.Msg.GetInvoices(), 1)
+				assert.Equal(t, "inv-1", got.Msg.GetInvoices()[0].GetId())
+				assert.Equal(t, emptyStruct, got.Msg.GetInvoices()[0].GetMetadata())
+				assert.Equal(t, uint32(2), got.Msg.GetPagination().GetOffset())
+				assert.Equal(t, uint32(10), got.Msg.GetPagination().GetLimit())
+				assert.Equal(t, uint32(1), got.Msg.GetPagination().GetTotalCount())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockInvoiceService := &mocks.InvoiceService{}
+			mockCustomerService := &mocks.CustomerService{}
+			tt.customerSetup(mockCustomerService)
+			tt.setup(mockInvoiceService)
+
+			handler := &ConnectHandler{
+				invoiceService:  mockInvoiceService,
+				customerService: mockCustomerService,
+			}
+
+			got, err := handler.SearchOrgInvoices(context.Background(), tt.request)
+			if tt.wantCode != 0 {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantCode, connect.CodeOf(err))
+				return
+			}
+
+			assert.NoError(t, err)
+			if tt.assertResp != nil {
+				tt.assertResp(t, got)
+			}
+
+			mockInvoiceService.AssertExpectations(t)
+			mockCustomerService.AssertExpectations(t)
 		})
 	}
 }
