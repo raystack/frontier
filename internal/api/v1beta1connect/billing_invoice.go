@@ -133,12 +133,6 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 	if err = rql.ValidateQuery(rqlQuery, invoice.SearchOrgInvoice{}); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
-	if rqlQuery.Limit <= 0 {
-		rqlQuery.Limit = utils.DefaultLimit
-	}
-	if rqlQuery.Offset < 0 {
-		rqlQuery.Offset = utils.DefaultOffset
-	}
 
 	invoices, totalCount, err := h.invoiceService.SearchOrgInvoices(ctx, cust.ID, request.Msg.GetNonzeroAmountOnly(), rqlQuery)
 	if err != nil {

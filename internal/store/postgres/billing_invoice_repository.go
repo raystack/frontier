@@ -316,7 +316,7 @@ func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, custome
 		return nil, 0, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
 	}
 
-	countQuery, countParams, err := withSort.Select(goqu.COUNT("*")).ToSQL()
+	countQuery, countParams, err := withSearch.Select(goqu.COUNT("*")).ToSQL()
 	if err != nil {
 		return nil, 0, fmt.Errorf("%w: %w", queryErr, err)
 	}
@@ -327,7 +327,9 @@ func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, custome
 		return nil, 0, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
-	withPagination, _ := frontierutils.AddRQLPaginationInQuery(withSort, rqlQuery)
+	withPagination, page := frontierutils.AddRQLPaginationInQuery(withSort, rqlQuery)
+	rqlQuery.Limit = page.Limit
+	rqlQuery.Offset = page.Offset
 	dataQuery, params, err := withPagination.ToSQL()
 	if err != nil {
 		return nil, 0, fmt.Errorf("%w: %w", parseErr, err)

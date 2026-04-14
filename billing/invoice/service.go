@@ -307,14 +307,14 @@ func (s *Service) ListAll(ctx context.Context, filter Filter) ([]Invoice, error)
 // List currently queries stripe for invoices, but it should be refactored to query our own database
 func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	if filter.CustomerID == "" {
-		return nil, errors.New("customer id is required")
+		return nil, errors.New("customer id not found")
 	}
 	return s.repository.List(ctx, filter)
 }
 
 func (s *Service) SearchOrgInvoices(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query) ([]Invoice, int64, error) {
 	if customerID == "" {
-		return nil, 0, errors.New("customer id is required")
+		return nil, 0, errors.New("customer id not found")
 	}
 	if rqlQuery == nil {
 		return nil, 0, fmt.Errorf("%w: query is required", ErrBadInput)
