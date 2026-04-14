@@ -90,6 +90,19 @@ export function PaymentMethodCard({
 
   const isBtnDisabled = isLoading || isActionLoading;
 
+  const actionBtn = (
+    <Button
+      variant="outline"
+      color="neutral"
+      size="small"
+      onClick={updatePaymentMethod}
+      disabled={isBtnDisabled}
+      data-test-id="frontier-sdk-update-payment-method-btn"
+    >
+      {isPaymentMethodAvailable ? 'Update' : 'Add method'}
+    </Button>
+  );
+
   return (
     <div className={styles.detailsBox}>
       <Flex align="center" justify="between">
@@ -97,23 +110,16 @@ export function PaymentMethodCard({
           Payment method
         </Text>
         {isAllowed ? (
-          <Tooltip>
-            <Tooltip.Trigger render={<span />}>
-              <Button
-                variant="outline"
-                color="neutral"
-                size="small"
-                onClick={updatePaymentMethod}
-                disabled={isBtnDisabled}
-                data-test-id="frontier-sdk-update-payment-method-btn"
-              >
-                {isPaymentMethodAvailable ? 'Update' : 'Add method'}
-              </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content>
-              {AuthTooltipMessage}
-            </Tooltip.Content>
-          </Tooltip>
+          isBtnDisabled ? (
+            <Tooltip>
+              <Tooltip.Trigger render={<span />}>
+                {actionBtn}
+              </Tooltip.Trigger>
+              <Tooltip.Content>
+                {AuthTooltipMessage}
+              </Tooltip.Content>
+            </Tooltip>
+          ) : actionBtn
         ) : null}
       </Flex>
       <Flex direction="column" gap={2}>
