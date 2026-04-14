@@ -138,6 +138,6 @@ export function PaymentMethodCard({
           {isLoading ? <Skeleton /> : cardExp}
         </Text>
       </Flex>
-    </div >
+    </div>
   );
 }
