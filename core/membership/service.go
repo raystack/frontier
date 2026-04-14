@@ -116,20 +116,26 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 }
 
 // validateOrgRole checks that the role is valid for organization scope and returns it.
+// A role is valid if it is either:
+// - a platform-wide role scoped to organizations, or
+// - a custom role created for this specific organization.
 func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) (role.Role, error) {
 	fetchedRole, err := s.roleService.Get(ctx, roleID)
 	if err != nil {
 		return role.Role{}, err
 	}
 
-	isGlobalRole := utils.IsNullUUID(fetchedRole.OrgID)
-	isGlobalOrgRole := isGlobalRole && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace)
-	isOrgSpecificRole := fetchedRole.OrgID == orgID
-	if !isGlobalOrgRole && !isOrgSpecificRole {
-		return role.Role{}, ErrInvalidOrgRole
+	// custom role belonging to this org
+	if fetchedRole.OrgID == orgID {
+		return fetchedRole, nil
 	}
 
-	return fetchedRole, nil
+	// platform-wide role with org scope
+	if utils.IsNullUUID(fetchedRole.OrgID) && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace) {
+		return fetchedRole, nil
+	}
+
+	return role.Role{}, ErrInvalidOrgRole
 }
 
 // orgRoleToRelation maps an org role to the corresponding SpiceDB relation name.
