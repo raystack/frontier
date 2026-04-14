@@ -82,7 +82,8 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
-	if err := s.validateOrgRole(ctx, roleID, orgID); err != nil {
+	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
+	if err != nil {
 		return err
 	}
 
@@ -103,7 +104,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
-	relationName := s.orgRoleToRelation(ctx, roleID)
+	relationName := orgRoleToRelation(fetchedRole)
 	if err := s.createRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
 		return err
 	}
@@ -114,31 +115,27 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	return nil
 }
 
-// validateOrgRole checks that the role is valid for organization scope
-func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) error {
+// validateOrgRole checks that the role is valid for organization scope and returns it.
+func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) (role.Role, error) {
 	fetchedRole, err := s.roleService.Get(ctx, roleID)
 	if err != nil {
-		return err
+		return role.Role{}, err
 	}
 
 	isGlobalRole := utils.IsNullUUID(fetchedRole.OrgID)
 	isGlobalOrgRole := isGlobalRole && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace)
 	isOrgSpecificRole := fetchedRole.OrgID == orgID
 	if !isGlobalOrgRole && !isOrgSpecificRole {
-		return ErrInvalidOrgRole
+		return role.Role{}, ErrInvalidOrgRole
 	}
 
-	return nil
+	return fetchedRole, nil
 }
 
-// orgRoleToRelation maps an org role ID to the corresponding SpiceDB relation name.
+// orgRoleToRelation maps an org role to the corresponding SpiceDB relation name.
 // Owner role gets "owner" relation, everything else gets "member" relation.
-func (s *Service) orgRoleToRelation(ctx context.Context, roleID string) string {
-	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
-	if err != nil {
-		return schema.MemberRelationName
-	}
-	if roleID == ownerRole.ID {
+func orgRoleToRelation(r role.Role) string {
+	if r.Name == schema.RoleOrganizationOwner {
 		return schema.OwnerRelationName
 	}
 	return schema.MemberRelationName

@@ -94,19 +94,15 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID, Title: "Test Org"}, nil)
 				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
-				// not already a member
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
-				// create policy
 				policySvc.EXPECT().Create(ctx, policy.Policy{
 					RoleID: viewerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
-				// orgRoleToRelation: viewer -> member
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
-				// create member relation
+				// viewer role -> member relation
 				relSvc.EXPECT().Create(ctx, relation.Relation{
-					Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject: relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
+					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
 					RelationName: schema.MemberRelationName,
 				}).Return(relation.Relation{}, nil)
 				// audit
@@ -123,19 +119,15 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID, Title: "Test Org"}, nil)
 				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
-				// not already a member
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
-				// create policy
 				policySvc.EXPECT().Create(ctx, policy.Policy{
 					RoleID: ownerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
-				// orgRoleToRelation: owner role matches -> owner relation
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
-				// create owner relation
+				// owner role -> owner relation
 				relSvc.EXPECT().Create(ctx, relation.Relation{
-					Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject: relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
+					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
 					RelationName: schema.OwnerRelationName,
 				}).Return(relation.Relation{}, nil)
 				// audit
@@ -156,8 +148,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 				// not already a member
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
-				// orgRoleToRelation: not owner -> member
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
+				// custom role (not owner) -> member relation
 				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
 				// audit
 				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID, Email: "test@acme.dev"}, nil)
@@ -207,7 +198,6 @@ func TestService_AddOrganizationMember(t *testing.T) {
 				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
-				roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID}, nil)
 				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, errors.New("spicedb unavailable"))
 			},
 			orgID:          orgID,
