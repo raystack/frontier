@@ -35,10 +35,22 @@ func TestService_AddOrganizationMember(t *testing.T) {
 		setup          func(*mocks.PolicyService, *mocks.RelationService, *mocks.RoleService, *mocks.OrgService, *mocks.UserService, *mocks.AuditRecordRepository)
 		orgID          string
 		userID         string
+		principalType  string
 		roleID         string
 		wantErr        error
 		wantErrContain string
 	}{
+		{
+			name: "should return error if principal type is not user",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, _ *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				// no mocks needed — rejected before any service call
+			},
+			orgID:         orgID,
+			userID:        userID,
+			principalType: schema.ServiceUserPrincipal,
+			roleID:        viewerRoleID,
+			wantErr:       membership.ErrInvalidPrincipal,
+		},
 		{
 			name: "should return error if org does not exist",
 			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
@@ -231,7 +243,11 @@ func TestService_AddOrganizationMember(t *testing.T) {
 
 			svc := membership.NewService(log.NewNoop(), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 
-			err := svc.AddOrganizationMember(ctx, tt.orgID, tt.userID, schema.UserPrincipal, tt.roleID)
+			principalType := tt.principalType
+			if principalType == "" {
+				principalType = schema.UserPrincipal
+			}
+			err := svc.AddOrganizationMember(ctx, tt.orgID, tt.userID, principalType, tt.roleID)
 
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
