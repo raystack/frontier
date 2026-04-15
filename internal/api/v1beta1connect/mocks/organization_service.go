@@ -515,55 +515,6 @@ func (_c *OrganizationService_ListByUser_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
-// SetMemberRole provides a mock function with given fields: ctx, orgID, userID, roleID
-func (_m *OrganizationService) SetMemberRole(ctx context.Context, orgID string, userID string, roleID string) error {
-	ret := _m.Called(ctx, orgID, userID, roleID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetMemberRole")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, orgID, userID, roleID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// OrganizationService_SetMemberRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetMemberRole'
-type OrganizationService_SetMemberRole_Call struct {
-	*mock.Call
-}
-
-// SetMemberRole is a helper method to define mock.On call
-//   - ctx context.Context
-//   - orgID string
-//   - userID string
-//   - roleID string
-func (_e *OrganizationService_Expecter) SetMemberRole(ctx interface{}, orgID interface{}, userID interface{}, roleID interface{}) *OrganizationService_SetMemberRole_Call {
-	return &OrganizationService_SetMemberRole_Call{Call: _e.mock.On("SetMemberRole", ctx, orgID, userID, roleID)}
-}
-
-func (_c *OrganizationService_SetMemberRole_Call) Run(run func(ctx context.Context, orgID string, userID string, roleID string)) *OrganizationService_SetMemberRole_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *OrganizationService_SetMemberRole_Call) Return(_a0 error) *OrganizationService_SetMemberRole_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *OrganizationService_SetMemberRole_Call) RunAndReturn(run func(context.Context, string, string, string) error) *OrganizationService_SetMemberRole_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx, toUpdate
 func (_m *OrganizationService) Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
 	ret := _m.Called(ctx, toUpdate)

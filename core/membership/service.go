@@ -141,6 +141,138 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	return nil
 }
 
+// SetOrganizationMemberRole changes an existing member's role in an organization.
+// Returns ErrNotMember if the principal is not already a member.
+// Returns ErrLastOwnerRole if the change would leave the org without an owner.
+// Skips the write if the member already has exactly the requested role.
+// Only user principals are supported.
+func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error {
+	if principalType != schema.UserPrincipal {
+		return ErrInvalidPrincipal
+	}
+
+	org, err := s.orgService.Get(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	usr, err := s.userService.GetByID(ctx, principalID)
+	if err != nil {
+		return err
+	}
+	if usr.State == user.Disabled {
+		return user.ErrDisabled
+	}
+
+	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
+	if err != nil {
+		return err
+	}
+
+	existing, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:         orgID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+	if len(existing) == 0 {
+		return ErrNotMember
+	}
+
+	// skip if the user already has exactly this role
+	if len(existing) == 1 && existing[0].RoleID == roleID {
+		return nil
+	}
+
+	if err := s.validateMinOwnerConstraint(ctx, orgID, roleID, existing); err != nil {
+		return err
+	}
+
+	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID, existing); err != nil {
+		return err
+	}
+
+	relationName := orgRoleToRelation(fetchedRole)
+	if err := s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
+		return err
+	}
+
+	s.auditOrgMemberRoleChanged(ctx, org, usr, roleID)
+	return nil
+}
+
+// validateMinOwnerConstraint ensures the org always has at least one owner after a role change.
+func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existing []policy.Policy) error {
+	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
+	if err != nil {
+		return fmt.Errorf("get owner role: %w", err)
+	}
+
+	// no constraint if promoting to owner
+	if newRoleID == ownerRole.ID {
+		return nil
+	}
+
+	// no constraint if user is not currently an owner
+	isCurrentlyOwner := false
+	for _, p := range existing {
+		if p.RoleID == ownerRole.ID {
+			isCurrentlyOwner = true
+			break
+		}
+	}
+	if !isCurrentlyOwner {
+		return nil
+	}
+
+	// user is owner, being demoted — make sure at least one other owner remains
+	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:  orgID,
+		RoleID: ownerRole.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("list owner policies: %w", err)
+	}
+	if len(ownerPolicies) <= 1 {
+		return ErrLastOwnerRole
+	}
+	return nil
+}
+
+// replacePolicy deletes the given existing policies and creates a new one with the new role.
+func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy) error {
+	for _, p := range existing {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+			return fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+	if _, err := s.createPolicy(ctx, resourceID, resourceType, principalID, principalType, roleID); err != nil {
+		return err
+	}
+	return nil
+}
+
+// replaceRelation deletes both existing owner and member relations for the principal
+// on the resource, then creates a new relation with the given name. Delete errors
+// are ignored because the relation may not exist.
+func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, newRelationName string) error {
+	obj := relation.Object{ID: resourceID, Namespace: resourceType}
+	sub := relation.Subject{ID: principalID, Namespace: principalType}
+
+	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
+		_ = s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
+	}
+
+	if _, err := s.relationService.Create(ctx, relation.Relation{
+		Object: obj, Subject: sub, RelationName: newRelationName,
+	}); err != nil {
+		return fmt.Errorf("create relation: %w", err)
+	}
+	return nil
+}
+
 // validateOrgRole checks that the role is valid for organization scope and returns it.
 // A role is valid if it is either:
 // - a platform-wide role scoped to organizations, or
@@ -201,6 +333,35 @@ func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, 
 		return fmt.Errorf("create relation: %w", err)
 	}
 	return nil
+}
+
+func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, usr user.User, roleID string) {
+	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
+		Resource: auditrecord.Resource{
+			ID:   org.ID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:   usr.ID,
+			Type: pkgAuditRecord.UserType,
+			Name: usr.Title,
+			Metadata: map[string]any{
+				"email":   usr.Email,
+				"role_id": roleID,
+			},
+		},
+		OrgID:      org.ID,
+		OccurredAt: time.Now(),
+	})
+
+	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
+		ID:   usr.ID,
+		Type: schema.UserPrincipal,
+	}, map[string]string{
+		"role_id": roleID,
+	})
 }
 
 func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, usr user.User, roleID string) {

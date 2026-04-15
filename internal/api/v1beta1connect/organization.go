@@ -541,7 +541,7 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 	userID := request.Msg.GetUserId()
 	roleID := request.Msg.GetRoleId()
 
-	if err := h.orgService.SetMemberRole(ctx, orgID, userID, roleID); err != nil {
+	if err := h.membershipService.SetOrganizationMemberRole(ctx, orgID, userID, schema.UserPrincipal, roleID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "SetOrganizationMemberRole", err,
 			zap.String("org_id", orgID),
 			zap.String("user_id", userID),
@@ -554,13 +554,15 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		case errors.Is(err, user.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
-		case errors.Is(err, organization.ErrNotMember):
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, membership.ErrNotMember):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrInvalidRoleID)
-		case errors.Is(err, organization.ErrInvalidOrgRole):
+		case errors.Is(err, membership.ErrInvalidOrgRole):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidOrgRole)
-		case errors.Is(err, organization.ErrLastOwnerRole):
+		case errors.Is(err, membership.ErrLastOwnerRole):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastOwnerRole)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
