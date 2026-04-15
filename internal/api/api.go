@@ -101,4 +101,5 @@ type Deps struct {
 
 	AuditRecordService *auditrecord.Service
 	UserPATService     *userpat.Service
+	PATAlertService    *userpat.AlertService
 }
