@@ -59,6 +59,10 @@ packages:
     config:
       dir: "core/user/mocks"
       all: true
+  github.com/raystack/frontier/core/membership:
+    config:
+      dir: "core/membership/mocks"
+      all: true
   github.com/raystack/frontier/core/organization:
     config:
       dir: "core/organization/mocks"
