@@ -36,6 +36,7 @@ var orgPATFilterFields = map[string]string{
 	"created_at":       "p.created_at",
 	"expires_at":       "p.expires_at",
 	"last_used_at":     "p.last_used_at",
+	"regenerated_at":   "p.regenerated_at",
 }
 
 // orgPATSearchColumns are searched with ILIKE when RQL search is used.
@@ -54,6 +55,7 @@ var orgPATSortFields = map[string]string{
 	"created_at":       "p.created_at",
 	"expires_at":       "p.expires_at",
 	"last_used_at":     "p.last_used_at",
+	"regenerated_at":   "p.regenerated_at",
 }
 
 // OrgPATRow is the flat SQL result row from the joined query.
@@ -67,6 +69,7 @@ type OrgPATRow struct {
 	CreatedAt      time.Time  `db:"pat_created_at"`
 	ExpiresAt      time.Time  `db:"pat_expires_at"`
 	LastUsedAt     *time.Time `db:"pat_last_used_at"`
+	RegeneratedAt  *time.Time `db:"pat_regenerated_at"`
 	RoleID         *string    `db:"role_id"`
 	ResourceType   *string    `db:"resource_type"`
 	ResourceID     *string    `db:"resource_id"`
@@ -177,7 +180,7 @@ func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (st
 	paginatedInner := inner.
 		Select(
 			goqu.I("p.id"), goqu.I("p.title"), goqu.I("p.user_id"),
-			goqu.I("p.created_at"), goqu.I("p.expires_at"), goqu.I("p.last_used_at"),
+			goqu.I("p.created_at"), goqu.I("p.expires_at"), goqu.I("p.last_used_at"), goqu.I("p.regenerated_at"),
 		).
 		Offset(uint(rqlQuery.Offset)).
 		Limit(uint(rqlQuery.Limit))
@@ -192,6 +195,7 @@ func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (st
 			goqu.I("p.created_at").As("pat_created_at"),
 			goqu.I("p.expires_at").As("pat_expires_at"),
 			goqu.I("p.last_used_at").As("pat_last_used_at"),
+			goqu.I("p.regenerated_at").As("pat_regenerated_at"),
 			goqu.I("pol.role_id"),
 			goqu.I("pol.resource_type"),
 			goqu.I("pol.resource_id"),
@@ -297,10 +301,11 @@ func (r OrgPATsRepository) groupRows(rows []OrgPATRow) []svc.AggregatedPAT {
 					Title: row.CreatedByTitle,
 					Email: row.CreatedByEmail,
 				},
-				CreatedAt:  row.CreatedAt,
-				ExpiresAt:  row.ExpiresAt,
-				LastUsedAt: row.LastUsedAt,
-				UserID:     row.CreatedByID,
+				CreatedAt:     row.CreatedAt,
+				ExpiresAt:     row.ExpiresAt,
+				LastUsedAt:    row.LastUsedAt,
+				RegeneratedAt: row.RegeneratedAt,
+				UserID:        row.CreatedByID,
 			}
 			patMap[row.PATID] = pat
 			patOrder = append(patOrder, row.PATID)

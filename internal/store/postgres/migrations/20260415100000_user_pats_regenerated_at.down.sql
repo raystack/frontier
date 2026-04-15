@@ -1,0 +1,1 @@
+ALTER TABLE user_pats DROP COLUMN IF EXISTS regenerated_at;
