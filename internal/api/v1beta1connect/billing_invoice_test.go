@@ -597,19 +597,26 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 						query, ok := q.(*rql.Query)
 						return ok && query != nil && query.Limit == 10 && query.Offset == 2
 					}),
-				).Return([]invoice.Invoice{
-					{
-						ID:         "inv-1",
-						CustomerID: "customer-id",
-						ProviderID: "provider-id",
-						State:      invoice.PaidState,
-						Currency:   "usd",
-						Amount:     1000,
-						HostedURL:  "https://example.com/inv-1",
-						Metadata:   metadata.Metadata{},
-						CreatedAt:  fixedTime,
+				).Return(invoice.SearchOrgInvoicesResult{
+					Invoices: []invoice.Invoice{
+						{
+							ID:         "inv-1",
+							CustomerID: "customer-id",
+							ProviderID: "provider-id",
+							State:      invoice.PaidState,
+							Currency:   "usd",
+							Amount:     1000,
+							HostedURL:  "https://example.com/inv-1",
+							Metadata:   metadata.Metadata{},
+							CreatedAt:  fixedTime,
+						},
 					},
-				}, int64(1), nil)
+					Pagination: invoice.SearchOrgInvoicesPagination{
+						Limit:      10,
+						Offset:     2,
+						TotalCount: 1,
+					},
+				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
 				OrgId: "org-123",
@@ -653,7 +660,14 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 							query.Sort[0].Name == "amount" &&
 							query.Sort[0].Order == "asc"
 					}),
-				).Return([]invoice.Invoice{}, int64(0), nil)
+				).Return(invoice.SearchOrgInvoicesResult{
+					Invoices: []invoice.Invoice{},
+					Pagination: invoice.SearchOrgInvoicesPagination{
+						Limit:      20,
+						Offset:     0,
+						TotalCount: 0,
+					},
+				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
 				OrgId: "org-123",
@@ -720,7 +734,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 						query, ok := q.(*rql.Query)
 						return ok && query != nil && len(query.GroupBy) == 1 && query.GroupBy[0] == "state"
 					}),
-				).Return(nil, int64(0), fmt.Errorf("%w: group_by is not supported", invoice.ErrBadInput))
+				).Return(invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: group_by is not supported", invoice.ErrBadInput))
 			},
 			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
 				OrgId: "org-123",

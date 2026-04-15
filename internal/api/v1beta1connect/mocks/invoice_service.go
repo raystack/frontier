@@ -200,38 +200,31 @@ func (_c *InvoiceService_ListAll_Call) RunAndReturn(run func(context.Context, in
 }
 
 // SearchOrgInvoices provides a mock function with given fields: ctx, customerID, rqlQuery
-func (_m *InvoiceService) SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) ([]invoice.Invoice, int64, error) {
+func (_m *InvoiceService) SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (invoice.SearchOrgInvoicesResult, error) {
 	ret := _m.Called(ctx, customerID, rqlQuery)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SearchOrgInvoices")
 	}
 
-	var r0 []invoice.Invoice
-	var r1 int64
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *rql.Query) ([]invoice.Invoice, int64, error)); ok {
+	var r0 invoice.SearchOrgInvoicesResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *rql.Query) (invoice.SearchOrgInvoicesResult, error)); ok {
 		return rf(ctx, customerID, rqlQuery)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *rql.Query) []invoice.Invoice); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, *rql.Query) invoice.SearchOrgInvoicesResult); ok {
 		r0 = rf(ctx, customerID, rqlQuery)
 	} else if ret.Get(0) != nil {
-		r0 = ret.Get(0).([]invoice.Invoice)
+		r0 = ret.Get(0).(invoice.SearchOrgInvoicesResult)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *rql.Query) int64); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, *rql.Query) error); ok {
 		r1 = rf(ctx, customerID, rqlQuery)
 	} else {
-		r1 = ret.Get(1).(int64)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, *rql.Query) error); ok {
-		r2 = rf(ctx, customerID, rqlQuery)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // InvoiceService_SearchOrgInvoices_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchOrgInvoices'
@@ -254,12 +247,12 @@ func (_c *InvoiceService_SearchOrgInvoices_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *InvoiceService_SearchOrgInvoices_Call) Return(_a0 []invoice.Invoice, _a1 int64, _a2 error) *InvoiceService_SearchOrgInvoices_Call {
-	_c.Call.Return(_a0, _a1, _a2)
+func (_c *InvoiceService_SearchOrgInvoices_Call) Return(_a0 invoice.SearchOrgInvoicesResult, _a1 error) *InvoiceService_SearchOrgInvoices_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *InvoiceService_SearchOrgInvoices_Call) RunAndReturn(run func(context.Context, string, *rql.Query) ([]invoice.Invoice, int64, error)) *InvoiceService_SearchOrgInvoices_Call {
+func (_c *InvoiceService_SearchOrgInvoices_Call) RunAndReturn(run func(context.Context, string, *rql.Query) (invoice.SearchOrgInvoicesResult, error)) *InvoiceService_SearchOrgInvoices_Call {
 	_c.Call.Return(run)
 	return _c
 }

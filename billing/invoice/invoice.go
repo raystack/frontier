@@ -128,3 +128,14 @@ type SearchOrgInvoice struct {
 	PeriodStartAt time.Time `rql:"name=period_start_at,type=datetime"`
 	PeriodEndAt   time.Time `rql:"name=period_end_at,type=datetime"`
 }
+
+type SearchOrgInvoicesPagination struct {
+	Limit      int
+	Offset     int
+	TotalCount int64
+}
+
+type SearchOrgInvoicesResult struct {
+	Invoices   []Invoice
+	Pagination SearchOrgInvoicesPagination
+}

@@ -134,7 +134,7 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
 
-	invoices, totalCount, err := h.invoiceService.SearchOrgInvoices(ctx, cust.ID, rqlQuery)
+	result, err := h.invoiceService.SearchOrgInvoices(ctx, cust.ID, rqlQuery)
 	if err != nil {
 		if errors.Is(err, invoice.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
@@ -145,7 +145,7 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 	}
 
 	var invoicePBs []*frontierv1beta1.Invoice
-	for _, v := range invoices {
+	for _, v := range result.Invoices {
 		invoicePB, err := transformInvoiceToPB(v)
 		if err != nil {
 			errorLogger.LogTransformError(ctx, request, "SearchOrgInvoices", v.ID, err)
@@ -157,9 +157,9 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 	return connect.NewResponse(&frontierv1beta1.SearchOrgInvoicesResponse{
 		Invoices: invoicePBs,
 		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
-			Offset:     uint32(rqlQuery.Offset),
-			Limit:      uint32(rqlQuery.Limit),
-			TotalCount: uint32(totalCount),
+			Offset:     uint32(result.Pagination.Offset),
+			Limit:      uint32(result.Pagination.Limit),
+			TotalCount: uint32(result.Pagination.TotalCount),
 		},
 	}), nil
 }
