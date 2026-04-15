@@ -1,0 +1,1 @@
+ALTER TABLE user_pats ADD COLUMN regenerated_at TIMESTAMPTZ;

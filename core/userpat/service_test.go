@@ -2253,14 +2253,16 @@ func TestService_Regenerate(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
+	regenTime := time.Now()
 	regeneratedPAT := models.PAT{
-		ID:        "pat-1",
-		UserID:    "user-1",
-		OrgID:     "org-1",
-		Title:     "my-token",
-		ExpiresAt: futureExpiry,
-		CreatedAt: activePAT.CreatedAt,
-		UpdatedAt: time.Now(),
+		ID:            "pat-1",
+		UserID:        "user-1",
+		OrgID:         "org-1",
+		Title:         "my-token",
+		ExpiresAt:     futureExpiry,
+		RegeneratedAt: &regenTime,
+		CreatedAt:     activePAT.CreatedAt,
+		UpdatedAt:     time.Now(),
 	}
 
 	tests := []struct {

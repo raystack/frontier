@@ -92,6 +92,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
@@ -430,6 +431,8 @@ func buildAPIDependencies(
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository, roleService)
 
+	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, auditRecordRepository)
+
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
 
@@ -632,6 +635,7 @@ func buildAPIDependencies(
 		AuditRecordService:               auditRecordService,
 		UserPATService:                   userPATService,
 		PATAlertService:                  patAlertService,
+		MembershipService:                membershipService,
 	}
 	return dependencies, nil
 }
