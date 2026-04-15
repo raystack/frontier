@@ -304,6 +304,9 @@ func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	if pat.LastUsedAt != nil {
 		pbPAT.LastUsedAt = timestamppb.New(*pat.LastUsedAt)
 	}
+	if pat.RegeneratedAt != nil {
+		pbPAT.RegeneratedAt = timestamppb.New(*pat.RegeneratedAt)
+	}
 	if pat.Metadata != nil {
 		metaPB, err := pat.Metadata.ToStructPB()
 		if err == nil {
