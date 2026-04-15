@@ -108,6 +108,19 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			wantErr: membership.ErrInvalidOrgRole,
 		},
 		{
+			name: "should return error if org-specific role has project scope",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				// custom role created for this org but scoped to project, not org
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, OrgID: orgID, Scopes: []string{schema.ProjectNamespace}}, nil)
+			},
+			orgID:   orgID,
+			userID:  userID,
+			roleID:  viewerRoleID,
+			wantErr: membership.ErrInvalidOrgRole,
+		},
+		{
 			name: "should return error if user is already a member",
 			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
@@ -171,7 +184,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
-				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, OrgID: orgID}, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, OrgID: orgID, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
 				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)

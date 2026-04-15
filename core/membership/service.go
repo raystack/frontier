@@ -151,13 +151,18 @@ func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) (ro
 		return role.Role{}, err
 	}
 
+	// role must be scoped to organization regardless of whether it's platform-wide or org-specific
+	if !slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace) {
+		return role.Role{}, ErrInvalidOrgRole
+	}
+
 	// custom role belonging to this org
 	if fetchedRole.OrgID == orgID {
 		return fetchedRole, nil
 	}
 
-	// platform-wide role with org scope
-	if utils.IsNullUUID(fetchedRole.OrgID) && slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace) {
+	// platform-wide role (no org ownership)
+	if utils.IsNullUUID(fetchedRole.OrgID) {
 		return fetchedRole, nil
 	}
 
@@ -173,7 +178,6 @@ func orgRoleToRelation(r role.Role) string {
 	return schema.MemberRelationName
 }
 
-// replacePolicy deletes all existing policies for the principal+resource and creates a new one.
 func (s *Service) createPolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string) (policy.Policy, error) {
 	created, err := s.policyService.Create(ctx, policy.Policy{
 		RoleID:        roleID,
