@@ -134,7 +134,7 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
 
-	invoices, totalCount, err := h.invoiceService.SearchOrgInvoices(ctx, cust.ID, request.Msg.GetNonzeroAmountOnly(), rqlQuery)
+	invoices, totalCount, err := h.invoiceService.SearchOrgInvoices(ctx, cust.ID, rqlQuery)
 	if err != nil {
 		if errors.Is(err, invoice.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)

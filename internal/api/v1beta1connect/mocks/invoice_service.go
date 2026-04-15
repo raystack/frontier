@@ -199,9 +199,9 @@ func (_c *InvoiceService_ListAll_Call) RunAndReturn(run func(context.Context, in
 	return _c
 }
 
-// SearchOrgInvoices provides a mock function with given fields: ctx, customerID, nonzeroOnly, rqlQuery
-func (_m *InvoiceService) SearchOrgInvoices(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query) ([]invoice.Invoice, int64, error) {
-	ret := _m.Called(ctx, customerID, nonzeroOnly, rqlQuery)
+// SearchOrgInvoices provides a mock function with given fields: ctx, customerID, rqlQuery
+func (_m *InvoiceService) SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) ([]invoice.Invoice, int64, error) {
+	ret := _m.Called(ctx, customerID, rqlQuery)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SearchOrgInvoices")
@@ -210,23 +210,23 @@ func (_m *InvoiceService) SearchOrgInvoices(ctx context.Context, customerID stri
 	var r0 []invoice.Invoice
 	var r1 int64
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool, *rql.Query) ([]invoice.Invoice, int64, error)); ok {
-		return rf(ctx, customerID, nonzeroOnly, rqlQuery)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *rql.Query) ([]invoice.Invoice, int64, error)); ok {
+		return rf(ctx, customerID, rqlQuery)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool, *rql.Query) []invoice.Invoice); ok {
-		r0 = rf(ctx, customerID, nonzeroOnly, rqlQuery)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *rql.Query) []invoice.Invoice); ok {
+		r0 = rf(ctx, customerID, rqlQuery)
 	} else if ret.Get(0) != nil {
 		r0 = ret.Get(0).([]invoice.Invoice)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool, *rql.Query) int64); ok {
-		r1 = rf(ctx, customerID, nonzeroOnly, rqlQuery)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *rql.Query) int64); ok {
+		r1 = rf(ctx, customerID, rqlQuery)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, bool, *rql.Query) error); ok {
-		r2 = rf(ctx, customerID, nonzeroOnly, rqlQuery)
+	if rf, ok := ret.Get(2).(func(context.Context, string, *rql.Query) error); ok {
+		r2 = rf(ctx, customerID, rqlQuery)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -242,15 +242,14 @@ type InvoiceService_SearchOrgInvoices_Call struct {
 // SearchOrgInvoices is a helper method to define mock.On call
 //   - ctx context.Context
 //   - customerID string
-//   - nonzeroOnly bool
 //   - rqlQuery *rql.Query
-func (_e *InvoiceService_Expecter) SearchOrgInvoices(ctx interface{}, customerID interface{}, nonzeroOnly interface{}, rqlQuery interface{}) *InvoiceService_SearchOrgInvoices_Call {
-	return &InvoiceService_SearchOrgInvoices_Call{Call: _e.mock.On("SearchOrgInvoices", ctx, customerID, nonzeroOnly, rqlQuery)}
+func (_e *InvoiceService_Expecter) SearchOrgInvoices(ctx interface{}, customerID interface{}, rqlQuery interface{}) *InvoiceService_SearchOrgInvoices_Call {
+	return &InvoiceService_SearchOrgInvoices_Call{Call: _e.mock.On("SearchOrgInvoices", ctx, customerID, rqlQuery)}
 }
 
-func (_c *InvoiceService_SearchOrgInvoices_Call) Run(run func(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query)) *InvoiceService_SearchOrgInvoices_Call {
+func (_c *InvoiceService_SearchOrgInvoices_Call) Run(run func(ctx context.Context, customerID string, rqlQuery *rql.Query)) *InvoiceService_SearchOrgInvoices_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(bool), args[3].(*rql.Query))
+		run(args[0].(context.Context), args[1].(string), args[2].(*rql.Query))
 	})
 	return _c
 }
@@ -260,7 +259,7 @@ func (_c *InvoiceService_SearchOrgInvoices_Call) Return(_a0 []invoice.Invoice, _
 	return _c
 }
 
-func (_c *InvoiceService_SearchOrgInvoices_Call) RunAndReturn(run func(context.Context, string, bool, *rql.Query) ([]invoice.Invoice, int64, error)) *InvoiceService_SearchOrgInvoices_Call {
+func (_c *InvoiceService_SearchOrgInvoices_Call) RunAndReturn(run func(context.Context, string, *rql.Query) ([]invoice.Invoice, int64, error)) *InvoiceService_SearchOrgInvoices_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -274,17 +274,11 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 	return invoices, nil
 }
 
-func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, customerID string, nonzeroOnly bool, rqlQuery *rql.Query) ([]invoice.Invoice, int64, error) {
+func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) ([]invoice.Invoice, int64, error) {
 	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
 		Where(goqu.Ex{
 			"customer_id": customerID,
 		})
-
-	if nonzeroOnly {
-		query = query.Where(goqu.Ex{
-			"amount": goqu.Op{"gt": 0},
-		})
-	}
 
 	filterColumns := []string{
 		"id",

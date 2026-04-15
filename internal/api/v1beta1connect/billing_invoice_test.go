@@ -593,7 +593,6 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 					"SearchOrgInvoices",
 					mock.Anything,
 					"customer-id",
-					true,
 					mock.MatchedBy(func(q interface{}) bool {
 						query, ok := q.(*rql.Query)
 						return ok && query != nil && query.Limit == 10 && query.Offset == 2
@@ -613,8 +612,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				}, int64(1), nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
-				OrgId:             "org-123",
-				NonzeroAmountOnly: true,
+				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Offset: 2,
 					Limit:  10,
@@ -642,7 +640,6 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 					"SearchOrgInvoices",
 					mock.Anything,
 					"customer-id",
-					false,
 					mock.MatchedBy(func(q interface{}) bool {
 						query, ok := q.(*rql.Query)
 						if !ok || query == nil {
@@ -659,8 +656,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				).Return([]invoice.Invoice{}, int64(0), nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
-				OrgId:             "org-123",
-				NonzeroAmountOnly: false,
+				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Search: "usd",
 					Filters: []*frontierv1beta1.RQLFilter{
@@ -720,7 +716,6 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 					"SearchOrgInvoices",
 					mock.Anything,
 					"customer-id",
-					false,
 					mock.MatchedBy(func(q interface{}) bool {
 						query, ok := q.(*rql.Query)
 						return ok && query != nil && len(query.GroupBy) == 1 && query.GroupBy[0] == "state"
