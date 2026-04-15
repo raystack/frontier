@@ -26,9 +26,9 @@ import (
 const (
 	alertLockKey = "pat-expiry-alerts"
 
-	defaultExpiryReminderBody = `{{if .User.Title}}Hi {{.User.Title}},{{else}}Hi,{{end}}<br><br>Your personal access token <b>{{.Title}}</b> in organization <b>{{.Org.Title}}</b> will expire on <b>{{.ExpiresAt}}</b>.<br><br>Please regenerate it to avoid service disruption.{{if .PATPageURL}}<br><br><a href="{{.PATPageURL}}">Manage your tokens</a>{{end}}`
+	defaultExpiryReminderBody = `{{if .User.Title}}Hi {{.User.Title}},{{else}}Hi,{{end}}<br><br>Your personal access token <b>{{.Title}}</b> in organization <b>{{.Org.Title}}</b> will expire on <b>{{.ExpiresAt}}</b>.<br><br>Please regenerate it to avoid service disruption.`
 
-	defaultExpiredNoticeBody = `{{if .User.Title}}Hi {{.User.Title}},{{else}}Hi,{{end}}<br><br>Your personal access token <b>{{.Title}}</b> in organization <b>{{.Org.Title}}</b> expired on <b>{{.ExpiresAt}}</b>.<br><br>Any services using this token will no longer authenticate.{{if .PATPageURL}}<br><br><a href="{{.PATPageURL}}">Create a new token</a>{{end}}`
+	defaultExpiredNoticeBody = `{{if .User.Title}}Hi {{.User.Title}},{{else}}Hi,{{end}}<br><br>Your personal access token <b>{{.Title}}</b> in organization <b>{{.Org.Title}}</b> expired on <b>{{.ExpiresAt}}</b>.<br><br>Any services using this token will no longer authenticate.`
 
 	defaultExpiryReminderSubject = `Your personal access token "{{.Title}}" expires in {{.DaysLeft}} days`
 	defaultExpiredNoticeSubject  = `Your personal access token "{{.Title}}" has expired`
@@ -198,12 +198,12 @@ func (s *AlertService) sendExpiredNotices(ctx context.Context) {
 }
 
 type alertTemplateData struct {
-	Title      string
-	ExpiresAt  string
-	DaysLeft   int
-	User       user.User
-	Org        organization.Organization
-	PATPageURL string
+	PatID     string
+	Title     string
+	ExpiresAt string
+	DaysLeft  int
+	User      user.User
+	Org       organization.Organization
 }
 
 func (s *AlertService) sendAlert(ctx context.Context, pat models.PAT, subjectTpl, bodyTpl, metadataKey string, auditEvent pkgauditrecord.Event) error {
@@ -218,19 +218,12 @@ func (s *AlertService) sendAlert(ctx context.Context, pat models.PAT, subjectTpl
 	}
 
 	data := alertTemplateData{
+		PatID:     pat.ID,
 		Title:     pat.Title,
 		ExpiresAt: pat.ExpiresAt.Format("January 2, 2006 at 3:04 PM UTC"),
 		DaysLeft:  max(0, int(math.Ceil(time.Until(pat.ExpiresAt).Hours()/24))),
 		User:      usr,
 		Org:       org,
-	}
-
-	if s.config.PATPageURL != "" {
-		patPageURL, err := renderTextTemplate(s.config.PATPageURL, data)
-		if err != nil {
-			return fmt.Errorf("failed to render PAT page URL: %w", err)
-		}
-		data.PATPageURL = patPageURL
 	}
 
 	subject, err := renderTextTemplate(subjectTpl, data)

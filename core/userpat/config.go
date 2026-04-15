@@ -20,7 +20,6 @@ type AlertConfig struct {
 	ExpiryReminderBody    string `yaml:"expiry_reminder_body" mapstructure:"expiry_reminder_body"`
 	ExpiredNoticeSubject  string `yaml:"expired_notice_subject" mapstructure:"expired_notice_subject"`
 	ExpiredNoticeBody     string `yaml:"expired_notice_body" mapstructure:"expired_notice_body"`
-	PATPageURL            string `yaml:"pat_page_url" mapstructure:"pat_page_url"`
 }
 
 func (c Config) MaxExpiry() time.Duration {
