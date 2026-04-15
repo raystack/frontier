@@ -551,9 +551,9 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				Query: &frontierv1beta1.RQLRequest{
 					Filters: []*frontierv1beta1.RQLFilter{
 						{
-							Name:        "unknown_field",
-							Operator:    "eq",
-							Value: &frontierv1beta1.RQLFilter_StringValue{StringValue: "x"},
+							Name:     "unknown_field",
+							Operator: "eq",
+							Value:    &frontierv1beta1.RQLFilter_StringValue{StringValue: "x"},
 						},
 					},
 				},
@@ -575,6 +575,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			}),
 			wantCode: 0,
 			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+				t.Helper()
 				assert.NotNil(t, got)
 				assert.Len(t, got.Msg.GetInvoices(), 0)
 				assert.Equal(t, uint32(5), got.Msg.GetPagination().GetOffset())
@@ -621,6 +622,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			}),
 			wantCode: 0,
 			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+				t.Helper()
 				assert.NotNil(t, got)
 				assert.Len(t, got.Msg.GetInvoices(), 1)
 				assert.Equal(t, "inv-1", got.Msg.GetInvoices()[0].GetId())
@@ -682,6 +684,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			}),
 			wantCode: 0,
 			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+				t.Helper()
 				assert.NotNil(t, got)
 				assert.Len(t, got.Msg.GetInvoices(), 0)
 				assert.Equal(t, uint32(20), got.Msg.GetPagination().GetLimit())

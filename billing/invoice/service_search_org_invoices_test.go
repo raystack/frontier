@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/credit"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/rql"
@@ -45,11 +45,15 @@ func (s searchOrgInvoicesRepoStub) Search(context.Context, *rql.Query) ([]Invoic
 
 type noopCustomerService struct{}
 
-func (noopCustomerService) GetByID(context.Context, string) (customer.Customer, error)     { return customer.Customer{}, nil }
+func (noopCustomerService) GetByID(context.Context, string) (customer.Customer, error) {
+	return customer.Customer{}, nil
+}
 func (noopCustomerService) List(context.Context, customer.Filter) ([]customer.Customer, error) {
 	return nil, nil
 }
-func (noopCustomerService) GetDetails(context.Context, string) (customer.Details, error) { return customer.Details{}, nil }
+func (noopCustomerService) GetDetails(context.Context, string) (customer.Details, error) {
+	return customer.Details{}, nil
+}
 
 type noopCreditService struct{}
 
@@ -63,7 +67,9 @@ func (noopCreditService) GetBalanceForRangeWithoutOverdraft(context.Context, str
 
 type noopProductService struct{}
 
-func (noopProductService) GetByID(context.Context, string) (product.Product, error) { return product.Product{}, nil }
+func (noopProductService) GetByID(context.Context, string) (product.Product, error) {
+	return product.Product{}, nil
+}
 
 type noopLocker struct{}
 
@@ -115,4 +121,3 @@ func TestService_SearchOrgInvoices_DelegatesToRepository(t *testing.T) {
 	assert.Equal(t, expected, got)
 	assert.Equal(t, expectedCount, count)
 }
-
