@@ -211,12 +211,17 @@ func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (st
 				goqu.I("pol.principal_id").Eq(goqu.I("p.id")),
 				goqu.I("pol.principal_type").Eq(schema.PATPrincipal),
 			),
-		).
-		Order(
-			goqu.I("p.created_at").Desc(),
-			goqu.I("p.id").Asc(),
-			goqu.I("pol.role_id").Asc(),
 		)
+
+	// Apply the same sort to the outer query to preserve the user's requested order.
+	// The inner query sort controls pagination (which rows), the outer sort controls
+	// final row order after the policy LEFT JOIN expands rows.
+	outer, err = r.addSort(outer, rqlQuery.Sort)
+	if err != nil {
+		return "", nil, err
+	}
+	// Add deterministic tiebreakers
+	outer = outer.OrderAppend(goqu.I("p.id").Asc(), goqu.I("pol.role_id").Asc())
 
 	return outer.ToSQL()
 }
