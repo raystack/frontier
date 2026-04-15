@@ -307,7 +307,7 @@ func (s *Service) ListAll(ctx context.Context, filter Filter) ([]Invoice, error)
 // List currently queries stripe for invoices, but it should be refactored to query our own database
 func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	if filter.CustomerID == "" {
-		return nil, errors.New("customer id not found")
+		return nil, errors.New("customer id is required")
 	}
 	return s.repository.List(ctx, filter)
 }
