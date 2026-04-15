@@ -44,6 +44,7 @@ export {
   ServiceAccountsView,
   ServiceAccountDetailsView
 } from './views-new/service-accounts';
+export { PlansView } from './views-new/plans';
 
 export type {
   FrontierClientOptions,

@@ -408,6 +408,10 @@ type AuditRecordService interface {
 	Export(ctx context.Context, query *rql.Query) (io.Reader, string, error)
 }
 
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+}
+
 type UserPATService interface {
 	ValidateExpiry(expiresAt time.Time) error
 	Create(ctx context.Context, req userpat.CreateRequest) (models.PAT, string, error)
