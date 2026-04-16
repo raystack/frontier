@@ -359,7 +359,7 @@ func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, custome
 	}
 	return invoice.SearchOrgInvoicesResult{
 		Invoices: invoices,
-		Pagination: invoice.SearchOrgInvoicesPagination{
+		Pagination: frontierutils.Page{
 			Limit:      page.Limit,
 			Offset:     page.Offset,
 			TotalCount: totalCount,

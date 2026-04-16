@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/pkg/metadata"
+	frontierutils "github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
@@ -611,7 +612,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 							CreatedAt:  fixedTime,
 						},
 					},
-					Pagination: invoice.SearchOrgInvoicesPagination{
+					Pagination: frontierutils.Page{
 						Limit:      10,
 						Offset:     2,
 						TotalCount: 1,
@@ -662,7 +663,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 					}),
 				).Return(invoice.SearchOrgInvoicesResult{
 					Invoices: []invoice.Invoice{},
-					Pagination: invoice.SearchOrgInvoicesPagination{
+					Pagination: frontierutils.Page{
 						Limit:      20,
 						Offset:     0,
 						TotalCount: 0,

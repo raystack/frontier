@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/pkg/pagination"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/pkg/metadata"
 )
@@ -129,13 +130,7 @@ type SearchOrgInvoice struct {
 	PeriodEndAt   time.Time `rql:"name=period_end_at,type=datetime"`
 }
 
-type SearchOrgInvoicesPagination struct {
-	Limit      int
-	Offset     int
-	TotalCount int64
-}
-
 type SearchOrgInvoicesResult struct {
 	Invoices   []Invoice
-	Pagination SearchOrgInvoicesPagination
+	Pagination utils.Page
 }

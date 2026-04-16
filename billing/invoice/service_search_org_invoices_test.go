@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
 )
@@ -100,7 +101,7 @@ func TestService_SearchOrgInvoices_Validation(t *testing.T) {
 func TestService_SearchOrgInvoices_DelegatesToRepository(t *testing.T) {
 	expected := SearchOrgInvoicesResult{
 		Invoices: []Invoice{{ID: "inv-1"}},
-		Pagination: SearchOrgInvoicesPagination{
+		Pagination: utils.Page{
 			TotalCount: 1,
 		},
 	}
