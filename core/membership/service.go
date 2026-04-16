@@ -287,6 +287,13 @@ func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType,
 	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object: obj, Subject: sub, RelationName: newRelationName,
 	}); err != nil {
+		s.log.Error("membership state inconsistent: old relations deleted but new relation creation failed, needs manual fix",
+			"resource_id", resourceID,
+			"resource_type", resourceType,
+			"principal_id", principalID,
+			"expected_relation", newRelationName,
+			"error", err,
+		)
 		return fmt.Errorf("create relation: %w", err)
 	}
 	return nil
