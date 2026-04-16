@@ -2,6 +2,7 @@ package membership
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -262,7 +263,11 @@ func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType,
 	sub := relation.Subject{ID: principalID, Namespace: principalType}
 
 	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
-		_ = s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
+		if err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name}); err != nil {
+			if !errors.Is(err, relation.ErrNotExist) {
+				return fmt.Errorf("delete relation %s: %w", name, err)
+			}
+		}
 	}
 
 	if _, err := s.relationService.Create(ctx, relation.Relation{

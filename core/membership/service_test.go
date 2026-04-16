@@ -393,6 +393,42 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 			roleID:  ownerRoleID,
 			wantErr: nil,
 		},
+		{
+			name: "should return error if relation delete fails with non-not-found error",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+				// relation delete fails with a real error (not "not found")
+				relSvc.EXPECT().Delete(ctx, orgRelation(schema.OwnerRelationName)).Return(errors.New("spicedb connection error"))
+			},
+			roleID:         viewerRoleID,
+			wantErrContain: "delete relation owner",
+		},
+		{
+			name: "should ignore not-found on relation delete",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: managerRoleID}}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+				// both relation deletes return not-found — that's fine, should continue
+				relSvc.EXPECT().Delete(ctx, orgRelation(schema.OwnerRelationName)).Return(relation.ErrNotExist)
+				relSvc.EXPECT().Delete(ctx, orgRelation(schema.MemberRelationName)).Return(relation.ErrNotExist)
+				relSvc.EXPECT().Create(ctx, orgRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			roleID:  viewerRoleID,
+			wantErr: nil,
+		},
 	}
 
 	for _, tt := range tests {
