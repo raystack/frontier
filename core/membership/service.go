@@ -170,6 +170,9 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return err
 	}
 
+	// use the canonical UUID from the fetched role for all comparisons and writes
+	resolvedRoleID := fetchedRole.ID
+
 	existing, err := s.policyService.List(ctx, policy.Filter{
 		OrgID:         orgID,
 		PrincipalID:   principalID,
@@ -183,15 +186,15 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	}
 
 	// skip if the user already has exactly this role
-	if len(existing) == 1 && existing[0].RoleID == roleID {
+	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
 		return nil
 	}
 
-	if err := s.validateMinOwnerConstraint(ctx, orgID, roleID, existing); err != nil {
+	if err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing); err != nil {
 		return err
 	}
 
-	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID, existing); err != nil {
+	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing); err != nil {
 		return err
 	}
 
@@ -203,14 +206,14 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 			"org_id", orgID,
 			"principal_id", principalID,
 			"principal_type", principalType,
-			"new_role_id", roleID,
+			"new_role_id", resolvedRoleID,
 			"expected_relation", newRelation,
 			"error", err,
 		)
 		return err
 	}
 
-	s.auditOrgMemberRoleChanged(ctx, org, usr, roleID)
+	s.auditOrgMemberRoleChanged(ctx, org, usr, resolvedRoleID)
 	return nil
 }
 
