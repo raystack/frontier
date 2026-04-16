@@ -420,6 +420,123 @@ func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, string, s
 	return _c
 }
 
+// ListExpiredNoticePending provides a mock function with given fields: ctx
+func (_m *Repository) ListExpiredNoticePending(ctx context.Context) ([]models.PAT, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListExpiredNoticePending")
+	}
+
+	var r0 []models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]models.PAT, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []models.PAT); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.PAT)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_ListExpiredNoticePending_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListExpiredNoticePending'
+type Repository_ListExpiredNoticePending_Call struct {
+	*mock.Call
+}
+
+// ListExpiredNoticePending is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Repository_Expecter) ListExpiredNoticePending(ctx interface{}) *Repository_ListExpiredNoticePending_Call {
+	return &Repository_ListExpiredNoticePending_Call{Call: _e.mock.On("ListExpiredNoticePending", ctx)}
+}
+
+func (_c *Repository_ListExpiredNoticePending_Call) Run(run func(ctx context.Context)) *Repository_ListExpiredNoticePending_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Repository_ListExpiredNoticePending_Call) Return(_a0 []models.PAT, _a1 error) *Repository_ListExpiredNoticePending_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_ListExpiredNoticePending_Call) RunAndReturn(run func(context.Context) ([]models.PAT, error)) *Repository_ListExpiredNoticePending_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListExpiryReminderPending provides a mock function with given fields: ctx, days
+func (_m *Repository) ListExpiryReminderPending(ctx context.Context, days int) ([]models.PAT, error) {
+	ret := _m.Called(ctx, days)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListExpiryReminderPending")
+	}
+
+	var r0 []models.PAT
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]models.PAT, error)); ok {
+		return rf(ctx, days)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) []models.PAT); ok {
+		r0 = rf(ctx, days)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.PAT)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, days)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_ListExpiryReminderPending_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListExpiryReminderPending'
+type Repository_ListExpiryReminderPending_Call struct {
+	*mock.Call
+}
+
+// ListExpiryReminderPending is a helper method to define mock.On call
+//   - ctx context.Context
+//   - days int
+func (_e *Repository_Expecter) ListExpiryReminderPending(ctx interface{}, days interface{}) *Repository_ListExpiryReminderPending_Call {
+	return &Repository_ListExpiryReminderPending_Call{Call: _e.mock.On("ListExpiryReminderPending", ctx, days)}
+}
+
+func (_c *Repository_ListExpiryReminderPending_Call) Run(run func(ctx context.Context, days int)) *Repository_ListExpiryReminderPending_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *Repository_ListExpiryReminderPending_Call) Return(_a0 []models.PAT, _a1 error) *Repository_ListExpiryReminderPending_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_ListExpiryReminderPending_Call) RunAndReturn(run func(context.Context, int) ([]models.PAT, error)) *Repository_ListExpiryReminderPending_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Regenerate provides a mock function with given fields: ctx, id, secretHash, expiresAt
 func (_m *Repository) Regenerate(ctx context.Context, id string, secretHash string, expiresAt time.Time) (models.PAT, error) {
 	ret := _m.Called(ctx, id, secretHash, expiresAt)
@@ -475,6 +592,54 @@ func (_c *Repository_Regenerate_Call) Return(_a0 models.PAT, _a1 error) *Reposit
 }
 
 func (_c *Repository_Regenerate_Call) RunAndReturn(run func(context.Context, string, string, time.Time) (models.PAT, error)) *Repository_Regenerate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetAlertSentMetadata provides a mock function with given fields: ctx, id, key
+func (_m *Repository) SetAlertSentMetadata(ctx context.Context, id string, key string) error {
+	ret := _m.Called(ctx, id, key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetAlertSentMetadata")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, key)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_SetAlertSentMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAlertSentMetadata'
+type Repository_SetAlertSentMetadata_Call struct {
+	*mock.Call
+}
+
+// SetAlertSentMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - key string
+func (_e *Repository_Expecter) SetAlertSentMetadata(ctx interface{}, id interface{}, key interface{}) *Repository_SetAlertSentMetadata_Call {
+	return &Repository_SetAlertSentMetadata_Call{Call: _e.mock.On("SetAlertSentMetadata", ctx, id, key)}
+}
+
+func (_c *Repository_SetAlertSentMetadata_Call) Run(run func(ctx context.Context, id string, key string)) *Repository_SetAlertSentMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_SetAlertSentMetadata_Call) Return(_a0 error) *Repository_SetAlertSentMetadata_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_SetAlertSentMetadata_Call) RunAndReturn(run func(context.Context, string, string) error) *Repository_SetAlertSentMetadata_Call {
 	_c.Call.Return(run)
 	return _c
 }
