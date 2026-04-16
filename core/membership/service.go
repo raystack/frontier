@@ -200,6 +200,7 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		s.log.Error("membership state inconsistent: policy replaced but relation update failed, needs manual fix",
 			"org_id", orgID,
 			"principal_id", principalID,
+			"principal_type", principalType,
 			"new_role_id", roleID,
 			"expected_relation", relationName,
 			"error", err,
@@ -261,6 +262,7 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 			"resource_id", resourceID,
 			"resource_type", resourceType,
 			"principal_id", principalID,
+			"principal_type", principalType,
 			"role_id", roleID,
 			"error", err,
 		)
@@ -291,6 +293,7 @@ func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType,
 			"resource_id", resourceID,
 			"resource_type", resourceType,
 			"principal_id", principalID,
+			"principal_type", principalType,
 			"expected_relation", newRelationName,
 			"error", err,
 		)
