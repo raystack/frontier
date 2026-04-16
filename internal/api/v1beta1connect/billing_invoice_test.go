@@ -562,6 +562,28 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			wantCode: connect.CodeInvalidArgument,
 		},
 		{
+			name: "should return invalid argument for invalid org id uuid",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "bad-org-id").Return(customer.Customer{}, customer.ErrInvalidUUID)
+			},
+			setup: func(is *mocks.InvoiceService) {},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "bad-org-id",
+			}),
+			wantCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument for invalid org id format",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "bad-org-id").Return(customer.Customer{}, customer.ErrInvalidID)
+			},
+			setup: func(is *mocks.InvoiceService) {},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "bad-org-id",
+			}),
+			wantCode: connect.CodeInvalidArgument,
+		},
+		{
 			name: "should return empty response when org billing customer not found",
 			customerSetup: func(custSvc *mocks.CustomerService) {
 				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{}, customer.ErrNotFound)
@@ -722,6 +744,24 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			wantCode: connect.CodeInvalidArgument,
 		},
 		{
+			name: "should return internal for non bad-input service error",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
+			setup: func(is *mocks.InvoiceService) {
+				is.On(
+					"SearchOrgInvoices",
+					mock.Anything,
+					"customer-id",
+					mock.Anything,
+				).Return(invoice.SearchOrgInvoicesResult{}, errors.New("unexpected failure"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "org-123",
+			}),
+			wantCode: connect.CodeInternal,
+		},
+		{
 			name: "should map service bad input to invalid argument for group_by",
 			customerSetup: func(custSvc *mocks.CustomerService) {
 				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
@@ -744,6 +784,47 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				},
 			}),
 			wantCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return internal when invoice transform fails",
+			customerSetup: func(custSvc *mocks.CustomerService) {
+				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
+			},
+			setup: func(is *mocks.InvoiceService) {
+				is.On(
+					"SearchOrgInvoices",
+					mock.Anything,
+					"customer-id",
+					mock.Anything,
+				).Return(invoice.SearchOrgInvoicesResult{
+					Invoices: []invoice.Invoice{
+						{
+							ID:         "inv-1",
+							CustomerID: "customer-id",
+							ProviderID: "provider-id",
+							State:      invoice.PaidState,
+							Currency:   "usd",
+							Amount:     1000,
+							Metadata: metadata.Metadata{
+								"invalid_value": make(chan int),
+							},
+							CreatedAt: fixedTime,
+						},
+					},
+					Pagination: frontierutils.Page{
+						Limit:      10,
+						Offset:     0,
+						TotalCount: 1,
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+				OrgId: "org-123",
+				Query: &frontierv1beta1.RQLRequest{
+					Limit: 10,
+				},
+			}),
+			wantCode: connect.CodeInternal,
 		},
 	}
 
