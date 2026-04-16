@@ -251,6 +251,16 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
+	if err := deps.PATAlertService.Init(ctx); err != nil {
+		logger.Warn("PAT expiry alert service initialization failed", "err", err)
+	}
+	defer func() {
+		logger.Debug("cleaning up PAT expiry alert service")
+		if err := deps.PATAlertService.Close(); err != nil {
+			logger.Warn("PAT alert service cleanup failed", "err", err)
+		}
+	}()
+
 	if cfg.Billing.StripeKey != "" {
 		// billing services initialization and cleanup
 		if err := deps.CustomerService.Init(ctx); err != nil {
@@ -466,6 +476,7 @@ func buildAPIDependencies(
 		authnService, serviceUserService, groupService, roleService)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
+	patAlertService := userpat.NewAlertService(userPATRepo, userService, organizationService, mailDialer, dbc, cfg.App.PAT.Alert, logger, auditRecordRepository)
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService, userPATService)
 
 	orgPATsRepository := postgres.NewOrgPATsRepository(dbc)
@@ -623,6 +634,7 @@ func buildAPIDependencies(
 		UserProjectsService:              userProjectsService,
 		AuditRecordService:               auditRecordService,
 		UserPATService:                   userPATService,
+		PATAlertService:                  patAlertService,
 		MembershipService:                membershipService,
 	}
 	return dependencies, nil

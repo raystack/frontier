@@ -365,6 +365,80 @@ func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string
 	return model.transform()
 }
 
+func (r UserPATRepository) ListExpiryReminderPending(ctx context.Context, days int) ([]models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).Where(
+		goqu.Ex{"deleted_at": nil},
+		goqu.L("expires_at > NOW()"),
+		goqu.L("expires_at <= NOW() + make_interval(days => ?)", days),
+		goqu.L("(metadata->>'expiry_reminder_sent_at') IS NULL"),
+	).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	var rows []UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListExpiryReminderPending", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
+	}
+	var pats []models.PAT
+	for _, m := range rows {
+		pat, err := m.transform()
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, pat)
+	}
+	return pats, nil
+}
+
+func (r UserPATRepository) ListExpiredNoticePending(ctx context.Context) ([]models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).Where(
+		goqu.Ex{"deleted_at": nil},
+		goqu.L("expires_at < NOW()"),
+		goqu.L("(metadata->>'expired_notice_sent_at') IS NULL"),
+	).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	var rows []UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListExpiredNoticePending", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
+	}
+	var pats []models.PAT
+	for _, m := range rows {
+		pat, err := m.transform()
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, pat)
+	}
+	return pats, nil
+}
+
+func (r UserPATRepository) SetAlertSentMetadata(ctx context.Context, id string, key string) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	query, params, err := dialect.Update(TABLE_USER_PATS).
+		Set(goqu.Record{
+			"metadata": goqu.L("jsonb_set(COALESCE(metadata, '{}'), ?::text[], to_jsonb(?::text))",
+				fmt.Sprintf("{%s}", key), now),
+		}).
+		Where(goqu.Ex{"id": id}).
+		ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", queryErr, err)
+	}
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "SetAlertSentMetadata", func(ctx context.Context) error {
+		_, execErr := r.dbc.ExecContext(ctx, query, params...)
+		return execErr
+	}); err != nil {
+		return fmt.Errorf("%w: %w", dbErr, err)
+	}
+	return nil
+}
+
 func (r UserPATRepository) Delete(ctx context.Context, id string) error {
 	query, params, err := dialect.Update(TABLE_USER_PATS).
 		Set(goqu.Record{"deleted_at": time.Now().UTC()}).
