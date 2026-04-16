@@ -307,8 +307,6 @@ func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType,
 	return nil
 }
 
-
-
 // validateOrgRole checks that the role is valid for organization scope and returns it.
 // A role is valid if it is either:
 // - a platform-wide role scoped to organizations, or
