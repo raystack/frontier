@@ -61,8 +61,8 @@ func (v *Validator) Validate(ctx context.Context, value string) (models.PAT, err
 		return models.PAT{}, paterrors.ErrExpired
 	}
 
-	if err := v.repo.UpdateLastUsedAt(ctx, pat.ID, time.Now()); err != nil {
-		return models.PAT{}, fmt.Errorf("updating last_used_at: %w", err)
+	if err := v.repo.UpdateUsedAt(ctx, pat.ID, time.Now()); err != nil {
+		return models.PAT{}, fmt.Errorf("updating used_at: %w", err)
 	}
 
 	return pat, nil

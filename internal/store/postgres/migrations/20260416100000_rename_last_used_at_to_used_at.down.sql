@@ -1,0 +1,1 @@
+ALTER TABLE user_pats RENAME COLUMN used_at TO last_used_at;
