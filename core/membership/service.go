@@ -257,6 +257,13 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 		}
 	}
 	if _, err := s.createPolicy(ctx, resourceID, resourceType, principalID, principalType, roleID); err != nil {
+		s.log.Error("membership state inconsistent: old policies deleted but new policy creation failed, needs manual fix",
+			"resource_id", resourceID,
+			"resource_type", resourceType,
+			"principal_id", principalID,
+			"role_id", roleID,
+			"error", err,
+		)
 		return err
 	}
 	return nil
