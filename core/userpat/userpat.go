@@ -19,4 +19,7 @@ type Repository interface {
 	Update(ctx context.Context, pat models.PAT) (models.PAT, error)
 	Regenerate(ctx context.Context, id, secretHash string, expiresAt time.Time) (models.PAT, error)
 	Delete(ctx context.Context, id string) error
+	ListExpiryReminderPending(ctx context.Context, days int) ([]models.PAT, error)
+	ListExpiredNoticePending(ctx context.Context) ([]models.PAT, error)
+	SetAlertSentMetadata(ctx context.Context, id string, key string) error
 }
