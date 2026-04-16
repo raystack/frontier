@@ -48,9 +48,6 @@ const (
 	// AdminServiceAdminCreateOrganizationProcedure is the fully-qualified name of the AdminService's
 	// AdminCreateOrganization RPC.
 	AdminServiceAdminCreateOrganizationProcedure = "/raystack.frontier.v1beta1.AdminService/AdminCreateOrganization"
-	// AdminServiceAddOrganizationMembersProcedure is the fully-qualified name of the AdminService's
-	// AddOrganizationMembers RPC.
-	AdminServiceAddOrganizationMembersProcedure = "/raystack.frontier.v1beta1.AdminService/AddOrganizationMembers"
 	// AdminServiceSearchOrganizationsProcedure is the fully-qualified name of the AdminService's
 	// SearchOrganizations RPC.
 	AdminServiceSearchOrganizationsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizations"
@@ -231,7 +228,6 @@ type AdminServiceClient interface {
 	// Organizations
 	ListAllOrganizations(context.Context, *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error)
 	AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error)
-	AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error)
 	SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error)
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
@@ -362,12 +358,6 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AdminServiceAdminCreateOrganizationProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("AdminCreateOrganization")),
-			connect.WithClientOptions(opts...),
-		),
-		addOrganizationMembers: connect.NewClient[v1beta1.AddOrganizationMembersRequest, v1beta1.AddOrganizationMembersResponse](
-			httpClient,
-			baseURL+AdminServiceAddOrganizationMembersProcedure,
-			connect.WithSchema(adminServiceMethods.ByName("AddOrganizationMembers")),
 			connect.WithClientOptions(opts...),
 		),
 		searchOrganizations: connect.NewClient[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse](
@@ -722,7 +712,6 @@ type adminServiceClient struct {
 	listGroups                               *connect.Client[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse]
 	listAllOrganizations                     *connect.Client[v1beta1.ListAllOrganizationsRequest, v1beta1.ListAllOrganizationsResponse]
 	adminCreateOrganization                  *connect.Client[v1beta1.AdminCreateOrganizationRequest, v1beta1.AdminCreateOrganizationResponse]
-	addOrganizationMembers                   *connect.Client[v1beta1.AddOrganizationMembersRequest, v1beta1.AddOrganizationMembersResponse]
 	searchOrganizations                      *connect.Client[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse]
 	searchOrganizationUsers                  *connect.Client[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse]
 	searchProjectUsers                       *connect.Client[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse]
@@ -805,11 +794,6 @@ func (c *adminServiceClient) ListAllOrganizations(ctx context.Context, req *conn
 // AdminCreateOrganization calls raystack.frontier.v1beta1.AdminService.AdminCreateOrganization.
 func (c *adminServiceClient) AdminCreateOrganization(ctx context.Context, req *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error) {
 	return c.adminCreateOrganization.CallUnary(ctx, req)
-}
-
-// AddOrganizationMembers calls raystack.frontier.v1beta1.AdminService.AddOrganizationMembers.
-func (c *adminServiceClient) AddOrganizationMembers(ctx context.Context, req *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error) {
-	return c.addOrganizationMembers.CallUnary(ctx, req)
 }
 
 // SearchOrganizations calls raystack.frontier.v1beta1.AdminService.SearchOrganizations.
@@ -1117,7 +1101,6 @@ type AdminServiceHandler interface {
 	// Organizations
 	ListAllOrganizations(context.Context, *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error)
 	AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error)
-	AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error)
 	SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error)
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
@@ -1244,12 +1227,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		AdminServiceAdminCreateOrganizationProcedure,
 		svc.AdminCreateOrganization,
 		connect.WithSchema(adminServiceMethods.ByName("AdminCreateOrganization")),
-		connect.WithHandlerOptions(opts...),
-	)
-	adminServiceAddOrganizationMembersHandler := connect.NewUnaryHandler(
-		AdminServiceAddOrganizationMembersProcedure,
-		svc.AddOrganizationMembers,
-		connect.WithSchema(adminServiceMethods.ByName("AddOrganizationMembers")),
 		connect.WithHandlerOptions(opts...),
 	)
 	adminServiceSearchOrganizationsHandler := connect.NewUnaryHandler(
@@ -1606,8 +1583,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceListAllOrganizationsHandler.ServeHTTP(w, r)
 		case AdminServiceAdminCreateOrganizationProcedure:
 			adminServiceAdminCreateOrganizationHandler.ServeHTTP(w, r)
-		case AdminServiceAddOrganizationMembersProcedure:
-			adminServiceAddOrganizationMembersHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationsProcedure:
 			adminServiceSearchOrganizationsHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationUsersProcedure:
@@ -1749,10 +1724,6 @@ func (UnimplementedAdminServiceHandler) ListAllOrganizations(context.Context, *c
 
 func (UnimplementedAdminServiceHandler) AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AdminCreateOrganization is not implemented"))
-}
-
-func (UnimplementedAdminServiceHandler) AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AddOrganizationMembers is not implemented"))
 }
 
 func (UnimplementedAdminServiceHandler) SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error) {
