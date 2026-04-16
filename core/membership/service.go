@@ -253,11 +253,14 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 // replacePolicy deletes the given existing policies and creates a new one with the new role.
 func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy) error {
 	for _, p := range existing {
-		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+		err := s.policyService.Delete(ctx, p.ID)
+		if err != nil {
 			return fmt.Errorf("delete policy %s: %w", p.ID, err)
 		}
 	}
-	if _, err := s.createPolicy(ctx, resourceID, resourceType, principalID, principalType, roleID); err != nil {
+
+	_, err := s.createPolicy(ctx, resourceID, resourceType, principalID, principalType, roleID)
+	if err != nil {
 		s.log.Error("membership state inconsistent: old policies deleted but new policy creation failed, needs manual fix",
 			"resource_id", resourceID,
 			"resource_type", resourceType,
@@ -272,23 +275,23 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 }
 
 // replaceRelation deletes both existing owner and member relations for the principal
-// on the resource, then creates a new relation with the given name. Delete errors
-// are ignored because the relation may not exist.
+// on the resource, then creates a new relation with the given name.
+// Only relation.ErrNotExist is ignored on delete — any other error is returned.
 func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, newRelationName string) error {
 	obj := relation.Object{ID: resourceID, Namespace: resourceType}
 	sub := relation.Subject{ID: principalID, Namespace: principalType}
 
 	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
-		if err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name}); err != nil {
-			if !errors.Is(err, relation.ErrNotExist) {
-				return fmt.Errorf("delete relation %s: %w", name, err)
-			}
+		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
+		if err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return fmt.Errorf("delete relation %s: %w", name, err)
 		}
 	}
 
-	if _, err := s.relationService.Create(ctx, relation.Relation{
+	_, err := s.relationService.Create(ctx, relation.Relation{
 		Object: obj, Subject: sub, RelationName: newRelationName,
-	}); err != nil {
+	})
+	if err != nil {
 		s.log.Error("membership state inconsistent: old relations deleted but new relation creation failed, needs manual fix",
 			"resource_id", resourceID,
 			"resource_type", resourceType,
