@@ -7,6 +7,7 @@ import {
   Flex,
   Navbar,
   Text,
+  useTheme,
   getAvatarColor,
   type DataTableColumnDef,
 } from '@raystack/apsara';
@@ -20,7 +21,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useMemo, useCallback, useState, type MouseEvent } from 'react';
 import { toast, IconButton, Separator } from '@raystack/apsara';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { DesktopIcon, MagnifyingGlassIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 
 type OrgRow = {
   id: string;
@@ -288,9 +289,31 @@ export default function Home() {
   }
 
   const [showSearch, setShowSearch] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const avatarColor = getAvatarColor(user?.id || '');
   const userInitial = user?.title?.[0] || user?.email?.[0] || '?';
+  const activeTheme = theme || 'system';
+  const themeOptions = [
+    {
+      key: 'light',
+      label: 'Light',
+      icon: <SunIcon />,
+      testId: 'theme-light-option',
+    },
+    {
+      key: 'dark',
+      label: 'Dark',
+      icon: <MoonIcon />,
+      testId: 'theme-dark-option',
+    },
+    {
+      key: 'system',
+      label: 'System',
+      icon: <DesktopIcon />,
+      testId: 'theme-system-option',
+    },
+  ] as const;
 
   return (
     <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', margin: 0 }}>
@@ -326,6 +349,29 @@ export default function Home() {
                   <MagnifyingGlassIcon />
                 </IconButton>
               )}
+              <DropdownMenu>
+                <DropdownMenu.Trigger asChild>
+                  <IconButton
+                    data-test-id="navbar-theme-toggle"
+                    size={3}
+                    aria-label="Theme options"
+                  >
+                    {activeTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                  </IconButton>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content>
+                  {themeOptions.map((item) => (
+                    <DropdownMenu.Item
+                      key={item.key}
+                      onClick={() => setTheme(item.key)}
+                      disabled={activeTheme === item.key}
+                      data-test-id={item.testId}
+                    >
+                      {item.icon} {item.label}
+                    </DropdownMenu.Item>
+                  ))}
+                </DropdownMenu.Content>
+              </DropdownMenu>
               <Separator orientation="vertical" size="small" />
               <DropdownMenu>
                 <DropdownMenu.Trigger asChild>
