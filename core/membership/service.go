@@ -195,14 +195,16 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return err
 	}
 
-	relationName := orgRoleToRelation(fetchedRole)
-	if err := s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
+	newRelation := orgRoleToRelation(fetchedRole)
+	oldRelations := []string{schema.OwnerRelationName, schema.MemberRelationName}
+	err = s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, oldRelations, newRelation)
+	if err != nil {
 		s.log.Error("membership state inconsistent: policy replaced but relation update failed, needs manual fix",
 			"org_id", orgID,
 			"principal_id", principalID,
 			"principal_type", principalType,
 			"new_role_id", roleID,
-			"expected_relation", relationName,
+			"expected_relation", newRelation,
 			"error", err,
 		)
 		return err
@@ -274,14 +276,14 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 	return nil
 }
 
-// replaceRelation deletes both existing owner and member relations for the principal
-// on the resource, then creates a new relation with the given name.
+// replaceRelation deletes the given old relations for the principal on the resource,
+// then creates a new relation with the given name.
 // Only relation.ErrNotExist is ignored on delete — any other error is returned.
-func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType, newRelationName string) error {
+func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType string, oldRelations []string, newRelationName string) error {
 	obj := relation.Object{ID: resourceID, Namespace: resourceType}
 	sub := relation.Subject{ID: principalID, Namespace: principalType}
 
-	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
+	for _, name := range oldRelations {
 		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
 		if err != nil && !errors.Is(err, relation.ErrNotExist) {
 			return fmt.Errorf("delete relation %s: %w", name, err)
