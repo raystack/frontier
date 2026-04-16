@@ -145,8 +145,6 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 
 // SetOrganizationMemberRole changes an existing member's role in an organization.
 // SetOrganizationMemberRole changes an existing member's role in an organization.
-// Returns ErrNotMember if the principal is not already a member.
-// Returns ErrLastOwnerRole if the change would leave the org without an owner.
 // Skips the write if the member already has exactly the requested role.
 // Currently only user principals are supported. May be extended to service users
 // in the future to give them org-level roles (see #1544).
