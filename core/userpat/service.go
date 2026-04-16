@@ -203,7 +203,7 @@ func (s *Service) Regenerate(ctx context.Context, userID, id string, newExpiresA
 		return patmodels.PAT{}, "", fmt.Errorf("enriching PAT scope: %w", err)
 	}
 
-	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRegeneratedEvent, regenerated, time.Now().UTC(), map[string]any{
+	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRegeneratedEvent, regenerated, *regenerated.RegeneratedAt, map[string]any{
 		"expires_at":     regenerated.ExpiresAt,
 		"old_expires_at": oldExpiresAt,
 	}); err != nil {

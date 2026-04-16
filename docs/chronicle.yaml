@@ -1,0 +1,18 @@
+title: Frontier
+description: Identity and authorization for your APIs
+
+theme:
+  name: default
+
+search:
+  enabled: true
+  placeholder: Search documentation...
+
+llms:
+  enabled: true
+
+footer:
+  copyright: "Raystack"
+  links:
+    - label: GitHub
+      href: https://github.com/raystack/frontier

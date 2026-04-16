@@ -39,14 +39,15 @@ type CreatedBy struct {
 }
 
 type AggregatedPAT struct {
-	ID         string
-	Title      string
-	CreatedBy  CreatedBy
-	Scopes     []patmodels.PATScope
-	CreatedAt  time.Time
-	ExpiresAt  time.Time
-	LastUsedAt *time.Time
-	UserID     string
+	ID            string
+	Title         string
+	CreatedBy     CreatedBy
+	Scopes        []patmodels.PATScope
+	CreatedAt     time.Time
+	ExpiresAt     time.Time
+	LastUsedAt    *time.Time
+	RegeneratedAt *time.Time
+	UserID        string
 }
 
 // PATSearchFields is used for RQL validation — flat struct with rql tags.
@@ -58,6 +59,7 @@ type PATSearchFields struct {
 	CreatedAt      time.Time  `rql:"name=created_at,type=datetime"`
 	ExpiresAt      time.Time  `rql:"name=expires_at,type=datetime"`
 	LastUsedAt     *time.Time `rql:"name=last_used_at,type=datetime"`
+	RegeneratedAt  *time.Time `rql:"name=regenerated_at,type=datetime"`
 }
 
 type OrganizationPATs struct {

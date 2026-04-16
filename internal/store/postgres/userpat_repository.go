@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	patRQLFilterSupportedColumns = []string{"id", "title", "expires_at", "created_at"}
+	patRQLFilterSupportedColumns = []string{"id", "title", "expires_at", "created_at", "regenerated_at"}
 	patRQLSearchSupportedColumns = []string{"id", "title"}
 )
 
@@ -334,8 +334,9 @@ func (r UserPATRepository) Update(ctx context.Context, pat models.PAT) (models.P
 func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string, expiresAt time.Time) (models.PAT, error) {
 	query, params, err := dialect.Update(TABLE_USER_PATS).
 		Set(goqu.Record{
-			"secret_hash": secretHash,
-			"expires_at":  expiresAt,
+			"secret_hash":    secretHash,
+			"expires_at":     expiresAt,
+			"regenerated_at": time.Now().UTC(),
 		}).
 		Where(
 			goqu.Ex{"id": id},

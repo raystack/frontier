@@ -29,3 +29,6 @@ node_modules/
 .claude
 claude.md
 .cursor
+docs/dist/
+.vercel
+docs/.output
