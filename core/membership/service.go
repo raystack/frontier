@@ -79,11 +79,11 @@ func NewService(
 
 // AddOrganizationMember adds a new member to an organization with an explicit role.
 // Returns ErrAlreadyMember if the principal already has a policy on this org.
-// Only user principals are supported. Service users and PATs do not currently
-// get org-level role assignments — service users are bound to orgs at creation
-// with a direct member relation (no policy), and PATs inherit access from their
-// owning user. This may change in the future to bring service users into the
-// same policy model as users.
+// Only user principals are supported. Service users do not currently get
+// org-level role assignments — they are bound to orgs at creation with a
+// direct member relation (no policy). PATs have their own role model via
+// pat_granted rolebindings managed by the userpat package. See #1544 for
+// the plan to align these.
 func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error {
 	if principalType != schema.UserPrincipal {
 		return ErrInvalidPrincipal
@@ -150,8 +150,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 // Returns ErrNotMember if the principal is not already a member.
 // Returns ErrLastOwnerRole if the change would leave the org without an owner.
 // Skips the write if the member already has exactly the requested role.
-// Only user principals are supported. Service users and PATs do not currently
-// get org-level role assignments — see AddOrganizationMember for details.
+// Only user principals are supported — see AddOrganizationMember for details.
 func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error {
 	if principalType != schema.UserPrincipal {
 		return ErrInvalidPrincipal
