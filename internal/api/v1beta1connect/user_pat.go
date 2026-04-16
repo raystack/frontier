@@ -301,8 +301,8 @@ func transformPATToPB(pat models.PAT, patValue string) *frontierv1beta1.PAT {
 	if patValue != "" {
 		pbPAT.Token = patValue
 	}
-	if pat.LastUsedAt != nil {
-		pbPAT.LastUsedAt = timestamppb.New(*pat.LastUsedAt)
+	if pat.UsedAt != nil {
+		pbPAT.UsedAt = timestamppb.New(*pat.UsedAt)
 	}
 	if pat.RegeneratedAt != nil {
 		pbPAT.RegeneratedAt = timestamppb.New(*pat.RegeneratedAt)

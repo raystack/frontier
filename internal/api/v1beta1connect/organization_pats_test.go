@@ -96,7 +96,7 @@ func TestHandler_SearchOrganizationPATs(t *testing.T) {
 			wantLen: 1,
 		},
 		{
-			name: "should handle PAT with last_used_at",
+			name: "should handle PAT with used_at",
 			setup: func(ps *mocks.OrgPATsService) {
 				lastUsed := now.Add(-1 * time.Hour)
 				ps.EXPECT().Search(mock.Anything, testOrgID, mock.Anything).
@@ -108,10 +108,10 @@ func TestHandler_SearchOrganizationPATs(t *testing.T) {
 								CreatedBy: svc.CreatedBy{
 									ID: "user-1", Title: "John", Email: "john@test.com",
 								},
-								Scopes:     []patmodels.PATScope{},
-								CreatedAt:  now,
-								ExpiresAt:  now.Add(24 * time.Hour),
-								LastUsedAt: &lastUsed,
+								Scopes:    []patmodels.PATScope{},
+								CreatedAt: now,
+								ExpiresAt: now.Add(24 * time.Hour),
+								UsedAt:    &lastUsed,
 							},
 						},
 						Pagination: utils.Page{Offset: 0, Limit: 30, TotalCount: 1},
