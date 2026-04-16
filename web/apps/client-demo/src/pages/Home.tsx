@@ -356,7 +356,13 @@ export default function Home() {
                     size={3}
                     aria-label="Theme options"
                   >
-                    {activeTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                    {activeTheme === 'system' ? (
+                      <DesktopIcon />
+                    ) : activeTheme === 'dark' ? (
+                      <SunIcon />
+                    ) : (
+                      <MoonIcon />
+                    )}
                   </IconButton>
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Content>
