@@ -191,17 +191,19 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return err
 	}
 
-	oldRoleID := existing[0].RoleID
-
 	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID, existing); err != nil {
 		return err
 	}
 
 	relationName := orgRoleToRelation(fetchedRole)
 	if err := s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
-		// relation failed after policy was replaced — restore old policy so
-		// the early-return check doesn't mask the broken relation on retry
-		s.rollbackPolicy(ctx, orgID, principalID, principalType, oldRoleID, roleID)
+		s.log.Error("membership state inconsistent: policy replaced but relation update failed, needs manual fix",
+			"org_id", orgID,
+			"principal_id", principalID,
+			"new_role_id", roleID,
+			"expected_relation", relationName,
+			"error", err,
+		)
 		return err
 	}
 
@@ -283,35 +285,7 @@ func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType,
 	return nil
 }
 
-// rollbackPolicy attempts to restore the old policy after a failed relation update.
-// It deletes the newly created policy and recreates one with the old role.
-// If any step fails, it logs at error level since the membership state is now inconsistent.
-func (s *Service) rollbackPolicy(ctx context.Context, orgID, principalID, principalType, oldRoleID, newRoleID string) {
-	// find and delete the new policy
-	current, listErr := s.policyService.List(ctx, policy.Filter{
-		OrgID:         orgID,
-		PrincipalID:   principalID,
-		PrincipalType: principalType,
-	})
-	if listErr != nil {
-		s.log.Error("policy rollback failed: could not list current policies",
-			"org_id", orgID, "principal_id", principalID, "error", listErr)
-		return
-	}
-	for _, p := range current {
-		if deleteErr := s.policyService.Delete(ctx, p.ID); deleteErr != nil {
-			s.log.Error("policy rollback failed: could not delete new policy",
-				"org_id", orgID, "principal_id", principalID, "policy_id", p.ID, "error", deleteErr)
-			return
-		}
-	}
 
-	// recreate with old role
-	if _, createErr := s.createPolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, oldRoleID); createErr != nil {
-		s.log.Error("policy rollback failed: could not recreate old policy",
-			"org_id", orgID, "principal_id", principalID, "old_role_id", oldRoleID, "error", createErr)
-	}
-}
 
 // validateOrgRole checks that the role is valid for organization scope and returns it.
 // A role is valid if it is either:

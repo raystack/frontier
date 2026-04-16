@@ -394,29 +394,18 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "should return error and rollback policy if relation delete fails",
+			name: "should return error and log if relation delete fails",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
 				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
-				// first call: membership check returns old policy
-				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil).Once()
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
 				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
-				policySvc.EXPECT().Delete(ctx, "p1").Return(nil).Once()
-				policySvc.EXPECT().Create(ctx, policy.Policy{
-					RoleID: viewerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
-					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
-				}).Return(policy.Policy{ID: "new-p"}, nil).Once()
-				// relation delete fails with a real error
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+				// relation delete fails with a real error — logged, no rollback
 				relSvc.EXPECT().Delete(ctx, orgRelation(schema.OwnerRelationName)).Return(errors.New("spicedb connection error"))
-				// rollback: list returns new policy, delete it, recreate old
-				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "new-p", RoleID: viewerRoleID}}, nil).Once()
-				policySvc.EXPECT().Delete(ctx, "new-p").Return(nil).Once()
-				policySvc.EXPECT().Create(ctx, policy.Policy{
-					RoleID: ownerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
-					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
-				}).Return(policy.Policy{}, nil).Once()
 			},
 			roleID:         viewerRoleID,
 			wantErrContain: "delete relation owner",
