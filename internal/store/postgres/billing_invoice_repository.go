@@ -293,7 +293,7 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 	return invoices, nil
 }
 
-func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (invoice.SearchOrgInvoicesResult, error) {
+func (r BillingInvoiceRepository) SearchOrganisationInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (invoice.SearchOrganisationInvoicesResult, error) {
 	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
 		Where(goqu.Ex{
 			"customer_id": customerID,
@@ -301,12 +301,12 @@ func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, custome
 
 	withFilters, err := frontierutils.AddRQLFiltersInQuery(query, rqlQuery, searchOrgInvoiceFilterColumns, invoice.SearchOrgInvoice{})
 	if err != nil {
-		return invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
+		return invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
 	}
 
 	withSearch, err := frontierutils.AddRQLSearchInQuery(withFilters, rqlQuery, searchOrgInvoiceSearchColumns)
 	if err != nil {
-		return invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
+		return invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
 	}
 
 	if len(rqlQuery.Sort) == 0 {
@@ -320,18 +320,18 @@ func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, custome
 
 	withSort, err := frontierutils.AddRQLSortInQuery(withSearch, rqlQuery)
 	if err != nil {
-		return invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
+		return invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: %w", invoice.ErrBadInput, err)
 	}
 
 	countQuery, countParams, err := withSearch.Select(goqu.COUNT("*")).ToSQL()
 	if err != nil {
-		return invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: %w", queryErr, err)
+		return invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 	var totalCount int64
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "SearchOrgInvoices.Count", func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "SearchOrganisationInvoices.Count", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &totalCount, countQuery, countParams...)
 	}); err != nil {
-		return invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: %w", dbErr, err)
+		return invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	withPagination, page := frontierutils.AddRQLPaginationInQuery(withSort, rqlQuery)
@@ -339,25 +339,25 @@ func (r BillingInvoiceRepository) SearchOrgInvoices(ctx context.Context, custome
 	rqlQuery.Offset = page.Offset
 	dataQuery, params, err := withPagination.ToSQL()
 	if err != nil {
-		return invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: %w", parseErr, err)
+		return invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var invoiceModels []Invoice
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "SearchOrgInvoices", func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "SearchOrganisationInvoices", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &invoiceModels, dataQuery, params...)
 	}); err != nil {
-		return invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: %s", dbErr, err)
+		return invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	invoices := make([]invoice.Invoice, 0, len(invoiceModels))
 	for _, invoiceModel := range invoiceModels {
 		inv, err := invoiceModel.transform()
 		if err != nil {
-			return invoice.SearchOrgInvoicesResult{}, err
+			return invoice.SearchOrganisationInvoicesResult{}, err
 		}
 		invoices = append(invoices, inv)
 	}
-	return invoice.SearchOrgInvoicesResult{
+	return invoice.SearchOrganisationInvoicesResult{
 		Invoices: invoices,
 		Pagination: frontierutils.Page{
 			Limit:      page.Limit,

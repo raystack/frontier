@@ -529,7 +529,7 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 	}
 }
 
-func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
+func TestConnectHandler_SearchOrganisationInvoices(t *testing.T) {
 	fixedTime := time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)
 	emptyStruct, _ := structpb.NewStruct(map[string]interface{}{})
 
@@ -537,9 +537,9 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 		name          string
 		customerSetup func(custSvc *mocks.CustomerService)
 		setup         func(is *mocks.InvoiceService)
-		request       *connect.Request[frontierv1beta1.SearchOrgInvoicesRequest]
+		request       *connect.Request[frontierv1beta1.SearchOrganisationInvoicesRequest]
 		wantCode      connect.Code
-		assertResp    func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse])
+		assertResp    func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrganisationInvoicesResponse])
 	}{
 		{
 			name: "should return invalid argument for invalid rql fields",
@@ -547,7 +547,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
 			},
 			setup: func(is *mocks.InvoiceService) {},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Filters: []*frontierv1beta1.RQLFilter{
@@ -567,7 +567,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				custSvc.EXPECT().GetByOrgID(mock.Anything, "bad-org-id").Return(customer.Customer{}, customer.ErrInvalidUUID)
 			},
 			setup: func(is *mocks.InvoiceService) {},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "bad-org-id",
 			}),
 			wantCode: connect.CodeInvalidArgument,
@@ -578,7 +578,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				custSvc.EXPECT().GetByOrgID(mock.Anything, "bad-org-id").Return(customer.Customer{}, customer.ErrInvalidID)
 			},
 			setup: func(is *mocks.InvoiceService) {},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "bad-org-id",
 			}),
 			wantCode: connect.CodeInvalidArgument,
@@ -589,7 +589,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{}, customer.ErrNotFound)
 			},
 			setup: func(is *mocks.InvoiceService) {},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Offset: 5,
@@ -597,7 +597,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				},
 			}),
 			wantCode: 0,
-			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrganisationInvoicesResponse]) {
 				t.Helper()
 				assert.NotNil(t, got)
 				assert.Len(t, got.Msg.GetInvoices(), 0)
@@ -613,14 +613,14 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On(
-					"SearchOrgInvoices",
+					"SearchOrganisationInvoices",
 					mock.Anything,
 					"customer-id",
 					mock.MatchedBy(func(q interface{}) bool {
 						query, ok := q.(*rql.Query)
 						return ok && query != nil && query.Limit == 10 && query.Offset == 2
 					}),
-				).Return(invoice.SearchOrgInvoicesResult{
+				).Return(invoice.SearchOrganisationInvoicesResult{
 					Invoices: []invoice.Invoice{
 						{
 							ID:         "inv-1",
@@ -641,7 +641,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 					},
 				}, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Offset: 2,
@@ -649,7 +649,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				},
 			}),
 			wantCode: 0,
-			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrganisationInvoicesResponse]) {
 				t.Helper()
 				assert.NotNil(t, got)
 				assert.Len(t, got.Msg.GetInvoices(), 1)
@@ -667,7 +667,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On(
-					"SearchOrgInvoices",
+					"SearchOrganisationInvoices",
 					mock.Anything,
 					"customer-id",
 					mock.MatchedBy(func(q interface{}) bool {
@@ -683,7 +683,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 							query.Sort[0].Name == "amount" &&
 							query.Sort[0].Order == "asc"
 					}),
-				).Return(invoice.SearchOrgInvoicesResult{
+				).Return(invoice.SearchOrganisationInvoicesResult{
 					Invoices: []invoice.Invoice{},
 					Pagination: frontierutils.Page{
 						Limit:      20,
@@ -692,7 +692,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 					},
 				}, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Search: "usd",
@@ -716,7 +716,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				},
 			}),
 			wantCode: 0,
-			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrgInvoicesResponse]) {
+			assertResp: func(t *testing.T, got *connect.Response[frontierv1beta1.SearchOrganisationInvoicesResponse]) {
 				t.Helper()
 				assert.NotNil(t, got)
 				assert.Len(t, got.Msg.GetInvoices(), 0)
@@ -730,7 +730,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				custSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").Return(customer.Customer{ID: "customer-id"}, nil)
 			},
 			setup: func(is *mocks.InvoiceService) {},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Sort: []*frontierv1beta1.RQLSort{
@@ -750,13 +750,13 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On(
-					"SearchOrgInvoices",
+					"SearchOrganisationInvoices",
 					mock.Anything,
 					"customer-id",
 					mock.Anything,
-				).Return(invoice.SearchOrgInvoicesResult{}, errors.New("unexpected failure"))
+				).Return(invoice.SearchOrganisationInvoicesResult{}, errors.New("unexpected failure"))
 			},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 			}),
 			wantCode: connect.CodeInternal,
@@ -768,16 +768,16 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On(
-					"SearchOrgInvoices",
+					"SearchOrganisationInvoices",
 					mock.Anything,
 					"customer-id",
 					mock.MatchedBy(func(q interface{}) bool {
 						query, ok := q.(*rql.Query)
 						return ok && query != nil && len(query.GroupBy) == 1 && query.GroupBy[0] == "state"
 					}),
-				).Return(invoice.SearchOrgInvoicesResult{}, fmt.Errorf("%w: group_by is not supported", invoice.ErrBadInput))
+				).Return(invoice.SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: group_by is not supported", invoice.ErrBadInput))
 			},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					GroupBy: []string{"state"},
@@ -792,11 +792,11 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 			},
 			setup: func(is *mocks.InvoiceService) {
 				is.On(
-					"SearchOrgInvoices",
+					"SearchOrganisationInvoices",
 					mock.Anything,
 					"customer-id",
 					mock.Anything,
-				).Return(invoice.SearchOrgInvoicesResult{
+				).Return(invoice.SearchOrganisationInvoicesResult{
 					Invoices: []invoice.Invoice{
 						{
 							ID:         "inv-1",
@@ -818,7 +818,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 					},
 				}, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.SearchOrgInvoicesRequest{
+			request: connect.NewRequest(&frontierv1beta1.SearchOrganisationInvoicesRequest{
 				OrgId: "org-123",
 				Query: &frontierv1beta1.RQLRequest{
 					Limit: 10,
@@ -840,7 +840,7 @@ func TestConnectHandler_SearchOrgInvoices(t *testing.T) {
 				customerService: mockCustomerService,
 			}
 
-			got, err := handler.SearchOrgInvoices(context.Background(), tt.request)
+			got, err := handler.SearchOrganisationInvoices(context.Background(), tt.request)
 			if tt.wantCode != 0 {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantCode, connect.CodeOf(err))

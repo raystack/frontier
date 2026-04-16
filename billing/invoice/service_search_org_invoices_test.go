@@ -16,7 +16,7 @@ import (
 )
 
 type searchOrgInvoicesRepoStub struct {
-	searchFn func(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrgInvoicesResult, error)
+	searchFn func(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error)
 }
 
 func (s searchOrgInvoicesRepoStub) Create(context.Context, Invoice) (Invoice, error) {
@@ -28,11 +28,11 @@ func (s searchOrgInvoicesRepoStub) GetByID(context.Context, string) (Invoice, er
 func (s searchOrgInvoicesRepoStub) List(context.Context, Filter) ([]Invoice, error) {
 	return nil, errors.New("not implemented")
 }
-func (s searchOrgInvoicesRepoStub) SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrgInvoicesResult, error) {
+func (s searchOrgInvoicesRepoStub) SearchOrganisationInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error) {
 	if s.searchFn != nil {
 		return s.searchFn(ctx, customerID, rqlQuery)
 	}
-	return SearchOrgInvoicesResult{}, nil
+	return SearchOrganisationInvoicesResult{}, nil
 }
 func (s searchOrgInvoicesRepoStub) UpdateByID(context.Context, Invoice) (Invoice, error) {
 	return Invoice{}, errors.New("not implemented")
@@ -76,7 +76,7 @@ type noopLocker struct{}
 
 func (noopLocker) TryLock(context.Context, string) (*db.Lock, error) { return nil, nil }
 
-func TestService_SearchOrgInvoices_Validation(t *testing.T) {
+func TestService_SearchOrganisationInvoices_Validation(t *testing.T) {
 	svc := &Service{
 		repository:      searchOrgInvoicesRepoStub{},
 		customerService: noopCustomerService{},
@@ -85,21 +85,21 @@ func TestService_SearchOrgInvoices_Validation(t *testing.T) {
 		locker:          noopLocker{},
 	}
 
-	_, err := svc.SearchOrgInvoices(context.Background(), "", &rql.Query{})
+	_, err := svc.SearchOrganisationInvoices(context.Background(), "", &rql.Query{})
 	assert.EqualError(t, err, "customer id not found")
 
-	_, err = svc.SearchOrgInvoices(context.Background(), "cust-1", nil)
+	_, err = svc.SearchOrganisationInvoices(context.Background(), "cust-1", nil)
 	assert.NoError(t, err)
 
-	_, err = svc.SearchOrgInvoices(context.Background(), "cust-1", &rql.Query{
+	_, err = svc.SearchOrganisationInvoices(context.Background(), "cust-1", &rql.Query{
 		GroupBy: []string{"state"},
 	})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "group_by is not supported")
 }
 
-func TestService_SearchOrgInvoices_DelegatesToRepository(t *testing.T) {
-	expected := SearchOrgInvoicesResult{
+func TestService_SearchOrganisationInvoices_DelegatesToRepository(t *testing.T) {
+	expected := SearchOrganisationInvoicesResult{
 		Invoices: []Invoice{{ID: "inv-1"}},
 		Pagination: utils.Page{
 			TotalCount: 1,
@@ -109,7 +109,7 @@ func TestService_SearchOrgInvoices_DelegatesToRepository(t *testing.T) {
 
 	svc := &Service{
 		repository: searchOrgInvoicesRepoStub{
-			searchFn: func(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrgInvoicesResult, error) {
+			searchFn: func(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error) {
 				called = true
 				assert.Equal(t, "cust-1", customerID)
 				assert.Equal(t, 10, rqlQuery.Limit)
@@ -118,7 +118,7 @@ func TestService_SearchOrgInvoices_DelegatesToRepository(t *testing.T) {
 		},
 	}
 
-	got, err := svc.SearchOrgInvoices(context.Background(), "cust-1", &rql.Query{Limit: 10})
+	got, err := svc.SearchOrganisationInvoices(context.Background(), "cust-1", &rql.Query{Limit: 10})
 	assert.NoError(t, err)
 	assert.True(t, called)
 	assert.Equal(t, expected, got)

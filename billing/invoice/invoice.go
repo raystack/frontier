@@ -130,7 +130,7 @@ type SearchOrgInvoice struct {
 	PeriodEndAt   time.Time `rql:"name=period_end_at,type=datetime"`
 }
 
-type SearchOrgInvoicesResult struct {
+type SearchOrganisationInvoicesResult struct {
 	Invoices   []Invoice
 	Pagination utils.Page
 }

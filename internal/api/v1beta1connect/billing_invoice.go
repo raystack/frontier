@@ -99,7 +99,7 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 	return connect.NewResponse(response), nil
 }
 
-func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrgInvoicesRequest]) (*connect.Response[frontierv1beta1.SearchOrgInvoicesResponse], error) {
+func (h *ConnectHandler) SearchOrganisationInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganisationInvoicesRequest]) (*connect.Response[frontierv1beta1.SearchOrganisationInvoicesResponse], error) {
 	errorLogger := NewErrorLogger()
 	queryMsg := request.Msg.GetQuery()
 	if queryMsg == nil {
@@ -109,7 +109,7 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
-			return connect.NewResponse(&frontierv1beta1.SearchOrgInvoicesResponse{
+			return connect.NewResponse(&frontierv1beta1.SearchOrganisationInvoicesResponse{
 				Invoices: []*frontierv1beta1.Invoice{},
 				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
 					Offset:     queryMsg.GetOffset(),
@@ -121,7 +121,7 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrgInvoices.GetByOrgID", err,
+		errorLogger.LogServiceError(ctx, request, "SearchOrganisationInvoices.GetByOrgID", err,
 			zap.String("org_id", request.Msg.GetOrgId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -134,12 +134,12 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
 
-	result, err := h.invoiceService.SearchOrgInvoices(ctx, cust.ID, rqlQuery)
+	result, err := h.invoiceService.SearchOrganisationInvoices(ctx, cust.ID, rqlQuery)
 	if err != nil {
 		if errors.Is(err, invoice.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrgInvoices.SearchOrgInvoices", err,
+		errorLogger.LogServiceError(ctx, request, "SearchOrganisationInvoices.SearchOrganisationInvoices", err,
 			zap.String("org_id", request.Msg.GetOrgId()))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -148,13 +148,13 @@ func (h *ConnectHandler) SearchOrgInvoices(ctx context.Context, request *connect
 	for _, v := range result.Invoices {
 		invoicePB, err := transformInvoiceToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "SearchOrgInvoices", v.ID, err)
+			errorLogger.LogTransformError(ctx, request, "SearchOrganisationInvoices", v.ID, err)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		invoicePBs = append(invoicePBs, invoicePB)
 	}
 
-	return connect.NewResponse(&frontierv1beta1.SearchOrgInvoicesResponse{
+	return connect.NewResponse(&frontierv1beta1.SearchOrganisationInvoicesResponse{
 		Invoices: invoicePBs,
 		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
 			Offset:     uint32(result.Pagination.Offset),

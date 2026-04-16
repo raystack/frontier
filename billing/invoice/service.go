@@ -41,7 +41,7 @@ type Repository interface {
 	Create(ctx context.Context, invoice Invoice) (Invoice, error)
 	GetByID(ctx context.Context, id string) (Invoice, error)
 	List(ctx context.Context, filter Filter) ([]Invoice, error)
-	SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrgInvoicesResult, error)
+	SearchOrganisationInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error)
 	UpdateByID(ctx context.Context, invoice Invoice) (Invoice, error)
 	Delete(ctx context.Context, id string) error
 	Search(ctx context.Context, rqlQuery *rql.Query) ([]InvoiceWithOrganization, error)
@@ -312,17 +312,17 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	return s.repository.List(ctx, filter)
 }
 
-func (s *Service) SearchOrgInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrgInvoicesResult, error) {
+func (s *Service) SearchOrganisationInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error) {
 	if customerID == "" {
-		return SearchOrgInvoicesResult{}, errors.New("customer id not found")
+		return SearchOrganisationInvoicesResult{}, errors.New("customer id not found")
 	}
 	if rqlQuery == nil {
 		rqlQuery = &rql.Query{}
 	}
 	if len(rqlQuery.GroupBy) > 0 {
-		return SearchOrgInvoicesResult{}, fmt.Errorf("%w: group_by is not supported", ErrBadInput)
+		return SearchOrganisationInvoicesResult{}, fmt.Errorf("%w: group_by is not supported", ErrBadInput)
 	}
-	return s.repository.SearchOrgInvoices(ctx, customerID, rqlQuery)
+	return s.repository.SearchOrganisationInvoices(ctx, customerID, rqlQuery)
 }
 
 // GetUpcoming returns the upcoming invoice for the customer based on the
