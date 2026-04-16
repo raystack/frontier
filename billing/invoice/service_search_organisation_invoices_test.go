@@ -15,32 +15,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type searchOrgInvoicesRepoStub struct {
+type searchOrganisationInvoicesRepoStub struct {
 	searchFn func(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error)
 }
 
-func (s searchOrgInvoicesRepoStub) Create(context.Context, Invoice) (Invoice, error) {
+func (s searchOrganisationInvoicesRepoStub) Create(context.Context, Invoice) (Invoice, error) {
 	return Invoice{}, errors.New("not implemented")
 }
-func (s searchOrgInvoicesRepoStub) GetByID(context.Context, string) (Invoice, error) {
+func (s searchOrganisationInvoicesRepoStub) GetByID(context.Context, string) (Invoice, error) {
 	return Invoice{}, errors.New("not implemented")
 }
-func (s searchOrgInvoicesRepoStub) List(context.Context, Filter) ([]Invoice, error) {
+func (s searchOrganisationInvoicesRepoStub) List(context.Context, Filter) ([]Invoice, error) {
 	return nil, errors.New("not implemented")
 }
-func (s searchOrgInvoicesRepoStub) SearchOrganisationInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error) {
+func (s searchOrganisationInvoicesRepoStub) SearchOrganisationInvoices(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error) {
 	if s.searchFn != nil {
 		return s.searchFn(ctx, customerID, rqlQuery)
 	}
 	return SearchOrganisationInvoicesResult{}, nil
 }
-func (s searchOrgInvoicesRepoStub) UpdateByID(context.Context, Invoice) (Invoice, error) {
+func (s searchOrganisationInvoicesRepoStub) UpdateByID(context.Context, Invoice) (Invoice, error) {
 	return Invoice{}, errors.New("not implemented")
 }
-func (s searchOrgInvoicesRepoStub) Delete(context.Context, string) error {
+func (s searchOrganisationInvoicesRepoStub) Delete(context.Context, string) error {
 	return errors.New("not implemented")
 }
-func (s searchOrgInvoicesRepoStub) Search(context.Context, *rql.Query) ([]InvoiceWithOrganization, error) {
+func (s searchOrganisationInvoicesRepoStub) Search(context.Context, *rql.Query) ([]InvoiceWithOrganization, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -78,7 +78,7 @@ func (noopLocker) TryLock(context.Context, string) (*db.Lock, error) { return ni
 
 func TestService_SearchOrganisationInvoices_Validation(t *testing.T) {
 	svc := &Service{
-		repository:      searchOrgInvoicesRepoStub{},
+		repository:      searchOrganisationInvoicesRepoStub{},
 		customerService: noopCustomerService{},
 		creditService:   noopCreditService{},
 		productService:  noopProductService{},
@@ -108,7 +108,7 @@ func TestService_SearchOrganisationInvoices_DelegatesToRepository(t *testing.T) 
 	var called bool
 
 	svc := &Service{
-		repository: searchOrgInvoicesRepoStub{
+		repository: searchOrganisationInvoicesRepoStub{
 			searchFn: func(ctx context.Context, customerID string, rqlQuery *rql.Query) (SearchOrganisationInvoicesResult, error) {
 				called = true
 				assert.Equal(t, "cust-1", customerID)
