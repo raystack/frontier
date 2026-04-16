@@ -82,22 +82,15 @@ func NewService(
 // direct-add operation for superadmins.
 // Returns ErrAlreadyMember if the user already has a policy on this org.
 func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error {
-	if principalType != schema.UserPrincipal {
-		return ErrInvalidPrincipal
-	}
-
 	// orgService.Get returns ErrDisabled for disabled orgs
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
 		return err
 	}
 
-	usr, err := s.userService.GetByID(ctx, principalID)
+	principal, err := s.validatePrincipal(ctx, principalID, principalType)
 	if err != nil {
 		return err
-	}
-	if usr.State == user.Disabled {
-		return user.ErrDisabled
 	}
 
 	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
@@ -138,7 +131,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	}
 
 	// audit logging
-	s.auditOrgMemberAdded(ctx, org, usr, roleID)
+	s.auditOrgMemberAdded(ctx, org, principal, roleID)
 
 	return nil
 }
@@ -148,21 +141,14 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 // Currently only user principals are supported. May be extended to service users
 // in the future to give them org-level roles (see #1544).
 func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error {
-	if principalType != schema.UserPrincipal {
-		return ErrInvalidPrincipal
-	}
-
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
 		return err
 	}
 
-	usr, err := s.userService.GetByID(ctx, principalID)
+	principal, err := s.validatePrincipal(ctx, principalID, principalType)
 	if err != nil {
 		return err
-	}
-	if usr.State == user.Disabled {
-		return user.ErrDisabled
 	}
 
 	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
@@ -213,7 +199,7 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return err
 	}
 
-	s.auditOrgMemberRoleChanged(ctx, org, usr, resolvedRoleID)
+	s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
 	return nil
 }
 
@@ -338,6 +324,42 @@ func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) (ro
 	return role.Role{}, ErrInvalidOrgRole
 }
 
+// principalInfo holds validated principal details for audit and downstream use.
+type principalInfo struct {
+	ID    string
+	Type  string
+	Name  string
+	Email string
+}
+
+// validatePrincipal checks that the principal exists and is active.
+// To add support for a new principal type (e.g., service user), add a case here
+// and add the corresponding service dependency to the Service struct.
+func (s *Service) validatePrincipal(ctx context.Context, principalID, principalType string) (principalInfo, error) {
+	switch principalType {
+	case schema.UserPrincipal:
+		usr, err := s.userService.GetByID(ctx, principalID)
+		if err != nil {
+			return principalInfo{}, err
+		}
+		if usr.State == user.Disabled {
+			return principalInfo{}, user.ErrDisabled
+		}
+		return principalInfo{
+			ID:    usr.ID,
+			Type:  schema.UserPrincipal,
+			Name:  usr.Title,
+			Email: usr.Email,
+		}, nil
+	// To support service users in the future, add:
+	// case schema.ServiceUserPrincipal:
+	//     su, err := s.serviceUserService.Get(ctx, principalID)
+	//     ...
+	default:
+		return principalInfo{}, ErrInvalidPrincipal
+	}
+}
+
 // orgRoleToRelation maps an org role to the corresponding SpiceDB relation name.
 // Owner role gets "owner" relation, everything else gets "member" relation.
 func orgRoleToRelation(r role.Role) string {
@@ -372,7 +394,7 @@ func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, 
 	return nil
 }
 
-func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, usr user.User, roleID string) {
+func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
 	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
 		Resource: auditrecord.Resource{
@@ -381,11 +403,11 @@ func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organizatio
 			Name: org.Title,
 		},
 		Target: &auditrecord.Target{
-			ID:   usr.ID,
+			ID:   p.ID,
 			Type: pkgAuditRecord.UserType,
-			Name: usr.Title,
+			Name: p.Name,
 			Metadata: map[string]any{
-				"email":   usr.Email,
+				"email":   p.Email,
 				"role_id": roleID,
 			},
 		},
@@ -394,14 +416,14 @@ func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organizatio
 	})
 
 	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
-		ID:   usr.ID,
-		Type: schema.UserPrincipal,
+		ID:   p.ID,
+		Type: p.Type,
 	}, map[string]string{
 		"role_id": roleID,
 	})
 }
 
-func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, usr user.User, roleID string) {
+func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
 	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
 		Resource: auditrecord.Resource{
@@ -410,11 +432,11 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 			Name: org.Title,
 		},
 		Target: &auditrecord.Target{
-			ID:   usr.ID,
+			ID:   p.ID,
 			Type: pkgAuditRecord.UserType,
-			Name: usr.Title,
+			Name: p.Name,
 			Metadata: map[string]any{
-				"email":   usr.Email,
+				"email":   p.Email,
 				"role_id": roleID,
 			},
 		},
@@ -423,8 +445,8 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 	})
 
 	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberCreatedEvent, audit.Target{
-		ID:   usr.ID,
-		Type: schema.UserPrincipal,
+		ID:   p.ID,
+		Type: p.Type,
 	}, map[string]string{
 		"role_id": roleID,
 	})

@@ -42,8 +42,8 @@ func TestService_AddOrganizationMember(t *testing.T) {
 	}{
 		{
 			name: "should return error if principal type is not user",
-			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, _ *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
-				// no mocks needed — rejected before any service call
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 			},
 			orgID:         orgID,
 			userID:        userID,
@@ -302,7 +302,8 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 	}{
 		{
 			name: "should return error if principal type is not user",
-			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, _ *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 			},
 			principalType: schema.ServiceUserPrincipal,
 			roleID:        viewerRoleID,
