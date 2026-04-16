@@ -359,9 +359,9 @@ export default function Home() {
                     {activeTheme === 'system' ? (
                       <DesktopIcon />
                     ) : activeTheme === 'dark' ? (
-                      <SunIcon />
-                    ) : (
                       <MoonIcon />
+                    ) : (
+                      <SunIcon />
                     )}
                   </IconButton>
                 </DropdownMenu.Trigger>
