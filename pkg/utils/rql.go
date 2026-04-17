@@ -126,10 +126,11 @@ func AddRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query, rqlSearchSup
 
 	searchExpressions := make([]goqu.Expression, 0)
 	if rql.Search != "" {
+		searchPattern := "%" + rql.Search + "%"
 		for _, col := range rqlSearchSupportedColumns {
-			searchExpressions = append(searchExpressions, goqu.L(
-				fmt.Sprintf(`"%s"::TEXT ILIKE '%%%s%%'`, col, rql.Search),
-			))
+			searchExpressions = append(searchExpressions,
+				goqu.Cast(goqu.I(col), "TEXT").ILike(searchPattern),
+			)
 		}
 	}
 	return query.Where(goqu.Or(searchExpressions...)), nil
@@ -167,9 +168,9 @@ func AddRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query, rqlFil
 func ProcessStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.SelectDataset {
 	switch filter.Operator {
 	case OperatorEmpty:
-		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+		query = query.Where(goqu.Or(goqu.I(filter.Name).IsNull(), goqu.I(filter.Name).Eq("")))
 	case OperatorNotEmpty:
-		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
+		query = query.Where(goqu.And(goqu.I(filter.Name).IsNotNull(), goqu.I(filter.Name).Neq("")))
 	case OperatorIn, OperatorNotIn:
 		// process the values of in and notin operators as comma separated list
 		query = query.Where(goqu.Ex{
@@ -177,10 +178,10 @@ func ProcessStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.S
 		})
 	case OperatorLike:
 		// some semi-string sql types like UUID require casting to text to support like operator
-		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT ILIKE '%s'`, filter.Name, filter.Value.(string))))
+		query = query.Where(goqu.Cast(goqu.I(filter.Name), "TEXT").ILike(filter.Value.(string)))
 	case OperatorNotLike:
 		// some semi-string sql types like UUID require casting to text to support like operator
-		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT NOT ILIKE '%s'`, filter.Name, filter.Value.(string))))
+		query = query.Where(goqu.Cast(goqu.I(filter.Name), "TEXT").NotILike(filter.Value.(string)))
 	default:
 		query = query.Where(goqu.Ex{filter.Name: goqu.Op{filter.Operator: filter.Value.(string)}})
 	}

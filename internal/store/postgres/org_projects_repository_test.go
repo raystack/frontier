@@ -59,8 +59,8 @@ func TestOrgProjectsRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 0,
 			},
-			wantSQL:  `SELECT "projects"."id", "projects"."name", "projects"."title", "projects"."state", "projects"."created_at", "projects"."org_id", COUNT(DISTINCT("policies"."principal_id")) AS "member_count", array_agg(DISTINCT users.id) AS "user_ids" FROM "policies" INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") INNER JOIN "users" ON ("policies"."principal_id" = "users"."id") WHERE ((("principal_type" = $1) AND ("projects"."org_id" = $2)) AND ("projects"."created_at" > timestamp '2023-11-02T12:10:21.470756Z')) GROUP BY "projects"."id", "projects"."name", "projects"."title", "projects"."state", "projects"."created_at", "projects"."org_id" LIMIT $3`,
-			wantArgs: []interface{}{"app/user", "org123", int64(10)},
+			wantSQL:  `SELECT "projects"."id", "projects"."name", "projects"."title", "projects"."state", "projects"."created_at", "projects"."org_id", COUNT(DISTINCT("policies"."principal_id")) AS "member_count", array_agg(DISTINCT users.id) AS "user_ids" FROM "policies" INNER JOIN "projects" ON ("policies"."resource_id" = "projects"."id") INNER JOIN "users" ON ("policies"."principal_id" = "users"."id") WHERE ((("principal_type" = $1) AND ("projects"."org_id" = $2)) AND ("projects"."created_at" > CAST($3 AS TIMESTAMP))) GROUP BY "projects"."id", "projects"."name", "projects"."title", "projects"."state", "projects"."created_at", "projects"."org_id" LIMIT $4`,
+			wantArgs: []interface{}{"app/user", "org123", "2023-11-02T12:10:21.470756Z", int64(10)},
 			wantErr:  false,
 		},
 		{

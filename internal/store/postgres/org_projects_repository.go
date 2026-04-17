@@ -194,9 +194,9 @@ func (r OrgProjectsRepository) applyStringFilter(filter rql.Filter, field string
 
 	switch filter.Operator {
 	case OPERATOR_EMPTY:
-		condition = goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", field))
+		condition = goqu.Or(goqu.I(field).IsNull(), goqu.I(field).Eq(""))
 	case OPERATOR_NOT_EMPTY:
-		condition = goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", field))
+		condition = goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq(""))
 	case OPERATOR_IN, OPERATOR_NOT_IN:
 		condition = goqu.Ex{field: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")}}
 	case OPERATOR_LIKE, OPERATOR_NOT_LIKE:
@@ -216,7 +216,7 @@ func (r OrgProjectsRepository) applyStringFilter(filter rql.Filter, field string
 func (r OrgProjectsRepository) applyDatetimeFilter(filter rql.Filter, field string, stmt *goqu.SelectDataset) *goqu.SelectDataset {
 	condition := goqu.Ex{
 		field: goqu.Op{
-			filter.Operator: goqu.L(fmt.Sprintf("timestamp '%s'", filter.Value)),
+			filter.Operator: goqu.Cast(goqu.V(filter.Value), "TIMESTAMP"),
 		},
 	}
 	return stmt.Where(condition)
