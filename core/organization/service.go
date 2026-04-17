@@ -136,18 +136,6 @@ func extractPrincipalInfo(principal authenticate.Principal) (string, map[string]
 	return name, metadata
 }
 
-// mapPrincipalTypeToAuditType maps schema principal types to audit record type constants
-func mapPrincipalTypeToAuditType(principalType string) pkgAuditRecord.EntityType {
-	switch principalType {
-	case schema.ServiceUserPrincipal:
-		return pkgAuditRecord.ServiceUserType
-	case schema.PATPrincipal:
-		return pkgAuditRecord.PATType
-	default:
-		return pkgAuditRecord.UserType
-	}
-}
-
 // Get returns an enabled organization by id or name. Will return `org is disabled` error if the organization is disabled
 func (s Service) Get(ctx context.Context, idOrName string) (Organization, error) {
 	if utils.IsValidUUID(idOrName) {
