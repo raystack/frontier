@@ -310,7 +310,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if !userOrgMember {
-		// if not, add user to the organization
+		// Use Add (not Set) — user is not yet a member, verified by isUserOrgMember above
 		if err = s.membershipSvc.AddOrganizationMember(ctx, invite.OrgID, userOb.ID, schema.UserPrincipal, schema.RoleOrganizationViewer); err != nil {
 			return err
 		}

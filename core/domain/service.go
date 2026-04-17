@@ -169,6 +169,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 
 	for _, dmn := range orgTrustedDomains {
 		if userDomain == dmn.Name {
+			// Use Add (not Set) — user is not yet a member, verified by ListByUser above
 			if err = s.membershipService.AddOrganizationMember(ctx, orgResp.ID, currUser.ID, schema.UserPrincipal, schema.RoleOrganizationViewer); err != nil {
 				return err
 			}

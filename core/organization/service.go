@@ -201,7 +201,8 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	// attach user as owner via membership package
+	// Use AddOrganizationMember (not SetOrganizationMemberRole) because the user
+	// is not yet a member — the org was just created. Set requires existing membership.
 	if err = s.membershipService.AddOrganizationMember(ctx, newOrg.ID, principal.ID, principal.Type, AdminRole); err != nil {
 		return newOrg, err
 	}
@@ -447,7 +448,8 @@ func (s Service) AdminCreate(ctx context.Context, org Organization, ownerEmail s
 		return Organization{}, err
 	}
 
-	// Add user as organization owner via membership package
+	// Use AddOrganizationMember (not SetOrganizationMemberRole) because the user
+	// is not yet a member — the org was just created. Set requires existing membership.
 	if err = s.membershipService.AddOrganizationMember(ctx, newOrg.ID, usr.ID, schema.UserPrincipal, AdminRole); err != nil {
 		return newOrg, fmt.Errorf("failed to add user as owner: %w", err)
 	}
