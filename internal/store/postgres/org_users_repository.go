@@ -337,9 +337,9 @@ func (r OrgUsersRepository) buildNonRoleFilterCondition(filter rql.Filter) (goqu
 
 	switch filter.Operator {
 	case "empty":
-		return goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", columnName)), nil
+		return goqu.Or(goqu.I(columnName).IsNull(), goqu.I(columnName).Eq("")), nil
 	case "notempty":
-		return goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", columnName)), nil
+		return goqu.And(goqu.I(columnName).IsNotNull(), goqu.I(columnName).Neq("")), nil
 	case "in", "notin":
 		return goqu.Ex{columnName: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")}}, nil
 	case "like":
