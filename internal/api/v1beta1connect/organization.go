@@ -469,33 +469,6 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 	}), nil
 }
 
-func (h *ConnectHandler) AddOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.AddOrganizationUsersRequest]) (*connect.Response[frontierv1beta1.AddOrganizationUsersResponse], error) {
-	errorLogger := NewErrorLogger()
-
-	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			errorLogger.LogServiceError(ctx, request, "AddOrganizationUsers.Get", err,
-				zap.String("org_id", request.Msg.GetId()))
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
-
-	if err := h.orgService.AddUsers(ctx, orgResp.ID, request.Msg.GetUserIds()); err != nil {
-		errorLogger.LogServiceError(ctx, request, "AddOrganizationUsers.AddUsers", err,
-			zap.String("org_id", orgResp.ID),
-			zap.Strings("user_ids", request.Msg.GetUserIds()))
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-
-	return connect.NewResponse(&frontierv1beta1.AddOrganizationUsersResponse{}), nil
-}
-
 func (h *ConnectHandler) RemoveOrganizationUser(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveOrganizationUserRequest]) (*connect.Response[frontierv1beta1.RemoveOrganizationUserResponse], error) {
 	errorLogger := NewErrorLogger()
 

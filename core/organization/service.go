@@ -356,19 +356,6 @@ func (s Service) ListByUser(ctx context.Context, principal authenticate.Principa
 	return s.repository.List(ctx, filter)
 }
 
-func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) error {
-	var err error
-	for _, userID := range userIDs {
-		if currentErr := s.AddMember(ctx, orgID, schema.MemberRelationName, authenticate.Principal{
-			ID:   userID,
-			Type: schema.UserPrincipal,
-		}); currentErr != nil {
-			err = errors.Join(err, currentErr)
-		}
-	}
-	return err
-}
-
 // RemoveUsers removes users from an organization as members
 // it doesn't remove user access to projects or other resources provided
 // by policies, don't call directly, use cascade deleter
