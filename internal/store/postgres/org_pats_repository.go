@@ -35,7 +35,7 @@ var orgPATFilterFields = map[string]string{
 	"created_by_email": "u.email",
 	"created_at":       "p.created_at",
 	"expires_at":       "p.expires_at",
-	"last_used_at":     "p.last_used_at",
+	"used_at":          "p.used_at",
 	"regenerated_at":   "p.regenerated_at",
 }
 
@@ -54,7 +54,7 @@ var orgPATSortFields = map[string]string{
 	"created_by_email": "u.email",
 	"created_at":       "p.created_at",
 	"expires_at":       "p.expires_at",
-	"last_used_at":     "p.last_used_at",
+	"used_at":          "p.used_at",
 	"regenerated_at":   "p.regenerated_at",
 }
 
@@ -68,7 +68,7 @@ type OrgPATRow struct {
 	CreatedByEmail string     `db:"created_by_email"`
 	CreatedAt      time.Time  `db:"pat_created_at"`
 	ExpiresAt      time.Time  `db:"pat_expires_at"`
-	LastUsedAt     *time.Time `db:"pat_last_used_at"`
+	UsedAt         *time.Time `db:"pat_used_at"`
 	RegeneratedAt  *time.Time `db:"pat_regenerated_at"`
 	RoleID         *string    `db:"role_id"`
 	ResourceType   *string    `db:"resource_type"`
@@ -180,7 +180,7 @@ func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (st
 	paginatedInner := inner.
 		Select(
 			goqu.I("p.id"), goqu.I("p.title"), goqu.I("p.user_id"),
-			goqu.I("p.created_at"), goqu.I("p.expires_at"), goqu.I("p.last_used_at"), goqu.I("p.regenerated_at"),
+			goqu.I("p.created_at"), goqu.I("p.expires_at"), goqu.I("p.used_at"), goqu.I("p.regenerated_at"),
 		).
 		Offset(uint(rqlQuery.Offset)).
 		Limit(uint(rqlQuery.Limit))
@@ -194,7 +194,7 @@ func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (st
 			goqu.L("u.email").As("created_by_email"),
 			goqu.I("p.created_at").As("pat_created_at"),
 			goqu.I("p.expires_at").As("pat_expires_at"),
-			goqu.I("p.last_used_at").As("pat_last_used_at"),
+			goqu.I("p.used_at").As("pat_used_at"),
 			goqu.I("p.regenerated_at").As("pat_regenerated_at"),
 			goqu.I("pol.role_id"),
 			goqu.I("pol.resource_type"),
@@ -308,7 +308,7 @@ func (r OrgPATsRepository) groupRows(rows []OrgPATRow) []svc.AggregatedPAT {
 				},
 				CreatedAt:     row.CreatedAt,
 				ExpiresAt:     row.ExpiresAt,
-				LastUsedAt:    row.LastUsedAt,
+				UsedAt:        row.UsedAt,
 				RegeneratedAt: row.RegeneratedAt,
 				UserID:        row.CreatedByID,
 			}

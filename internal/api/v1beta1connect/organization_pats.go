@@ -78,8 +78,8 @@ func transformAggregatedPATToPB(pat svc.AggregatedPAT) *frontierv1beta1.SearchOr
 		CreatedAt: timestamppb.New(pat.CreatedAt),
 		ExpiresAt: timestamppb.New(pat.ExpiresAt),
 	}
-	if pat.LastUsedAt != nil {
-		pbPAT.LastUsedAt = timestamppb.New(*pat.LastUsedAt)
+	if pat.UsedAt != nil {
+		pbPAT.UsedAt = timestamppb.New(*pat.UsedAt)
 	}
 	if pat.RegeneratedAt != nil {
 		pbPAT.RegeneratedAt = timestamppb.New(*pat.RegeneratedAt)

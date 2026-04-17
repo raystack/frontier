@@ -274,16 +274,16 @@ func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash strin
 	return model.transform()
 }
 
-func (r UserPATRepository) UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error {
+func (r UserPATRepository) UpdateUsedAt(ctx context.Context, id string, at time.Time) error {
 	query, params, err := dialect.Update(TABLE_USER_PATS).
-		Set(goqu.Record{"last_used_at": at}).
+		Set(goqu.Record{"used_at": at}).
 		Where(goqu.Ex{"id": id}).
 		ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "UpdateLastUsedAt", func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "UpdateUsedAt", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {

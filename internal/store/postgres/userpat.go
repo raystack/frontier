@@ -14,7 +14,7 @@ type UserPAT struct {
 	Title         string     `db:"title"`
 	SecretHash    string     `db:"secret_hash"`
 	Metadata      []byte     `db:"metadata"`
-	LastUsedAt    *time.Time `db:"last_used_at"`
+	UsedAt        *time.Time `db:"used_at"`
 	RegeneratedAt *time.Time `db:"regenerated_at"`
 	ExpiresAt     time.Time  `db:"expires_at"`
 	CreatedAt     time.Time  `db:"created_at"`
@@ -36,7 +36,7 @@ func (t UserPAT) transform() (models.PAT, error) {
 		Title:         t.Title,
 		SecretHash:    t.SecretHash,
 		Metadata:      unmarshalledMetadata,
-		LastUsedAt:    t.LastUsedAt,
+		UsedAt:        t.UsedAt,
 		RegeneratedAt: t.RegeneratedAt,
 		ExpiresAt:     t.ExpiresAt,
 		CreatedAt:     t.CreatedAt,
