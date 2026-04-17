@@ -5,17 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/raystack/frontier/core/organization"
-
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
-
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
-	patmodels "github.com/raystack/frontier/core/userpat/models"
-	"github.com/raystack/frontier/pkg/utils"
-
 	"github.com/raystack/frontier/core/relation"
+	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgauditrecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/frontier/pkg/utils"
+	"go.uber.org/zap"
 )
 
 type RelationService interface {
@@ -49,12 +51,17 @@ type Service struct {
 	projectService   ProjectService
 	orgService       OrgService
 	patService       PATService
+	auditRepo        AuditRepository
+}
+
+type AuditRepository interface {
+	Create(ctx context.Context, auditRecord auditmodels.AuditRecord) (auditmodels.AuditRecord, error)
 }
 
 func NewService(repository Repository, configRepository ConfigRepository,
 	relationService RelationService, authnService AuthnService,
 	projectService ProjectService, orgService OrgService,
-	patService PATService) *Service {
+	patService PATService, auditRepo AuditRepository) *Service {
 	return &Service{
 		repository:       repository,
 		configRepository: configRepository,
@@ -63,6 +70,7 @@ func NewService(repository Repository, configRepository ConfigRepository,
 		projectService:   projectService,
 		orgService:       orgService,
 		patService:       patService,
+		auditRepo:        auditRepo,
 	}
 }
 
@@ -85,6 +93,15 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		}
 		principalID = principal.ID
 		principalType = principal.Type
+	}
+	// PAT → resolve to underlying user
+	if principalType == schema.PATPrincipal {
+		sub, err := s.resolvePATUser(ctx, principalID)
+		if err != nil {
+			return Resource{}, fmt.Errorf("resolving PAT principal: %w", err)
+		}
+		principalID = sub.ID
+		principalType = sub.Namespace
 	}
 
 	resourceProject, err := s.projectService.Get(ctx, res.ProjectID)
@@ -123,7 +140,30 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
+	s.createAuditRecord(ctx, pkgauditrecord.ResourceCreatedEvent, newResource, resourceProject)
 	return newResource, nil
+}
+
+func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Event, res Resource, proj project.Project) {
+	if _, err := s.auditRepo.Create(ctx, auditmodels.AuditRecord{
+		Event: event,
+		Resource: auditmodels.Resource{
+			ID:   proj.ID,
+			Type: pkgauditrecord.ProjectType,
+			Name: proj.Title,
+		},
+		Target: &auditmodels.Target{
+			ID:   res.ID,
+			Type: pkgauditrecord.EntityType(res.NamespaceID),
+			Name: res.Name,
+		},
+		OrgID:      proj.Organization.ID,
+		OrgName:    proj.Organization.Title,
+		OccurredAt: time.Now(),
+	}); err != nil {
+		grpczap.Extract(ctx).Error("failed to create resource audit record",
+			zap.String("resource_id", res.ID), zap.Error(err))
+	}
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
