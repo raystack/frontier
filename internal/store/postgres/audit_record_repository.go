@@ -342,7 +342,7 @@ func (r AuditRecordRepository) buildFilteredQuery(rqlQuery *rql.Query) (*goqu.Se
 		rqlQuery = utils.NewRQLQuery("", utils.DefaultOffset, utils.DefaultLimit, []rql.Filter{}, []rql.Sort{}, []string{})
 	}
 
-	baseStmt := dialect.From(TABLE_AUDITRECORDS).Where(goqu.Ex{"deleted_at": nil})
+	baseStmt := dialect.From(TABLE_AUDITRECORDS).Prepared(true).Where(goqu.Ex{"deleted_at": nil})
 
 	// Apply filters
 	baseStmt, err := utils.AddRQLFiltersInQuery(baseStmt, rqlQuery, auditRecordRQLFilterSupportedColumns, auditrecord.AuditRecordRQLSchema{})

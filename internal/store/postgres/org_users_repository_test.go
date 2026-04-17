@@ -156,7 +156,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Name:     "title",
 				Operator: "empty",
 			},
-			wantSQL: `coalesce(users.title, '') = ''`,
+			wantSQL: `(("users"."title" IS NULL) OR ("users"."title" = ''))`,
 		},
 		{
 			name: "invalid operator",

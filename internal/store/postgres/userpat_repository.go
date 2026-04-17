@@ -173,7 +173,7 @@ func (r UserPATRepository) buildPATFilteredQuery(userID, orgID string, rqlQuery 
 		rqlQuery = utils.NewRQLQuery("", utils.DefaultOffset, utils.DefaultLimit, []rql.Filter{}, []rql.Sort{}, []string{})
 	}
 
-	baseStmt := dialect.From(TABLE_USER_PATS).Where(
+	baseStmt := dialect.From(TABLE_USER_PATS).Prepared(true).Where(
 		goqu.Ex{"user_id": userID},
 		goqu.Ex{"org_id": orgID},
 		goqu.Ex{"deleted_at": nil},
