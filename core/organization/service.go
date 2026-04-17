@@ -73,6 +73,10 @@ type RoleService interface {
 	Get(ctx context.Context, idOrName string) (role.Role, error)
 }
 
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+}
+
 type Service struct {
 	repository            Repository
 	relationService       RelationService
@@ -82,6 +86,7 @@ type Service struct {
 	prefService           PreferencesService
 	auditRecordRepository AuditRecordRepository
 	roleService           RoleService
+	membershipService     MembershipService
 }
 
 func NewService(repository Repository, relationService RelationService,
@@ -98,6 +103,12 @@ func NewService(repository Repository, relationService RelationService,
 		auditRecordRepository: auditRecordRepository,
 		roleService:           roleService,
 	}
+}
+
+// SetMembershipService sets the membership dependency after construction to break
+// the circular init order between organization and membership services.
+func (s *Service) SetMembershipService(ms MembershipService) {
+	s.membershipService = ms
 }
 
 // extractPrincipalInfo extracts display name and metadata from principal
@@ -202,8 +213,8 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	// attach user as owner
-	if err = s.AddMember(ctx, newOrg.ID, schema.OwnerRelationName, principal); err != nil {
+	// attach user as owner via membership package
+	if err = s.membershipService.AddOrganizationMember(ctx, newOrg.ID, principal.ID, principal.Type, AdminRole); err != nil {
 		return newOrg, err
 	}
 
@@ -213,77 +224,6 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	}
 
 	return newOrg, nil
-}
-
-func (s Service) AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error {
-	roleID := MemberRole
-	if relationName == schema.OwnerRelationName {
-		roleID = AdminRole
-	}
-	if _, err := s.policyService.Create(ctx, policy.Policy{
-		RoleID:        roleID,
-		ResourceID:    orgID,
-		ResourceType:  schema.OrganizationNamespace,
-		PrincipalID:   principal.ID,
-		PrincipalType: principal.Type,
-	}); err != nil {
-		return err
-	}
-	if _, err := s.relationService.Create(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        orgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        principal.ID,
-			Namespace: principal.Type,
-		},
-		RelationName: relationName,
-	}); err != nil {
-		return err
-	}
-
-	// Get organization details for audit
-	org, err := s.repository.GetByID(ctx, orgID)
-	if err != nil {
-		return err
-	}
-
-	principalName, principalMetadata := extractPrincipalInfo(principal)
-	targetMetadata := map[string]any{
-		"relation": relationName,
-		"role":     roleID,
-	}
-	// Merge principal metadata into target metadata
-	for k, v := range principalMetadata {
-		targetMetadata[k] = v
-	}
-
-	_, err = s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
-		Resource: auditrecord.Resource{
-			ID:   orgID,
-			Type: pkgAuditRecord.OrganizationType,
-			Name: org.Title,
-		},
-		Target: &auditrecord.Target{
-			ID:       principal.ID,
-			Type:     mapPrincipalTypeToAuditType(principal.Type),
-			Name:     principalName,
-			Metadata: targetMetadata,
-		},
-		OrgID:      orgID,
-		OccurredAt: time.Now(),
-	})
-	if err != nil {
-		return err
-	}
-
-	audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberCreatedEvent, audit.Target{
-		ID:   principal.ID,
-		Type: principal.Type,
-	})
-	return nil
 }
 
 func (s Service) AttachToPlatform(ctx context.Context, orgID string) error {
@@ -519,11 +459,8 @@ func (s Service) AdminCreate(ctx context.Context, org Organization, ownerEmail s
 		return Organization{}, err
 	}
 
-	// Add user as organization owner
-	if err = s.AddMember(ctx, newOrg.ID, schema.OwnerRelationName, authenticate.Principal{
-		ID:   usr.ID,
-		Type: schema.UserPrincipal,
-	}); err != nil {
+	// Add user as organization owner via membership package
+	if err = s.membershipService.AddOrganizationMember(ctx, newOrg.ID, usr.ID, schema.UserPrincipal, AdminRole); err != nil {
 		return newOrg, fmt.Errorf("failed to add user as owner: %w", err)
 	}
 

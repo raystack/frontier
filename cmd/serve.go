@@ -432,6 +432,7 @@ func buildAPIDependencies(
 		authnService, policyService, preferenceService, auditRecordRepository, roleService)
 
 	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, auditRecordRepository)
+	organizationService.SetMembershipService(membershipService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
@@ -467,7 +468,7 @@ func buildAPIDependencies(
 	userProjectsService := userprojects.NewService(userProjectsRepository)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
-	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
+	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
@@ -496,7 +497,7 @@ func buildAPIDependencies(
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
 		organizationService, groupService, userService, relationService, policyService, preferenceService,
-		auditRecordRepository)
+		auditRecordRepository, membershipService)
 
 	if GetStripeClientFunc == nil {
 		// allow to override the stripe client creation function in tests
