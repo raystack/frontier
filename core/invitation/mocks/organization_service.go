@@ -25,55 +25,6 @@ func (_m *OrganizationService) EXPECT() *OrganizationService_Expecter {
 	return &OrganizationService_Expecter{mock: &_m.Mock}
 }
 
-// AddMember provides a mock function with given fields: ctx, orgID, relationName, principal
-func (_m *OrganizationService) AddMember(ctx context.Context, orgID string, relationName string, principal authenticate.Principal) error {
-	ret := _m.Called(ctx, orgID, relationName, principal)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddMember")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, authenticate.Principal) error); ok {
-		r0 = rf(ctx, orgID, relationName, principal)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// OrganizationService_AddMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddMember'
-type OrganizationService_AddMember_Call struct {
-	*mock.Call
-}
-
-// AddMember is a helper method to define mock.On call
-//   - ctx context.Context
-//   - orgID string
-//   - relationName string
-//   - principal authenticate.Principal
-func (_e *OrganizationService_Expecter) AddMember(ctx interface{}, orgID interface{}, relationName interface{}, principal interface{}) *OrganizationService_AddMember_Call {
-	return &OrganizationService_AddMember_Call{Call: _e.mock.On("AddMember", ctx, orgID, relationName, principal)}
-}
-
-func (_c *OrganizationService_AddMember_Call) Run(run func(ctx context.Context, orgID string, relationName string, principal authenticate.Principal)) *OrganizationService_AddMember_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(authenticate.Principal))
-	})
-	return _c
-}
-
-func (_c *OrganizationService_AddMember_Call) Return(_a0 error) *OrganizationService_AddMember_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *OrganizationService_AddMember_Call) RunAndReturn(run func(context.Context, string, string, authenticate.Principal) error) *OrganizationService_AddMember_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Get provides a mock function with given fields: ctx, id
 func (_m *OrganizationService) Get(ctx context.Context, id string) (organization.Organization, error) {
 	ret := _m.Called(ctx, id)

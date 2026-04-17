@@ -46,8 +46,11 @@ type UserService interface {
 
 type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
-	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
 	ListByUser(ctx context.Context, p authenticate.Principal, f organization.Filter) ([]organization.Organization, error)
+}
+
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
 }
 
 type GroupService interface {
@@ -83,13 +86,15 @@ type Service struct {
 	policyService         PolicyService
 	prefService           PreferencesService
 	auditRecordRepository AuditRecordRepository
+	membershipSvc         MembershipService
 }
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
 	userService UserService, relService RelationService,
 	policyService PolicyService, prefService PreferencesService,
-	auditRecordRepository AuditRecordRepository) *Service {
+	auditRecordRepository AuditRecordRepository,
+	membershipSvc MembershipService) *Service {
 	return &Service{
 		dialer:                dialer,
 		repo:                  repo,
@@ -100,6 +105,7 @@ func NewService(dialer mailer.Dialer, repo Repository,
 		policyService:         policyService,
 		prefService:           prefService,
 		auditRecordRepository: auditRecordRepository,
+		membershipSvc:         membershipSvc,
 	}
 }
 
@@ -305,10 +311,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 	}
 	if !userOrgMember {
 		// if not, add user to the organization
-		if err = s.orgSvc.AddMember(ctx, invite.OrgID, schema.MemberRelationName, authenticate.Principal{
-			ID:   userOb.ID,
-			Type: schema.UserPrincipal,
-		}); err != nil {
+		if err = s.membershipSvc.AddOrganizationMember(ctx, invite.OrgID, userOb.ID, schema.UserPrincipal, schema.RoleOrganizationViewer); err != nil {
 			return err
 		}
 	}

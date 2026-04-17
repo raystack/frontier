@@ -70,8 +70,9 @@ func TestService_Create(t *testing.T) {
 					Email: "test@example.com",
 				}, nil)
 
+				membershipSvc := mocks.NewMembershipService(t)
 				return invitation.NewService(dialer, repo, orgService, groupService,
-					userService, relationService, policyService, prefService, auditRecordRepo)
+					userService, relationService, policyService, prefService, auditRecordRepo, membershipSvc)
 			},
 		},
 	}
