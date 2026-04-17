@@ -4,11 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -25,8 +27,8 @@ type UserService interface {
 }
 
 type OrgService interface {
-	ListByUser(ctx context.Context, principal authenticate.Principal, filter organization.Filter) ([]organization.Organization, error)
 	Get(ctx context.Context, id string) (organization.Organization, error)
+	ListByUser(ctx context.Context, principal authenticate.Principal, filter organization.Filter) ([]organization.Organization, error)
 }
 
 type MembershipService interface {
@@ -138,21 +140,6 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 		return err
 	}
 
-	// check if user is already a member of the organization. if yes, do nothing and return nil
-	userOrgs, err := s.orgService.ListByUser(ctx, authenticate.Principal{
-		ID:   currUser.ID,
-		Type: schema.UserPrincipal,
-	}, organization.Filter{})
-	if err != nil {
-		return err
-	}
-
-	for _, org := range userOrgs {
-		if org.ID == orgResp.ID {
-			return nil
-		}
-	}
-
 	userDomain := utils.ExtractDomainFromEmail(currUser.Email)
 	if userDomain == "" {
 		return user.ErrInvalidEmail
@@ -169,8 +156,10 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 
 	for _, dmn := range orgTrustedDomains {
 		if userDomain == dmn.Name {
-			// Use Add (not Set) — user is not yet a member, verified by ListByUser above
-			if err = s.membershipService.AddOrganizationMember(ctx, orgResp.ID, currUser.ID, schema.UserPrincipal, schema.RoleOrganizationViewer); err != nil {
+			// AddOrganizationMember checks if user is already a member and
+			// returns ErrAlreadyMember — treat that as success (nothing to do)
+			err = s.membershipService.AddOrganizationMember(ctx, orgResp.ID, currUser.ID, schema.UserPrincipal, schema.RoleOrganizationViewer)
+			if err != nil && !errors.Is(err, membership.ErrAlreadyMember) {
 				return err
 			}
 			return nil
