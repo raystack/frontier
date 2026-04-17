@@ -7,5 +7,6 @@ var (
 	ErrNotMember        = errors.New("principal is not a member of this resource")
 	ErrInvalidOrgRole   = errors.New("role is not valid for organization scope")
 	ErrLastOwnerRole    = errors.New("cannot change role: this is the last owner of the organization")
-	ErrInvalidPrincipal = errors.New("only user principals are supported")
+	ErrInvalidPrincipal     = errors.New("only user principals are supported")
+	ErrInvalidPrincipalType = errors.New("unsupported principal type")
 )

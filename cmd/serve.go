@@ -430,8 +430,11 @@ func buildAPIDependencies(
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository, roleService)
+	projectRepository := postgres.NewProjectRepository(dbc)
+	projectService := project.NewService(projectRepository, relationService, userService, policyService,
+		authnService, serviceUserService, groupService, roleService)
 
-	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, auditRecordRepository)
+	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, auditRecordRepository)
 	// Setter injection: org → membership is circular (membership needs org for validation,
 	// org needs membership for Create/AdminCreate). Break the cycle with a post-init setter.
 	organizationService.SetMembershipService(membershipService)
@@ -474,9 +477,6 @@ func buildAPIDependencies(
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
-	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService, policyService,
-		authnService, serviceUserService, groupService, roleService)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
 	patAlertService := userpat.NewAlertService(userPATRepo, userService, organizationService, mailDialer, dbc, cfg.App.PAT.Alert, logger, auditRecordRepository)

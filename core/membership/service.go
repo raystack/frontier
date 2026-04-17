@@ -9,8 +9,10 @@ import (
 
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/auditrecord"
+	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
@@ -43,6 +45,14 @@ type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 }
 
+type ProjectService interface {
+	List(ctx context.Context, flt project.Filter) ([]project.Project, error)
+}
+
+type GroupService interface {
+	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
+}
+
 type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
 }
@@ -54,6 +64,8 @@ type Service struct {
 	roleService           RoleService
 	orgService            OrgService
 	userService           UserService
+	projectService        ProjectService
+	groupService          GroupService
 	auditRecordRepository AuditRecordRepository
 }
 
@@ -64,6 +76,8 @@ func NewService(
 	roleService RoleService,
 	orgService OrgService,
 	userService UserService,
+	projectService ProjectService,
+	groupService GroupService,
 	auditRecordRepository AuditRecordRepository,
 ) *Service {
 	return &Service{
@@ -73,6 +87,8 @@ func NewService(
 		roleService:           roleService,
 		orgService:            orgService,
 		userService:           userService,
+		projectService:        projectService,
+		groupService:          groupService,
 		auditRecordRepository: auditRecordRepository,
 	}
 }
@@ -200,6 +216,120 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	}
 
 	s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
+	return nil
+}
+
+// RemoveOrganizationMember removes a principal from an organization and cascades
+// the removal through all org projects and groups, cleaning up both policies and
+// relations. Returns ErrNotMember if the principal has no policies on this org.
+func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error {
+	targetAuditType, err := principalTypeToAuditType(principalType)
+	if err != nil {
+		return err
+	}
+
+	org, err := s.orgService.Get(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	// check if principal is a member at org level
+	orgPolicies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:         orgID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+	if len(orgPolicies) == 0 {
+		return ErrNotMember
+	}
+
+	if err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies); err != nil {
+		return err
+	}
+
+	// pre-compute org project and group IDs for filtering
+	orgProjects, err := s.projectService.List(ctx, project.Filter{OrgID: orgID})
+	if err != nil {
+		return fmt.Errorf("list org projects: %w", err)
+	}
+	orgProjectIDs := utils.Map(orgProjects, func(p project.Project) string { return p.ID })
+
+	orgGroups, err := s.groupService.List(ctx, group.Filter{OrganizationID: orgID})
+	if err != nil {
+		return fmt.Errorf("list org groups: %w", err)
+	}
+	orgGroupIDs := utils.Map(orgGroups, func(g group.Group) string { return g.ID })
+
+	// list all policies for the principal across all resources
+	allPolicies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list all principal policies: %w", err)
+	}
+
+	var errs error
+	for _, pol := range allPolicies {
+		switch pol.ResourceType {
+		case schema.OrganizationNamespace:
+			if pol.ResourceID == orgID {
+				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
+					errs = errors.Join(errs, fmt.Errorf("delete org policy %s: %w", pol.ID, err))
+				}
+			}
+		case schema.ProjectNamespace:
+			if utils.Contains(orgProjectIDs, pol.ResourceID) {
+				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
+					errs = errors.Join(errs, fmt.Errorf("delete project policy %s: %w", pol.ID, err))
+				}
+			}
+		case schema.GroupNamespace:
+			if utils.Contains(orgGroupIDs, pol.ResourceID) {
+				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
+					errs = errors.Join(errs, fmt.Errorf("delete group policy %s: %w", pol.ID, err))
+				}
+			}
+		}
+	}
+	if errs != nil {
+		return errs
+	}
+
+	// remove relations at org level
+	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
+		return fmt.Errorf("remove org relations: %w", err)
+	}
+
+	// remove relations at group level
+	for _, g := range orgGroups {
+		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
+			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
+		}
+	}
+
+	s.auditOrgMemberRemoved(ctx, org, principalID, targetAuditType)
+	audit.GetAuditor(ctx, org.ID).Log(audit.OrgMemberDeletedEvent, audit.Target{
+		ID:   principalID,
+		Type: principalType,
+	})
+
+	return nil
+}
+
+// removeRelations deletes owner and member relations for a principal on a resource.
+func (s *Service) removeRelations(ctx context.Context, resourceID, resourceType, principalID, principalType string) error {
+	obj := relation.Object{ID: resourceID, Namespace: resourceType}
+	sub := relation.Subject{ID: principalID, Namespace: principalType}
+	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
+		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
+		if err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return fmt.Errorf("delete relation %s: %w", name, err)
+		}
+	}
 	return nil
 }
 
@@ -450,4 +580,36 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 	}, map[string]string{
 		"role_id": roleID,
 	})
+}
+
+func (s *Service) auditOrgMemberRemoved(ctx context.Context, org organization.Organization, targetID string, targetType pkgAuditRecord.EntityType) {
+	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.OrganizationMemberRemovedEvent,
+		Resource: auditrecord.Resource{
+			ID:   org.ID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:   targetID,
+			Type: targetType,
+		},
+		OrgID:      org.ID,
+		OccurredAt: time.Now(),
+	})
+}
+
+func principalTypeToAuditType(principalType string) (pkgAuditRecord.EntityType, error) {
+	switch principalType {
+	case schema.ServiceUserPrincipal:
+		return pkgAuditRecord.ServiceUserType, nil
+	case schema.UserPrincipal:
+		return pkgAuditRecord.UserType, nil
+	case schema.GroupPrincipal:
+		return pkgAuditRecord.GroupType, nil
+	case schema.PATPrincipal:
+		return pkgAuditRecord.PATType, nil
+	default:
+		return "", ErrInvalidPrincipalType
+	}
 }
