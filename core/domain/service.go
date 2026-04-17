@@ -26,16 +26,20 @@ type UserService interface {
 
 type OrgService interface {
 	ListByUser(ctx context.Context, principal authenticate.Principal, filter organization.Filter) ([]organization.Organization, error)
-	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
 	Get(ctx context.Context, id string) (organization.Organization, error)
 }
 
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+}
+
 type Service struct {
-	repository  Repository
-	userService UserService
-	orgService  OrgService
-	cron        *cron.Cron
-	log         log.Logger
+	repository        Repository
+	userService       UserService
+	orgService        OrgService
+	membershipService MembershipService
+	cron              *cron.Cron
+	log               log.Logger
 }
 
 const (
@@ -45,13 +49,14 @@ const (
 	refreshTime        = "0 0 * * *"        // Once a day at midnight (UTC)
 )
 
-func NewService(logger log.Logger, repository Repository, userService UserService, orgService OrgService) *Service {
+func NewService(logger log.Logger, repository Repository, userService UserService, orgService OrgService, membershipService MembershipService) *Service {
 	return &Service{
-		repository:  repository,
-		userService: userService,
-		orgService:  orgService,
-		cron:        cron.New(),
-		log:         logger,
+		repository:        repository,
+		userService:       userService,
+		orgService:        orgService,
+		membershipService: membershipService,
+		cron:              cron.New(),
+		log:               logger,
 	}
 }
 
@@ -164,10 +169,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 
 	for _, dmn := range orgTrustedDomains {
 		if userDomain == dmn.Name {
-			if err = s.orgService.AddMember(ctx, orgResp.ID, schema.MemberRelationName, authenticate.Principal{
-				ID:   currUser.ID,
-				Type: schema.UserPrincipal,
-			}); err != nil {
+			if err = s.membershipService.AddOrganizationMember(ctx, orgResp.ID, currUser.ID, schema.UserPrincipal, schema.RoleOrganizationViewer); err != nil {
 				return err
 			}
 			return nil
