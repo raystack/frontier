@@ -701,12 +701,12 @@ func (_c *Repository_Update_Call) RunAndReturn(run func(context.Context, models.
 	return _c
 }
 
-// UpdateLastUsedAt provides a mock function with given fields: ctx, id, at
-func (_m *Repository) UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error {
+// UpdateUsedAt provides a mock function with given fields: ctx, id, at
+func (_m *Repository) UpdateUsedAt(ctx context.Context, id string, at time.Time) error {
 	ret := _m.Called(ctx, id, at)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdateLastUsedAt")
+		panic("no return value specified for UpdateUsedAt")
 	}
 
 	var r0 error
@@ -719,32 +719,32 @@ func (_m *Repository) UpdateLastUsedAt(ctx context.Context, id string, at time.T
 	return r0
 }
 
-// Repository_UpdateLastUsedAt_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateLastUsedAt'
-type Repository_UpdateLastUsedAt_Call struct {
+// Repository_UpdateUsedAt_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUsedAt'
+type Repository_UpdateUsedAt_Call struct {
 	*mock.Call
 }
 
-// UpdateLastUsedAt is a helper method to define mock.On call
+// UpdateUsedAt is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
 //   - at time.Time
-func (_e *Repository_Expecter) UpdateLastUsedAt(ctx interface{}, id interface{}, at interface{}) *Repository_UpdateLastUsedAt_Call {
-	return &Repository_UpdateLastUsedAt_Call{Call: _e.mock.On("UpdateLastUsedAt", ctx, id, at)}
+func (_e *Repository_Expecter) UpdateUsedAt(ctx interface{}, id interface{}, at interface{}) *Repository_UpdateUsedAt_Call {
+	return &Repository_UpdateUsedAt_Call{Call: _e.mock.On("UpdateUsedAt", ctx, id, at)}
 }
 
-func (_c *Repository_UpdateLastUsedAt_Call) Run(run func(ctx context.Context, id string, at time.Time)) *Repository_UpdateLastUsedAt_Call {
+func (_c *Repository_UpdateUsedAt_Call) Run(run func(ctx context.Context, id string, at time.Time)) *Repository_UpdateUsedAt_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].(time.Time))
 	})
 	return _c
 }
 
-func (_c *Repository_UpdateLastUsedAt_Call) Return(_a0 error) *Repository_UpdateLastUsedAt_Call {
+func (_c *Repository_UpdateUsedAt_Call) Return(_a0 error) *Repository_UpdateUsedAt_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Repository_UpdateLastUsedAt_Call) RunAndReturn(run func(context.Context, string, time.Time) error) *Repository_UpdateLastUsedAt_Call {
+func (_c *Repository_UpdateUsedAt_Call) RunAndReturn(run func(context.Context, string, time.Time) error) *Repository_UpdateUsedAt_Call {
 	_c.Call.Return(run)
 	return _c
 }
