@@ -11,6 +11,8 @@ import (
 	"slices"
 	"time"
 
+	"log/slog"
+
 	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
@@ -22,7 +24,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	pkgUtils "github.com/raystack/frontier/pkg/utils"
-	"log/slog"
 	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
 )

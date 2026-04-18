@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/authenticate/session/mocks"
 	"github.com/raystack/frontier/pkg/server/consts"
-	"io"
-	"log/slog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/metadata"

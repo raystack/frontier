@@ -9,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
@@ -20,8 +23,6 @@ import (
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"io"
-	"log/slog"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/sha3"
 )

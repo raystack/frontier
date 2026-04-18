@@ -7,6 +7,9 @@ import (
 	"os"
 	"testing"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -16,8 +19,6 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
-	"io"
-	"log/slog"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/suite"
 )

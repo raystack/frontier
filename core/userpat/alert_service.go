@@ -10,13 +10,14 @@ import (
 	texttemplate "text/template"
 	"time"
 
+	"log/slog"
+
 	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/userpat/models"
 	pkgauditrecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
-	"log/slog"
 
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/robfig/cron/v3"

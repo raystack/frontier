@@ -15,6 +15,9 @@ import (
 
 	"github.com/raystack/frontier/billing/customer"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -22,8 +25,6 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
-	"io"
-	"log/slog"
 	"github.com/stretchr/testify/suite"
 )
 

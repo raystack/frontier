@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"io"
+	"log/slog"
+
 	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
@@ -13,8 +16,6 @@ import (
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/pkg/db"
 	mailerMock "github.com/raystack/frontier/pkg/mailer/mocks"
-	"io"
-	"log/slog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

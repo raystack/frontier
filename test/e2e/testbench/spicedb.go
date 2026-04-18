@@ -6,10 +6,11 @@ import (
 
 	prometheusmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 
+	"log/slog"
+
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/raystack/frontier/internal/store/spicedb"
-	"log/slog"
 )
 
 const (

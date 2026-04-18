@@ -17,8 +17,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/stripe/stripe-go/v79/client"
 
-	"github.com/ory/dockertest/v3/docker"
 	"log/slog"
+
+	"github.com/ory/dockertest/v3/docker"
 )
 
 const (

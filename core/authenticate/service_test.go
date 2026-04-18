@@ -13,6 +13,9 @@ import (
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/stretchr/testify/assert"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
@@ -26,8 +29,6 @@ import (
 	pkgMetadata "github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
-	"io"
-	"log/slog"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"

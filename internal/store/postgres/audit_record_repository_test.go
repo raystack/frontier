@@ -10,6 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/auditrecord"
@@ -18,8 +21,6 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
-	"io"
-	"log/slog"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/suite"
 )

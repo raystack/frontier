@@ -21,11 +21,11 @@ import (
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
 
+	"github.com/raystack/frontier/billing/customer"
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
-	"github.com/raystack/frontier/billing/customer"
-	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stripe/stripe-go/v79/client"
 )
 

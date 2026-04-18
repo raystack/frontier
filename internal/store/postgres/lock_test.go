@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ory/dockertest"
 	"io"
 	"log/slog"
+
+	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/raystack/frontier/pkg/db"

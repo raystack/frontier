@@ -7,6 +7,8 @@ import (
 	"slices"
 	"time"
 
+	"log/slog"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/organization"
@@ -17,7 +19,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
-	"log/slog"
 )
 
 type PolicyService interface {

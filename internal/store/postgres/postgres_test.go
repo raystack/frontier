@@ -17,6 +17,9 @@ import (
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/permission"
 
+	"io"
+	"log/slog"
+
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 	"github.com/raystack/frontier/cmd"
@@ -31,8 +34,6 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/server/consts"
-	"io"
-	"log/slog"
 )
 
 const (

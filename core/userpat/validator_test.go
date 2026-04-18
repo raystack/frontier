@@ -9,12 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"io"
+	"log/slog"
+
 	"github.com/raystack/frontier/core/userpat"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/frontier/core/userpat/models"
-	"io"
-	"log/slog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

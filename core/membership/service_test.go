@@ -5,6 +5,9 @@ import (
 	"errors"
 	"testing"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/membership"
@@ -15,8 +18,6 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"io"
-	"log/slog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

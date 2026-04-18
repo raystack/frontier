@@ -26,8 +26,8 @@ import (
 	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/google/uuid"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/billing/subscription"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
