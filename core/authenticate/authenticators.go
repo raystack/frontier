@@ -3,7 +3,6 @@ package authenticate
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -39,7 +38,7 @@ func authenticateWithSession(ctx context.Context, s *Service) (Principal, error)
 		// userID is a valid uuid
 		currentUser, err := s.userService.GetByID(ctx, session.UserID)
 		if err != nil {
-			s.log.DebugContext(ctx, fmt.Sprintf("unable to get session user by id: %v", err))
+			s.log.DebugContext(ctx, "unable to get session user by id", "error", err)
 			return Principal{}, err
 		}
 		return Principal{
@@ -49,7 +48,7 @@ func authenticateWithSession(ctx context.Context, s *Service) (Principal, error)
 		}, nil
 	}
 	if err != nil && !errors.Is(err, frontiersession.ErrNoSession) {
-		s.log.DebugContext(ctx, fmt.Sprintf("unable to extract session from context: %v", err))
+		s.log.DebugContext(ctx, "unable to extract session from context", "error", err)
 		return Principal{}, err
 	}
 	return Principal{}, errSkip
@@ -99,7 +98,7 @@ func authenticateWithAccessToken(ctx context.Context, s *Service) (Principal, er
 		// NOTE: in the original code, AccessToken and JWTGrant were in the same if-block,
 		// so JWT parse failure fell through to GetByJWT. With separate authenticators,
 		// errSkip is required to preserve that behavior.
-		s.log.DebugContext(ctx, fmt.Sprintf("unable to parse token: %v", err))
+		s.log.DebugContext(ctx, "unable to parse token", "error", err)
 		return Principal{}, errSkip
 	}
 
