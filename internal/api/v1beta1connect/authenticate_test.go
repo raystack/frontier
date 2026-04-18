@@ -3,7 +3,6 @@ package v1beta1connect
 import (
 	"context"
 	"encoding/json"
-	"log/slog"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -13,7 +12,6 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -111,7 +109,7 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 				},
 			}
 
-			ctx := frontierlogger.ToContext(context.Background(), slog.Default())
+			ctx := context.Background()
 			resp, err := handler.AuthToken(ctx, tt.request)
 
 			if tt.wantErr {

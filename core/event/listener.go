@@ -3,9 +3,9 @@ package event
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/raystack/frontier/core/audit"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 )
 
 // ChanListener listens for audit logs and processes them blocking
@@ -36,11 +36,10 @@ func (l *ChanListener) Listen(ctx context.Context) error {
 }
 
 func (l *ChanListener) Process(ctx context.Context, log audit.Log) {
-	stdLogger := frontierlogger.FromContext(ctx).With("event", log.Action)
 	switch log.Action {
 	case audit.OrgCreatedEvent.String():
 		if err := l.processor.EnsureDefaultPlan(ctx, log.OrgID); err != nil {
-			stdLogger.Error(fmt.Errorf("EnsureDefaultPlan: %w", err).Error())
+			slog.ErrorContext(ctx, fmt.Errorf("EnsureDefaultPlan: %w", err).Error(), "event", log.Action)
 		}
 	}
 }

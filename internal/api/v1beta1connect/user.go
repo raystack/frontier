@@ -8,6 +8,8 @@ import (
 
 	"connectrpc.com/connect"
 
+	"log/slog"
+
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
@@ -18,7 +20,6 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/str"
@@ -95,7 +96,6 @@ func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *conne
 }
 
 func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Request[frontierv1beta1.CreateUserRequest]) (*connect.Response[frontierv1beta1.CreateUserResponse], error) {
-	logger := frontierlogger.FromContext(ctx)
 	errorLogger := NewErrorLogger()
 
 	if request.Msg.GetBody() == nil {
@@ -109,7 +109,7 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 		}
 		currentUserEmail = strings.TrimSpace(currentUserEmail)
 		if currentUserEmail == "" {
-			logger.Error(ErrEmptyEmailID.Error())
+			slog.ErrorContext(ctx, ErrEmptyEmailID.Error())
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		email = currentUserEmail

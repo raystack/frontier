@@ -3,9 +3,8 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
-
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/raystack/frontier/billing/plan"
 
@@ -204,10 +203,9 @@ func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermissio
 
 // MakeSuperUsers promote ordinary users to superuser
 func (s Service) MakeSuperUsers(ctx context.Context) error {
-	logger := frontierlogger.FromContext(ctx)
 	for _, userID := range s.adminConfig.Users {
 		userID = strings.TrimSpace(userID)
-		logger.Debug("promoting user to superuser", "user_id", userID)
+		slog.DebugContext(ctx, "promoting user to superuser", "user_id", userID)
 		if err := s.userService.Sudo(ctx, userID, schema.AdminRelationName); err != nil {
 			return err
 		}

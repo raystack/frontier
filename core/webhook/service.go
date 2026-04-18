@@ -3,13 +3,13 @@ package webhook
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/raystack/frontier/pkg/server/consts"
 
 	"golang.org/x/exp/slices"
 
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -89,10 +89,9 @@ func (s Service) ListEndpoints(ctx context.Context, filter EndpointFilter) ([]En
 }
 
 func (s Service) Publish(ctx context.Context, evt Event) error {
-	logger := frontierlogger.FromContext(ctx)
 	data, err := structpb.NewStruct(evt.Data)
 	if err != nil {
-		logger.Error("failed to convert data to structpb", "error", err)
+		slog.ErrorContext(ctx, "failed to convert data to structpb", "error", err)
 		return fmt.Errorf("failed to convert data to structpb: %w", err)
 	}
 	event := &frontierv1beta1.WebhookEvent{
@@ -104,7 +103,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 
 	payload, err := protojson.Marshal(event)
 	if err != nil {
-		logger.Error("failed to marshal event", "error", err)
+		slog.ErrorContext(ctx, "failed to marshal event", "error", err)
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
@@ -116,7 +115,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 			State: Enabled,
 		})
 		if err != nil {
-			logger.Error("failed to list endpoints", "error", err)
+			slog.ErrorContext(ctx, "failed to list endpoints", "error", err)
 			return
 		}
 		var errs []error
@@ -150,7 +149,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 			}
 		}
 		if len(errs) > 0 {
-			logger.Error("failed to send events", "errs", errs)
+			slog.ErrorContext(ctx, "failed to send events", "errs", errs)
 		}
 	}()
 	return nil

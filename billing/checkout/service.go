@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"text/template"
 	"time"
@@ -27,7 +28,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/billing/subscription"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
@@ -102,6 +102,7 @@ type AuthnService interface {
 }
 
 type Service struct {
+	log                 *slog.Logger
 	stripeAutoTax       bool
 	stripeClient        *client.API
 	repository          Repository
@@ -120,12 +121,13 @@ type Service struct {
 	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, cfg billing.Config, repository Repository,
+func NewService(logger *slog.Logger, stripeClient *client.API, cfg billing.Config, repository Repository,
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, productService ProductService,
 	creditService CreditService, orgService OrganizationService,
 	authnService AuthnService) *Service {
 	s := &Service{
+		log:                 logger,
 		stripeClient:        stripeClient,
 		stripeAutoTax:       cfg.StripeAutoTax,
 		repository:          repository,
@@ -182,12 +184,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		defer record()
 	}
 
-	logger := frontierlogger.FromContext(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		State: customer.ActiveState,
 	})
 	if err != nil {
-		logger.Error("checkout.backgroundSync", "error", err)
+		s.log.ErrorContext(ctx, "checkout.backgroundSync", "error", err)
 		return
 	}
 
@@ -201,10 +202,10 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
-			logger.Error("checkout.SyncWithProvider", "error", err, "customer_id", customer.ID)
+			s.log.ErrorContext(ctx, "checkout.SyncWithProvider", "error", err, "customer_id", customer.ID)
 		}
 	}
-	logger.Info("checkout.backgroundSync finished", "duration", time.Since(start))
+	s.log.InfoContext(ctx, "checkout.backgroundSync finished", "duration", time.Since(start))
 }
 
 func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {

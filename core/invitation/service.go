@@ -6,12 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/raystack/frontier/core/organization"
-
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/raystack/frontier/core/auditrecord/models"
@@ -119,7 +118,7 @@ func (s Service) getConfig(ctx context.Context) *Config {
 	defaults.SetDefaults(c)
 	prefs, err := s.prefService.LoadPlatformPreferences(ctx)
 	if err != nil {
-		frontierlogger.FromContext(ctx).Error("failed to load platform preferences for invitation", "error", err)
+		slog.ErrorContext(ctx, "failed to load platform preferences for invitation", "error", err)
 		// don't fail
 	}
 	c.WithRoles = strings.EqualFold(prefs[preference.PlatformInviteWithRoles], "true")

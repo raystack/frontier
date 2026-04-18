@@ -7,10 +7,11 @@ import (
 
 	"connectrpc.com/connect"
 
+	"log/slog"
+
 	svc "github.com/raystack/frontier/core/aggregates/orgpats"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/store/postgres"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
@@ -34,7 +35,7 @@ func (h *ConnectHandler) SearchOrganizationPATs(ctx context.Context, request *co
 
 	// Cap limit — override user-requested limit if it exceeds max
 	if rqlQuery.Limit <= 0 || rqlQuery.Limit > orgPATsMaxLimit {
-		frontierlogger.FromContext(ctx).Warn("overriding requested limit to max allowed",
+		slog.WarnContext(ctx, "overriding requested limit to max allowed",
 			"requested_limit", rqlQuery.Limit,
 			"applied_limit", orgPATsDefaultLimit)
 		rqlQuery.Limit = orgPATsDefaultLimit

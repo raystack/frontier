@@ -6,7 +6,45 @@ import (
 	"os"
 )
 
-type ctxKey struct{}
+type attrsKey struct{}
+
+// AppendCtx stores slog attributes in context for the ContextHandler to extract.
+func AppendCtx(ctx context.Context, attrs ...slog.Attr) context.Context {
+	existing, _ := ctx.Value(attrsKey{}).([]slog.Attr)
+	return context.WithValue(ctx, attrsKey{}, append(existing, attrs...))
+}
+
+// ContextHandler wraps any slog.Handler and auto-appends attributes stored
+// in the context via AppendCtx. This enables request-scoped fields (request_id,
+// method, etc.) to appear in every log line without passing them explicitly.
+type ContextHandler struct {
+	inner slog.Handler
+}
+
+func NewContextHandler(inner slog.Handler) *ContextHandler {
+	return &ContextHandler{inner: inner}
+}
+
+func (h *ContextHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	return h.inner.Enabled(ctx, level)
+}
+
+func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
+	if attrs, ok := ctx.Value(attrsKey{}).([]slog.Attr); ok {
+		for _, a := range attrs {
+			r.AddAttrs(a)
+		}
+	}
+	return h.inner.Handle(ctx, r)
+}
+
+func (h *ContextHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &ContextHandler{inner: h.inner.WithAttrs(attrs)}
+}
+
+func (h *ContextHandler) WithGroup(name string) slog.Handler {
+	return &ContextHandler{inner: h.inner.WithGroup(name)}
+}
 
 func InitLogger(cfg Config) *slog.Logger {
 	level := parseLevel(cfg.Level)
@@ -19,20 +57,7 @@ func InitLogger(cfg Config) *slog.Logger {
 	default:
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	}
-	return slog.New(handler)
-}
-
-// ToContext stores a logger in the context.
-func ToContext(ctx context.Context, logger *slog.Logger) context.Context {
-	return context.WithValue(ctx, ctxKey{}, logger)
-}
-
-// FromContext retrieves the logger from context, falling back to slog.Default().
-func FromContext(ctx context.Context) *slog.Logger {
-	if l, ok := ctx.Value(ctxKey{}).(*slog.Logger); ok {
-		return l
-	}
-	return slog.Default()
+	return slog.New(NewContextHandler(handler))
 }
 
 // Fatal logs at error level and exits.

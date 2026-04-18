@@ -5,6 +5,8 @@ import (
 
 	"connectrpc.com/connect"
 
+	"log/slog"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
@@ -16,7 +18,6 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
@@ -363,7 +364,6 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrRoleFilter)
 	}
 
-	logger := frontierlogger.FromContext(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
 	if err != nil {
 		switch {
@@ -438,7 +438,7 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 				rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
 					pb, err := transformRoleToPB(role)
 					if err != nil {
-						logger.Error("failed to transform role for user", "error", err)
+						slog.ErrorContext(ctx, "failed to transform role for user", "error", err)
 						return nil
 					}
 					return &pb

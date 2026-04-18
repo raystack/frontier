@@ -6,9 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"sync/atomic"
-
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	newrelic "github.com/newrelic/go-agent"
@@ -142,7 +141,7 @@ func (r *RelationRepository) Check(ctx context.Context, rel relation.Relation) (
 	}
 	if response.GetDebugTrace() != nil {
 		str, _ := json.Marshal(response.GetDebugTrace())
-		frontierlogger.FromContext(ctx).Info("CheckPermission", "trace", string(str))
+		slog.InfoContext(ctx, "CheckPermission", "trace", string(str))
 	}
 
 	r.lastToken.Store(response.GetCheckedAt())

@@ -43,8 +43,12 @@ func UnaryConnectLoggerInterceptor(logger *slog.Logger, opts *LoggerOptions) con
 				return next(ctx, req)
 			}
 
-			// Embed logger in context
-			ctx = frontierlogger.ToContext(ctx, logger)
+			// Store request-scoped attrs in context for downstream loggers
+			requestID := req.Header().Get(consts.RequestIDHeader)
+			ctx = frontierlogger.AppendCtx(ctx,
+				slog.String("request_id", requestID),
+				slog.String("method", req.Spec().Procedure),
+			)
 
 			startTime := time.Now()
 			resp, err := next(ctx, req)
@@ -61,7 +65,7 @@ func UnaryConnectLoggerInterceptor(logger *slog.Logger, opts *LoggerOptions) con
 				"method", req.Spec().Procedure,
 				"time_ms", duration.Milliseconds(),
 				"code", code.String(),
-				"request_id", req.Header().Get(consts.RequestIDHeader),
+				"request_id", requestID,
 			}
 			if err != nil {
 				attrs = append(attrs, "error", err)

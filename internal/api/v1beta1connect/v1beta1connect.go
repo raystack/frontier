@@ -2,11 +2,9 @@ package v1beta1connect
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/api"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 )
 
@@ -159,8 +157,4 @@ func (h *ConnectHandler) GetOrgIDFromBillingAccountID(ctx context.Context, billi
 		return "", err
 	}
 	return customer.OrgID, nil
-}
-
-func ExtractLogger(ctx context.Context) *slog.Logger {
-	return frontierlogger.FromContext(ctx)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"sync"
 	"time"
@@ -22,7 +23,6 @@ import (
 	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/billing/customer"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
@@ -65,6 +65,7 @@ type Locker interface {
 }
 
 type Service struct {
+	log             *slog.Logger
 	stripeClient    *client.API
 	repository      Repository
 	customerService CustomerService
@@ -88,10 +89,11 @@ type Service struct {
 	paymentMethodConfig []billing.PaymentMethodConfig
 }
 
-func NewService(stripeClient *client.API, invoiceRepository Repository,
+func NewService(logger *slog.Logger, stripeClient *client.API, invoiceRepository Repository,
 	customerService CustomerService, creditService CreditService, productService ProductService,
 	locker Locker, cfg billing.Config) *Service {
 	return &Service{
+		log:                           logger,
 		stripeClient:                  stripeClient,
 		repository:                    invoiceRepository,
 		customerService:               customerService,
@@ -110,7 +112,6 @@ func NewService(stripeClient *client.API, invoiceRepository Repository,
 }
 
 func (s *Service) Init(ctx context.Context) error {
-	logger := frontierlogger.FromContext(ctx)
 	if s.syncDelay != time.Duration(0) {
 		if s.syncJob != nil {
 			s.syncJob.Stop()
@@ -148,7 +149,7 @@ func (s *Service) Init(ctx context.Context) error {
 		}
 		s.creditOverdraftInvoiceCurrency = creditPrice.Currency
 		s.creditOverdraftUnitAmount = int64(float64(creditPrice.Amount) / float64(creditProduct.Config.CreditAmount))
-		logger.Info("credit overdraft product details",
+		s.log.InfoContext(ctx, "credit overdraft product details",
 			"unit_amount", s.creditOverdraftUnitAmount,
 			"currency", s.creditOverdraftInvoiceCurrency)
 	}
@@ -168,12 +169,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		record := metrics.BillingSyncLatency("invoice")
 		defer record()
 	}
-	logger := frontierlogger.FromContext(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		Online: utils.Bool(true),
 	})
 	if err != nil {
-		logger.Error("invoice.backgroundSync", "error", err)
+		s.log.ErrorContext(ctx, "invoice.backgroundSync", "error", err)
 		return
 	}
 	for _, customr := range customers {
@@ -186,20 +186,20 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customr); err != nil {
-			logger.Error("invoice.SyncWithProvider", "error", err)
+			s.log.ErrorContext(ctx, "invoice.SyncWithProvider", "error", err)
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
 	if err := s.Reconcile(ctx); err != nil {
-		logger.Error("invoice.Reconcile", "error", err)
+		s.log.ErrorContext(ctx, "invoice.Reconcile", "error", err)
 	}
 
 	if s.isCreditOverdraftDayOfInvoice() {
 		if err := s.GenerateForCredits(ctx); err != nil {
-			logger.Error("invoice.GenerateForCredits", "error", err)
+			s.log.ErrorContext(ctx, "invoice.GenerateForCredits", "error", err)
 		}
 	}
-	logger.Info("invoice.backgroundSync finished", "duration", time.Since(start))
+	s.log.InfoContext(ctx, "invoice.backgroundSync finished", "duration", time.Since(start))
 }
 
 // TriggerCreditOverdraftInvoices is on-demand trigger for generating credit overdraft invoices
@@ -312,14 +312,13 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 // GetUpcoming returns the upcoming invoice for the customer based on the
 // active subscription plan. If no upcoming invoice is found, it returns empty.
 func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, error) {
-	logger := frontierlogger.FromContext(ctx)
 	custmr, err := s.customerService.GetByID(ctx, customerID)
 	if err != nil {
 		return Invoice{}, fmt.Errorf("failed to find customer: %w", err)
 	}
 
 	if custmr.ProviderID == "" {
-		logger.Debug(fmt.Sprintf("no customer provider id found"))
+		s.log.DebugContext(ctx, "no customer provider id found")
 		return Invoice{}, nil
 	}
 
@@ -332,7 +331,7 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 	if err != nil {
 		var stripeErr *stripe.Error
 		if errors.As(err, &stripeErr) && stripeErr.Code == stripe.ErrorCodeInvoiceUpcomingNone {
-			logger.Debug(fmt.Sprintf("no upcoming invoice: %v", stripeErr))
+			s.log.DebugContext(ctx, "no upcoming invoice", "error", stripeErr)
 			return Invoice{}, nil
 		}
 		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", err)
@@ -429,7 +428,6 @@ func (s *Service) DeleteByCustomer(ctx context.Context, c customer.Customer) err
 // reconcile the token balance once it's paid.
 func (s *Service) GenerateForCredits(ctx context.Context) error {
 	var errs []error
-	logger := frontierlogger.FromContext(ctx)
 	if s.creditOverdraftUnitAmount == 0 || s.creditOverdraftInvoiceCurrency == "" {
 		// do not process if credit overdraft details not set
 		return nil
@@ -447,7 +445,7 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 	defer func() {
 		unlockErr := lock.Unlock(ctx)
 		if unlockErr != nil {
-			logger.Error("failed to unlock", "error", unlockErr, "key", GenerateForCreditLockKey)
+			s.log.ErrorContext(ctx, "failed to unlock", "error", unlockErr, "key", GenerateForCreditLockKey)
 		}
 	}()
 

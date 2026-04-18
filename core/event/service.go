@@ -12,9 +12,11 @@ import (
 
 	"github.com/raystack/frontier/billing/credit"
 
+	"log/slog"
+
 	"github.com/raystack/frontier/billing/plan"
+
 	"github.com/raystack/frontier/core/user"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/stripe/stripe-go/v79/webhook"
 	"golang.org/x/sync/singleflight"
 
@@ -184,7 +186,6 @@ func getCustomerName(org organization.Organization) string {
 }
 
 func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEvent) error {
-	stdLogger := frontierlogger.FromContext(ctx).With("provider", payload.Name)
 	if payload.Name != "stripe" {
 		return fmt.Errorf("provider not supported")
 	}
@@ -229,7 +230,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 				return nil, p.checkoutService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {
-				stdLogger.Error("error syncing checkout", "error", err, "provider_id", providerID)
+				slog.ErrorContext(ctx, "error syncing checkout", "error", err, "provider_id", providerID, "provider", payload.Name)
 			}
 		case stripe.EventTypeCustomerCreated,
 			stripe.EventTypeCustomerUpdated,
@@ -241,7 +242,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 				return nil, p.customerService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {
-				stdLogger.Error("error syncing customer", "error", err, "provider_id", providerID)
+				slog.ErrorContext(ctx, "error syncing customer", "error", err, "provider_id", providerID, "provider", payload.Name)
 			}
 		case stripe.EventTypeCustomerSubscriptionCreated,
 			stripe.EventTypeCustomerSubscriptionUpdated,
@@ -252,7 +253,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 				return nil, p.subsService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {
-				stdLogger.Error("error syncing subscription", "error", err, "provider_id", providerID)
+				slog.ErrorContext(ctx, "error syncing subscription", "error", err, "provider_id", providerID, "provider", payload.Name)
 			}
 		case stripe.EventTypeInvoicePaid:
 			// trigger invoice sync
@@ -261,7 +262,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 				return nil, p.invoiceService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {
-				stdLogger.Error("error syncing invoice", "error", err, "provider_id", providerID)
+				slog.ErrorContext(ctx, "error syncing invoice", "error", err, "provider_id", providerID, "provider", payload.Name)
 			}
 		}
 	}()

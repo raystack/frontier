@@ -70,7 +70,6 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/raystack/frontier/core/authenticate/token"
 
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/server"
 
 	"github.com/raystack/frontier/core/invitation"
@@ -122,8 +121,6 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
-
-	ctx = frontierlogger.ToContext(ctx, logger)
 
 	dbClient, err := setupDB(cfg.DB, logger)
 	if err != nil {
@@ -509,7 +506,7 @@ func buildAPIDependencies(
 		billingCustomerRepository,
 		auditRecordRepository,
 	)
-	customerService := customer.NewService(
+	customerService := customer.NewService(logger,
 		stripeClient,
 		billingCustomerRepository, cfg.Billing, creditService)
 	featureRepository := postgres.NewBillingFeatureRepository(dbc)
@@ -527,18 +524,18 @@ func buildAPIDependencies(
 		featureRepository,
 		priceRepository,
 	)
-	subscriptionService := subscription.NewService(
+	subscriptionService := subscription.NewService(logger,
 		stripeClient, cfg.Billing,
 		postgres.NewBillingSubscriptionRepository(dbc),
 		customerService, planService, organizationService,
 		productService, creditService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService,
 		planService, organizationService)
-	checkoutService := checkout.NewService(stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
+	checkoutService := checkout.NewService(logger, stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
 		customerService, planService, subscriptionService, productService, creditService, organizationService,
 		authnService)
 
-	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc),
+	invoiceService := invoice.NewService(logger, stripeClient, postgres.NewBillingInvoiceRepository(dbc),
 		customerService, creditService, productService, dbc, cfg.Billing)
 
 	usageService := usage.NewService(creditService)
