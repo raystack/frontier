@@ -9,9 +9,14 @@ import (
 type attrsKey struct{}
 
 // AppendCtx stores slog attributes in context for the ContextHandler to extract.
+// It copies the existing slice to avoid mutating a parent context's backing array
+// when multiple goroutines fork from the same context.
 func AppendCtx(ctx context.Context, attrs ...slog.Attr) context.Context {
 	existing, _ := ctx.Value(attrsKey{}).([]slog.Attr)
-	return context.WithValue(ctx, attrsKey{}, append(existing, attrs...))
+	merged := make([]slog.Attr, len(existing), len(existing)+len(attrs))
+	copy(merged, existing)
+	merged = append(merged, attrs...)
+	return context.WithValue(ctx, attrsKey{}, merged)
 }
 
 // ContextHandler wraps any slog.Handler and auto-appends attributes stored
