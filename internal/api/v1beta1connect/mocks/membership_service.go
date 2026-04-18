@@ -71,6 +71,56 @@ func (_c *MembershipService_AddOrganizationMember_Call) RunAndReturn(run func(co
 	return _c
 }
 
+// SetOrganizationMemberRole provides a mock function with given fields: ctx, orgID, principalID, principalType, roleID
+func (_m *MembershipService) SetOrganizationMemberRole(ctx context.Context, orgID string, principalID string, principalType string, roleID string) error {
+	ret := _m.Called(ctx, orgID, principalID, principalType, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetOrganizationMemberRole")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, orgID, principalID, principalType, roleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MembershipService_SetOrganizationMemberRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetOrganizationMemberRole'
+type MembershipService_SetOrganizationMemberRole_Call struct {
+	*mock.Call
+}
+
+// SetOrganizationMemberRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - principalID string
+//   - principalType string
+//   - roleID string
+func (_e *MembershipService_Expecter) SetOrganizationMemberRole(ctx interface{}, orgID interface{}, principalID interface{}, principalType interface{}, roleID interface{}) *MembershipService_SetOrganizationMemberRole_Call {
+	return &MembershipService_SetOrganizationMemberRole_Call{Call: _e.mock.On("SetOrganizationMemberRole", ctx, orgID, principalID, principalType, roleID)}
+}
+
+func (_c *MembershipService_SetOrganizationMemberRole_Call) Run(run func(ctx context.Context, orgID string, principalID string, principalType string, roleID string)) *MembershipService_SetOrganizationMemberRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_SetOrganizationMemberRole_Call) Return(_a0 error) *MembershipService_SetOrganizationMemberRole_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MembershipService_SetOrganizationMemberRole_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_SetOrganizationMemberRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMembershipService creates a new instance of MembershipService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMembershipService(t interface {

@@ -2,6 +2,7 @@ package membership
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -76,26 +77,20 @@ func NewService(
 	}
 }
 
-// AddOrganizationMember adds a new member to an organization with an explicit role.
-// Returns ErrAlreadyMember if the principal already has a policy on this org.
-// Only user principals are supported — serviceusers are bound to orgs at creation time.
+// AddOrganizationMember adds a new user to an organization with an explicit role,
+// bypassing the invitation flow. Only user principals are supported — this is a
+// direct-add operation for superadmins.
+// Returns ErrAlreadyMember if the user already has a policy on this org.
 func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error {
-	if principalType != schema.UserPrincipal {
-		return ErrInvalidPrincipal
-	}
-
 	// orgService.Get returns ErrDisabled for disabled orgs
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
 		return err
 	}
 
-	usr, err := s.userService.GetByID(ctx, principalID)
+	principal, err := s.validatePrincipal(ctx, principalID, principalType)
 	if err != nil {
 		return err
-	}
-	if usr.State == user.Disabled {
-		return user.ErrDisabled
 	}
 
 	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
@@ -136,8 +131,168 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	}
 
 	// audit logging
-	s.auditOrgMemberAdded(ctx, org, usr, roleID)
+	s.auditOrgMemberAdded(ctx, org, principal, roleID)
 
+	return nil
+}
+
+// SetOrganizationMemberRole changes an existing member's role in an organization.
+// SetOrganizationMemberRole skips the write if the member already has exactly the requested role.
+// Currently only user principals are supported. May be extended to service users
+// in the future to give them org-level roles (see #1544).
+func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error {
+	org, err := s.orgService.Get(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	principal, err := s.validatePrincipal(ctx, principalID, principalType)
+	if err != nil {
+		return err
+	}
+
+	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
+	if err != nil {
+		return err
+	}
+
+	// use the canonical UUID from the fetched role for all comparisons and writes
+	resolvedRoleID := fetchedRole.ID
+
+	existing, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:         orgID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+	if len(existing) == 0 {
+		return ErrNotMember
+	}
+
+	// skip if the user already has exactly this role
+	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
+		return nil
+	}
+
+	if err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing); err != nil {
+		return err
+	}
+
+	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing); err != nil {
+		return err
+	}
+
+	newRelation := orgRoleToRelation(fetchedRole)
+	oldRelations := []string{schema.OwnerRelationName, schema.MemberRelationName}
+	err = s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, oldRelations, newRelation)
+	if err != nil {
+		s.log.Error("membership state inconsistent: policy replaced but relation update failed, needs manual fix",
+			"org_id", orgID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"new_role_id", resolvedRoleID,
+			"expected_relation", newRelation,
+			"error", err,
+		)
+		return err
+	}
+
+	s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
+	return nil
+}
+
+// validateMinOwnerConstraint ensures the org always has at least one owner after a role change.
+func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existing []policy.Policy) error {
+	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
+	if err != nil {
+		return fmt.Errorf("get owner role: %w", err)
+	}
+
+	// no constraint if promoting to owner
+	if newRoleID == ownerRole.ID {
+		return nil
+	}
+
+	// no constraint if user is not currently an owner
+	isCurrentlyOwner := false
+	for _, p := range existing {
+		if p.RoleID == ownerRole.ID {
+			isCurrentlyOwner = true
+			break
+		}
+	}
+	if !isCurrentlyOwner {
+		return nil
+	}
+
+	// user is owner, being demoted — make sure at least one other owner remains
+	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:  orgID,
+		RoleID: ownerRole.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("list owner policies: %w", err)
+	}
+	if len(ownerPolicies) <= 1 {
+		return ErrLastOwnerRole
+	}
+	return nil
+}
+
+// replacePolicy deletes the given existing policies and creates a new one with the new role.
+func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy) error {
+	for _, p := range existing {
+		err := s.policyService.Delete(ctx, p.ID)
+		if err != nil {
+			return fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+
+	_, err := s.createPolicy(ctx, resourceID, resourceType, principalID, principalType, roleID)
+	if err != nil {
+		s.log.Error("membership state inconsistent: old policies deleted but new policy creation failed, needs manual fix",
+			"resource_id", resourceID,
+			"resource_type", resourceType,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"role_id", roleID,
+			"error", err,
+		)
+		return err
+	}
+	return nil
+}
+
+// replaceRelation deletes the given old relations for the principal on the resource,
+// then creates a new relation with the given name.
+// Only relation.ErrNotExist is ignored on delete — any other error is returned.
+func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType string, oldRelations []string, newRelationName string) error {
+	obj := relation.Object{ID: resourceID, Namespace: resourceType}
+	sub := relation.Subject{ID: principalID, Namespace: principalType}
+
+	for _, name := range oldRelations {
+		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
+		if err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return fmt.Errorf("delete relation %s: %w", name, err)
+		}
+	}
+
+	_, err := s.relationService.Create(ctx, relation.Relation{
+		Object: obj, Subject: sub, RelationName: newRelationName,
+	})
+	if err != nil {
+		s.log.Error("membership state inconsistent: old relations deleted but new relation creation failed, needs manual fix",
+			"resource_id", resourceID,
+			"resource_type", resourceType,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"expected_relation", newRelationName,
+			"error", err,
+		)
+		return fmt.Errorf("create relation: %w", err)
+	}
 	return nil
 }
 
@@ -167,6 +322,42 @@ func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) (ro
 	}
 
 	return role.Role{}, ErrInvalidOrgRole
+}
+
+// principalInfo holds validated principal details for audit and downstream use.
+type principalInfo struct {
+	ID    string
+	Type  string
+	Name  string
+	Email string
+}
+
+// validatePrincipal checks that the principal exists and is active.
+// To add support for a new principal type (e.g., service user), add a case here
+// and add the corresponding service dependency to the Service struct.
+func (s *Service) validatePrincipal(ctx context.Context, principalID, principalType string) (principalInfo, error) {
+	switch principalType {
+	case schema.UserPrincipal:
+		usr, err := s.userService.GetByID(ctx, principalID)
+		if err != nil {
+			return principalInfo{}, err
+		}
+		if usr.State == user.Disabled {
+			return principalInfo{}, user.ErrDisabled
+		}
+		return principalInfo{
+			ID:    usr.ID,
+			Type:  schema.UserPrincipal,
+			Name:  usr.Title,
+			Email: usr.Email,
+		}, nil
+	// To support service users in the future, add:
+	// case schema.ServiceUserPrincipal:
+	//     su, err := s.serviceUserService.Get(ctx, principalID)
+	//     ...
+	default:
+		return principalInfo{}, ErrInvalidPrincipal
+	}
 }
 
 // orgRoleToRelation maps an org role to the corresponding SpiceDB relation name.
@@ -203,7 +394,36 @@ func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, 
 	return nil
 }
 
-func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, usr user.User, roleID string) {
+func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
+	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
+		Resource: auditrecord.Resource{
+			ID:   org.ID,
+			Type: pkgAuditRecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:   p.ID,
+			Type: pkgAuditRecord.UserType,
+			Name: p.Name,
+			Metadata: map[string]any{
+				"email":   p.Email,
+				"role_id": roleID,
+			},
+		},
+		OrgID:      org.ID,
+		OccurredAt: time.Now(),
+	})
+
+	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
+		ID:   p.ID,
+		Type: p.Type,
+	}, map[string]string{
+		"role_id": roleID,
+	})
+}
+
+func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
 	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
 		Resource: auditrecord.Resource{
@@ -212,11 +432,11 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 			Name: org.Title,
 		},
 		Target: &auditrecord.Target{
-			ID:   usr.ID,
+			ID:   p.ID,
 			Type: pkgAuditRecord.UserType,
-			Name: usr.Title,
+			Name: p.Name,
 			Metadata: map[string]any{
-				"email":   usr.Email,
+				"email":   p.Email,
 				"role_id": roleID,
 			},
 		},
@@ -225,8 +445,8 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 	})
 
 	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberCreatedEvent, audit.Target{
-		ID:   usr.ID,
-		Type: schema.UserPrincipal,
+		ID:   p.ID,
+		Type: p.Type,
 	}, map[string]string{
 		"role_id": roleID,
 	})
