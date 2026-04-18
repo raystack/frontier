@@ -128,7 +128,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		promexporter.WithRegisterer(promRegistry),
 		promexporter.WithoutScopeInfo())
 	if err != nil {
-		frontierlogger.Fatal(logger, err.Error())
+		return fmt.Errorf("prometheus exporter: %w", err)
 	}
 
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
@@ -138,8 +138,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		otelconnect.WithoutServerPeerAttributes(),
 	)
 	if err != nil {
-		frontierlogger.Fatal(logger, "OTEL ConnectRPC interceptor init error", "error", err)
-		return err
+		return fmt.Errorf("OTEL ConnectRPC interceptor: %w", err)
 	}
 
 	authNInterceptor := connectinterceptors.NewAuthenticationInterceptor(frontierService, cfg.Authentication.Session.Headers)
