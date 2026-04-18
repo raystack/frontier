@@ -13,7 +13,8 @@ import (
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/pkg/db"
 	mailerMock "github.com/raystack/frontier/pkg/mailer/mocks"
-	"github.com/raystack/salt/log"
+	"io"
+	"log/slog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -38,7 +39,7 @@ func newAlertMocks(t *testing.T) (
 func newAlertService(t *testing.T, cfg AlertConfig) (*AlertService, *mocks.AlertRepository, *mocks.AlertUserService, *mocks.AlertOrgService, *mailerMock.Dialer, *mocks.Locker, *mocks.AlertAuditRepository) {
 	t.Helper()
 	repo, userSvc, orgSvc, dialer, locker, auditRepo := newAlertMocks(t)
-	svc := NewAlertService(repo, userSvc, orgSvc, dialer, locker, cfg, log.NewNoop(), auditRepo)
+	svc := NewAlertService(repo, userSvc, orgSvc, dialer, locker, cfg, slog.New(slog.NewTextHandler(io.Discard, nil)), auditRepo)
 	return svc, repo, userSvc, orgSvc, dialer, locker, auditRepo
 }
 

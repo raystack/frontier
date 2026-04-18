@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -12,10 +13,10 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/zap"
 )
 
 func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
@@ -110,8 +111,7 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 				},
 			}
 
-			logger := zap.NewNop()
-			ctx := context.WithValue(context.Background(), "logger", logger)
+			ctx := frontierlogger.ToContext(context.Background(), slog.Default())
 			resp, err := handler.AuthToken(ctx, tt.request)
 
 			if tt.wantErr {

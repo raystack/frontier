@@ -11,8 +11,7 @@ import (
 
 	"github.com/raystack/frontier/core/organization"
 
-	"github.com/raystack/frontier/pkg/logger"
-	"go.uber.org/zap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/raystack/frontier/core/auditrecord/models"
@@ -120,7 +119,7 @@ func (s Service) getConfig(ctx context.Context) *Config {
 	defaults.SetDefaults(c)
 	prefs, err := s.prefService.LoadPlatformPreferences(ctx)
 	if err != nil {
-		logger.Ctx(ctx).Error("failed to load platform preferences for invitation", zap.Error(err))
+		frontierlogger.FromContext(ctx).Error("failed to load platform preferences for invitation", "error", err)
 		// don't fail
 	}
 	c.WithRoles = strings.EqualFold(prefs[preference.PlatformInviteWithRoles], "true")

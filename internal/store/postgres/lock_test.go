@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/ory/dockertest"
-	"github.com/raystack/salt/log"
+	"io"
+	"log/slog"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/raystack/frontier/pkg/db"
@@ -26,7 +27,7 @@ func TestLocks(t *testing.T) {
 func (s *LockTestSuite) SetupSuite() {
 	var err error
 
-	logger := log.NewZap()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s.client, s.pool, s.resource, err = newTestClient(logger)
 	if err != nil {
 		s.T().Fatal(err)

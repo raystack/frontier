@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -14,7 +13,10 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"log/slog"
+
 	"github.com/prometheus/client_golang/prometheus"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/salt/server/spa"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -34,8 +36,6 @@ import (
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1connect"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
-	"github.com/raystack/salt/log"
-	"go.uber.org/zap"
 )
 
 const (
@@ -56,7 +56,7 @@ type UIConfigApiResponse struct {
 	Terminology       TerminologyConfig         `json:"terminology"`
 }
 
-func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
+func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiServerConfig Config) {
 	isUIPortNotExits := uiConfig.Port == 0
 	if isUIPortNotExits {
 		logger.Warn("ui server disabled: no port specified")
@@ -111,15 +111,10 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 	}
 }
 
-func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
+func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
 	frontierService := v1beta1connect.NewConnectHandler(deps, cfg.Authentication)
 
 	sessionCookieCutter := getSessionCookieCutter(cfg.Authentication.Session.BlockSecretKey, cfg.Authentication.Session.HashSecretKey, logger)
-	zapLogger := zap.NewExample().Sugar()
-	loggerZap, ok := logger.(*log.Zap)
-	if ok {
-		zapLogger = loggerZap.GetInternalZapLogger()
-	}
 	loggerOpts := connectinterceptors.NewLoggerOptions(connectinterceptors.LoggerOption{
 		Decider: func(procedure string) bool {
 			return procedure != "/grpc.health.v1.Health/Check"
@@ -133,7 +128,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		promexporter.WithRegisterer(promRegistry),
 		promexporter.WithoutScopeInfo())
 	if err != nil {
-		logger.Fatal(err.Error())
+		frontierlogger.Fatal(logger, err.Error())
 	}
 
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
@@ -143,7 +138,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		otelconnect.WithoutServerPeerAttributes(),
 	)
 	if err != nil {
-		logger.Fatal("OTEL ConnectRPC interceptor init error: %v", err)
+		frontierlogger.Fatal(logger, "OTEL ConnectRPC interceptor init error", "error", err)
 		return err
 	}
 
@@ -156,7 +151,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 
 	interceptors := connect.WithInterceptors(
 		otelInterceptor,
-		connectinterceptors.UnaryConnectLoggerInterceptor(zapLogger.Desugar(), loggerOpts),
+		connectinterceptors.UnaryConnectLoggerInterceptor(logger, loggerOpts),
 		connectinterceptors.UnaryConnectErrorResponseInterceptor(),
 		sessionInterceptor,
 		authNInterceptor,
@@ -248,7 +243,7 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 		defer cancel()
 
 		if err := server.Shutdown(ctxShutdown); err != nil {
-			logger.Fatal("HTTP shutdown error: %v", err)
+			frontierlogger.Fatal(logger, "HTTP shutdown error", "error", err)
 		}
 
 		logger.Info("Graceful shutdown of connect server complete")
@@ -262,11 +257,11 @@ func ServeConnect(ctx context.Context, logger log.Logger, cfg Config, deps api.D
 	return nil
 }
 
-func getSessionCookieCutter(blockSecretKey string, hashSecretKey string, logger log.Logger) securecookie.Codec {
+func getSessionCookieCutter(blockSecretKey string, hashSecretKey string, logger *slog.Logger) securecookie.Codec {
 	var sessionCookieCutter securecookie.Codec
 	if len(hashSecretKey) != 32 || len(blockSecretKey) != 32 {
 		// hash and block keys should be 32 bytes long
-		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
+		logger.Warn("session management disabled", "reason", "authentication.session keys should be 32 chars long")
 	} else {
 		sessionCookieCutter = securecookie.New(
 			[]byte(hashSecretKey),

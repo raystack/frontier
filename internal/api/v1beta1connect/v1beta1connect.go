@@ -2,14 +2,13 @@ package v1beta1connect
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/api"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
-	"go.uber.org/zap"
 )
-
-const loggerContextKey = "logger"
 
 type ConnectHandler struct {
 	frontierv1beta1connect.UnimplementedAdminServiceHandler
@@ -162,9 +161,6 @@ func (h *ConnectHandler) GetOrgIDFromBillingAccountID(ctx context.Context, billi
 	return customer.OrgID, nil
 }
 
-func ExtractLogger(ctx context.Context) *zap.Logger {
-	if logger, ok := ctx.Value(loggerContextKey).(*zap.Logger); ok {
-		return logger
-	}
-	return nil
+func ExtractLogger(ctx context.Context) *slog.Logger {
+	return frontierlogger.FromContext(ctx)
 }

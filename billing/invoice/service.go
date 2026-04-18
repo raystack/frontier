@@ -21,11 +21,9 @@ import (
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
 
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
-
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stripe/stripe-go/v79/client"
@@ -112,7 +110,7 @@ func NewService(stripeClient *client.API, invoiceRepository Repository,
 }
 
 func (s *Service) Init(ctx context.Context) error {
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	if s.syncDelay != time.Duration(0) {
 		if s.syncJob != nil {
 			s.syncJob.Stop()
@@ -151,8 +149,8 @@ func (s *Service) Init(ctx context.Context) error {
 		s.creditOverdraftInvoiceCurrency = creditPrice.Currency
 		s.creditOverdraftUnitAmount = int64(float64(creditPrice.Amount) / float64(creditProduct.Config.CreditAmount))
 		logger.Info("credit overdraft product details",
-			zap.Int64("unit_amount", s.creditOverdraftUnitAmount),
-			zap.String("currency", s.creditOverdraftInvoiceCurrency))
+			"unit_amount", s.creditOverdraftUnitAmount,
+			"currency", s.creditOverdraftInvoiceCurrency)
 	}
 	return nil
 }
@@ -170,12 +168,12 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		record := metrics.BillingSyncLatency("invoice")
 		defer record()
 	}
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		Online: utils.Bool(true),
 	})
 	if err != nil {
-		logger.Error("invoice.backgroundSync", zap.Error(err))
+		logger.Error("invoice.backgroundSync", "error", err)
 		return
 	}
 	for _, customr := range customers {
@@ -188,20 +186,20 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customr); err != nil {
-			logger.Error("invoice.SyncWithProvider", zap.Error(err))
+			logger.Error("invoice.SyncWithProvider", "error", err)
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
 	if err := s.Reconcile(ctx); err != nil {
-		logger.Error("invoice.Reconcile", zap.Error(err))
+		logger.Error("invoice.Reconcile", "error", err)
 	}
 
 	if s.isCreditOverdraftDayOfInvoice() {
 		if err := s.GenerateForCredits(ctx); err != nil {
-			logger.Error("invoice.GenerateForCredits", zap.Error(err))
+			logger.Error("invoice.GenerateForCredits", "error", err)
 		}
 	}
-	logger.Info("invoice.backgroundSync finished", zap.Duration("duration", time.Since(start)))
+	logger.Info("invoice.backgroundSync finished", "duration", time.Since(start))
 }
 
 // TriggerCreditOverdraftInvoices is on-demand trigger for generating credit overdraft invoices
@@ -314,7 +312,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 // GetUpcoming returns the upcoming invoice for the customer based on the
 // active subscription plan. If no upcoming invoice is found, it returns empty.
 func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, error) {
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	custmr, err := s.customerService.GetByID(ctx, customerID)
 	if err != nil {
 		return Invoice{}, fmt.Errorf("failed to find customer: %w", err)
@@ -431,7 +429,7 @@ func (s *Service) DeleteByCustomer(ctx context.Context, c customer.Customer) err
 // reconcile the token balance once it's paid.
 func (s *Service) GenerateForCredits(ctx context.Context) error {
 	var errs []error
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	if s.creditOverdraftUnitAmount == 0 || s.creditOverdraftInvoiceCurrency == "" {
 		// do not process if credit overdraft details not set
 		return nil
@@ -449,7 +447,7 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 	defer func() {
 		unlockErr := lock.Unlock(ctx)
 		if unlockErr != nil {
-			logger.Error("failed to unlock", zap.Error(unlockErr), zap.String("key", GenerateForCreditLockKey))
+			logger.Error("failed to unlock", "error", unlockErr, "key", GenerateForCreditLockKey)
 		}
 	}()
 

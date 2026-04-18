@@ -13,20 +13,21 @@ import (
 
 	"github.com/raystack/frontier/core/invitation"
 
+	"log/slog"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/pkg/db"
-	"github.com/raystack/salt/log"
 )
 
 type InvitationRepository struct {
-	log log.Logger
+	log *slog.Logger
 	dbc *db.Client
 	Now func() time.Time
 }
 
-func NewInvitationRepository(logger log.Logger, dbc *db.Client) *InvitationRepository {
+func NewInvitationRepository(logger *slog.Logger, dbc *db.Client) *InvitationRepository {
 	return &InvitationRepository{
 		dbc: dbc,
 		log: logger,

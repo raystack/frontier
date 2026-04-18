@@ -7,7 +7,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/namespace"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -46,7 +45,7 @@ func (h *ConnectHandler) GetNamespace(ctx context.Context, request *connect.Requ
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetNamespace.Get", err,
-				zap.String("namespace_id", request.Msg.GetId()))
+				"namespace_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

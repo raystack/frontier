@@ -22,7 +22,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	pkgUtils "github.com/raystack/frontier/pkg/utils"
-	"github.com/raystack/salt/log"
+	"log/slog"
 	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
 )
@@ -53,7 +53,7 @@ type AuditRecordRepository interface {
 type Service struct {
 	repo                  Repository
 	config                Config
-	logger                log.Logger
+	logger                *slog.Logger
 	orgService            OrganizationService
 	roleService           RoleService
 	policyService         PolicyService
@@ -62,7 +62,7 @@ type Service struct {
 	deniedPerms           map[string]struct{}
 }
 
-func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService,
+func NewService(logger *slog.Logger, repo Repository, config Config, orgService OrganizationService,
 	roleService RoleService, policyService PolicyService, projectService ProjectService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repo:                  repo,

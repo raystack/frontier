@@ -26,9 +26,8 @@ import (
 	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/google/uuid"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/billing/subscription"
-	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
@@ -183,12 +182,12 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		defer record()
 	}
 
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		State: customer.ActiveState,
 	})
 	if err != nil {
-		logger.Error("checkout.backgroundSync", zap.Error(err))
+		logger.Error("checkout.backgroundSync", "error", err)
 		return
 	}
 
@@ -202,10 +201,10 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
-			logger.Error("checkout.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
+			logger.Error("checkout.SyncWithProvider", "error", err, "customer_id", customer.ID)
 		}
 	}
-	logger.Info("checkout.backgroundSync finished", zap.Duration("duration", time.Since(start)))
+	logger.Info("checkout.backgroundSync finished", "duration", time.Since(start))
 }
 
 func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {

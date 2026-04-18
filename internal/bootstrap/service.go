@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"go.uber.org/zap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/raystack/frontier/billing/plan"
 
@@ -205,10 +204,10 @@ func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermissio
 
 // MakeSuperUsers promote ordinary users to superuser
 func (s Service) MakeSuperUsers(ctx context.Context) error {
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	for _, userID := range s.adminConfig.Users {
 		userID = strings.TrimSpace(userID)
-		logger.Debug("promoting user to superuser", zap.String("user_id", userID))
+		logger.Debug("promoting user to superuser", "user_id", userID)
 		if err := s.userService.Sudo(ctx, userID, schema.AdminRelationName); err != nil {
 			return err
 		}

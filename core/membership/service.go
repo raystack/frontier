@@ -17,7 +17,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/raystack/salt/log"
+	"log/slog"
 )
 
 type PolicyService interface {
@@ -48,7 +48,7 @@ type AuditRecordRepository interface {
 }
 
 type Service struct {
-	log                   log.Logger
+	log                   *slog.Logger
 	policyService         PolicyService
 	relationService       RelationService
 	roleService           RoleService
@@ -58,7 +58,7 @@ type Service struct {
 }
 
 func NewService(
-	logger log.Logger,
+	logger *slog.Logger,
 	policyService PolicyService,
 	relationService RelationService,
 	roleService RoleService,

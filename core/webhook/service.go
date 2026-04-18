@@ -9,9 +9,8 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -90,10 +89,10 @@ func (s Service) ListEndpoints(ctx context.Context, filter EndpointFilter) ([]En
 }
 
 func (s Service) Publish(ctx context.Context, evt Event) error {
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	data, err := structpb.NewStruct(evt.Data)
 	if err != nil {
-		logger.Error("failed to convert data to structpb", zap.Error(err))
+		logger.Error("failed to convert data to structpb", "error", err)
 		return fmt.Errorf("failed to convert data to structpb: %w", err)
 	}
 	event := &frontierv1beta1.WebhookEvent{
@@ -105,7 +104,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 
 	payload, err := protojson.Marshal(event)
 	if err != nil {
-		logger.Error("failed to marshal event", zap.Error(err))
+		logger.Error("failed to marshal event", "error", err)
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
@@ -117,7 +116,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 			State: Enabled,
 		})
 		if err != nil {
-			logger.Error("failed to list endpoints", zap.Error(err))
+			logger.Error("failed to list endpoints", "error", err)
 			return
 		}
 		var errs []error
@@ -151,7 +150,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 			}
 		}
 		if len(errs) > 0 {
-			logger.Error("failed to send events", zap.Errors("errs", errs))
+			logger.Error("failed to send events", "errs", errs)
 		}
 	}()
 	return nil

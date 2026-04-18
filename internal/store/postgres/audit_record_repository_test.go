@@ -18,7 +18,8 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/raystack/salt/log"
+	"io"
+	"log/slog"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/suite"
 )
@@ -41,7 +42,7 @@ type AuditRecordRepositoryTestSuite struct {
 func (s *AuditRecordRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := log.NewZap()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s.client, s.pool, s.resource, err = newTestClient(logger)
 	if err != nil {
 		s.T().Fatal(err)

@@ -2,68 +2,54 @@ package logger
 
 import (
 	"context"
+	"log/slog"
 	"os"
-
-	"github.com/raystack/frontier/pkg/server/consts"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-
-	"github.com/raystack/salt/log"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-func InitLogger(cfg Config) *log.Zap {
-	zapCfg := zap.NewProductionConfig()
-	zapCfg.Level = zap.NewAtomicLevelAt(atomicLevel(cfg.Level))
-	zapCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	zapCfg.DisableCaller = true
-	zapCfg.DisableStacktrace = true
-	consoleEncoder := zapcore.NewConsoleEncoder(zapCfg.EncoderConfig)
+type ctxKey struct{}
 
-	opt := log.ZapWithConfig(zapCfg, zap.WrapCore(func(c zapcore.Core) zapcore.Core {
-		return zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), zapCfg.Level)
-	}))
+func InitLogger(cfg Config) *slog.Logger {
+	level := parseLevel(cfg.Level)
+	opts := &slog.HandlerOptions{Level: level}
 
-	logger := log.NewZap(opt)
-	return logger
-}
-
-func Ctx(ctx context.Context) *zap.Logger {
-	return grpczap.Extract(ctx)
-}
-
-func atomicLevel(level string) zapcore.Level {
-	switch level {
-	case "info":
-		return zap.InfoLevel
-	case "debug":
-		return zap.DebugLevel
-	case "warn":
-		return zap.WarnLevel
-	case "error":
-		return zap.ErrorLevel
-	case "fatal":
-		return zap.FatalLevel
+	var handler slog.Handler
+	switch cfg.Format {
+	case "plain", "text":
+		handler = slog.NewTextHandler(os.Stdout, opts)
 	default:
-		return zap.InfoLevel
+		handler = slog.NewJSONHandler(os.Stdout, opts)
 	}
+	return slog.New(handler)
 }
 
-func RequestLogFunc(ctx context.Context, msg string, level zapcore.Level, code codes.Code, err error, duration zapcore.Field) {
-	requestID := ""
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if values := md.Get(consts.RequestIDHeader); len(values) > 0 && values[0] != "" {
-			requestID = values[0]
-		}
+// ToContext stores a logger in the context.
+func ToContext(ctx context.Context, logger *slog.Logger) context.Context {
+	return context.WithValue(ctx, ctxKey{}, logger)
+}
+
+// FromContext retrieves the logger from context, falling back to slog.Default().
+func FromContext(ctx context.Context) *slog.Logger {
+	if l, ok := ctx.Value(ctxKey{}).(*slog.Logger); ok {
+		return l
 	}
-	// re-extract logger from newCtx, as it may have extra fields that changed in the holder.
-	grpczap.Extract(ctx).Check(level, msg).Write(
-		zap.Error(err),
-		zap.String("grpc.code", code.String()),
-		zap.String(consts.RequestIDHeader, requestID),
-		duration,
-	)
+	return slog.Default()
+}
+
+// Fatal logs at error level and exits.
+func Fatal(logger *slog.Logger, msg string, args ...any) {
+	logger.Error(msg, args...)
+	os.Exit(1)
+}
+
+func parseLevel(level string) slog.Level {
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "warn", "warning":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }

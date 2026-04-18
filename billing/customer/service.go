@@ -15,8 +15,7 @@ import (
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"go.uber.org/zap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"golang.org/x/exp/slices"
 
 	"github.com/raystack/frontier/pkg/metadata"
@@ -390,12 +389,12 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		record := metrics.BillingSyncLatency("customer")
 		defer record()
 	}
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	customers, err := s.List(ctx, Filter{
 		State: ActiveState,
 	})
 	if err != nil {
-		logger.Error("customer.backgroundSync", zap.Error(err))
+		logger.Error("customer.backgroundSync", "error", err)
 		return
 	}
 
@@ -409,11 +408,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
-			logger.Error("customer.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
+			logger.Error("customer.SyncWithProvider", "error", err, "customer_id", customer.ID)
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
-	logger.Info("customer.backgroundSync finished", zap.Duration("duration", time.Since(start)))
+	logger.Info("customer.backgroundSync finished", "duration", time.Since(start))
 }
 
 // SyncWithProvider syncs the customer state with the billing provider

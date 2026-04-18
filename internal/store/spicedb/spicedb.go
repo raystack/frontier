@@ -11,7 +11,8 @@ import (
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
 
-	"github.com/raystack/salt/log"
+	"log/slog"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -31,7 +32,7 @@ func (s *SpiceDB) Check() error {
 	return nil
 }
 
-func New(config Config, logger log.Logger, clientMetrics *prometheus.ClientMetrics) (*SpiceDB, error) {
+func New(config Config, logger *slog.Logger, clientMetrics *prometheus.ClientMetrics) (*SpiceDB, error) {
 	endpoint := net.JoinHostPort(config.Host, config.Port)
 	client, err := authzed.NewClientWithExperimentalAPIs(
 		endpoint,

@@ -15,8 +15,6 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -47,8 +45,8 @@ func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListServiceUsers", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("state", request.Msg.GetState()))
+			"org_id", request.Msg.GetOrgId(),
+			"state", request.Msg.GetState())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -96,14 +94,14 @@ func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Re
 	svUser, err := h.serviceUserService.Get(ctx, serviceUserID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetServiceUser", err,
-			zap.String("service_user_id", serviceUserID))
+			"service_user_id", serviceUserID)
 
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetServiceUser", err,
-				zap.String("service_user_id", serviceUserID))
+				"service_user_id", serviceUserID)
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
@@ -149,8 +147,8 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateServiceUser", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("title", request.Msg.GetBody().GetTitle()))
+			"org_id", request.Msg.GetOrgId(),
+			"title", request.Msg.GetBody().GetTitle())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -178,16 +176,16 @@ func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect
 	err := h.serviceUserService.Delete(ctx, serviceUserID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteServiceUser", err,
-			zap.String("service_user_id", serviceUserID),
-			zap.String("org_id", orgID))
+			"service_user_id", serviceUserID,
+			"org_id", orgID)
 
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteServiceUser", err,
-				zap.String("service_user_id", serviceUserID),
-				zap.String("org_id", orgID))
+				"service_user_id", serviceUserID,
+				"org_id", orgID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -209,16 +207,16 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateServiceUserJWK", err,
-			zap.String("service_user_id", serviceUserID),
-			zap.String("title", title))
+			"service_user_id", serviceUserID,
+			"title", title)
 
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateServiceUserJWK", err,
-				zap.String("service_user_id", serviceUserID),
-				zap.String("title", title))
+				"service_user_id", serviceUserID,
+				"title", title)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -242,14 +240,14 @@ func (h *ConnectHandler) ListServiceUserJWKs(ctx context.Context, request *conne
 	credList, err := h.serviceUserService.ListKeys(ctx, serviceUserID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListServiceUserJWKs", err,
-			zap.String("service_user_id", serviceUserID))
+			"service_user_id", serviceUserID)
 
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "ListServiceUserJWKs", err,
-				zap.String("service_user_id", serviceUserID))
+				"service_user_id", serviceUserID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -258,8 +256,8 @@ func (h *ConnectHandler) ListServiceUserJWKs(ctx context.Context, request *conne
 		jwkJson, err := json.Marshal(svCred.PublicKey)
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "ListServiceUserJWKs.MarshalPublicKey", err,
-				zap.String("service_user_id", serviceUserID),
-				zap.String("credential_id", svCred.ID))
+				"service_user_id", serviceUserID,
+				"credential_id", svCred.ID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		keys = append(keys, &frontierv1beta1.ServiceUserJWK{
@@ -282,14 +280,14 @@ func (h *ConnectHandler) GetServiceUserJWK(ctx context.Context, request *connect
 	svCred, err := h.serviceUserService.GetKey(ctx, keyID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetServiceUserJWK", err,
-			zap.String("key_id", keyID))
+			"key_id", keyID)
 
 		switch {
 		case err == serviceuser.ErrCredNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetServiceUserJWK", err,
-				zap.String("key_id", keyID))
+				"key_id", keyID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -297,8 +295,8 @@ func (h *ConnectHandler) GetServiceUserJWK(ctx context.Context, request *connect
 	jwks, err := toJSONWebKey(svCred.PublicKey)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetServiceUserJWK.ToJSONWebKey", err,
-			zap.String("key_id", keyID),
-			zap.String("credential_id", svCred.ID))
+			"key_id", keyID,
+			"credential_id", svCred.ID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.GetServiceUserJWKResponse{
@@ -313,14 +311,14 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 	err := h.serviceUserService.DeleteKey(ctx, keyID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteServiceUserJWK", err,
-			zap.String("key_id", keyID))
+			"key_id", keyID)
 
 		switch {
 		case err == serviceuser.ErrCredNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteServiceUserJWK", err,
-				zap.String("key_id", keyID))
+				"key_id", keyID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -339,8 +337,8 @@ func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, reques
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateServiceUserCredential", err,
-			zap.String("service_user_id", serviceUserID),
-			zap.String("title", title))
+			"service_user_id", serviceUserID,
+			"title", title)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -361,7 +359,7 @@ func (h *ConnectHandler) ListServiceUserCredentials(ctx context.Context, request
 	credentials, err := h.serviceUserService.ListSecret(ctx, serviceUserID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListServiceUserCredentials", err,
-			zap.String("service_user_id", serviceUserID))
+			"service_user_id", serviceUserID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	secretsPB := make([]*frontierv1beta1.SecretCredential, 0, len(credentials))
@@ -384,7 +382,7 @@ func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, reques
 	err := h.serviceUserService.DeleteSecret(ctx, secretID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteServiceUserCredential", err,
-			zap.String("secret_id", secretID))
+			"secret_id", secretID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}), nil
@@ -401,8 +399,8 @@ func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *co
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateServiceUserToken", err,
-			zap.String("service_user_id", serviceUserID),
-			zap.String("title", title))
+			"service_user_id", serviceUserID,
+			"title", title)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateServiceUserTokenResponse{
@@ -422,7 +420,7 @@ func (h *ConnectHandler) ListServiceUserTokens(ctx context.Context, request *con
 	credentials, err := h.serviceUserService.ListToken(ctx, serviceUserID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListServiceUserTokens", err,
-			zap.String("service_user_id", serviceUserID))
+			"service_user_id", serviceUserID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	secretsPB := make([]*frontierv1beta1.ServiceUserToken, 0, len(credentials))
@@ -445,7 +443,7 @@ func (h *ConnectHandler) DeleteServiceUserToken(ctx context.Context, request *co
 	err := h.serviceUserService.DeleteToken(ctx, tokenID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteServiceUserToken", err,
-			zap.String("token_id", tokenID))
+			"token_id", tokenID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserTokenResponse{}), nil
@@ -463,8 +461,8 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListServiceUserProjects", err,
-			zap.String("service_user_id", serviceUserID),
-			zap.String("org_id", orgID))
+			"service_user_id", serviceUserID,
+			"org_id", orgID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -486,9 +484,9 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions())
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "ListServiceUserProjects.FetchAccessPairs", err,
-				zap.String("service_user_id", serviceUserID),
-				zap.String("org_id", orgID),
-				zap.Strings("with_permissions", request.Msg.GetWithPermissions()))
+				"service_user_id", serviceUserID,
+				"org_id", orgID,
+				"with_permissions", request.Msg.GetWithPermissions())
 			return nil, err
 		}
 		for _, successCheck := range successCheckPairs {

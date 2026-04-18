@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/salt/log"
+	"log/slog"
 
 	"github.com/pkg/errors"
 
@@ -48,11 +48,11 @@ var defaultMetaSchemas = map[string]string{
 }
 
 type MetaSchemaRepository struct {
-	log log.Logger
+	log *slog.Logger
 	dbc *db.Client
 }
 
-func NewMetaSchemaRepository(logger log.Logger, dbc *db.Client) *MetaSchemaRepository {
+func NewMetaSchemaRepository(logger *slog.Logger, dbc *db.Client) *MetaSchemaRepository {
 	return &MetaSchemaRepository{
 		log: logger,
 		dbc: dbc,

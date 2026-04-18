@@ -12,7 +12,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -44,18 +43,18 @@ func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *conn
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateProspectPublic", err,
-			zap.String("email", strings.ToLower(email)),
-			zap.String("activity", activity),
-			zap.String("source", request.Msg.GetSource()))
+			"email", strings.ToLower(email),
+			"activity", activity,
+			"source", request.Msg.GetSource())
 
 		switch {
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return connect.NewResponse(&frontierv1beta1.CreateProspectPublicResponse{}), nil
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateProspectPublic", err,
-				zap.String("email", strings.ToLower(email)),
-				zap.String("activity", activity),
-				zap.String("source", request.Msg.GetSource()))
+				"email", strings.ToLower(email),
+				"activity", activity,
+				"source", request.Msg.GetSource())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -95,20 +94,20 @@ func (h *ConnectHandler) CreateProspect(ctx context.Context, request *connect.Re
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateProspect", err,
-			zap.String("email", strings.ToLower(email)),
-			zap.String("activity", activity),
-			zap.String("status", subsStatus),
-			zap.String("source", request.Msg.GetSource()))
+			"email", strings.ToLower(email),
+			"activity", activity,
+			"status", subsStatus,
+			"source", request.Msg.GetSource())
 
 		switch {
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateProspect", err,
-				zap.String("email", strings.ToLower(email)),
-				zap.String("activity", activity),
-				zap.String("status", subsStatus),
-				zap.String("source", request.Msg.GetSource()))
+				"email", strings.ToLower(email),
+				"activity", activity,
+				"status", subsStatus,
+				"source", request.Msg.GetSource())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -187,14 +186,14 @@ func (h *ConnectHandler) GetProspect(ctx context.Context, request *connect.Reque
 	prspct, err := h.prospectService.Get(ctx, prospectId)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetProspect", err,
-			zap.String("prospect_id", prospectId))
+			"prospect_id", prospectId)
 
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetProspect", err,
-				zap.String("prospect_id", prospectId))
+				"prospect_id", prospectId)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -243,11 +242,11 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateProspect", err,
-			zap.String("prospect_id", prospectId),
-			zap.String("email", strings.ToLower(email)),
-			zap.String("activity", activity),
-			zap.String("status", subsStatus),
-			zap.String("source", request.Msg.GetSource()))
+			"prospect_id", prospectId,
+			"email", strings.ToLower(email),
+			"activity", activity,
+			"status", subsStatus,
+			"source", request.Msg.GetSource())
 
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
@@ -256,11 +255,11 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrConflictRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "UpdateProspect", err,
-				zap.String("prospect_id", prospectId),
-				zap.String("email", strings.ToLower(email)),
-				zap.String("activity", activity),
-				zap.String("status", subsStatus),
-				zap.String("source", request.Msg.GetSource()))
+				"prospect_id", prospectId,
+				"email", strings.ToLower(email),
+				"activity", activity,
+				"status", subsStatus,
+				"source", request.Msg.GetSource())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -282,14 +281,14 @@ func (h *ConnectHandler) DeleteProspect(ctx context.Context, request *connect.Re
 	err := h.prospectService.Delete(ctx, prospectId)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteProspect", err,
-			zap.String("prospect_id", prospectId))
+			"prospect_id", prospectId)
 
 		switch {
 		case errors.Is(err, prospect.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteProspect", err,
-				zap.String("prospect_id", prospectId))
+				"prospect_id", prospectId)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

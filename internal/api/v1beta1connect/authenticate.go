@@ -16,12 +16,10 @@ import (
 	"github.com/raystack/frontier/core/user"
 	patErrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/server/consts"
 	sessionutils "github.com/raystack/frontier/pkg/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-
-	"github.com/raystack/frontier/pkg/errors"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -61,8 +59,8 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
-			zap.String("strategy", request.Msg.GetStrategyName()),
-			zap.String("email", request.Msg.GetEmail()))
+			"strategy", request.Msg.GetStrategyName(),
+			"email", request.Msg.GetEmail())
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -80,13 +78,13 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		userCredentils := &structpb.Value{}
 		if err = userCredentils.UnmarshalJSON(response.StateConfig["options"].([]byte)); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
-				zap.String("strategy", authenticate.PassKeyAuthMethod.String()))
+				"strategy", authenticate.PassKeyAuthMethod.String())
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		typeValue, ok := response.Flow.Metadata["passkey_type"].(string)
 		if !ok {
 			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
-				zap.String("strategy", authenticate.PassKeyAuthMethod.String()))
+				"strategy", authenticate.PassKeyAuthMethod.String())
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 		stringValue := &structpb.Value{
@@ -121,13 +119,13 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	if err != nil {
 		if errors.Is(err, authenticate.ErrInvalidMailOTP) || errors.Is(err, authenticate.ErrMissingOIDCCode) || errors.Is(err, authenticate.ErrInvalidOIDCState) || errors.Is(err, authenticate.ErrFlowInvalid) {
 			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
-				zap.String("strategy", request.Msg.GetStrategyName()),
-				zap.String("state", request.Msg.GetState()))
+				"strategy", request.Msg.GetStrategyName(),
+				"state", request.Msg.GetState())
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
-			zap.String("strategy", request.Msg.GetStrategyName()),
-			zap.String("state", request.Msg.GetState()))
+			"strategy", request.Msg.GetStrategyName(),
+			"state", request.Msg.GetState())
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -138,7 +136,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	session, err := h.sessionService.Create(ctx, response.User.ID, sessionMetadata)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
-			zap.String("user_id", response.User.ID))
+			"user_id", response.User.ID)
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	// create response and set headers
@@ -185,7 +183,7 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		authenticate.JWTGrantClientAssertion)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
-			zap.String("grant_type", request.Msg.GetGrantType()))
+			"grant_type", request.Msg.GetGrantType())
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -194,8 +192,8 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		_, err := h.orgService.Get(ctx, orgId)
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
-				zap.String("org_id", orgId),
-				zap.String("service_user_id", principal.ServiceUser.ID))
+				"org_id", orgId,
+				"service_user_id", principal.ServiceUser.ID)
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
@@ -203,8 +201,8 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 	token, err := h.getAccessToken(ctx, principal, request.Header().Values(consts.ProjectRequestKey), request)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type))
+			"principal_id", principal.ID,
+			"principal_type", principal.Type)
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -241,7 +239,7 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 		if sessionID, err := h.getLoggedInSessionID(ctx); err == nil {
 			customClaims[token.SessionIDClaimKey] = sessionID.String()
 		} else {
-			errorLogger.LogUnexpectedError(ctx, request, "getAccessToken", err, zap.String("principal", principal.ID))
+			errorLogger.LogUnexpectedError(ctx, request, "getAccessToken", err, "principal", principal.ID)
 		}
 	}
 
@@ -250,7 +248,7 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 		// check if project exists and user has access to it
 		proj, err := h.projectService.Get(ctx, projectKey[0])
 		if err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "getAccessToken", err, zap.String("project", projectKey[0]))
+			errorLogger.LogUnexpectedError(ctx, request, "getAccessToken", err, "project", projectKey[0])
 		} else {
 			if err := h.IsAuthorized(ctx, relation.Object{
 				Namespace: schema.ProjectNamespace,
@@ -258,7 +256,7 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 			}, schema.GetPermission, request); err == nil {
 				customClaims["project_id"] = proj.ID
 			} else {
-				errorLogger.LogUnexpectedError(ctx, request, "getAccessToken", err, zap.String("project", proj.ID), zap.String("principal", principal.ID))
+				errorLogger.LogUnexpectedError(ctx, request, "getAccessToken", err, "project", proj.ID, "principal", principal.ID)
 			}
 		}
 	}
@@ -275,7 +273,7 @@ func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Reques
 	if err == nil {
 		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "AuthLogout", err,
-				zap.String("session_id", sessionID.String()))
+				"session_id", sessionID.String())
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}

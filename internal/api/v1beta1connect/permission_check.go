@@ -12,7 +12,6 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 )
 
 func logAuditForCheck(ctx context.Context, result bool, objectID string, objectNamespace string) {
@@ -79,11 +78,11 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "CheckFederatedResourcePermission", err,
-			zap.String("object_id", objectID),
-			zap.String("object_namespace", objectNamespace),
-			zap.String("subject_id", principalID),
-			zap.String("subject_namespace", principalNamespace),
-			zap.String("permission", permissionName))
+			"object_id", objectID,
+			"object_namespace", objectNamespace,
+			"subject_id", principalID,
+			"subject_namespace", principalNamespace,
+			"permission", permissionName)
 		return nil, handleAuthErr(err)
 	}
 
@@ -146,9 +145,9 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "CheckResourcePermission", err,
-			zap.String("object_id", objectID),
-			zap.String("object_namespace", objectNamespace),
-			zap.String("permission", permissionName))
+			"object_id", objectID,
+			"object_namespace", objectNamespace,
+			"permission", permissionName)
 		return nil, handleAuthErr(err)
 	}
 
@@ -184,7 +183,7 @@ func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.
 	result, err := h.resourceService.BatchCheck(ctx, checks)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "BatchCheckPermission", err,
-			zap.Int("batch_size", len(checks)))
+			"batch_size", len(checks))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

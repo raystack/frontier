@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
@@ -18,13 +18,13 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -43,8 +43,8 @@ func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Requ
 	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListAllUsers", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("group_id", request.Msg.GetGroupId()))
+			"org_id", request.Msg.GetOrgId(),
+			"group_id", request.Msg.GetGroupId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -95,7 +95,7 @@ func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *conne
 }
 
 func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Request[frontierv1beta1.CreateUserRequest]) (*connect.Response[frontierv1beta1.CreateUserResponse], error) {
-	logger := grpczap.Extract(ctx)
+	logger := frontierlogger.FromContext(ctx)
 	errorLogger := NewErrorLogger()
 
 	if request.Msg.GetBody() == nil {
@@ -136,8 +136,8 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateUser", err,
-			zap.String("email", email),
-			zap.String("name", name))
+			"email", email,
+			"name", name)
 
 		switch {
 		case errors.Is(err, user.ErrConflict):
@@ -146,8 +146,8 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateUser", err,
-				zap.String("user_email", email),
-				zap.String("user_name", name))
+				"user_email", email,
+				"user_name", name)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -173,14 +173,14 @@ func (h *ConnectHandler) GetUser(ctx context.Context, request *connect.Request[f
 	fetchedUser, err := h.userService.GetByID(ctx, userID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetUser", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetUser", err,
-				zap.String("user_id", userID))
+				"user_id", userID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -263,7 +263,7 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 				return connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: createUserResponse.Msg.GetUser()}), nil
 			} else {
 				errorLogger.LogServiceError(ctx, request, "UpdateUser.GetByEmail", err,
-					zap.String("lookup_email", id))
+					"lookup_email", id)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 		}
@@ -284,8 +284,8 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateUser", err,
-			zap.String("user_id", id),
-			zap.String("email", email))
+			"user_id", id,
+			"email", email)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
@@ -296,8 +296,8 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "UpdateUser", err,
-				zap.String("user_id", id),
-				zap.String("user_email", email))
+				"user_id", id,
+				"user_email", email)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -353,8 +353,8 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateCurrentUser.Update", err,
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type))
+			"principal_id", principal.ID,
+			"principal_type", principal.Type)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist):
@@ -363,8 +363,8 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "UpdateCurrentUser", err,
-				zap.String("principal_id", principal.ID),
-				zap.String("principal_type", principal.Type))
+				"principal_id", principal.ID,
+				"principal_type", principal.Type)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -390,7 +390,7 @@ func (h *ConnectHandler) EnableUser(ctx context.Context, request *connect.Reques
 
 	if err := h.userService.Enable(ctx, userID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "EnableUser", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist):
@@ -399,7 +399,7 @@ func (h *ConnectHandler) EnableUser(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "EnableUser", err,
-				zap.String("user_id", userID))
+				"user_id", userID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -412,7 +412,7 @@ func (h *ConnectHandler) DisableUser(ctx context.Context, request *connect.Reque
 
 	if err := h.userService.Disable(ctx, userID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DisableUser.Disable", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist):
@@ -421,7 +421,7 @@ func (h *ConnectHandler) DisableUser(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DisableUser", err,
-				zap.String("user_id", userID))
+				"user_id", userID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -434,7 +434,7 @@ func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Reques
 
 	if err := h.deleterService.DeleteUser(ctx, userID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteUser", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist):
@@ -443,7 +443,7 @@ func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteUser", err,
-				zap.String("user_id", userID))
+				"user_id", userID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -461,16 +461,16 @@ func (h *ConnectHandler) ListUserGroups(ctx context.Context, request *connect.Re
 	}, group.Filter{OrganizationID: request.Msg.GetOrgId()})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListUserGroups.ListByUser", err,
-			zap.String("user_id", request.Msg.GetId()),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"user_id", request.Msg.GetId(),
+			"org_id", request.Msg.GetOrgId())
 
 		switch {
 		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "ListUserGroups", err,
-				zap.String("user_id", request.Msg.GetId()),
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"user_id", request.Msg.GetId(),
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -508,17 +508,17 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 	)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListCurrentUserGroups.ListByUser", err,
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"principal_id", principal.ID,
+			"principal_type", principal.Type,
+			"org_id", request.Msg.GetOrgId())
 
 		switch {
 		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "ListCurrentUserGroups", err,
-				zap.String("principal_id", principal.ID),
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"principal_id", principal.ID,
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -540,8 +540,8 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.GroupNamespace, resourceIds, request.Msg.GetWithPermissions())
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "ListCurrentUserGroups", err,
-				zap.String("principal_id", principal.ID),
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"principal_id", principal.ID,
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		for _, successCheck := range successCheckPairs {
@@ -582,8 +582,8 @@ func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request
 	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListUsers", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("group_id", request.Msg.GetGroupId()))
+			"org_id", request.Msg.GetOrgId(),
+			"group_id", request.Msg.GetGroupId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -712,7 +712,7 @@ func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *c
 	}, orgFilter)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByUser", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -730,14 +730,14 @@ func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *c
 	userData, err := h.userService.GetByID(ctx, userID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationsByUser.GetByID", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByUser", err,
-				zap.String("user_id", userID))
+				"user_id", userID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -745,8 +745,8 @@ func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *c
 	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, userData.Email)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByUser", err,
-			zap.String("user_id", userID),
-			zap.String("user_email", userData.Email))
+			"user_id", userID,
+			"user_email", userData.Email)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -755,8 +755,8 @@ func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *c
 		org, err := h.orgService.Get(ctx, joinableOrg)
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByUser", err,
-				zap.String("user_id", userID),
-				zap.String("joinable_org_id", joinableOrg))
+				"user_id", userID,
+				"joinable_org_id", joinableOrg)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		orgPB, err := transformOrgToPB(org)
@@ -789,8 +789,8 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 	orgList, err := h.orgService.ListByUser(ctx, principal, orgFilter)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type))
+			"principal_id", principal.ID,
+			"principal_type", principal.Type)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -810,9 +810,9 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 		joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-				zap.String("principal_id", principal.ID),
-				zap.String("principal_type", principal.Type),
-				zap.String("user_email", principal.User.Email))
+				"principal_id", principal.ID,
+				"principal_type", principal.Type,
+				"user_email", principal.User.Email)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 
@@ -820,9 +820,9 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 			org, err := h.orgService.Get(ctx, joinableOrg)
 			if err != nil {
 				errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-					zap.String("principal_id", principal.ID),
-					zap.String("principal_type", principal.Type),
-					zap.String("joinable_org_id", joinableOrg))
+					"principal_id", principal.ID,
+					"principal_type", principal.Type,
+					"joinable_org_id", joinableOrg)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 			orgPB, err := transformOrgToPB(org)
@@ -849,7 +849,7 @@ func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connec
 	}, project.Filter{})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectsByUser.ListByUser", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist):
@@ -858,7 +858,7 @@ func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "ListProjectsByUser", err,
-				zap.String("user_id", userID))
+				"user_id", userID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -895,9 +895,9 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListProjectsByCurrentUser", err,
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"principal_id", principal.ID,
+			"principal_type", principal.Type,
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -919,9 +919,9 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions())
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "ListProjectsByCurrentUser", err,
-				zap.String("principal_id", principal.ID),
-				zap.String("principal_type", principal.Type),
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"principal_id", principal.ID,
+				"principal_type", principal.Type,
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		for _, successCheck := range successCheckPairs {

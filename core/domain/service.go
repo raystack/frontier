@@ -12,7 +12,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/salt/log"
+	"log/slog"
 
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/user"
@@ -35,7 +35,7 @@ type Service struct {
 	userService UserService
 	orgService  OrgService
 	cron        *cron.Cron
-	log         log.Logger
+	log         *slog.Logger
 }
 
 const (
@@ -45,7 +45,7 @@ const (
 	refreshTime        = "0 0 * * *"        // Once a day at midnight (UTC)
 )
 
-func NewService(logger log.Logger, repository Repository, userService UserService, orgService OrgService) *Service {
+func NewService(logger *slog.Logger, repository Repository, userService UserService, orgService OrgService) *Service {
 	return &Service{
 		repository:  repository,
 		userService: userService,

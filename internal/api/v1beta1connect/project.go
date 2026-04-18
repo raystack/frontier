@@ -15,8 +15,6 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
-	"go.uber.org/zap"
-
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -31,8 +29,8 @@ func (h *ConnectHandler) ListProjects(ctx context.Context, request *connect.Requ
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjects", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("state", request.Msg.GetState()))
+			"org_id", request.Msg.GetOrgId(),
+			"state", request.Msg.GetState())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -68,8 +66,8 @@ func (h *ConnectHandler) CreateProject(ctx context.Context, request *connect.Req
 	newProject, err := h.projectService.Create(ctx, prj)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateProject", err,
-			zap.String("project_name", request.Msg.GetBody().GetName()),
-			zap.String("org_id", request.Msg.GetBody().GetOrgId()))
+			"project_name", request.Msg.GetBody().GetName(),
+			"org_id", request.Msg.GetBody().GetOrgId())
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -89,7 +87,7 @@ func (h *ConnectHandler) GetProject(ctx context.Context, request *connect.Reques
 	fetchedProject, err := h.projectService.Get(ctx, projectID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetProject", err,
-			zap.String("project_id", projectID))
+			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -121,9 +119,9 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateProject", err,
-			zap.String("project_id", request.Msg.GetId()),
-			zap.String("project_name", request.Msg.GetBody().GetName()),
-			zap.String("org_id", request.Msg.GetBody().GetOrgId()))
+			"project_id", request.Msg.GetId(),
+			"project_name", request.Msg.GetBody().GetName(),
+			"org_id", request.Msg.GetBody().GetOrgId())
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -144,7 +142,7 @@ func (h *ConnectHandler) ListProjectAdmins(ctx context.Context, request *connect
 	users, err := h.projectService.ListUsers(ctx, projectID, project.AdminPermission)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins", err,
-			zap.String("project_id", projectID))
+			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -174,8 +172,8 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 	users, err := h.projectService.ListUsers(ctx, projectID, permissionFilter)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectUsers", err,
-			zap.String("project_id", projectID),
-			zap.String("permission_filter", permissionFilter))
+			"project_id", projectID,
+			"permission_filter", permissionFilter)
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -196,8 +194,8 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.ProjectNamespace, projectID)
 			if err != nil {
 				errorLogger.LogServiceError(ctx, request, "ListProjectUsers.ListRoles", err,
-					zap.String("project_id", projectID),
-					zap.String("user_id", user.ID))
+					"project_id", projectID,
+					"user_id", user.ID)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 
@@ -231,7 +229,7 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	users, err := h.projectService.ListServiceUsers(ctx, projectID, project.MemberPermission)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers", err,
-			zap.String("project_id", projectID))
+			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -252,8 +250,8 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 			roles, err := h.policyService.ListRoles(ctx, schema.ServiceUserPrincipal, user.ID, schema.ProjectNamespace, projectID)
 			if err != nil {
 				errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.ListRoles", err,
-					zap.String("project_id", projectID),
-					zap.String("service_user_id", user.ID))
+					"project_id", projectID,
+					"service_user_id", user.ID)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 
@@ -287,7 +285,7 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 	groups, err := h.projectService.ListGroups(ctx, projectID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectGroups", err,
-			zap.String("project_id", projectID))
+			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -309,8 +307,8 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 				schema.ProjectNamespace, projectID)
 			if err != nil {
 				errorLogger.LogServiceError(ctx, request, "ListProjectGroups.ListRoles", err,
-					zap.String("project_id", projectID),
-					zap.String("group_id", group.ID))
+					"project_id", projectID,
+					"group_id", group.ID)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 
@@ -344,7 +342,7 @@ func (h *ConnectHandler) EnableProject(ctx context.Context, request *connect.Req
 
 	if err := h.projectService.Enable(ctx, projectID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "EnableProject", err,
-			zap.String("project_id", projectID))
+			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
 	}
 	return connect.NewResponse(&frontierv1beta1.EnableProjectResponse{}), nil
@@ -356,7 +354,7 @@ func (h *ConnectHandler) DisableProject(ctx context.Context, request *connect.Re
 
 	if err := h.projectService.Disable(ctx, projectID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DisableProject", err,
-			zap.String("project_id", projectID))
+			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableProjectResponse{}), nil
@@ -372,10 +370,10 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 
 	if err := h.projectService.SetMemberRole(ctx, projectID, principalID, principalType, roleID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "SetProjectMemberRole", err,
-			zap.String("project_id", projectID),
-			zap.String("principal_id", principalID),
-			zap.String("principal_type", principalType),
-			zap.String("role_id", roleID))
+			"project_id", projectID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"role_id", roleID)
 
 		switch {
 		case errors.Is(err, project.ErrNotExist):
@@ -418,9 +416,9 @@ func (h *ConnectHandler) RemoveProjectMember(ctx context.Context, request *conne
 
 	if err := h.projectService.RemoveMember(ctx, projectID, principalID, principalType); err != nil {
 		errorLogger.LogServiceError(ctx, request, "RemoveProjectMember", err,
-			zap.String("project_id", projectID),
-			zap.String("principal_id", principalID),
-			zap.String("principal_type", principalType))
+			"project_id", projectID,
+			"principal_id", principalID,
+			"principal_type", principalType)
 
 		switch {
 		case errors.Is(err, project.ErrNotExist):

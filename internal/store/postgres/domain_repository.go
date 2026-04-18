@@ -9,19 +9,20 @@ import (
 
 	"github.com/pkg/errors"
 
+	"log/slog"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/pkg/db"
-	"github.com/raystack/salt/log"
 )
 
 type DomainRepository struct {
-	log log.Logger
+	log *slog.Logger
 	dbc *db.Client
 	Now func() time.Time
 }
 
-func NewDomainRepository(logger log.Logger, dbc *db.Client) *DomainRepository {
+func NewDomainRepository(logger *slog.Logger, dbc *db.Client) *DomainRepository {
 	return &DomainRepository{
 		dbc: dbc,
 		log: logger,

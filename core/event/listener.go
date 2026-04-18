@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/audit"
-	"go.uber.org/zap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 )
 
 // ChanListener listens for audit logs and processes them blocking
@@ -37,7 +36,7 @@ func (l *ChanListener) Listen(ctx context.Context) error {
 }
 
 func (l *ChanListener) Process(ctx context.Context, log audit.Log) {
-	stdLogger := grpczap.Extract(ctx).With(zap.String("event", log.Action))
+	stdLogger := frontierlogger.FromContext(ctx).With("event", log.Action)
 	switch log.Action {
 	case audit.OrgCreatedEvent.String():
 		if err := l.processor.EnsureDefaultPlan(ctx, log.OrgID); err != nil {

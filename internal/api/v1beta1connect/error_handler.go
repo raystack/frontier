@@ -5,9 +5,8 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/server/consts"
-	"go.uber.org/zap"
 )
 
 // ErrorLogger provides centralized error logging functionality for Connect handlers
@@ -19,51 +18,40 @@ func NewErrorLogger() *ErrorLogger {
 }
 
 // LogServiceError logs detailed service error information with context
-func (e *ErrorLogger) LogServiceError(ctx context.Context, req connect.AnyRequest, operation string, err error, contextFields ...zap.Field) {
-	logger := grpczap.Extract(ctx)
-	requestID := e.getRequestID(req)
-
-	// Build base fields for logging
-	baseFields := []zap.Field{
-		zap.String("operation", operation),
-		zap.String("request_id", requestID),
-		zap.String("error_type", fmt.Sprintf("%T", err)),
-		zap.Error(err),
+func (e *ErrorLogger) LogServiceError(ctx context.Context, req connect.AnyRequest, operation string, err error, contextArgs ...any) {
+	logger := frontierlogger.FromContext(ctx)
+	args := []any{
+		"operation", operation,
+		"request_id", e.getRequestID(req),
+		"error_type", fmt.Sprintf("%T", err),
+		"error", err,
 	}
-	baseFields = append(baseFields, contextFields...)
-
-	// Log detailed error
-	logger.Error(fmt.Sprintf("%s operation failed", operation), baseFields...)
+	args = append(args, contextArgs...)
+	logger.Error(fmt.Sprintf("%s operation failed", operation), args...)
 }
 
 // LogUnexpectedError logs additional context for unexpected internal errors
-func (e *ErrorLogger) LogUnexpectedError(ctx context.Context, req connect.AnyRequest, operation string, err error, contextFields ...zap.Field) {
-	logger := grpczap.Extract(ctx)
-	requestID := e.getRequestID(req)
-
-	// Build base fields for logging
-	baseFields := []zap.Field{
-		zap.String("operation", operation),
-		zap.String("request_id", requestID),
-		zap.String("error_chain", fmt.Sprintf("%+v", err)),
-		zap.Error(err),
+func (e *ErrorLogger) LogUnexpectedError(ctx context.Context, req connect.AnyRequest, operation string, err error, contextArgs ...any) {
+	logger := frontierlogger.FromContext(ctx)
+	args := []any{
+		"operation", operation,
+		"request_id", e.getRequestID(req),
+		"error_chain", fmt.Sprintf("%+v", err),
+		"error", err,
 	}
-	baseFields = append(baseFields, contextFields...)
-
-	logger.Error(fmt.Sprintf("unexpected error in %s", operation), baseFields...)
+	args = append(args, contextArgs...)
+	logger.Error(fmt.Sprintf("unexpected error in %s", operation), args...)
 }
 
 // LogTransformError logs protobuf transformation errors
 func (e *ErrorLogger) LogTransformError(ctx context.Context, req connect.AnyRequest, operation string, entityID string, err error) {
-	logger := grpczap.Extract(ctx)
-	requestID := e.getRequestID(req)
-
+	logger := frontierlogger.FromContext(ctx)
 	logger.Error("protobuf transformation failed",
-		zap.String("operation", operation),
-		zap.String("request_id", requestID),
-		zap.String("entity_id", entityID),
-		zap.String("error_type", fmt.Sprintf("%T", err)),
-		zap.Error(err))
+		"operation", operation,
+		"request_id", e.getRequestID(req),
+		"entity_id", entityID,
+		"error_type", fmt.Sprintf("%T", err),
+		"error", err)
 }
 
 // getRequestID extracts request ID from Connect request

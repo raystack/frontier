@@ -16,10 +16,10 @@ import (
 	"github.com/raystack/frontier/core/userpat/models"
 	pkgauditrecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
+	"log/slog"
+
 	"github.com/raystack/frontier/pkg/mailer"
-	"github.com/raystack/salt/log"
 	"github.com/robfig/cron/v3"
-	"go.uber.org/zap"
 	mail "gopkg.in/mail.v2"
 )
 
@@ -73,7 +73,7 @@ type AlertService struct {
 	dialer mailer.Dialer
 	locker Locker
 	config AlertConfig
-	logger log.Logger
+	logger *slog.Logger
 	cron   *cron.Cron
 }
 
@@ -84,7 +84,7 @@ func NewAlertService(
 	dialer mailer.Dialer,
 	locker Locker,
 	config AlertConfig,
-	logger log.Logger,
+	logger *slog.Logger,
 	auditRepo AlertAuditRepository,
 ) *AlertService {
 	return &AlertService{
@@ -112,7 +112,7 @@ func (s *AlertService) Init(ctx context.Context) error {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		if err := s.Run(ctx); err != nil {
-			s.logger.Error("PAT expiry alert run failed", zap.Error(err))
+			s.logger.Error("PAT expiry alert run failed", "error", err)
 		}
 	})
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *AlertService) Run(ctx context.Context) error {
 	}
 	defer func() {
 		if unlockErr := lock.Unlock(ctx); unlockErr != nil {
-			s.logger.Error("failed to unlock PAT alert lock", zap.Error(unlockErr))
+			s.logger.Error("failed to unlock PAT alert lock", "error", unlockErr)
 		}
 	}()
 
@@ -152,7 +152,7 @@ func (s *AlertService) Run(ctx context.Context) error {
 func (s *AlertService) sendExpiryReminders(ctx context.Context) {
 	pats, err := s.repo.ListExpiryReminderPending(ctx, s.config.DaysBefore)
 	if err != nil {
-		s.logger.Error("failed to list pre-expiry PATs", zap.Error(err))
+		s.logger.Error("failed to list pre-expiry PATs", "error", err)
 		return
 	}
 
@@ -168,7 +168,7 @@ func (s *AlertService) sendExpiryReminders(ctx context.Context) {
 	for _, pat := range pats {
 		if err := s.sendAlert(ctx, pat, subjectTpl, bodyTpl, expiryReminderMetadataKey, pkgauditrecord.PATExpiryReminderEvent); err != nil {
 			s.logger.Error("failed to send expiry reminder",
-				zap.String("pat_id", pat.ID), zap.Error(err))
+				"pat_id", pat.ID, "error", err)
 		}
 	}
 }
@@ -176,7 +176,7 @@ func (s *AlertService) sendExpiryReminders(ctx context.Context) {
 func (s *AlertService) sendExpiredNotices(ctx context.Context) {
 	pats, err := s.repo.ListExpiredNoticePending(ctx)
 	if err != nil {
-		s.logger.Error("failed to list post-expiry PATs", zap.Error(err))
+		s.logger.Error("failed to list post-expiry PATs", "error", err)
 		return
 	}
 
@@ -192,7 +192,7 @@ func (s *AlertService) sendExpiredNotices(ctx context.Context) {
 	for _, pat := range pats {
 		if err := s.sendAlert(ctx, pat, subjectTpl, bodyTpl, expiredNoticeMetadataKey, pkgauditrecord.PATExpiredNoticeEvent); err != nil {
 			s.logger.Error("failed to send expired notice",
-				zap.String("pat_id", pat.ID), zap.Error(err))
+				"pat_id", pat.ID, "error", err)
 		}
 	}
 }
@@ -246,14 +246,14 @@ func (s *AlertService) sendAlert(ctx context.Context, pat models.PAT, subjectTpl
 	}
 
 	s.logger.Info("sent PAT expiry alert",
-		zap.String("pat_id", pat.ID),
-		zap.String("pat_title", pat.Title),
-		zap.String("user_email", usr.Email),
-		zap.String("alert_type", metadataKey))
+		"pat_id", pat.ID,
+		"pat_title", pat.Title,
+		"user_email", usr.Email,
+		"alert_type", metadataKey)
 
 	if err := s.repo.SetAlertSentMetadata(ctx, pat.ID, metadataKey); err != nil {
 		s.logger.Error("alert sent but failed to mark metadata",
-			zap.String("pat_id", pat.ID), zap.String("key", metadataKey), zap.Error(err))
+			"pat_id", pat.ID, "key", metadataKey, "error", err)
 	}
 
 	s.createAlertAuditRecord(ctx, pat, usr, org.Title, auditEvent)
@@ -282,7 +282,7 @@ func (s *AlertService) createAlertAuditRecord(ctx context.Context, pat models.PA
 		OccurredAt: time.Now(),
 	}); err != nil {
 		s.logger.Error("failed to create audit record for PAT alert",
-			zap.String("pat_id", pat.ID), zap.Error(err))
+			"pat_id", pat.ID, "error", err)
 	}
 }
 

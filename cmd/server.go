@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/pkg/profile"
@@ -82,6 +83,7 @@ func serverStartCommand() *cobra.Command {
 				panic(err)
 			}
 			logger := frontierlogger.InitLogger(appConfig.Log)
+			slog.SetDefault(logger)
 
 			if appConfig.App.Profiler {
 				// enable profilers

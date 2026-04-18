@@ -8,7 +8,6 @@ import (
 	"github.com/raystack/frontier/core/event"
 	"github.com/raystack/frontier/pkg/server/consts"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 )
 
 func (h *ConnectHandler) BillingWebhookCallback(ctx context.Context, request *connect.Request[frontierv1beta1.BillingWebhookCallbackRequest]) (*connect.Response[frontierv1beta1.BillingWebhookCallbackResponse], error) {
@@ -29,7 +28,7 @@ func (h *ConnectHandler) BillingWebhookCallback(ctx context.Context, request *co
 		Body: request.Msg.GetBody(),
 	}); err != nil {
 		errorLogger.LogServiceError(ctx, request, "BillingWebhookCallback.BillingWebhook", err,
-			zap.String("provider", request.Msg.GetProvider()))
+			"provider", request.Msg.GetProvider())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.BillingWebhookCallbackResponse{}), nil

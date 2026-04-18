@@ -15,7 +15,8 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/salt/log"
+	"io"
+	"log/slog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -254,7 +255,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(log.NewNoop(), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -445,7 +446,7 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(log.NewNoop(), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {

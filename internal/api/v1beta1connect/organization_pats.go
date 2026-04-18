@@ -6,14 +6,14 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+
 	svc "github.com/raystack/frontier/core/aggregates/orgpats"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/store/postgres"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -34,9 +34,9 @@ func (h *ConnectHandler) SearchOrganizationPATs(ctx context.Context, request *co
 
 	// Cap limit — override user-requested limit if it exceeds max
 	if rqlQuery.Limit <= 0 || rqlQuery.Limit > orgPATsMaxLimit {
-		grpczap.Extract(ctx).Warn("overriding requested limit to max allowed",
-			zap.Int("requested_limit", rqlQuery.Limit),
-			zap.Int("applied_limit", orgPATsDefaultLimit))
+		frontierlogger.FromContext(ctx).Warn("overriding requested limit to max allowed",
+			"requested_limit", rqlQuery.Limit,
+			"applied_limit", orgPATsDefaultLimit)
 		rqlQuery.Limit = orgPATsDefaultLimit
 	}
 
@@ -46,7 +46,7 @@ func (h *ConnectHandler) SearchOrganizationPATs(ctx context.Context, request *co
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "SearchOrganizationPATs.Search", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

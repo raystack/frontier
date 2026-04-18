@@ -7,8 +7,9 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/consts"
 
+	"log/slog"
+
 	"github.com/google/uuid"
-	"github.com/raystack/salt/log"
 	"github.com/robfig/cron/v3"
 	"google.golang.org/grpc/metadata"
 )
@@ -32,12 +33,12 @@ type Repository interface {
 type Service struct {
 	repo     Repository
 	validity time.Duration
-	log      log.Logger
+	log      *slog.Logger
 	cron     *cron.Cron
 	Now      func() time.Time
 }
 
-func NewService(logger log.Logger, repo Repository, validity time.Duration) *Service {
+func NewService(logger *slog.Logger, repo Repository, validity time.Duration) *Service {
 	return &Service{
 		log:      logger,
 		repo:     repo,

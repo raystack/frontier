@@ -15,7 +15,8 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
-	"github.com/raystack/salt/log"
+	"io"
+	"log/slog"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -36,7 +37,7 @@ type InvitationRespositoryTestSuite struct {
 func (s *InvitationRespositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := log.NewZap()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s.client, s.pool, s.resource, err = newTestClient(logger)
 	if err != nil {
 		s.T().Fatal(err)

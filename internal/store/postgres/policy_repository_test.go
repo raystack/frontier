@@ -14,7 +14,8 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/ory/dockertest"
-	"github.com/raystack/salt/log"
+	"io"
+	"log/slog"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/raystack/frontier/core/policy"
@@ -38,7 +39,7 @@ type PolicyRepositoryTestSuite struct {
 func (s *PolicyRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := log.NewZap()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s.client, s.pool, s.resource, err = newTestClient(logger)
 	if err != nil {
 		s.T().Fatal(err)

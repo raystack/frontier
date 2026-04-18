@@ -11,7 +11,6 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -27,7 +26,7 @@ func (h *ConnectHandler) ListOrganizationInvitations(ctx context.Context, reques
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationInvitations.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -38,8 +37,8 @@ func (h *ConnectHandler) ListOrganizationInvitations(ctx context.Context, reques
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationInvitations.List", err,
-			zap.String("org_id", orgResp.ID),
-			zap.String("user_id", request.Msg.GetUserId()))
+			"org_id", orgResp.ID,
+			"user_id", request.Msg.GetUserId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -73,7 +72,7 @@ func (h *ConnectHandler) ListCurrentUserInvitations(ctx context.Context, request
 	invites, err := h.invitationService.ListByUser(ctx, principal.User.Email)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListCurrentUserInvitations.ListByUser", err,
-			zap.String("user_email", principal.User.Email))
+			"user_email", principal.User.Email)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -94,7 +93,7 @@ func (h *ConnectHandler) ListCurrentUserInvitations(ctx context.Context, request
 		orgResp, err := h.orgService.Get(ctx, org)
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "ListCurrentUserInvitations.Get", err,
-				zap.String("org_id", org))
+				"org_id", org)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		orgPB, err := transformOrgToPB(orgResp)
@@ -117,7 +116,7 @@ func (h *ConnectHandler) ListUserInvitations(ctx context.Context, request *conne
 	invite, err := h.invitationService.ListByUser(ctx, request.Msg.GetId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListUserInvitations.ListByUser", err,
-			zap.String("user_id", request.Msg.GetId()))
+			"user_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -148,7 +147,7 @@ func (h *ConnectHandler) CreateOrganizationInvitation(ctx context.Context, reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "CreateOrganizationInvitation.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -172,10 +171,10 @@ func (h *ConnectHandler) CreateOrganizationInvitation(ctx context.Context, reque
 				return nil, connect.NewError(connect.CodeAlreadyExists, ErrAlreadyMember)
 			}
 			errorLogger.LogServiceError(ctx, request, "CreateOrganizationInvitation.Create", err,
-				zap.String("user_email", userID),
-				zap.String("org_id", orgResp.ID),
-				zap.Strings("role_ids", request.Msg.GetRoleIds()),
-				zap.Strings("group_ids", request.Msg.GetGroupIds()))
+				"user_email", userID,
+				"org_id", orgResp.ID,
+				"role_ids", request.Msg.GetRoleIds(),
+				"group_ids", request.Msg.GetGroupIds())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		createdInvitations = append(createdInvitations, inv)
@@ -208,7 +207,7 @@ func (h *ConnectHandler) GetOrganizationInvitation(ctx context.Context, request 
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetOrganizationInvitation.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -221,7 +220,7 @@ func (h *ConnectHandler) GetOrganizationInvitation(ctx context.Context, request 
 	inv, err := h.invitationService.Get(ctx, inviteID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetOrganizationInvitation.Get", err,
-			zap.String("invitation_id", request.Msg.GetId()))
+			"invitation_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -248,7 +247,7 @@ func (h *ConnectHandler) AcceptOrganizationInvitation(ctx context.Context, reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "AcceptOrganizationInvitation.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -268,8 +267,8 @@ func (h *ConnectHandler) AcceptOrganizationInvitation(ctx context.Context, reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		default:
 			errorLogger.LogServiceError(ctx, request, "AcceptOrganizationInvitation.Accept", err,
-				zap.String("invitation_id", request.Msg.GetId()),
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"invitation_id", request.Msg.GetId(),
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -289,7 +288,7 @@ func (h *ConnectHandler) DeleteOrganizationInvitation(ctx context.Context, reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "DeleteOrganizationInvitation.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -301,8 +300,8 @@ func (h *ConnectHandler) DeleteOrganizationInvitation(ctx context.Context, reque
 
 	if err := h.invitationService.Delete(ctx, inviteID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteOrganizationInvitation.Delete", err,
-			zap.String("invitation_id", request.Msg.GetId()),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"invitation_id", request.Msg.GetId(),
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

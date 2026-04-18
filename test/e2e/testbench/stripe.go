@@ -18,7 +18,7 @@ import (
 	"github.com/stripe/stripe-go/v79/client"
 
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/raystack/salt/log"
+	"log/slog"
 )
 
 const (
@@ -26,7 +26,7 @@ const (
 	stripeVersion = "v0.193.0"
 )
 
-func StartStripeMock(logger log.Logger, network *docker.Network, pool *dockertest.Pool) (extPort string, close func() error, err error) {
+func StartStripeMock(logger *slog.Logger, network *docker.Network, pool *dockertest.Pool) (extPort string, close func() error, err error) {
 	res, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository:   stripeImage,
 		Tag:          stripeVersion,
@@ -88,7 +88,7 @@ func StartStripeRecorder(mode recorder.Mode) func() error {
 	return closeFunc
 }
 
-type StripeClientBuilder func(logger log.Logger, cfg *config.Frontier) *client.API
+type StripeClientBuilder func(logger *slog.Logger, cfg *config.Frontier) *client.API
 
 func BuildStripeClient(port, name string, mode recorder.Mode) (StripeClientBuilder, func() error) {
 	var closer = func() error { return nil }
@@ -128,7 +128,7 @@ func BuildStripeClient(port, name string, mode recorder.Mode) (StripeClientBuild
 		}
 	}
 
-	return func(logger log.Logger, cfg *config.Frontier) *client.API {
+	return func(logger *slog.Logger, cfg *config.Frontier) *client.API {
 		stripeLogLevel := stripe.LevelError
 		if cfg.Log.Level == "debug" {
 			stripeLogLevel = stripe.LevelDebug
