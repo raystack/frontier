@@ -44,33 +44,33 @@ type PATService interface {
 }
 
 type Service struct {
-	repository       Repository
-	configRepository ConfigRepository
-	relationService  RelationService
-	authnService     AuthnService
-	projectService   ProjectService
-	orgService       OrgService
-	patService       PATService
-	auditRepo        AuditRepository
+	repository            Repository
+	configRepository      ConfigRepository
+	relationService       RelationService
+	authnService          AuthnService
+	projectService        ProjectService
+	orgService            OrgService
+	patService            PATService
+	auditRecordRepository AuditRecordRepository
 }
 
-type AuditRepository interface {
+type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord auditmodels.AuditRecord) (auditmodels.AuditRecord, error)
 }
 
 func NewService(repository Repository, configRepository ConfigRepository,
 	relationService RelationService, authnService AuthnService,
 	projectService ProjectService, orgService OrgService,
-	patService PATService, auditRepo AuditRepository) *Service {
+	patService PATService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
-		repository:       repository,
-		configRepository: configRepository,
-		relationService:  relationService,
-		authnService:     authnService,
-		projectService:   projectService,
-		orgService:       orgService,
-		patService:       patService,
-		auditRepo:        auditRepo,
+		repository:            repository,
+		configRepository:      configRepository,
+		relationService:       relationService,
+		authnService:          authnService,
+		projectService:        projectService,
+		orgService:            orgService,
+		patService:            patService,
+		auditRecordRepository: auditRecordRepository,
 	}
 }
 
@@ -145,7 +145,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 }
 
 func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Event, res Resource, proj project.Project) {
-	if _, err := s.auditRepo.Create(ctx, auditmodels.AuditRecord{
+	if _, err := s.auditRecordRepository.Create(ctx, auditmodels.AuditRecord{
 		Event: event,
 		Resource: auditmodels.Resource{
 			ID:   proj.ID,

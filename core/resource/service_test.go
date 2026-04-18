@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func newTestService(t *testing.T) (*mocks.Repository, *mocks.ConfigRepository, *mocks.RelationService, *mocks.AuthnService, *mocks.ProjectService, *mocks.OrgService, *mocks.PATService, *mocks.AuditRepository, *resource.Service) {
+func newTestService(t *testing.T) (*mocks.Repository, *mocks.ConfigRepository, *mocks.RelationService, *mocks.AuthnService, *mocks.ProjectService, *mocks.OrgService, *mocks.PATService, *mocks.AuditRecordRepository, *resource.Service) {
 	t.Helper()
 	repo := mocks.NewRepository(t)
 	configRepo := mocks.NewConfigRepository(t)
@@ -29,7 +29,7 @@ func newTestService(t *testing.T) (*mocks.Repository, *mocks.ConfigRepository, *
 	projectSvc := mocks.NewProjectService(t)
 	orgSvc := mocks.NewOrgService(t)
 	patSvc := mocks.NewPATService(t)
-	auditRepo := mocks.NewAuditRepository(t)
+	auditRepo := mocks.NewAuditRecordRepository(t)
 	svc := resource.NewService(repo, configRepo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo)
 	return repo, configRepo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo, svc
 }
