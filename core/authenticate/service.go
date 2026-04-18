@@ -706,7 +706,7 @@ func (s Service) JWKs(ctx context.Context) jwk.Set {
 func (s Service) InitFlows(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.flowRepo.DeleteExpiredFlows(ctx); err != nil {
-			s.log.Warn("failed to delete expired sessions", "err", err)
+			s.log.WarnContext(ctx, "failed to delete expired sessions", "err", err)
 		}
 	})
 	if err != nil {
@@ -779,7 +779,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		}
 	}
 
-	s.log.Debug("none of the client assertions matched")
+	s.log.DebugContext(ctx, "none of the client assertions matched")
 	return Principal{}, errors.ErrUnauthenticated
 }
 

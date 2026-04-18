@@ -65,7 +65,7 @@ func (s Service) Create(ctx context.Context, userID string, metadata SessionMeta
 	}
 	err := s.repo.Set(ctx, sess)
 	if err != nil {
-		s.log.Warn("failed to create session", "err", err)
+		s.log.WarnContext(ctx, "failed to create session", "err", err)
 		return nil, err
 	}
 	return sess, nil
@@ -107,7 +107,7 @@ func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
 func (s Service) InitSessions(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.repo.DeleteExpiredSessions(ctx); err != nil {
-			s.log.Warn("failed to delete expired sessions", "err", err)
+			s.log.WarnContext(ctx, "failed to delete expired sessions", "err", err)
 		}
 	})
 	if err != nil {

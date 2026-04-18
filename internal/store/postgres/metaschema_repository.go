@@ -213,7 +213,7 @@ func (m MetaSchemaRepository) MigrateDefaults(ctx context.Context) error {
 		}); err != nil {
 			err = checkPostgresError(err)
 			if errors.Is(metaschema.ErrConflict, err) {
-				m.log.Debug("schema already exists", "name", name)
+				m.log.DebugContext(ctx, "schema already exists", "name", name)
 				continue
 			}
 			return errors.Wrap(err, "error in adding default schemas to db")

@@ -193,7 +193,7 @@ func (s *DomainRepository) DeleteExpiredDomainRequests(ctx context.Context) erro
 		}
 
 		count, _ := result.RowsAffected()
-		s.log.Debug("DeleteExpiredDomains", "expired_domain_count", count)
+		s.log.DebugContext(ctx, "DeleteExpiredDomains", "expired_domain_count", count)
 
 		return nil
 	})

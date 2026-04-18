@@ -143,7 +143,7 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 	repo.mu.Lock()
 	repo.cached = resources
 	repo.mu.Unlock()
-	repo.log.Debug("resource config cache refreshed", "resource_config_count", len(repo.cached))
+	repo.log.DebugContext(ctx, "resource config cache refreshed", "resource_config_count", len(repo.cached))
 	return nil
 }
 
@@ -153,7 +153,7 @@ func (repo *ResourcesRepository) InitCache(ctx context.Context, refreshDelay tim
 	))
 	if _, err := repo.cron.AddFunc("@every "+refreshDelay.String(), func() {
 		if err := repo.refresh(ctx); err != nil {
-			repo.log.Warn("failed to refresh resource config repository", "err", err)
+			repo.log.WarnContext(ctx, "failed to refresh resource config repository", "err", err)
 		}
 	}); err != nil {
 		return err

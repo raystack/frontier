@@ -200,7 +200,7 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 		}
 
 		count, _ := result.RowsAffected()
-		s.log.Debug("deleted expired and old soft-deleted sessions", "deleted_count", count)
+		s.log.DebugContext(ctx, "deleted expired and old soft-deleted sessions", "deleted_count", count)
 
 		return nil
 	})

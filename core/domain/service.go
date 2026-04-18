@@ -222,7 +222,7 @@ func (s Service) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]
 func (s Service) InitDomainVerification(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.repository.DeleteExpiredDomainRequests(ctx); err != nil {
-			s.log.Warn("error deleting expired domain requests", "err", err)
+			s.log.WarnContext(ctx, "error deleting expired domain requests", "err", err)
 		}
 	})
 	if err != nil {

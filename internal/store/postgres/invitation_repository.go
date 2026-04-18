@@ -263,7 +263,7 @@ func (s *InvitationRepository) GarbageCollect(ctx context.Context) error {
 		}
 
 		count, _ := result.RowsAffected()
-		s.log.Debug("deleted expired invitation", "expired_invitations_count", count)
+		s.log.DebugContext(ctx, "deleted expired invitation", "expired_invitations_count", count)
 		return nil
 	})
 }

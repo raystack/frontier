@@ -150,7 +150,7 @@ func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
 		}
 
 		count, _ := result.RowsAffected()
-		s.log.Debug("deleted expired flows", "expired_flows_count", count)
+		s.log.DebugContext(ctx, "deleted expired flows", "expired_flows_count", count)
 
 		return nil
 	})
