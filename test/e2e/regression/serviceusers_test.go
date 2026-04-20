@@ -182,7 +182,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(currentUserResp.Body)
 	})
-	s.Run("6. service user should be able to create an organization with full permission", func() {
+	s.Run("6. service user should not be able to create an organization", func() {
 		_, err := s.testBench.Client.CreateOrganization(context.Background(), connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-su-test-1",
@@ -193,21 +193,12 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Bearer " + string(svKeyToken),
 		})
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxWithKey, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		_, err = s.testBench.Client.CreateOrganization(ctxWithKey, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-su-test-1",
 			},
 		}))
-		s.Assert().NoError(err)
-		s.Assert().NotNil(createOrgResp)
-
-		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        createOrgResp.Msg.GetOrganization().GetId(),
-			ObjectNamespace: "organization",
-			Permission:      schema.UpdatePermission,
-		}))
-		s.Assert().NoError(err)
-		s.Assert().True(checkPermResp.Msg.GetStatus())
+		s.Assert().Error(err)
 	})
 	s.Run("7. service user should be allowed to assign role", func() {
 		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{

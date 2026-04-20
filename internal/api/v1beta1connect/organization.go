@@ -142,6 +142,8 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
+		case errors.Is(err, organization.ErrUserPrincipalOnly):
+			return nil, connect.NewError(connect.CodePermissionDenied, err)
 		case errors.Is(err, organization.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, organization.ErrConflict):

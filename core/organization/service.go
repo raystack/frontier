@@ -184,6 +184,9 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	if err != nil {
 		return Organization{}, fmt.Errorf("%w: %s", user.ErrNotExist, err.Error())
 	}
+	if principal.Type != schema.UserPrincipal {
+		return Organization{}, ErrUserPrincipalOnly
+	}
 
 	defaultState, err := s.GetDefaultOrgStateOnCreate(ctx)
 	if err != nil {
