@@ -6,7 +6,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "../../../../components/PageTitle";
 import { getColumns } from "./columns";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import {
   getConnectNextPageParam,
@@ -98,7 +98,7 @@ export function OrganizationInvoicesView() {
     hasNextPage,
     isError,
   } = useInfiniteQuery(
-    AdminServiceQueries.searchOrganizationInvoices,
+    FrontierServiceQueries.searchOrganizationInvoices,
     { id: organizationId, query: query },
     {
       enabled: !!organizationId,
