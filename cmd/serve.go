@@ -496,7 +496,7 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, preferenceService,
+		organizationService, groupService, userService, relationService, preferenceService,
 		auditRecordRepository, membershipService)
 
 	if GetStripeClientFunc == nil {
