@@ -302,11 +302,8 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	// Determine the org role to assign.
-	// Currently only the first role ID from the invitation is used. If multiple
-	// role support is needed in the future, this is the place to change — either
-	// loop over invite.RoleIDs calling SetOrganizationMemberRole for each, or
-	// extend the membership package to accept multiple roles.
+	// Currently only the first role ID from the invitation is used.
+	// If multiple role support is needed in the future, this is the place to change.
 	orgRoleID := schema.RoleOrganizationViewer
 	conf := s.getConfig(ctx)
 	if conf.WithRoles && len(invite.RoleIDs) > 0 {
