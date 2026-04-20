@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -239,19 +240,7 @@ func (h *ConnectHandler) GetOrganizationInvitation(ctx context.Context, request 
 func (h *ConnectHandler) AcceptOrganizationInvitation(ctx context.Context, request *connect.Request[frontierv1beta1.AcceptOrganizationInvitationRequest]) (*connect.Response[frontierv1beta1.AcceptOrganizationInvitationResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			errorLogger.LogServiceError(ctx, request, "AcceptOrganizationInvitation.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
+	// orgService.Get removed — membership.AddOrganizationMember validates the org internally
 
 	inviteID, err := uuid.Parse(request.Msg.GetId())
 	if err != nil {
@@ -266,6 +255,16 @@ func (h *ConnectHandler) AcceptOrganizationInvitation(ctx context.Context, reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrInvitationNotFound)
 		case errors.Is(err, user.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, membership.ErrInvalidOrgRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, membership.ErrAlreadyMember):
+			return nil, connect.NewError(connect.CodeAlreadyExists, err)
 		default:
 			errorLogger.LogServiceError(ctx, request, "AcceptOrganizationInvitation.Accept", err,
 				zap.String("invitation_id", request.Msg.GetId()),

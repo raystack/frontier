@@ -5,7 +5,9 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/domain"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"go.uber.org/zap"
@@ -118,21 +120,8 @@ func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *con
 func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.JoinOrganizationRequest]) (*connect.Response[frontierv1beta1.JoinOrganizationResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			errorLogger.LogServiceError(ctx, request, "JoinOrganization.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
+	// orgService.Get removed — membership.AddOrganizationMember validates the org internally
 
-	// get current user
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "JoinOrganization.GetLoggedInPrincipal", err,
@@ -140,10 +129,22 @@ func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.
 		return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 	}
 
-	if err := h.domainService.Join(ctx, orgResp.ID, principal.ID); err != nil {
-		switch err {
-		case domain.ErrDomainsMisMatch:
+	if err := h.domainService.Join(ctx, request.Msg.GetOrgId(), principal.ID); err != nil {
+		switch {
+		case errors.Is(err, domain.ErrDomainsMisMatch):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrDomainMismatch)
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, membership.ErrInvalidOrgRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, membership.ErrAlreadyMember):
+			return nil, connect.NewError(connect.CodeAlreadyExists, err)
 		default:
 			errorLogger.LogServiceError(ctx, request, "JoinOrganization.Join", err,
 				zap.String("org_id", request.Msg.GetOrgId()),
