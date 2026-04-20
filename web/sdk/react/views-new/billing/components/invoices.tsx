@@ -73,6 +73,7 @@ const getColumns = ({
     header: 'Status',
     accessorKey: 'state',
     enableSorting: true,
+    enableHiding: true,
     cell: ({ getValue }) => {
       return (
         <Text size="regular" variant="secondary">
@@ -85,6 +86,7 @@ const getColumns = ({
     header: 'Amount',
     accessorKey: 'amount',
     enableSorting: true,
+    enableHiding: true,
     cell: ({ row, getValue }) => {
       const value = Number(getValue());
       return (
