@@ -24,8 +24,9 @@ import (
 
 type OnboardingRegressionTestSuite struct {
 	suite.Suite
-	testBench   *testbench.TestBench
-	adminCookie string
+	testBench     *testbench.TestBench
+	adminCookie   string
+	orgViewerRole string
 }
 
 func (s *OnboardingRegressionTestSuite) SetupSuite() {
@@ -73,6 +74,20 @@ func (s *OnboardingRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
+
+	ctxAdmin := testbench.ContextWithAuth(ctx, adminCookie)
+	rolesResp, err := s.testBench.Client.ListRoles(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListRolesRequest{
+		State:  "enabled",
+		Scopes: []string{"app/organization"},
+	}))
+	s.Require().NoError(err)
+	for _, r := range rolesResp.Msg.GetRoles() {
+		if r.GetName() == schema.RoleOrganizationViewer {
+			s.orgViewerRole = r.GetId()
+			break
+		}
+	}
+	s.Require().NotEmpty(s.orgViewerRole, "org viewer role not found")
 }
 
 func (s *OnboardingRegressionTestSuite) TearDownSuite() {
@@ -208,9 +223,12 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		newUserID = createUserResp.Msg.GetUser().GetId()
 
 		// make user member of the org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      orgID,
-			UserIds: []string{newUserID},
+		_, err = s.testBench.AdminClient.AddOrganizationMembers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: newUserID,
+				RoleId: s.orgViewerRole,
+			}},
 		}))
 		s.Assert().NoError(err)
 
@@ -273,9 +291,12 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NotNil(createUserResp)
 
 		// make user member of the org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      orgID,
-			UserIds: []string{createUserResp.Msg.GetUser().GetId()},
+		_, err = s.testBench.AdminClient.AddOrganizationMembers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
 		s.Assert().NoError(err)
 
