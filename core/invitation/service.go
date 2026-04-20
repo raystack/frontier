@@ -302,8 +302,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	// Currently only the first role ID from the invitation is used.
-	// If multiple role support is needed in the future, this is the place to change.
+	// Use the first role ID from the invitation, fall back to viewer.
 	orgRoleID := schema.RoleOrganizationViewer
 	conf := s.getConfig(ctx)
 	if conf.WithRoles && len(invite.RoleIDs) > 0 {
