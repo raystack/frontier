@@ -388,22 +388,10 @@ func TestHandler_JoinOrganization(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, as *mocks.AuthnService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
-				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: testUserID}, nil)
-			},
-			request: connect.NewRequest(&frontierv1beta1.JoinOrganizationRequest{
-				OrgId: testOrgID,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
-		},
-		{
 			name: "should return not found error if org is disabled",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, as *mocks.AuthnService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: testUserID}, nil)
+				ds.EXPECT().Join(mock.AnythingOfType("context.backgroundCtx"), testOrgID, testUserID).Return(organization.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.JoinOrganizationRequest{
 				OrgId: testOrgID,
@@ -414,8 +402,8 @@ func TestHandler_JoinOrganization(t *testing.T) {
 		{
 			name: "should return not found error if org does not exist",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, as *mocks.AuthnService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: testUserID}, nil)
+				ds.EXPECT().Join(mock.AnythingOfType("context.backgroundCtx"), testOrgID, testUserID).Return(organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.JoinOrganizationRequest{
 				OrgId: testOrgID,
@@ -426,7 +414,6 @@ func TestHandler_JoinOrganization(t *testing.T) {
 		{
 			name: "should return invalid argument error if domains mismatch",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, as *mocks.AuthnService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: testUserID}, nil)
 				ds.EXPECT().Join(mock.AnythingOfType("context.backgroundCtx"), testOrgID, testUserID).Return(domain.ErrDomainsMisMatch)
 			},
@@ -439,7 +426,6 @@ func TestHandler_JoinOrganization(t *testing.T) {
 		{
 			name: "should return internal error if domain service fails",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, as *mocks.AuthnService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: testUserID}, nil)
 				ds.EXPECT().Join(mock.AnythingOfType("context.backgroundCtx"), testOrgID, testUserID).Return(errors.New("domain service error"))
 			},
@@ -452,7 +438,6 @@ func TestHandler_JoinOrganization(t *testing.T) {
 		{
 			name: "should join organization successfully",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, as *mocks.AuthnService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: testUserID}, nil)
 				ds.EXPECT().Join(mock.AnythingOfType("context.backgroundCtx"), testOrgID, testUserID).Return(nil)
 			},
