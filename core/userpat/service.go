@@ -27,6 +27,12 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+// supportedPATResourceTypes defines resource types allowed for PAT scopes.
+var supportedPATResourceTypes = []string{
+	schema.OrganizationNamespace,
+	schema.ProjectNamespace,
+}
+
 type OrganizationService interface {
 	GetRaw(ctx context.Context, id string) (organization.Organization, error)
 }
@@ -468,10 +474,8 @@ func (s *Service) validateScopes(ctx context.Context, scopes []patmodels.PATScop
 		roleMap[r.ID] = r
 	}
 
-	supportedResourceTypes := []string{schema.OrganizationNamespace, schema.ProjectNamespace}
-
 	for _, sc := range scopes {
-		if !slices.Contains(supportedResourceTypes, sc.ResourceType) {
+		if !slices.Contains(supportedPATResourceTypes, sc.ResourceType) {
 			return fmt.Errorf("resource type %s: %w", sc.ResourceType, paterrors.ErrUnsupportedScope)
 		}
 		r := roleMap[sc.RoleID]
@@ -551,15 +555,14 @@ func (s *Service) ListAllowedRoles(ctx context.Context, scopes []string) ([]role
 	}
 
 	if len(scopes) == 0 {
-		scopes = []string{schema.OrganizationNamespace, schema.ProjectNamespace}
+		scopes = append(scopes, supportedPATResourceTypes...)
 	} else {
 		for i, scope := range scopes {
 			scopes[i] = schema.ParseNamespaceAliasIfRequired(scope)
 		}
-		allowedScopes := []string{schema.OrganizationNamespace, schema.ProjectNamespace}
 		scopes = pkgUtils.Deduplicate(scopes)
 		for _, scope := range scopes {
-			if !slices.Contains(allowedScopes, scope) {
+			if !slices.Contains(supportedPATResourceTypes, scope) {
 				return nil, fmt.Errorf("scope %q: %w", scope, paterrors.ErrUnsupportedScope)
 			}
 		}
@@ -602,18 +605,24 @@ func (s *Service) validateRolePermissions(roles []role.Role) error {
 	return nil
 }
 
-// createOrgScopedPolicy creates a policy on the org with the default "granted" relation.
-func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleID string) error {
+// createPATPolicy creates a single SpiceDB policy for a PAT.
+func (s *Service) createPATPolicy(ctx context.Context, patID, roleID, resourceID, resourceType, grantRelation string) error {
 	if _, err := s.policyService.Create(ctx, policy.Policy{
 		RoleID:        roleID,
-		ResourceID:    orgID,
-		ResourceType:  schema.OrganizationNamespace,
+		ResourceID:    resourceID,
+		ResourceType:  resourceType,
 		PrincipalID:   patID,
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: grantRelation,
 	}); err != nil {
-		return fmt.Errorf("creating org policy for role %s: %w", roleID, err)
+		return err
 	}
 	return nil
+}
+
+// createOrgScopedPolicy creates a policy on the org with the default "granted" relation.
+func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleID string) error {
+	return s.createPATPolicy(ctx, patID, roleID, orgID, schema.OrganizationNamespace, schema.RoleGrantRelationName)
 }
 
 // createProjectScopedPolicies creates policies for a project-scoped role.
@@ -621,28 +630,11 @@ func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleI
 // (cascades to all projects). Otherwise, it creates one policy per project with default "granted".
 func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID, roleID string, resourceIDs []string) error {
 	if len(resourceIDs) == 0 {
-		if _, err := s.policyService.Create(ctx, policy.Policy{
-			RoleID:        roleID,
-			ResourceID:    orgID,
-			ResourceType:  schema.OrganizationNamespace,
-			PrincipalID:   patID,
-			PrincipalType: schema.PATPrincipal,
-			GrantRelation: schema.PATGrantRelationName,
-		}); err != nil {
-			return fmt.Errorf("creating all-projects policy for role %s: %w", roleID, err)
-		}
-		return nil
+		return s.createPATPolicy(ctx, patID, roleID, orgID, schema.OrganizationNamespace, schema.PATGrantRelationName)
 	}
-
 	for _, resourceID := range resourceIDs {
-		if _, err := s.policyService.Create(ctx, policy.Policy{
-			RoleID:        roleID,
-			ResourceID:    resourceID,
-			ResourceType:  schema.ProjectNamespace,
-			PrincipalID:   patID,
-			PrincipalType: schema.PATPrincipal,
-		}); err != nil {
-			return fmt.Errorf("creating project policy for role %s on %s: %w", roleID, resourceID, err)
+		if err := s.createPATPolicy(ctx, patID, roleID, resourceID, schema.ProjectNamespace, schema.RoleGrantRelationName); err != nil {
+			return err
 		}
 	}
 	return nil

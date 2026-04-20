@@ -63,9 +63,6 @@ const (
 	// AdminServiceSearchOrganizationProjectsProcedure is the fully-qualified name of the AdminService's
 	// SearchOrganizationProjects RPC.
 	AdminServiceSearchOrganizationProjectsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
-	// AdminServiceSearchOrganizationInvoicesProcedure is the fully-qualified name of the AdminService's
-	// SearchOrganizationInvoices RPC.
-	AdminServiceSearchOrganizationInvoicesProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices"
 	// AdminServiceSearchOrganizationTokensProcedure is the fully-qualified name of the AdminService's
 	// SearchOrganizationTokens RPC.
 	AdminServiceSearchOrganizationTokensProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens"
@@ -236,7 +233,6 @@ type AdminServiceClient interface {
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
 	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
 	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
@@ -392,12 +388,6 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationProjectsProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
-			connect.WithClientOptions(opts...),
-		),
-		searchOrganizationInvoices: connect.NewClient[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse](
-			httpClient,
-			baseURL+AdminServiceSearchOrganizationInvoicesProcedure,
-			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationInvoices")),
 			connect.WithClientOptions(opts...),
 		),
 		searchOrganizationTokens: connect.NewClient[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse](
@@ -727,7 +717,6 @@ type adminServiceClient struct {
 	searchOrganizationUsers                  *connect.Client[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse]
 	searchProjectUsers                       *connect.Client[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse]
 	searchOrganizationProjects               *connect.Client[v1beta1.SearchOrganizationProjectsRequest, v1beta1.SearchOrganizationProjectsResponse]
-	searchOrganizationInvoices               *connect.Client[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse]
 	searchOrganizationTokens                 *connect.Client[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse]
 	searchOrganizationServiceUserCredentials *connect.Client[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse]
 	searchOrganizationServiceUsers           *connect.Client[v1beta1.SearchOrganizationServiceUsersRequest, v1beta1.SearchOrganizationServiceUsersResponse]
@@ -831,12 +820,6 @@ func (c *adminServiceClient) SearchProjectUsers(ctx context.Context, req *connec
 // raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects.
 func (c *adminServiceClient) SearchOrganizationProjects(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
 	return c.searchOrganizationProjects.CallUnary(ctx, req)
-}
-
-// SearchOrganizationInvoices calls
-// raystack.frontier.v1beta1.AdminService.SearchOrganizationInvoices.
-func (c *adminServiceClient) SearchOrganizationInvoices(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
-	return c.searchOrganizationInvoices.CallUnary(ctx, req)
 }
 
 // SearchOrganizationTokens calls raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens.
@@ -1122,7 +1105,6 @@ type AdminServiceHandler interface {
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
 	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
 	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
@@ -1274,12 +1256,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		AdminServiceSearchOrganizationProjectsProcedure,
 		svc.SearchOrganizationProjects,
 		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
-		connect.WithHandlerOptions(opts...),
-	)
-	adminServiceSearchOrganizationInvoicesHandler := connect.NewUnaryHandler(
-		AdminServiceSearchOrganizationInvoicesProcedure,
-		svc.SearchOrganizationInvoices,
-		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationInvoices")),
 		connect.WithHandlerOptions(opts...),
 	)
 	adminServiceSearchOrganizationTokensHandler := connect.NewUnaryHandler(
@@ -1616,8 +1592,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceSearchProjectUsersHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationProjectsProcedure:
 			adminServiceSearchOrganizationProjectsHandler.ServeHTTP(w, r)
-		case AdminServiceSearchOrganizationInvoicesProcedure:
-			adminServiceSearchOrganizationInvoicesHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationTokensProcedure:
 			adminServiceSearchOrganizationTokensHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationServiceUserCredentialsProcedure:
@@ -1769,10 +1743,6 @@ func (UnimplementedAdminServiceHandler) SearchProjectUsers(context.Context, *con
 
 func (UnimplementedAdminServiceHandler) SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects is not implemented"))
-}
-
-func (UnimplementedAdminServiceHandler) SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationInvoices is not implemented"))
 }
 
 func (UnimplementedAdminServiceHandler) SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
