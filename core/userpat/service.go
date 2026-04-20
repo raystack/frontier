@@ -615,6 +615,9 @@ func (s *Service) createPATPolicy(ctx context.Context, patID, roleID, resourceID
 		PrincipalType: schema.PATPrincipal,
 		GrantRelation: grantRelation,
 	}); err != nil {
+		s.logger.Error("failed to create PAT policy",
+			"pat_id", patID, "role_id", roleID, "resource_id", resourceID,
+			"resource_type", resourceType, "grant_relation", grantRelation, "error", err)
 		return err
 	}
 	return nil
