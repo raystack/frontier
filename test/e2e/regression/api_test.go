@@ -338,7 +338,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 			return u.GetId()
 		}), createUserResponse.Msg.GetUser().GetId())
 	})
-	s.Run("5. creating an org when PlatformDisableOrgsOnCreate is true should fail", func() {
+	s.Run("5. creating an org when PlatformDisableOrgsOnCreate is true should succeed but org is disabled", func() {
 		// enable disable_org_on_create preference
 		disabledOrgs, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
 			Preferences: []*frontierv1beta1.PreferenceRequestBody{
@@ -354,14 +354,15 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		normalUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, "normaluser@raystack.org")
 		s.Require().NoError(err)
 		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), normalUserCookie)
-		// org creation should fail because disabled orgs cannot have members added
-		_, err = s.testBench.Client.CreateOrganization(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		// org creation succeeds — org is created enabled, membership setup completes, then disabled
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org acme 5",
 				Name:  "org-acme-5",
 			},
 		}))
-		s.Assert().Error(err)
+		s.Assert().NoError(err)
+		s.Assert().Equal(organization.Disabled.String(), createOrgResp.Msg.GetOrganization().GetState())
 
 		// reset disable_org_on_create preference
 		_, err = s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
@@ -2481,7 +2482,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 			return p.GetName() == preference.PlatformDisableOrgsOnCreate
 		})[0].GetValue())
 	})
-	s.Run("4. PlatformDisableOrgsOnCreate if set to true should fail org creation", func() {
+	s.Run("4. PlatformDisableOrgsOnCreate if set to true should create org in disabled state", func() {
 		createPrefResp, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
 			Preferences: []*frontierv1beta1.PreferenceRequestBody{
 				{
@@ -2494,14 +2495,15 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 		s.Assert().NotNil(createPrefResp)
 		s.Assert().True(len(createPrefResp.Msg.GetPreference()) > 0)
 
-		// org creation should fail because disabled orgs cannot have members added
-		_, err = s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		// org creation succeeds — org is created enabled, membership setup completes, then disabled
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org 2",
 				Name:  "org-preferences-2",
 			},
 		}))
-		s.Assert().Error(err)
+		s.Assert().NoError(err)
+		s.Assert().Equal(organization.Disabled.String(), createOrgResp.Msg.GetOrganization().GetState())
 
 		// reset it back to false
 		updatePrefResp, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
