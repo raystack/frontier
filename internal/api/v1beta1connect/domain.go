@@ -120,8 +120,6 @@ func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *con
 func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.JoinOrganizationRequest]) (*connect.Response[frontierv1beta1.JoinOrganizationResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	// orgService.Get removed — membership.AddOrganizationMember validates the org internally
-
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "JoinOrganization.GetLoggedInPrincipal", err,

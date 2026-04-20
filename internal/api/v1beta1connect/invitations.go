@@ -240,8 +240,6 @@ func (h *ConnectHandler) GetOrganizationInvitation(ctx context.Context, request 
 func (h *ConnectHandler) AcceptOrganizationInvitation(ctx context.Context, request *connect.Request[frontierv1beta1.AcceptOrganizationInvitationRequest]) (*connect.Response[frontierv1beta1.AcceptOrganizationInvitationResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	// orgService.Get removed — membership.AddOrganizationMember validates the org internally
-
 	inviteID, err := uuid.Parse(request.Msg.GetId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
