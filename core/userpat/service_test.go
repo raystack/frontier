@@ -537,6 +537,7 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: schema.RoleGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
@@ -630,6 +631,7 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 		ResourceType:  schema.ProjectNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: schema.RoleGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
 		RoleID:        "proj-role-1",
@@ -637,6 +639,7 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 		ResourceType:  schema.ProjectNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: schema.RoleGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-2"}, nil)
 	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 

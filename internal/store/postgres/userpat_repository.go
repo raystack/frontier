@@ -130,7 +130,13 @@ func (r UserPATRepository) List(ctx context.Context, userID, orgID string, rqlQu
 		return models.PATList{}, err
 	}
 
-	listStmt := r.applySort(baseStmt.Select(&UserPAT{}), rqlQuery)
+	listStmt, err := utils.AddRQLSortInQuery(baseStmt.Select(&UserPAT{}), rqlQuery)
+	if err != nil {
+		return models.PATList{}, err
+	}
+	if len(rqlQuery.Sort) == 0 {
+		listStmt = listStmt.Order(goqu.C("created_at").Desc())
+	}
 	listStmt, pagination := utils.AddRQLPaginationInQuery(listStmt, rqlQuery)
 
 	query, params, err := listStmt.ToSQL()
@@ -208,22 +214,6 @@ func (r UserPATRepository) countPATs(ctx context.Context, baseStmt *goqu.SelectD
 		return 0, fmt.Errorf("%w: %w", dbErr, err)
 	}
 	return totalCount, nil
-}
-
-func (r UserPATRepository) applySort(query *goqu.SelectDataset, rqlQuery *rql.Query) *goqu.SelectDataset {
-	if len(rqlQuery.Sort) > 0 {
-		for _, sortItem := range rqlQuery.Sort {
-			switch sortItem.Order {
-			case "desc":
-				query = query.OrderAppend(goqu.C(sortItem.Name).Desc())
-			default:
-				query = query.OrderAppend(goqu.C(sortItem.Name).Asc())
-			}
-		}
-	} else {
-		query = query.Order(goqu.C("created_at").Desc())
-	}
-	return query
 }
 
 func (r UserPATRepository) IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error) {

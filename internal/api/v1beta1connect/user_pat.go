@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/userpat"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/models"
@@ -17,6 +18,44 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// getLoggedInPrincipalWithUser returns the authenticated principal, rejecting service users.
+// PAT principals are allowed through since principal.User is populated for PATs.
+// Use this for PAT management endpoints where the PAT owner's user is needed.
+func (h *ConnectHandler) getLoggedInPrincipalWithUser(ctx context.Context) (*authenticate.Principal, error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.User == nil {
+		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
+	}
+	return &principal, nil
+}
+
+// mapPATError maps PAT service errors to Connect RPC error codes.
+func mapPATError(err error) *connect.Error {
+	switch {
+	case errors.Is(err, paterrors.ErrDisabled):
+		return connect.NewError(connect.CodeFailedPrecondition, err)
+	case errors.Is(err, paterrors.ErrNotFound):
+		return connect.NewError(connect.CodeNotFound, err)
+	case errors.Is(err, paterrors.ErrConflict):
+		return connect.NewError(connect.CodeAlreadyExists, err)
+	case errors.Is(err, paterrors.ErrLimitExceeded):
+		return connect.NewError(connect.CodeResourceExhausted, err)
+	case errors.Is(err, paterrors.ErrRoleNotFound),
+		errors.Is(err, paterrors.ErrDeniedRole),
+		errors.Is(err, paterrors.ErrUnsupportedScope),
+		errors.Is(err, paterrors.ErrScopeMismatch),
+		errors.Is(err, paterrors.ErrProjectForbidden),
+		errors.Is(err, paterrors.ErrExpiryInPast),
+		errors.Is(err, paterrors.ErrExpiryExceeded):
+		return connect.NewError(connect.CodeInvalidArgument, err)
+	default:
+		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+}
 
 func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.CreateCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
@@ -45,27 +84,7 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 		errorLogger.LogServiceError(ctx, request, "CreateCurrentUserPAT", err,
 			zap.String("user_id", principal.User.ID),
 			zap.String("org_id", request.Msg.GetOrgId()))
-
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		case errors.Is(err, paterrors.ErrConflict):
-			return nil, connect.NewError(connect.CodeAlreadyExists, err)
-		case errors.Is(err, paterrors.ErrLimitExceeded):
-			return nil, connect.NewError(connect.CodeResourceExhausted, err)
-		case errors.Is(err, paterrors.ErrRoleNotFound):
-			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrRoleNotFound)
-		case errors.Is(err, paterrors.ErrDeniedRole):
-			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole)
-		case errors.Is(err, paterrors.ErrUnsupportedScope):
-			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
-		case errors.Is(err, paterrors.ErrScopeMismatch):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
-		case errors.Is(err, paterrors.ErrProjectForbidden):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateCurrentUserPATResponse{
@@ -76,12 +95,9 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 func (h *ConnectHandler) GetCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.GetCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.GetCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	principal, err := h.GetLoggedInPrincipal(ctx)
+	principal, err := h.getLoggedInPrincipalWithUser(ctx)
 	if err != nil {
 		return nil, err
-	}
-	if principal.User == nil {
-		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
 	pat, err := h.userPATService.Get(ctx, principal.User.ID, request.Msg.GetId())
@@ -89,15 +105,7 @@ func (h *ConnectHandler) GetCurrentUserPAT(ctx context.Context, request *connect
 		errorLogger.LogServiceError(ctx, request, "GetCurrentUserPAT", err,
 			zap.String("user_id", principal.User.ID),
 			zap.String("pat_id", request.Msg.GetId()))
-
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		case errors.Is(err, paterrors.ErrNotFound):
-			return nil, connect.NewError(connect.CodeNotFound, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetCurrentUserPATResponse{
@@ -111,14 +119,7 @@ func (h *ConnectHandler) ListRolesForPAT(ctx context.Context, request *connect.R
 	roleList, err := h.userPATService.ListAllowedRoles(ctx, request.Msg.GetScopes())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListRolesForPAT", err)
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		case errors.Is(err, paterrors.ErrUnsupportedScope):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	var roles []*frontierv1beta1.Role
@@ -137,27 +138,16 @@ func (h *ConnectHandler) ListRolesForPAT(ctx context.Context, request *connect.R
 func (h *ConnectHandler) DeleteCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.DeleteCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	principal, err := h.GetLoggedInPrincipal(ctx)
+	principal, err := h.getLoggedInPrincipalWithUser(ctx)
 	if err != nil {
 		return nil, err
-	}
-	if principal.User == nil {
-		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
 	if err := h.userPATService.Delete(ctx, principal.User.ID, request.Msg.GetId()); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteCurrentUserPAT", err,
 			zap.String("user_id", principal.User.ID),
 			zap.String("pat_id", request.Msg.GetId()))
-
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		case errors.Is(err, paterrors.ErrNotFound):
-			return nil, connect.NewError(connect.CodeNotFound, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.DeleteCurrentUserPATResponse{}), nil
@@ -166,12 +156,9 @@ func (h *ConnectHandler) DeleteCurrentUserPAT(ctx context.Context, request *conn
 func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.UpdateCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	principal, err := h.GetLoggedInPrincipal(ctx)
+	principal, err := h.getLoggedInPrincipalWithUser(ctx)
 	if err != nil {
 		return nil, err
-	}
-	if principal.User == nil {
-		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
 	updated, err := h.userPATService.Update(ctx, models.PAT{
@@ -185,27 +172,7 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 		errorLogger.LogServiceError(ctx, request, "UpdateCurrentUserPAT", err,
 			zap.String("user_id", principal.User.ID),
 			zap.String("pat_id", request.Msg.GetId()))
-
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		case errors.Is(err, paterrors.ErrNotFound):
-			return nil, connect.NewError(connect.CodeNotFound, err)
-		case errors.Is(err, paterrors.ErrConflict):
-			return nil, connect.NewError(connect.CodeAlreadyExists, err)
-		case errors.Is(err, paterrors.ErrRoleNotFound):
-			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrRoleNotFound)
-		case errors.Is(err, paterrors.ErrDeniedRole):
-			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole)
-		case errors.Is(err, paterrors.ErrUnsupportedScope):
-			return nil, connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope)
-		case errors.Is(err, paterrors.ErrScopeMismatch):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
-		case errors.Is(err, paterrors.ErrProjectForbidden):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateCurrentUserPATResponse{
@@ -216,12 +183,9 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.RegenerateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.RegenerateCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	principal, err := h.GetLoggedInPrincipal(ctx)
+	principal, err := h.getLoggedInPrincipalWithUser(ctx)
 	if err != nil {
 		return nil, err
-	}
-	if principal.User == nil {
-		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
 	if request.Msg.GetExpiresAt() == nil {
@@ -233,23 +197,7 @@ func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *
 		errorLogger.LogServiceError(ctx, request, "RegenerateCurrentUserPAT", err,
 			zap.String("user_id", principal.User.ID),
 			zap.String("pat_id", request.Msg.GetId()))
-
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		case errors.Is(err, paterrors.ErrNotFound):
-			return nil, connect.NewError(connect.CodeNotFound, err)
-		case errors.Is(err, paterrors.ErrLimitExceeded):
-			return nil, connect.NewError(connect.CodeResourceExhausted, err)
-		case errors.Is(err, paterrors.ErrExpiryInPast):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
-		case errors.Is(err, paterrors.ErrExpiryExceeded):
-			return nil, connect.NewError(connect.CodeInvalidArgument, err)
-		case errors.Is(err, paterrors.ErrConflict):
-			return nil, connect.NewError(connect.CodeAlreadyExists, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.RegenerateCurrentUserPATResponse{
@@ -260,12 +208,9 @@ func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *
 func (h *ConnectHandler) CheckCurrentUserPATTitle(ctx context.Context, request *connect.Request[frontierv1beta1.CheckCurrentUserPATTitleRequest]) (*connect.Response[frontierv1beta1.CheckCurrentUserPATTitleResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	principal, err := h.GetLoggedInPrincipal(ctx)
+	principal, err := h.getLoggedInPrincipalWithUser(ctx)
 	if err != nil {
 		return nil, err
-	}
-	if principal.User == nil {
-		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
 	available, err := h.userPATService.IsTitleAvailable(ctx, principal.User.ID, request.Msg.GetOrgId(), request.Msg.GetTitle())
@@ -273,13 +218,7 @@ func (h *ConnectHandler) CheckCurrentUserPATTitle(ctx context.Context, request *
 		errorLogger.LogServiceError(ctx, request, "CheckCurrentUserPATTitle", err,
 			zap.String("user_id", principal.User.ID),
 			zap.String("org_id", request.Msg.GetOrgId()))
-
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CheckCurrentUserPATTitleResponse{
@@ -363,12 +302,7 @@ func (h *ConnectHandler) SearchCurrentUserPATs(ctx context.Context, request *con
 			zap.String("user_id", userID),
 			zap.String("org_id", request.Msg.GetOrgId()))
 
-		switch {
-		case errors.Is(err, paterrors.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
+		return nil, mapPATError(err)
 	}
 
 	pbPATs := make([]*frontierv1beta1.PAT, 0, len(result.PATs))

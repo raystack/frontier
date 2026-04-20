@@ -190,7 +190,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrRoleNotFound),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("fetching roles: %w", paterrors.ErrRoleNotFound)),
 		},
 		{
 			name: "should return invalid argument when role is denied",
@@ -211,7 +211,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrDeniedRole),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("creating policies: %w", paterrors.ErrDeniedRole)),
 		},
 		{
 			name: "should return invalid argument when role scope is unsupported",
@@ -232,7 +232,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, paterrors.ErrUnsupportedScope),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("creating policies: %w", paterrors.ErrUnsupportedScope)),
 		},
 		{
 			name: "should return internal error for unknown service failure",
