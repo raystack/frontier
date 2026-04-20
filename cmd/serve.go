@@ -432,6 +432,8 @@ func buildAPIDependencies(
 		authnService, policyService, preferenceService, auditRecordRepository, roleService)
 
 	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, auditRecordRepository)
+	// Setter injection: org → membership is circular (membership needs org for validation,
+	// org needs membership for Create/AdminCreate). Break the cycle with a post-init setter.
 	organizationService.SetMembershipService(membershipService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
