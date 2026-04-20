@@ -223,14 +223,14 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		newUserID = createUserResp.Msg.GetUser().GetId()
 
 		// make user member of the org
-		_, err = s.testBench.AdminClient.AddOrganizationMembers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
 			OrgId: orgID,
 			Members: []*frontierv1beta1.OrgMemberEntry{{
 				UserId: newUserID,
 				RoleId: s.orgViewerRole,
 			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		// assign new user as project admin
 		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{Body: &frontierv1beta1.PolicyRequestBody{
@@ -291,14 +291,14 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NotNil(createUserResp)
 
 		// make user member of the org
-		_, err = s.testBench.AdminClient.AddOrganizationMembers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctx, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
 			OrgId: orgID,
 			Members: []*frontierv1beta1.OrgMemberEntry{{
 				UserId: createUserResp.Msg.GetUser().GetId(),
 				RoleId: s.orgViewerRole,
 			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		resourceViewerRole := ""
 		listRolesResp, err := s.testBench.Client.ListRoles(ctx, connect.NewRequest(&frontierv1beta1.ListRolesRequest{}))

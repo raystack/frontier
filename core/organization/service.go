@@ -193,12 +193,15 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
+	// Always create as Enabled so that AddOrganizationMember (which validates
+	// the org is enabled) succeeds. Disable afterwards if the platform preference
+	// requires it — this avoids leaving an ownerless org row on failure.
 	newOrg, err := s.repository.Create(ctx, Organization{
 		Name:     org.Name,
 		Title:    org.Title,
 		Avatar:   org.Avatar,
 		Metadata: org.Metadata,
-		State:    defaultState,
+		State:    Enabled,
 	})
 	if err != nil {
 		return Organization{}, err
@@ -213,6 +216,13 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	// attach org to central platform
 	if err = s.AttachToPlatform(ctx, newOrg.ID); err != nil {
 		return newOrg, err
+	}
+
+	if defaultState == Disabled {
+		if err = s.repository.SetState(ctx, newOrg.ID, Disabled); err != nil {
+			return newOrg, err
+		}
+		newOrg.State = Disabled
 	}
 
 	return newOrg, nil
@@ -439,13 +449,15 @@ func (s Service) AdminCreate(ctx context.Context, org Organization, ownerEmail s
 		return Organization{}, err
 	}
 
-	// Create organization
+	// Always create as Enabled so that AddOrganizationMember (which validates
+	// the org is enabled) succeeds. Disable afterwards if the platform preference
+	// requires it — this avoids leaving an ownerless org row on failure.
 	newOrg, err := s.repository.Create(ctx, Organization{
 		Name:     org.Name,
 		Title:    org.Title,
 		Avatar:   org.Avatar,
 		Metadata: org.Metadata,
-		State:    defaultState,
+		State:    Enabled,
 	})
 	if err != nil {
 		return Organization{}, err
@@ -460,6 +472,13 @@ func (s Service) AdminCreate(ctx context.Context, org Organization, ownerEmail s
 	// Attach org to central platform
 	if err = s.AttachToPlatform(ctx, newOrg.ID); err != nil {
 		return newOrg, fmt.Errorf("failed to attach to platform: %w", err)
+	}
+
+	if defaultState == Disabled {
+		if err = s.repository.SetState(ctx, newOrg.ID, Disabled); err != nil {
+			return newOrg, fmt.Errorf("failed to set org state: %w", err)
+		}
+		newOrg.State = Disabled
 	}
 
 	return newOrg, nil
