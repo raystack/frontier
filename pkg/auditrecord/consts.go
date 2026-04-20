@@ -55,6 +55,9 @@ const (
 	// Session Events
 	SessionRevokedEvent Event = "session.revoked"
 
+	// Resource Events
+	ResourceCreatedEvent Event = "resource.created"
+
 	// PAT Events
 	PATCreatedEvent        Event = "pat.created"
 	PATUpdatedEvent        Event = "pat.updated"
