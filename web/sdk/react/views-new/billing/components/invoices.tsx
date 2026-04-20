@@ -22,10 +22,11 @@ import {
 } from '@raystack/proton/frontier';
 import { useDebounceValue } from 'usehooks-ts';
 import { useFrontier } from '../../../contexts/FrontierContext';
-import { DEFAULT_DATE_FORMAT } from '../../../utils/constants';
+import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '../../../utils/constants';
 import {
   DEFAULT_PAGE_SIZE,
-  getConnectNextPageParam
+  getConnectNextPageParam,
+  getGroupCountMapFromFirstPage
 } from '../../../utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '../../../utils/transform-query';
 import { timestampToDayjs, type TimeStamp } from '../../../../utils/timestamp';
@@ -45,12 +46,20 @@ const TRANSFORM_OPTIONS = {
   }
 };
 
+type InvoiceStatus = (typeof INVOICE_STATES)[keyof typeof INVOICE_STATES];
+
+const InvoiceStatusesMap: Record<InvoiceStatus, string> = Object.fromEntries(
+  Object.values(INVOICE_STATES).map(state => [state, capitalize(state)])
+) as Record<InvoiceStatus, string>;
+
 interface GetColumnsOptions {
   dateFormat: string;
+  groupCountMap: Record<string, Record<string, number>>;
 }
 
 const getColumns = ({
-  dateFormat
+  dateFormat,
+  groupCountMap
 }: GetColumnsOptions): DataTableColumnDef<
   SearchOrganizationInvoicesResponse_OrganizationInvoice,
   unknown
@@ -74,10 +83,15 @@ const getColumns = ({
     accessorKey: 'state',
     enableSorting: true,
     enableHiding: true,
+    enableGrouping: true,
+    groupLabelsMap: InvoiceStatusesMap,
+    showGroupCount: true,
+    groupCountMap: groupCountMap['state'] || {},
     cell: ({ getValue }) => {
+      const value = getValue() as keyof typeof InvoiceStatusesMap;
       return (
         <Text size="regular" variant="secondary">
-          {capitalize(getValue() as string)}
+          {InvoiceStatusesMap[value] ?? capitalize(value as string)}
         </Text>
       );
     }
@@ -188,8 +202,14 @@ export function Invoices() {
     }
   };
 
+  const groupCountMap = useMemo(
+    () => (infiniteData ? getGroupCountMapFromFirstPage(infiniteData) : {}),
+    [infiniteData]
+  );
+
   const columns = getColumns({
-    dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
+    dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT,
+    groupCountMap
   });
 
   return (
