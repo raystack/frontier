@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -1300,6 +1301,162 @@ func TestHandler_RegenerateCurrentUserPAT(t *testing.T) {
 				assert.NotNil(t, resp)
 				assert.Equal(t, testPATID, resp.Msg.GetPat().GetId())
 				assert.Equal(t, "fpt_newtoken123", resp.Msg.GetPat().GetToken())
+			}
+
+			mockPATSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+		})
+	}
+}
+
+func TestHandler_SearchCurrentUserPATs(t *testing.T) {
+	testUserID := "8e256f86-31a3-11ec-8d3d-0242ac130003"
+	testOrgID := "9f256f86-31a3-11ec-8d3d-0242ac130003"
+	testTime := time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+	testCreatedAt := time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.UserPATService, as *mocks.AuthnService)
+		request *connect.Request[frontierv1beta1.SearchCurrentUserPATsRequest]
+		want    *frontierv1beta1.SearchCurrentUserPATsResponse
+		wantErr error
+	}{
+		{
+			name: "should return unauthenticated error when GetLoggedInPrincipal fails",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchCurrentUserPATsRequest{
+				OrgId: testOrgID,
+			}),
+			wantErr: connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated),
+		},
+		{
+			name: "should resolve PAT principal to user and list PATs",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   "pat-1",
+					Type: schema.PATPrincipal,
+					User: &user.User{ID: testUserID},
+					PAT:  &models.PAT{ID: "pat-1", UserID: testUserID},
+				}, nil)
+				ps.EXPECT().List(mock.Anything, testUserID, testOrgID, mock.Anything).
+					Return(models.PATList{
+						PATs: []models.PAT{
+							{
+								ID: "pat-1", Title: "my-token", UserID: testUserID, OrgID: testOrgID,
+								ExpiresAt: testTime, CreatedAt: testCreatedAt, UpdatedAt: testCreatedAt,
+							},
+						},
+						Page: utils.Page{Offset: 0, Limit: 50, TotalCount: 1},
+					}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchCurrentUserPATsRequest{
+				OrgId: testOrgID,
+			}),
+			want: &frontierv1beta1.SearchCurrentUserPATsResponse{
+				Pats: []*frontierv1beta1.PAT{
+					{
+						Id: "pat-1", Title: "my-token", UserId: testUserID, OrgId: testOrgID,
+						Scopes:    []*frontierv1beta1.PATScope{},
+						ExpiresAt: timestamppb.New(testTime),
+						CreatedAt: timestamppb.New(testCreatedAt),
+						UpdatedAt: timestamppb.New(testCreatedAt),
+					},
+				},
+				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+					Offset: 0, Limit: 50, TotalCount: 1,
+				},
+			},
+		},
+		{
+			name: "should return empty list when no PATs exist",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().List(mock.Anything, testUserID, testOrgID, mock.Anything).
+					Return(models.PATList{
+						PATs: []models.PAT{},
+						Page: utils.Page{Offset: 0, Limit: 50, TotalCount: 0},
+					}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchCurrentUserPATsRequest{
+				OrgId: testOrgID,
+			}),
+			want: &frontierv1beta1.SearchCurrentUserPATsResponse{
+				Pats: []*frontierv1beta1.PAT{},
+				Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+					Offset: 0, Limit: 50, TotalCount: 0,
+				},
+			},
+		},
+		{
+			name: "should return failed precondition when PAT is disabled",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().List(mock.Anything, testUserID, testOrgID, mock.Anything).
+					Return(models.PATList{}, paterrors.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchCurrentUserPATsRequest{
+				OrgId: testOrgID,
+			}),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, paterrors.ErrDisabled),
+		},
+		{
+			name: "should return internal error for unknown failure",
+			setup: func(ps *mocks.UserPATService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{
+					ID:   testUserID,
+					Type: schema.UserPrincipal,
+					User: &user.User{ID: testUserID},
+				}, nil)
+				ps.EXPECT().List(mock.Anything, testUserID, testOrgID, mock.Anything).
+					Return(models.PATList{}, errors.New("db error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.SearchCurrentUserPATsRequest{
+				OrgId: testOrgID,
+			}),
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPATSrv := new(mocks.UserPATService)
+			mockAuthnSrv := new(mocks.AuthnService)
+
+			if tt.setup != nil {
+				tt.setup(mockPATSrv, mockAuthnSrv)
+			}
+
+			handler := &ConnectHandler{
+				userPATService: mockPATSrv,
+				authnService:   mockAuthnSrv,
+			}
+
+			resp, err := handler.SearchCurrentUserPATs(context.Background(), tt.request)
+
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.Error(), err.Error())
+				assert.Nil(t, resp)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Equal(t, len(tt.want.GetPats()), len(resp.Msg.GetPats()))
+				for i, pat := range resp.Msg.GetPats() {
+					assert.Equal(t, tt.want.GetPats()[i].GetId(), pat.GetId())
+					assert.Equal(t, tt.want.GetPats()[i].GetTitle(), pat.GetTitle())
+				}
+				assert.Equal(t, tt.want.GetPagination().GetTotalCount(), resp.Msg.GetPagination().GetTotalCount())
 			}
 
 			mockPATSrv.AssertExpectations(t)
