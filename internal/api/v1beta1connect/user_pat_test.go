@@ -1451,12 +1451,12 @@ func TestHandler_SearchCurrentUserPATs(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, resp)
-				assert.Equal(t, len(tt.want.Pats), len(resp.Msg.Pats))
-				for i, pat := range resp.Msg.Pats {
-					assert.Equal(t, tt.want.Pats[i].Id, pat.Id)
-					assert.Equal(t, tt.want.Pats[i].Title, pat.Title)
+				assert.Equal(t, len(tt.want.GetPats()), len(resp.Msg.GetPats()))
+				for i, pat := range resp.Msg.GetPats() {
+					assert.Equal(t, tt.want.GetPats()[i].GetId(), pat.GetId())
+					assert.Equal(t, tt.want.GetPats()[i].GetTitle(), pat.GetTitle())
 				}
-				assert.Equal(t, tt.want.Pagination.TotalCount, resp.Msg.Pagination.TotalCount)
+				assert.Equal(t, tt.want.GetPagination().GetTotalCount(), resp.Msg.GetPagination().GetTotalCount())
 			}
 
 			mockPATSrv.AssertExpectations(t)
