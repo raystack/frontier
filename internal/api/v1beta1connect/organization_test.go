@@ -966,7 +966,7 @@ func TestHandler_RemoveOrganizationMember(t *testing.T) {
 				PrincipalType: schema.UserPrincipal,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotMember),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, membership.ErrNotMember),
 		},
 		{
 			name: "should return failed precondition if last owner",
@@ -979,7 +979,7 @@ func TestHandler_RemoveOrganizationMember(t *testing.T) {
 				PrincipalType: schema.UserPrincipal,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrLastOwnerRole),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, membership.ErrLastOwnerRole),
 		},
 		{
 			name: "should return internal error on unexpected failure",

@@ -278,14 +278,15 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return fmt.Errorf("list all principal policies: %w", err)
 	}
 
+	// delete sub-resource policies first (projects, groups), then relations,
+	// then org policies last — so a retry after partial failure won't hit ErrNotMember
+	var orgPolicyIDs []string
 	var errs error
 	for _, pol := range allPolicies {
 		switch pol.ResourceType {
 		case schema.OrganizationNamespace:
 			if pol.ResourceID == orgID {
-				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
-					errs = errors.Join(errs, fmt.Errorf("delete org policy %s: %w", pol.ID, err))
-				}
+				orgPolicyIDs = append(orgPolicyIDs, pol.ID)
 			}
 		case schema.ProjectNamespace:
 			if _, ok := orgProjectIDSet[pol.ResourceID]; ok {
@@ -305,15 +306,22 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return errs
 	}
 
+	// remove relations at group level
+	for _, g := range orgGroups {
+		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
+			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
+		}
+	}
+
 	// remove relations at org level
 	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
 		return fmt.Errorf("remove org relations: %w", err)
 	}
 
-	// remove relations at group level
-	for _, g := range orgGroups {
-		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
-			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
+	// delete org-level policies last
+	for _, policyID := range orgPolicyIDs {
+		if err := s.policyService.Delete(ctx, policyID); err != nil {
+			return fmt.Errorf("delete org policy %s: %w", policyID, err)
 		}
 	}
 

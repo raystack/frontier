@@ -639,7 +639,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 			wantErrContain: "delete project policy",
 		},
 		{
-			name: "should return error if org relation removal fails",
+			name: "should return error if org relation removal fails without deleting org policies",
 			setup: func(d testDeps) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
@@ -649,7 +649,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
-				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				// org policy Delete should NOT be called — relations fail first, org policies are last
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(errors.New("spicedb down"))
 			},
 			wantErrContain: "remove org relations",

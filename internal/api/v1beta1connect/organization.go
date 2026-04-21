@@ -492,9 +492,9 @@ func (h *ConnectHandler) RemoveOrganizationMember(ctx context.Context, request *
 		case errors.Is(err, membership.ErrInvalidPrincipalType):
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		case errors.Is(err, membership.ErrNotMember):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, membership.ErrNotMember)
 		case errors.Is(err, membership.ErrLastOwnerRole):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastOwnerRole)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, membership.ErrLastOwnerRole)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
