@@ -1,9 +1,8 @@
-//go:build !race
-
 package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -64,7 +63,7 @@ func (s *PATRegressionTestSuite) SetupSuite() {
 				},
 				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
 			},
-			PAT: userpat.Config{Enabled: true, Prefix: "fpt", MaxPerUserPerOrg: 50, MaxLifetime: "8760h"},
+			PAT: userpat.Config{Enabled: true, Prefix: "fpt", MaxPerUserPerOrg: 50, MaxLifetime: "8760h", DeniedPermissions: []string{"app_organization_administer"}},
 		},
 	}
 
@@ -214,12 +213,12 @@ func (s *PATRegressionTestSuite) TestPATScope_OrgViewer_ProjectViewer() {
 	})
 }
 
-func (s *PATRegressionTestSuite) TestPATScope_OrgOwner() {
+func (s *PATRegressionTestSuite) TestPATScope_OrgManager() {
 	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
-	orgID, proj1ID, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-oo", "pat-oo-p1", "")
+	orgID, proj1ID, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-om", "pat-om-p1", "")
 
-	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-oo", []*frontierv1beta1.PATScope{
-		{RoleId: s.roleID(schema.RoleOrganizationOwner), ResourceType: schema.OrganizationNamespace},
+	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-om", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationManager), ResourceType: schema.OrganizationNamespace},
 	})
 	patCtx := getPATCtx(patToken)
 
@@ -229,11 +228,34 @@ func (s *PATRegressionTestSuite) TestPATScope_OrgOwner() {
 	s.Run("org update allowed", func() {
 		s.Assert().True(s.checkPermission(patCtx, schema.OrganizationNamespace, orgID, schema.UpdatePermission))
 	})
-	s.Run("project get inherited from org owner", func() {
+	s.Run("project get inherited from org manager", func() {
 		s.Assert().True(s.checkPermission(patCtx, schema.ProjectNamespace, proj1ID, schema.GetPermission))
 	})
-	s.Run("project update inherited from org owner", func() {
+	s.Run("project update inherited from org manager", func() {
 		s.Assert().True(s.checkPermission(patCtx, schema.ProjectNamespace, proj1ID, schema.UpdatePermission))
+	})
+}
+
+func (s *PATRegressionTestSuite) TestPATScope_DeniedRole() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Name: "org-pat-denied-role"},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	s.Run("org_owner role is denied", func() {
+		_, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "denied-owner-pat",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationOwner), ResourceType: schema.OrganizationNamespace},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
 	})
 }
 
@@ -352,6 +374,378 @@ func (s *PATRegressionTestSuite) TestPATScope_FederatedCheck() {
 			}))
 		s.Require().NoError(err)
 		s.Assert().False(resp.Msg.GetStatus())
+	})
+}
+
+func (s *PATRegressionTestSuite) TestPATScope_RoleMatrix() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	orgID, proj1ID, proj2ID := s.createOrgAndProjects(ctxAdmin, "org-pat-matrix", "pat-matrix-p1", "pat-matrix-p2")
+
+	type permCheck struct {
+		namespace  string
+		resourceID string
+		permission string
+		expected   bool
+		label      string
+	}
+
+	tests := []struct {
+		name   string
+		scopes []*frontierv1beta1.PATScope
+		checks []permCheck
+	}{
+		{
+			name: "org_viewer only",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+			},
+			checks: []permCheck{
+				{schema.OrganizationNamespace, orgID, schema.GetPermission, true, "org:get"},
+				{schema.OrganizationNamespace, orgID, schema.UpdatePermission, false, "org:update"},
+				{schema.OrganizationNamespace, orgID, schema.DeletePermission, false, "org:delete"},
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, false, "proj1:get (no project scope)"},
+			},
+		},
+		{
+			name: "org_manager only",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationManager), ResourceType: schema.OrganizationNamespace},
+			},
+			checks: []permCheck{
+				{schema.OrganizationNamespace, orgID, schema.GetPermission, true, "org:get"},
+				{schema.OrganizationNamespace, orgID, schema.UpdatePermission, true, "org:update"},
+				{schema.OrganizationNamespace, orgID, schema.DeletePermission, false, "org:delete"},
+				// org manager inherits project get/update via synthetic permissions, but not delete
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, true, "proj1:get (inherited from org manager)"},
+				{schema.ProjectNamespace, proj1ID, schema.UpdatePermission, true, "proj1:update (inherited from org manager)"},
+				{schema.ProjectNamespace, proj1ID, schema.DeletePermission, false, "proj1:delete (manager cannot delete)"},
+			},
+		},
+		{
+			name: "org_viewer + project_viewer (specific project)",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace, ResourceIds: []string{proj1ID}},
+			},
+			checks: []permCheck{
+				{schema.OrganizationNamespace, orgID, schema.GetPermission, true, "org:get"},
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, true, "proj1:get (scoped)"},
+				{schema.ProjectNamespace, proj1ID, schema.UpdatePermission, false, "proj1:update (viewer)"},
+				{schema.ProjectNamespace, proj2ID, schema.GetPermission, false, "proj2:get (not in scope)"},
+			},
+		},
+		{
+			name: "org_viewer + project_manager (specific project)",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleProjectManager), ResourceType: schema.ProjectNamespace, ResourceIds: []string{proj1ID}},
+			},
+			checks: []permCheck{
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, true, "proj1:get"},
+				{schema.ProjectNamespace, proj1ID, schema.UpdatePermission, true, "proj1:update (manager)"},
+				{schema.ProjectNamespace, proj1ID, schema.DeletePermission, false, "proj1:delete (manager, not owner)"},
+				{schema.ProjectNamespace, proj2ID, schema.GetPermission, false, "proj2:get (not in scope)"},
+			},
+		},
+		{
+			name: "org_viewer + project_owner (specific project)",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleProjectOwner), ResourceType: schema.ProjectNamespace, ResourceIds: []string{proj1ID}},
+			},
+			checks: []permCheck{
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, true, "proj1:get"},
+				{schema.ProjectNamespace, proj1ID, schema.UpdatePermission, true, "proj1:update"},
+				{schema.ProjectNamespace, proj1ID, schema.DeletePermission, true, "proj1:delete (owner)"},
+				{schema.ProjectNamespace, proj2ID, schema.GetPermission, false, "proj2:get (not in scope)"},
+			},
+		},
+		{
+			name: "org_viewer + project_viewer (all projects)",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace},
+			},
+			checks: []permCheck{
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, true, "proj1:get (all projects)"},
+				{schema.ProjectNamespace, proj2ID, schema.GetPermission, true, "proj2:get (all projects)"},
+				{schema.ProjectNamespace, proj1ID, schema.UpdatePermission, false, "proj1:update (viewer)"},
+			},
+		},
+		{
+			name: "org_viewer + project_owner (all projects)",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleProjectOwner), ResourceType: schema.ProjectNamespace},
+			},
+			checks: []permCheck{
+				{schema.ProjectNamespace, proj1ID, schema.DeletePermission, true, "proj1:delete (owner, all projects)"},
+				{schema.ProjectNamespace, proj2ID, schema.DeletePermission, true, "proj2:delete (owner, all projects)"},
+			},
+		},
+		{
+			name: "billing_manager only",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID("app_billing_manager"), ResourceType: schema.OrganizationNamespace},
+			},
+			checks: []permCheck{
+				{schema.OrganizationNamespace, orgID, schema.BillingViewPermission, true, "org:billingview"},
+				{schema.OrganizationNamespace, orgID, schema.BillingManagePermission, true, "org:billingmanage"},
+				{schema.OrganizationNamespace, orgID, schema.GetPermission, false, "org:get (no org access)"},
+				{schema.OrganizationNamespace, orgID, schema.UpdatePermission, false, "org:update (no org access)"},
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, false, "proj1:get (no project access)"},
+			},
+		},
+		{
+			name: "org_manager + project_viewer (specific project)",
+			scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationManager), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace, ResourceIds: []string{proj1ID}},
+			},
+			checks: []permCheck{
+				{schema.OrganizationNamespace, orgID, schema.UpdatePermission, true, "org:update (manager)"},
+				{schema.ProjectNamespace, proj1ID, schema.GetPermission, true, "proj1:get"},
+				// org manager inherits project get/update via synthetic permissions (not delete)
+				{schema.ProjectNamespace, proj1ID, schema.UpdatePermission, true, "proj1:update (inherited from org manager)"},
+				{schema.ProjectNamespace, proj2ID, schema.GetPermission, true, "proj2:get (inherited from org manager)"},
+			},
+		},
+	}
+
+	for i, tt := range tests {
+		s.Run(tt.name, func() {
+			title := fmt.Sprintf("matrix-pat-%d", i)
+			_, patToken := s.createPAT(ctxAdmin, orgID, title, tt.scopes)
+			patCtx := getPATCtx(patToken)
+
+			for _, check := range tt.checks {
+				result := s.checkPermission(patCtx, check.namespace, check.resourceID, check.permission)
+				s.Assert().Equal(check.expected, result, check.label)
+			}
+		})
+	}
+}
+
+func (s *PATRegressionTestSuite) TestPATCRUD_Lifecycle() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	orgID, proj1ID, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-crud", "pat-crud-p1", "pat-crud-p2")
+
+	var patID, patToken string
+
+	s.Run("ListRolesForPAT returns roles excluding denied", func() {
+		resp, err := s.testBench.Client.ListRolesForPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListRolesForPATRequest{
+			Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
+		}))
+		s.Require().NoError(err)
+		s.Assert().NotEmpty(resp.Msg.GetRoles())
+		// org_owner has app_organization_administer which is in DeniedPermissions
+		for _, r := range resp.Msg.GetRoles() {
+			s.Assert().NotEqual(schema.RoleOrganizationOwner, r.GetName(),
+				"denied roles should be excluded from ListRolesForPAT")
+		}
+	})
+
+	s.Run("CheckTitle available", func() {
+		resp, err := s.testBench.Client.CheckCurrentUserPATTitle(ctxAdmin, connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+			OrgId: orgID,
+			Title: "unique-crud-pat",
+		}))
+		s.Require().NoError(err)
+		s.Assert().True(resp.Msg.GetAvailable())
+	})
+
+	s.Run("Create PAT", func() {
+		resp, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "unique-crud-pat",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace, ResourceIds: []string{proj1ID}},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+		}))
+		s.Require().NoError(err)
+		pat := resp.Msg.GetPat()
+		s.Assert().NotEmpty(pat.GetId())
+		s.Assert().NotEmpty(pat.GetToken())
+		s.Assert().Equal("unique-crud-pat", pat.GetTitle())
+		s.Assert().Equal(orgID, pat.GetOrgId())
+		s.Assert().Len(pat.GetScopes(), 2)
+		s.Assert().Nil(pat.GetUsedAt())
+		s.Assert().Nil(pat.GetRegeneratedAt())
+		patID = pat.GetId()
+		patToken = pat.GetToken()
+	})
+
+	s.Run("CheckTitle taken after create", func() {
+		resp, err := s.testBench.Client.CheckCurrentUserPATTitle(ctxAdmin, connect.NewRequest(&frontierv1beta1.CheckCurrentUserPATTitleRequest{
+			OrgId: orgID,
+			Title: "unique-crud-pat",
+		}))
+		s.Require().NoError(err)
+		s.Assert().False(resp.Msg.GetAvailable())
+	})
+
+	s.Run("Get PAT", func() {
+		resp, err := s.testBench.Client.GetCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.GetCurrentUserPATRequest{
+			Id: patID,
+		}))
+		s.Require().NoError(err)
+		pat := resp.Msg.GetPat()
+		s.Assert().Equal(patID, pat.GetId())
+		s.Assert().Equal("unique-crud-pat", pat.GetTitle())
+		s.Assert().Empty(pat.GetToken(), "token should not be returned on get")
+		s.Assert().Len(pat.GetScopes(), 2)
+	})
+
+	s.Run("Search PATs returns created PAT", func() {
+		resp, err := s.testBench.Client.SearchCurrentUserPATs(ctxAdmin, connect.NewRequest(&frontierv1beta1.SearchCurrentUserPATsRequest{
+			OrgId: orgID,
+		}))
+		s.Require().NoError(err)
+		s.Assert().GreaterOrEqual(len(resp.Msg.GetPats()), 1)
+		found := false
+		for _, pat := range resp.Msg.GetPats() {
+			if pat.GetId() == patID {
+				found = true
+				s.Assert().Equal("unique-crud-pat", pat.GetTitle())
+			}
+		}
+		s.Assert().True(found, "created PAT should appear in search results")
+	})
+
+	s.Run("PAT token authenticates and updates used_at", func() {
+		patCtx := getPATCtx(patToken)
+		s.Assert().True(s.checkPermission(patCtx, schema.OrganizationNamespace, orgID, schema.GetPermission))
+
+		// get the PAT again to verify used_at is now set
+		resp, err := s.testBench.Client.GetCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.GetCurrentUserPATRequest{
+			Id: patID,
+		}))
+		s.Require().NoError(err)
+		s.Assert().NotNil(resp.Msg.GetPat().GetUsedAt(), "used_at should be set after use")
+	})
+
+	s.Run("Verify permissions before update", func() {
+		patCtx := getPATCtx(patToken)
+		s.Assert().True(s.checkPermission(patCtx, schema.OrganizationNamespace, orgID, schema.GetPermission), "org get should work")
+		s.Assert().True(s.checkPermission(patCtx, schema.ProjectNamespace, proj1ID, schema.GetPermission), "project get should work before scope narrowing")
+	})
+
+	s.Run("Update PAT title and narrow scopes", func() {
+		resp, err := s.testBench.Client.UpdateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.UpdateCurrentUserPATRequest{
+			Id:    patID,
+			Title: "updated-crud-pat",
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+			},
+		}))
+		s.Require().NoError(err)
+		pat := resp.Msg.GetPat()
+		s.Assert().Equal("updated-crud-pat", pat.GetTitle())
+		s.Assert().Len(pat.GetScopes(), 1, "scopes should be narrowed to org only")
+	})
+
+	s.Run("Verify permissions after narrowing scopes", func() {
+		patCtx := getPATCtx(patToken)
+		s.Assert().True(s.checkPermission(patCtx, schema.OrganizationNamespace, orgID, schema.GetPermission), "org get should still work")
+		s.Assert().False(s.checkPermission(patCtx, schema.ProjectNamespace, proj1ID, schema.GetPermission), "project get should be denied after removing project scope")
+	})
+
+	s.Run("Regenerate PAT", func() {
+		resp, err := s.testBench.Client.RegenerateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.RegenerateCurrentUserPATRequest{
+			Id:        patID,
+			ExpiresAt: timestamppb.New(time.Now().Add(48 * time.Hour)),
+		}))
+		s.Require().NoError(err)
+		pat := resp.Msg.GetPat()
+		s.Assert().Equal(patID, pat.GetId())
+		s.Assert().NotEmpty(pat.GetToken(), "new token should be returned")
+		s.Assert().NotEqual(patToken, pat.GetToken(), "token should be different after regenerate")
+		s.Assert().NotNil(pat.GetRegeneratedAt(), "regenerated_at should be set")
+
+		// old token should no longer work
+		oldPatCtx := getPATCtx(patToken)
+		_, err = s.testBench.Client.CheckResourcePermission(oldPatCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Permission: schema.GetPermission,
+		}))
+		s.Assert().Error(err, "old token should be rejected after regenerate")
+
+		patToken = pat.GetToken()
+
+		// verify new token works
+		newPatCtx := getPATCtx(patToken)
+		s.Assert().True(s.checkPermission(newPatCtx, schema.OrganizationNamespace, orgID, schema.GetPermission), "new token should work after regenerate")
+	})
+
+	s.Run("Delete PAT", func() {
+		_, err := s.testBench.Client.DeleteCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
+			Id: patID,
+		}))
+		s.Require().NoError(err)
+
+		// get should fail
+		_, err = s.testBench.Client.GetCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.GetCurrentUserPATRequest{
+			Id: patID,
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+
+	s.Run("Deleted PAT token no longer authenticates", func() {
+		patCtx := getPATCtx(patToken)
+		_, err := s.testBench.Client.CheckResourcePermission(patCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Permission: schema.GetPermission,
+		}))
+		s.Assert().Error(err, "deleted PAT token should be rejected")
+	})
+}
+
+func (s *PATRegressionTestSuite) TestPATCRUD_CreateErrors() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	orgID, _, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-err", "pat-err-p1", "")
+
+	s.Run("duplicate title", func() {
+		s.createPAT(ctxAdmin, orgID, "dup-title", []*frontierv1beta1.PATScope{
+			{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+		})
+		_, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "dup-title",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeAlreadyExists, connect.CodeOf(err))
+	})
+
+	s.Run("denied role", func() {
+		_, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "denied-role-pat",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationOwner), ResourceType: schema.OrganizationNamespace},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
+	})
+
+	s.Run("past expiry", func() {
+		_, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "past-expiry-pat",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(-1 * time.Hour)),
+		}))
+		s.Assert().Error(err)
 	})
 }
 
