@@ -250,18 +250,24 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return err
 	}
 
-	// pre-compute org project and group IDs for filtering
+	// pre-compute org project and group ID sets for O(1) lookups
 	orgProjects, err := s.projectService.List(ctx, project.Filter{OrgID: orgID})
 	if err != nil {
 		return fmt.Errorf("list org projects: %w", err)
 	}
-	orgProjectIDs := utils.Map(orgProjects, func(p project.Project) string { return p.ID })
+	orgProjectIDSet := make(map[string]struct{}, len(orgProjects))
+	for _, p := range orgProjects {
+		orgProjectIDSet[p.ID] = struct{}{}
+	}
 
 	orgGroups, err := s.groupService.List(ctx, group.Filter{OrganizationID: orgID})
 	if err != nil {
 		return fmt.Errorf("list org groups: %w", err)
 	}
-	orgGroupIDs := utils.Map(orgGroups, func(g group.Group) string { return g.ID })
+	orgGroupIDSet := make(map[string]struct{}, len(orgGroups))
+	for _, g := range orgGroups {
+		orgGroupIDSet[g.ID] = struct{}{}
+	}
 
 	// list all policies for the principal across all resources
 	allPolicies, err := s.policyService.List(ctx, policy.Filter{
@@ -282,13 +288,13 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 				}
 			}
 		case schema.ProjectNamespace:
-			if utils.Contains(orgProjectIDs, pol.ResourceID) {
+			if _, ok := orgProjectIDSet[pol.ResourceID]; ok {
 				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
 					errs = errors.Join(errs, fmt.Errorf("delete project policy %s: %w", pol.ID, err))
 				}
 			}
 		case schema.GroupNamespace:
-			if utils.Contains(orgGroupIDs, pol.ResourceID) {
+			if _, ok := orgGroupIDSet[pol.ResourceID]; ok {
 				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
 					errs = errors.Join(errs, fmt.Errorf("delete group policy %s: %w", pol.ID, err))
 				}
