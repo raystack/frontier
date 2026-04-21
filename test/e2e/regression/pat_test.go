@@ -566,8 +566,8 @@ func (s *PATRegressionTestSuite) TestPATCRUD_Lifecycle() {
 		}))
 		s.Require().NoError(err)
 		pat := resp.Msg.GetPat()
-		s.Assert().NotEmpty(pat.GetId())
-		s.Assert().NotEmpty(pat.GetToken())
+		s.Require().NotEmpty(pat.GetId())
+		s.Require().NotEmpty(pat.GetToken())
 		s.Assert().Equal("unique-crud-pat", pat.GetTitle())
 		s.Assert().Equal(orgID, pat.GetOrgId())
 		s.Assert().Len(pat.GetScopes(), 2)
@@ -746,6 +746,7 @@ func (s *PATRegressionTestSuite) TestPATCRUD_CreateErrors() {
 			ExpiresAt: timestamppb.New(time.Now().Add(-1 * time.Hour)),
 		}))
 		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
 	})
 }
 
