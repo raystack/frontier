@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -24,6 +24,7 @@ import {
   Flex,
   InputField,
   Label,
+  Radio,
   Select,
   Skeleton,
   Text,
@@ -43,8 +44,7 @@ const baseFields = {
   projectIds: yup
     .array()
     .of(yup.string().required())
-    .min(1, 'At least one project is required')
-    .required('Project is a required field')
+    .default([])
 };
 
 const createPATSchema = yup
@@ -88,6 +88,10 @@ export function PATFormDialog({
     handleSubmit,
     reset,
     getValues,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting, isDirty }
   } = useForm<FormData>({
     resolver: yupResolver(isUpdateMode ? updatePATSchema : createPATSchema),
@@ -103,6 +107,9 @@ export function PATFormDialog({
   // null = unchecked, true = available, false = taken
   const [titleAvailable, setTitleAvailable] = useState<boolean | null>(null);
   const [titleChecking, setTitleChecking] = useState(false);
+  const [projectAccess, setProjectAccess] = useState<'all' | 'selective'>(
+    'all'
+  );
 
   const handleOpenChange = (open: boolean) => {
     if (open && initialData) {
@@ -115,6 +122,7 @@ export function PATFormDialog({
       const validProjectIds = (projectScope?.resourceIds || []).filter(id =>
         projects.some(p => p.id === id)
       );
+      setProjectAccess(validProjectIds.length > 0 ? 'selective' : 'all');
       reset({
         title: initialData.title,
         expiryDays: '',
@@ -127,6 +135,7 @@ export function PATFormDialog({
     if (!open) {
       reset();
       setTitleAvailable(null);
+      setProjectAccess('all');
     }
   };
 
@@ -169,6 +178,19 @@ export function PATFormDialog({
     [projectRolesData]
   );
 
+  const watchedOrgRoleId = watch('orgRoleId');
+  const isOrgAdmin = useMemo(() => {
+    const role = orgRoles.find(r => r.id === watchedOrgRoleId);
+    return role?.name?.includes('admin') ?? false;
+  }, [orgRoles, watchedOrgRoleId]);
+
+  useEffect(() => {
+    if (isOrgAdmin) {
+      setProjectAccess('all');
+      setValue('projectIds', []);
+    }
+  }, [isOrgAdmin, setValue]);
+
   const { mutateAsync: createPAT } = useMutation(
     FrontierServiceQueries.createCurrentUserPAT
   );
@@ -210,6 +232,17 @@ export function PATFormDialog({
     async (data: FormData) => {
       if (!orgId) return;
 
+      if (
+        projectAccess === 'selective' &&
+        (!data.projectIds || data.projectIds.length === 0)
+      ) {
+        setError('projectIds', {
+          type: 'manual',
+          message: 'At least one project is required'
+        });
+        return;
+      }
+
       const scopes = [
         {
           roleId: data.orgRoleId,
@@ -219,7 +252,7 @@ export function PATFormDialog({
         {
           roleId: data.projectRoleId,
           resourceType: PERMISSIONS.ProjectNamespace,
-          resourceIds: data.projectIds
+          resourceIds: projectAccess === 'all' ? [] : data.projectIds
         }
       ];
 
@@ -285,7 +318,9 @@ export function PATFormDialog({
       handle,
       reset,
       onCreated,
-      onUpdated
+      onUpdated,
+      projectAccess,
+      setError
     ]
   );
 
@@ -439,37 +474,78 @@ export function PATFormDialog({
                     )}
                   </Flex>
 
-                  <Flex direction="column" gap={2}>
-                    <Label>Project</Label>
-                    <Controller
-                      name="projectIds"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          multiple
-                          value={field.value}
-                          onValueChange={field.onChange}
+                  <Flex direction="column" gap={5}>
+                    <Flex direction="column" gap={4}>
+                      <Label>Projects</Label>
+                      <Radio.Group
+                        value={projectAccess}
+                        onValueChange={(val: string) => {
+                          const next = val as 'all' | 'selective';
+                          setProjectAccess(next);
+                          if (next === 'all') {
+                            setValue('projectIds', [], {
+                              shouldDirty: true
+                            });
+                          }
+                          clearErrors('projectIds');
+                        }}
+                      >
+                        <Flex
+                          style={{ gap: 'var(--rs-space-10)' }}
+                          align="center"
                         >
-                          <Select.Trigger>
-                            <Select.Value placeholder="Select projects">
-                              {field.value.length > 0
-                                ? `${field.value.length} project${field.value.length > 1 ? 's' : ''} selected`
-                                : undefined}
-                            </Select.Value>
-                          </Select.Trigger>
-                          <Select.Content>
-                            {projects.map(project => (
-                              <Select.Item
-                                value={project.id || ''}
-                                key={project.id}
-                              >
-                                {project.title}
-                              </Select.Item>
-                            ))}
-                          </Select.Content>
-                        </Select>
-                      )}
-                    />
+                          <Flex gap={3} align="center">
+                            <Radio value="all" />
+                            <Text size="small" variant="secondary">
+                              All
+                            </Text>
+                          </Flex>
+                          <Flex gap={3} align="center">
+                            <Radio
+                              value="selective"
+                              disabled={isOrgAdmin}
+                            />
+                            <Text size="small" variant="secondary">
+                              Selective projects
+                            </Text>
+                          </Flex>
+                        </Flex>
+                      </Radio.Group>
+                    </Flex>
+                    {projectAccess === 'selective' && (
+                      <Controller
+                        name="projectIds"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            multiple
+                            value={field.value}
+                            onValueChange={(val: string[]) => {
+                              field.onChange(val);
+                              clearErrors('projectIds');
+                            }}
+                          >
+                            <Select.Trigger>
+                              <Select.Value placeholder="Select projects">
+                                {field.value.length > 0
+                                  ? `${field.value.length} project${field.value.length > 1 ? 's' : ''} selected`
+                                  : undefined}
+                              </Select.Value>
+                            </Select.Trigger>
+                            <Select.Content>
+                              {projects.map(project => (
+                                <Select.Item
+                                  value={project.id || ''}
+                                  key={project.id}
+                                >
+                                  {project.title}
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select>
+                        )}
+                      />
+                    )}
                     {errors.projectIds && (
                       <Text size="mini" variant="danger">
                         {String(errors.projectIds?.message)}
