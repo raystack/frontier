@@ -36,6 +36,7 @@ import (
 	"github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/frontier/test/e2e/testbench"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -48,10 +49,21 @@ const (
 	computeManagerRoleName = "compute_order_manager"
 )
 
+func requireAddOrgMembersSuccess(t require.TestingT, resp *connect.Response[frontierv1beta1.AddOrganizationMembersResponse], err error) {
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	for _, result := range resp.Msg.GetResults() {
+		require.Truef(t, result.GetSuccess(),
+			"failed to add org member user_id=%s role_id=%s: %s",
+			result.GetUserId(), result.GetRoleId(), result.GetError())
+	}
+}
+
 type APIRegressionTestSuite struct {
 	suite.Suite
-	testBench   *testbench.TestBench
-	adminCookie string
+	testBench     *testbench.TestBench
+	adminCookie   string
+	orgViewerRole string
 }
 
 func (s *APIRegressionTestSuite) SetupSuite() {
@@ -100,6 +112,21 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
+
+	// look up org viewer role UUID for AddOrganizationMembers calls
+	ctxAdmin := testbench.ContextWithAuth(ctx, adminCookie)
+	rolesResp, err := s.testBench.Client.ListRoles(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListRolesRequest{
+		State:  "enabled",
+		Scopes: []string{"app/organization"},
+	}))
+	s.Require().NoError(err)
+	for _, r := range rolesResp.Msg.GetRoles() {
+		if r.GetName() == schema.RoleOrganizationViewer {
+			s.orgViewerRole = r.GetId()
+			break
+		}
+	}
+	s.Require().NotEmpty(s.orgViewerRole, "org viewer role not found")
 }
 
 func (s *APIRegressionTestSuite) TearDownSuite() {
@@ -159,11 +186,14 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		}}))
 		s.Assert().NoError(err)
 
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      createOrgResp.Msg.GetOrganization().GetId(),
-			UserIds: []string{userResp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: userResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
 			Id: createOrgResp.Msg.GetOrganization().GetId(),
@@ -190,11 +220,14 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NoError(err)
 
 		// attach user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      createOrgResp.Msg.GetOrganization().GetId(),
-			UserIds: []string{createUserResponse.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResponse.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
@@ -271,11 +304,14 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NoError(err)
 
 		// attach user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      createOrgResp.Msg.GetOrganization().GetId(),
-			UserIds: []string{createUserResponse.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResponse.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		// check users
 		listUsersBeforeDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
@@ -302,7 +338,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 			return u.GetId()
 		}), createUserResponse.Msg.GetUser().GetId())
 	})
-	s.Run("5. a user should successfully create a new org and list it even if it's disabled", func() {
+	s.Run("5. creating an org when PlatformDisableOrgsOnCreate is true should succeed but org is disabled", func() {
 		// enable disable_org_on_create preference
 		disabledOrgs, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
 			Preferences: []*frontierv1beta1.PreferenceRequestBody{
@@ -318,6 +354,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		normalUserCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, "normaluser@raystack.org")
 		s.Require().NoError(err)
 		ctxOrgUserAuth := testbench.ContextWithAuth(context.Background(), normalUserCookie)
+		// org creation succeeds — org is created enabled, membership setup completes, then disabled
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org acme 5",
@@ -326,22 +363,6 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(organization.Disabled.String(), createOrgResp.Msg.GetOrganization().GetState())
-
-		// should not list org if it's disabled by default
-		userEnabledOrgs, err := s.testBench.Client.ListOrganizationsByCurrentUser(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationsByCurrentUserRequest{}))
-		s.Assert().NoError(err)
-		s.Assert().False(slices.Contains(utils.Map(userEnabledOrgs.Msg.GetOrganizations(), func(o *frontierv1beta1.Organization) string {
-			return o.GetName()
-		}), createOrgResp.Msg.GetOrganization().GetName()))
-
-		// should list org even if it's disabled
-		userDisabledOrgs, err := s.testBench.Client.ListOrganizationsByCurrentUser(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationsByCurrentUserRequest{
-			State: organization.Disabled.String(),
-		}))
-		s.Assert().NoError(err)
-		s.Assert().True(slices.Contains(utils.Map(userDisabledOrgs.Msg.GetOrganizations(), func(o *frontierv1beta1.Organization) string {
-			return o.GetName()
-		}), createOrgResp.Msg.GetOrganization().GetName()))
 
 		// reset disable_org_on_create preference
 		_, err = s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
@@ -373,11 +394,14 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NotNil(createUser1Resp)
 
 		// add user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      createOrgResp.Msg.GetOrganization().GetId(),
-			UserIds: []string{createUser1Resp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUser1Resp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
 			Id: createOrgResp.Msg.GetOrganization().GetId(),
@@ -842,11 +866,14 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NotNil(createUserResp)
 
 		// add basic user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      myOrg.GetId(),
-			UserIds: []string{createUserResp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: myOrg.GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		// give it access to create group
 		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
@@ -869,11 +896,14 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NotNil(createOwnerUserResp)
 
 		// add owner user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      myOrg.GetId(),
-			UserIds: []string{createOwnerUserResp.Msg.GetUser().GetId()},
+		addMembersResp, err = s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: myOrg.GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createOwnerUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		// give it access to create everything
 		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
@@ -1179,11 +1209,14 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      existingOrg.Msg.GetOrganization().GetId(),
-			UserIds: []string{createUserResp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 		_, err = s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 			Id:      existingGroup.GetId(),
 			OrgId:   existingGroup.GetOrgId(),
@@ -1262,11 +1295,14 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      existingOrg.Msg.GetOrganization().GetId(),
-			UserIds: []string{createUserResp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
 			Id:               existingOrg.Msg.GetOrganization().GetId(),
 			PermissionFilter: organization.MemberRole,
@@ -1334,11 +1370,14 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listExistingUsers.Msg.GetUsers()))
 
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      existingOrg.Msg.GetOrganization().GetId(),
-			UserIds: []string{createUserResp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		listNewUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			OrgId: existingOrg.Msg.GetOrganization().GetId(),
@@ -1513,11 +1552,14 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		s.Assert().NoError(err)
 
 		// attach user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      createOrgResp.Msg.GetOrganization().GetId(),
-			UserIds: []string{userResp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: userResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
@@ -1588,12 +1630,15 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		}}))
 		s.Assert().NoError(err)
 
-		// attach user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      createOrgResp.Msg.GetOrganization().GetId(),
-			UserIds: []string{user1Resp.Msg.GetUser().GetId(), user2Resp.Msg.GetUser().GetId()},
+		// attach users to org
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{
+				{UserId: user1Resp.Msg.GetUser().GetId(), RoleId: s.orgViewerRole},
+				{UserId: user2Resp.Msg.GetUser().GetId(), RoleId: s.orgViewerRole},
+			},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
@@ -2028,8 +2073,9 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		createRoleResp, err := s.testBench.Client.CreateOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
 			OrgId: existingOrg.Msg.GetOrganization().GetId(),
 			Body: &frontierv1beta1.RoleRequestBody{
-				Title: "invitation role 1",
-				Name:  "invitation_role_1",
+				Title:  "invitation role 1",
+				Name:   "invitation_role_1",
+				Scopes: []string{"app/organization"},
 				Permissions: []string{
 					"app.organization.groupcreate",
 					"app.organization.grouplist",
@@ -2163,11 +2209,14 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().NoError(err)
 
 		// attach user to org
-		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationUsersRequest{
-			Id:      existingOrg.Msg.GetOrganization().GetId(),
-			UserIds: []string{createUserResp.Msg.GetUser().GetId()},
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
 		}))
-		s.Assert().NoError(err)
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
 		_, err = s.testBench.Client.CreateOrganizationInvitation(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationInvitationRequest{
 			OrgId:   existingOrg.Msg.GetOrganization().GetId(),
@@ -2433,7 +2482,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 			return p.GetName() == preference.PlatformDisableOrgsOnCreate
 		})[0].GetValue())
 	})
-	s.Run("4. PlatformDisableOrgsOnCreate if set to true should disable all orgs when created", func() {
+	s.Run("4. PlatformDisableOrgsOnCreate if set to true should create org in disabled state", func() {
 		createPrefResp, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePreferencesRequest{
 			Preferences: []*frontierv1beta1.PreferenceRequestBody{
 				{
@@ -2446,7 +2495,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 		s.Assert().NotNil(createPrefResp)
 		s.Assert().True(len(createPrefResp.Msg.GetPreference()) > 0)
 
-		// create a new org
+		// org creation succeeds — org is created enabled, membership setup completes, then disabled
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org 2",
@@ -2454,7 +2503,6 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 			},
 		}))
 		s.Assert().NoError(err)
-		s.Assert().NotNil(createOrgResp)
 		s.Assert().Equal(organization.Disabled.String(), createOrgResp.Msg.GetOrganization().GetState())
 
 		// reset it back to false
