@@ -33,17 +33,11 @@ import { timestampToDayjs, type TimeStamp } from '../../../../utils/timestamp';
 import { capitalize } from '../../../../utils';
 import styles from '../billing-view.module.css';
 
-const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
+const DEFAULT_SORT: DataTableSort = { name: 'created_at', order: 'desc' };
 
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE
-};
-
-const TRANSFORM_OPTIONS = {
-  fieldNameMapping: {
-    createdAt: 'created_at'
-  }
 };
 
 type InvoiceStatus = (typeof INVOICE_STATES)[keyof typeof INVOICE_STATES];
@@ -66,6 +60,7 @@ const getColumns = ({
 >[] => [
   {
     header: 'Date',
+    id: 'created_at',
     accessorKey: 'createdAt',
     enableSorting: true,
     cell: ({ getValue }) => {
@@ -157,7 +152,7 @@ export function Invoices() {
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
   const computedQuery = useMemo(
-    () => transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS),
+    () => transformDataTableQueryToRQLRequest(tableQuery),
     [tableQuery]
   );
 
