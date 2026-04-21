@@ -479,11 +479,6 @@ func (h *ConnectHandler) RemoveOrganizationMember(ctx context.Context, request *
 	principalType := request.Msg.GetPrincipalType()
 
 	if err := h.membershipService.RemoveOrganizationMember(ctx, orgID, principalID, principalType); err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveOrganizationMember", err,
-			zap.String("org_id", orgID),
-			zap.String("principal_id", principalID),
-			zap.String("principal_type", principalType))
-
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
@@ -496,6 +491,10 @@ func (h *ConnectHandler) RemoveOrganizationMember(ctx context.Context, request *
 		case errors.Is(err, membership.ErrLastOwnerRole):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, membership.ErrLastOwnerRole)
 		default:
+			errorLogger.LogServiceError(ctx, request, "RemoveOrganizationMember", err,
+				zap.String("org_id", orgID),
+				zap.String("principal_id", principalID),
+				zap.String("principal_type", principalType))
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
