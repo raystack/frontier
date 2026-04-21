@@ -1,7 +1,7 @@
 import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
 import {
   FrontierServiceQueries,
-  RemoveOrganizationUserRequestSchema,
+  RemoveOrganizationMemberRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
@@ -23,17 +23,18 @@ export const RemoveMember = ({
   onClose,
 }: RemoveMemberProps) => {
   const t = useTerminology();
-  const { mutateAsync: removeOrganizationUser, isPending } = useMutation(
-    FrontierServiceQueries.removeOrganizationUser,
+  const { mutateAsync: removeOrganizationMember, isPending } = useMutation(
+    FrontierServiceQueries.removeOrganizationMember,
   );
 
   async function onSubmit() {
     try {
       if (!user) return;
-      await removeOrganizationUser(
-        create(RemoveOrganizationUserRequestSchema, {
-          id: organizationId,
-          userId: user?.id || "",
+      await removeOrganizationMember(
+        create(RemoveOrganizationMemberRequestSchema, {
+          orgId: organizationId,
+          principalId: user?.id || "",
+          principalType: "app/user",
         }),
       );
       if (onRemove) {
