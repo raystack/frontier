@@ -2,9 +2,8 @@ definition app/user {}
 
 definition app/serviceuser {
 	relation org: app/organization
-	relation user: app/user
 
-    permission manage = org->serviceusermanage + user
+    permission manage = org->serviceusermanage
 }
 
 definition app/pat {
