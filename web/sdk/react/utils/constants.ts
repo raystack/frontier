@@ -14,10 +14,13 @@ export const SUBSCRIPTION_STATES = {
   CANCELED: 'canceled'
 } as const;
 
+// https://docs.stripe.com/invoicing/overview#invoice-statuses
 export const INVOICE_STATES = {
+  DRAFT: 'draft',
   OPEN: 'open',
   PAID: 'paid',
-  DRAFT: 'draft'
+  VOID: 'void',
+  UNCOLLECTIBLE: 'uncollectible'
 } as const;
 
 export const DEFAULT_API_PLATFORM_APP_NAME = 'Frontier';

@@ -136,7 +136,7 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
           onNavigateToPlans={onNavigateToPlans}
         />
 
-        <Invoices invoices={invoices} isLoading={isLoading} />
+        <Invoices />
       </Flex>
 
       <ConfirmCycleSwitchDialog handle={cycleSwitchDialogHandle} />
