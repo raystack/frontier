@@ -389,6 +389,8 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		case errors.Is(err, membership.ErrNotOrgMember):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrBadRequest)
 		case errors.Is(err, role.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrInvalidRoleID)
 		case errors.Is(err, role.ErrInvalidID):
@@ -424,6 +426,8 @@ func (h *ConnectHandler) RemoveProjectMember(ctx context.Context, request *conne
 			zap.String("principal_type", principalType))
 
 		switch {
+		case errors.Is(err, project.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
 		case errors.Is(err, membership.ErrNotMember):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotMember)
 		case errors.Is(err, membership.ErrInvalidPrincipalType):

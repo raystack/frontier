@@ -40,8 +40,8 @@ const (
 	OrganizationInvitationAcceptedEvent Event = "organization.accepted"
 
 	// Project Member Events
-	ProjectMemberRoleChangedEvent Event = "project.member.role_changed"
-	ProjectMemberRemovedEvent     Event = "project.member.removed"
+	ProjectMemberRoleChangedEvent Event = "project.member_role_changed"
+	ProjectMemberRemovedEvent     Event = "project.member_removed"
 
 	// KYC Events
 	KYCVerifiedEvent   Event = "kyc.verified"

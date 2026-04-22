@@ -701,7 +701,7 @@ func (s *Service) SetProjectMemberRole(ctx context.Context, projectID, principal
 		return err
 	}
 
-	s.auditProjectMemberRoleChanged(ctx, prj, principalID, principalType, resolvedRoleID)
+	s.auditProjectMember(ctx, pkgAuditRecord.ProjectMemberRoleChangedEvent, prj, principalID, principalType, map[string]any{"role_id": resolvedRoleID})
 	return nil
 }
 
@@ -726,7 +726,7 @@ func (s *Service) RemoveProjectMember(ctx context.Context, projectID, principalI
 		return ErrNotMember
 	}
 
-	s.auditProjectMemberRemoved(ctx, prj, principalID, principalType)
+	s.auditProjectMember(ctx, pkgAuditRecord.ProjectMemberRemovedEvent, prj, principalID, principalType, nil)
 	return nil
 }
 
@@ -834,43 +834,23 @@ func (s *Service) validateOrgMembership(ctx context.Context, orgID, principalID,
 	return nil
 }
 
-func (s *Service) auditProjectMemberRoleChanged(ctx context.Context, prj project.Project, principalID, principalType, roleID string) {
+func (s *Service) auditProjectMember(ctx context.Context, event pkgAuditRecord.Event, prj project.Project, principalID, principalType string, meta map[string]any) {
 	targetType, _ := principalTypeToAuditType(principalType)
+	if meta == nil {
+		meta = map[string]any{}
+	}
+	meta["principal_type"] = principalType
 	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.ProjectMemberRoleChangedEvent,
+		Event: event,
 		Resource: auditrecord.Resource{
 			ID:   prj.ID,
 			Type: pkgAuditRecord.ProjectType,
 			Name: prj.Title,
 		},
 		Target: &auditrecord.Target{
-			ID:   principalID,
-			Type: targetType,
-			Metadata: map[string]any{
-				"principal_type": principalType,
-				"role_id":        roleID,
-			},
-		},
-		OrgID:      prj.Organization.ID,
-		OccurredAt: time.Now(),
-	})
-}
-
-func (s *Service) auditProjectMemberRemoved(ctx context.Context, prj project.Project, principalID, principalType string) {
-	targetType, _ := principalTypeToAuditType(principalType)
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.ProjectMemberRemovedEvent,
-		Resource: auditrecord.Resource{
-			ID:   prj.ID,
-			Type: pkgAuditRecord.ProjectType,
-			Name: prj.Title,
-		},
-		Target: &auditrecord.Target{
-			ID:   principalID,
-			Type: targetType,
-			Metadata: map[string]any{
-				"principal_type": principalType,
-			},
+			ID:       principalID,
+			Type:     targetType,
+			Metadata: meta,
 		},
 		OrgID:      prj.Organization.ID,
 		OccurredAt: time.Now(),
