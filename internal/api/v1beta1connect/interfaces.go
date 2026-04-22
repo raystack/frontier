@@ -408,6 +408,7 @@ type AuditRecordService interface {
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
 	SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
 }
 
 type UserPATService interface {

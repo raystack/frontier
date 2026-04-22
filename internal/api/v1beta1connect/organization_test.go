@@ -921,145 +921,104 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 	}
 }
 
-func TestHandler_RemoveOrganizationUser(t *testing.T) {
+func TestHandler_RemoveOrganizationMember(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter)
-		request *connect.Request[frontierv1beta1.RemoveOrganizationUserRequest]
-		want    *connect.Response[frontierv1beta1.RemoveOrganizationUserResponse]
+		setup   func(ms *mocks.MembershipService)
+		request *connect.Request[frontierv1beta1.RemoveOrganizationMemberRequest]
+		want    *connect.Response[frontierv1beta1.RemoveOrganizationMemberResponse]
 		wantErr error
 	}{
 		{
-			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
-			},
-			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-				Id:     testOrgID,
-				UserId: "some-user-id",
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
-		},
-		{
 			name: "should return not found error if org does not exist",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			setup: func(ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveOrganizationMember(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "some-user-id", schema.UserPrincipal).Return(organization.ErrNotExist)
 			},
-			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-				Id:     testOrgID,
-				UserId: "some-user-id",
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+				OrgId:         testOrgID,
+				PrincipalId:   "some-user-id",
+				PrincipalType: schema.UserPrincipal,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
 		},
 		{
 			name: "should return not found error if org is disabled",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			setup: func(ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveOrganizationMember(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "some-user-id", schema.UserPrincipal).Return(organization.ErrDisabled)
 			},
-			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-				Id:     testOrgID,
-				UserId: "some-user-id",
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+				OrgId:         testOrgID,
+				PrincipalId:   "some-user-id",
+				PrincipalType: schema.UserPrincipal,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
 		},
 		{
-			name: "should return internal error if user service return some error",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{}, errors.New("test error"))
+			name: "should return failed precondition if not a member",
+			setup: func(ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveOrganizationMember(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "some-user-id", schema.UserPrincipal).Return(membership.ErrNotMember)
 			},
-			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-				Id:     testOrgID,
-				UserId: "some-user-id",
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+				OrgId:         testOrgID,
+				PrincipalId:   "some-user-id",
+				PrincipalType: schema.UserPrincipal,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, membership.ErrNotMember),
+		},
+		{
+			name: "should return failed precondition if last owner",
+			setup: func(ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveOrganizationMember(mock.AnythingOfType("context.backgroundCtx"), testOrgID, testUserID, schema.UserPrincipal).Return(membership.ErrLastOwnerRole)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+				OrgId:         testOrgID,
+				PrincipalId:   testUserID,
+				PrincipalType: schema.UserPrincipal,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, membership.ErrLastOwnerRole),
+		},
+		{
+			name: "should return internal error on unexpected failure",
+			setup: func(ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveOrganizationMember(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "some-user-id", schema.UserPrincipal).Return(errors.New("unexpected"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+				OrgId:         testOrgID,
+				PrincipalId:   "some-user-id",
+				PrincipalType: schema.UserPrincipal,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
 		{
-			name: "should return permission denied error and not remove user if it is the last admin user",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
-					testUserMap[testUserID],
-				}, nil)
-				// Note: deleterService should NOT be called when it's the last admin
+			name: "should remove member successfully",
+			setup: func(ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveOrganizationMember(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "some-user-id", schema.UserPrincipal).Return(nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-				Id:     testOrgID,
-				UserId: testUserID,
+			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+				OrgId:         testOrgID,
+				PrincipalId:   "some-user-id",
+				PrincipalType: schema.UserPrincipal,
 			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodePermissionDenied, ErrMinAdminCount),
-		},
-		{
-			name: "should return internal error if deleter service fails",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
-					testUserMap[testUserID],
-					{
-						ID:        "some-user-id",
-						Title:     "User 1",
-						Name:      "user1",
-						Email:     "test@raystack.org",
-						Metadata:  map[string]interface{}{},
-						CreatedAt: time.Time{},
-						UpdatedAt: time.Time{},
-					},
-				}, nil)
-				ds.EXPECT().RemoveUsersFromOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, []string{"some-user-id"}).Return(errors.New("deleter error"))
-			},
-			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-				Id:     testOrgID,
-				UserId: "some-user-id",
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
-		},
-		{
-			name: "should remove user from org successfully",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
-					testUserMap[testUserID],
-					{
-						ID:        "some-user-id",
-						Title:     "User 1",
-						Name:      "user1",
-						Email:     "test@raystack.org",
-						Metadata:  map[string]interface{}{},
-						CreatedAt: time.Time{},
-						UpdatedAt: time.Time{},
-					},
-				}, nil)
-				ds.EXPECT().RemoveUsersFromOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, []string{"some-user-id"}).Return(nil)
-			},
-			request: connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-				Id:     testOrgID,
-				UserId: "some-user-id",
-			}),
-			want:    connect.NewResponse(&frontierv1beta1.RemoveOrganizationUserResponse{}),
+			want:    connect.NewResponse(&frontierv1beta1.RemoveOrganizationMemberResponse{}),
 			wantErr: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockOrgService := new(mocks.OrganizationService)
-			mockUserService := new(mocks.UserService)
-			mockDeleterService := new(mocks.CascadeDeleter)
+			mockMembershipService := new(mocks.MembershipService)
 			if tt.setup != nil {
-				tt.setup(mockOrgService, mockUserService, mockDeleterService)
+				tt.setup(mockMembershipService)
 			}
 			mockDep := &ConnectHandler{
-				orgService:     mockOrgService,
-				userService:    mockUserService,
-				deleterService: mockDeleterService,
+				membershipService: mockMembershipService,
 			}
-			resp, err := mockDep.RemoveOrganizationUser(context.Background(), tt.request)
+			resp, err := mockDep.RemoveOrganizationMember(context.Background(), tt.request)
 			assert.Equal(t, tt.want, resp)
 			assert.Equal(t, tt.wantErr, err)
 		})

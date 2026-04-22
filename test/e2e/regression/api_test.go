@@ -323,9 +323,10 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		}), createUserResponse.Msg.GetUser().GetId())
 
 		// remove user from org
-		_, err = s.testBench.Client.RemoveOrganizationUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RemoveOrganizationUserRequest{
-			Id:     createOrgResp.Msg.GetOrganization().GetId(),
-			UserId: createUserResponse.Msg.GetUser().GetId(),
+		_, err = s.testBench.Client.RemoveOrganizationMember(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+			OrgId:         createOrgResp.Msg.GetOrganization().GetId(),
+			PrincipalId:   createUserResponse.Msg.GetUser().GetId(),
+			PrincipalType: schema.UserPrincipal,
 		}))
 		s.Assert().NoError(err)
 
