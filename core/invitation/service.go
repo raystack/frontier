@@ -17,7 +17,7 @@ import (
 	"github.com/mcuadros/go-defaults"
 	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
-	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/preference"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"gopkg.in/mail.v2"
@@ -46,8 +46,11 @@ type UserService interface {
 
 type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
-	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
 	ListByUser(ctx context.Context, p authenticate.Principal, f organization.Filter) ([]organization.Organization, error)
+}
+
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
 }
 
 type GroupService interface {
@@ -59,10 +62,6 @@ type GroupService interface {
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
-}
-
-type PolicyService interface {
-	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 }
 
 type PreferencesService interface {
@@ -80,16 +79,17 @@ type Service struct {
 	groupSvc              GroupService
 	userService           UserService
 	relationService       RelationService
-	policyService         PolicyService
 	prefService           PreferencesService
 	auditRecordRepository AuditRecordRepository
+	membershipSvc         MembershipService
 }
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
 	userService UserService, relService RelationService,
-	policyService PolicyService, prefService PreferencesService,
-	auditRecordRepository AuditRecordRepository) *Service {
+	prefService PreferencesService,
+	auditRecordRepository AuditRecordRepository,
+	membershipSvc MembershipService) *Service {
 	return &Service{
 		dialer:                dialer,
 		repo:                  repo,
@@ -97,9 +97,9 @@ func NewService(dialer mailer.Dialer, repo Repository,
 		groupSvc:              grpSvc,
 		userService:           userService,
 		relationService:       relService,
-		policyService:         policyService,
 		prefService:           prefService,
 		auditRecordRepository: auditRecordRepository,
+		membershipSvc:         membershipSvc,
 	}
 }
 
@@ -297,18 +297,24 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 		return ErrInviteExpired
 	}
 
-	// check if user is already a member of the organization
-	// if yes, check if any other part of the invitation applies like group membership
 	userOb, userOrgMember, err := s.isUserOrgMember(ctx, invite.OrgID, invite.UserEmailID)
 	if err != nil {
 		return err
 	}
+
+	// Use the first role ID from the invitation, fall back to viewer.
+	orgRoleID := schema.RoleOrganizationViewer
+	conf := s.getConfig(ctx)
+	if conf.WithRoles && len(invite.RoleIDs) > 0 {
+		orgRoleID = invite.RoleIDs[0]
+	}
+
 	if !userOrgMember {
-		// if not, add user to the organization
-		if err = s.orgSvc.AddMember(ctx, invite.OrgID, schema.MemberRelationName, authenticate.Principal{
-			ID:   userOb.ID,
-			Type: schema.UserPrincipal,
-		}); err != nil {
+		// User is not yet a member — add with the invitation's role.
+		// ErrAlreadyMember is possible in a race (user added between invite creation
+		// and acceptance) — treat as success since the user is already in the org.
+		err = s.membershipSvc.AddOrganizationMember(ctx, invite.OrgID, userOb.ID, schema.UserPrincipal, orgRoleID)
+		if err != nil && !errors.Is(err, membership.ErrAlreadyMember) {
 			return err
 		}
 	}
@@ -322,14 +328,11 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 			return err
 		}
 		for _, groupID := range invite.GroupIDs {
-			// check if group id is valid
 			grp, err := s.groupSvc.Get(ctx, groupID)
 			if err != nil {
 				return err
 			}
 
-			// check if user is already a member of the group
-			// if yes, skip
 			alreadyGroupMember := false
 			for _, g := range userGroups {
 				if g.ID == grp.ID {
@@ -344,28 +347,6 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 				}); err != nil {
 					return err
 				}
-			}
-		}
-	}
-
-	// check if invitation has a list of roles which we want to assign to the user at org level
-	var roleErr error
-	if len(invite.RoleIDs) > 0 {
-		conf := s.getConfig(ctx)
-		if conf.WithRoles {
-			for _, inviteRoleID := range invite.RoleIDs {
-				if _, err := s.policyService.Create(ctx, policy.Policy{
-					RoleID:        inviteRoleID,
-					ResourceID:    invite.OrgID,
-					ResourceType:  schema.OrganizationNamespace,
-					PrincipalID:   userOb.ID,
-					PrincipalType: schema.UserPrincipal,
-				}); err != nil {
-					roleErr = errors.Join(roleErr, err)
-				}
-			}
-			if roleErr != nil {
-				return roleErr
 			}
 		}
 	}

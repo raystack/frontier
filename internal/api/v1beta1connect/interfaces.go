@@ -124,7 +124,6 @@ type OrganizationService interface {
 	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt organization.Filter) ([]organization.Organization, error)
-	AddUsers(ctx context.Context, orgID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -409,6 +408,7 @@ type AuditRecordService interface {
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
 	SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
 }
 
 type UserPATService interface {

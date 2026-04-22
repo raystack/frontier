@@ -6,11 +6,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/organization/mocks"
-	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/core/relation"
 	pat "github.com/raystack/frontier/core/userpat/models"
@@ -165,63 +163,6 @@ func TestService_GetDefaultOrgStateOnCreate(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "an error occurred", errors.Unwrap(err).Error())
 		assert.Equal(t, organization.Enabled, state)
-	})
-}
-
-func TestService_AddMember(t *testing.T) {
-	mockRepo := mocks.NewRepository(t)
-	mockRelationSvc := mocks.NewRelationService(t)
-	mockUserSvc := mocks.NewUserService(t)
-	mockAuthnSvc := mocks.NewAuthnService(t)
-	mockPolicySvc := mocks.NewPolicyService(t)
-	mockPrefSvc := mocks.NewPreferencesService(t)
-	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
-
-	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
-
-	t.Run("should create policy and relation for member as per role", func(t *testing.T) {
-		inputOrgID := "test-id"
-		inputRelationName := schema.MemberRelationName
-		inputPrincipal := authenticate.Principal{
-			ID:   "test-principal-id",
-			Type: schema.UserPrincipal,
-		}
-
-		expectedOrg := organization.Organization{
-			ID:    inputOrgID,
-			Name:  "test-org",
-			Title: "Test Organization",
-			State: organization.Enabled,
-		}
-
-		policyToBeCreated := policy.Policy{
-			RoleID:        organization.MemberRole,
-			ResourceID:    inputOrgID,
-			ResourceType:  schema.OrganizationNamespace,
-			PrincipalID:   inputPrincipal.ID,
-			PrincipalType: inputPrincipal.Type,
-		}
-
-		relationToBeCreated := relation.Relation{
-			Object: relation.Object{
-				ID:        inputOrgID,
-				Namespace: schema.OrganizationNamespace,
-			},
-			Subject: relation.Subject{
-				ID:        inputPrincipal.ID,
-				Namespace: inputPrincipal.Type,
-			},
-			RelationName: schema.MemberRelationName,
-		}
-
-		mockPolicySvc.On("Create", mock.Anything, policyToBeCreated).Return(policy.Policy{}, nil)
-		mockRelationSvc.On("Create", mock.Anything, relationToBeCreated).Return(relation.Relation{}, nil)
-		mockRepo.On("GetByID", mock.Anything, inputOrgID).Return(expectedOrg, nil).Once()
-		mockAuditRecordRepo.On("Create", mock.Anything, mock.AnythingOfType("models.AuditRecord")).Return(auditrecord.AuditRecord{}, nil).Once()
-
-		err := svc.AddMember(context.Background(), inputOrgID, inputRelationName, inputPrincipal)
-		assert.Nil(t, err)
 	})
 }
 
