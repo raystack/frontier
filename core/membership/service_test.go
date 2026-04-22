@@ -697,6 +697,7 @@ func TestService_SetProjectMemberRole(t *testing.T) {
 	orgID := uuid.New().String()
 	userID := uuid.New().String()
 	suID := uuid.New().String()
+	groupID := uuid.New().String()
 	roleID := uuid.New().String()
 
 	prj := project.Project{
@@ -766,6 +767,36 @@ func TestService_SetProjectMemberRole(t *testing.T) {
 			},
 			principalID: userID, principalType: schema.UserPrincipal, roleID: roleID,
 		},
+		{
+			name: "should succeed adding service user to project",
+			setup: func(policySvc *mocks.PolicyService, roleSvc *mocks.RoleService, prjSvc *mocks.ProjectService, _ *mocks.UserService, suSvc *mocks.ServiceuserService, _ *mocks.GroupService, auditRepo *mocks.AuditRecordRepository) {
+				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.ProjectNamespace}}, nil)
+				suSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: roleID, ResourceID: projectID, ResourceType: schema.ProjectNamespace,
+					PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal,
+				}).Return(policy.Policy{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			principalID: suID, principalType: schema.ServiceUserPrincipal, roleID: roleID,
+		},
+		{
+			name: "should succeed adding group to project",
+			setup: func(policySvc *mocks.PolicyService, roleSvc *mocks.RoleService, prjSvc *mocks.ProjectService, _ *mocks.UserService, _ *mocks.ServiceuserService, grpSvc *mocks.GroupService, auditRepo *mocks.AuditRecordRepository) {
+				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
+				roleSvc.EXPECT().Get(ctx, roleID).Return(role.Role{ID: roleID, Scopes: []string{schema.ProjectNamespace}}, nil)
+				grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{ID: groupID, OrganizationID: orgID}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: groupID, PrincipalType: schema.GroupPrincipal}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: roleID, ResourceID: projectID, ResourceType: schema.ProjectNamespace,
+					PrincipalID: groupID, PrincipalType: schema.GroupPrincipal,
+				}).Return(policy.Policy{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			principalID: groupID, principalType: schema.GroupPrincipal, roleID: roleID,
+		},
 	}
 
 	for _, tt := range tests {
@@ -798,6 +829,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 	ctx := context.Background()
 	projectID := uuid.New().String()
 	userID := uuid.New().String()
+	suID := uuid.New().String()
 
 	prj := project.Project{
 		ID:           projectID,
@@ -808,11 +840,13 @@ func TestService_RemoveProjectMember(t *testing.T) {
 	tests := []struct {
 		name          string
 		setup         func(*mocks.PolicyService, *mocks.ProjectService, *mocks.AuditRecordRepository)
+		principalID   string
 		principalType string
 		wantErr       error
 	}{
 		{
 			name:          "should return error for invalid principal type",
+			principalID:   userID,
 			principalType: "app/invalid",
 			wantErr:       membership.ErrInvalidPrincipalType,
 		},
@@ -822,18 +856,31 @@ func TestService_RemoveProjectMember(t *testing.T) {
 				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 			},
+			principalID:   userID,
 			principalType: schema.UserPrincipal,
 			wantErr:       membership.ErrNotMember,
 		},
 		{
-			name: "should succeed removing a member",
+			name: "should succeed removing a user",
 			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, auditRepo *mocks.AuditRecordRepository) {
 				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1"}}, nil)
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
+			principalID:   userID,
 			principalType: schema.UserPrincipal,
+		},
+		{
+			name: "should succeed removing a service user",
+			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, auditRepo *mocks.AuditRecordRepository) {
+				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			principalID:   suID,
+			principalType: schema.ServiceUserPrincipal,
 		},
 	}
 
@@ -848,7 +895,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 			}
 
 			svc := membership.NewService(log.NewNoop(), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mockPrjSvc, mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
-			err := svc.RemoveProjectMember(ctx, projectID, userID, tt.principalType)
+			err := svc.RemoveProjectMember(ctx, projectID, tt.principalID, tt.principalType)
 
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
