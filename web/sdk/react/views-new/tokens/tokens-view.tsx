@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Callout,
@@ -101,7 +101,8 @@ export function TokensView() {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-    isError
+    isError,
+    error: transactionsError
   } = useInfiniteQuery(
     FrontierServiceQueries.searchOrganizationTokens,
     { id: organizationId, query },
@@ -116,6 +117,12 @@ export function TokensView() {
       retryDelay: 1000
     }
   );
+
+  useEffect(() => {
+    if (transactionsError) {
+      console.error('Unable to fetch transactions', transactionsError);
+    }
+  }, [transactionsError]);
 
   const transactionsData = useMemo(
     () =>
