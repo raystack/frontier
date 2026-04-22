@@ -9,4 +9,6 @@ var (
 	ErrLastOwnerRole        = errors.New("cannot change role: this is the last owner of the organization")
 	ErrInvalidPrincipal     = errors.New("only user principals are supported")
 	ErrInvalidPrincipalType = errors.New("unsupported principal type")
+	ErrNotOrgMember         = errors.New("principal is not a member of the organization")
+	ErrInvalidProjectRole   = errors.New("role is not valid for project scope")
 )
