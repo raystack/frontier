@@ -16,7 +16,6 @@ import (
 	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
-	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/salt/server/spa"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -242,7 +241,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		defer cancel()
 
 		if err := server.Shutdown(ctxShutdown); err != nil {
-			frontierlogger.Fatal(logger, "HTTP shutdown error", "error", err)
+			logger.ErrorContext(ctxShutdown, "HTTP shutdown error", "error", err)
 		}
 
 		logger.Info("Graceful shutdown of connect server complete")
