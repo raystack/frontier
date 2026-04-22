@@ -95,7 +95,7 @@ export function getColumns({
       enableHiding: true,
       cell: ({ row, getValue }) => {
         const userId = row?.original?.userId || '';
-        const title = (getValue() as string) || userId || '-';
+        const title = (getValue() as string) || '-';
         const avatarSrc = row?.original?.userAvatar;
         const color = getAvatarColor(userId);
         return (
