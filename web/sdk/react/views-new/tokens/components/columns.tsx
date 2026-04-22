@@ -33,6 +33,7 @@ export function getColumns({
       enableSorting: true,
       enableColumnFilter: true,
       filterType: 'date',
+      styles: { cell: { flex: '0 0 140px' }, header: { flex: '0 0 140px' } },
       cell: ({ getValue }) => {
         const value = getValue() as TimeStamp;
         const date = isNullTimestamp(value)
@@ -51,6 +52,7 @@ export function getColumns({
       enableSorting: true,
       enableColumnFilter: true,
       filterType: 'number',
+      styles: { cell: { flex: '0 0 200px' }, header: { flex: '0 0 200px' } },
       cell: ({ row, getValue }) => {
         const value = Number(getValue());
         const prefix = row?.original?.type === 'credit' ? '+' : '-';
