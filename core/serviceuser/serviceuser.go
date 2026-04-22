@@ -29,10 +29,6 @@ type ServiceUser struct {
 	State    string
 	Metadata metadata.Metadata
 
-	// CreatedByUser is a transient field that is used to track the user who created this service user
-	// this doesn't have any impact on the service user itself
-	CreatedByUser string
-
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

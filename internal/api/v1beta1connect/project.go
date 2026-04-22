@@ -6,6 +6,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/role"
@@ -368,7 +369,7 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 	principalType := request.Msg.GetPrincipalType()
 	roleID := request.Msg.GetRoleId()
 
-	if err := h.projectService.SetMemberRole(ctx, projectID, principalID, principalType, roleID); err != nil {
+	if err := h.membershipService.SetProjectMemberRole(ctx, projectID, principalID, principalType, roleID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "SetProjectMemberRole", err,
 			"project_id", projectID,
 			"principal_id", principalID,
@@ -384,15 +385,17 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		case errors.Is(err, group.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
-		case errors.Is(err, project.ErrNotOrgMember):
+		case errors.Is(err, membership.ErrNotOrgMember):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrBadRequest)
 		case errors.Is(err, role.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrInvalidRoleID)
 		case errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidRoleID)
-		case errors.Is(err, project.ErrInvalidProjectRole):
+		case errors.Is(err, membership.ErrInvalidProjectRole):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidProjectRole)
-		case errors.Is(err, project.ErrInvalidPrincipalType):
+		case errors.Is(err, membership.ErrInvalidPrincipalType):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
@@ -414,7 +417,7 @@ func (h *ConnectHandler) RemoveProjectMember(ctx context.Context, request *conne
 	principalID := request.Msg.GetPrincipalId()
 	principalType := request.Msg.GetPrincipalType()
 
-	if err := h.projectService.RemoveMember(ctx, projectID, principalID, principalType); err != nil {
+	if err := h.membershipService.RemoveProjectMember(ctx, projectID, principalID, principalType); err != nil {
 		errorLogger.LogServiceError(ctx, request, "RemoveProjectMember", err,
 			"project_id", projectID,
 			"principal_id", principalID,
@@ -423,9 +426,9 @@ func (h *ConnectHandler) RemoveProjectMember(ctx context.Context, request *conne
 		switch {
 		case errors.Is(err, project.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
-		case errors.Is(err, project.ErrNotMember):
-			return nil, connect.NewError(connect.CodeNotFound, project.ErrNotMember)
-		case errors.Is(err, project.ErrInvalidPrincipalType):
+		case errors.Is(err, membership.ErrNotMember):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotMember)
+		case errors.Is(err, membership.ErrInvalidPrincipalType):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
