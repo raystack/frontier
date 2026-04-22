@@ -107,26 +107,6 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 		return ServiceUser{}, err
 	}
 
-	if len(serviceUser.CreatedByUser) > 0 {
-		// TODO: write authz tests that checks if the user who created the service user
-		// has the permission to interact with the service user
-		// attach user to service user who created it
-		_, err = s.relationService.Create(ctx, relation.Relation{
-			Object: relation.Object{
-				ID:        createdSU.ID,
-				Namespace: schema.ServiceUserPrincipal,
-			},
-			Subject: relation.Subject{
-				ID:        serviceUser.CreatedByUser,
-				Namespace: schema.UserPrincipal,
-			},
-			RelationName: schema.UserRelationName,
-		})
-		if err != nil {
-			return ServiceUser{}, err
-		}
-	}
-
 	return createdSU, nil
 }
 
