@@ -44,13 +44,13 @@ func TestService_AddOrganizationMember(t *testing.T) {
 		wantErrContain string
 	}{
 		{
-			name: "should return error if principal type is not user",
+			name: "should return error if principal type is unsupported",
 			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 			},
 			orgID:         orgID,
 			userID:        userID,
-			principalType: schema.ServiceUserPrincipal,
+			principalType: "app/unknown",
 			roleID:        viewerRoleID,
 			wantErr:       membership.ErrInvalidPrincipal,
 		},
@@ -276,6 +276,60 @@ func TestService_AddOrganizationMember(t *testing.T) {
 	}
 }
 
+func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	suID := uuid.New().String()
+	viewerRoleID := uuid.New().String()
+
+	enabledOrg := organization.Organization{ID: orgID, Title: "Test Org"}
+
+	t.Run("should succeed adding a service user", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockSuSvc := mocks.NewServiceuserService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, Title: "test-su", State: string(serviceuser.Enabled)}, nil)
+		mockRoleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal}).Return([]policy.Policy{}, nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(log.NewNoop(), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo)
+		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject service user from different org", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockSuSvc := mocks.NewServiceuserService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: "other-org", State: string(serviceuser.Enabled)}, nil)
+
+		svc := membership.NewService(log.NewNoop(), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, membership.ErrPrincipalNotInOrg)
+	})
+
+	t.Run("should reject disabled service user", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockSuSvc := mocks.NewServiceuserService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, State: string(serviceuser.Disabled)}, nil)
+
+		svc := membership.NewService(log.NewNoop(), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, serviceuser.ErrDisabled)
+	})
+}
+
 func TestService_SetOrganizationMemberRole(t *testing.T) {
 	ctx := context.Background()
 	orgID := uuid.New().String()
@@ -304,11 +358,11 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 		wantErrContain string
 	}{
 		{
-			name: "should return error if principal type is not user",
+			name: "should return error if principal type is unsupported",
 			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, orgSvc *mocks.OrgService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 			},
-			principalType: schema.ServiceUserPrincipal,
+			principalType: "app/unknown",
 			roleID:        viewerRoleID,
 			wantErr:       membership.ErrInvalidPrincipal,
 		},
@@ -465,6 +519,65 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	suID := uuid.New().String()
+	viewerRoleID := uuid.New().String()
+	ownerRoleID := uuid.New().String()
+
+	enabledOrg := organization.Organization{ID: orgID, Title: "Test Org"}
+
+	t.Run("should succeed changing service user role", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockSuSvc := mocks.NewServiceuserService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, Title: "test-su", State: string(serviceuser.Enabled)}, nil)
+		mockRoleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+		mockRoleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+		mockRelSvc.EXPECT().Delete(ctx, mock.Anything).Return(relation.ErrNotExist).Times(2)
+		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(log.NewNoop(), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo)
+		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject service user from different org", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockSuSvc := mocks.NewServiceuserService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: "other-org", State: string(serviceuser.Enabled)}, nil)
+
+		svc := membership.NewService(log.NewNoop(), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, membership.ErrPrincipalNotInOrg)
+	})
+
+	t.Run("should reject disabled service user", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockSuSvc := mocks.NewServiceuserService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, State: string(serviceuser.Disabled)}, nil)
+
+		svc := membership.NewService(log.NewNoop(), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, serviceuser.ErrDisabled)
+	})
 }
 
 func TestService_RemoveOrganizationMember(t *testing.T) {
