@@ -303,24 +303,50 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		}
 	}
 	if errs != nil {
+		s.log.Error("partial failure removing member: some policies could not be deleted, manual cleanup may be needed",
+			"org_id", orgID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"error", errs,
+		)
 		return errs
 	}
 
 	// remove relations at group level
 	for _, g := range orgGroups {
 		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
+			s.log.Error("partial failure removing member: group relation cleanup failed, manual cleanup may be needed",
+				"org_id", orgID,
+				"group_id", g.ID,
+				"principal_id", principalID,
+				"principal_type", principalType,
+				"error", err,
+			)
 			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
 		}
 	}
 
 	// remove relations at org level
 	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
+		s.log.Error("partial failure removing member: org relation cleanup failed, manual cleanup may be needed",
+			"org_id", orgID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"error", err,
+		)
 		return fmt.Errorf("remove org relations: %w", err)
 	}
 
 	// delete org-level policies last
 	for _, policyID := range orgPolicyIDs {
 		if err := s.policyService.Delete(ctx, policyID); err != nil {
+			s.log.Error("partial failure removing member: org policy deletion failed, manual cleanup may be needed",
+				"org_id", orgID,
+				"policy_id", policyID,
+				"principal_id", principalID,
+				"principal_type", principalType,
+				"error", err,
+			)
 			return fmt.Errorf("delete org policy %s: %w", policyID, err)
 		}
 	}
