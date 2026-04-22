@@ -673,7 +673,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				tt.setup(d)
 			}
 
-			svc := membership.NewService(log.NewNoop(), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, d.auditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, d.auditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {

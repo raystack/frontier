@@ -2657,7 +2657,7 @@ func TestService_List(t *testing.T) {
 	t.Run("should return ErrDisabled when PAT feature is disabled", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, userpat.Config{Enabled: false}, nil, nil, nil, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{Enabled: false}, nil, nil, nil, nil, auditRepo)
 
 		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if !errors.Is(err, paterrors.ErrDisabled) {
@@ -2670,7 +2670,7 @@ func TestService_List(t *testing.T) {
 		repo.EXPECT().List(mock.Anything, "user-1", "org-1", mock.Anything).
 			Return(models.PATList{}, errors.New("db connection failed"))
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, auditRepo)
 
 		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err == nil || !strings.Contains(err.Error(), "db connection failed") {
@@ -2690,7 +2690,7 @@ func TestService_List(t *testing.T) {
 			PrincipalType: schema.PATPrincipal,
 		}).Return(nil, errors.New("policy service down"))
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
 
 		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err == nil || !strings.Contains(err.Error(), "enriching PAT scope") {
@@ -2721,7 +2721,7 @@ func TestService_List(t *testing.T) {
 			PrincipalType: schema.PATPrincipal,
 		}).Return([]policy.Policy{}, nil)
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
 
 		result, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err != nil {
