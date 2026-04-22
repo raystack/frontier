@@ -63,9 +63,6 @@ const (
 	// AdminServiceSearchOrganizationProjectsProcedure is the fully-qualified name of the AdminService's
 	// SearchOrganizationProjects RPC.
 	AdminServiceSearchOrganizationProjectsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
-	// AdminServiceSearchOrganizationTokensProcedure is the fully-qualified name of the AdminService's
-	// SearchOrganizationTokens RPC.
-	AdminServiceSearchOrganizationTokensProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens"
 	// AdminServiceSearchOrganizationServiceUserCredentialsProcedure is the fully-qualified name of the
 	// AdminService's SearchOrganizationServiceUserCredentials RPC.
 	AdminServiceSearchOrganizationServiceUserCredentialsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUserCredentials"
@@ -233,7 +230,6 @@ type AdminServiceClient interface {
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
 	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -388,12 +384,6 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationProjectsProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
-			connect.WithClientOptions(opts...),
-		),
-		searchOrganizationTokens: connect.NewClient[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse](
-			httpClient,
-			baseURL+AdminServiceSearchOrganizationTokensProcedure,
-			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationTokens")),
 			connect.WithClientOptions(opts...),
 		),
 		searchOrganizationServiceUserCredentials: connect.NewClient[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse](
@@ -717,7 +707,6 @@ type adminServiceClient struct {
 	searchOrganizationUsers                  *connect.Client[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse]
 	searchProjectUsers                       *connect.Client[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse]
 	searchOrganizationProjects               *connect.Client[v1beta1.SearchOrganizationProjectsRequest, v1beta1.SearchOrganizationProjectsResponse]
-	searchOrganizationTokens                 *connect.Client[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse]
 	searchOrganizationServiceUserCredentials *connect.Client[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse]
 	searchOrganizationServiceUsers           *connect.Client[v1beta1.SearchOrganizationServiceUsersRequest, v1beta1.SearchOrganizationServiceUsersResponse]
 	exportOrganizations                      *connect.Client[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody]
@@ -820,11 +809,6 @@ func (c *adminServiceClient) SearchProjectUsers(ctx context.Context, req *connec
 // raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects.
 func (c *adminServiceClient) SearchOrganizationProjects(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
 	return c.searchOrganizationProjects.CallUnary(ctx, req)
-}
-
-// SearchOrganizationTokens calls raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens.
-func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
-	return c.searchOrganizationTokens.CallUnary(ctx, req)
 }
 
 // SearchOrganizationServiceUserCredentials calls
@@ -1105,7 +1089,6 @@ type AdminServiceHandler interface {
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
 	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -1256,12 +1239,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		AdminServiceSearchOrganizationProjectsProcedure,
 		svc.SearchOrganizationProjects,
 		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
-		connect.WithHandlerOptions(opts...),
-	)
-	adminServiceSearchOrganizationTokensHandler := connect.NewUnaryHandler(
-		AdminServiceSearchOrganizationTokensProcedure,
-		svc.SearchOrganizationTokens,
-		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationTokens")),
 		connect.WithHandlerOptions(opts...),
 	)
 	adminServiceSearchOrganizationServiceUserCredentialsHandler := connect.NewUnaryHandler(
@@ -1592,8 +1569,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceSearchProjectUsersHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationProjectsProcedure:
 			adminServiceSearchOrganizationProjectsHandler.ServeHTTP(w, r)
-		case AdminServiceSearchOrganizationTokensProcedure:
-			adminServiceSearchOrganizationTokensHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationServiceUserCredentialsProcedure:
 			adminServiceSearchOrganizationServiceUserCredentialsHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationServiceUsersProcedure:
@@ -1743,10 +1718,6 @@ func (UnimplementedAdminServiceHandler) SearchProjectUsers(context.Context, *con
 
 func (UnimplementedAdminServiceHandler) SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects is not implemented"))
-}
-
-func (UnimplementedAdminServiceHandler) SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens is not implemented"))
 }
 
 func (UnimplementedAdminServiceHandler) SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
