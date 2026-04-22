@@ -713,6 +713,11 @@ func (s *Service) RemoveProjectMember(ctx context.Context, projectID, principalI
 		return ErrInvalidPrincipalType
 	}
 
+	prj, err := s.projectService.Get(ctx, projectID)
+	if err != nil {
+		return err
+	}
+
 	removed, err := s.removeAllPolicies(ctx, projectID, schema.ProjectNamespace, principalID, principalType)
 	if err != nil {
 		return err
@@ -721,10 +726,7 @@ func (s *Service) RemoveProjectMember(ctx context.Context, projectID, principalI
 		return ErrNotMember
 	}
 
-	// best-effort audit — fetch project for context, skip if it fails
-	if prj, err := s.projectService.Get(ctx, projectID); err == nil {
-		s.auditProjectMemberRemoved(ctx, prj, principalID, principalType)
-	}
+	s.auditProjectMemberRemoved(ctx, prj, principalID, principalType)
 	return nil
 }
 

@@ -818,7 +818,8 @@ func TestService_RemoveProjectMember(t *testing.T) {
 		},
 		{
 			name: "should return error if not a member",
-			setup: func(policySvc *mocks.PolicyService, _ *mocks.ProjectService, _ *mocks.AuditRecordRepository) {
+			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, _ *mocks.AuditRecordRepository) {
+				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 			},
 			principalType: schema.UserPrincipal,
@@ -827,9 +828,9 @@ func TestService_RemoveProjectMember(t *testing.T) {
 		{
 			name: "should succeed removing a member",
 			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, auditRepo *mocks.AuditRecordRepository) {
+				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1"}}, nil)
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
-				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			principalType: schema.UserPrincipal,
