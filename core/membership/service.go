@@ -103,10 +103,9 @@ func NewService(
 	}
 }
 
-// AddOrganizationMember adds a new user to an organization with an explicit role,
-// bypassing the invitation flow. Only user principals are supported — this is a
-// direct-add operation for superadmins.
-// Returns ErrAlreadyMember if the user already has a policy on this org.
+// AddOrganizationMember adds a principal (user or service user) to an organization
+// with an explicit role, bypassing the invitation flow.
+// Returns ErrAlreadyMember if the principal already has a policy on this org.
 func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error {
 	// orgService.Get returns ErrDisabled for disabled orgs
 	org, err := s.orgService.Get(ctx, orgID)
@@ -114,7 +113,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
-	principal, err := s.validatePrincipal(ctx, principalID, principalType)
+	principal, err := s.validatePrincipal(ctx, orgID, principalID, principalType)
 	if err != nil {
 		return err
 	}
@@ -163,16 +162,15 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 }
 
 // SetOrganizationMemberRole changes an existing member's role in an organization.
-// SetOrganizationMemberRole skips the write if the member already has exactly the requested role.
-// Currently only user principals are supported. May be extended to service users
-// in the future to give them org-level roles (see #1544).
+// Supports user and service user principals.
+// Skips the write if the member already has exactly the requested role.
 func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error {
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
 		return err
 	}
 
-	principal, err := s.validatePrincipal(ctx, principalID, principalType)
+	principal, err := s.validatePrincipal(ctx, orgID, principalID, principalType)
 	if err != nil {
 		return err
 	}
@@ -512,10 +510,10 @@ type principalInfo struct {
 	Email string
 }
 
-// validatePrincipal checks that the principal exists and is active.
-// To add support for a new principal type (e.g., service user), add a case here
-// and add the corresponding service dependency to the Service struct.
-func (s *Service) validatePrincipal(ctx context.Context, principalID, principalType string) (principalInfo, error) {
+// validatePrincipal checks that the principal exists, is active, and belongs to
+// the target org. For users, org membership is checked separately via policies.
+// For service users, org ownership is validated here since they have a fixed OrgID.
+func (s *Service) validatePrincipal(ctx context.Context, orgID, principalID, principalType string) (principalInfo, error) {
 	switch principalType {
 	case schema.UserPrincipal:
 		usr, err := s.userService.GetByID(ctx, principalID)
@@ -531,10 +529,22 @@ func (s *Service) validatePrincipal(ctx context.Context, principalID, principalT
 			Name:  usr.Title,
 			Email: usr.Email,
 		}, nil
-	// To support service users in the future, add:
-	// case schema.ServiceUserPrincipal:
-	//     su, err := s.serviceUserService.Get(ctx, principalID)
-	//     ...
+	case schema.ServiceUserPrincipal:
+		su, err := s.serviceuserService.Get(ctx, principalID)
+		if err != nil {
+			return principalInfo{}, err
+		}
+		if su.OrgID != orgID {
+			return principalInfo{}, ErrPrincipalNotInOrg
+		}
+		if su.State == string(serviceuser.Disabled) {
+			return principalInfo{}, serviceuser.ErrDisabled
+		}
+		return principalInfo{
+			ID:   su.ID,
+			Type: schema.ServiceUserPrincipal,
+			Name: su.Title,
+		}, nil
 	default:
 		return principalInfo{}, ErrInvalidPrincipal
 	}
@@ -575,6 +585,12 @@ func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, 
 }
 
 func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
+	targetType, _ := principalTypeToAuditType(p.Type)
+	meta := map[string]any{"role_id": roleID}
+	if p.Email != "" {
+		meta["email"] = p.Email
+	}
+
 	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
 		Resource: auditrecord.Resource{
@@ -583,13 +599,10 @@ func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organizatio
 			Name: org.Title,
 		},
 		Target: &auditrecord.Target{
-			ID:   p.ID,
-			Type: pkgAuditRecord.UserType,
-			Name: p.Name,
-			Metadata: map[string]any{
-				"email":   p.Email,
-				"role_id": roleID,
-			},
+			ID:       p.ID,
+			Type:     targetType,
+			Name:     p.Name,
+			Metadata: meta,
 		},
 		OrgID:      org.ID,
 		OccurredAt: time.Now(),
@@ -604,6 +617,12 @@ func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organizatio
 }
 
 func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
+	targetType, _ := principalTypeToAuditType(p.Type)
+	meta := map[string]any{"role_id": roleID}
+	if p.Email != "" {
+		meta["email"] = p.Email
+	}
+
 	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
 		Resource: auditrecord.Resource{
@@ -612,13 +631,10 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 			Name: org.Title,
 		},
 		Target: &auditrecord.Target{
-			ID:   p.ID,
-			Type: pkgAuditRecord.UserType,
-			Name: p.Name,
-			Metadata: map[string]any{
-				"email":   p.Email,
-				"role_id": roleID,
-			},
+			ID:       p.ID,
+			Type:     targetType,
+			Name:     p.Name,
+			Metadata: meta,
 		},
 		OrgID:      org.ID,
 		OccurredAt: time.Now(),
