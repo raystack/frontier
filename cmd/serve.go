@@ -434,7 +434,7 @@ func buildAPIDependencies(
 	projectService := project.NewService(projectRepository, relationService, userService, policyService,
 		authnService, serviceUserService, groupService, roleService)
 
-	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, auditRecordRepository)
+	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, serviceUserService, auditRecordRepository)
 	// Setter injection: org → membership is circular (membership needs org for validation,
 	// org needs membership for Create/AdminCreate). Break the cycle with a post-init setter.
 	organizationService.SetMembershipService(membershipService)

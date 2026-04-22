@@ -170,6 +170,36 @@ func (_c *MembershipService_SetOrganizationMemberRole_Call) RunAndReturn(run fun
 	return _c
 }
 
+// SetProjectMemberRole provides a mock function with given fields: ctx, projectID, principalID, principalType, roleID
+func (_m *MembershipService) SetProjectMemberRole(ctx context.Context, projectID string, principalID string, principalType string, roleID string) error {
+	ret := _m.Called(ctx, projectID, principalID, principalType, roleID)
+	if len(ret) == 0 {
+		panic("no return value specified for SetProjectMemberRole")
+	}
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, projectID, principalID, principalType, roleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// RemoveProjectMember provides a mock function with given fields: ctx, projectID, principalID, principalType
+func (_m *MembershipService) RemoveProjectMember(ctx context.Context, projectID string, principalID string, principalType string) error {
+	ret := _m.Called(ctx, projectID, principalID, principalType)
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveProjectMember")
+	}
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, projectID, principalID, principalType)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
 // NewMembershipService creates a new instance of MembershipService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMembershipService(t interface {
