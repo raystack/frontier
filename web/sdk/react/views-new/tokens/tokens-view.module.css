@@ -17,3 +17,11 @@
 .tableRoot {
   border: none;
 }
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 240px;
+}
