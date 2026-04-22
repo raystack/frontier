@@ -145,7 +145,11 @@ export function TokensView() {
 
   const fetchMore = async () => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
-      await fetchNextPage();
+      try {
+        await fetchNextPage();
+      } catch (err) {
+        console.error('Unable to fetch next page of transactions', err);
+      }
     }
   };
 
