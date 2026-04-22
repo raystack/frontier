@@ -42,10 +42,9 @@ func (h *ConnectHandler) SearchProjectUsers(ctx context.Context, request *connec
 
 	projectUsersData, err := h.projectUsersService.Search(ctx, projectID, rqlQuery)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "SearchProjectUsers", err,
-			"project_id", projectID)
-
 		if errors.Is(err, postgres.ErrBadInput) {
+			errorLogger.LogServiceError(ctx, request, "SearchProjectUsers", err,
+				"project_id", projectID)
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogUnexpectedError(ctx, request, "SearchProjectUsers", err,

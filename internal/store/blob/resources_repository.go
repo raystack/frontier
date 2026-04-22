@@ -143,7 +143,7 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 	repo.mu.Lock()
 	repo.cached = resources
 	repo.mu.Unlock()
-	repo.log.DebugContext(ctx, "resource config cache refreshed", "resource_config_count", len(repo.cached))
+	repo.log.DebugContext(ctx, "resource config cache refreshed", "resource_config_count", len(resources))
 	return nil
 }
 

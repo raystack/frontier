@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"strings"
 	"time"
 
@@ -83,6 +84,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		}
 		typeValue, ok := response.Flow.Metadata["passkey_type"].(string)
 		if !ok {
+			err = fmt.Errorf("passkey_type metadata is not a string")
 			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
 				"strategy", authenticate.PassKeyAuthMethod.String())
 			return nil, connect.NewError(connect.CodeInternal, err)
