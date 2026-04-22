@@ -539,6 +539,7 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 		ResourceType:  schema.OrganizationNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: schema.RoleGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
@@ -632,6 +633,7 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 		ResourceType:  schema.ProjectNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: schema.RoleGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
 		RoleID:        "proj-role-1",
@@ -639,6 +641,7 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 		ResourceType:  schema.ProjectNamespace,
 		PrincipalID:   "pat-1",
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: schema.RoleGrantRelationName,
 	}).Return(policy.Policy{ID: "pol-2"}, nil)
 	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
@@ -2646,6 +2649,97 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 		})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+}
+
+func TestService_List(t *testing.T) {
+	t.Run("should return ErrDisabled when PAT feature is disabled", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		auditRepo := mocks.NewAuditRecordRepository(t)
+		svc := userpat.NewService(log.NewNoop(), repo, userpat.Config{Enabled: false}, nil, nil, nil, nil, auditRepo)
+
+		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
+		if !errors.Is(err, paterrors.ErrDisabled) {
+			t.Fatalf("expected ErrDisabled, got %v", err)
+		}
+	})
+
+	t.Run("should return error when repo List fails", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", mock.Anything).
+			Return(models.PATList{}, errors.New("db connection failed"))
+		auditRepo := mocks.NewAuditRecordRepository(t)
+		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, auditRepo)
+
+		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
+		if err == nil || !strings.Contains(err.Error(), "db connection failed") {
+			t.Fatalf("expected db error, got %v", err)
+		}
+	})
+
+	t.Run("should return error when enrichWithScope fails", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", mock.Anything).
+			Return(models.PATList{
+				PATs: []models.PAT{{ID: "pat-1", UserID: "user-1", OrgID: "org-1"}},
+			}, nil)
+		policySvc := mocks.NewPolicyService(t)
+		policySvc.EXPECT().List(mock.Anything, policy.Filter{
+			PrincipalID:   "pat-1",
+			PrincipalType: schema.PATPrincipal,
+		}).Return(nil, errors.New("policy service down"))
+		auditRepo := mocks.NewAuditRecordRepository(t)
+		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+
+		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
+		if err == nil || !strings.Contains(err.Error(), "enriching PAT scope") {
+			t.Fatalf("expected enriching error, got %v", err)
+		}
+	})
+
+	t.Run("should return enriched PAT list", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", mock.Anything).
+			Return(models.PATList{
+				PATs: []models.PAT{
+					{ID: "pat-1", UserID: "user-1", OrgID: "org-1", Title: "token-1"},
+					{ID: "pat-2", UserID: "user-1", OrgID: "org-1", Title: "token-2"},
+				},
+			}, nil)
+		policySvc := mocks.NewPolicyService(t)
+		// enrichWithScope for pat-1
+		policySvc.EXPECT().List(mock.Anything, policy.Filter{
+			PrincipalID:   "pat-1",
+			PrincipalType: schema.PATPrincipal,
+		}).Return([]policy.Policy{
+			{ID: "pol-1", RoleID: "role-1", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, GrantRelation: "granted"},
+		}, nil)
+		// enrichWithScope for pat-2
+		policySvc.EXPECT().List(mock.Anything, policy.Filter{
+			PrincipalID:   "pat-2",
+			PrincipalType: schema.PATPrincipal,
+		}).Return([]policy.Policy{}, nil)
+		auditRepo := mocks.NewAuditRecordRepository(t)
+		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+
+		result, err := svc.List(context.Background(), "user-1", "org-1", nil)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(result.PATs) != 2 {
+			t.Fatalf("expected 2 PATs, got %d", len(result.PATs))
+		}
+		if result.PATs[0].Title != "token-1" {
+			t.Fatalf("expected token-1, got %s", result.PATs[0].Title)
+		}
+		// pat-1 should have 1 scope from the policy
+		if len(result.PATs[0].Scopes) != 1 {
+			t.Fatalf("expected 1 scope for pat-1, got %d", len(result.PATs[0].Scopes))
+		}
+		// pat-2 should have 0 scopes
+		if len(result.PATs[1].Scopes) != 0 {
+			t.Fatalf("expected 0 scopes for pat-2, got %d", len(result.PATs[1].Scopes))
 		}
 	})
 }

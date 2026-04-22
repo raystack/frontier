@@ -6,7 +6,7 @@ import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
   DeleteOrganizationInvitationRequestSchema,
-  RemoveOrganizationUserRequestSchema
+  RemoveOrganizationMemberRequestSchema
 } from '@raystack/proton/frontier';
 import {
   Button,
@@ -43,17 +43,17 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
     {
       onSuccess: () => {
         handle.close();
-        toastManager.add({ title: 'Member deleted', type: 'success' });
+        toastManager.add({ title: 'Invitation deleted', type: 'success' });
       }
     }
   );
 
-  const { mutateAsync: removeUser } = useMutation(
-    FrontierServiceQueries.removeOrganizationUser,
+  const { mutateAsync: removeMember } = useMutation(
+    FrontierServiceQueries.removeOrganizationMember,
     {
       onSuccess: () => {
         handle.close();
-        toastManager.add({ title: 'Member deleted', type: 'success' });
+        toastManager.add({ title: 'User removed', type: 'success' });
       }
     }
   );
@@ -68,16 +68,18 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
         });
         await deleteInvitation(req);
       } else {
-        const req = create(RemoveOrganizationUserRequestSchema, {
-          id: organizationId,
-          userId: memberId
+        const req = create(RemoveOrganizationMemberRequestSchema, {
+          orgId: organizationId,
+          principalId: memberId,
+          principalType: 'app/user'
         });
-        await removeUser(req);
+        await removeMember(req);
       }
     } catch (error) {
       handleConnectError(error, {
         NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        FailedPrecondition: (err) => toastManager.add({ title: 'Cannot remove user', description: err.message, type: 'error' }),
         Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     } finally {

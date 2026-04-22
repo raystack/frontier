@@ -427,8 +427,14 @@ func buildAPIDependencies(
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository, roleService)
+	projectRepository := postgres.NewProjectRepository(dbc)
+	projectService := project.NewService(projectRepository, relationService, userService, policyService,
+		authnService, serviceUserService, groupService, roleService)
 
-	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, auditRecordRepository)
+	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, auditRecordRepository)
+	// Setter injection: org → membership is circular (membership needs org for validation,
+	// org needs membership for Create/AdminCreate). Break the cycle with a post-init setter.
+	organizationService.SetMembershipService(membershipService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
@@ -464,13 +470,10 @@ func buildAPIDependencies(
 	userProjectsService := userprojects.NewService(userProjectsRepository)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
-	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
+	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
-	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService, policyService,
-		authnService, serviceUserService, groupService, roleService)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
 	patAlertService := userpat.NewAlertService(userPATRepo, userService, organizationService, mailDialer, dbc, cfg.App.PAT.Alert, logger, auditRecordRepository)
@@ -488,11 +491,12 @@ func buildAPIDependencies(
 		projectService,
 		organizationService,
 		userPATService,
+		auditRecordRepository,
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, preferenceService,
-		auditRecordRepository)
+		organizationService, groupService, userService, relationService, preferenceService,
+		auditRecordRepository, membershipService)
 
 	if GetStripeClientFunc == nil {
 		// allow to override the stripe client creation function in tests

@@ -106,7 +106,11 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context, request connect.AnyReq
 		return err
 	}
 
-	if currentUser.Type == schema.UserPrincipal {
+	switch currentUser.Type {
+	case schema.PATPrincipal:
+		// PATs are never superusers — they are scoped to org-level permissions
+		return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+	case schema.UserPrincipal:
 		if ok, err := h.userService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
 				"user_id", currentUser.ID,
@@ -115,7 +119,7 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context, request connect.AnyReq
 		} else if ok {
 			return nil
 		}
-	} else {
+	case schema.ServiceUserPrincipal:
 		if ok, err := h.serviceUserService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
 				"service_user_id", currentUser.ID,

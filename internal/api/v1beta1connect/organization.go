@@ -143,6 +143,8 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
+		case errors.Is(err, organization.ErrUserPrincipalOnly):
+			return nil, connect.NewError(connect.CodePermissionDenied, err)
 		case errors.Is(err, organization.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, organization.ErrConflict):
@@ -469,69 +471,35 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 	}), nil
 }
 
-func (h *ConnectHandler) AddOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.AddOrganizationUsersRequest]) (*connect.Response[frontierv1beta1.AddOrganizationUsersResponse], error) {
+func (h *ConnectHandler) RemoveOrganizationMember(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveOrganizationMemberRequest]) (*connect.Response[frontierv1beta1.RemoveOrganizationMemberResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
-	if err != nil {
+	orgID := request.Msg.GetOrgId()
+	principalID := request.Msg.GetPrincipalId()
+	principalType := request.Msg.GetPrincipalType()
+
+	if err := h.membershipService.RemoveOrganizationMember(ctx, orgID, principalID, principalType); err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, membership.ErrInvalidPrincipalType):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, membership.ErrNotMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, membership.ErrNotMember)
+		case errors.Is(err, membership.ErrLastOwnerRole):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, membership.ErrLastOwnerRole)
 		default:
-			errorLogger.LogServiceError(ctx, request, "AddOrganizationUsers.Get", err,
-				"org_id", request.Msg.GetId())
+			errorLogger.LogServiceError(ctx, request, "RemoveOrganizationMember", err,
+				"org_id", orgID,
+				"principal_id", principalID,
+				"principal_type", principalType)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
-	if err := h.orgService.AddUsers(ctx, orgResp.ID, request.Msg.GetUserIds()); err != nil {
-		errorLogger.LogServiceError(ctx, request, "AddOrganizationUsers.AddUsers", err,
-			"org_id", orgResp.ID,
-			"user_ids", request.Msg.GetUserIds())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-
-	return connect.NewResponse(&frontierv1beta1.AddOrganizationUsersResponse{}), nil
-}
-
-func (h *ConnectHandler) RemoveOrganizationUser(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveOrganizationUserRequest]) (*connect.Response[frontierv1beta1.RemoveOrganizationUserResponse], error) {
-	errorLogger := NewErrorLogger()
-
-	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			errorLogger.LogServiceError(ctx, request, "RemoveOrganizationUser.Get", err,
-				"org_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
-
-	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
-	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveOrganizationUser.ListByOrg", err,
-			"org_id", orgResp.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-
-	if len(admins) == 1 && admins[0].ID == request.Msg.GetUserId() {
-		return nil, connect.NewError(connect.CodePermissionDenied, ErrMinAdminCount)
-	}
-
-	if err := h.deleterService.RemoveUsersFromOrg(ctx, orgResp.ID, []string{request.Msg.GetUserId()}); err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveOrganizationUser.RemoveUsersFromOrg", err,
-			"org_id", orgResp.ID,
-			"user_id", request.Msg.GetUserId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-
-	return connect.NewResponse(&frontierv1beta1.RemoveOrganizationUserResponse{}), nil
+	return connect.NewResponse(&frontierv1beta1.RemoveOrganizationMemberResponse{}), nil
 }
 
 func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetOrganizationMemberRoleResponse], error) {
