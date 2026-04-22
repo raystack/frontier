@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { defaultConfig } from "../../../../utils/constants";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { AdminServiceQueries, CheckoutProductBodySchema, DelegatedCheckoutRequestSchema } from "@raystack/proton/frontier";
+import { AdminServiceQueries, CheckoutProductBodySchema, DelegatedCheckoutRequestSchema, FrontierServiceQueries } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 
 interface InviteUsersDialogProps {
@@ -58,7 +58,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: createConnectQueryKey({
-            schema: AdminServiceQueries.searchOrganizationTokens,
+            schema: FrontierServiceQueries.searchOrganizationTokens,
             transport,
             input: { id: organisationId },
             cardinality: "infinite",
