@@ -7,6 +7,7 @@ import {
 } from '@raystack/apsara-v1';
 import type { DataTableColumnDef } from '@raystack/apsara-v1';
 import type { SearchOrganizationTokensResponse_OrganizationToken } from '@raystack/proton/frontier';
+import { getInitials } from '~/utils';
 import {
   isNullTimestamp,
   type TimeStamp,
@@ -101,7 +102,7 @@ export function getColumns({
           <Flex direction="row" gap={4} align="center">
             <Avatar
               src={avatarSrc}
-              fallback={title?.[0]}
+              fallback={getInitials(title)}
               size={3}
               radius="full"
               color={color}
