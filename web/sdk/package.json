@@ -113,7 +113,7 @@
     "react-hook-form": "^7.57.0",
     "react-image-crop": "^11.0.10",
     "slugify": "^1.6.6",
-    "uuid": "^10.0.0",
+    "uuid": "^14.0.0",
     "validator": "^13.15.15",
     "yup": "^1.6.1"
   },
