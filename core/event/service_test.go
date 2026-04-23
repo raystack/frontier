@@ -12,8 +12,11 @@ import (
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/core/event/mocks"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +24,7 @@ import (
 
 var sampleError = errors.New("sample error")
 
-func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.CustomerService, *mocks.OrganizationService, *mocks.PlanService, *mocks.UserService, *mocks.SubscriptionService, *mocks.CreditService, *mocks.InvoiceService) {
+func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.CustomerService, *mocks.OrganizationService, *mocks.PlanService, *mocks.UserService, *mocks.MembershipService, *mocks.RoleService, *mocks.SubscriptionService, *mocks.CreditService, *mocks.InvoiceService) {
 	t.Helper()
 	billingConf := &billing.Config{
 		StripeKey:            "test_key",
@@ -40,11 +43,30 @@ func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.
 	orgService := mocks.NewOrganizationService(t)
 	planService := mocks.NewPlanService(t)
 	userService := mocks.NewUserService(t)
+	membershipService := mocks.NewMembershipService(t)
+	roleService := mocks.NewRoleService(t)
 	subsService := mocks.NewSubscriptionService(t)
 	creditService := mocks.NewCreditService(t)
 	invoiceService := mocks.NewInvoiceService(t)
 
-	return billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService
+	return billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService
+}
+
+// expectAdminLookup sets up mock expectations for fetching the first org admin's email.
+func expectAdminLookup(ctx context.Context, roleService *mocks.RoleService, membershipService *mocks.MembershipService, userService *mocks.UserService, orgID string, users []user.User) {
+	ownerRoleID := "owner-role-id"
+	roleService.On("Get", ctx, organization.AdminRole).Return(role.Role{ID: ownerRoleID}, nil).Once()
+	members := make([]membership.Member, 0, len(users))
+	for _, u := range users {
+		members = append(members, membership.Member{PrincipalID: u.ID, PrincipalType: schema.UserPrincipal})
+	}
+	membershipService.On("ListPrincipalsByResource", ctx, orgID, schema.OrganizationNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+		RoleIDs:       []string{ownerRoleID},
+	}).Return(members, nil).Once()
+	if len(users) > 0 {
+		userService.On("GetByIDs", ctx, []string{users[0].ID}).Return(users[:1], nil).Once()
+	}
 }
 
 func TestEnsureDefaultPlan(t *testing.T) {
@@ -69,8 +91,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, sampleError).Once()
 				return service
@@ -84,8 +106,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return([]customer.Customer{{ID: "1"}}, nil).Once()
 				return service
@@ -99,8 +121,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return([]customer.Customer{}, nil).Once()
 				orgService.On("GetRaw", ctx, "").Return(organization.Organization{}, sampleError).Once()
@@ -108,19 +130,19 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 		},
 		{
-			name: "return error if userService.ListByOrg returns error",
+			name: "return error if org admin lookup returns error",
 			args: args{
 				ctx:   ctx,
 				orgID: "",
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				orgService.On("GetRaw", ctx, "").Return(organization.Organization{ID: "org_1"}, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return(nil, sampleError).Once()
+				roleService.On("Get", ctx, organization.AdminRole).Return(role.Role{}, sampleError).Once()
 				return service
 			},
 		},
@@ -132,13 +154,13 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
 				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return([]user.User{{Email: "email@example.com"}}, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
 				customerService.On("Create", ctx, customer.Customer{
 					OrgID:    "org_1",
 					Name:     getCustomerName(org),
@@ -158,13 +180,13 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
 				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return([]user.User{{Email: "email@example.com"}}, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
 				customerService.On("Create", ctx, customer.Customer{
 					OrgID:    "org_1",
 					Name:     getCustomerName(org),
@@ -185,13 +207,13 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: DefaultPlanNotFree,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
 				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return([]user.User{{Email: "email@example.com"}}, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
 				customerService.On("Create", ctx, customer.Customer{
 					OrgID:    "org_1",
 					Name:     getCustomerName(org),
@@ -223,13 +245,13 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
 				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return([]user.User{{Email: "email@example.com"}}, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
 				customerService.On("Create", ctx, customer.Customer{
 					OrgID:    "org_1",
 					Name:     getCustomerName(org),
@@ -267,15 +289,15 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				const onboardingAmount = 10.0
 				billingConf.AccountConfig.OnboardCreditsWithOrg = onboardingAmount
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
 				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return([]user.User{{Email: "email@example.com"}}, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
 				customerService.On("Create", ctx, customer.Customer{
 					OrgID:    "org_1",
 					Name:     getCustomerName(org),
@@ -322,15 +344,15 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				const onboardingAmount = 10.0
 				billingConf.AccountConfig.OnboardCreditsWithOrg = onboardingAmount
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
 				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return([]user.User{{Email: "email@example.com"}}, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
 				customerService.On("Create", ctx, customer.Customer{
 					OrgID:    "org_1",
 					Name:     getCustomerName(org),
@@ -377,15 +399,15 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				const onboardingAmount = 10.0
 				billingConf.AccountConfig.OnboardCreditsWithOrg = onboardingAmount
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
 				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
-				userService.On("ListByOrg", ctx, "org_1", organization.AdminRole).Return([]user.User{{Email: "email@example.com"}}, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
 				customerService.On("Create", ctx, customer.Customer{
 					OrgID:    "org_1",
 					Name:     getCustomerName(org),

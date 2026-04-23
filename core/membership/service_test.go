@@ -1020,3 +1020,175 @@ func TestService_RemoveProjectMember(t *testing.T) {
 		})
 	}
 }
+
+func TestService_ListPrincipalsByResource(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	projectID := uuid.New().String()
+	groupID := uuid.New().String()
+	user1, user2 := uuid.New().String(), uuid.New().String()
+	suID := uuid.New().String()
+	roleViewerID, roleOwnerID := uuid.New().String(), uuid.New().String()
+
+	viewerRole := role.Role{ID: roleViewerID, Name: "viewer"}
+	ownerRole := role.Role{ID: roleOwnerID, Name: schema.RoleOrganizationOwner}
+
+	tests := []struct {
+		name         string
+		resourceID   string
+		resourceType string
+		filter       membership.MemberFilter
+		setup        func(*mocks.PolicyService)
+		want         []membership.Member
+		wantErrIs    error
+	}{
+		{
+			name:         "rejects unsupported resource type",
+			resourceID:   orgID,
+			resourceType: "app/unknown",
+			wantErrIs:    membership.ErrInvalidResourceType,
+		},
+		{
+			name:         "returns empty when no policies exist",
+			resourceID:   orgID,
+			resourceType: schema.OrganizationNamespace,
+			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{}, nil)
+			},
+			want: []membership.Member{},
+		},
+		{
+			name:         "lists users of an org, deduplicated across multiple policies",
+			resourceID:   orgID,
+			resourceType: schema.OrganizationNamespace,
+			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
+					{PrincipalID: user2, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+				}, nil)
+			},
+			want: []membership.Member{
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal},
+				{PrincipalID: user2, PrincipalType: schema.UserPrincipal},
+			},
+		},
+		{
+			name:         "filters by roles when RoleIDs provided",
+			resourceID:   orgID,
+			resourceType: schema.OrganizationNamespace,
+			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal, RoleIDs: []string{roleOwnerID}},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalType: schema.UserPrincipal,
+					RoleIDs:       []string{roleOwnerID},
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
+				}, nil)
+			},
+			want: []membership.Member{
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal},
+			},
+		},
+		{
+			name:         "enriches with roles when WithRoles is true",
+			resourceID:   projectID,
+			resourceType: schema.ProjectNamespace,
+			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal, WithRoles: true},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(ctx, policy.Filter{
+					ProjectID:     projectID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+				}, nil)
+				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.ProjectNamespace, projectID).
+					Return([]role.Role{viewerRole, ownerRole}, nil)
+			},
+			want: []membership.Member{
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole, ownerRole}},
+			},
+		},
+		{
+			name:         "lists service users of a project",
+			resourceID:   projectID,
+			resourceType: schema.ProjectNamespace,
+			filter:       membership.MemberFilter{PrincipalType: schema.ServiceUserPrincipal},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(ctx, policy.Filter{
+					ProjectID:     projectID,
+					PrincipalType: schema.ServiceUserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleViewerID},
+				}, nil)
+			},
+			want: []membership.Member{
+				{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal},
+			},
+		},
+		{
+			name:         "lists group members of a group",
+			resourceID:   groupID,
+			resourceType: schema.GroupNamespace,
+			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(ctx, policy.Filter{
+					GroupID:       groupID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+				}, nil)
+			},
+			want: []membership.Member{
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal},
+			},
+		},
+		{
+			name:         "wraps policy list errors",
+			resourceID:   orgID,
+			resourceType: schema.OrganizationNamespace,
+			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(ctx, mock.Anything).Return(nil, errors.New("db down"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicySvc := mocks.NewPolicyService(t)
+			if tt.setup != nil {
+				tt.setup(mockPolicySvc)
+			}
+
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+			got, err := svc.ListPrincipalsByResource(ctx, tt.resourceID, tt.resourceType, tt.filter)
+			if tt.wantErrIs != nil {
+				assert.ErrorIs(t, err, tt.wantErrIs)
+				return
+			}
+			if tt.name == "wraps policy list errors" {
+				assert.ErrorContains(t, err, "db down")
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

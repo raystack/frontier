@@ -706,18 +706,24 @@ func TestHandler_ListOrganizationProjects(t *testing.T) {
 }
 
 func TestHandler_ListOrganizationAdmins(t *testing.T) {
+	ownerRoleID := "owner-role-id"
+
 	tests := []struct {
 		name    string
-		setup   func(us *mocks.UserService, os *mocks.OrganizationService)
+		setup   func(us *mocks.UserService, os *mocks.OrganizationService, rs *mocks.RoleService, ms *mocks.MembershipService)
 		request *connect.Request[frontierv1beta1.ListOrganizationAdminsRequest]
 		want    *connect.Response[frontierv1beta1.ListOrganizationAdminsResponse]
 		wantErr error
 	}{
 		{
-			name: "should return internal error if user service return some error",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			name: "should return internal error if membership service returns error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, rs *mocks.RoleService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{}, errors.New("test error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), organization.AdminRole).Return(role.Role{ID: ownerRoleID}, nil)
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testOrgID, schema.OrganizationNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+					RoleIDs:       []string{ownerRoleID},
+				}).Return(nil, errors.New("test error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: testOrgID,
@@ -727,7 +733,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		},
 		{
 			name: "should return error if org id does not exist",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, rs *mocks.RoleService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
@@ -738,7 +744,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		},
 		{
 			name: "should return error if org is disabled",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, rs *mocks.RoleService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
@@ -749,7 +755,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		},
 		{
 			name: "should return internal error if org service return some error",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, rs *mocks.RoleService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
@@ -760,13 +766,24 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		},
 		{
 			name: "should return success if org service return nil error",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, rs *mocks.RoleService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), organization.AdminRole).Return(role.Role{ID: ownerRoleID}, nil)
 				var testUserList []user.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return(testUserList, nil)
+				members := make([]membership.Member, 0, len(testUserList))
+				ids := make([]string, 0, len(testUserList))
+				for _, u := range testUserList {
+					members = append(members, membership.Member{PrincipalID: u.ID, PrincipalType: schema.UserPrincipal})
+					ids = append(ids, u.ID)
+				}
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testOrgID, schema.OrganizationNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+					RoleIDs:       []string{ownerRoleID},
+				}).Return(members, nil)
+				us.EXPECT().GetByIDs(mock.AnythingOfType("context.backgroundCtx"), ids).Return(testUserList, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: testOrgID,
@@ -797,10 +814,17 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUserService := new(mocks.UserService)
 			mockOrgService := new(mocks.OrganizationService)
+			mockRoleService := new(mocks.RoleService)
+			mockMembershipService := new(mocks.MembershipService)
 			if tt.setup != nil {
-				tt.setup(mockUserService, mockOrgService)
+				tt.setup(mockUserService, mockOrgService, mockRoleService, mockMembershipService)
 			}
-			mockDep := &ConnectHandler{userService: mockUserService, orgService: mockOrgService}
+			mockDep := &ConnectHandler{
+				userService:       mockUserService,
+				orgService:        mockOrgService,
+				roleService:       mockRoleService,
+				membershipService: mockMembershipService,
+			}
 			resp, err := mockDep.ListOrganizationAdmins(context.Background(), tt.request)
 			assert.Equal(t, tt.want, resp)
 			assert.Equal(t, tt.wantErr, err)
@@ -811,7 +835,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 func TestHandler_ListOrganizationUsers(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(us *mocks.UserService, os *mocks.OrganizationService)
+		setup   func(us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService)
 		request *connect.Request[frontierv1beta1.ListOrganizationUsersRequest]
 		want    *connect.Response[frontierv1beta1.ListOrganizationUsersResponse]
 		wantErr error
@@ -828,7 +852,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		},
 		{
 			name: "should return internal error if org service return some error",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, errors.New("test error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
@@ -839,7 +863,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		},
 		{
 			name: "should return not found error if org id does not exist",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
@@ -850,7 +874,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		},
 		{
 			name: "should return not found error if org is disabled",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
@@ -860,10 +884,12 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
 		},
 		{
-			name: "should return internal error if user service return some error",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			name: "should return internal error if membership service returns an error",
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "").Return([]user.User{}, errors.New("test error"))
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testOrgID, schema.OrganizationNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+				}).Return(nil, errors.New("test error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
 				Id: testOrgID,
@@ -873,13 +899,22 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		},
 		{
 			name: "should return success if org service return nil error",
-			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				var testUserList []user.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "").Return(testUserList, nil)
+				members := make([]membership.Member, 0, len(testUserList))
+				ids := make([]string, 0, len(testUserList))
+				for _, u := range testUserList {
+					members = append(members, membership.Member{PrincipalID: u.ID, PrincipalType: schema.UserPrincipal})
+					ids = append(ids, u.ID)
+				}
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testOrgID, schema.OrganizationNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+				}).Return(members, nil)
+				us.EXPECT().GetByIDs(mock.AnythingOfType("context.backgroundCtx"), ids).Return(testUserList, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
 				Id: testOrgID,
@@ -910,10 +945,15 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUserService := new(mocks.UserService)
 			mockOrgService := new(mocks.OrganizationService)
+			mockMembershipService := new(mocks.MembershipService)
 			if tt.setup != nil {
-				tt.setup(mockUserService, mockOrgService)
+				tt.setup(mockUserService, mockOrgService, mockMembershipService)
 			}
-			mockDep := &ConnectHandler{userService: mockUserService, orgService: mockOrgService}
+			mockDep := &ConnectHandler{
+				userService:       mockUserService,
+				orgService:        mockOrgService,
+				membershipService: mockMembershipService,
+			}
 			resp, err := mockDep.ListOrganizationUsers(context.Background(), tt.request)
 			assert.Equal(t, tt.want, resp)
 			assert.Equal(t, tt.wantErr, err)

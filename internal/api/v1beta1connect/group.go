@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
@@ -88,9 +89,9 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 		}
 
 		if request.Msg.GetWithMembers() {
-			groupUsers, err := h.userService.ListByGroup(ctx, v.ID, "")
+			groupUsers, err := h.listGroupUsers(ctx, v.ID, "")
 			if err != nil {
-				errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.ListByGroup", err,
+				errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.listGroupUsers", err,
 					"group_id", v.ID)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
@@ -116,6 +117,21 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationGroupsResponse{Groups: groups}), nil
+}
+
+// listGroupUsers returns the users that are members of the given group.
+// When roleID is non-empty, only users with that role are returned.
+func (h *ConnectHandler) listGroupUsers(ctx context.Context, groupID, roleID string) ([]user.User, error) {
+	filter := membership.MemberFilter{PrincipalType: schema.UserPrincipal}
+	if roleID != "" {
+		filter.RoleIDs = []string{roleID}
+	}
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, groupID, schema.GroupNamespace, filter)
+	if err != nil {
+		return nil, err
+	}
+	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	return h.userService.GetByIDs(ctx, userIDs)
 }
 
 func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Request[frontierv1beta1.CreateGroupRequest]) (*connect.Response[frontierv1beta1.CreateGroupResponse], error) {
@@ -221,9 +237,9 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 	}
 
 	if request.Msg.GetWithMembers() {
-		groupUsers, err := h.userService.ListByGroup(ctx, fetchedGroup.ID, "")
+		groupUsers, err := h.listGroupUsers(ctx, fetchedGroup.ID, "")
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "GetGroup.ListByGroup", err,
+			errorLogger.LogServiceError(ctx, request, "GetGroup.listGroupUsers", err,
 				"group_id", fetchedGroup.ID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
@@ -325,15 +341,26 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 		}
 	}
 
-	var userPBs []*frontierv1beta1.User
-	var rolePairPBs []*frontierv1beta1.ListGroupUsersResponse_RolePair
-	users, err := h.userService.ListByGroup(ctx, request.Msg.GetId(), "")
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, request.Msg.GetId(), schema.GroupNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+		WithRoles:     request.Msg.GetWithRoles(),
+	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListGroupUsers.ListByGroup", err,
+		errorLogger.LogServiceError(ctx, request, "ListGroupUsers.ListPrincipalsByResource", err,
 			"group_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
+	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	users, err := h.userService.GetByIDs(ctx, userIDs)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListGroupUsers.GetByIDs", err,
+			"group_id", request.Msg.GetId())
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	var userPBs []*frontierv1beta1.User
+	var rolePairPBs []*frontierv1beta1.ListGroupUsersResponse_RolePair
 	for _, user := range users {
 		userPb, err := transformUserToPB(user)
 		if err != nil {
@@ -344,27 +371,19 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 	}
 
 	if request.Msg.GetWithRoles() {
-		for _, user := range users {
-			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.GroupNamespace, request.Msg.GetId())
-			if err != nil {
-				errorLogger.LogServiceError(ctx, request, "ListGroupUsers.ListRoles", err,
-					"user_id", user.ID,
-					"group_id", request.Msg.GetId())
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-			}
-
-			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(role)
+		for _, m := range members {
+			rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+				pb, err := transformRoleToPB(r)
 				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListGroupUsers.transformRoleToPB", role.ID, err)
+					errorLogger.LogTransformError(ctx, request, "ListGroupUsers.transformRoleToPB", r.ID, err)
 					return nil
 				}
 				return &pb
-			}), func(role *frontierv1beta1.Role) bool {
-				return role != nil
+			}), func(r *frontierv1beta1.Role) bool {
+				return r != nil
 			})
 			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListGroupUsersResponse_RolePair{
-				UserId: user.ID,
+				UserId: m.PrincipalID,
 				Roles:  rolesPb,
 			})
 		}
@@ -420,9 +439,15 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 	}
 
 	// before deleting the user, check if the user is the only owner of the group
-	owners, err := h.userService.ListByGroup(ctx, request.Msg.GetId(), group.AdminRole)
+	ownerRole, err := h.roleService.Get(ctx, group.AdminRole)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.ListByGroup", err,
+		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.roleService.Get", err,
+			"role", group.AdminRole)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	owners, err := h.listGroupUsers(ctx, request.Msg.GetId(), ownerRole.ID)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.listGroupUsers", err,
 			"group_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
