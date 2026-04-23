@@ -9,7 +9,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -39,8 +38,8 @@ func (h *ConnectHandler) ListRelations(ctx context.Context, request *connect.Req
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListRelations", err,
-			zap.String("subject", request.Msg.GetSubject()),
-			zap.String("object", request.Msg.GetObject()))
+			"subject", request.Msg.GetSubject(),
+			"object", request.Msg.GetObject())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -82,7 +81,7 @@ func (h *ConnectHandler) CreateRelation(ctx context.Context, request *connect.Re
 			fetchedUser, err := h.userService.GetByEmail(ctx, subjectID)
 			if err != nil {
 				errorLogger.LogServiceError(ctx, request, "CreateRelation.GetUserByEmail", err,
-					zap.String("subject_id", subjectID))
+					"subject_id", subjectID)
 				return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 			}
 			subjectID = fetchedUser.ID
@@ -103,20 +102,20 @@ func (h *ConnectHandler) CreateRelation(ctx context.Context, request *connect.Re
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateRelation", err,
-			zap.String("subject", request.Msg.GetBody().GetSubject()),
-			zap.String("object", request.Msg.GetBody().GetObject()),
-			zap.String("relation", request.Msg.GetBody().GetRelation()),
-			zap.String("subject_sub_relation", request.Msg.GetBody().GetSubjectSubRelation()))
+			"subject", request.Msg.GetBody().GetSubject(),
+			"object", request.Msg.GetBody().GetObject(),
+			"relation", request.Msg.GetBody().GetRelation(),
+			"subject_sub_relation", request.Msg.GetBody().GetSubjectSubRelation())
 
 		switch {
 		case errors.Is(err, relation.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateRelation", err,
-				zap.String("subject", request.Msg.GetBody().GetSubject()),
-				zap.String("object", request.Msg.GetBody().GetObject()),
-				zap.String("relation", request.Msg.GetBody().GetRelation()),
-				zap.String("subject_sub_relation", request.Msg.GetBody().GetSubjectSubRelation()))
+				"subject", request.Msg.GetBody().GetSubject(),
+				"object", request.Msg.GetBody().GetObject(),
+				"relation", request.Msg.GetBody().GetRelation(),
+				"subject_sub_relation", request.Msg.GetBody().GetSubjectSubRelation())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -139,7 +138,7 @@ func (h *ConnectHandler) GetRelation(ctx context.Context, request *connect.Reque
 	fetchedRelation, err := h.relationService.Get(ctx, relationID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetRelation", err,
-			zap.String("relation_id", relationID))
+			"relation_id", relationID)
 
 		switch {
 		case errors.Is(err, relation.ErrNotExist),
@@ -148,7 +147,7 @@ func (h *ConnectHandler) GetRelation(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetRelation", err,
-				zap.String("relation_id", relationID))
+				"relation_id", relationID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -187,9 +186,9 @@ func (h *ConnectHandler) DeleteRelation(ctx context.Context, request *connect.Re
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteRelation", err,
-			zap.String("subject", request.Msg.GetSubject()),
-			zap.String("object", request.Msg.GetObject()),
-			zap.String("relation", request.Msg.GetRelation()))
+			"subject", request.Msg.GetSubject(),
+			"object", request.Msg.GetObject(),
+			"relation", request.Msg.GetRelation())
 
 		switch {
 		case errors.Is(err, relation.ErrNotExist),
@@ -198,9 +197,9 @@ func (h *ConnectHandler) DeleteRelation(ctx context.Context, request *connect.Re
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteRelation", err,
-				zap.String("subject", request.Msg.GetSubject()),
-				zap.String("object", request.Msg.GetObject()),
-				zap.String("relation", request.Msg.GetRelation()))
+				"subject", request.Msg.GetSubject(),
+				"object", request.Msg.GetObject(),
+				"relation", request.Msg.GetRelation())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

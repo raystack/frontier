@@ -11,7 +11,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -45,13 +44,13 @@ func (h *ConnectHandler) SearchUserProjects(ctx context.Context, request *connec
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
 			errorLogger.LogServiceError(ctx, request, "SearchUserProjects.Search", err,
-				zap.String("user_id", request.Msg.GetUserId()),
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"user_id", request.Msg.GetUserId(),
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogUnexpectedError(ctx, request, "SearchUserProjects", err,
-			zap.String("user_id", request.Msg.GetUserId()),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"user_id", request.Msg.GetUserId(),
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

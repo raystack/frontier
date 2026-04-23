@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -55,7 +54,7 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 	err := h.bootstrapService.AppendSchema(ctx, definition)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreatePermission.AppendSchema", err,
-			zap.Strings("permission_slugs", permissionSlugs))
+			"permission_slugs", permissionSlugs)
 
 		switch {
 		case errors.Is(err, namespace.ErrNotExist),
@@ -64,7 +63,7 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreatePermission.AppendSchema", err,
-				zap.Strings("permission_slugs", permissionSlugs))
+				"permission_slugs", permissionSlugs)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -72,7 +71,7 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 	permList, err := h.permissionService.List(ctx, permission.Filter{Slugs: permissionSlugs})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreatePermission.List", err,
-			zap.Strings("permission_slugs", permissionSlugs))
+			"permission_slugs", permissionSlugs)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -130,9 +129,9 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdatePermission", err,
-			zap.String("permission_id", request.Msg.GetId()),
-			zap.String("permission_name", permName),
-			zap.String("permission_namespace", permNamespace))
+			"permission_id", request.Msg.GetId(),
+			"permission_name", permName,
+			"permission_namespace", permNamespace)
 
 		switch {
 		case errors.Is(err, permission.ErrNotExist),
@@ -143,9 +142,9 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "UpdatePermission", err,
-				zap.String("permission_id", request.Msg.GetId()),
-				zap.String("permission_name", permName),
-				zap.String("permission_namespace", permNamespace))
+				"permission_id", request.Msg.GetId(),
+				"permission_name", permName,
+				"permission_namespace", permNamespace)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -187,14 +186,14 @@ func (h *ConnectHandler) GetPermission(ctx context.Context, request *connect.Req
 	fetchedPermission, err := h.permissionService.Get(ctx, permissionID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetPermission", err,
-			zap.String("permission_id", permissionID))
+			"permission_id", permissionID)
 
 		switch {
 		case errors.Is(err, permission.ErrNotExist), errors.Is(err, permission.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetPermission", err,
-				zap.String("permission_id", permissionID))
+				"permission_id", permissionID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

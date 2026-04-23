@@ -7,6 +7,9 @@ import (
 	"os"
 	"testing"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -16,7 +19,6 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/suite"
 )
@@ -39,7 +41,7 @@ type ProspectRepositoryTestSuite struct {
 func (s *ProspectRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := log.NewZap()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s.client, s.pool, s.resource, err = newTestClient(logger)
 	if err != nil {
 		s.T().Fatal(err)

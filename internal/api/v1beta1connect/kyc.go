@@ -9,7 +9,6 @@ import (
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -31,9 +30,9 @@ func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, kyc.ErrOrgDoesntExist)
 		default:
 			errorLogger.LogServiceError(ctx, request, "SetOrganizationKyc.SetKyc", err,
-				zap.String("org_id", request.Msg.GetOrgId()),
-				zap.Bool("status", request.Msg.GetStatus()),
-				zap.String("link", request.Msg.GetLink()))
+				"org_id", request.Msg.GetOrgId(),
+				"status", request.Msg.GetStatus(),
+				"link", request.Msg.GetLink())
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
@@ -63,7 +62,7 @@ func (h *ConnectHandler) GetOrganizationKyc(ctx context.Context, request *connec
 			}
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetOrganizationKyc.GetKyc", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}

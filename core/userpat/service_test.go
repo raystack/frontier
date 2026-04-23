@@ -9,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
@@ -20,7 +23,6 @@ import (
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/sha3"
 )
@@ -89,7 +91,7 @@ func TestService_Create(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
 					Enabled: false,
 				}, orgSvc, nil, nil, nil, auditRepo)
 			},
@@ -111,7 +113,7 @@ func TestService_Create(t *testing.T) {
 					Return(int64(0), errors.New("db connection failed"))
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -131,7 +133,7 @@ func TestService_Create(t *testing.T) {
 					Return(int64(50), nil)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -151,7 +153,7 @@ func TestService_Create(t *testing.T) {
 					Return(int64(55), nil)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -177,7 +179,7 @@ func TestService_Create(t *testing.T) {
 				roleSvc.On("List", mock.Anything, mock.Anything).Return([]role.Role{{
 					ID: "role-1", Name: "test-role", Scopes: []string{schema.OrganizationNamespace},
 				}}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -203,7 +205,7 @@ func TestService_Create(t *testing.T) {
 				roleSvc.On("List", mock.Anything, mock.Anything).Return([]role.Role{{
 					ID: "role-1", Name: "test-role", Scopes: []string{schema.OrganizationNamespace},
 				}}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -252,7 +254,7 @@ func TestService_Create(t *testing.T) {
 						CreatedAt: time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC),
 					}, nil)
 				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
@@ -284,7 +286,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
@@ -321,7 +323,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
@@ -357,7 +359,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
 					Enabled:          true,
 					Prefix:           "custom",
 					MaxPerUserPerOrg: 50,
@@ -388,7 +390,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 			},
 		},
 		{
@@ -408,7 +410,7 @@ func TestService_Create(t *testing.T) {
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 			},
 		},
 	}
@@ -443,7 +445,7 @@ func TestService_Create_UniquePATs(t *testing.T) {
 		Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil).Times(2)
 
 	orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 
 	req := userpat.CreateRequest{
 		UserID:    "user-1",
@@ -478,7 +480,7 @@ func TestService_Create_HashVerification(t *testing.T) {
 		Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 
 	orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 
 	_, tokenValue, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
@@ -541,7 +543,7 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -588,7 +590,7 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 	}).Return(policy.Policy{ID: "pol-1"}, nil)
 	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -648,7 +650,7 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 		{ID: "proj-a"}, {ID: "proj-b"},
 	}, nil).Maybe()
 
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -682,7 +684,7 @@ func TestService_CreatePolicies_DeniedPermission(t *testing.T) {
 	cfg := defaultConfig
 	cfg.DeniedPermissions = []string{"app_organization_administer"}
 
-	svc := userpat.NewService(log.NewNoop(), repo, cfg, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, policySvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -712,7 +714,7 @@ func TestService_CreatePolicies_RoleFetchError(t *testing.T) {
 
 	policySvc := mocks.NewPolicyService(t)
 
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -746,7 +748,7 @@ func TestService_CreatePolicies_UnsupportedScope(t *testing.T) {
 
 	policySvc := mocks.NewPolicyService(t)
 
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -780,7 +782,7 @@ func TestService_CreatePolicies_MissingRoleID(t *testing.T) {
 
 	policySvc := mocks.NewPolicyService(t)
 
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID: "user-1",
 		OrgID:  "org-1",
@@ -809,7 +811,7 @@ func TestService_CreatePolicies_NoRoles(t *testing.T) {
 		Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
 	orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
@@ -1172,7 +1174,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "proj-1"}, {ID: "proj-2"}, {ID: "proj-3"}, {ID: "proj-a"}, {ID: "proj-b"},
 			}, nil).Maybe()
 
-			svc := userpat.NewService(log.NewNoop(), repo, cfg, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
+			svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
 			_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -1279,7 +1281,7 @@ func TestService_CreatePolicies_PolicyCreateFailure(t *testing.T) {
 		return p.RoleID == "org-billing-id"
 	})).Return(policy.Policy{}, errors.New("spicedb unavailable"))
 
-	svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID: "user-1",
 		OrgID:  "org-1",
@@ -1316,7 +1318,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
 					Enabled: false,
 				}, orgSvc, nil, nil, nil, auditRepo)
 			},
@@ -1333,7 +1335,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 					OrgID:  schema.PlatformOrgID.String(),
 					Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
 				}).Return(nil, errors.New("db connection failed"))
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1356,7 +1358,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				}, nil)
 				cfg := defaultConfig
 				cfg.DeniedPermissions = []string{"app_organization_administer"}
-				return userpat.NewService(log.NewNoop(), repo, cfg, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1376,7 +1378,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				}, nil)
 				cfg := defaultConfig
 				cfg.DeniedPermissions = []string{"app_organization_administer"}
-				return userpat.NewService(log.NewNoop(), repo, cfg, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1392,7 +1394,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 					OrgID:  schema.PlatformOrgID.String(),
 					Scopes: []string{schema.OrganizationNamespace, schema.ProjectNamespace},
 				}).Return([]role.Role{}, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1413,7 +1415,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 					{ID: "org-admin-id", Name: "org_admin", Permissions: []string{"app_organization_administer"}, Scopes: []string{schema.OrganizationNamespace}},
 					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				}, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1433,7 +1435,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				}).Return([]role.Role{
 					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				}, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1453,7 +1455,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				}).Return([]role.Role{
 					{ID: "org-viewer-id", Name: "org_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				}, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1473,7 +1475,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				}).Return([]role.Role{
 					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				}, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1485,7 +1487,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1497,7 +1499,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1517,7 +1519,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 				}).Return([]role.Role{
 					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				}, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 		{
@@ -1539,7 +1541,7 @@ func TestService_ListAllowedRoles(t *testing.T) {
 					{ID: "org-admin-id", Name: "org_admin", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 					{ID: "proj-viewer-id", Name: "proj_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				}, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, nil, nil, auditRepo)
 			},
 		},
 	}
@@ -1631,7 +1633,7 @@ func TestService_Get(t *testing.T) {
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
 				orgSvc, _, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
 					Enabled: false,
 				}, orgSvc, nil, policySvc, nil, auditRepo)
 			},
@@ -1647,7 +1649,7 @@ func TestService_Get(t *testing.T) {
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(models.PAT{}, paterrors.ErrNotFound)
 				orgSvc, _, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -1661,7 +1663,7 @@ func TestService_Get(t *testing.T) {
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(testPAT, nil)
 				orgSvc, _, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -1679,7 +1681,7 @@ func TestService_Get(t *testing.T) {
 					Return([]policy.Policy{
 						{RoleID: "role-1", ResourceType: "app/organization", ResourceID: "org-1"},
 					}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -1696,7 +1698,7 @@ func TestService_Get(t *testing.T) {
 				policySvc.On("List", mock.Anything, mock.Anything).
 					Return(nil, errors.New("spicedb down"))
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: true,
 		},
@@ -1752,7 +1754,7 @@ func TestService_Delete(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
 					Enabled: false,
 				}, orgSvc, nil, nil, nil, auditRepo)
 			},
@@ -1769,7 +1771,7 @@ func TestService_Delete(t *testing.T) {
 					Return(models.PAT{}, paterrors.ErrNotFound)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -1784,7 +1786,7 @@ func TestService_Delete(t *testing.T) {
 					Return(testPAT, nil)
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -1801,7 +1803,7 @@ func TestService_Delete(t *testing.T) {
 					Return(errors.New("db error"))
 				orgSvc := mocks.NewOrganizationService(t)
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, nil, nil, auditRepo)
 			},
 			wantErr: true,
 		},
@@ -1822,7 +1824,7 @@ func TestService_Delete(t *testing.T) {
 					PrincipalType: schema.PATPrincipal,
 				}).Return(nil, errors.New("spicedb down"))
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: true,
 		},
@@ -1845,7 +1847,7 @@ func TestService_Delete(t *testing.T) {
 				policySvc.EXPECT().Delete(mock.Anything, "pol-1").
 					Return(errors.New("spicedb unavailable"))
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: true,
 		},
@@ -1875,7 +1877,7 @@ func TestService_Delete(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -1900,7 +1902,7 @@ func TestService_Delete(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -1925,7 +1927,7 @@ func TestService_Delete(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -1997,7 +1999,7 @@ func TestService_Update(t *testing.T) {
 			name:  "should return ErrDisabled when PAT feature is disabled",
 			input: defaultInput,
 			setup: func() *userpat.Service {
-				return userpat.NewService(log.NewNoop(), nil, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), nil, userpat.Config{
 					Enabled: false,
 				}, nil, nil, nil, nil, nil)
 			},
@@ -2011,7 +2013,7 @@ func TestService_Update(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(models.PAT{}, paterrors.ErrNotFound)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -2028,7 +2030,7 @@ func TestService_Update(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(testPAT, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -2043,7 +2045,7 @@ func TestService_Update(t *testing.T) {
 				roleSvc := mocks.NewRoleService(t)
 				roleSvc.EXPECT().List(mock.Anything, mock.Anything).
 					Return(nil, paterrors.ErrRoleNotFound)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, roleSvc, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, nil, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrRoleNotFound,
@@ -2065,7 +2067,7 @@ func TestService_Update(t *testing.T) {
 				}).Return([]policy.Policy{}, nil)
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(models.PAT{}, errors.New("db error"))
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2086,7 +2088,7 @@ func TestService_Update(t *testing.T) {
 				}).Return([]policy.Policy{}, nil)
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(models.PAT{}, paterrors.ErrConflict)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrConflict,
@@ -2114,7 +2116,7 @@ func TestService_Update(t *testing.T) {
 					PrincipalID:   "pat-1",
 					PrincipalType: schema.PATPrincipal,
 				}).Return(nil, errors.New("spicedb down")).Once()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2139,7 +2141,7 @@ func TestService_Update(t *testing.T) {
 				// TOCTOU re-check returns not found (concurrent delete)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(models.PAT{}, paterrors.ErrNotFound).Once()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2174,7 +2176,7 @@ func TestService_Update(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2206,7 +2208,7 @@ func TestService_Update(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2283,7 +2285,7 @@ func TestService_Regenerate(t *testing.T) {
 			patID:     "pat-1",
 			expiresAt: futureExpiry,
 			setup: func() *userpat.Service {
-				return userpat.NewService(log.NewNoop(), nil, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), nil, userpat.Config{
 					Enabled: false,
 				}, nil, nil, nil, nil, nil)
 			},
@@ -2299,7 +2301,7 @@ func TestService_Regenerate(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(models.PAT{}, paterrors.ErrNotFound)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -2313,7 +2315,7 @@ func TestService_Regenerate(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(activePAT, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -2327,7 +2329,7 @@ func TestService_Regenerate(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(activePAT, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrExpiryInPast,
@@ -2343,7 +2345,7 @@ func TestService_Regenerate(t *testing.T) {
 					Return(expiredPAT, nil)
 				repo.EXPECT().CountActive(mock.Anything, "user-1", "org-1").
 					Return(int64(50), nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrLimitExceeded,
@@ -2369,7 +2371,7 @@ func TestService_Regenerate(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2384,7 +2386,7 @@ func TestService_Regenerate(t *testing.T) {
 					Return(activePAT, nil)
 				repo.EXPECT().Regenerate(mock.Anything, "pat-1", mock.Anything, mock.Anything).
 					Return(models.PAT{}, errors.New("db error"))
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2410,7 +2412,7 @@ func TestService_Regenerate(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2434,7 +2436,7 @@ func TestService_Regenerate(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2477,7 +2479,7 @@ func TestService_IsTitleAvailable(t *testing.T) {
 			orgID:  "org-1",
 			title:  "my-token",
 			setup: func() *userpat.Service {
-				return userpat.NewService(log.NewNoop(), nil, userpat.Config{
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), nil, userpat.Config{
 					Enabled: false,
 				}, nil, nil, nil, nil, nil)
 			},
@@ -2493,7 +2495,7 @@ func TestService_IsTitleAvailable(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().IsTitleAvailable(mock.Anything, "user-1", "org-1", "new-token").
 					Return(true, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantAvailable: true,
 		},
@@ -2506,7 +2508,7 @@ func TestService_IsTitleAvailable(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().IsTitleAvailable(mock.Anything, "user-1", "org-1", "existing-token").
 					Return(false, nil)
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantAvailable: false,
 		},
@@ -2519,7 +2521,7 @@ func TestService_IsTitleAvailable(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().IsTitleAvailable(mock.Anything, "user-1", "org-1", "my-token").
 					Return(false, errors.New("db error"))
-				return userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2561,7 +2563,7 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 			{ID: "proj-in-org"},
 		}, nil)
 
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, roleSvc, nil, projSvc, nil)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, nil, projSvc, nil)
 		_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 			UserID: "user-1",
 			OrgID:  "org-1",
@@ -2601,7 +2603,7 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 		auditRepo := mocks.NewAuditRecordRepository(t)
 		auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
 		_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 			UserID: "user-1",
 			OrgID:  "org-1",
@@ -2635,7 +2637,7 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 		auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
 		// No projectService mock needed — all-projects scope has empty ResourceIDs, skips validation
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
 		_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 			UserID: "user-1",
 			OrgID:  "org-1",
@@ -2655,7 +2657,7 @@ func TestService_List(t *testing.T) {
 	t.Run("should return ErrDisabled when PAT feature is disabled", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, userpat.Config{Enabled: false}, nil, nil, nil, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{Enabled: false}, nil, nil, nil, nil, auditRepo)
 
 		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if !errors.Is(err, paterrors.ErrDisabled) {
@@ -2668,7 +2670,7 @@ func TestService_List(t *testing.T) {
 		repo.EXPECT().List(mock.Anything, "user-1", "org-1", mock.Anything).
 			Return(models.PATList{}, errors.New("db connection failed"))
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, nil, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, auditRepo)
 
 		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err == nil || !strings.Contains(err.Error(), "db connection failed") {
@@ -2688,7 +2690,7 @@ func TestService_List(t *testing.T) {
 			PrincipalType: schema.PATPrincipal,
 		}).Return(nil, errors.New("policy service down"))
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
 
 		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err == nil || !strings.Contains(err.Error(), "enriching PAT scope") {
@@ -2719,7 +2721,7 @@ func TestService_List(t *testing.T) {
 			PrincipalType: schema.PATPrincipal,
 		}).Return([]policy.Policy{}, nil)
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(log.NewNoop(), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
 
 		result, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err != nil {

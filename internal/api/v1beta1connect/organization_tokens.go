@@ -11,7 +11,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -35,7 +34,7 @@ func (h *ConnectHandler) SearchOrganizationTokens(ctx context.Context, request *
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "SearchOrganizationTokens.Search", err,
-			zap.String("org_id", request.Msg.GetId()))
+			"org_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -76,7 +75,7 @@ func (h *ConnectHandler) ExportOrganizationTokens(ctx context.Context, request *
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
 		errorLogger.LogServiceError(ctx, request, "ExportOrganizationTokens.Export", err,
-			zap.String("org_id", request.Msg.GetId()))
+			"org_id", request.Msg.GetId())
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

@@ -8,20 +8,21 @@ import (
 	"fmt"
 	"time"
 
+	"log/slog"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/pkg/db"
-	"github.com/raystack/salt/log"
 )
 
 type FlowRepository struct {
-	log log.Logger
+	log *slog.Logger
 	dbc *db.Client
 	Now func() time.Time
 }
 
-func NewFlowRepository(logger log.Logger, dbc *db.Client) *FlowRepository {
+func NewFlowRepository(logger *slog.Logger, dbc *db.Client) *FlowRepository {
 	return &FlowRepository{
 		dbc: dbc,
 		log: logger,
@@ -149,7 +150,7 @@ func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
 		}
 
 		count, _ := result.RowsAffected()
-		s.log.Debug("deleted expired flows", "expired_flows_count", count)
+		s.log.DebugContext(ctx, "deleted expired flows", "expired_flows_count", count)
 
 		return nil
 	})

@@ -9,7 +9,6 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -31,7 +30,7 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 			}), nil
 		}
 		errorLogger.LogServiceError(ctx, request, "ListSubscriptions.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	billingID := cust.ID
@@ -41,7 +40,7 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 		plan, err := h.planService.GetByID(ctx, planID)
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "ListSubscriptions.GetByID", err,
-				zap.String("plan_id", planID))
+				"plan_id", planID)
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		planID = plan.ID
@@ -55,10 +54,10 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListSubscriptions.List", err,
-			zap.String("billing_id", billingID),
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("state", request.Msg.GetState()),
-			zap.String("plan_id", planID))
+			"billing_id", billingID,
+			"org_id", request.Msg.GetOrgId(),
+			"state", request.Msg.GetState(),
+			"plan_id", planID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	for _, v := range subscriptionList {
@@ -86,7 +85,7 @@ func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.R
 	subscription, err := h.subscriptionService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetSubscription.GetByID", err,
-			zap.String("subscription_id", request.Msg.GetId()))
+			"subscription_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -111,8 +110,8 @@ func (h *ConnectHandler) CancelSubscription(ctx context.Context, request *connec
 	_, err := h.subscriptionService.Cancel(ctx, request.Msg.GetId(), request.Msg.GetImmediate())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CancelSubscription.Cancel", err,
-			zap.String("subscription_id", request.Msg.GetId()),
-			zap.Bool("immediate", request.Msg.GetImmediate()))
+			"subscription_id", request.Msg.GetId(),
+			"immediate", request.Msg.GetImmediate())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.CancelSubscriptionResponse{}), nil
@@ -149,10 +148,10 @@ func (h *ConnectHandler) ChangeSubscription(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrAlreadyOnSamePlan)
 		}
 		errorLogger.LogServiceError(ctx, request, "ChangeSubscription.ChangePlan", err,
-			zap.String("subscription_id", request.Msg.GetId()),
-			zap.String("plan_id", changeReq.PlanID),
-			zap.Bool("immediate", changeReq.Immediate),
-			zap.Bool("cancel_upcoming", changeReq.CancelUpcoming))
+			"subscription_id", request.Msg.GetId(),
+			"plan_id", changeReq.PlanID,
+			"immediate", changeReq.Immediate,
+			"cancel_upcoming", changeReq.CancelUpcoming)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

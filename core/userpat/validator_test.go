@@ -9,11 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"io"
+	"log/slog"
+
 	"github.com/raystack/frontier/core/userpat"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/frontier/core/userpat/models"
-	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -39,14 +41,14 @@ func TestValidator_Validate(t *testing.T) {
 	}
 
 	t.Run("disabled feature returns ErrDisabled", func(t *testing.T) {
-		v := userpat.NewValidator(log.NewNoop(), nil, userpat.Config{Enabled: false})
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), nil, userpat.Config{Enabled: false})
 		_, err := v.Validate(context.Background(), "fpt_anything")
 		assert.ErrorIs(t, err, paterrors.ErrDisabled)
 	})
 
 	t.Run("wrong prefix returns ErrInvalidPAT", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		_, err := v.Validate(context.Background(), "ghp_sometoken")
 		assert.ErrorIs(t, err, paterrors.ErrInvalidPAT)
@@ -54,7 +56,7 @@ func TestValidator_Validate(t *testing.T) {
 
 	t.Run("no prefix separator returns ErrInvalidPAT", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		_, err := v.Validate(context.Background(), "randomstring")
 		assert.ErrorIs(t, err, paterrors.ErrInvalidPAT)
@@ -62,7 +64,7 @@ func TestValidator_Validate(t *testing.T) {
 
 	t.Run("malformed base64 returns ErrMalformedPAT", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		_, err := v.Validate(context.Background(), "fpt_!!!not-base64!!!")
 		assert.ErrorIs(t, err, paterrors.ErrMalformedPAT)
@@ -71,7 +73,7 @@ func TestValidator_Validate(t *testing.T) {
 
 	t.Run("unknown hash returns ErrNotFound", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		value, secretHash := validPATValue(t, prefix)
 		repo.EXPECT().GetBySecretHash(mock.Anything, secretHash).Return(models.PAT{}, paterrors.ErrNotFound)
@@ -82,7 +84,7 @@ func TestValidator_Validate(t *testing.T) {
 
 	t.Run("expired PAT returns ErrExpired", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		value, secretHash := validPATValue(t, prefix)
 		repo.EXPECT().GetBySecretHash(mock.Anything, secretHash).Return(models.PAT{
@@ -96,7 +98,7 @@ func TestValidator_Validate(t *testing.T) {
 
 	t.Run("db error propagates as-is", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		value, secretHash := validPATValue(t, prefix)
 		dbErr := errors.New("connection refused")
@@ -109,7 +111,7 @@ func TestValidator_Validate(t *testing.T) {
 
 	t.Run("UpdateUsedAt failure returns error", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		value, secretHash := validPATValue(t, prefix)
 		repo.EXPECT().GetBySecretHash(mock.Anything, secretHash).Return(models.PAT{
@@ -125,7 +127,7 @@ func TestValidator_Validate(t *testing.T) {
 
 	t.Run("valid PAT returns PAT and updates used_at", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
-		v := userpat.NewValidator(log.NewNoop(), repo, cfg)
+		v := userpat.NewValidator(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg)
 
 		value, secretHash := validPATValue(t, prefix)
 		expectedPAT := models.PAT{

@@ -13,7 +13,6 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -45,11 +44,11 @@ func (h *ConnectHandler) CreatePolicy(ctx context.Context, request *connect.Requ
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreatePolicy", err,
-			zap.String("role_id", request.Msg.GetBody().GetRoleId()),
-			zap.String("resource_type", resourceType),
-			zap.String("resource_id", resourceID),
-			zap.String("principal_type", principalType),
-			zap.String("principal_id", principalID))
+			"role_id", request.Msg.GetBody().GetRoleId(),
+			"resource_type", resourceType,
+			"resource_id", resourceID,
+			"principal_type", principalType,
+			"principal_id", principalID)
 
 		switch {
 		case errors.Is(err, role.ErrInvalidID):
@@ -58,11 +57,11 @@ func (h *ConnectHandler) CreatePolicy(ctx context.Context, request *connect.Requ
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreatePolicy", err,
-				zap.String("role_id", request.Msg.GetBody().GetRoleId()),
-				zap.String("resource_type", resourceType),
-				zap.String("resource_id", resourceID),
-				zap.String("principal_type", principalType),
-				zap.String("principal_id", principalID))
+				"role_id", request.Msg.GetBody().GetRoleId(),
+				"resource_type", resourceType,
+				"resource_id", resourceID,
+				"principal_type", principalType,
+				"principal_id", principalID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -84,7 +83,7 @@ func (h *ConnectHandler) GetPolicy(ctx context.Context, request *connect.Request
 	fetchedPolicy, err := h.policyService.Get(ctx, policyID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetPolicy", err,
-			zap.String("policy_id", policyID))
+			"policy_id", policyID)
 
 		switch {
 		case errors.Is(err, policy.ErrNotExist),
@@ -93,7 +92,7 @@ func (h *ConnectHandler) GetPolicy(ctx context.Context, request *connect.Request
 			return nil, connect.NewError(connect.CodeNotFound, ErrPolicyNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetPolicy", err,
-				zap.String("policy_id", policyID))
+				"policy_id", policyID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -114,7 +113,7 @@ func (h *ConnectHandler) DeletePolicy(ctx context.Context, request *connect.Requ
 	err := h.policyService.Delete(ctx, policyID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeletePolicy", err,
-			zap.String("policy_id", policyID))
+			"policy_id", policyID)
 
 		switch {
 		case errors.Is(err, policy.ErrNotExist),
@@ -128,7 +127,7 @@ func (h *ConnectHandler) DeletePolicy(ctx context.Context, request *connect.Requ
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeletePolicy", err,
-				zap.String("policy_id", policyID))
+				"policy_id", policyID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -155,7 +154,7 @@ func (h *ConnectHandler) CreatePolicyForProject(ctx context.Context, request *co
 	project, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreatePolicyForProject.GetProject", err,
-			zap.String("project_id", request.Msg.GetProjectId()))
+			"project_id", request.Msg.GetProjectId())
 		return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
 	}
 
@@ -170,10 +169,10 @@ func (h *ConnectHandler) CreatePolicyForProject(ctx context.Context, request *co
 	newPolicy, err := h.policyService.Create(ctx, p)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreatePolicyForProject.CreatePolicy", err,
-			zap.String("role_id", request.Msg.GetBody().GetRoleId()),
-			zap.String("project_id", request.Msg.GetProjectId()),
-			zap.String("principal_type", principalType),
-			zap.String("principal_id", principalID))
+			"role_id", request.Msg.GetBody().GetRoleId(),
+			"project_id", request.Msg.GetProjectId(),
+			"principal_type", principalType,
+			"principal_id", principalID)
 
 		switch {
 		case errors.Is(err, role.ErrInvalidID):
@@ -182,10 +181,10 @@ func (h *ConnectHandler) CreatePolicyForProject(ctx context.Context, request *co
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreatePolicyForProject.CreatePolicy", err,
-				zap.String("role_id", request.Msg.GetBody().GetRoleId()),
-				zap.String("project_id", request.Msg.GetProjectId()),
-				zap.String("principal_type", principalType),
-				zap.String("principal_id", principalID))
+				"role_id", request.Msg.GetBody().GetRoleId(),
+				"project_id", request.Msg.GetProjectId(),
+				"principal_type", principalType,
+				"principal_id", principalID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -201,22 +200,22 @@ func (h *ConnectHandler) ListPolicies(ctx context.Context, request *connect.Requ
 	filter, err := h.resolveFilter(ctx, request.Msg)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListPolicies.ResolveFilter", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("project_id", request.Msg.GetProjectId()),
-			zap.String("role_id", request.Msg.GetRoleId()),
-			zap.String("user_id", request.Msg.GetUserId()),
-			zap.String("group_id", request.Msg.GetGroupId()))
+			"org_id", request.Msg.GetOrgId(),
+			"project_id", request.Msg.GetProjectId(),
+			"role_id", request.Msg.GetRoleId(),
+			"user_id", request.Msg.GetUserId(),
+			"group_id", request.Msg.GetGroupId())
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
 	policyList, err := h.policyService.List(ctx, filter)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListPolicies", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("project_id", request.Msg.GetProjectId()),
-			zap.String("role_id", request.Msg.GetRoleId()),
-			zap.String("user_id", request.Msg.GetUserId()),
-			zap.String("group_id", request.Msg.GetGroupId()))
+			"org_id", request.Msg.GetOrgId(),
+			"project_id", request.Msg.GetProjectId(),
+			"role_id", request.Msg.GetRoleId(),
+			"user_id", request.Msg.GetUserId(),
+			"group_id", request.Msg.GetGroupId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

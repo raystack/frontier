@@ -43,8 +43,6 @@ import (
 
 	"github.com/raystack/frontier/core/event"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-
 	"github.com/raystack/frontier/billing/invoice"
 
 	"github.com/raystack/frontier/billing/usage"
@@ -107,14 +105,15 @@ import (
 	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/frontier/pkg/db"
 
+	"log/slog"
+
 	"github.com/pkg/profile"
-	"github.com/raystack/salt/log"
 )
 
 var ruleCacheRefreshDelay = time.Minute * 2
-var GetStripeClientFunc func(logger log.Logger, cfg *config.Frontier) *client.API
+var GetStripeClientFunc func(logger *slog.Logger, cfg *config.Frontier) *client.API
 
-func StartServer(logger *log.Zap, cfg *config.Frontier) error {
+func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 	logger.Info("frontier starting", "version", config.Version)
 	if profiling := os.Getenv("FRONTIER_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
@@ -122,8 +121,6 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
-
-	ctx = ctxzap.ToContext(ctx, logger.GetInternalZapLogger().Desugar())
 
 	dbClient, err := setupDB(cfg.DB, logger)
 	if err != nil {
@@ -317,7 +314,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 }
 
 func buildAPIDependencies(
-	logger log.Logger,
+	logger *slog.Logger,
 	cfg *config.Frontier,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
@@ -513,7 +510,7 @@ func buildAPIDependencies(
 		billingCustomerRepository,
 		auditRecordRepository,
 	)
-	customerService := customer.NewService(
+	customerService := customer.NewService(logger,
 		stripeClient,
 		billingCustomerRepository, cfg.Billing, creditService)
 	featureRepository := postgres.NewBillingFeatureRepository(dbc)
@@ -531,18 +528,18 @@ func buildAPIDependencies(
 		featureRepository,
 		priceRepository,
 	)
-	subscriptionService := subscription.NewService(
+	subscriptionService := subscription.NewService(logger,
 		stripeClient, cfg.Billing,
 		postgres.NewBillingSubscriptionRepository(dbc),
 		customerService, planService, organizationService,
 		productService, creditService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService,
 		planService, organizationService)
-	checkoutService := checkout.NewService(stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
+	checkoutService := checkout.NewService(logger, stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
 		customerService, planService, subscriptionService, productService, creditService, organizationService,
 		authnService)
 
-	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc),
+	invoiceService := invoice.NewService(logger, stripeClient, postgres.NewBillingInvoiceRepository(dbc),
 		customerService, creditService, productService, dbc, cfg.Billing)
 
 	usageService := usage.NewService(creditService)
@@ -668,7 +665,7 @@ func (t *StripeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
+func getStripeClient(logger *slog.Logger, cfg *config.Frontier) *client.API {
 	stripeLogLevel := stripe.LevelError
 	stripeBackends := &stripe.Backends{
 		API: stripe.GetBackendWithConfig(stripe.APIBackend, &stripe.BackendConfig{
@@ -695,7 +692,7 @@ func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
 	return stripeClient
 }
 
-func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {
+func setupDB(cfg db.Config, logger *slog.Logger) (dbc *db.Client, err error) {
 	// prefer use pgx instead of lib/pq for postgres to catch pg error
 	if cfg.Driver == "postgres" {
 		cfg.Driver = "pgx"

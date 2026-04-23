@@ -8,7 +8,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 )
 
 func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.AddPlatformUserRequest]) (*connect.Response[frontierv1beta1.AddPlatformUserResponse], error) {
@@ -22,15 +21,15 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.Sudo(ctx, req.Msg.GetUserId(), relationName); err != nil {
 			errorLogger.LogServiceError(ctx, req, "AddPlatformUser.UserSudo", err,
-				zap.String("user_id", req.Msg.GetUserId()),
-				zap.String("relation", relationName))
+				"user_id", req.Msg.GetUserId(),
+				"relation", relationName)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
 		if err := h.serviceUserService.Sudo(ctx, req.Msg.GetServiceuserId(), relationName); err != nil {
 			errorLogger.LogServiceError(ctx, req, "AddPlatformUser.ServiceUserSudo", err,
-				zap.String("service_user_id", req.Msg.GetServiceuserId()),
-				zap.String("relation", relationName))
+				"service_user_id", req.Msg.GetServiceuserId(),
+				"relation", relationName)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else {
@@ -45,13 +44,13 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.UnSudo(ctx, req.Msg.GetUserId()); err != nil {
 			errorLogger.LogServiceError(ctx, req, "RemovePlatformUser.UserUnSudo", err,
-				zap.String("user_id", req.Msg.GetUserId()))
+				"user_id", req.Msg.GetUserId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
 		if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId()); err != nil {
 			errorLogger.LogServiceError(ctx, req, "RemovePlatformUser.ServiceUserUnSudo", err,
-				zap.String("service_user_id", req.Msg.GetServiceuserId()))
+				"service_user_id", req.Msg.GetServiceuserId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	} else {
@@ -87,7 +86,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		users, err := h.userService.GetByIDs(ctx, userIDs)
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.GetUsersByIDs", err,
-				zap.Strings("user_ids", userIDs))
+				"user_ids", userIDs)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		for _, u := range users {
@@ -116,7 +115,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		serviceUsers, err := h.serviceUserService.GetByIDs(ctx, serviceUserIDs)
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.GetServiceUsersByIDs", err,
-				zap.Strings("service_user_ids", serviceUserIDs))
+				"service_user_ids", serviceUserIDs)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		for _, u := range serviceUsers {
