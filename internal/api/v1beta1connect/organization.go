@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
-	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
@@ -338,9 +337,28 @@ func (h *ConnectHandler) ListOrganizationAdmins(ctx context.Context, request *co
 		}
 	}
 
-	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
+	ownerRole, err := h.roleService.Get(ctx, organization.AdminRole)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListOrganizationAdmins.ListByOrg", err,
+		errorLogger.LogServiceError(ctx, request, "ListOrganizationAdmins.roleService.Get", err,
+			"org_id", orgResp.ID,
+			"role", organization.AdminRole)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, orgResp.ID, schema.OrganizationNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+		RoleIDs:       []string{ownerRole.ID},
+	})
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListOrganizationAdmins.ListPrincipalsByResource", err,
+			"org_id", orgResp.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	adminIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	admins, err := h.userService.GetByIDs(ctx, adminIDs)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListOrganizationAdmins.GetByIDs", err,
 			"org_id", orgResp.ID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
@@ -380,78 +398,66 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 		}
 	}
 
-	var users []user.User
+	var roleIDs []string
+	roleFilters := request.Msg.GetRoleFilters()
+	if len(roleFilters) == 0 && request.Msg.GetPermissionFilter() != "" {
+		roleFilters = []string{request.Msg.GetPermissionFilter()}
+	}
+	if len(roleFilters) > 0 {
+		roleIDs = make([]string, len(roleFilters))
+		for i, roleFilter := range roleFilters {
+			if utils.IsValidUUID(roleFilter) {
+				roleIDs[i] = roleFilter
+				continue
+			}
+			role, err := h.roleService.Get(ctx, roleFilter)
+			if err != nil {
+				errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.roleService.Get", err,
+					"org_id", request.Msg.GetId(),
+					"role_filter", roleFilter)
+				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			}
+			roleIDs[i] = role.ID
+		}
+	}
+
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, orgResp.ID, schema.OrganizationNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+		RoleIDs:       roleIDs,
+		WithRoles:     request.Msg.GetWithRoles(),
+	})
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.ListPrincipalsByResource", err,
+			"org_id", orgResp.ID,
+			"role_ids", roleIDs)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	users, err := h.userService.GetByIDs(ctx, userIDs)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.GetByIDs", err,
+			"org_id", orgResp.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
 	var rolePairPBs []*frontierv1beta1.ListOrganizationUsersResponse_RolePair
-
-	if len(request.Msg.GetRoleFilters()) > 0 {
-		// convert role names to ids if needed
-		roleIDs := request.Msg.GetRoleFilters()
-		for i, roleFilter := range request.Msg.GetRoleFilters() {
-			if !utils.IsValidUUID(roleFilter) {
-				role, err := h.roleService.Get(ctx, roleFilter)
+	if request.Msg.GetWithRoles() {
+		for _, m := range members {
+			rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+				pb, err := transformRoleToPB(r)
 				if err != nil {
-					errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.roleService.Get", err,
-						"org_id", request.Msg.GetId(),
-						"role_filter", roleFilter)
-					return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+					slog.ErrorContext(ctx, "failed to transform role for user", "error", err)
+					return nil
 				}
-				roleIDs[i] = role.ID
-			}
-		}
-
-		// need to fetch users with roles assigned to them
-		policies, err := h.policyService.List(ctx, policy.Filter{
-			OrgID:         request.Msg.GetId(),
-			PrincipalType: schema.UserPrincipal,
-			ResourceType:  schema.OrganizationNamespace,
-			RoleIDs:       roleIDs,
-		})
-		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.policyService.List", err,
-				"org_id", request.Msg.GetId(),
-				"role_ids", roleIDs)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-		users = utils.Filter(utils.Map(policies, func(pol policy.Policy) user.User {
-			u, _ := h.userService.GetByID(ctx, pol.PrincipalID)
-			return u
-		}), func(u user.User) bool {
-			return u.ID != ""
-		})
-	} else {
-		// list all users
-		users, err = h.userService.ListByOrg(ctx, orgResp.ID, request.Msg.GetPermissionFilter())
-		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.userService.ListByOrg", err,
-				"org_id", orgResp.ID,
-				"permission_filter", request.Msg.GetPermissionFilter())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-		if request.Msg.GetWithRoles() {
-			for _, user := range users {
-				roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.OrganizationNamespace, request.Msg.GetId())
-				if err != nil {
-					errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.policyService.ListRoles", err,
-						"org_id", request.Msg.GetId(),
-						"user_id", user.ID)
-					return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-				}
-
-				rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
-					pb, err := transformRoleToPB(role)
-					if err != nil {
-						slog.ErrorContext(ctx, "failed to transform role for user", "error", err)
-						return nil
-					}
-					return &pb
-				}), func(role *frontierv1beta1.Role) bool {
-					return role != nil
-				})
-				rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListOrganizationUsersResponse_RolePair{
-					UserId: user.ID,
-					Roles:  rolesPb,
-				})
-			}
+				return &pb
+			}), func(r *frontierv1beta1.Role) bool {
+				return r != nil
+			})
+			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListOrganizationUsersResponse_RolePair{
+				UserId: m.PrincipalID,
+				Roles:  rolesPb,
+			})
 		}
 	}
 
