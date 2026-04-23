@@ -398,11 +398,8 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 		}
 	}
 
-	var roleIDs []string
 	roleFilters := request.Msg.GetRoleFilters()
-	if len(roleFilters) == 0 && request.Msg.GetPermissionFilter() != "" {
-		roleFilters = []string{request.Msg.GetPermissionFilter()}
-	}
+	var roleIDs []string
 	if len(roleFilters) > 0 {
 		roleIDs = make([]string, len(roleFilters))
 		for i, roleFilter := range roleFilters {
