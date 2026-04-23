@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { ExclamationTriangleIcon, Pencil1Icon } from '@radix-ui/react-icons';
+import {
+  ArchiveIcon,
+  ExclamationTriangleIcon,
+  Pencil1Icon
+} from '@radix-ui/react-icons';
 import {
   Button,
   Tooltip,
@@ -112,6 +116,43 @@ export function ProjectsView({
     [userAccessOnProject]
   );
 
+  if (!isLoading && (projects?.length ?? 0) === 0) {
+    return (
+      <ViewContainer>
+        <ViewHeader title={title} description={description ?? `Manage projects for this ${t.organization({ case: 'lower' })}`} />
+        <EmptyState
+          variant="empty2"
+          icon={<ArchiveIcon />}
+          heading={t.project()}
+          subHeading="A project is a structured initiative undertaken to achieve a specific outcome. It operates within a defined scope, objectives, and resources, following a process of planning, execution, monitoring, and completion."
+          secondaryAction={
+            <Tooltip>
+              <Tooltip.Trigger
+                disabled={canCreateProject}
+                render={<span />}
+              >
+                <Button
+                  variant="solid"
+                  color="accent"
+                  size="small"
+                  onClick={() => addProjectDialogHandle.open(null)}
+                  disabled={!canCreateProject}
+                  data-test-id="frontier-sdk-add-project-empty-state-button"
+                >
+                  Create new {t.project({ case: 'lower' })}
+                </Button>
+              </Tooltip.Trigger>
+              {!canCreateProject && (
+                <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
+              )}
+            </Tooltip>
+          }
+        />
+        <AddProjectDialog handle={addProjectDialogHandle} refetch={refetch} />
+      </ViewContainer>
+    );
+  }
+
   return (
     <ViewContainer>
       <ViewHeader title={title} description={description ?? `Manage projects for this ${t.organization({ case: 'lower' })}`} />
@@ -200,7 +241,8 @@ export function ProjectsView({
                   leadingIcon={<Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />}
                   onClick={() =>
                     deleteProjectDialogHandle.openWithPayload({
-                      projectId: payload.projectId
+                      projectId: payload.projectId,
+                      projectName: payload.title
                     })
                   }
                   data-test-id="delete-project-dropdown-item"
