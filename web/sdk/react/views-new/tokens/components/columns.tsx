@@ -7,6 +7,7 @@ import {
 } from '@raystack/apsara-v1';
 import type { DataTableColumnDef } from '@raystack/apsara-v1';
 import type { SearchOrganizationTokensResponse_OrganizationToken } from '@raystack/proton/frontier';
+import { has, get } from 'lodash';
 import { getInitials } from '~/utils';
 import {
   isNullTimestamp,
@@ -15,6 +16,19 @@ import {
 } from '~/utils/timestamp';
 import dayjs from 'dayjs';
 import styles from '../tokens-view.module.css';
+
+// Backend source constants mirror frontier/billing/credit/credit.go
+const TxnEventSourceMap: Record<string, string> = {
+  'system.starter': 'Starter tokens',
+  'system.buy': 'Recharge',
+  'system.awarded': 'Complimentary tokens',
+  'system.revert': 'Refund',
+  'system.overdraft': 'Overdraft'
+};
+
+const eventFilterOptions = Object.entries(TxnEventSourceMap).map(
+  ([value, label]) => ({ value, label })
+);
 
 interface GetColumnsOptions {
   dateFormat: string;
@@ -65,12 +79,20 @@ export function getColumns({
       }
     },
     {
-      header: 'Events',
-      accessorKey: 'description',
+      header: 'Event',
+      accessorKey: 'source',
       enableHiding: true,
-      cell: ({ getValue }) => {
-        const text = (getValue() as string) ?? '';
-        if (!text) {
+      enableColumnFilter: true,
+      filterType: 'multiselect',
+      filterOptions: eventFilterOptions,
+      cell: ({ row, getValue }) => {
+        const value = getValue() as string;
+        const eventName = (
+          has(TxnEventSourceMap, value)
+            ? get(TxnEventSourceMap, value)
+            : row?.original?.description
+        ) as string;
+        if (!eventName) {
           return (
             <Text size="regular" variant="secondary">
               -
@@ -78,13 +100,13 @@ export function getColumns({
           );
         }
         return (
-          <Tooltip message={text} delayDuration={500}>
+          <Tooltip message={eventName} delayDuration={500}>
             <Text
               size="regular"
               variant="secondary"
               className={styles.truncate}
             >
-              {text}
+              {eventName}
             </Text>
           </Tooltip>
         );

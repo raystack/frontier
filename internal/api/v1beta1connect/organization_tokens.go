@@ -58,6 +58,7 @@ func transformAggregatedTokenToPB(v svc.AggregatedToken) *frontierv1beta1.Search
 	return &frontierv1beta1.SearchOrganizationTokensResponse_OrganizationToken{
 		Amount:      v.Amount,
 		Type:        v.Type,
+		Source:      v.Source,
 		Description: v.Description,
 		UserId:      v.UserID,
 		UserTitle:   v.UserTitle,
