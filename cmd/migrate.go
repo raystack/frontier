@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database"
@@ -15,10 +16,9 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/internal/store/postgres/migrations"
 	"github.com/raystack/frontier/pkg/db"
-	"github.com/raystack/salt/log"
 )
 
-func RunMigrations(logger log.Logger, config db.Config) error {
+func RunMigrations(logger *slog.Logger, config db.Config) error {
 	m, err := getDatabaseMigrationInstance(config)
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func RunMigrations(logger log.Logger, config db.Config) error {
 	return err
 }
 
-func RunRollback(logger log.Logger, config db.Config) error {
+func RunRollback(logger *slog.Logger, config db.Config) error {
 	m, err := getDatabaseMigrationInstance(config)
 	if err != nil {
 		return err

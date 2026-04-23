@@ -13,7 +13,6 @@ import (
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -30,7 +29,7 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "CreateBillingUsage.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -61,9 +60,9 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrAlreadyApplied)
 		}
 		errorLogger.LogServiceError(ctx, request, "CreateBillingUsage.Report", err,
-			zap.String("billing_id", cust.ID),
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.Int("usage_count", len(createRequests)))
+			"billing_id", cust.ID,
+			"org_id", request.Msg.GetOrgId(),
+			"usage_count", len(createRequests))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -87,7 +86,7 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		errorLogger.LogServiceError(ctx, request, "ListBillingTransactions.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	billingID := cust.ID
@@ -112,10 +111,10 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListBillingTransactions.List", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("billing_id", billingID),
-			zap.Time("start_range", startRange),
-			zap.Time("end_range", endRange))
+			"org_id", request.Msg.GetOrgId(),
+			"billing_id", billingID,
+			"start_range", startRange,
+			"end_range", endRange)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	for _, v := range transactionsList {
@@ -157,7 +156,7 @@ func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		errorLogger.LogServiceError(ctx, request, "TotalDebitedTransactions.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	billingID := cust.ID
@@ -165,8 +164,8 @@ func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *
 	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, billingID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "TotalDebitedTransactions.GetTotalDebitedAmount", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("billing_id", billingID))
+			"org_id", request.Msg.GetOrgId(),
+			"billing_id", billingID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -210,7 +209,7 @@ func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "RevertBillingUsage.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -228,10 +227,10 @@ func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "RevertBillingUsage.Revert", err,
-			zap.String("billing_id", cust.ID),
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("usage_id", request.Msg.GetUsageId()),
-			zap.Int64("amount", request.Msg.GetAmount()))
+			"billing_id", cust.ID,
+			"org_id", request.Msg.GetOrgId(),
+			"usage_id", request.Msg.GetUsageId(),
+			"amount", request.Msg.GetAmount())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.RevertBillingUsageResponse{}), nil

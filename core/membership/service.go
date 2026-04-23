@@ -7,6 +7,8 @@ import (
 	"slices"
 	"time"
 
+	"log/slog"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/group"
@@ -20,7 +22,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/raystack/salt/log"
 )
 
 type PolicyService interface {
@@ -65,7 +66,7 @@ type AuditRecordRepository interface {
 }
 
 type Service struct {
-	log                   log.Logger
+	log                   *slog.Logger
 	policyService         PolicyService
 	relationService       RelationService
 	roleService           RoleService
@@ -78,7 +79,7 @@ type Service struct {
 }
 
 func NewService(
-	logger log.Logger,
+	logger *slog.Logger,
 	policyService PolicyService,
 	relationService RelationService,
 	roleService RoleService,
@@ -145,7 +146,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	if err := s.createRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
 		// best-effort cleanup to avoid orphaned policy
 		if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
-			s.log.Warn("orphaned policy: relation creation failed and policy cleanup also failed",
+			s.log.WarnContext(ctx, "orphaned policy: relation creation failed and policy cleanup also failed",
 				"policy_id", createdPolicy.ID,
 				"org_id", orgID,
 				"principal_id", principalID,
@@ -212,7 +213,7 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	oldRelations := []string{schema.OwnerRelationName, schema.MemberRelationName}
 	err = s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, oldRelations, newRelation)
 	if err != nil {
-		s.log.Error("membership state inconsistent: policy replaced but relation update failed, needs manual fix",
+		s.log.ErrorContext(ctx, "membership state inconsistent: policy replaced but relation update failed, needs manual fix",
 			"org_id", orgID,
 			"principal_id", principalID,
 			"principal_type", principalType,
@@ -430,7 +431,7 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 
 	_, err := s.createPolicy(ctx, resourceID, resourceType, principalID, principalType, roleID)
 	if err != nil {
-		s.log.Error("membership state inconsistent: old policies deleted but new policy creation failed, needs manual fix",
+		s.log.ErrorContext(ctx, "membership state inconsistent: old policies deleted but new policy creation failed, needs manual fix",
 			"resource_id", resourceID,
 			"resource_type", resourceType,
 			"principal_id", principalID,
@@ -461,7 +462,7 @@ func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType,
 		Object: obj, Subject: sub, RelationName: newRelationName,
 	})
 	if err != nil {
-		s.log.Error("membership state inconsistent: old relations deleted but new relation creation failed, needs manual fix",
+		s.log.ErrorContext(ctx, "membership state inconsistent: old relations deleted but new relation creation failed, needs manual fix",
 			"resource_id", resourceID,
 			"resource_type", resourceType,
 			"principal_id", principalID,

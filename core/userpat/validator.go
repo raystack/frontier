@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"log/slog"
+
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/models"
-	"github.com/raystack/salt/log"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -18,10 +19,10 @@ import (
 type Validator struct {
 	repo   Repository
 	config Config
-	logger log.Logger
+	logger *slog.Logger
 }
 
-func NewValidator(logger log.Logger, repo Repository, config Config) *Validator {
+func NewValidator(logger *slog.Logger, repo Repository, config Config) *Validator {
 	return &Validator{
 		repo:   repo,
 		config: config,

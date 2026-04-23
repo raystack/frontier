@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -28,7 +27,7 @@ func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, req
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		errorLogger.LogServiceError(ctx, request, "SearchOrganizationServiceUsers.Search", err,
-			zap.String("org_id", request.Msg.GetId()))
+			"org_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

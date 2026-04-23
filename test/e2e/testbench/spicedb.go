@@ -6,10 +6,11 @@ import (
 
 	prometheusmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 
+	"log/slog"
+
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/raystack/frontier/internal/store/spicedb"
-	"github.com/raystack/salt/log"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	spiceDBVersion = "v1.34.0"
 )
 
-func StartSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.Pool, preSharedKey string) (extPort string, close func() error, err error) {
+func StartSpiceDB(logger *slog.Logger, network *docker.Network, pool *dockertest.Pool, preSharedKey string) (extPort string, close func() error, err error) {
 	res, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository:   spiceDBImage,
 		Tag:          spiceDBVersion,

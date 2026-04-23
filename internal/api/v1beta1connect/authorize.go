@@ -17,7 +17,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/str"
-	"go.uber.org/zap"
 )
 
 func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Object, permission string, request connect.AnyRequest) error {
@@ -30,9 +29,9 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 	currentUser, principalErr := h.GetLoggedInPrincipal(ctx)
 	if principalErr != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "IsAuthorized", principalErr,
-			zap.String("namespace", object.Namespace),
-			zap.String("object_id", object.ID),
-			zap.String("permission", permission))
+			"namespace", object.Namespace,
+			"object_id", object.ID,
+			"permission", permission)
 		return principalErr
 	}
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
@@ -45,11 +44,11 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "IsAuthorized.CheckAuthz", err,
-			zap.String("namespace", object.Namespace),
-			zap.String("object_id", object.ID),
-			zap.String("permission", permission),
-			zap.String("subject_namespace", currentUser.Type),
-			zap.String("subject_id", currentUser.ID))
+			"namespace", object.Namespace,
+			"object_id", object.ID,
+			"permission", permission,
+			"subject_namespace", currentUser.Type,
+			"subject_id", currentUser.ID)
 		return handleAuthErr(err)
 	}
 	if result {
@@ -69,12 +68,12 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 		})
 		if checkErr != nil {
 			errorLogger.LogServiceError(ctx, request, "IsAuthorized.CheckAuthz", checkErr,
-				zap.String("namespace", object.Namespace),
-				zap.String("object_id", object.ID),
-				zap.String("permission", permission),
-				zap.String("subject_namespace", currentUser.Type),
-				zap.String("subject_id", str.GenerateUserSlug(currentUser.User.Email)),
-				zap.String("user_email", currentUser.User.Email))
+				"namespace", object.Namespace,
+				"object_id", object.ID,
+				"permission", permission,
+				"subject_namespace", currentUser.Type,
+				"subject_id", str.GenerateUserSlug(currentUser.User.Email),
+				"user_email", currentUser.User.Email)
 			return handleAuthErr(checkErr)
 		}
 		if result2 {
@@ -114,8 +113,8 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context, request connect.AnyReq
 	case schema.UserPrincipal:
 		if ok, err := h.userService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
-				zap.String("user_id", currentUser.ID),
-				zap.String("permission", schema.PlatformSudoPermission))
+				"user_id", currentUser.ID,
+				"permission", schema.PlatformSudoPermission)
 			return connect.NewError(connect.CodeInternal, err)
 		} else if ok {
 			return nil
@@ -123,8 +122,8 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context, request connect.AnyReq
 	case schema.ServiceUserPrincipal:
 		if ok, err := h.serviceUserService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
-				zap.String("service_user_id", currentUser.ID),
-				zap.String("permission", schema.PlatformSudoPermission))
+				"service_user_id", currentUser.ID,
+				"permission", schema.PlatformSudoPermission)
 			return connect.NewError(connect.CodeInternal, err)
 		} else if ok {
 			return nil
@@ -144,8 +143,8 @@ func (h *ConnectHandler) CheckPlanEntitlement(ctx context.Context, obj relation.
 		proj, err := h.projectService.Get(ctx, obj.ID)
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "CheckPlanEntitlement", err,
-				zap.String("namespace", obj.Namespace),
-				zap.String("object_id", obj.ID))
+				"namespace", obj.Namespace,
+				"object_id", obj.ID)
 			return err
 		}
 		orgID = proj.Organization.ID
@@ -153,8 +152,8 @@ func (h *ConnectHandler) CheckPlanEntitlement(ctx context.Context, obj relation.
 		org, err := h.orgService.Get(ctx, obj.ID)
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "CheckPlanEntitlement", err,
-				zap.String("namespace", obj.Namespace),
-				zap.String("object_id", obj.ID))
+				"namespace", obj.Namespace,
+				"object_id", obj.ID)
 			return err
 		}
 		orgID = org.ID
@@ -165,7 +164,7 @@ func (h *ConnectHandler) CheckPlanEntitlement(ctx context.Context, obj relation.
 		})
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "CheckPlanEntitlement", err,
-				zap.String("org_id", orgID))
+				"org_id", orgID)
 			return err
 		}
 		for _, customr := range customers {
@@ -175,8 +174,8 @@ func (h *ConnectHandler) CheckPlanEntitlement(ctx context.Context, obj relation.
 			}, map[string]string{})
 			if err := h.entitlementService.CheckPlanEligibility(ctx, customr.ID); err != nil {
 				errorLogger.LogUnexpectedError(ctx, request, "CheckPlanEntitlement", err,
-					zap.String("customer_id", customr.ID),
-					zap.String("org_id", orgID))
+					"customer_id", customr.ID,
+					"org_id", orgID)
 				return fmt.Errorf("%s: %w", entitlement.ErrPlanEntitlementFailed, err)
 			}
 		}
@@ -192,7 +191,7 @@ func (h *ConnectHandler) GetRawCheckout(ctx context.Context, id string, request 
 	result, err := h.checkoutService.GetByID(ctx, id)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "GetRawCheckout", err,
-			zap.String("checkout_id", id))
+			"checkout_id", id)
 		return checkout.Checkout{}, err
 	}
 	return result, nil

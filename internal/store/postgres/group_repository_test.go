@@ -8,6 +8,9 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -19,7 +22,6 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
-	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -41,7 +43,7 @@ type GroupRepositoryTestSuite struct {
 func (s *GroupRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := log.NewZap()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s.client, s.pool, s.resource, err = newTestClient(logger)
 	if err != nil {
 		s.T().Fatal(err)

@@ -7,7 +7,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/customer"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 )
 
 func (h *ConnectHandler) CheckFeatureEntitlement(ctx context.Context, request *connect.Request[frontierv1beta1.CheckFeatureEntitlementRequest]) (*connect.Response[frontierv1beta1.CheckFeatureEntitlementResponse], error) {
@@ -23,16 +22,16 @@ func (h *ConnectHandler) CheckFeatureEntitlement(ctx context.Context, request *c
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "CheckFeatureEntitlement.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	checkStatus, err := h.entitlementService.Check(ctx, cust.ID, request.Msg.GetFeature())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CheckFeatureEntitlement", err,
-			zap.String("billing_id", cust.ID),
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("feature", request.Msg.GetFeature()))
+			"billing_id", cust.ID,
+			"org_id", request.Msg.GetOrgId(),
+			"feature", request.Msg.GetFeature())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -49,7 +48,7 @@ func (h *ConnectHandler) CheckCreditEntitlement(ctx context.Context, request *co
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CheckCreditEntitlement.List", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -61,16 +60,16 @@ func (h *ConnectHandler) CheckCreditEntitlement(ctx context.Context, request *co
 	customerDetails, err := h.customerService.GetDetails(ctx, customer.ID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CheckCreditEntitlement.GetDetails", err,
-			zap.String("customer_id", customer.ID),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"customer_id", customer.ID,
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	creditBalance, err := h.creditService.GetBalance(ctx, customer.ID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CheckCreditEntitlement.GetBalance", err,
-			zap.String("customer_id", customer.ID),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"customer_id", customer.ID,
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

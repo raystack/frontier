@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+
+	"log/slog"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
@@ -20,7 +22,6 @@ import (
 	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -40,7 +41,7 @@ func (h *ConnectHandler) GetOrganization(ctx context.Context, request *connect.R
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetOrganization.GetRaw", err,
-				zap.String("org_id", request.Msg.GetId()))
+				"org_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
@@ -69,8 +70,8 @@ func (h *ConnectHandler) ListOrganizations(ctx context.Context, request *connect
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizations.List", err,
-			zap.String("state", request.Msg.GetState()),
-			zap.String("user_id", request.Msg.GetUserId()))
+			"state", request.Msg.GetState(),
+			"user_id", request.Msg.GetUserId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -102,8 +103,8 @@ func (h *ConnectHandler) ListAllOrganizations(ctx context.Context, request *conn
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListAllOrganizations.List", err,
-			zap.String("state", request.Msg.GetState()),
-			zap.String("user_id", request.Msg.GetUserId()))
+			"state", request.Msg.GetState(),
+			"user_id", request.Msg.GetUserId())
 		return nil, err
 	}
 
@@ -150,13 +151,13 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		case errors.Is(err, relation.ErrSubjectNotAllowed):
 			errorLogger.LogServiceError(ctx, request, "CreateOrganization.Create", err,
-				zap.String("org_name", request.Msg.GetBody().GetName()),
-				zap.String("org_title", request.Msg.GetBody().GetTitle()))
+				"org_name", request.Msg.GetBody().GetName(),
+				"org_title", request.Msg.GetBody().GetTitle())
 			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 		default:
 			errorLogger.LogServiceError(ctx, request, "CreateOrganization.Create", err,
-				zap.String("org_name", request.Msg.GetBody().GetName()),
-				zap.String("org_title", request.Msg.GetBody().GetTitle()))
+				"org_name", request.Msg.GetBody().GetName(),
+				"org_title", request.Msg.GetBody().GetTitle())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -172,7 +173,7 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 		"name":  newOrg.Name,
 	}); err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateOrganization.AuditLog", err,
-			zap.String("org_id", newOrg.ID))
+			"org_id", newOrg.ID)
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateOrganizationResponse{Organization: orgPB}), nil
 }
@@ -202,9 +203,9 @@ func (h *ConnectHandler) AdminCreateOrganization(ctx context.Context, request *c
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogServiceError(ctx, request, "AdminCreateOrganization.AdminCreate", err,
-				zap.String("org_name", request.Msg.GetBody().GetName()),
-				zap.String("org_title", request.Msg.GetBody().GetTitle()),
-				zap.String("owner_email", request.Msg.GetBody().GetOrgOwnerEmail()))
+				"org_name", request.Msg.GetBody().GetName(),
+				"org_title", request.Msg.GetBody().GetTitle(),
+				"owner_email", request.Msg.GetBody().GetOrgOwnerEmail())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -261,9 +262,9 @@ func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogServiceError(ctx, request, "UpdateOrganization.Update", err,
-				zap.String("org_id", request.Msg.GetId()),
-				zap.String("org_name", request.Msg.GetBody().GetName()),
-				zap.String("org_title", request.Msg.GetBody().GetTitle()))
+				"org_id", request.Msg.GetId(),
+				"org_name", request.Msg.GetBody().GetName(),
+				"org_title", request.Msg.GetBody().GetTitle())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -290,7 +291,7 @@ func (h *ConnectHandler) ListOrganizationProjects(ctx context.Context, request *
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationProjects.Get", err,
-				zap.String("org_id", request.Msg.GetId()))
+				"org_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -301,8 +302,8 @@ func (h *ConnectHandler) ListOrganizationProjects(ctx context.Context, request *
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationProjects.List", err,
-			zap.String("org_id", orgResp.ID),
-			zap.Bool("with_member_count", request.Msg.GetWithMemberCount()))
+			"org_id", orgResp.ID,
+			"with_member_count", request.Msg.GetWithMemberCount())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -332,7 +333,7 @@ func (h *ConnectHandler) ListOrganizationAdmins(ctx context.Context, request *co
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationAdmins.Get", err,
-				zap.String("org_id", request.Msg.GetId()))
+				"org_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -340,7 +341,7 @@ func (h *ConnectHandler) ListOrganizationAdmins(ctx context.Context, request *co
 	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationAdmins.ListByOrg", err,
-			zap.String("org_id", orgResp.ID))
+			"org_id", orgResp.ID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -365,7 +366,6 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrRoleFilter)
 	}
 
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
 	if err != nil {
 		switch {
@@ -375,7 +375,7 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.Get", err,
-				zap.String("org_id", request.Msg.GetId()))
+				"org_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -391,8 +391,8 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 				role, err := h.roleService.Get(ctx, roleFilter)
 				if err != nil {
 					errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.roleService.Get", err,
-						zap.String("org_id", request.Msg.GetId()),
-						zap.String("role_filter", roleFilter))
+						"org_id", request.Msg.GetId(),
+						"role_filter", roleFilter)
 					return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 				}
 				roleIDs[i] = role.ID
@@ -408,8 +408,8 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.policyService.List", err,
-				zap.String("org_id", request.Msg.GetId()),
-				zap.Strings("role_ids", roleIDs))
+				"org_id", request.Msg.GetId(),
+				"role_ids", roleIDs)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		users = utils.Filter(utils.Map(policies, func(pol policy.Policy) user.User {
@@ -423,8 +423,8 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 		users, err = h.userService.ListByOrg(ctx, orgResp.ID, request.Msg.GetPermissionFilter())
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.userService.ListByOrg", err,
-				zap.String("org_id", orgResp.ID),
-				zap.String("permission_filter", request.Msg.GetPermissionFilter()))
+				"org_id", orgResp.ID,
+				"permission_filter", request.Msg.GetPermissionFilter())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		if request.Msg.GetWithRoles() {
@@ -432,15 +432,15 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 				roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.OrganizationNamespace, request.Msg.GetId())
 				if err != nil {
 					errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.policyService.ListRoles", err,
-						zap.String("org_id", request.Msg.GetId()),
-						zap.String("user_id", user.ID))
+						"org_id", request.Msg.GetId(),
+						"user_id", user.ID)
 					return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 				}
 
 				rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
 					pb, err := transformRoleToPB(role)
 					if err != nil {
-						logger.Error("failed to transform role for user", zap.Error(err))
+						slog.ErrorContext(ctx, "failed to transform role for user", "error", err)
 						return nil
 					}
 					return &pb
@@ -492,9 +492,9 @@ func (h *ConnectHandler) RemoveOrganizationMember(ctx context.Context, request *
 			return nil, connect.NewError(connect.CodeFailedPrecondition, membership.ErrLastOwnerRole)
 		default:
 			errorLogger.LogServiceError(ctx, request, "RemoveOrganizationMember", err,
-				zap.String("org_id", orgID),
-				zap.String("principal_id", principalID),
-				zap.String("principal_type", principalType))
+				"org_id", orgID,
+				"principal_id", principalID,
+				"principal_type", principalType)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -511,9 +511,9 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 
 	if err := h.membershipService.SetOrganizationMemberRole(ctx, orgID, userID, schema.UserPrincipal, roleID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "SetOrganizationMemberRole", err,
-			zap.String("org_id", orgID),
-			zap.String("user_id", userID),
-			zap.String("role_id", roleID))
+			"org_id", orgID,
+			"user_id", userID,
+			"role_id", roleID)
 
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
@@ -556,9 +556,9 @@ func (h *ConnectHandler) AddOrganizationMembers(ctx context.Context, request *co
 			result.Error = toClientError(err)
 			if !isDomainError(err) {
 				errorLogger.LogServiceError(ctx, request, "AddOrganizationMembers", err,
-					zap.String("org_id", orgID),
-					zap.String("user_id", member.GetUserId()),
-					zap.String("role_id", member.GetRoleId()))
+					"org_id", orgID,
+					"user_id", member.GetUserId(),
+					"role_id", member.GetRoleId())
 			}
 		} else {
 			result.Success = true
@@ -605,7 +605,7 @@ func (h *ConnectHandler) EnableOrganization(ctx context.Context, request *connec
 
 	if err := h.orgService.Enable(ctx, request.Msg.GetId()); err != nil {
 		errorLogger.LogServiceError(ctx, request, "EnableOrganization.Enable", err,
-			zap.String("org_id", request.Msg.GetId()))
+			"org_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.EnableOrganizationResponse{}), nil
@@ -616,7 +616,7 @@ func (h *ConnectHandler) DisableOrganization(ctx context.Context, request *conne
 
 	if err := h.orgService.Disable(ctx, request.Msg.GetId()); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DisableOrganization.Disable", err,
-			zap.String("org_id", request.Msg.GetId()))
+			"org_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableOrganizationResponse{}), nil
@@ -634,7 +634,7 @@ func (h *ConnectHandler) ListOrganizationServiceUsers(ctx context.Context, reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationServiceUsers.Get", err,
-				zap.String("org_id", request.Msg.GetId()))
+				"org_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -644,7 +644,7 @@ func (h *ConnectHandler) ListOrganizationServiceUsers(ctx context.Context, reque
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationServiceUsers.List", err,
-			zap.String("org_id", orgResp.ID))
+			"org_id", orgResp.ID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

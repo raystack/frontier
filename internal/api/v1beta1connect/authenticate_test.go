@@ -15,7 +15,6 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/zap"
 )
 
 func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
@@ -110,8 +109,7 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 				},
 			}
 
-			logger := zap.NewNop()
-			ctx := context.WithValue(context.Background(), "logger", logger)
+			ctx := context.Background()
 			resp, err := handler.AuthToken(ctx, tt.request)
 
 			if tt.wantErr {

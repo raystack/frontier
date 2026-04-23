@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/salt/log"
+	"log/slog"
 
 	"github.com/pkg/errors"
 
@@ -48,11 +48,11 @@ var defaultMetaSchemas = map[string]string{
 }
 
 type MetaSchemaRepository struct {
-	log log.Logger
+	log *slog.Logger
 	dbc *db.Client
 }
 
-func NewMetaSchemaRepository(logger log.Logger, dbc *db.Client) *MetaSchemaRepository {
+func NewMetaSchemaRepository(logger *slog.Logger, dbc *db.Client) *MetaSchemaRepository {
 	return &MetaSchemaRepository{
 		log: logger,
 		dbc: dbc,
@@ -213,7 +213,7 @@ func (m MetaSchemaRepository) MigrateDefaults(ctx context.Context) error {
 		}); err != nil {
 			err = checkPostgresError(err)
 			if errors.Is(metaschema.ErrConflict, err) {
-				m.log.Debug("schema already exists", "name", name)
+				m.log.DebugContext(ctx, "schema already exists", "name", name)
 				continue
 			}
 			return errors.Wrap(err, "error in adding default schemas to db")

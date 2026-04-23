@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/pkg/profile"
@@ -82,6 +83,7 @@ func serverStartCommand() *cobra.Command {
 				panic(err)
 			}
 			logger := frontierlogger.InitLogger(appConfig.Log)
+			slog.SetDefault(logger)
 
 			if appConfig.App.Profiler {
 				// enable profilers
@@ -114,6 +116,7 @@ func serverMigrateCommand() *cobra.Command {
 			}
 
 			logger := frontierlogger.InitLogger(appConfig.Log)
+			slog.SetDefault(logger)
 			logger.Info("frontier is migrating", "version", config.Version)
 
 			if err = RunMigrations(logger, appConfig.DB); err != nil {
@@ -143,6 +146,7 @@ func serverMigrateRollbackCommand() *cobra.Command {
 				panic(err)
 			}
 			logger := frontierlogger.InitLogger(appConfig.Log)
+			slog.SetDefault(logger)
 			logger.Info("frontier is migrating", "version", config.Version)
 
 			if err = RunRollback(logger, appConfig.DB); err != nil {

@@ -17,6 +17,9 @@ import (
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/permission"
 
+	"io"
+	"log/slog"
+
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 	"github.com/raystack/frontier/cmd"
@@ -31,7 +34,6 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/server/consts"
-	"github.com/raystack/salt/log"
 )
 
 const (
@@ -41,7 +43,7 @@ const (
 	pg_dbname     = "test_db"
 )
 
-func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
+func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
 	opts := &dockertest.RunOptions{
 		Repository: "postgres",
 		Tag:        "13", // Upgraded from 12 to 13 for gen_random_uuid() support
@@ -75,27 +77,28 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 
 	// attach terminal logger to container if exists
 	// for debugging purpose
-	if logger.Level() == logLevelDebug {
+	if logger.Enabled(context.Background(), slog.LevelDebug) {
 		logWaiter, err := pool.Client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
 			Container:    resource.Container.ID,
-			OutputStream: logger.Writer(),
-			ErrorStream:  logger.Writer(),
+			OutputStream: os.Stderr,
+			ErrorStream:  os.Stderr,
 			Stderr:       true,
 			Stdout:       true,
 			Stream:       true,
 		})
 		if err != nil {
-			logger.Fatal("could not connect to postgres container log output", "error", err)
+			logger.Error("could not connect to postgres container log output", "error", err)
+			return nil, nil, nil, err
 		}
 		defer func() {
 			err = logWaiter.Close()
 			if err != nil {
-				logger.Fatal("could not close container log", "error", err)
+				logger.Error("could not close container log", "error", err)
 			}
 
 			err = logWaiter.Wait()
 			if err != nil {
-				logger.Fatal("could not wait for container log to close", "error", err)
+				logger.Error("could not wait for container log to close", "error", err)
 			}
 		}()
 	}
@@ -129,7 +132,8 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 
 	err = setup(context.Background(), logger, pgClient, pgConfig)
 	if err != nil {
-		logger.Fatal("failed to setup and migrate DB", "error", err)
+		logger.Error("failed to setup and migrate DB", "error", err)
+		return nil, nil, nil, err
 	}
 	return pgClient, pool, resource, nil
 }
@@ -141,7 +145,7 @@ func purgeDocker(pool *dockertest.Pool, resource *dockertest.Resource) error {
 	return nil
 }
 
-func setup(ctx context.Context, logger log.Logger, client *db.Client, cfg db.Config) (err error) {
+func setup(ctx context.Context, logger *slog.Logger, client *db.Client, cfg db.Config) (err error) {
 	var queries = []string{
 		"DROP SCHEMA public CASCADE",
 		"CREATE SCHEMA public",
@@ -444,7 +448,7 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 }
 
 func bootstrapInvitation(client *db.Client, users []user.User, orgs []organization.Organization, groups []group.Group) ([]invitation.Invitation, error) {
-	invitationRepository := postgres.NewInvitationRepository(log.NewLogrus(), client)
+	invitationRepository := postgres.NewInvitationRepository(slog.New(slog.NewTextHandler(io.Discard, nil)), client)
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-invitation.json")
 	if err != nil {
 		return nil, err
