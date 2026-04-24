@@ -478,6 +478,12 @@ func (h *ConnectHandler) RemoveOrganizationMember(ctx context.Context, request *
 	principalID := request.Msg.GetPrincipalId()
 	principalType := request.Msg.GetPrincipalType()
 
+	// service users are bound to a single org — use DeleteServiceUser instead
+	if principalType == schema.ServiceUserPrincipal {
+		return nil, connect.NewError(connect.CodeInvalidArgument,
+			errors.New("cannot remove service user from org, use DeleteServiceUser instead"))
+	}
+
 	if err := h.membershipService.RemoveOrganizationMember(ctx, orgID, principalID, principalType); err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
