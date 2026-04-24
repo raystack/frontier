@@ -156,6 +156,14 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
+	// create identity link for service users (serviceuser#org@organization)
+	// used by SpiceDB to resolve the manage permission: manage = org->serviceusermanage
+	if principalType == schema.ServiceUserPrincipal {
+		if err := s.createRelation(ctx, principalID, schema.ServiceUserPrincipal, orgID, schema.OrganizationNamespace, schema.OrganizationRelationName); err != nil {
+			return fmt.Errorf("create serviceuser identity link: %w", err)
+		}
+	}
+
 	// audit logging
 	s.auditOrgMemberAdded(ctx, org, principal, roleID)
 

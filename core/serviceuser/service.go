@@ -44,10 +44,15 @@ type RelationService interface {
 	BatchCheckPermission(ctx context.Context, rel []relation.Relation) ([]relation.CheckPair, error)
 }
 
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+}
+
 type Service struct {
-	repo            Repository
-	credRepo        CredentialRepository
-	relationService RelationService
+	repo              Repository
+	credRepo          CredentialRepository
+	relationService   RelationService
+	membershipService MembershipService
 }
 
 func NewService(repo Repository, credRepo CredentialRepository, relService RelationService) *Service {
@@ -56,6 +61,12 @@ func NewService(repo Repository, credRepo CredentialRepository, relService Relat
 		credRepo:        credRepo,
 		relationService: relService,
 	}
+}
+
+// SetMembershipService sets the membership dependency after construction to break
+// the circular init order between serviceuser and membership services.
+func (s *Service) SetMembershipService(ms MembershipService) {
+	s.membershipService = ms
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]ServiceUser, error) {
@@ -77,34 +88,10 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 		return ServiceUser{}, err
 	}
 
-	// attach service user to organization
-	_, err = s.relationService.Create(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        serviceUser.OrgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        createdSU.ID,
-			Namespace: schema.ServiceUserPrincipal,
-		},
-		RelationName: schema.MemberRelationName,
-	})
-	if err != nil {
-		return ServiceUser{}, err
-	}
-	_, err = s.relationService.Create(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        createdSU.ID,
-			Namespace: schema.ServiceUserPrincipal,
-		},
-		Subject: relation.Subject{
-			ID:        serviceUser.OrgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		RelationName: schema.OrganizationRelationName,
-	})
-	if err != nil {
-		return ServiceUser{}, err
+	// add service user as org member with default viewer role
+	// creates policy + org#member relation + serviceuser#org identity link
+	if err := s.membershipService.AddOrganizationMember(ctx, serviceUser.OrgID, createdSU.ID, schema.ServiceUserPrincipal, schema.RoleOrganizationViewer); err != nil {
+		return ServiceUser{}, fmt.Errorf("add org membership: %w", err)
 	}
 
 	return createdSU, nil
