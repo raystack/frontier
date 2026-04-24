@@ -20,6 +20,7 @@ import {
   CreateServiceUserTokenRequestSchema,
   ListOrganizationServiceUsersRequestSchema,
   ListOrganizationProjectsRequestSchema,
+  ListRolesRequestSchema,
   ListServiceUserTokensRequestSchema,
   ListServiceUserTokensResponseSchema,
   ServiceUserRequestBodySchema
@@ -107,6 +108,22 @@ export function AddServiceAccountDialog({
     return orderBy(list, ['title'], ['asc']);
   }, [projectsData]);
 
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: Boolean(orgId) }
+  );
+
+  const ownerRoleId = useMemo(
+    () =>
+      rolesData?.roles?.find(r => r.name === PERMISSIONS.RoleProjectOwner)
+        ?.id ?? '',
+    [rolesData]
+  );
+
   const { mutateAsync: createServiceUser } = useMutation(
     FrontierServiceQueries.createServiceUser
   );
@@ -121,7 +138,7 @@ export function AddServiceAccountDialog({
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!orgId) return;
+      if (!orgId || !ownerRoleId) return;
 
       try {
         const serviceUserResponse = await createServiceUser(
@@ -143,7 +160,7 @@ export function AddServiceAccountDialog({
                 projectId,
                 principalId: serviceUserId,
                 principalType: PERMISSIONS.ServiceUserPrincipal,
-                roleId: PERMISSIONS.RoleProjectOwner
+                roleId: ownerRoleId
               })
             )
           )
@@ -199,6 +216,7 @@ export function AddServiceAccountDialog({
     },
     [
       orgId,
+      ownerRoleId,
       createServiceUser,
       setProjectMemberRole,
       createServiceUserToken,
@@ -284,7 +302,7 @@ export function AddServiceAccountDialog({
                 type="submit"
                 data-test-id="frontier-sdk-add-service-account-btn"
                 loading={isSubmitting}
-                disabled={isSubmitting || isProjectsLoading || !isDirty}
+                disabled={isSubmitting || isProjectsLoading || !isDirty || !ownerRoleId}
                 loaderText="Creating..."
               >
                 Create

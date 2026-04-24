@@ -18,6 +18,7 @@ import {
   FrontierServiceQueries,
   ListServiceUserProjectsRequestSchema,
   ListOrganizationProjectsRequestSchema,
+  ListRolesRequestSchema,
   SetProjectMemberRoleRequestSchema,
   RemoveProjectMemberRequestSchema,
   type Project
@@ -161,6 +162,23 @@ export function ManageProjectAccessDialog({
     [addedProjectsData]
   );
 
+  const { data: rolesData } = useQuery(
+    FrontierServiceQueries.listRoles,
+    create(ListRolesRequestSchema, {
+      state: 'enabled',
+      scopes: [PERMISSIONS.ProjectNamespace]
+    }),
+    { enabled: Boolean(orgId) && isOpen }
+  );
+
+  const roleNameToId = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const r of rolesData?.roles ?? []) {
+      if (r.name && r.id) map[r.name] = r.id;
+    }
+    return map;
+  }, [rolesData]);
+
   useEffect(() => {
     const permMap = addedProjects.reduce((acc, proj) => {
       acc[proj?.id || ''] = {
@@ -194,19 +212,20 @@ export function ManageProjectAccessDialog({
         }));
 
         if (value) {
-          const roleId =
+          const roleName =
             accessMap[projectId]?.roleId || PERMISSIONS.RoleProjectViewer;
+          const resolvedRoleId = roleNameToId[roleName] || '';
           await setProjectMemberRole(
             create(SetProjectMemberRoleRequestSchema, {
               projectId,
               principalId: serviceUserId,
               principalType: PERMISSIONS.ServiceUserPrincipal,
-              roleId
+              roleId: resolvedRoleId
             })
           );
           setAccessMap(prev => ({
             ...prev,
-            [projectId]: { value: true, isLoading: false, roleId }
+            [projectId]: { value: true, isLoading: false, roleId: roleName }
           }));
         } else {
           await removeProjectMember(
@@ -240,6 +259,7 @@ export function ManageProjectAccessDialog({
     [
       serviceUserId,
       accessMap,
+      roleNameToId,
       setProjectMemberRole,
       removeProjectMember
     ]
@@ -262,12 +282,13 @@ export function ManageProjectAccessDialog({
           [projectId]: { ...prev[projectId], isLoading: true, roleId }
         }));
 
+        const resolvedRoleId = roleNameToId[roleId] || '';
         await setProjectMemberRole(
           create(SetProjectMemberRoleRequestSchema, {
             projectId,
             principalId: serviceUserId,
             principalType: PERMISSIONS.ServiceUserPrincipal,
-            roleId
+            roleId: resolvedRoleId
           })
         );
 
@@ -290,6 +311,7 @@ export function ManageProjectAccessDialog({
     [
       serviceUserId,
       accessMap,
+      roleNameToId,
       setProjectMemberRole
     ]
   );
