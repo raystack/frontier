@@ -160,6 +160,14 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	// used by SpiceDB to resolve the manage permission: manage = org->serviceusermanage
 	if principalType == schema.ServiceUserPrincipal {
 		if err := s.createRelation(ctx, principalID, schema.ServiceUserPrincipal, orgID, schema.OrganizationNamespace, schema.OrganizationRelationName); err != nil {
+			// best-effort cleanup of policy + org relation to avoid orphaned state
+			if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
+				s.log.WarnContext(ctx, "orphaned policy: identity link failed and policy cleanup also failed",
+					"policy_id", createdPolicy.ID,
+					"principal_id", principalID,
+					"error", deleteErr,
+				)
+			}
 			return fmt.Errorf("create serviceuser identity link: %w", err)
 		}
 	}
