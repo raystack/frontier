@@ -16,14 +16,13 @@ import {
 import {
   FrontierServiceQueries,
   CreateServiceUserRequestSchema,
-  CreatePolicyForProjectRequestSchema,
+  SetProjectMemberRoleRequestSchema,
   CreateServiceUserTokenRequestSchema,
   ListOrganizationServiceUsersRequestSchema,
   ListOrganizationProjectsRequestSchema,
   ListServiceUserTokensRequestSchema,
   ListServiceUserTokensResponseSchema,
-  ServiceUserRequestBodySchema,
-  CreatePolicyForProjectBodySchema
+  ServiceUserRequestBodySchema
 } from '@raystack/proton/frontier';
 import {
   Button,
@@ -112,8 +111,8 @@ export function AddServiceAccountDialog({
     FrontierServiceQueries.createServiceUser
   );
 
-  const { mutateAsync: createPolicyForProject } = useMutation(
-    FrontierServiceQueries.createPolicyForProject
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole
   );
 
   const { mutateAsync: createServiceUserToken } = useMutation(
@@ -137,17 +136,14 @@ export function AddServiceAccountDialog({
         const serviceUserId = serviceUserResponse.serviceuser?.id;
         if (!serviceUserId) return;
 
-        const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceUserId}`;
-
         await Promise.all(
           data.project_ids.map(projectId =>
-            createPolicyForProject(
-              create(CreatePolicyForProjectRequestSchema, {
+            setProjectMemberRole(
+              create(SetProjectMemberRoleRequestSchema, {
                 projectId,
-                body: create(CreatePolicyForProjectBodySchema, {
-                  roleId: PERMISSIONS.RoleProjectOwner,
-                  principal
-                })
+                principalId: serviceUserId,
+                principalType: PERMISSIONS.ServiceUserPrincipal,
+                roleId: PERMISSIONS.RoleProjectOwner
               })
             )
           )
@@ -204,7 +200,7 @@ export function AddServiceAccountDialog({
     [
       orgId,
       createServiceUser,
-      createPolicyForProject,
+      setProjectMemberRole,
       createServiceUserToken,
       queryClient,
       transport,

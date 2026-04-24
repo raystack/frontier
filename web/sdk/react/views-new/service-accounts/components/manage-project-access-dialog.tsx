@@ -18,12 +18,9 @@ import {
   FrontierServiceQueries,
   ListServiceUserProjectsRequestSchema,
   ListOrganizationProjectsRequestSchema,
-  CreatePolicyForProjectRequestSchema,
-  CreatePolicyForProjectBodySchema,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema,
-  type Project,
-  type Policy
+  SetProjectMemberRoleRequestSchema,
+  RemoveProjectMemberRequestSchema,
+  type Project
 } from '@raystack/proton/frontier';
 import { orderBy } from 'lodash';
 import { useFrontier } from '../../../contexts/FrontierContext';
@@ -176,16 +173,12 @@ export function ManageProjectAccessDialog({
     setAccessMap(permMap);
   }, [addedProjects]);
 
-  const { mutateAsync: createPolicyForProject } = useMutation(
-    FrontierServiceQueries.createPolicyForProject
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole
   );
 
-  const { mutateAsync: listPolicies } = useMutation(
-    FrontierServiceQueries.listPolicies
-  );
-
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
+  const { mutateAsync: removeProjectMember } = useMutation(
+    FrontierServiceQueries.removeProjectMember
   );
 
   const onCheckChange = useCallback(
@@ -203,14 +196,12 @@ export function ManageProjectAccessDialog({
         if (value) {
           const roleId =
             accessMap[projectId]?.roleId || PERMISSIONS.RoleProjectViewer;
-          const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceUserId}`;
-          await createPolicyForProject(
-            create(CreatePolicyForProjectRequestSchema, {
+          await setProjectMemberRole(
+            create(SetProjectMemberRoleRequestSchema, {
               projectId,
-              body: create(CreatePolicyForProjectBodySchema, {
-                roleId,
-                principal
-              })
+              principalId: serviceUserId,
+              principalType: PERMISSIONS.ServiceUserPrincipal,
+              roleId
             })
           );
           setAccessMap(prev => ({
@@ -218,20 +209,12 @@ export function ManageProjectAccessDialog({
             [projectId]: { value: true, isLoading: false, roleId }
           }));
         } else {
-          const policiesResp = await listPolicies(
-            create(ListPoliciesRequestSchema, {
+          await removeProjectMember(
+            create(RemoveProjectMemberRequestSchema, {
               projectId,
-              userId: serviceUserId,
-              orgId: '',
-              roleId: '',
-              groupId: ''
+              principalId: serviceUserId,
+              principalType: PERMISSIONS.ServiceUserPrincipal
             })
-          );
-          const policies = policiesResp?.policies || [];
-          await Promise.all(
-            policies.map((p: Policy) =>
-              deletePolicy(create(DeletePolicyRequestSchema, { id: p.id }))
-            )
           );
           setAccessMap(prev => ({
             ...prev,
@@ -257,9 +240,8 @@ export function ManageProjectAccessDialog({
     [
       serviceUserId,
       accessMap,
-      createPolicyForProject,
-      listPolicies,
-      deletePolicy
+      setProjectMemberRole,
+      removeProjectMember
     ]
   );
 
@@ -280,30 +262,12 @@ export function ManageProjectAccessDialog({
           [projectId]: { ...prev[projectId], isLoading: true, roleId }
         }));
 
-        const policiesResp = await listPolicies(
-          create(ListPoliciesRequestSchema, {
+        await setProjectMemberRole(
+          create(SetProjectMemberRoleRequestSchema, {
             projectId,
-            userId: serviceUserId,
-            orgId: '',
-            roleId: '',
-            groupId: ''
-          })
-        );
-        const policies = policiesResp?.policies || [];
-        await Promise.all(
-          policies.map((p: Policy) =>
-            deletePolicy(create(DeletePolicyRequestSchema, { id: p.id }))
-          )
-        );
-
-        const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceUserId}`;
-        await createPolicyForProject(
-          create(CreatePolicyForProjectRequestSchema, {
-            projectId,
-            body: create(CreatePolicyForProjectBodySchema, {
-              roleId,
-              principal
-            })
+            principalId: serviceUserId,
+            principalType: PERMISSIONS.ServiceUserPrincipal,
+            roleId
           })
         );
 
@@ -326,9 +290,7 @@ export function ManageProjectAccessDialog({
     [
       serviceUserId,
       accessMap,
-      createPolicyForProject,
-      listPolicies,
-      deletePolicy
+      setProjectMemberRole
     ]
   );
 
