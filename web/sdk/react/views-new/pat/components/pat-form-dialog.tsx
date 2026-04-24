@@ -27,15 +27,22 @@ import {
   Radio,
   Select,
   Skeleton,
+  Spinner,
   Text,
   toastManager
 } from '@raystack/apsara-v1';
-import { useFrontier } from '../../../contexts/FrontierContext';
-import { DEFAULT_DATE_FORMAT } from '../../../utils/constants';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { PERMISSIONS } from '../../../../utils';
 import { handleConnectError } from '~/utils/error';
 
-const EXPIRY_OPTIONS = [15, 30, 60, 90] as const;
+const EXPIRY_OPTIONS = [
+  { value: '1w', label: '1 week', amount: 1, unit: 'week' as const },
+  { value: '1m', label: '1 month', amount: 1, unit: 'month' as const },
+  { value: '3m', label: '3 months', amount: 3, unit: 'month' as const },
+  { value: '6m', label: '6 months', amount: 6, unit: 'month' as const },
+  { value: '12m', label: '12 months', amount: 12, unit: 'month' as const }
+] as const;
 
 const baseFields = {
   title: yup.string().required('Name is required'),
@@ -50,14 +57,14 @@ const baseFields = {
 const createPATSchema = yup
   .object({
     ...baseFields,
-    expiryDays: yup.string().required('Expiry date is required')
+    expiry: yup.string().required('Expiry date is required')
   })
   .required();
 
 const updatePATSchema = yup
   .object({
     ...baseFields,
-    expiryDays: yup.string().default('')
+    expiry: yup.string().default('')
   })
   .required();
 
@@ -97,7 +104,7 @@ export function PATFormDialog({
     resolver: yupResolver(isUpdateMode ? updatePATSchema : createPATSchema),
     defaultValues: {
       title: '',
-      expiryDays: '',
+      expiry: '',
       orgRoleId: '',
       projectRoleId: '',
       projectIds: []
@@ -125,7 +132,7 @@ export function PATFormDialog({
       setProjectAccess(validProjectIds.length > 0 ? 'selective' : 'all');
       reset({
         title: initialData.title,
-        expiryDays: '',
+        expiry: '',
         orgRoleId: orgScope?.roleId || '',
         projectRoleId: projectScope?.roleId || '',
         projectIds: validProjectIds
@@ -154,34 +161,31 @@ export function PATFormDialog({
     return orderBy(list, ['title'], ['asc']);
   }, [projectsData]);
 
-  const { data: orgRolesData, isLoading: isOrgRolesLoading } = useQuery(
+  const { data: rolesData, isLoading: isRolesLoading } = useQuery(
     FrontierServiceQueries.listRolesForPAT,
-    create(ListRolesForPATRequestSchema, {
-      scopes: [PERMISSIONS.OrganizationNamespace]
-    }),
+    create(ListRolesForPATRequestSchema, { scopes: [] }),
     { enabled: Boolean(orgId) }
   );
 
-  const orgRoles = useMemo(() => orgRolesData?.roles ?? [], [orgRolesData]);
-
-  const { data: projectRolesData, isLoading: isProjectRolesLoading } =
-    useQuery(
-      FrontierServiceQueries.listRolesForPAT,
-      create(ListRolesForPATRequestSchema, {
-        scopes: [PERMISSIONS.ProjectNamespace]
-      }),
-      { enabled: Boolean(orgId) }
-    );
-
-  const projectRoles = useMemo(
-    () => projectRolesData?.roles ?? [],
-    [projectRolesData]
-  );
+  const { orgRoles, projectRoles } = useMemo(() => {
+    const roles = rolesData?.roles ?? [];
+    return {
+      orgRoles: roles.filter(r =>
+        r.scopes?.includes(PERMISSIONS.OrganizationNamespace)
+      ),
+      projectRoles: roles.filter(r =>
+        r.scopes?.includes(PERMISSIONS.ProjectNamespace)
+      )
+    };
+  }, [rolesData]);
 
   const watchedOrgRoleId = watch('orgRoleId');
   const isOrgAdmin = useMemo(() => {
     const role = orgRoles.find(r => r.id === watchedOrgRoleId);
-    return role?.name?.includes('admin') ?? false;
+    if (!role) return false;
+    const orgNs = PERMISSIONS.OrganizationNamespace.replace('/', '_');
+    const updatePerm = `${orgNs}_${PERMISSIONS.UpdatePermission}`;
+    return role.permissions?.some(p => p === updatePerm) ?? false;
   }, [orgRoles, watchedOrgRoleId]);
 
   useEffect(() => {
@@ -273,8 +277,10 @@ export function PATFormDialog({
           reset();
           onUpdated?.();
         } else {
+          const option = EXPIRY_OPTIONS.find(o => o.value === data.expiry);
+          if (!option) return;
           const expiresAt = timestampFromDate(
-            dayjs().add(Number(data.expiryDays), 'day').toDate()
+            dayjs().add(option.amount, option.unit).toDate()
           );
           const response = await createPAT(
             create(CreateCurrentUserPATRequestSchema, {
@@ -324,8 +330,7 @@ export function PATFormDialog({
     ]
   );
 
-  const isDataLoading =
-    isProjectsLoading || isOrgRolesLoading || isProjectRolesLoading;
+  const isDataLoading = isProjectsLoading || isRolesLoading;
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
@@ -369,6 +374,7 @@ export function PATFormDialog({
                     }}
                     size="large"
                     placeholder="Enter token name"
+                    trailingIcon={titleChecking ? <Spinner size={2} /> : undefined}
                     error={
                       errors.title
                         ? String(errors.title?.message)
@@ -382,7 +388,7 @@ export function PATFormDialog({
                     <Flex direction="column" gap={2}>
                       <Label>Expiry date</Label>
                       <Controller
-                        name="expiryDays"
+                        name="expiry"
                         control={control}
                         render={({ field }) => (
                           <Select
@@ -393,11 +399,14 @@ export function PATFormDialog({
                               <Select.Value placeholder="Select expiry" />
                             </Select.Trigger>
                             <Select.Content>
-                              {EXPIRY_OPTIONS.map(days => (
-                                <Select.Item key={days} value={String(days)}>
-                                  {days} Days (Exp:{' '}
+                              {EXPIRY_OPTIONS.map(option => (
+                                <Select.Item
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label} (Exp:{' '}
                                   {dayjs()
-                                    .add(days, 'day')
+                                    .add(option.amount, option.unit)
                                     .format(dateFormat)}
                                   )
                                 </Select.Item>
@@ -406,9 +415,9 @@ export function PATFormDialog({
                           </Select>
                         )}
                       />
-                      {errors.expiryDays && (
+                      {errors.expiry && (
                         <Text size="mini" variant="danger">
-                          {String(errors.expiryDays?.message)}
+                          {String(errors.expiry?.message)}
                         </Text>
                       )}
                     </Flex>

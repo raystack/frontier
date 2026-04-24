@@ -18,8 +18,8 @@ import {
   Text,
   toastManager
 } from '@raystack/apsara-v1';
-import { useFrontier } from '../../../contexts/FrontierContext';
-import { DEFAULT_DATE_FORMAT } from '../../../utils/constants';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { handleConnectError } from '~/utils/error';
 
 const EXPIRY_OPTIONS = [15, 30, 60, 90] as const;

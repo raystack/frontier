@@ -11,20 +11,22 @@ import {
   Flex,
   Skeleton
 } from '@raystack/apsara-v1';
-import { useQuery } from '@connectrpc/connect-query';
-import { create } from '@bufbuild/protobuf';
+import type { DataTableQuery, DataTableSort } from '@raystack/apsara-v1';
+import { useDebouncedState } from '@raystack/apsara-v1/hooks';
+import { useInfiniteQuery } from '@connectrpc/connect-query';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import {
-  FrontierServiceQueries,
-  SearchCurrentUserPATsRequestSchema,
-  RQLRequestSchema
-} from '@raystack/proton/frontier';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useTerminology } from '../../hooks/useTerminology';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { DEFAULT_DATE_FORMAT } from '../../utils/constants';
+import {
+  DEFAULT_PAGE_SIZE,
+  getConnectNextPageParam
+} from '~/utils/connect-pagination';
+import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { getColumns } from './components/pat-columns';
 import { PATFormDialog } from './components/pat-form-dialog';
 import { PATCreatedDialog } from './components/pat-created-dialog';
@@ -36,6 +38,20 @@ dayjs.extend(relativeTime);
 const createPATDialogHandle = Dialog.createHandle();
 const patCreatedDialogHandle = Dialog.createHandle<string>();
 const revokePATDialogHandle = AlertDialog.createHandle<string>();
+
+const DEFAULT_SORT: DataTableSort = { name: 'title', order: 'asc' };
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE
+};
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    expiresAt: 'expires_at',
+    lastUsedAt: 'last_used_at'
+  }
+};
 
 export interface PatsViewProps {
   onPATClick?: (patId: string) => void;
@@ -51,25 +67,51 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
 
   const orgId = organization?.id ?? '';
 
+  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
+    INITIAL_QUERY,
+    200
+  );
+
+  const query = useMemo(
+    () => transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS),
+    [tableQuery]
+  );
+
   const {
-    data: patsData,
+    data: infiniteData,
     isLoading: isPatsLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
     refetch
-  } = useQuery(
+  } = useInfiniteQuery(
     FrontierServiceQueries.searchCurrentUserPATs,
-    create(SearchCurrentUserPATsRequestSchema, {
-      orgId,
-      query: create(RQLRequestSchema, {})
-    }),
+    { orgId, query },
     {
-      enabled: Boolean(orgId)
+      enabled: Boolean(orgId),
+      pageParamKey: 'query',
+      getNextPageParam: lastPage =>
+        getConnectNextPageParam(lastPage, { query }, 'pats'),
+      staleTime: 0,
+      refetchOnWindowFocus: false
     }
   );
 
-  const pats = useMemo(() => patsData?.pats ?? [], [patsData]);
+  const pats = useMemo(
+    () => infiniteData?.pages?.flatMap(page => page?.pats ?? []) ?? [],
+    [infiniteData]
+  );
 
+  const hasActiveQuery = Boolean(
+    tableQuery.search || tableQuery.filters?.length
+  );
   const isInitialLoading = !organization?.id || isActiveOrganizationLoading;
-  const hasNoPats = !isInitialLoading && !isPatsLoading && pats.length === 0;
+  const isTableLoading = isPatsLoading || isFetchingNextPage;
+  const hasNoPats =
+    !isInitialLoading &&
+    !isPatsLoading &&
+    !hasActiveQuery &&
+    pats.length === 0;
 
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
@@ -82,6 +124,20 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
       }),
     [dateFormat]
   );
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery({
+      ...newQuery,
+      offset: 0,
+      limit: newQuery.limit || DEFAULT_PAGE_SIZE
+    });
+  };
+
+  const handleLoadMore = async () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      await fetchNextPage();
+    }
+  };
 
   const handlePATCreated = (token: string) => {
     patCreatedDialogHandle.openWithPayload(token);
@@ -125,9 +181,12 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
         <DataTable
           data={pats}
           columns={columns}
-          isLoading={isPatsLoading}
-          defaultSort={{ name: 'title', order: 'asc' }}
-          mode="client"
+          isLoading={isTableLoading}
+          defaultSort={DEFAULT_SORT}
+          mode="server"
+          query={tableQuery}
+          onTableQueryChange={onTableQueryChange}
+          onLoadMore={handleLoadMore}
           onRowClick={row => onPATClick?.(row.id)}
         >
           <Flex direction="column" gap={7}>
@@ -136,6 +195,7 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
                 placeholder="Search by name."
                 size="large"
                 width={360}
+                disabled={false}
               />
               <Button
                 variant="solid"

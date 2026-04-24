@@ -2,7 +2,7 @@
 
 import { Button, Text, DataTableColumnDef } from '@raystack/apsara-v1';
 import type { PAT } from '@raystack/proton/frontier';
-import { timestampToDayjs, isNullTimestamp } from '../../../../utils/timestamp';
+import { timestampToDayjs, isNullTimestamp } from '~/utils/timestamp';
 import styles from '../pat-view.module.css';
 
 export function getColumns({

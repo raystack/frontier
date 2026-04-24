@@ -28,7 +28,7 @@ import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { DEFAULT_DATE_FORMAT } from '../../utils/constants';
 import { PERMISSIONS } from '../../../utils';
-import { timestampToDayjs } from '../../../utils/timestamp';
+import { timestampToDayjs } from '~/utils/timestamp';
 import { PATCreatedDialog } from './components/pat-created-dialog';
 import { PATFormDialog } from './components/pat-form-dialog';
 import {

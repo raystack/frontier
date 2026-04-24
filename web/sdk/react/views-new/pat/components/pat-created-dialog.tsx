@@ -32,8 +32,8 @@ export function PATCreatedDialog({ handle, onClose }: PATCreatedDialogProps) {
           <Dialog.Body>
             <Flex direction="column" gap={7}>
               <Text size="small">
-                You&apos;ve successfully added a new personal access token. Copy
-                the token now
+                Successfully added a new personal access token. Please copy the
+                token.
               </Text>
               <InputField
                 value={token || ''}
@@ -50,8 +50,8 @@ export function PATCreatedDialog({ handle, onClose }: PATCreatedDialogProps) {
                 data-test-id="frontier-sdk-pat-token-input"
               />
               <Callout type="alert" icon={<InfoCircledIcon />} className={styles.callout}>
-                Warning : Make sure you copy the above token now. We don&apos;t
-                store it and you will not be able to see it again.
+                Warning : Make sure you copy the above token now. This token
+                will only be shown once. Store it securely.
               </Callout>
             </Flex>
           </Dialog.Body>
