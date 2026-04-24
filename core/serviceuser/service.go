@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"golang.org/x/crypto/sha3"
 
@@ -161,9 +160,13 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	}
 
 	// remove org membership (policies at org/project/group level + org relations)
-	// ignore "not a member" errors for SUs that weren't fully set up
-	if err := s.membershipService.RemoveOrganizationMember(ctx, su.OrgID, id, schema.ServiceUserPrincipal); err != nil && !isNotMemberErr(err) {
-		return fmt.Errorf("remove org membership: %w", err)
+	// best-effort: log and continue on failure — leaving a half-deleted SU is worse than a leaked policy
+	if err := s.membershipService.RemoveOrganizationMember(ctx, su.OrgID, id, schema.ServiceUserPrincipal); err != nil {
+		s.log.ErrorContext(ctx, "failed to remove org membership during serviceuser delete, policies may be leaked",
+			"serviceuser_id", id,
+			"org_id", su.OrgID,
+			"error", err,
+		)
 	}
 
 	// delete remaining SpiceDB relations (platform relations, identity link, etc.)
@@ -492,10 +495,4 @@ func (s Service) UnSudo(ctx context.Context, id string) error {
 		RelationName: relationName,
 	})
 	return err
-}
-
-// isNotMemberErr checks if the error is a "not a member" error from the membership
-// package. We use string matching to avoid a circular import.
-func isNotMemberErr(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "not a member")
 }
