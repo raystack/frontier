@@ -108,7 +108,7 @@ export function AddServiceAccountDialog({
     return orderBy(list, ['title'], ['asc']);
   }, [projectsData]);
 
-  const { data: rolesData } = useQuery(
+  const { data: rolesData, isLoading: isRolesLoading } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       state: 'enabled',
@@ -242,7 +242,7 @@ export function AddServiceAccountDialog({
                 interactions on behalf of the{' '}
                 {t.organization({ case: 'lower' })}.
               </Text>
-              {isProjectsLoading ? (
+              {isProjectsLoading || isRolesLoading ? (
                 <Flex direction="column" gap={5}>
                   <Skeleton height="60px" />
                   <Skeleton height="60px" />
@@ -302,7 +302,7 @@ export function AddServiceAccountDialog({
                 type="submit"
                 data-test-id="frontier-sdk-add-service-account-btn"
                 loading={isSubmitting}
-                disabled={isSubmitting || isProjectsLoading || !isDirty || !ownerRoleId}
+                disabled={isSubmitting || isProjectsLoading || isRolesLoading || !isDirty || !ownerRoleId}
                 loaderText="Creating..."
               >
                 Create

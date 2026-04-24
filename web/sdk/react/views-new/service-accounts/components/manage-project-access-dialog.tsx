@@ -162,7 +162,7 @@ export function ManageProjectAccessDialog({
     [addedProjectsData]
   );
 
-  const { data: rolesData } = useQuery(
+  const { data: rolesData, isLoading: isRolesLoading } = useQuery(
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, {
       state: 'enabled',
@@ -326,7 +326,7 @@ export function ManageProjectAccessDialog({
     [accessMap, onCheckChange, onRoleChange]
   );
 
-  const isLoading = isProjectsLoading || isAddedProjectsLoading;
+  const isLoading = isProjectsLoading || isAddedProjectsLoading || isRolesLoading;
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
