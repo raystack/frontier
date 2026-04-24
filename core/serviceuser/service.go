@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"strings"
 
 	"golang.org/x/crypto/sha3"
 
@@ -46,6 +47,7 @@ type RelationService interface {
 
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
 }
 
 type Service struct {
@@ -91,6 +93,8 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 	// add service user as org member with default viewer role
 	// creates policy + org#member relation + serviceuser#org identity link
 	if err := s.membershipService.AddOrganizationMember(ctx, serviceUser.OrgID, createdSU.ID, schema.ServiceUserPrincipal, schema.RoleOrganizationViewer); err != nil {
+		// rollback: delete the orphan SU row to avoid accumulating dead records
+		_ = s.repo.Delete(ctx, createdSU.ID)
 		return ServiceUser{}, fmt.Errorf("add org membership: %w", err)
 	}
 
@@ -127,7 +131,13 @@ func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, er
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	// delete all of its credentials then delete the service account
+	// fetch SU to get org ID for membership cleanup
+	su, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// delete all of its credentials
 	creds, err := s.credRepo.List(ctx, Filter{
 		ServiceUserID: id,
 	})
@@ -140,8 +150,13 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	// delete all of serviceuser relationships
-	// before deleting the serviceuser
+	// remove org membership (policies at org/project/group level + org relations)
+	// ignore "not a member" errors for SUs that weren't fully set up
+	if err := s.membershipService.RemoveOrganizationMember(ctx, su.OrgID, id, schema.ServiceUserPrincipal); err != nil && !isNotMemberErr(err) {
+		return fmt.Errorf("remove org membership: %w", err)
+	}
+
+	// delete remaining SpiceDB relations (platform relations, identity link, etc.)
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Subject: relation.Subject{
 			ID:        id,
@@ -467,4 +482,10 @@ func (s Service) UnSudo(ctx context.Context, id string) error {
 		RelationName: relationName,
 	})
 	return err
+}
+
+// isNotMemberErr checks if the error is a "not a member" error from the membership
+// package. We use string matching to avoid a circular import.
+func isNotMemberErr(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "not a member")
 }
