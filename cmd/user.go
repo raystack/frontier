@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	"github.com/raystack/frontier/pkg/str"
@@ -100,7 +99,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 }
 
 func editUserCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "edit",
@@ -128,10 +127,14 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 			}
 
 			userID := args[0]
-			_, err = client.UpdateUser(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+			req, err := newRequest(&frontierv1beta1.UpdateUserRequest{
 				Id:   userID,
 				Body: &reqBody,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.UpdateUser(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -144,12 +147,15 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the user body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
 
 func viewUserCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
+	var header string
 
 	cmd := &cli.Command{
 		Use:   "view",
@@ -172,9 +178,13 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 			}
 
 			userID := args[0]
-			res, err := client.GetUser(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetUserRequest{
+			req, err := newRequest(&frontierv1beta1.GetUserRequest{
 				Id: userID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetUser(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -211,11 +221,14 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
 
 func listUserCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all users",
@@ -235,7 +248,11 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.ListUsers(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListUsersRequest{}))
+			req, err := newRequest(&frontierv1beta1.ListUsersRequest{}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListUsers(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -261,6 +278,9 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

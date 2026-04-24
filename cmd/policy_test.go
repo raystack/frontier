@@ -41,7 +41,7 @@ func TestClientPolicy(t *testing.T) {
 				name:        "`policy` edit with host flag should throw error missing required flag",
 				want:        "",
 				subCommands: []string{"edit", "123", "-h", "test"},
-				err:         errors.New("required flag(s) \"file\" not set"),
+				err:         errors.New("required flag(s) \"file\", \"header\" not set"),
 			},
 			{
 				name:        "`policy` view without host should throw error host not found",
