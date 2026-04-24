@@ -8,10 +8,12 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -149,7 +151,15 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 		errorLogger.LogServiceError(ctx, request, "CreateServiceUser", err,
 			"org_id", request.Msg.GetOrgId(),
 			"title", request.Msg.GetBody().GetTitle())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+
+		switch {
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)

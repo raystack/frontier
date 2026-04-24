@@ -156,6 +156,22 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
+	// create identity link for service users (serviceuser#org@organization)
+	// used by SpiceDB to resolve the manage permission: manage = org->serviceusermanage
+	if principalType == schema.ServiceUserPrincipal {
+		if err := s.createRelation(ctx, principalID, schema.ServiceUserPrincipal, orgID, schema.OrganizationNamespace, schema.OrganizationRelationName); err != nil {
+			// best-effort cleanup of policy + org relation to avoid orphaned state
+			if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
+				s.log.WarnContext(ctx, "orphaned policy: identity link failed and policy cleanup also failed",
+					"policy_id", createdPolicy.ID,
+					"principal_id", principalID,
+					"error", deleteErr,
+				)
+			}
+			return fmt.Errorf("create serviceuser identity link: %w", err)
+		}
+	}
+
 	// audit logging
 	s.auditOrgMemberAdded(ctx, org, principal, roleID)
 
@@ -344,6 +360,18 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 			"error", err,
 		)
 		return fmt.Errorf("remove org relations: %w", err)
+	}
+
+	// remove identity link for service users (serviceuser#org@organization)
+	if principalType == schema.ServiceUserPrincipal {
+		err := s.relationService.Delete(ctx, relation.Relation{
+			Object:       relation.Object{ID: principalID, Namespace: schema.ServiceUserPrincipal},
+			Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+			RelationName: schema.OrganizationRelationName,
+		})
+		if err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return fmt.Errorf("remove serviceuser identity link: %w", err)
+		}
 	}
 
 	// delete org-level policies last

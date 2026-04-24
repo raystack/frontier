@@ -386,7 +386,7 @@ func buildAPIDependencies(
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
-	serviceUserService := serviceuser.NewService(svUserRepo, scUserCredRepo, relationService)
+	serviceUserService := serviceuser.NewService(logger, svUserRepo, scUserCredRepo, relationService)
 
 	var mailDialer mailer.Dialer = mailer.NewMockDialer()
 	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
@@ -435,6 +435,7 @@ func buildAPIDependencies(
 	// Setter injection: org → membership is circular (membership needs org for validation,
 	// org needs membership for Create/AdminCreate). Break the cycle with a post-init setter.
 	organizationService.SetMembershipService(membershipService)
+	serviceUserService.SetMembershipService(membershipService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
