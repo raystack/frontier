@@ -362,6 +362,18 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return fmt.Errorf("remove org relations: %w", err)
 	}
 
+	// remove identity link for service users (serviceuser#org@organization)
+	if principalType == schema.ServiceUserPrincipal {
+		err := s.relationService.Delete(ctx, relation.Relation{
+			Object:       relation.Object{ID: principalID, Namespace: schema.ServiceUserPrincipal},
+			Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+			RelationName: schema.OrganizationRelationName,
+		})
+		if err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return fmt.Errorf("remove serviceuser identity link: %w", err)
+		}
+	}
+
 	// delete org-level policies last
 	for _, policyID := range orgPolicyIDs {
 		if err := s.policyService.Delete(ctx, policyID); err != nil {
