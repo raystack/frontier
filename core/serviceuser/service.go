@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 
 	"golang.org/x/crypto/sha3"
@@ -51,14 +52,16 @@ type MembershipService interface {
 }
 
 type Service struct {
+	log               *slog.Logger
 	repo              Repository
 	credRepo          CredentialRepository
 	relationService   RelationService
 	membershipService MembershipService
 }
 
-func NewService(repo Repository, credRepo CredentialRepository, relService RelationService) *Service {
+func NewService(logger *slog.Logger, repo Repository, credRepo CredentialRepository, relService RelationService) *Service {
 	return &Service{
+		log:             logger,
 		repo:            repo,
 		credRepo:        credRepo,
 		relationService: relService,
@@ -94,7 +97,14 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 	// creates policy + org#member relation + serviceuser#org identity link
 	if err := s.membershipService.AddOrganizationMember(ctx, serviceUser.OrgID, createdSU.ID, schema.ServiceUserPrincipal, schema.RoleOrganizationViewer); err != nil {
 		// rollback: delete the orphan SU row to avoid accumulating dead records
-		_ = s.repo.Delete(ctx, createdSU.ID)
+		if deleteErr := s.repo.Delete(ctx, createdSU.ID); deleteErr != nil {
+			s.log.ErrorContext(ctx, "orphan serviceuser: membership setup failed and rollback delete also failed, manual cleanup needed",
+				"serviceuser_id", createdSU.ID,
+				"org_id", serviceUser.OrgID,
+				"membership_error", err,
+				"delete_error", deleteErr,
+			)
+		}
 		return ServiceUser{}, fmt.Errorf("add org membership: %w", err)
 	}
 
