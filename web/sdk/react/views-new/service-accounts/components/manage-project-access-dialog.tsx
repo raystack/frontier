@@ -55,6 +55,10 @@ function getColumns({
       id: 'checkbox',
       accessorKey: 'id',
       enableSorting: false,
+      styles: {
+        cell: { width: '40px', minWidth: '40px', maxWidth: '40px' },
+        header: { width: '40px', minWidth: '40px', maxWidth: '40px' }
+      },
       cell: ({ getValue }) => {
         const projectId = getValue() as string;
         const entry = permMap[projectId];
@@ -63,7 +67,7 @@ function getColumns({
         return (
           <Flex>
             {isLoading ? (
-              <Spinner />
+              <Spinner size={2} />
             ) : (
               <Checkbox
                 checked={checked}
@@ -86,16 +90,21 @@ function getColumns({
       id: 'access',
       accessorKey: 'id',
       enableSorting: false,
+      styles: {
+        cell: { width: '180px', minWidth: '180px', maxWidth: '180px' },
+        header: { width: '180px', minWidth: '180px', maxWidth: '180px' }
+      },
       cell: ({ getValue }) => {
         const projectId = getValue() as string;
         const entry = permMap[projectId];
         const isChecked = entry?.value ?? false;
+        const isLoading = entry?.isLoading ?? false;
         const roleId = entry?.roleId || PERMISSIONS.RoleProjectViewer;
         return (
           <Select
             value={roleId}
             onValueChange={val => onRoleChange(projectId, val)}
-            disabled={!isChecked}
+            disabled={!isChecked || isLoading}
           >
             <Select.Trigger className={styles.accessSelectTrigger}>
               <Select.Value placeholder="Viewer" />
@@ -351,7 +360,11 @@ export function ManageProjectAccessDialog({
           <Dialog.Title>Manage Project Access</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body className={styles.manageAccessDialogBody}>
-          <Flex direction="column" gap={7}>
+          <Flex
+            direction="column"
+            gap={7}
+            className={styles.manageAccessBodyInner}
+          >
             <Text size="small" variant="secondary">
               Note: Choose a project to join and specify the access type.
             </Text>
@@ -359,11 +372,14 @@ export function ManageProjectAccessDialog({
               data={projects}
               columns={columns}
               isLoading={isLoading}
+              loadingRowCount={9}
               defaultSort={{ name: 'title', order: 'asc' }}
               mode="client"
             >
               <DataTable.Content
-                classNames={{ root: styles.manageAccessTableRoot }}
+                classNames={{
+                  root: styles.manageAccessTableRoot
+                }}
               />
             </DataTable>
           </Flex>

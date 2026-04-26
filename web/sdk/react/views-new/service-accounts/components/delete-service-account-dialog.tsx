@@ -17,6 +17,7 @@ import {
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useQueryClient } from '@tanstack/react-query';
+import styles from './delete-service-account-dialog.module.css';
 
 export type DeleteServiceAccountPayload = { serviceAccountId: string };
 
@@ -76,11 +77,9 @@ export function DeleteServiceAccountDialog({ handle, refetch }: DeleteServiceAcc
       {({ payload: rawPayload }) => {
         const payload = rawPayload as DeleteServiceAccountPayload | undefined;
         return (
-          <AlertDialog.Content width={400}>
-            <AlertDialog.Header>
+          <AlertDialog.Content width={400} showCloseButton={false}>
+            <AlertDialog.Body className={styles.body}>
               <AlertDialog.Title>Delete Service Account</AlertDialog.Title>
-            </AlertDialog.Header>
-            <AlertDialog.Body>
               <Text size="small" variant="secondary">
                 This action is irreversible and may result in the deletion of all
                 keys associated with this account. Are you sure you want to
@@ -109,7 +108,7 @@ export function DeleteServiceAccountDialog({ handle, refetch }: DeleteServiceAcc
                   loading={isLoading}
                   loaderText="Deleting..."
                 >
-                  Yes, Do it
+                  Delete
                 </Button>
               </Flex>
             </AlertDialog.Footer>

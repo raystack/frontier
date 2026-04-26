@@ -39,6 +39,7 @@ import {
 import { PERMISSIONS } from '../../../../utils';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
+import { cacheFreshServiceUserToken } from '../hooks/useServiceUserTokens';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 
@@ -99,7 +100,7 @@ export function AddServiceAccountDialog({
       withMemberCount: false
     }),
     {
-      enabled: Boolean(orgId)
+      enabled: Boolean(orgId),
     }
   );
 
@@ -188,6 +189,14 @@ export function AddServiceAccountDialog({
             tokens: tokenResponse.token ? [tokenResponse.token] : []
           })
         );
+
+        if (tokenResponse.token) {
+          cacheFreshServiceUserToken(
+            queryClient,
+            serviceUserId,
+            tokenResponse.token
+          );
+        }
 
         toastManager.add({ title: 'Service account created', type: 'success' });
         handle.close();
