@@ -197,15 +197,12 @@ const (
 	// FrontierServiceListOrganizationUsersProcedure is the fully-qualified name of the
 	// FrontierService's ListOrganizationUsers RPC.
 	FrontierServiceListOrganizationUsersProcedure = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationUsers"
-	// FrontierServiceAddOrganizationUsersProcedure is the fully-qualified name of the FrontierService's
-	// AddOrganizationUsers RPC.
-	FrontierServiceAddOrganizationUsersProcedure = "/raystack.frontier.v1beta1.FrontierService/AddOrganizationUsers"
-	// FrontierServiceRemoveOrganizationUserProcedure is the fully-qualified name of the
-	// FrontierService's RemoveOrganizationUser RPC.
-	FrontierServiceRemoveOrganizationUserProcedure = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser"
 	// FrontierServiceSetOrganizationMemberRoleProcedure is the fully-qualified name of the
 	// FrontierService's SetOrganizationMemberRole RPC.
 	FrontierServiceSetOrganizationMemberRoleProcedure = "/raystack.frontier.v1beta1.FrontierService/SetOrganizationMemberRole"
+	// FrontierServiceRemoveOrganizationMemberProcedure is the fully-qualified name of the
+	// FrontierService's RemoveOrganizationMember RPC.
+	FrontierServiceRemoveOrganizationMemberProcedure = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationMember"
 	// FrontierServiceGetOrganizationKycProcedure is the fully-qualified name of the FrontierService's
 	// GetOrganizationKyc RPC.
 	FrontierServiceGetOrganizationKycProcedure = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationKyc"
@@ -525,12 +522,18 @@ const (
 	// FrontierServiceListBillingTransactionsProcedure is the fully-qualified name of the
 	// FrontierService's ListBillingTransactions RPC.
 	FrontierServiceListBillingTransactionsProcedure = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
+	// FrontierServiceSearchOrganizationTokensProcedure is the fully-qualified name of the
+	// FrontierService's SearchOrganizationTokens RPC.
+	FrontierServiceSearchOrganizationTokensProcedure = "/raystack.frontier.v1beta1.FrontierService/SearchOrganizationTokens"
 	// FrontierServiceTotalDebitedTransactionsProcedure is the fully-qualified name of the
 	// FrontierService's TotalDebitedTransactions RPC.
 	FrontierServiceTotalDebitedTransactionsProcedure = "/raystack.frontier.v1beta1.FrontierService/TotalDebitedTransactions"
 	// FrontierServiceListInvoicesProcedure is the fully-qualified name of the FrontierService's
 	// ListInvoices RPC.
 	FrontierServiceListInvoicesProcedure = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
+	// FrontierServiceSearchOrganizationInvoicesProcedure is the fully-qualified name of the
+	// FrontierService's SearchOrganizationInvoices RPC.
+	FrontierServiceSearchOrganizationInvoicesProcedure = "/raystack.frontier.v1beta1.FrontierService/SearchOrganizationInvoices"
 	// FrontierServiceGetUpcomingInvoiceProcedure is the fully-qualified name of the FrontierService's
 	// GetUpcomingInvoice RPC.
 	FrontierServiceGetUpcomingInvoiceProcedure = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
@@ -631,9 +634,8 @@ type FrontierServiceClient interface {
 	ListOrganizationProjects(context.Context, *connect.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect.Response[v1beta1.ListOrganizationProjectsResponse], error)
 	ListOrganizationAdmins(context.Context, *connect.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect.Response[v1beta1.ListOrganizationAdminsResponse], error)
 	ListOrganizationUsers(context.Context, *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error)
-	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
-	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
 	SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error)
+	RemoveOrganizationMember(context.Context, *connect.Request[v1beta1.RemoveOrganizationMemberRequest]) (*connect.Response[v1beta1.RemoveOrganizationMemberResponse], error)
 	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
@@ -762,9 +764,11 @@ type FrontierServiceClient interface {
 	// Transactions
 	CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error)
 	ListBillingTransactions(context.Context, *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error)
+	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error)
 	// Invoice
 	ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error)
+	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
 	GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error)
 	// Incoming Webhooks
 	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
@@ -1124,22 +1128,16 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationUsers")),
 			connect.WithClientOptions(opts...),
 		),
-		addOrganizationUsers: connect.NewClient[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse](
-			httpClient,
-			baseURL+FrontierServiceAddOrganizationUsersProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("AddOrganizationUsers")),
-			connect.WithClientOptions(opts...),
-		),
-		removeOrganizationUser: connect.NewClient[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse](
-			httpClient,
-			baseURL+FrontierServiceRemoveOrganizationUserProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationUser")),
-			connect.WithClientOptions(opts...),
-		),
 		setOrganizationMemberRole: connect.NewClient[v1beta1.SetOrganizationMemberRoleRequest, v1beta1.SetOrganizationMemberRoleResponse](
 			httpClient,
 			baseURL+FrontierServiceSetOrganizationMemberRoleProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("SetOrganizationMemberRole")),
+			connect.WithClientOptions(opts...),
+		),
+		removeOrganizationMember: connect.NewClient[v1beta1.RemoveOrganizationMemberRequest, v1beta1.RemoveOrganizationMemberResponse](
+			httpClient,
+			baseURL+FrontierServiceRemoveOrganizationMemberProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationMember")),
 			connect.WithClientOptions(opts...),
 		),
 		getOrganizationKyc: connect.NewClient[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse](
@@ -1784,6 +1782,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("ListBillingTransactions")),
 			connect.WithClientOptions(opts...),
 		),
+		searchOrganizationTokens: connect.NewClient[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse](
+			httpClient,
+			baseURL+FrontierServiceSearchOrganizationTokensProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("SearchOrganizationTokens")),
+			connect.WithClientOptions(opts...),
+		),
 		totalDebitedTransactions: connect.NewClient[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse](
 			httpClient,
 			baseURL+FrontierServiceTotalDebitedTransactionsProcedure,
@@ -1794,6 +1798,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceListInvoicesProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("ListInvoices")),
+			connect.WithClientOptions(opts...),
+		),
+		searchOrganizationInvoices: connect.NewClient[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse](
+			httpClient,
+			baseURL+FrontierServiceSearchOrganizationInvoicesProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("SearchOrganizationInvoices")),
 			connect.WithClientOptions(opts...),
 		),
 		getUpcomingInvoice: connect.NewClient[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse](
@@ -1928,9 +1938,8 @@ type frontierServiceClient struct {
 	listOrganizationProjects       *connect.Client[v1beta1.ListOrganizationProjectsRequest, v1beta1.ListOrganizationProjectsResponse]
 	listOrganizationAdmins         *connect.Client[v1beta1.ListOrganizationAdminsRequest, v1beta1.ListOrganizationAdminsResponse]
 	listOrganizationUsers          *connect.Client[v1beta1.ListOrganizationUsersRequest, v1beta1.ListOrganizationUsersResponse]
-	addOrganizationUsers           *connect.Client[v1beta1.AddOrganizationUsersRequest, v1beta1.AddOrganizationUsersResponse]
-	removeOrganizationUser         *connect.Client[v1beta1.RemoveOrganizationUserRequest, v1beta1.RemoveOrganizationUserResponse]
 	setOrganizationMemberRole      *connect.Client[v1beta1.SetOrganizationMemberRoleRequest, v1beta1.SetOrganizationMemberRoleResponse]
+	removeOrganizationMember       *connect.Client[v1beta1.RemoveOrganizationMemberRequest, v1beta1.RemoveOrganizationMemberResponse]
 	getOrganizationKyc             *connect.Client[v1beta1.GetOrganizationKycRequest, v1beta1.GetOrganizationKycResponse]
 	listOrganizationServiceUsers   *connect.Client[v1beta1.ListOrganizationServiceUsersRequest, v1beta1.ListOrganizationServiceUsersResponse]
 	listOrganizationInvitations    *connect.Client[v1beta1.ListOrganizationInvitationsRequest, v1beta1.ListOrganizationInvitationsResponse]
@@ -2038,8 +2047,10 @@ type frontierServiceClient struct {
 	checkCreditEntitlement         *connect.Client[v1beta1.CheckCreditEntitlementRequest, v1beta1.CheckCreditEntitlementResponse]
 	createBillingUsage             *connect.Client[v1beta1.CreateBillingUsageRequest, v1beta1.CreateBillingUsageResponse]
 	listBillingTransactions        *connect.Client[v1beta1.ListBillingTransactionsRequest, v1beta1.ListBillingTransactionsResponse]
+	searchOrganizationTokens       *connect.Client[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse]
 	totalDebitedTransactions       *connect.Client[v1beta1.TotalDebitedTransactionsRequest, v1beta1.TotalDebitedTransactionsResponse]
 	listInvoices                   *connect.Client[v1beta1.ListInvoicesRequest, v1beta1.ListInvoicesResponse]
+	searchOrganizationInvoices     *connect.Client[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse]
 	getUpcomingInvoice             *connect.Client[v1beta1.GetUpcomingInvoiceRequest, v1beta1.GetUpcomingInvoiceResponse]
 	billingWebhookCallback         *connect.Client[v1beta1.BillingWebhookCallbackRequest, v1beta1.BillingWebhookCallbackResponse]
 	createProspectPublic           *connect.Client[v1beta1.CreateProspectPublicRequest, v1beta1.CreateProspectPublicResponse]
@@ -2336,20 +2347,16 @@ func (c *frontierServiceClient) ListOrganizationUsers(ctx context.Context, req *
 	return c.listOrganizationUsers.CallUnary(ctx, req)
 }
 
-// AddOrganizationUsers calls raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers.
-func (c *frontierServiceClient) AddOrganizationUsers(ctx context.Context, req *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error) {
-	return c.addOrganizationUsers.CallUnary(ctx, req)
-}
-
-// RemoveOrganizationUser calls raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser.
-func (c *frontierServiceClient) RemoveOrganizationUser(ctx context.Context, req *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error) {
-	return c.removeOrganizationUser.CallUnary(ctx, req)
-}
-
 // SetOrganizationMemberRole calls
 // raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole.
 func (c *frontierServiceClient) SetOrganizationMemberRole(ctx context.Context, req *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error) {
 	return c.setOrganizationMemberRole.CallUnary(ctx, req)
+}
+
+// RemoveOrganizationMember calls
+// raystack.frontier.v1beta1.FrontierService.RemoveOrganizationMember.
+func (c *frontierServiceClient) RemoveOrganizationMember(ctx context.Context, req *connect.Request[v1beta1.RemoveOrganizationMemberRequest]) (*connect.Response[v1beta1.RemoveOrganizationMemberResponse], error) {
+	return c.removeOrganizationMember.CallUnary(ctx, req)
 }
 
 // GetOrganizationKyc calls raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc.
@@ -2901,6 +2908,12 @@ func (c *frontierServiceClient) ListBillingTransactions(ctx context.Context, req
 	return c.listBillingTransactions.CallUnary(ctx, req)
 }
 
+// SearchOrganizationTokens calls
+// raystack.frontier.v1beta1.FrontierService.SearchOrganizationTokens.
+func (c *frontierServiceClient) SearchOrganizationTokens(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
+	return c.searchOrganizationTokens.CallUnary(ctx, req)
+}
+
 // TotalDebitedTransactions calls
 // raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions.
 func (c *frontierServiceClient) TotalDebitedTransactions(ctx context.Context, req *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error) {
@@ -2910,6 +2923,12 @@ func (c *frontierServiceClient) TotalDebitedTransactions(ctx context.Context, re
 // ListInvoices calls raystack.frontier.v1beta1.FrontierService.ListInvoices.
 func (c *frontierServiceClient) ListInvoices(ctx context.Context, req *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error) {
 	return c.listInvoices.CallUnary(ctx, req)
+}
+
+// SearchOrganizationInvoices calls
+// raystack.frontier.v1beta1.FrontierService.SearchOrganizationInvoices.
+func (c *frontierServiceClient) SearchOrganizationInvoices(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
+	return c.searchOrganizationInvoices.CallUnary(ctx, req)
 }
 
 // GetUpcomingInvoice calls raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice.
@@ -3037,9 +3056,8 @@ type FrontierServiceHandler interface {
 	ListOrganizationProjects(context.Context, *connect.Request[v1beta1.ListOrganizationProjectsRequest]) (*connect.Response[v1beta1.ListOrganizationProjectsResponse], error)
 	ListOrganizationAdmins(context.Context, *connect.Request[v1beta1.ListOrganizationAdminsRequest]) (*connect.Response[v1beta1.ListOrganizationAdminsResponse], error)
 	ListOrganizationUsers(context.Context, *connect.Request[v1beta1.ListOrganizationUsersRequest]) (*connect.Response[v1beta1.ListOrganizationUsersResponse], error)
-	AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error)
-	RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error)
 	SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error)
+	RemoveOrganizationMember(context.Context, *connect.Request[v1beta1.RemoveOrganizationMemberRequest]) (*connect.Response[v1beta1.RemoveOrganizationMemberResponse], error)
 	GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.ListOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.ListOrganizationServiceUsersResponse], error)
@@ -3168,9 +3186,11 @@ type FrontierServiceHandler interface {
 	// Transactions
 	CreateBillingUsage(context.Context, *connect.Request[v1beta1.CreateBillingUsageRequest]) (*connect.Response[v1beta1.CreateBillingUsageResponse], error)
 	ListBillingTransactions(context.Context, *connect.Request[v1beta1.ListBillingTransactionsRequest]) (*connect.Response[v1beta1.ListBillingTransactionsResponse], error)
+	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error)
 	// Invoice
 	ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error)
+	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
 	GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error)
 	// Incoming Webhooks
 	BillingWebhookCallback(context.Context, *connect.Request[v1beta1.BillingWebhookCallbackRequest]) (*connect.Response[v1beta1.BillingWebhookCallbackResponse], error)
@@ -3526,22 +3546,16 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("ListOrganizationUsers")),
 		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceAddOrganizationUsersHandler := connect.NewUnaryHandler(
-		FrontierServiceAddOrganizationUsersProcedure,
-		svc.AddOrganizationUsers,
-		connect.WithSchema(frontierServiceMethods.ByName("AddOrganizationUsers")),
-		connect.WithHandlerOptions(opts...),
-	)
-	frontierServiceRemoveOrganizationUserHandler := connect.NewUnaryHandler(
-		FrontierServiceRemoveOrganizationUserProcedure,
-		svc.RemoveOrganizationUser,
-		connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationUser")),
-		connect.WithHandlerOptions(opts...),
-	)
 	frontierServiceSetOrganizationMemberRoleHandler := connect.NewUnaryHandler(
 		FrontierServiceSetOrganizationMemberRoleProcedure,
 		svc.SetOrganizationMemberRole,
 		connect.WithSchema(frontierServiceMethods.ByName("SetOrganizationMemberRole")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceRemoveOrganizationMemberHandler := connect.NewUnaryHandler(
+		FrontierServiceRemoveOrganizationMemberProcedure,
+		svc.RemoveOrganizationMember,
+		connect.WithSchema(frontierServiceMethods.ByName("RemoveOrganizationMember")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceGetOrganizationKycHandler := connect.NewUnaryHandler(
@@ -4186,6 +4200,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("ListBillingTransactions")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceSearchOrganizationTokensHandler := connect.NewUnaryHandler(
+		FrontierServiceSearchOrganizationTokensProcedure,
+		svc.SearchOrganizationTokens,
+		connect.WithSchema(frontierServiceMethods.ByName("SearchOrganizationTokens")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceTotalDebitedTransactionsHandler := connect.NewUnaryHandler(
 		FrontierServiceTotalDebitedTransactionsProcedure,
 		svc.TotalDebitedTransactions,
@@ -4196,6 +4216,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceListInvoicesProcedure,
 		svc.ListInvoices,
 		connect.WithSchema(frontierServiceMethods.ByName("ListInvoices")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceSearchOrganizationInvoicesHandler := connect.NewUnaryHandler(
+		FrontierServiceSearchOrganizationInvoicesProcedure,
+		svc.SearchOrganizationInvoices,
+		connect.WithSchema(frontierServiceMethods.ByName("SearchOrganizationInvoices")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceGetUpcomingInvoiceHandler := connect.NewUnaryHandler(
@@ -4382,12 +4408,10 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceListOrganizationAdminsHandler.ServeHTTP(w, r)
 		case FrontierServiceListOrganizationUsersProcedure:
 			frontierServiceListOrganizationUsersHandler.ServeHTTP(w, r)
-		case FrontierServiceAddOrganizationUsersProcedure:
-			frontierServiceAddOrganizationUsersHandler.ServeHTTP(w, r)
-		case FrontierServiceRemoveOrganizationUserProcedure:
-			frontierServiceRemoveOrganizationUserHandler.ServeHTTP(w, r)
 		case FrontierServiceSetOrganizationMemberRoleProcedure:
 			frontierServiceSetOrganizationMemberRoleHandler.ServeHTTP(w, r)
+		case FrontierServiceRemoveOrganizationMemberProcedure:
+			frontierServiceRemoveOrganizationMemberHandler.ServeHTTP(w, r)
 		case FrontierServiceGetOrganizationKycProcedure:
 			frontierServiceGetOrganizationKycHandler.ServeHTTP(w, r)
 		case FrontierServiceListOrganizationServiceUsersProcedure:
@@ -4602,10 +4626,14 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceCreateBillingUsageHandler.ServeHTTP(w, r)
 		case FrontierServiceListBillingTransactionsProcedure:
 			frontierServiceListBillingTransactionsHandler.ServeHTTP(w, r)
+		case FrontierServiceSearchOrganizationTokensProcedure:
+			frontierServiceSearchOrganizationTokensHandler.ServeHTTP(w, r)
 		case FrontierServiceTotalDebitedTransactionsProcedure:
 			frontierServiceTotalDebitedTransactionsHandler.ServeHTTP(w, r)
 		case FrontierServiceListInvoicesProcedure:
 			frontierServiceListInvoicesHandler.ServeHTTP(w, r)
+		case FrontierServiceSearchOrganizationInvoicesProcedure:
+			frontierServiceSearchOrganizationInvoicesHandler.ServeHTTP(w, r)
 		case FrontierServiceGetUpcomingInvoiceProcedure:
 			frontierServiceGetUpcomingInvoiceHandler.ServeHTTP(w, r)
 		case FrontierServiceBillingWebhookCallbackProcedure:
@@ -4859,16 +4887,12 @@ func (UnimplementedFrontierServiceHandler) ListOrganizationUsers(context.Context
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) AddOrganizationUsers(context.Context, *connect.Request[v1beta1.AddOrganizationUsersRequest]) (*connect.Response[v1beta1.AddOrganizationUsersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AddOrganizationUsers is not implemented"))
-}
-
-func (UnimplementedFrontierServiceHandler) RemoveOrganizationUser(context.Context, *connect.Request[v1beta1.RemoveOrganizationUserRequest]) (*connect.Response[v1beta1.RemoveOrganizationUserResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveOrganizationUser is not implemented"))
-}
-
 func (UnimplementedFrontierServiceHandler) SetOrganizationMemberRole(context.Context, *connect.Request[v1beta1.SetOrganizationMemberRoleRequest]) (*connect.Response[v1beta1.SetOrganizationMemberRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) RemoveOrganizationMember(context.Context, *connect.Request[v1beta1.RemoveOrganizationMemberRequest]) (*connect.Response[v1beta1.RemoveOrganizationMemberResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.RemoveOrganizationMember is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) GetOrganizationKyc(context.Context, *connect.Request[v1beta1.GetOrganizationKycRequest]) (*connect.Response[v1beta1.GetOrganizationKycResponse], error) {
@@ -5299,12 +5323,20 @@ func (UnimplementedFrontierServiceHandler) ListBillingTransactions(context.Conte
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListBillingTransactions is not implemented"))
 }
 
+func (UnimplementedFrontierServiceHandler) SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SearchOrganizationTokens is not implemented"))
+}
+
 func (UnimplementedFrontierServiceHandler) TotalDebitedTransactions(context.Context, *connect.Request[v1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[v1beta1.TotalDebitedTransactionsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) ListInvoices(context.Context, *connect.Request[v1beta1.ListInvoicesRequest]) (*connect.Response[v1beta1.ListInvoicesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListInvoices is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SearchOrganizationInvoices is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) GetUpcomingInvoice(context.Context, *connect.Request[v1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[v1beta1.GetUpcomingInvoiceResponse], error) {

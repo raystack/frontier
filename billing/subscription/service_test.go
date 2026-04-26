@@ -3,6 +3,7 @@ package subscription_test
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -61,7 +62,7 @@ func TestService_GetByID(t *testing.T) {
 				tt.setup(mockRepo)
 			}
 
-			svc := subscription.NewService(nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
+			svc := subscription.NewService(slog.Default(), nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
 			got, err := svc.GetByID(context.Background(), tt.id)
 
 			if tt.wantErr != nil {
@@ -160,7 +161,7 @@ func TestService_Cancel(t *testing.T) {
 				}).Return(nil)
 			}
 
-			svc := subscription.NewService(stripeClient, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
+			svc := subscription.NewService(slog.Default(), stripeClient, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
 			_, err := svc.Cancel(context.Background(), tt.id, tt.immediate)
 
 			if tt.wantErr != nil {
@@ -238,7 +239,7 @@ func TestService_ChangePlan(t *testing.T) {
 				tt.setup(mockRepo, mockPlanSvc, mockCustomerSvc, mockOrgSvc)
 			}
 
-			svc := subscription.NewService(nil, billing.Config{}, mockRepo, mockCustomerSvc, mockPlanSvc, mockOrgSvc, nil, nil)
+			svc := subscription.NewService(slog.Default(), nil, billing.Config{}, mockRepo, mockCustomerSvc, mockPlanSvc, mockOrgSvc, nil, nil)
 			got, err := svc.ChangePlan(context.Background(), tt.id, tt.change)
 
 			if tt.wantErr != nil {
@@ -452,6 +453,7 @@ func TestService_SyncWithProvider(t *testing.T) {
 			}
 
 			svc := subscription.NewService(
+				slog.Default(),
 				stripeClient,
 				billing.Config{
 					ProductConfig: billing.ProductConfig{
@@ -556,7 +558,7 @@ func TestService_HasUserSubscribedBefore(t *testing.T) {
 				tt.setup(mockRepo)
 			}
 
-			svc := subscription.NewService(nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
+			svc := subscription.NewService(slog.Default(), nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
 			got, err := svc.HasUserSubscribedBefore(context.Background(), tt.customerID, tt.planID)
 
 			if tt.wantErr != nil {
@@ -632,7 +634,7 @@ func TestService_Create(t *testing.T) {
 				tt.setup(mockRepo)
 			}
 
-			svc := subscription.NewService(nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
+			svc := subscription.NewService(slog.Default(), nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
 			got, err := svc.Create(context.Background(), tt.sub)
 
 			if tt.wantErr != nil {
@@ -714,7 +716,7 @@ func TestService_List(t *testing.T) {
 				tt.setup(mockRepo)
 			}
 
-			svc := subscription.NewService(nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
+			svc := subscription.NewService(slog.Default(), nil, billing.Config{}, mockRepo, nil, nil, nil, nil, nil)
 			got, err := svc.List(context.Background(), tt.filter)
 
 			if tt.wantErr != nil {
@@ -767,7 +769,7 @@ func TestService_DeleteByCustomer(t *testing.T) {
 				tt.setup(mockRepo, mockBackend, mockPlanSvc, mockProdSvc)
 			}
 
-			svc := subscription.NewService(stripeClient, billing.Config{}, mockRepo, nil, mockPlanSvc, nil, mockProdSvc, nil)
+			svc := subscription.NewService(slog.Default(), stripeClient, billing.Config{}, mockRepo, nil, mockPlanSvc, nil, mockProdSvc, nil)
 			err := svc.DeleteByCustomer(context.Background(), tt.cust)
 
 			if tt.wantErr != nil {
@@ -799,7 +801,7 @@ func TestService_Init(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := subscription.NewService(nil, tt.config, nil, nil, nil, nil, nil, nil)
+			svc := subscription.NewService(slog.Default(), nil, tt.config, nil, nil, nil, nil, nil, nil)
 			err := svc.Init(context.Background())
 
 			if tt.wantErr != nil {

@@ -37,12 +37,14 @@ export { SessionsView } from './views-new/sessions';
 export { MembersView } from './views-new/members';
 export { SecurityView } from './views-new/security';
 export { ProjectsView, ProjectDetailsView } from './views-new/projects';
+export { BillingView } from './views-new/billing';
 export { TokensView } from './views-new/tokens';
 export { TeamsView, TeamDetailsView } from './views-new/teams';
 export {
   ServiceAccountsView,
   ServiceAccountDetailsView
 } from './views-new/service-accounts';
+export { PlansView } from './views-new/plans';
 export { PatsView, PATDetailsView } from './views-new/pat';
 
 export type {

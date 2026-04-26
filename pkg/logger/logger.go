@@ -2,68 +2,84 @@ package logger
 
 import (
 	"context"
+	"log/slog"
 	"os"
-
-	"github.com/raystack/frontier/pkg/server/consts"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-
-	"github.com/raystack/salt/log"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-func InitLogger(cfg Config) *log.Zap {
-	zapCfg := zap.NewProductionConfig()
-	zapCfg.Level = zap.NewAtomicLevelAt(atomicLevel(cfg.Level))
-	zapCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	zapCfg.DisableCaller = true
-	zapCfg.DisableStacktrace = true
-	consoleEncoder := zapcore.NewConsoleEncoder(zapCfg.EncoderConfig)
+type attrsKey struct{}
 
-	opt := log.ZapWithConfig(zapCfg, zap.WrapCore(func(c zapcore.Core) zapcore.Core {
-		return zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), zapCfg.Level)
-	}))
-
-	logger := log.NewZap(opt)
-	return logger
+// AppendCtx stores slog attributes in context for the ContextHandler to extract.
+// It copies the existing slice to avoid mutating a parent context's backing array
+// when multiple goroutines fork from the same context.
+func AppendCtx(ctx context.Context, attrs ...slog.Attr) context.Context {
+	existing, _ := ctx.Value(attrsKey{}).([]slog.Attr)
+	merged := make([]slog.Attr, len(existing), len(existing)+len(attrs))
+	copy(merged, existing)
+	merged = append(merged, attrs...)
+	return context.WithValue(ctx, attrsKey{}, merged)
 }
 
-func Ctx(ctx context.Context) *zap.Logger {
-	return grpczap.Extract(ctx)
+// ContextHandler wraps any slog.Handler and auto-appends attributes stored
+// in the context via AppendCtx. This enables request-scoped fields (request_id,
+// method, etc.) to appear in every log line without passing them explicitly.
+type ContextHandler struct {
+	inner slog.Handler
 }
 
-func atomicLevel(level string) zapcore.Level {
-	switch level {
-	case "info":
-		return zap.InfoLevel
-	case "debug":
-		return zap.DebugLevel
-	case "warn":
-		return zap.WarnLevel
-	case "error":
-		return zap.ErrorLevel
-	case "fatal":
-		return zap.FatalLevel
-	default:
-		return zap.InfoLevel
-	}
+func NewContextHandler(inner slog.Handler) *ContextHandler {
+	return &ContextHandler{inner: inner}
 }
 
-func RequestLogFunc(ctx context.Context, msg string, level zapcore.Level, code codes.Code, err error, duration zapcore.Field) {
-	requestID := ""
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if values := md.Get(consts.RequestIDHeader); len(values) > 0 && values[0] != "" {
-			requestID = values[0]
+func (h *ContextHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	return h.inner.Enabled(ctx, level)
+}
+
+func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
+	if attrs, ok := ctx.Value(attrsKey{}).([]slog.Attr); ok {
+		for _, a := range attrs {
+			r.AddAttrs(a)
 		}
 	}
-	// re-extract logger from newCtx, as it may have extra fields that changed in the holder.
-	grpczap.Extract(ctx).Check(level, msg).Write(
-		zap.Error(err),
-		zap.String("grpc.code", code.String()),
-		zap.String(consts.RequestIDHeader, requestID),
-		duration,
-	)
+	return h.inner.Handle(ctx, r)
+}
+
+func (h *ContextHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &ContextHandler{inner: h.inner.WithAttrs(attrs)}
+}
+
+func (h *ContextHandler) WithGroup(name string) slog.Handler {
+	return &ContextHandler{inner: h.inner.WithGroup(name)}
+}
+
+func InitLogger(cfg Config) *slog.Logger {
+	level := parseLevel(cfg.Level)
+	opts := &slog.HandlerOptions{Level: level}
+
+	var handler slog.Handler
+	switch cfg.Format {
+	case "plain", "text":
+		handler = slog.NewTextHandler(os.Stdout, opts)
+	default:
+		handler = slog.NewJSONHandler(os.Stdout, opts)
+	}
+	return slog.New(NewContextHandler(handler))
+}
+
+// Fatal logs at error level and exits.
+func Fatal(logger *slog.Logger, msg string, args ...any) {
+	logger.Error(msg, args...)
+	os.Exit(1)
+}
+
+func parseLevel(level string) slog.Level {
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "warn", "warning":
+		return slog.LevelWarn
+	case "error", "fatal":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }

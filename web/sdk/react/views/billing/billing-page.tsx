@@ -86,7 +86,7 @@ interface BillingDetailsProps {
 
 const BillingDetails = ({
   billingAccount,
-  onAddDetailsClick = () => {},
+  onAddDetailsClick = () => { },
   isLoading,
   isAllowed,
   disabled = false
@@ -105,7 +105,7 @@ const BillingDetails = ({
             disabled={!isButtonDisabled}
           >
             <Button
-              data-test-id="frontier-sdk-billing-details-update-button"
+              data-test-id="frontier-sdk-billing-card-update-button"
               variant="outline"
               color="neutral"
               size="small"
@@ -272,38 +272,38 @@ export default function BillingPage({ onNavigateToPlans }: BillingPageProps) {
         </Flex>
         <Flex direction="column" gap={9}>
           <Flex direction="column" gap={7}>
-          <PaymentIssue
-            isLoading={isLoading}
-            subscription={activeSubscription}
-            invoices={invoices}
-          />
+            <PaymentIssue
+              isLoading={isLoading}
+              subscription={activeSubscription}
+              invoices={invoices}
+            />
 
-          <UpcomingPlanChangeBanner
-            isLoading={isLoading}
-            subscription={activeSubscription}
-            isAllowed={isAllowed}
-          />
-          <Flex gap={7}>
-            <PaymentMethod
-              paymentMethod={paymentMethod}
+            <UpcomingPlanChangeBanner
               isLoading={isLoading}
+              subscription={activeSubscription}
               isAllowed={isAllowed}
             />
-            <BillingDetails
-              billingAccount={billingAccount}
-              onAddDetailsClick={onAddDetailsClick}
-              isLoading={isLoading}
+            <Flex gap={7}>
+              <PaymentMethod
+                paymentMethod={paymentMethod}
+                isLoading={isLoading}
+                isAllowed={isAllowed}
+              />
+              <BillingDetails
+                billingAccount={billingAccount}
+                onAddDetailsClick={onAddDetailsClick}
+                isLoading={isLoading}
+                isAllowed={isAllowed}
+                disabled={isOrganizationKycCompleted}
+              />
+            </Flex>
+            <UpcomingBillingCycle
               isAllowed={isAllowed}
-              disabled={isOrganizationKycCompleted}
+              isPermissionLoading={isFetching}
+              onCycleSwitchClick={handleCycleSwitchClick}
+              onNavigateToPlans={onNavigateToPlans}
             />
-          </Flex>
-          <UpcomingBillingCycle
-            isAllowed={isAllowed}
-            isPermissionLoading={isFetching}
-            onCycleSwitchClick={handleCycleSwitchClick}
-            onNavigateToPlans={onNavigateToPlans}
-          />
-          <Invoices invoices={invoices} isLoading={isLoading} />
+            <Invoices invoices={invoices} isLoading={isLoading} />
           </Flex>
         </Flex>
       </Flex>

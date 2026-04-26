@@ -8,7 +8,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -46,8 +45,8 @@ func (h *ConnectHandler) CreatePreferences(ctx context.Context, req *connect.Req
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreatePreferences", err,
-				zap.String("preference_name", prefBody.GetName()),
-				zap.String("preference_value", prefBody.GetValue()))
+				"preference_name", prefBody.GetName(),
+				"preference_value", prefBody.GetValue())
 			return nil, handlePreferenceError(err)
 		}
 		createdPreferences = append(createdPreferences, pref)
@@ -76,9 +75,9 @@ func (h *ConnectHandler) CreateOrganizationPreferences(ctx context.Context, req 
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreateOrganizationPreferences", err,
-				zap.String("organization_id", req.Msg.GetId()),
-				zap.String("preference_name", prefBody.GetName()),
-				zap.String("preference_value", prefBody.GetValue()))
+				"organization_id", req.Msg.GetId(),
+				"preference_name", prefBody.GetName(),
+				"preference_value", prefBody.GetValue())
 			return nil, handlePreferenceError(err)
 		}
 		createdPreferences = append(createdPreferences, pref)
@@ -102,7 +101,7 @@ func (h *ConnectHandler) ListOrganizationPreferences(ctx context.Context, req *c
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListOrganizationPreferences", err,
-			zap.String("organization_id", req.Msg.GetId()))
+			"organization_id", req.Msg.GetId())
 		return nil, handlePreferenceError(err)
 	}
 
@@ -131,9 +130,9 @@ func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreateUserPreferences", err,
-				zap.String("user_id", req.Msg.GetId()),
-				zap.String("preference_name", prefBody.GetName()),
-				zap.String("preference_value", prefBody.GetValue()))
+				"user_id", req.Msg.GetId(),
+				"preference_name", prefBody.GetName(),
+				"preference_value", prefBody.GetValue())
 			return nil, handlePreferenceError(err)
 		}
 		createdPreferences = append(createdPreferences, pref)
@@ -163,7 +162,7 @@ func (h *ConnectHandler) ListUserPreferences(ctx context.Context, req *connect.R
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListUserPreferences", err,
-			zap.String("user_id", req.Msg.GetId()))
+			"user_id", req.Msg.GetId())
 		return nil, handlePreferenceError(err)
 	}
 
@@ -198,10 +197,10 @@ func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *
 		})
 		if err != nil {
 			errorLogger.LogServiceError(ctx, req, "CreateCurrentUserPreferences", err,
-				zap.String("principal_id", principal.ID),
-				zap.String("principal_type", principal.Type),
-				zap.String("preference_name", prefBody.GetName()),
-				zap.String("preference_value", prefBody.GetValue()))
+				"principal_id", principal.ID,
+				"principal_type", principal.Type,
+				"preference_name", prefBody.GetName(),
+				"preference_value", prefBody.GetValue())
 			return nil, handlePreferenceError(err)
 		}
 		createdPreferences = append(createdPreferences, pref)
@@ -237,8 +236,8 @@ func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *co
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListCurrentUserPreferences", err,
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type))
+			"principal_id", principal.ID,
+			"principal_type", principal.Type)
 		return nil, handlePreferenceError(err)
 	}
 

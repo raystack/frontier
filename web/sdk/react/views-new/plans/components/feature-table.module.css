@@ -1,0 +1,45 @@
+.table {
+  display: flex;
+  width: 100%;
+}
+
+.featureColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.planColumn {
+  display: flex;
+  flex-direction: column;
+  width: 272px;
+  min-width: 272px;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  gap: var(--rs-space-3);
+  height: 48px;
+  padding: 0 var(--rs-space-3);
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
+  box-sizing: border-box;
+}
+
+.featureLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valueCell {
+  justify-content: center;
+}
+
+.checkIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}

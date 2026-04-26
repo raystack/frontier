@@ -48,6 +48,9 @@ const (
 	// AdminServiceAdminCreateOrganizationProcedure is the fully-qualified name of the AdminService's
 	// AdminCreateOrganization RPC.
 	AdminServiceAdminCreateOrganizationProcedure = "/raystack.frontier.v1beta1.AdminService/AdminCreateOrganization"
+	// AdminServiceAddOrganizationMembersProcedure is the fully-qualified name of the AdminService's
+	// AddOrganizationMembers RPC.
+	AdminServiceAddOrganizationMembersProcedure = "/raystack.frontier.v1beta1.AdminService/AddOrganizationMembers"
 	// AdminServiceSearchOrganizationsProcedure is the fully-qualified name of the AdminService's
 	// SearchOrganizations RPC.
 	AdminServiceSearchOrganizationsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizations"
@@ -60,12 +63,6 @@ const (
 	// AdminServiceSearchOrganizationProjectsProcedure is the fully-qualified name of the AdminService's
 	// SearchOrganizationProjects RPC.
 	AdminServiceSearchOrganizationProjectsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
-	// AdminServiceSearchOrganizationInvoicesProcedure is the fully-qualified name of the AdminService's
-	// SearchOrganizationInvoices RPC.
-	AdminServiceSearchOrganizationInvoicesProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices"
-	// AdminServiceSearchOrganizationTokensProcedure is the fully-qualified name of the AdminService's
-	// SearchOrganizationTokens RPC.
-	AdminServiceSearchOrganizationTokensProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens"
 	// AdminServiceSearchOrganizationServiceUserCredentialsProcedure is the fully-qualified name of the
 	// AdminService's SearchOrganizationServiceUserCredentials RPC.
 	AdminServiceSearchOrganizationServiceUserCredentialsProcedure = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUserCredentials"
@@ -228,12 +225,11 @@ type AdminServiceClient interface {
 	// Organizations
 	ListAllOrganizations(context.Context, *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error)
 	AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error)
+	AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error)
 	SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error)
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
 	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
-	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -360,6 +356,12 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(adminServiceMethods.ByName("AdminCreateOrganization")),
 			connect.WithClientOptions(opts...),
 		),
+		addOrganizationMembers: connect.NewClient[v1beta1.AddOrganizationMembersRequest, v1beta1.AddOrganizationMembersResponse](
+			httpClient,
+			baseURL+AdminServiceAddOrganizationMembersProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("AddOrganizationMembers")),
+			connect.WithClientOptions(opts...),
+		),
 		searchOrganizations: connect.NewClient[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse](
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationsProcedure,
@@ -382,18 +384,6 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AdminServiceSearchOrganizationProjectsProcedure,
 			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
-			connect.WithClientOptions(opts...),
-		),
-		searchOrganizationInvoices: connect.NewClient[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse](
-			httpClient,
-			baseURL+AdminServiceSearchOrganizationInvoicesProcedure,
-			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationInvoices")),
-			connect.WithClientOptions(opts...),
-		),
-		searchOrganizationTokens: connect.NewClient[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse](
-			httpClient,
-			baseURL+AdminServiceSearchOrganizationTokensProcedure,
-			connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationTokens")),
 			connect.WithClientOptions(opts...),
 		),
 		searchOrganizationServiceUserCredentials: connect.NewClient[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse](
@@ -712,12 +702,11 @@ type adminServiceClient struct {
 	listGroups                               *connect.Client[v1beta1.ListGroupsRequest, v1beta1.ListGroupsResponse]
 	listAllOrganizations                     *connect.Client[v1beta1.ListAllOrganizationsRequest, v1beta1.ListAllOrganizationsResponse]
 	adminCreateOrganization                  *connect.Client[v1beta1.AdminCreateOrganizationRequest, v1beta1.AdminCreateOrganizationResponse]
+	addOrganizationMembers                   *connect.Client[v1beta1.AddOrganizationMembersRequest, v1beta1.AddOrganizationMembersResponse]
 	searchOrganizations                      *connect.Client[v1beta1.SearchOrganizationsRequest, v1beta1.SearchOrganizationsResponse]
 	searchOrganizationUsers                  *connect.Client[v1beta1.SearchOrganizationUsersRequest, v1beta1.SearchOrganizationUsersResponse]
 	searchProjectUsers                       *connect.Client[v1beta1.SearchProjectUsersRequest, v1beta1.SearchProjectUsersResponse]
 	searchOrganizationProjects               *connect.Client[v1beta1.SearchOrganizationProjectsRequest, v1beta1.SearchOrganizationProjectsResponse]
-	searchOrganizationInvoices               *connect.Client[v1beta1.SearchOrganizationInvoicesRequest, v1beta1.SearchOrganizationInvoicesResponse]
-	searchOrganizationTokens                 *connect.Client[v1beta1.SearchOrganizationTokensRequest, v1beta1.SearchOrganizationTokensResponse]
 	searchOrganizationServiceUserCredentials *connect.Client[v1beta1.SearchOrganizationServiceUserCredentialsRequest, v1beta1.SearchOrganizationServiceUserCredentialsResponse]
 	searchOrganizationServiceUsers           *connect.Client[v1beta1.SearchOrganizationServiceUsersRequest, v1beta1.SearchOrganizationServiceUsersResponse]
 	exportOrganizations                      *connect.Client[v1beta1.ExportOrganizationsRequest, httpbody.HttpBody]
@@ -796,6 +785,11 @@ func (c *adminServiceClient) AdminCreateOrganization(ctx context.Context, req *c
 	return c.adminCreateOrganization.CallUnary(ctx, req)
 }
 
+// AddOrganizationMembers calls raystack.frontier.v1beta1.AdminService.AddOrganizationMembers.
+func (c *adminServiceClient) AddOrganizationMembers(ctx context.Context, req *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error) {
+	return c.addOrganizationMembers.CallUnary(ctx, req)
+}
+
 // SearchOrganizations calls raystack.frontier.v1beta1.AdminService.SearchOrganizations.
 func (c *adminServiceClient) SearchOrganizations(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error) {
 	return c.searchOrganizations.CallUnary(ctx, req)
@@ -815,17 +809,6 @@ func (c *adminServiceClient) SearchProjectUsers(ctx context.Context, req *connec
 // raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects.
 func (c *adminServiceClient) SearchOrganizationProjects(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
 	return c.searchOrganizationProjects.CallUnary(ctx, req)
-}
-
-// SearchOrganizationInvoices calls
-// raystack.frontier.v1beta1.AdminService.SearchOrganizationInvoices.
-func (c *adminServiceClient) SearchOrganizationInvoices(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
-	return c.searchOrganizationInvoices.CallUnary(ctx, req)
-}
-
-// SearchOrganizationTokens calls raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens.
-func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, req *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
-	return c.searchOrganizationTokens.CallUnary(ctx, req)
 }
 
 // SearchOrganizationServiceUserCredentials calls
@@ -1101,12 +1084,11 @@ type AdminServiceHandler interface {
 	// Organizations
 	ListAllOrganizations(context.Context, *connect.Request[v1beta1.ListAllOrganizationsRequest]) (*connect.Response[v1beta1.ListAllOrganizationsResponse], error)
 	AdminCreateOrganization(context.Context, *connect.Request[v1beta1.AdminCreateOrganizationRequest]) (*connect.Response[v1beta1.AdminCreateOrganizationResponse], error)
+	AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error)
 	SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error)
 	SearchOrganizationUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationUsersResponse], error)
 	SearchProjectUsers(context.Context, *connect.Request[v1beta1.SearchProjectUsersRequest]) (*connect.Response[v1beta1.SearchProjectUsersResponse], error)
 	SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error)
-	SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error)
-	SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error)
 	SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error)
 	SearchOrganizationServiceUsers(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUsersResponse], error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -1229,6 +1211,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(adminServiceMethods.ByName("AdminCreateOrganization")),
 		connect.WithHandlerOptions(opts...),
 	)
+	adminServiceAddOrganizationMembersHandler := connect.NewUnaryHandler(
+		AdminServiceAddOrganizationMembersProcedure,
+		svc.AddOrganizationMembers,
+		connect.WithSchema(adminServiceMethods.ByName("AddOrganizationMembers")),
+		connect.WithHandlerOptions(opts...),
+	)
 	adminServiceSearchOrganizationsHandler := connect.NewUnaryHandler(
 		AdminServiceSearchOrganizationsProcedure,
 		svc.SearchOrganizations,
@@ -1251,18 +1239,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		AdminServiceSearchOrganizationProjectsProcedure,
 		svc.SearchOrganizationProjects,
 		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationProjects")),
-		connect.WithHandlerOptions(opts...),
-	)
-	adminServiceSearchOrganizationInvoicesHandler := connect.NewUnaryHandler(
-		AdminServiceSearchOrganizationInvoicesProcedure,
-		svc.SearchOrganizationInvoices,
-		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationInvoices")),
-		connect.WithHandlerOptions(opts...),
-	)
-	adminServiceSearchOrganizationTokensHandler := connect.NewUnaryHandler(
-		AdminServiceSearchOrganizationTokensProcedure,
-		svc.SearchOrganizationTokens,
-		connect.WithSchema(adminServiceMethods.ByName("SearchOrganizationTokens")),
 		connect.WithHandlerOptions(opts...),
 	)
 	adminServiceSearchOrganizationServiceUserCredentialsHandler := connect.NewUnaryHandler(
@@ -1583,6 +1559,8 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceListAllOrganizationsHandler.ServeHTTP(w, r)
 		case AdminServiceAdminCreateOrganizationProcedure:
 			adminServiceAdminCreateOrganizationHandler.ServeHTTP(w, r)
+		case AdminServiceAddOrganizationMembersProcedure:
+			adminServiceAddOrganizationMembersHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationsProcedure:
 			adminServiceSearchOrganizationsHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationUsersProcedure:
@@ -1591,10 +1569,6 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceSearchProjectUsersHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationProjectsProcedure:
 			adminServiceSearchOrganizationProjectsHandler.ServeHTTP(w, r)
-		case AdminServiceSearchOrganizationInvoicesProcedure:
-			adminServiceSearchOrganizationInvoicesHandler.ServeHTTP(w, r)
-		case AdminServiceSearchOrganizationTokensProcedure:
-			adminServiceSearchOrganizationTokensHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationServiceUserCredentialsProcedure:
 			adminServiceSearchOrganizationServiceUserCredentialsHandler.ServeHTTP(w, r)
 		case AdminServiceSearchOrganizationServiceUsersProcedure:
@@ -1726,6 +1700,10 @@ func (UnimplementedAdminServiceHandler) AdminCreateOrganization(context.Context,
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AdminCreateOrganization is not implemented"))
 }
 
+func (UnimplementedAdminServiceHandler) AddOrganizationMembers(context.Context, *connect.Request[v1beta1.AddOrganizationMembersRequest]) (*connect.Response[v1beta1.AddOrganizationMembersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.AddOrganizationMembers is not implemented"))
+}
+
 func (UnimplementedAdminServiceHandler) SearchOrganizations(context.Context, *connect.Request[v1beta1.SearchOrganizationsRequest]) (*connect.Response[v1beta1.SearchOrganizationsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizations is not implemented"))
 }
@@ -1740,14 +1718,6 @@ func (UnimplementedAdminServiceHandler) SearchProjectUsers(context.Context, *con
 
 func (UnimplementedAdminServiceHandler) SearchOrganizationProjects(context.Context, *connect.Request[v1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[v1beta1.SearchOrganizationProjectsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationProjects is not implemented"))
-}
-
-func (UnimplementedAdminServiceHandler) SearchOrganizationInvoices(context.Context, *connect.Request[v1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[v1beta1.SearchOrganizationInvoicesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationInvoices is not implemented"))
-}
-
-func (UnimplementedAdminServiceHandler) SearchOrganizationTokens(context.Context, *connect.Request[v1beta1.SearchOrganizationTokensRequest]) (*connect.Response[v1beta1.SearchOrganizationTokensResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.SearchOrganizationTokens is not implemented"))
 }
 
 func (UnimplementedAdminServiceHandler) SearchOrganizationServiceUserCredentials(context.Context, *connect.Request[v1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[v1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {

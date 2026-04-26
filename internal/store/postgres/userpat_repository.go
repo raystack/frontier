@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	patRQLFilterSupportedColumns = []string{"id", "title", "expires_at", "created_at"}
+	patRQLFilterSupportedColumns = []string{"id", "title", "expires_at", "created_at", "regenerated_at"}
 	patRQLSearchSupportedColumns = []string{"id", "title"}
 )
 
@@ -130,7 +130,13 @@ func (r UserPATRepository) List(ctx context.Context, userID, orgID string, rqlQu
 		return models.PATList{}, err
 	}
 
-	listStmt := r.applySort(baseStmt.Select(&UserPAT{}), rqlQuery)
+	listStmt, err := utils.AddRQLSortInQuery(baseStmt.Select(&UserPAT{}), rqlQuery)
+	if err != nil {
+		return models.PATList{}, err
+	}
+	if len(rqlQuery.Sort) == 0 {
+		listStmt = listStmt.Order(goqu.C("created_at").Desc())
+	}
 	listStmt, pagination := utils.AddRQLPaginationInQuery(listStmt, rqlQuery)
 
 	query, params, err := listStmt.ToSQL()
@@ -173,7 +179,7 @@ func (r UserPATRepository) buildPATFilteredQuery(userID, orgID string, rqlQuery 
 		rqlQuery = utils.NewRQLQuery("", utils.DefaultOffset, utils.DefaultLimit, []rql.Filter{}, []rql.Sort{}, []string{})
 	}
 
-	baseStmt := dialect.From(TABLE_USER_PATS).Where(
+	baseStmt := dialect.From(TABLE_USER_PATS).Prepared(true).Where(
 		goqu.Ex{"user_id": userID},
 		goqu.Ex{"org_id": orgID},
 		goqu.Ex{"deleted_at": nil},
@@ -208,22 +214,6 @@ func (r UserPATRepository) countPATs(ctx context.Context, baseStmt *goqu.SelectD
 		return 0, fmt.Errorf("%w: %w", dbErr, err)
 	}
 	return totalCount, nil
-}
-
-func (r UserPATRepository) applySort(query *goqu.SelectDataset, rqlQuery *rql.Query) *goqu.SelectDataset {
-	if len(rqlQuery.Sort) > 0 {
-		for _, sortItem := range rqlQuery.Sort {
-			switch sortItem.Order {
-			case "desc":
-				query = query.OrderAppend(goqu.C(sortItem.Name).Desc())
-			default:
-				query = query.OrderAppend(goqu.C(sortItem.Name).Asc())
-			}
-		}
-	} else {
-		query = query.Order(goqu.C("created_at").Desc())
-	}
-	return query
 }
 
 func (r UserPATRepository) IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error) {
@@ -274,16 +264,16 @@ func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash strin
 	return model.transform()
 }
 
-func (r UserPATRepository) UpdateLastUsedAt(ctx context.Context, id string, at time.Time) error {
+func (r UserPATRepository) UpdateUsedAt(ctx context.Context, id string, at time.Time) error {
 	query, params, err := dialect.Update(TABLE_USER_PATS).
-		Set(goqu.Record{"last_used_at": at}).
+		Set(goqu.Record{"used_at": at}).
 		Where(goqu.Ex{"id": id}).
 		ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "UpdateLastUsedAt", func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "UpdateUsedAt", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
@@ -334,8 +324,9 @@ func (r UserPATRepository) Update(ctx context.Context, pat models.PAT) (models.P
 func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string, expiresAt time.Time) (models.PAT, error) {
 	query, params, err := dialect.Update(TABLE_USER_PATS).
 		Set(goqu.Record{
-			"secret_hash": secretHash,
-			"expires_at":  expiresAt,
+			"secret_hash":    secretHash,
+			"expires_at":     expiresAt,
+			"regenerated_at": time.Now().UTC(),
 		}).
 		Where(
 			goqu.Ex{"id": id},
@@ -362,6 +353,80 @@ func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string
 	}
 
 	return model.transform()
+}
+
+func (r UserPATRepository) ListExpiryReminderPending(ctx context.Context, days int) ([]models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).Where(
+		goqu.Ex{"deleted_at": nil},
+		goqu.L("expires_at > NOW()"),
+		goqu.L("expires_at <= NOW() + make_interval(days => ?)", days),
+		goqu.L("(metadata->>'expiry_reminder_sent_at') IS NULL"),
+	).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	var rows []UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListExpiryReminderPending", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
+	}
+	var pats []models.PAT
+	for _, m := range rows {
+		pat, err := m.transform()
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, pat)
+	}
+	return pats, nil
+}
+
+func (r UserPATRepository) ListExpiredNoticePending(ctx context.Context) ([]models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).Where(
+		goqu.Ex{"deleted_at": nil},
+		goqu.L("expires_at < NOW()"),
+		goqu.L("(metadata->>'expired_notice_sent_at') IS NULL"),
+	).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	var rows []UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListExpiredNoticePending", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
+	}
+	var pats []models.PAT
+	for _, m := range rows {
+		pat, err := m.transform()
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, pat)
+	}
+	return pats, nil
+}
+
+func (r UserPATRepository) SetAlertSentMetadata(ctx context.Context, id string, key string) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	query, params, err := dialect.Update(TABLE_USER_PATS).
+		Set(goqu.Record{
+			"metadata": goqu.L("jsonb_set(COALESCE(metadata, '{}'), ?::text[], to_jsonb(?::text))",
+				fmt.Sprintf("{%s}", key), now),
+		}).
+		Where(goqu.Ex{"id": id}).
+		ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", queryErr, err)
+	}
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "SetAlertSentMetadata", func(ctx context.Context) error {
+		_, execErr := r.dbc.ExecContext(ctx, query, params...)
+		return execErr
+	}); err != nil {
+		return fmt.Errorf("%w: %w", dbErr, err)
+	}
+	return nil
 }
 
 func (r UserPATRepository) Delete(ctx context.Context, id string) error {

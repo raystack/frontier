@@ -19,6 +19,7 @@ import { handleConnectError } from '~/utils/error';
 
 export interface DeleteProjectPayload {
   projectId: string;
+  projectName: string;
 }
 
 type AlertDialogHandle = ReturnType<typeof AlertDialog.createHandle<DeleteProjectPayload>>;
@@ -68,8 +69,9 @@ export function DeleteProjectDialog({ handle, refetch }: DeleteProjectDialogProp
             </AlertDialog.Header>
             <AlertDialog.Body>
               <Text size="small" variant="secondary">
-                This action is irreversible and may result in the deletion of
-                all related files. Are you sure you want to proceed?
+                This action is irreversible and will delete all files
+                associated with &quot;{payload?.projectName}.&quot; Are you
+                sure you want to proceed?
               </Text>
             </AlertDialog.Body>
             <AlertDialog.Footer>

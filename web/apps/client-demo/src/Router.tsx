@@ -16,6 +16,7 @@ import Members from './pages/settings/Members';
 import Security from './pages/settings/Security';
 import Projects from './pages/settings/Projects';
 import ProjectDetails from './pages/settings/ProjectDetails';
+import Billing from './pages/settings/Billing';
 import Tokens from './pages/settings/Tokens';
 import Teams from './pages/settings/Teams';
 import TeamDetails from './pages/settings/TeamDetails';
@@ -23,6 +24,7 @@ import ServiceAccounts from './pages/settings/ServiceAccounts';
 import ServiceAccountDetails from './pages/settings/ServiceAccountDetails';
 import Pats from './pages/settings/Pats';
 import PatDetails from './pages/settings/PatDetails';
+import Plans from './pages/settings/Plans';
 
 function Router() {
   return (
@@ -45,6 +47,7 @@ function Router() {
           <Route path="security" element={<Security />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:projectId" element={<ProjectDetails />} />
+          <Route path="billing" element={<Billing />} />
           <Route path="tokens" element={<Tokens />} />
           <Route path="teams" element={<Teams />} />
           <Route path="teams/:teamId" element={<TeamDetails />} />
@@ -52,6 +55,7 @@ function Router() {
           <Route path="service-accounts/:serviceAccountId" element={<ServiceAccountDetails />} />
           <Route path="pats" element={<Pats />} />
           <Route path="pats/:patId" element={<PatDetails />} />
+          <Route path="plans" element={<Plans />} />
         </Route >
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes >

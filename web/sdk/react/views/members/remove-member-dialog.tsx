@@ -7,7 +7,7 @@ import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
   DeleteOrganizationInvitationRequestSchema,
-  RemoveOrganizationUserRequestSchema
+  RemoveOrganizationMemberRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
@@ -34,7 +34,7 @@ export const RemoveMemberDialog = ({
     {
       onSuccess: () => {
         onOpenChange(false);
-        toast.success('Member deleted');
+        toast.success('Invitation deleted');
       },
       onError: (error: any) => {
         toast.error('Something went wrong', {
@@ -44,12 +44,12 @@ export const RemoveMemberDialog = ({
     }
   );
 
-  const { mutateAsync: removeUser } = useMutation(
-    FrontierServiceQueries.removeOrganizationUser,
+  const { mutateAsync: removeMember } = useMutation(
+    FrontierServiceQueries.removeOrganizationMember,
     {
       onSuccess: () => {
         onOpenChange(false);
-        toast.success('Member deleted');
+        toast.success('User removed');
       },
       onError: (error: any) => {
         toast.error('Something went wrong', {
@@ -69,11 +69,12 @@ export const RemoveMemberDialog = ({
         });
         await deleteInvitation(req);
       } else {
-        const req = create(RemoveOrganizationUserRequestSchema, {
-          id: organizationId,
-          userId: memberId
+        const req = create(RemoveOrganizationMemberRequestSchema, {
+          orgId: organizationId,
+          principalId: memberId,
+          principalType: 'app/user'
         });
-        await removeUser(req);
+        await removeMember(req);
       }
     } catch (error: any) {
       toast.error('Something went wrong', {

@@ -6,13 +6,11 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-
 	"github.com/raystack/frontier/core/aggregates/orgusers"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -42,7 +40,7 @@ func (h *ConnectHandler) SearchOrganizationUsers(ctx context.Context, request *c
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "SearchOrganizationUsers.Search", err,
-			zap.String("org_id", request.Msg.GetId()))
+			"org_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -95,7 +93,7 @@ func (h *ConnectHandler) ExportOrganizationUsers(ctx context.Context, request *c
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
 		errorLogger.LogServiceError(ctx, request, "ExportOrganizationUsers.Export", err,
-			zap.String("org_id", request.Msg.GetId()))
+			"org_id", request.Msg.GetId())
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return streamBytesInChunks(orgUsersDataBytes, contentType, stream)

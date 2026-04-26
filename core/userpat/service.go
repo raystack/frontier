@@ -11,6 +11,8 @@ import (
 	"slices"
 	"time"
 
+	"log/slog"
+
 	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
@@ -22,10 +24,15 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	pkgUtils "github.com/raystack/frontier/pkg/utils"
-	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/rql"
 	"golang.org/x/crypto/sha3"
 )
+
+// supportedPATResourceTypes defines resource types allowed for PAT scopes.
+var supportedPATResourceTypes = []string{
+	schema.OrganizationNamespace,
+	schema.ProjectNamespace,
+}
 
 type OrganizationService interface {
 	GetRaw(ctx context.Context, id string) (organization.Organization, error)
@@ -53,7 +60,7 @@ type AuditRecordRepository interface {
 type Service struct {
 	repo                  Repository
 	config                Config
-	logger                log.Logger
+	logger                *slog.Logger
 	orgService            OrganizationService
 	roleService           RoleService
 	policyService         PolicyService
@@ -62,7 +69,7 @@ type Service struct {
 	deniedPerms           map[string]struct{}
 }
 
-func NewService(logger log.Logger, repo Repository, config Config, orgService OrganizationService,
+func NewService(logger *slog.Logger, repo Repository, config Config, orgService OrganizationService,
 	roleService RoleService, policyService PolicyService, projectService ProjectService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repo:                  repo,
@@ -154,7 +161,7 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	}
 
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRevokedEvent, pat, time.Now().UTC(), nil); err != nil {
-		s.logger.Error("failed to create audit record for PAT revocation", "pat_id", id, "error", err)
+		s.logger.ErrorContext(ctx, "failed to create audit record for PAT revocation", "pat_id", id, "error", err)
 	}
 
 	return nil
@@ -203,11 +210,11 @@ func (s *Service) Regenerate(ctx context.Context, userID, id string, newExpiresA
 		return patmodels.PAT{}, "", fmt.Errorf("enriching PAT scope: %w", err)
 	}
 
-	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRegeneratedEvent, regenerated, time.Now().UTC(), map[string]any{
+	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRegeneratedEvent, regenerated, *regenerated.RegeneratedAt, map[string]any{
 		"expires_at":     regenerated.ExpiresAt,
 		"old_expires_at": oldExpiresAt,
 	}); err != nil {
-		s.logger.Error("failed to create audit record for PAT regeneration", "pat_id", id, "error", err)
+		s.logger.ErrorContext(ctx, "failed to create audit record for PAT regeneration", "pat_id", id, "error", err)
 	}
 
 	return regenerated, patValue, nil
@@ -306,7 +313,7 @@ func (s *Service) auditUpdate(ctx context.Context, updated patmodels.PAT, toUpda
 		"old_title":  oldTitle,
 		"old_scopes": oldScopes,
 	}); err != nil {
-		s.logger.Error("failed to create audit record for PAT update", "pat_id", toUpdate.ID, "error", err)
+		s.logger.ErrorContext(ctx, "failed to create audit record for PAT update", "pat_id", toUpdate.ID, "error", err)
 	}
 }
 
@@ -384,7 +391,7 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (patmodels.PAT,
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATCreatedEvent, created, created.CreatedAt, map[string]any{
 		"scopes": created.Scopes,
 	}); err != nil {
-		s.logger.Error("failed to create audit record for PAT", "pat_id", created.ID, "error", err)
+		s.logger.ErrorContext(ctx, "failed to create audit record for PAT", "pat_id", created.ID, "error", err)
 	}
 
 	return created, patValue, nil
@@ -468,10 +475,8 @@ func (s *Service) validateScopes(ctx context.Context, scopes []patmodels.PATScop
 		roleMap[r.ID] = r
 	}
 
-	supportedResourceTypes := []string{schema.OrganizationNamespace, schema.ProjectNamespace}
-
 	for _, sc := range scopes {
-		if !slices.Contains(supportedResourceTypes, sc.ResourceType) {
+		if !slices.Contains(supportedPATResourceTypes, sc.ResourceType) {
 			return fmt.Errorf("resource type %s: %w", sc.ResourceType, paterrors.ErrUnsupportedScope)
 		}
 		r := roleMap[sc.RoleID]
@@ -515,7 +520,7 @@ func (s *Service) validateProjectAccess(ctx context.Context, userID, orgID strin
 		}
 	}
 	if len(forbidden) > 0 {
-		s.logger.Error("user does not have access to projects", "project_ids", forbidden)
+		s.logger.ErrorContext(ctx, "user does not have access to projects", "project_ids", forbidden)
 		return paterrors.ErrProjectForbidden
 	}
 	return nil
@@ -551,15 +556,14 @@ func (s *Service) ListAllowedRoles(ctx context.Context, scopes []string) ([]role
 	}
 
 	if len(scopes) == 0 {
-		scopes = []string{schema.OrganizationNamespace, schema.ProjectNamespace}
+		scopes = append(scopes, supportedPATResourceTypes...)
 	} else {
 		for i, scope := range scopes {
 			scopes[i] = schema.ParseNamespaceAliasIfRequired(scope)
 		}
-		allowedScopes := []string{schema.OrganizationNamespace, schema.ProjectNamespace}
 		scopes = pkgUtils.Deduplicate(scopes)
 		for _, scope := range scopes {
-			if !slices.Contains(allowedScopes, scope) {
+			if !slices.Contains(supportedPATResourceTypes, scope) {
 				return nil, fmt.Errorf("scope %q: %w", scope, paterrors.ErrUnsupportedScope)
 			}
 		}
@@ -602,18 +606,27 @@ func (s *Service) validateRolePermissions(roles []role.Role) error {
 	return nil
 }
 
-// createOrgScopedPolicy creates a policy on the org with the default "granted" relation.
-func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleID string) error {
+// createPATPolicy creates a single SpiceDB policy for a PAT.
+func (s *Service) createPATPolicy(ctx context.Context, patID, roleID, resourceID, resourceType, grantRelation string) error {
 	if _, err := s.policyService.Create(ctx, policy.Policy{
 		RoleID:        roleID,
-		ResourceID:    orgID,
-		ResourceType:  schema.OrganizationNamespace,
+		ResourceID:    resourceID,
+		ResourceType:  resourceType,
 		PrincipalID:   patID,
 		PrincipalType: schema.PATPrincipal,
+		GrantRelation: grantRelation,
 	}); err != nil {
-		return fmt.Errorf("creating org policy for role %s: %w", roleID, err)
+		s.logger.Error("failed to create PAT policy",
+			"pat_id", patID, "role_id", roleID, "resource_id", resourceID,
+			"resource_type", resourceType, "grant_relation", grantRelation, "error", err)
+		return err
 	}
 	return nil
+}
+
+// createOrgScopedPolicy creates a policy on the org with the default "granted" relation.
+func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleID string) error {
+	return s.createPATPolicy(ctx, patID, roleID, orgID, schema.OrganizationNamespace, schema.RoleGrantRelationName)
 }
 
 // createProjectScopedPolicies creates policies for a project-scoped role.
@@ -621,28 +634,11 @@ func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleI
 // (cascades to all projects). Otherwise, it creates one policy per project with default "granted".
 func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID, roleID string, resourceIDs []string) error {
 	if len(resourceIDs) == 0 {
-		if _, err := s.policyService.Create(ctx, policy.Policy{
-			RoleID:        roleID,
-			ResourceID:    orgID,
-			ResourceType:  schema.OrganizationNamespace,
-			PrincipalID:   patID,
-			PrincipalType: schema.PATPrincipal,
-			GrantRelation: schema.PATGrantRelationName,
-		}); err != nil {
-			return fmt.Errorf("creating all-projects policy for role %s: %w", roleID, err)
-		}
-		return nil
+		return s.createPATPolicy(ctx, patID, roleID, orgID, schema.OrganizationNamespace, schema.PATGrantRelationName)
 	}
-
 	for _, resourceID := range resourceIDs {
-		if _, err := s.policyService.Create(ctx, policy.Policy{
-			RoleID:        roleID,
-			ResourceID:    resourceID,
-			ResourceType:  schema.ProjectNamespace,
-			PrincipalID:   patID,
-			PrincipalType: schema.PATPrincipal,
-		}); err != nil {
-			return fmt.Errorf("creating project policy for role %s on %s: %w", roleID, resourceID, err)
+		if err := s.createPATPolicy(ctx, patID, roleID, resourceID, schema.ProjectNamespace, schema.RoleGrantRelationName); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -681,7 +677,7 @@ func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error
 		default:
 			// This should never match — createPolicies and validateScopes
 			// only allow app/organization and app/project resource types.
-			s.logger.Warn("skipping policy with unsupported resource type during PAT scope enrichment",
+			s.logger.WarnContext(ctx, "skipping policy with unsupported resource type during PAT scope enrichment",
 				"pat_id", pat.ID, "policy_id", pol.ID, "resource_type", pol.ResourceType)
 			continue
 		}

@@ -1,0 +1,5 @@
+{
+  "framework": null,
+  "buildCommand": "bunx @raystack/chronicle@0.5.4 build --preset=vercel --content=./docs",
+  "installCommand": "echo 'skip'"
+}

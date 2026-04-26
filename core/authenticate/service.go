@@ -33,7 +33,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/mailer"
 
-	"github.com/raystack/salt/log"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate/strategy"
@@ -94,7 +94,7 @@ type UserPATService interface {
 }
 
 type Service struct {
-	log                  log.Logger
+	log                  *slog.Logger
 	cron                 *cron.Cron
 	flowRepo             FlowRepository
 	userService          UserService
@@ -108,7 +108,7 @@ type Service struct {
 	webAuth              *webauthn.WebAuthn
 }
 
-func NewService(logger log.Logger, config Config, flowRepo FlowRepository,
+func NewService(logger *slog.Logger, config Config, flowRepo FlowRepository,
 	mailDialer mailer.Dialer, tokenService TokenService, sessionService SessionService,
 	userService UserService, serviceUserService ServiceUserService, webAuthConfig *webauthn.WebAuthn,
 	userPATService UserPATService) *Service {
@@ -706,7 +706,7 @@ func (s Service) JWKs(ctx context.Context) jwk.Set {
 func (s Service) InitFlows(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.flowRepo.DeleteExpiredFlows(ctx); err != nil {
-			s.log.Warn("failed to delete expired sessions", "err", err)
+			s.log.WarnContext(ctx, "failed to delete expired sessions", "err", err)
 		}
 	})
 	if err != nil {
@@ -779,7 +779,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		}
 	}
 
-	s.log.Debug("none of the client assertions matched")
+	s.log.DebugContext(ctx, "none of the client assertions matched")
 	return Principal{}, errors.ErrUnauthenticated
 }
 

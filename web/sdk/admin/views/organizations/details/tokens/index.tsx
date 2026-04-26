@@ -6,7 +6,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "../../../../components/PageTitle";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
@@ -92,7 +92,7 @@ export function OrganizationTokensView() {
     hasNextPage,
     isError,
   } = useInfiniteQuery(
-    AdminServiceQueries.searchOrganizationTokens,
+    FrontierServiceQueries.searchOrganizationTokens,
     { id: organizationId, query: query },
     {
       enabled: !!organizationId,

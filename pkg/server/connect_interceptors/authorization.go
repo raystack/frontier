@@ -353,13 +353,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*connect.Request[frontierv1beta1.ListOrganizationProjectsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetId()}, schema.ProjectListPermission, req)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/AddOrganizationUsers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		pbreq := req.(*connect.Request[frontierv1beta1.AddOrganizationUsersRequest])
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetId()}, schema.UpdatePermission, req)
-	},
-	"/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		pbreq := req.(*connect.Request[frontierv1beta1.RemoveOrganizationUserRequest])
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetId()}, schema.UpdatePermission, req)
+	"/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationMember": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.RemoveOrganizationMemberRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.UpdatePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/SetOrganizationMemberRole": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.SetOrganizationMemberRoleRequest])
@@ -995,6 +991,14 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbReq := req.(*connect.Request[frontierv1beta1.ListInvoicesRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.Msg.GetOrgId()}, schema.UpdatePermission, req)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/SearchOrganizationInvoices": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbReq := req.(*connect.Request[frontierv1beta1.SearchOrganizationInvoicesRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.Msg.GetId()}, schema.UpdatePermission, req)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/SearchOrganizationTokens": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbReq := req.(*connect.Request[frontierv1beta1.SearchOrganizationTokensRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.Msg.GetId()}, schema.UpdatePermission, req)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbReq := req.(*connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.Msg.GetOrgId()}, schema.UpdatePermission, req)
@@ -1016,6 +1020,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.AdminService/AdminCreateOrganization": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
 	},
+	"/raystack.frontier.v1beta1.AdminService/AddOrganizationMembers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx, req)
+	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationUsers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
 	},
@@ -1023,12 +1030,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchProjectUsers": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		return handler.IsSuperUser(ctx, req)
-	},
-	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		return handler.IsSuperUser(ctx, req)
-	},
-	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/SearchOrganizationPATs": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {

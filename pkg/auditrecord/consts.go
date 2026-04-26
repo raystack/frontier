@@ -39,6 +39,10 @@ const (
 	OrganizationMemberRoleChangedEvent  Event = "organization.role_changed"
 	OrganizationInvitationAcceptedEvent Event = "organization.accepted"
 
+	// Project Member Events
+	ProjectMemberRoleChangedEvent Event = "project.member_role_changed"
+	ProjectMemberRemovedEvent     Event = "project.member_removed"
+
 	// KYC Events
 	KYCVerifiedEvent   Event = "kyc.verified"
 	KYCUnverifiedEvent Event = "kyc.unverified"
@@ -55,11 +59,16 @@ const (
 	// Session Events
 	SessionRevokedEvent Event = "session.revoked"
 
+	// Resource Events
+	ResourceCreatedEvent Event = "resource.created"
+
 	// PAT Events
-	PATCreatedEvent     Event = "pat.created"
-	PATUpdatedEvent     Event = "pat.updated"
-	PATRegeneratedEvent Event = "pat.regenerated"
-	PATRevokedEvent     Event = "pat.revoked"
+	PATCreatedEvent        Event = "pat.created"
+	PATUpdatedEvent        Event = "pat.updated"
+	PATRegeneratedEvent    Event = "pat.regenerated"
+	PATRevokedEvent        Event = "pat.revoked"
+	PATExpiryReminderEvent Event = "pat.expiry_reminder"
+	PATExpiredNoticeEvent  Event = "pat.expired_notice"
 
 	SystemActor = "system"
 

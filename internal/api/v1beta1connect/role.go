@@ -13,7 +13,6 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -47,10 +46,10 @@ func (h *ConnectHandler) CreateRole(ctx context.Context, request *connect.Reques
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateRole", err,
-			zap.String("role_name", request.Msg.GetBody().GetName()),
-			zap.String("role_title", request.Msg.GetBody().GetTitle()),
-			zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-			zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+			"role_name", request.Msg.GetBody().GetName(),
+			"role_title", request.Msg.GetBody().GetTitle(),
+			"permissions", request.Msg.GetBody().GetPermissions(),
+			"scopes", request.Msg.GetBody().GetScopes())
 
 		switch {
 		case errors.Is(err, namespace.ErrNotExist),
@@ -62,10 +61,10 @@ func (h *ConnectHandler) CreateRole(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeAlreadyExists, err)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateRole", err,
-				zap.String("role_name", request.Msg.GetBody().GetName()),
-				zap.String("role_title", request.Msg.GetBody().GetTitle()),
-				zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-				zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+				"role_name", request.Msg.GetBody().GetName(),
+				"role_title", request.Msg.GetBody().GetTitle(),
+				"permissions", request.Msg.GetBody().GetPermissions(),
+				"scopes", request.Msg.GetBody().GetScopes())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -108,11 +107,11 @@ func (h *ConnectHandler) UpdateRole(ctx context.Context, request *connect.Reques
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateRole", err,
-			zap.String("role_id", request.Msg.GetId()),
-			zap.String("role_name", request.Msg.GetBody().GetName()),
-			zap.String("role_title", request.Msg.GetBody().GetTitle()),
-			zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-			zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+			"role_id", request.Msg.GetId(),
+			"role_name", request.Msg.GetBody().GetName(),
+			"role_title", request.Msg.GetBody().GetTitle(),
+			"permissions", request.Msg.GetBody().GetPermissions(),
+			"scopes", request.Msg.GetBody().GetScopes())
 
 		switch {
 		case errors.Is(err, role.ErrInvalidDetail):
@@ -124,11 +123,11 @@ func (h *ConnectHandler) UpdateRole(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "UpdateRole", err,
-				zap.String("role_id", request.Msg.GetId()),
-				zap.String("role_name", request.Msg.GetBody().GetName()),
-				zap.String("role_title", request.Msg.GetBody().GetTitle()),
-				zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-				zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+				"role_id", request.Msg.GetId(),
+				"role_name", request.Msg.GetBody().GetName(),
+				"role_title", request.Msg.GetBody().GetTitle(),
+				"permissions", request.Msg.GetBody().GetPermissions(),
+				"scopes", request.Msg.GetBody().GetScopes())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -177,7 +176,7 @@ func (h *ConnectHandler) ListRoles(ctx context.Context, request *connect.Request
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListRoles", err,
-			zap.Strings("scopes", request.Msg.GetScopes()))
+			"scopes", request.Msg.GetScopes())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -204,8 +203,8 @@ func (h *ConnectHandler) ListOrganizationRoles(ctx context.Context, request *con
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationRoles", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.Strings("scopes", request.Msg.GetScopes()))
+			"org_id", request.Msg.GetOrgId(),
+			"scopes", request.Msg.GetScopes())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -239,7 +238,7 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 	org, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateOrganizationRole.GetOrganization", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	metaDataMap[orgNameMetadataKey] = org.Title
@@ -254,11 +253,11 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateOrganizationRole", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("role_name", request.Msg.GetBody().GetName()),
-			zap.String("role_title", request.Msg.GetBody().GetTitle()),
-			zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-			zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+			"org_id", request.Msg.GetOrgId(),
+			"role_name", request.Msg.GetBody().GetName(),
+			"role_title", request.Msg.GetBody().GetTitle(),
+			"permissions", request.Msg.GetBody().GetPermissions(),
+			"scopes", request.Msg.GetBody().GetScopes())
 
 		switch {
 		case errors.Is(err, namespace.ErrNotExist),
@@ -270,11 +269,11 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateOrganizationRole", err,
-				zap.String("org_id", request.Msg.GetOrgId()),
-				zap.String("role_name", request.Msg.GetBody().GetName()),
-				zap.String("role_title", request.Msg.GetBody().GetTitle()),
-				zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-				zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+				"org_id", request.Msg.GetOrgId(),
+				"role_name", request.Msg.GetBody().GetName(),
+				"role_title", request.Msg.GetBody().GetTitle(),
+				"permissions", request.Msg.GetBody().GetPermissions(),
+				"scopes", request.Msg.GetBody().GetScopes())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -300,14 +299,14 @@ func (h *ConnectHandler) GetOrganizationRole(ctx context.Context, request *conne
 	fetchedRole, err := h.roleService.Get(ctx, roleID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetOrganizationRole", err,
-			zap.String("role_id", roleID))
+			"role_id", roleID)
 
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetOrganizationRole", err,
-				zap.String("role_id", roleID))
+				"role_id", roleID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -341,7 +340,7 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 	org, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateOrganizationRole.GetOrganization", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	metaDataMap[orgNameMetadataKey] = org.Title
@@ -357,12 +356,12 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateOrganizationRole", err,
-			zap.String("role_id", request.Msg.GetId()),
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("role_name", request.Msg.GetBody().GetName()),
-			zap.String("role_title", request.Msg.GetBody().GetTitle()),
-			zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-			zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+			"role_id", request.Msg.GetId(),
+			"org_id", request.Msg.GetOrgId(),
+			"role_name", request.Msg.GetBody().GetName(),
+			"role_title", request.Msg.GetBody().GetTitle(),
+			"permissions", request.Msg.GetBody().GetPermissions(),
+			"scopes", request.Msg.GetBody().GetScopes())
 
 		switch {
 		case errors.Is(err, role.ErrInvalidDetail):
@@ -374,12 +373,12 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "UpdateOrganizationRole", err,
-				zap.String("role_id", request.Msg.GetId()),
-				zap.String("org_id", request.Msg.GetOrgId()),
-				zap.String("role_name", request.Msg.GetBody().GetName()),
-				zap.String("role_title", request.Msg.GetBody().GetTitle()),
-				zap.Strings("permissions", request.Msg.GetBody().GetPermissions()),
-				zap.Strings("scopes", request.Msg.GetBody().GetScopes()))
+				"role_id", request.Msg.GetId(),
+				"org_id", request.Msg.GetOrgId(),
+				"role_name", request.Msg.GetBody().GetName(),
+				"role_title", request.Msg.GetBody().GetTitle(),
+				"permissions", request.Msg.GetBody().GetPermissions(),
+				"scopes", request.Msg.GetBody().GetScopes())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -411,16 +410,16 @@ func (h *ConnectHandler) DeleteOrganizationRole(ctx context.Context, request *co
 	err := h.roleService.Delete(ctx, roleID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteOrganizationRole", err,
-			zap.String("role_id", roleID),
-			zap.String("org_id", orgID))
+			"role_id", roleID,
+			"org_id", orgID)
 
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrRoleNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteOrganizationRole", err,
-				zap.String("role_id", roleID),
-				zap.String("org_id", orgID))
+				"role_id", roleID,
+				"org_id", orgID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -444,14 +443,14 @@ func (h *ConnectHandler) DeleteRole(ctx context.Context, request *connect.Reques
 	err := h.roleService.Delete(ctx, roleID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteRole", err,
-			zap.String("role_id", roleID))
+			"role_id", roleID)
 
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteRole", err,
-				zap.String("role_id", roleID))
+				"role_id", roleID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

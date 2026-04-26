@@ -405,5 +405,5 @@ func TestAggregatedPAT_Structure(t *testing.T) {
 	assert.Equal(t, "pat-1", pat.ID)
 	assert.Equal(t, "John Doe", pat.CreatedBy.Title)
 	assert.Len(t, pat.Scopes, 1)
-	assert.Nil(t, pat.LastUsedAt)
+	assert.Nil(t, pat.UsedAt)
 }

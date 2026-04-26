@@ -6,6 +6,7 @@ type ErrorHandlerMap = {
   AlreadyExists?: ErrorHandler;
   InvalidArgument?: ErrorHandler;
   PermissionDenied?: ErrorHandler;
+  FailedPrecondition?: ErrorHandler;
   NotFound?: ErrorHandler;
   Default?: ErrorHandler;
 };
@@ -49,6 +50,11 @@ export function handleConnectError(
     case Code.NotFound:
       handlers?.NotFound
         ? handlers.NotFound(connectError)
+        : defaultHandler(connectError);
+      break;
+    case Code.FailedPrecondition:
+      handlers?.FailedPrecondition
+        ? handlers.FailedPrecondition(connectError)
         : defaultHandler(connectError);
       break;
     default:

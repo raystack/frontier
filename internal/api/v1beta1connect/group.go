@@ -15,7 +15,6 @@ import (
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -30,8 +29,8 @@ func (h *ConnectHandler) ListGroups(ctx context.Context, request *connect.Reques
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListGroups.List", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("state", request.Msg.GetState()))
+			"org_id", request.Msg.GetOrgId(),
+			"state", request.Msg.GetState())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -60,7 +59,7 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -74,10 +73,10 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.List", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("state", request.Msg.GetState()),
-			zap.Strings("group_ids", request.Msg.GetGroupIds()),
-			zap.Bool("with_member_count", request.Msg.GetWithMemberCount()))
+			"org_id", request.Msg.GetOrgId(),
+			"state", request.Msg.GetState(),
+			"group_ids", request.Msg.GetGroupIds(),
+			"with_member_count", request.Msg.GetWithMemberCount())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -92,7 +91,7 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 			groupUsers, err := h.userService.ListByGroup(ctx, v.ID, "")
 			if err != nil {
 				errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.ListByGroup", err,
-					zap.String("group_id", v.ID))
+					"group_id", v.ID)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 			var groupUsersErr error
@@ -108,7 +107,7 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 			})
 			if groupUsersErr != nil {
 				errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.transformUserToPB", groupUsersErr,
-					zap.String("group_id", v.ID))
+					"group_id", v.ID)
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 		}
@@ -135,7 +134,7 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "CreateGroup.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -169,9 +168,9 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
 			errorLogger.LogServiceError(ctx, request, "CreateGroup.Create", err,
-				zap.String("org_id", request.Msg.GetOrgId()),
-				zap.String("group_name", name),
-				zap.String("group_title", requestBody.GetTitle()))
+				"org_id", request.Msg.GetOrgId(),
+				"group_name", name,
+				"group_title", requestBody.GetTitle())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -198,7 +197,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetGroup.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -210,7 +209,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetGroup.Get", err,
-				zap.String("group_id", request.Msg.GetId()))
+				"group_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -225,7 +224,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 		groupUsers, err := h.userService.ListByGroup(ctx, fetchedGroup.ID, "")
 		if err != nil {
 			errorLogger.LogServiceError(ctx, request, "GetGroup.ListByGroup", err,
-				zap.String("group_id", fetchedGroup.ID))
+				"group_id", fetchedGroup.ID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		var groupUsersErr error
@@ -241,7 +240,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 		})
 		if groupUsersErr != nil {
 			errorLogger.LogServiceError(ctx, request, "GetGroup.transformUserToPB", groupUsersErr,
-				zap.String("group_id", fetchedGroup.ID))
+				"group_id", fetchedGroup.ID)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -265,7 +264,7 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "UpdateGroup.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -293,8 +292,8 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogServiceError(ctx, request, "UpdateGroup.Update", err,
-				zap.String("group_id", request.Msg.GetId()),
-				zap.String("group_name", request.Msg.GetBody().GetName()))
+				"group_id", request.Msg.GetId(),
+				"group_name", request.Msg.GetBody().GetName())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -321,7 +320,7 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListGroupUsers.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -331,7 +330,7 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 	users, err := h.userService.ListByGroup(ctx, request.Msg.GetId(), "")
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListGroupUsers.ListByGroup", err,
-			zap.String("group_id", request.Msg.GetId()))
+			"group_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -349,8 +348,8 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.GroupNamespace, request.Msg.GetId())
 			if err != nil {
 				errorLogger.LogServiceError(ctx, request, "ListGroupUsers.ListRoles", err,
-					zap.String("user_id", user.ID),
-					zap.String("group_id", request.Msg.GetId()))
+					"user_id", user.ID,
+					"group_id", request.Msg.GetId())
 				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 
@@ -389,15 +388,15 @@ func (h *ConnectHandler) AddGroupUsers(ctx context.Context, request *connect.Req
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "AddGroupUsers.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	if err := h.groupService.AddUsers(ctx, request.Msg.GetId(), request.Msg.GetUserIds()); err != nil {
 		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.AddUsers", err,
-			zap.String("group_id", request.Msg.GetId()),
-			zap.Strings("user_ids", request.Msg.GetUserIds()))
+			"group_id", request.Msg.GetId(),
+			"user_ids", request.Msg.GetUserIds())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.AddGroupUsersResponse{}), nil
@@ -415,7 +414,7 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -424,7 +423,7 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 	owners, err := h.userService.ListByGroup(ctx, request.Msg.GetId(), group.AdminRole)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.ListByGroup", err,
-			zap.String("group_id", request.Msg.GetId()))
+			"group_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	if len(owners) == 1 && owners[0].ID == request.Msg.GetUserId() {
@@ -434,8 +433,8 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 	// delete the user
 	if err := h.groupService.RemoveUsers(ctx, request.Msg.GetId(), []string{request.Msg.GetUserId()}); err != nil {
 		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.RemoveUsers", err,
-			zap.String("group_id", request.Msg.GetId()),
-			zap.String("user_id", request.Msg.GetUserId()))
+			"group_id", request.Msg.GetId(),
+			"user_id", request.Msg.GetUserId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.RemoveGroupUserResponse{}), nil
@@ -453,7 +452,7 @@ func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "EnableGroup.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -463,7 +462,7 @@ func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "EnableGroup.Enable", err,
-				zap.String("group_id", request.Msg.GetId()))
+				"group_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -482,7 +481,7 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "DisableGroup.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -492,7 +491,7 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "DisableGroup.Disable", err,
-				zap.String("group_id", request.Msg.GetId()))
+				"group_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -511,7 +510,7 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "DeleteGroup.Get", err,
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -521,7 +520,7 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, request, "DeleteGroup.Delete", err,
-				zap.String("group_id", request.Msg.GetId()))
+				"group_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

@@ -1,6 +1,6 @@
 import { CopyButton, Flex, Link, List, Text } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
-import { converBillingAddressToString } from "../../../../utils/helper";
+import { convertBillingAddressToString } from "../../../../utils/helper";
 import Skeleton from "react-loading-skeleton";
 import { useContext, useEffect } from "react";
 import { CalendarIcon } from "@radix-ui/react-icons";
@@ -93,7 +93,7 @@ export const BillingDetailsSection = () => {
           ) : (
             <Text>
               {billingAccount?.address
-                ? converBillingAddressToString(billingAccount.address)
+                ? convertBillingAddressToString(billingAccount.address)
                 : "N/A"}
             </Text>
           )}

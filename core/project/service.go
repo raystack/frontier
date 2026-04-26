@@ -109,12 +109,14 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	}
 
 	// make user administrator of the project
+	// PAT → resolve to underlying user so ownership is on the user, not the token
+	subjectID, subjectType := currentPrincipal.ResolveSubject()
 	if _, err = s.policyService.Create(ctx, policy.Policy{
 		RoleID:        OwnerRole,
 		ResourceID:    newProject.ID,
 		ResourceType:  schema.ProjectNamespace,
-		PrincipalID:   currentPrincipal.ID,
-		PrincipalType: currentPrincipal.Type,
+		PrincipalID:   subjectID,
+		PrincipalType: subjectType,
 	}); err != nil {
 		return Project{}, fmt.Errorf("failed to create owner policy for project %s: %w", newProject.ID, err)
 	}

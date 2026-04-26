@@ -130,7 +130,7 @@ func (r ProspectRepository) Get(ctx context.Context, id string) (prospect.Prospe
 }
 
 func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (prospect.ListProspects, error) {
-	baseStmt := dialect.From(TABLE_PROSPECTS)
+	baseStmt := dialect.From(TABLE_PROSPECTS).Prepared(true)
 
 	// apply filters
 	baseStmt, err := utils.AddRQLFiltersInQuery(baseStmt, rqlQuery, rqlFilerSupportedColumns, prospect.Prospect{})

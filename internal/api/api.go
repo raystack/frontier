@@ -31,6 +31,7 @@ import (
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/kyc"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/organization"
@@ -101,4 +102,6 @@ type Deps struct {
 
 	AuditRecordService *auditrecord.Service
 	UserPATService     *userpat.Service
+	PATAlertService    *userpat.AlertService
+	MembershipService  *membership.Service
 }

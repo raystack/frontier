@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log/slog"
 
 	"golang.org/x/crypto/sha3"
 
@@ -44,18 +45,32 @@ type RelationService interface {
 	BatchCheckPermission(ctx context.Context, rel []relation.Relation) ([]relation.CheckPair, error)
 }
 
-type Service struct {
-	repo            Repository
-	credRepo        CredentialRepository
-	relationService RelationService
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
 }
 
-func NewService(repo Repository, credRepo CredentialRepository, relService RelationService) *Service {
+type Service struct {
+	log               *slog.Logger
+	repo              Repository
+	credRepo          CredentialRepository
+	relationService   RelationService
+	membershipService MembershipService
+}
+
+func NewService(logger *slog.Logger, repo Repository, credRepo CredentialRepository, relService RelationService) *Service {
 	return &Service{
+		log:             logger,
 		repo:            repo,
 		credRepo:        credRepo,
 		relationService: relService,
 	}
+}
+
+// SetMembershipService sets the membership dependency after construction to break
+// the circular init order between serviceuser and membership services.
+func (s *Service) SetMembershipService(ms MembershipService) {
+	s.membershipService = ms
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]ServiceUser, error) {
@@ -77,54 +92,19 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 		return ServiceUser{}, err
 	}
 
-	// attach service user to organization
-	_, err = s.relationService.Create(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        serviceUser.OrgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        createdSU.ID,
-			Namespace: schema.ServiceUserPrincipal,
-		},
-		RelationName: schema.MemberRelationName,
-	})
-	if err != nil {
-		return ServiceUser{}, err
-	}
-	_, err = s.relationService.Create(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        createdSU.ID,
-			Namespace: schema.ServiceUserPrincipal,
-		},
-		Subject: relation.Subject{
-			ID:        serviceUser.OrgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		RelationName: schema.OrganizationRelationName,
-	})
-	if err != nil {
-		return ServiceUser{}, err
-	}
-
-	if len(serviceUser.CreatedByUser) > 0 {
-		// TODO: write authz tests that checks if the user who created the service user
-		// has the permission to interact with the service user
-		// attach user to service user who created it
-		_, err = s.relationService.Create(ctx, relation.Relation{
-			Object: relation.Object{
-				ID:        createdSU.ID,
-				Namespace: schema.ServiceUserPrincipal,
-			},
-			Subject: relation.Subject{
-				ID:        serviceUser.CreatedByUser,
-				Namespace: schema.UserPrincipal,
-			},
-			RelationName: schema.UserRelationName,
-		})
-		if err != nil {
-			return ServiceUser{}, err
+	// add service user as org member with default viewer role
+	// creates policy + org#member relation + serviceuser#org identity link
+	if err := s.membershipService.AddOrganizationMember(ctx, serviceUser.OrgID, createdSU.ID, schema.ServiceUserPrincipal, schema.RoleOrganizationViewer); err != nil {
+		// rollback: delete the orphan SU row to avoid accumulating dead records
+		if deleteErr := s.repo.Delete(ctx, createdSU.ID); deleteErr != nil {
+			s.log.ErrorContext(ctx, "orphan serviceuser: membership setup failed and rollback delete also failed, manual cleanup needed",
+				"serviceuser_id", createdSU.ID,
+				"org_id", serviceUser.OrgID,
+				"membership_error", err,
+				"delete_error", deleteErr,
+			)
 		}
+		return ServiceUser{}, fmt.Errorf("add org membership: %w", err)
 	}
 
 	return createdSU, nil
@@ -160,7 +140,13 @@ func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, er
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	// delete all of its credentials then delete the service account
+	// fetch SU to get org ID for membership cleanup
+	su, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// delete all of its credentials
 	creds, err := s.credRepo.List(ctx, Filter{
 		ServiceUserID: id,
 	})
@@ -173,8 +159,17 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	// delete all of serviceuser relationships
-	// before deleting the serviceuser
+	// remove org membership (policies at org/project/group level + org relations)
+	// best-effort: log and continue on failure — leaving a half-deleted SU is worse than a leaked policy
+	if err := s.membershipService.RemoveOrganizationMember(ctx, su.OrgID, id, schema.ServiceUserPrincipal); err != nil {
+		s.log.ErrorContext(ctx, "failed to remove org membership during serviceuser delete, policies may be leaked",
+			"serviceuser_id", id,
+			"org_id", su.OrgID,
+			"error", err,
+		)
+	}
+
+	// delete remaining SpiceDB relations (platform relations, identity link, etc.)
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Subject: relation.Subject{
 			ID:        id,

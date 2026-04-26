@@ -43,8 +43,6 @@ import (
 
 	"github.com/raystack/frontier/core/event"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-
 	"github.com/raystack/frontier/billing/invoice"
 
 	"github.com/raystack/frontier/billing/usage"
@@ -92,6 +90,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
@@ -106,14 +105,15 @@ import (
 	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/frontier/pkg/db"
 
+	"log/slog"
+
 	"github.com/pkg/profile"
-	"github.com/raystack/salt/log"
 )
 
 var ruleCacheRefreshDelay = time.Minute * 2
-var GetStripeClientFunc func(logger log.Logger, cfg *config.Frontier) *client.API
+var GetStripeClientFunc func(logger *slog.Logger, cfg *config.Frontier) *client.API
 
-func StartServer(logger *log.Zap, cfg *config.Frontier) error {
+func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 	logger.Info("frontier starting", "version", config.Version)
 	if profiling := os.Getenv("FRONTIER_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
@@ -121,8 +121,6 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
-
-	ctx = ctxzap.ToContext(ctx, logger.GetInternalZapLogger().Desugar())
 
 	dbClient, err := setupDB(cfg.DB, logger)
 	if err != nil {
@@ -250,6 +248,16 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
+	if err := deps.PATAlertService.Init(ctx); err != nil {
+		logger.Warn("PAT expiry alert service initialization failed", "err", err)
+	}
+	defer func() {
+		logger.Debug("cleaning up PAT expiry alert service")
+		if err := deps.PATAlertService.Close(); err != nil {
+			logger.Warn("PAT alert service cleanup failed", "err", err)
+		}
+	}()
+
 	if cfg.Billing.StripeKey != "" {
 		// billing services initialization and cleanup
 		if err := deps.CustomerService.Init(ctx); err != nil {
@@ -306,7 +314,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 }
 
 func buildAPIDependencies(
-	logger log.Logger,
+	logger *slog.Logger,
 	cfg *config.Frontier,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
@@ -378,7 +386,7 @@ func buildAPIDependencies(
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
-	serviceUserService := serviceuser.NewService(svUserRepo, scUserCredRepo, relationService)
+	serviceUserService := serviceuser.NewService(logger, svUserRepo, scUserCredRepo, relationService)
 
 	var mailDialer mailer.Dialer = mailer.NewMockDialer()
 	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
@@ -419,6 +427,15 @@ func buildAPIDependencies(
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, auditRecordRepository, roleService)
+	projectRepository := postgres.NewProjectRepository(dbc)
+	projectService := project.NewService(projectRepository, relationService, userService, policyService,
+		authnService, serviceUserService, groupService, roleService)
+
+	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, serviceUserService, auditRecordRepository)
+	// Setter injection: org → membership is circular (membership needs org for validation,
+	// org needs membership for Create/AdminCreate). Break the cycle with a post-init setter.
+	organizationService.SetMembershipService(membershipService)
+	serviceUserService.SetMembershipService(membershipService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
@@ -454,15 +471,13 @@ func buildAPIDependencies(
 	userProjectsService := userprojects.NewService(userProjectsRepository)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
-	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
+	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
-	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService, policyService,
-		authnService, serviceUserService, groupService, roleService)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
+	patAlertService := userpat.NewAlertService(userPATRepo, userService, organizationService, mailDialer, dbc, cfg.App.PAT.Alert, logger, auditRecordRepository)
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService, userPATService)
 
 	orgPATsRepository := postgres.NewOrgPATsRepository(dbc)
@@ -477,11 +492,12 @@ func buildAPIDependencies(
 		projectService,
 		organizationService,
 		userPATService,
+		auditRecordRepository,
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, preferenceService,
-		auditRecordRepository)
+		organizationService, groupService, userService, relationService, preferenceService,
+		auditRecordRepository, membershipService)
 
 	if GetStripeClientFunc == nil {
 		// allow to override the stripe client creation function in tests
@@ -495,7 +511,7 @@ func buildAPIDependencies(
 		billingCustomerRepository,
 		auditRecordRepository,
 	)
-	customerService := customer.NewService(
+	customerService := customer.NewService(logger,
 		stripeClient,
 		billingCustomerRepository, cfg.Billing, creditService)
 	featureRepository := postgres.NewBillingFeatureRepository(dbc)
@@ -513,18 +529,18 @@ func buildAPIDependencies(
 		featureRepository,
 		priceRepository,
 	)
-	subscriptionService := subscription.NewService(
+	subscriptionService := subscription.NewService(logger,
 		stripeClient, cfg.Billing,
 		postgres.NewBillingSubscriptionRepository(dbc),
 		customerService, planService, organizationService,
 		productService, creditService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService,
 		planService, organizationService)
-	checkoutService := checkout.NewService(stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
+	checkoutService := checkout.NewService(logger, stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
 		customerService, planService, subscriptionService, productService, creditService, organizationService,
 		authnService)
 
-	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc),
+	invoiceService := invoice.NewService(logger, stripeClient, postgres.NewBillingInvoiceRepository(dbc),
 		customerService, creditService, productService, dbc, cfg.Billing)
 
 	usageService := usage.NewService(creditService)
@@ -620,6 +636,8 @@ func buildAPIDependencies(
 		UserProjectsService:              userProjectsService,
 		AuditRecordService:               auditRecordService,
 		UserPATService:                   userPATService,
+		PATAlertService:                  patAlertService,
+		MembershipService:                membershipService,
 	}
 	return dependencies, nil
 }
@@ -648,7 +666,7 @@ func (t *StripeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
+func getStripeClient(logger *slog.Logger, cfg *config.Frontier) *client.API {
 	stripeLogLevel := stripe.LevelError
 	stripeBackends := &stripe.Backends{
 		API: stripe.GetBackendWithConfig(stripe.APIBackend, &stripe.BackendConfig{
@@ -675,7 +693,7 @@ func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
 	return stripeClient
 }
 
-func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {
+func setupDB(cfg db.Config, logger *slog.Logger) (dbc *db.Client, err error) {
 	// prefer use pgx instead of lib/pq for postgres to catch pg error
 	if cfg.Driver == "postgres" {
 		cfg.Driver = "pgx"

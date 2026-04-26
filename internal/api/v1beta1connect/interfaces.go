@@ -124,8 +124,6 @@ type OrganizationService interface {
 	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt organization.Filter) ([]organization.Organization, error)
-	AddUsers(ctx context.Context, orgID string, userID []string) error
-	SetMemberRole(ctx context.Context, orgID, userID, roleID string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -356,8 +354,6 @@ type ProjectService interface {
 	ListGroups(ctx context.Context, id string) ([]group.Group, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	SetMemberRole(ctx context.Context, projectID, principalID, principalType, newRoleID string) error
-	RemoveMember(ctx context.Context, projectID, principalID, principalType string) error
 }
 
 type OrgUsersService interface {
@@ -405,6 +401,14 @@ type AuditRecordService interface {
 	Create(ctx context.Context, record auditrecord.AuditRecord) (auditrecord.AuditRecord, bool, error)
 	List(ctx context.Context, query *rql.Query) (auditrecord.AuditRecordsList, error)
 	Export(ctx context.Context, query *rql.Query) (io.Reader, string, error)
+}
+
+type MembershipService interface {
+	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
+	SetProjectMemberRole(ctx context.Context, projectID, principalID, principalType, roleID string) error
+	RemoveProjectMember(ctx context.Context, projectID, principalID, principalType string) error
 }
 
 type UserPATService interface {

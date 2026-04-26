@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"strings"
 	"sync"
@@ -22,9 +23,6 @@ import (
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
-
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/billing/plan"
 
@@ -70,6 +68,7 @@ type CreditService interface {
 }
 
 type Service struct {
+	log             *slog.Logger
 	repository      Repository
 	stripeClient    *client.API
 	customerService CustomerService
@@ -83,11 +82,12 @@ type Service struct {
 	config  billing.Config
 }
 
-func NewService(stripeClient *client.API, config billing.Config, repository Repository,
+func NewService(logger *slog.Logger, stripeClient *client.API, config billing.Config, repository Repository,
 	customerService CustomerService, planService PlanService,
 	orgService OrganizationService, productService ProductService,
 	creditService CreditService) *Service {
 	return &Service{
+		log:             logger,
 		stripeClient:    stripeClient,
 		repository:      repository,
 		customerService: customerService,
@@ -149,12 +149,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		record := metrics.BillingSyncLatency("subscription")
 		defer record()
 	}
-	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		State: customer.ActiveState,
 	})
 	if err != nil {
-		logger.Error("subscription.backgroundSync", zap.Error(err))
+		s.log.ErrorContext(ctx, "subscription.backgroundSync", "error", err)
 		return
 	}
 
@@ -168,11 +167,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
-			logger.Error("subscription.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
+			s.log.ErrorContext(ctx, "subscription.SyncWithProvider", "error", err, "customer_id", customer.ID)
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
-	logger.Info("subscription.backgroundSync finished", zap.Duration("duration", time.Since(start)))
+	s.log.InfoContext(ctx, "subscription.backgroundSync finished", "duration", time.Since(start))
 }
 
 func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
