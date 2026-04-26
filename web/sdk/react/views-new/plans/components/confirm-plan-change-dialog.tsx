@@ -250,7 +250,6 @@ function ConfirmPlanChangeContent({
                   value={amount || 0}
                   currency={currency}
                   hideDecimals={config?.billing?.hideDecimals}
-                  valueInMinorUnits={false}
                 />
               </Text>
             </Text>

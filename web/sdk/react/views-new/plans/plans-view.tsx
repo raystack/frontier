@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Dialog,
   EmptyState,
@@ -41,14 +41,14 @@ export function PlansView() {
     isActiveOrganizationLoading,
     basePlan,
     allPlans,
-    isAllPlansLoading
+    isAllPlansLoading,
+    activeOrganization,
   } = useFrontier();
-  console.log({ basePlan, allPlans });
 
   const { isFetching: isPermissionsFetching, isAllowed: canChangePlan } =
     useBillingPermission();
 
-  const { data: featuresData } = useQuery(
+  const { data: featuresData, isLoading: isFeaturesLoading } = useQuery(
     FrontierServiceQueries.listFeatures,
     create(ListFeaturesRequestSchema, {})
   );
@@ -71,7 +71,7 @@ export function PlansView() {
     [plans]
   );
 
-  const isLoading =
+  const isLoading = !activeOrganization?.id ||
     isAllPlansLoading ||
     isPermissionsFetching ||
     isActiveSubscriptionLoading ||
@@ -96,30 +96,28 @@ export function PlansView() {
       .filter(Boolean);
   }, [features, totalFeatures]);
 
-  const [selectedIntervals, setSelectedIntervals] = useState<
+  const [intervalOverrides, setIntervalOverrides] = useState<
     Record<string, IntervalKeys>
   >({});
 
-  useEffect(() => {
-    if (groupedPlans.length === 0) return;
-
-    const defaults: Record<string, IntervalKeys> = {};
+  const selectedIntervals = useMemo<Record<string, IntervalKeys>>(() => {
+    const result: Record<string, IntervalKeys> = {};
     groupedPlans.forEach(plan => {
-      if (selectedIntervals[plan.slug]) return;
-      const planIntervals = Object.values(plan.intervals)
+      if (intervalOverrides[plan.slug]) {
+        result[plan.slug] = intervalOverrides[plan.slug];
+        return;
+      }
+      const sortedIntervals = Object.values(plan.intervals)
         .sort((a, b) => a.weightage - b.weightage)
         .map(i => i.interval);
       const activePlanInterval = Object.values(plan.intervals).find(
         p => p.planId === activeSubscription?.planId
       );
-      defaults[plan.slug] =
-        activePlanInterval?.interval || planIntervals[0] || 'year';
+      result[plan.slug] =
+        activePlanInterval?.interval || sortedIntervals[0] || 'year';
     });
-
-    if (Object.keys(defaults).length > 0) {
-      setSelectedIntervals(prev => ({ ...prev, ...defaults }));
-    }
-  }, [groupedPlans, activeSubscription?.planId]);
+    return result;
+  }, [groupedPlans, activeSubscription?.planId, intervalOverrides]);
 
   let currentPlanPricing: IntervalPricingWithPlan | undefined;
   groupedPlans.forEach(group => {
@@ -177,12 +175,9 @@ export function PlansView() {
             key={plan.slug}
             plan={plan}
             currentPlan={currentPlanPricing}
-            selectedInterval={
-              selectedIntervals[plan.slug] ||
-              Object.keys(plan.intervals)[0] as IntervalKeys
-            }
+            selectedInterval={selectedIntervals[plan.slug]}
             onIntervalChange={interval =>
-              setSelectedIntervals(prev => ({
+              setIntervalOverrides(prev => ({
                 ...prev,
                 [plan.slug]: interval
               }))
@@ -199,6 +194,7 @@ export function PlansView() {
         features={sortedFeatures}
         plans={groupedPlans}
         selectedIntervals={selectedIntervals}
+        isLoading={isFeaturesLoading}
       />
 
       <ConfirmPlanChangeDialog handle={confirmPlanChangeHandle} />
