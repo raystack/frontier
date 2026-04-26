@@ -10,3 +10,15 @@
 :global(tr):hover .revokeButton {
   opacity: 1;
 }
+.projectChip {
+  max-width: var(--rs-space-16);
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.projectChipLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

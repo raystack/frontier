@@ -1,6 +1,6 @@
 .section {
   border: 1px solid var(--rs-color-border-base-primary);
-  border-radius: 4px;
+  border-radius: var(--rs-radius-2);
   width: 100%;
 }
 
@@ -14,22 +14,26 @@
 
 .detailRow {
   display: flex;
-  gap: 8px;
+  gap: var(--rs-space-3);
   align-items: flex-start;
 }
 
 .detailLabel {
   flex-shrink: 0;
-  min-width: 120px;
+  min-width: var(--rs-space-17);
 }
 
 .chipGroup {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--rs-radius-2);
   align-items: center;
 }
 
 .menuContent {
   min-width: 160px;
+}
+
+.callout {
+  width: 100%;
 }

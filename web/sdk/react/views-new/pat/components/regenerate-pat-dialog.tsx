@@ -13,7 +13,6 @@ import {
   Button,
   Dialog,
   Flex,
-  Label,
   Select,
   Text,
   toastManager
@@ -21,12 +20,12 @@ import {
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { handleConnectError } from '~/utils/error';
-
-const EXPIRY_OPTIONS = [15, 30, 60, 90] as const;
+import { EXPIRY_OPTIONS } from '../utils';
+import styles from './regenerate-pat-dialog.module.css';
 
 export interface RegeneratePayload {
   patId: string;
-  currentExpiryDays: string;
+  currentExpiryValue: string;
 }
 
 export interface RegeneratePATDialogProps {
@@ -41,7 +40,7 @@ export function RegeneratePATDialog({
   const { config } = useFrontier();
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
-  const [expiryDays, setExpiryDays] = useState('');
+  const [expiryValue, setExpiryValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { mutateAsync: regeneratePAT } = useMutation(
@@ -50,85 +49,85 @@ export function RegeneratePATDialog({
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      setExpiryDays('');
+      setExpiryValue('');
     }
   };
 
-  const handleRegenerate = useCallback(async () => {
-    const days = expiryDays || handle.payload?.currentExpiryDays;
-    if (!days) return;
+  const handleRegenerate = useCallback(
+    async (patId: string, selectedValue: string) => {
+      const option = EXPIRY_OPTIONS.find(o => o.value === selectedValue);
+      if (!option) return;
 
-    setIsSubmitting(true);
-    try {
-      const expiresAt = timestampFromDate(
-        dayjs().add(Number(days), 'day').toDate()
-      );
+      setIsSubmitting(true);
+      try {
+        const expiresAt = timestampFromDate(
+          dayjs().add(option.amount, option.unit).toDate()
+        );
 
-      const patId = handle.payload?.patId;
-      if (!patId) return;
-
-      const response = await regeneratePAT(
-        create(RegenerateCurrentUserPATRequestSchema, {
-          id: patId,
-          expiresAt
-        })
-      );
-
-      const token = response.pat?.token;
-      toastManager.add({
-        title: 'Token regenerated',
-        type: 'success'
-      });
-      handle.close();
-      setExpiryDays('');
-      if (token) onRegenerated?.(token);
-    } catch (error) {
-      handleConnectError(error, {
-        Default: err =>
-          toastManager.add({
-            title: 'Something went wrong',
-            description: err.message,
-            type: 'error'
+        const response = await regeneratePAT(
+          create(RegenerateCurrentUserPATRequestSchema, {
+            id: patId,
+            expiresAt
           })
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [expiryDays, handle, regeneratePAT, onRegenerated]);
+        );
+
+        const token = response.pat?.token;
+        toastManager.add({
+          title: 'Token regenerated',
+          type: 'success'
+        });
+        handle.close();
+        setExpiryValue('');
+        if (token) onRegenerated?.(token);
+      } catch (error) {
+        handleConnectError(error, {
+          Default: err =>
+            toastManager.add({
+              title: 'Something went wrong',
+              description: err.message,
+              type: 'error'
+            })
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [regeneratePAT, handle, onRegenerated]
+  );
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
       {({ payload }) => {
-        const selectedDays = expiryDays || payload?.currentExpiryDays || '';
+        const selectedValue =
+          expiryValue || payload?.currentExpiryValue || '';
+        const patId = payload?.patId;
         return (
           <Dialog.Content width={400}>
             <Dialog.Header>
               <Dialog.Title>Regenerate Expiry date</Dialog.Title>
             </Dialog.Header>
-            <Dialog.Body>
-              <Flex direction="column" gap={7}>
-                <Text size="small">
-                  Select a new expiry duration for this personal access token.
-                  The current token will be invalidated and a new one will be
-                  generated.
-                </Text>
-                <Flex direction="column" gap={2}>
-                  <Label>Expiry date</Label>
-                  <Select value={selectedDays} onValueChange={setExpiryDays}>
-                    <Select.Trigger>
-                      <Select.Value placeholder="Select expiry" />
-                    </Select.Trigger>
-                    <Select.Content>
-                      {EXPIRY_OPTIONS.map(days => (
-                        <Select.Item key={days} value={String(days)}>
-                          {days} Days (Exp:{' '}
-                          {dayjs().add(days, 'day').format(dateFormat)})
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select>
-                </Flex>
-              </Flex>
+            <Dialog.Body className={styles.body}>
+              <Text size="small">
+                Select a new expiry duration for this personal access token.
+                The current token will be invalidated and replaced with a new
+                one.
+              </Text>
+              <Select value={selectedValue} onValueChange={setExpiryValue}>
+                <Select.Trigger>
+                  <Select.Value placeholder="Select expiry" />
+                </Select.Trigger>
+                <Select.Content>
+                  {EXPIRY_OPTIONS.map(option => (
+                    <Select.Item key={option.value} value={option.value}>
+                      {option.label} (Exp:{' '}
+                      {dayjs()
+                        .add(option.amount, option.unit)
+                        .format(dateFormat)}
+                      )
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select>
             </Dialog.Body>
             <Dialog.Footer>
               <Flex justify="end">
@@ -136,9 +135,11 @@ export function RegeneratePATDialog({
                   variant="solid"
                   color="accent"
                   size="normal"
-                  onClick={handleRegenerate}
+                  onClick={() =>
+                    patId && handleRegenerate(patId, selectedValue)
+                  }
                   loading={isSubmitting}
-                  disabled={!selectedDays || isSubmitting}
+                  disabled={!selectedValue || isSubmitting}
                   loaderText="Regenerating..."
                   data-test-id="frontier-sdk-pat-regenerate-submit-btn"
                 >

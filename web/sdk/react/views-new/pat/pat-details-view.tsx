@@ -29,18 +29,22 @@ import { ViewHeader } from '../../components/view-header';
 import { DEFAULT_DATE_FORMAT } from '../../utils/constants';
 import { PERMISSIONS } from '../../../utils';
 import { timestampToDayjs } from '~/utils/timestamp';
-import { PATCreatedDialog } from './components/pat-created-dialog';
+import {
+  PATCreatedDialog,
+  type PATCreatedPayload
+} from './components/pat-created-dialog';
 import { PATFormDialog } from './components/pat-form-dialog';
 import {
   RegeneratePATDialog,
   type RegeneratePayload
 } from './components/regenerate-pat-dialog';
 import { RevokePATDialog } from './components/revoke-pat-dialog';
+import { getExpiryOptionValue } from './utils';
 import styles from './pat-details-view.module.css';
 
 const updatePATDialogHandle = Dialog.createHandle();
 const regenerateDialogHandle = Dialog.createHandle<RegeneratePayload>();
-const patCreatedDialogHandle = Dialog.createHandle<string>();
+const patCreatedDialogHandle = Dialog.createHandle<PATCreatedPayload>();
 const revokePATDialogHandle = AlertDialog.createHandle<string>();
 
 export interface PATDetailsViewProps {
@@ -155,20 +159,21 @@ export function PATDetailsView({
     return d ? d.format(dateFormat) : '';
   }, [pat, dateFormat]);
 
-  const { expiryInfo, expiryDays } = useMemo(() => {
+  const { expiryInfo, currentExpiryValue } = useMemo(() => {
     const created = timestampToDayjs(pat?.createdAt);
     const expires = timestampToDayjs(pat?.expiresAt);
-    if (!created || !expires) return { expiryInfo: '', expiryDays: '' };
+    if (!created || !expires)
+      return { expiryInfo: '', currentExpiryValue: '' };
     const days = expires.diff(created, 'day');
     return {
       expiryInfo: `${days} Days (Exp: ${expires.format(dateFormat)})`,
-      expiryDays: String(days)
+      currentExpiryValue: getExpiryOptionValue(created, expires)
     };
   }, [pat, dateFormat]);
 
   const handleRegenerated = useCallback(
     (token: string) => {
-      patCreatedDialogHandle.openWithPayload(token);
+      patCreatedDialogHandle.openWithPayload({ token, isRegenerated: true });
     },
     []
   );
@@ -312,7 +317,7 @@ export function PATDetailsView({
                   onClick={() =>
                     regenerateDialogHandle.openWithPayload({
                       patId,
-                      currentExpiryDays: expiryDays
+                      currentExpiryValue
                     })
                   }
                   data-test-id="frontier-sdk-pat-regenerate-btn"

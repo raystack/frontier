@@ -29,14 +29,17 @@ import {
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { getColumns } from './components/pat-columns';
 import { PATFormDialog } from './components/pat-form-dialog';
-import { PATCreatedDialog } from './components/pat-created-dialog';
+import {
+  PATCreatedDialog,
+  type PATCreatedPayload
+} from './components/pat-created-dialog';
 import { RevokePATDialog } from './components/revoke-pat-dialog';
 import styles from './pat-view.module.css';
 
 dayjs.extend(relativeTime);
 
 const createPATDialogHandle = Dialog.createHandle();
-const patCreatedDialogHandle = Dialog.createHandle<string>();
+const patCreatedDialogHandle = Dialog.createHandle<PATCreatedPayload>();
 const revokePATDialogHandle = AlertDialog.createHandle<string>();
 
 const DEFAULT_SORT: DataTableSort = { name: 'title', order: 'asc' };
@@ -140,7 +143,7 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
   };
 
   const handlePATCreated = (token: string) => {
-    patCreatedDialogHandle.openWithPayload(token);
+    patCreatedDialogHandle.openWithPayload({ token });
   };
 
   const handleSuccessDialogClose = () => {

@@ -20,6 +20,7 @@ import {
 import type { PAT } from '@raystack/proton/frontier';
 import {
   Button,
+  Chip,
   Dialog,
   Flex,
   InputField,
@@ -35,14 +36,10 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { PERMISSIONS } from '../../../../utils';
 import { handleConnectError } from '~/utils/error';
+import { EXPIRY_OPTIONS } from '../utils';
+import styles from '../pat-view.module.css';
 
-const EXPIRY_OPTIONS = [
-  { value: '1w', label: '1 week', amount: 1, unit: 'week' as const },
-  { value: '1m', label: '1 month', amount: 1, unit: 'month' as const },
-  { value: '3m', label: '3 months', amount: 3, unit: 'month' as const },
-  { value: '6m', label: '6 months', amount: 6, unit: 'month' as const },
-  { value: '12m', label: '12 months', amount: 12, unit: 'month' as const }
-] as const;
+const MAX_VISIBLE_PROJECT_CHIPS = 2;
 
 const baseFields = {
   title: yup.string().required('Name is required'),
@@ -217,14 +214,20 @@ export function PATFormDialog({
       return;
     }
 
+    const checkedTitle = title;
     setTitleChecking(true);
     try {
       const result = await checkTitle(
         create(CheckCurrentUserPATTitleRequestSchema, { orgId, title })
       );
-      setTitleAvailable(result?.available);
+      if (getValues('title') === checkedTitle) {
+        setTitleAvailable(result?.available ?? true);
+      }
     } catch {
-      // Ignore check failure — don't block the user
+      // On check failure, don't block the user
+      if (getValues('title') === checkedTitle) {
+        setTitleAvailable(true);
+      }
     } finally {
       setTitleChecking(false);
     }
@@ -382,6 +385,7 @@ export function PATFormDialog({
                           ? 'This name is already taken'
                           : undefined
                     }
+                    data-test-id="frontier-sdk-pat-form-title-input"
                   />
 
                   {!isUpdateMode && (
@@ -536,15 +540,44 @@ export function PATFormDialog({
                           >
                             <Select.Trigger>
                               <Select.Value placeholder="Select projects">
-                                {field.value.length > 0
-                                  ? `${field.value.length} project${field.value.length > 1 ? 's' : ''} selected`
-                                  : undefined}
+                                {() => {
+                                  const selectedIds = field.value;
+                                  const visible = selectedIds.slice(
+                                    0,
+                                    MAX_VISIBLE_PROJECT_CHIPS
+                                  );
+                                  const remaining =
+                                    selectedIds.length - visible.length;
+                                  return (
+                                    <Flex gap={2} align="center">
+                                      {visible.map(id => (
+                                        <Chip
+                                          key={id}
+                                          className={styles.projectChip}
+                                        >
+                                          <span
+                                            className={
+                                              styles.projectChipLabel
+                                            }
+                                          >
+                                            {projects.find(p => p.id === id)
+                                              ?.title || id}
+                                          </span>
+                                        </Chip>
+                                      ))}
+                                      {remaining > 0 && (
+                                        <Chip>{`+${remaining}`}</Chip>
+                                      )}
+                                    </Flex>
+                                  );
+                                }
+                                }
                               </Select.Value>
                             </Select.Trigger>
                             <Select.Content>
                               {projects.map(project => (
                                 <Select.Item
-                                  value={project.id || ''}
+                                  value={project.id}
                                   key={project.id}
                                 >
                                   {project.title}
@@ -573,6 +606,7 @@ export function PATFormDialog({
                 size="normal"
                 type="button"
                 onClick={() => handle.close()}
+                data-test-id="frontier-sdk-pat-form-cancel-btn"
               >
                 Cancel
               </Button>
