@@ -52,7 +52,7 @@ const TRANSFORM_OPTIONS = {
     createdAt: 'created_at',
     updatedAt: 'updated_at',
     expiresAt: 'expires_at',
-    lastUsedAt: 'last_used_at'
+    usedAt: 'used_at'
   }
 };
 

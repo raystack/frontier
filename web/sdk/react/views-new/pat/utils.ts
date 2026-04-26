@@ -1,4 +1,6 @@
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
+import type { PAT } from '@raystack/proton/frontier';
+import { isNullTimestamp, timestampToDayjs } from '~/utils/timestamp';
 
 export const EXPIRY_OPTIONS = [
   { value: '1w', label: '1 week', amount: 1, unit: 'week' as const },
@@ -10,13 +12,24 @@ export const EXPIRY_OPTIONS = [
 
 export type ExpiryOption = (typeof EXPIRY_OPTIONS)[number];
 
+/**
+ * Reference timestamp for expiry math: regeneratedAt when present, else createdAt.
+ */
+export function getExpiryReferenceDayjs(pat?: PAT): Dayjs | null {
+  if (!pat) return null;
+  if (pat.regeneratedAt && !isNullTimestamp(pat.regeneratedAt)) {
+    return timestampToDayjs(pat.regeneratedAt);
+  }
+  return timestampToDayjs(pat.createdAt);
+}
+
 export function getExpiryOptionValue(
-  createdAt?: dayjs.Dayjs | null,
+  reference?: dayjs.Dayjs | null,
   expiresAt?: dayjs.Dayjs | null
 ): string {
-  if (!createdAt || !expiresAt) return '';
+  if (!reference || !expiresAt) return '';
   const match = EXPIRY_OPTIONS.find(option =>
-    createdAt.add(option.amount, option.unit).isSame(expiresAt, 'day')
+    reference.add(option.amount, option.unit).isSame(expiresAt, 'day')
   );
   return match?.value ?? '';
 }

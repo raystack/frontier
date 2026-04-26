@@ -1,9 +1,13 @@
 'use client';
 
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { Button, Text, DataTableColumnDef } from '@raystack/apsara-v1';
 import type { PAT } from '@raystack/proton/frontier';
 import { timestampToDayjs, isNullTimestamp } from '~/utils/timestamp';
 import styles from '../pat-view.module.css';
+
+dayjs.extend(relativeTime);
 
 export function getColumns({
   dateFormat,
@@ -25,19 +29,19 @@ export function getColumns({
       accessorKey: 'expiresAt',
       enableSorting: false,
       cell: ({ row }) => {
-        const d = timestampToDayjs(row.original.expiresAt);
-        return d ? <Text size="regular">{d.format(dateFormat)}</Text> : null;
+        const date = timestampToDayjs(row.original.expiresAt);
+        return date ? <Text size="regular">{date.format(dateFormat)}</Text> : null;
       }
     },
     {
       header: 'Last used',
-      accessorKey: 'lastUsedAt',
+      accessorKey: 'usedAt',
       enableSorting: false,
       cell: ({ row }) => {
         const pat = row.original;
-        if (!pat.lastUsedAt || isNullTimestamp(pat.lastUsedAt)) return null;
-        const d = timestampToDayjs(pat.lastUsedAt);
-        return d ? <Text size="regular">{d.fromNow()}</Text> : null;
+        if (!pat.usedAt || isNullTimestamp(pat.usedAt)) return null;
+        const date = timestampToDayjs(pat.usedAt);
+        return date ? <Text size="regular">{date.fromNow()}</Text> : null;
       }
     },
     {

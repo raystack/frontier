@@ -2,32 +2,16 @@
   border: 1px solid var(--rs-color-border-base-primary);
   border-radius: var(--rs-radius-2);
   width: 100%;
-}
-
-.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-space-6);
   padding: var(--rs-space-5);
-}
-
-.sectionBody {
-  padding: 0 var(--rs-space-5) var(--rs-space-5);
 }
 
 .detailRow {
   display: flex;
   gap: var(--rs-space-3);
   align-items: flex-start;
-}
-
-.detailLabel {
-  flex-shrink: 0;
-  min-width: var(--rs-space-17);
-}
-
-.chipGroup {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--rs-radius-2);
-  align-items: center;
 }
 
 .menuContent {

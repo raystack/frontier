@@ -1,12 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   AlertDialog,
   Breadcrumb,
   Button,
-  Chip,
   Dialog,
   Flex,
   IconButton,
@@ -23,29 +22,54 @@ import {
   ListRolesForPATRequestSchema,
   ListOrganizationProjectsRequestSchema
 } from '@raystack/proton/frontier';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { DEFAULT_DATE_FORMAT } from '../../utils/constants';
 import { PERMISSIONS } from '../../../utils';
-import { timestampToDayjs } from '~/utils/timestamp';
+import { isNullTimestamp, timestampToDayjs } from '~/utils/timestamp';
 import {
   PATCreatedDialog,
   type PATCreatedPayload
 } from './components/pat-created-dialog';
 import { PATFormDialog } from './components/pat-form-dialog';
+import { PATProjectChips } from './components/pat-project-chips';
 import {
   RegeneratePATDialog,
   type RegeneratePayload
 } from './components/regenerate-pat-dialog';
 import { RevokePATDialog } from './components/revoke-pat-dialog';
-import { getExpiryOptionValue } from './utils';
+import { getExpiryOptionValue, getExpiryReferenceDayjs } from './utils';
 import styles from './pat-details-view.module.css';
+
+dayjs.extend(relativeTime);
 
 const updatePATDialogHandle = Dialog.createHandle();
 const regenerateDialogHandle = Dialog.createHandle<RegeneratePayload>();
 const patCreatedDialogHandle = Dialog.createHandle<PATCreatedPayload>();
 const revokePATDialogHandle = AlertDialog.createHandle<string>();
+
+interface DetailRowProps {
+  label: string;
+  children: ReactNode;
+}
+
+function DetailRow({ label, children }: DetailRowProps) {
+  return (
+    <div className={styles.detailRow}>
+      <Text size="small">{label}</Text>
+      {typeof children === 'string' ? (
+        <Text size="small" weight="medium">
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
 
 export interface PATDetailsViewProps {
   patId: string;
@@ -149,25 +173,40 @@ export function PATDetailsView({
 
   const scopeProjects = useMemo(() => {
     if (!projectScope?.resourceIds?.length) return [];
-    return projects.filter(p =>
-      projectScope.resourceIds.includes(p.id || '')
-    );
+    return projects
+      .filter(p => projectScope.resourceIds.includes(p.id || ''))
+      .map(p => ({ id: p.id || '', title: p.title || p.id || '' }));
   }, [projectScope, projects]);
+
+  const isAllProjects =
+    !projectScope?.resourceIds || projectScope.resourceIds.length === 0;
 
   const createdOn = useMemo(() => {
     const d = timestampToDayjs(pat?.createdAt);
     return d ? d.format(dateFormat) : '';
   }, [pat, dateFormat]);
 
+  const lastUsed = useMemo(() => {
+    if (!pat?.usedAt || isNullTimestamp(pat.usedAt)) return '';
+    const d = timestampToDayjs(pat.usedAt);
+    return d ? d.fromNow() : '';
+  }, [pat]);
+
+  const regeneratedOn = useMemo(() => {
+    if (!pat?.regeneratedAt || isNullTimestamp(pat.regeneratedAt)) return '';
+    const d = timestampToDayjs(pat.regeneratedAt);
+    return d ? d.format(dateFormat) : '';
+  }, [pat, dateFormat]);
+
   const { expiryInfo, currentExpiryValue } = useMemo(() => {
-    const created = timestampToDayjs(pat?.createdAt);
+    const reference = getExpiryReferenceDayjs(pat);
     const expires = timestampToDayjs(pat?.expiresAt);
-    if (!created || !expires)
+    if (!reference || !expires)
       return { expiryInfo: '', currentExpiryValue: '' };
-    const days = expires.diff(created, 'day');
+    const days = expires.diff(reference, 'day');
     return {
-      expiryInfo: `${days} Days (Exp: ${expires.format(dateFormat)})`,
-      currentExpiryValue: getExpiryOptionValue(created, expires)
+      expiryInfo: `${expires.format(dateFormat)} (${days} Days)`,
+      currentExpiryValue: getExpiryOptionValue(reference, expires)
     };
   }, [pat, dateFormat]);
 
@@ -224,6 +263,23 @@ export function PATDetailsView({
           </Menu.Trigger>
           <Menu.Content align="start" className={styles.menuContent}>
             <Menu.Item
+              onClick={() => updatePATDialogHandle.open(null)}
+              data-test-id="frontier-sdk-pat-update-menu-btn"
+            >
+              Update
+            </Menu.Item>
+            <Menu.Item
+              onClick={() =>
+                regenerateDialogHandle.openWithPayload({
+                  patId,
+                  currentExpiryValue
+                })
+              }
+              data-test-id="frontier-sdk-pat-regenerate-menu-btn"
+            >
+              Regenerate
+            </Menu.Item>
+            <Menu.Item
               onClick={() => revokePATDialogHandle.openWithPayload(patId)}
               style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
               data-test-id="frontier-sdk-pat-revoke-menu-btn"
@@ -236,17 +292,13 @@ export function PATDetailsView({
 
       {isLoading ? (
         <Flex direction="column" gap={7}>
+          <Skeleton height="200px" width="100%" />
           <Skeleton height="120px" width="100%" />
-          <Skeleton height="80px" width="100%" />
         </Flex>
       ) : (
         <>
           <div className={styles.section}>
-            <Flex
-              className={styles.sectionHeader}
-              justify="between"
-              align="center"
-            >
+            <Flex justify="between" align="center">
               <Text size="regular" weight="medium">
                 General
               </Text>
@@ -260,75 +312,54 @@ export function PATDetailsView({
                 Update
               </Button>
             </Flex>
-            <Flex className={styles.sectionBody} direction="column" gap={5}>
+            <Flex direction="column" gap={5}>
+              {createdOn && <DetailRow label="Created on:">{createdOn}</DetailRow>}
+              {lastUsed && <DetailRow label="Last used:">{lastUsed}</DetailRow>}
               {orgRoleName && (
-                <div className={styles.detailRow}>
-                  <Text size="small" className={styles.detailLabel}>
-                    Organization role :
-                  </Text>
-                  <Text size="small" weight="medium">
-                    {orgRoleName}
-                  </Text>
-                </div>
+                <DetailRow label="Organization role:">{orgRoleName}</DetailRow>
               )}
               {projectRoleName && (
-                <div className={styles.detailRow}>
-                  <Text size="small" className={styles.detailLabel}>
-                    Project role:
-                  </Text>
+                <DetailRow label="Project role:">{projectRoleName}</DetailRow>
+              )}
+              <DetailRow label="Projects:">
+                {isAllProjects || scopeProjects.length === 0 ? (
                   <Text size="small" weight="medium">
-                    {projectRoleName}
+                    All projects
                   </Text>
-                </div>
-              )}
-              {scopeProjects.length > 0 && (
-                <div className={styles.detailRow}>
-                  <Text size="small" className={styles.detailLabel}>
-                    Projects
-                  </Text>
-                  <div className={styles.chipGroup}>
-                    {scopeProjects.map(project => (
-                      <Chip
-                        key={project.id}
-                      >
-                        {project.title}
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ) : (
+                  <PATProjectChips projects={scopeProjects} />
+                )}
+              </DetailRow>
             </Flex>
           </div>
 
           <div className={styles.section}>
-            <Flex
-              className={styles.sectionHeader}
-              direction="column"
-              gap={3}
-            >
-              <Flex justify="between" align="center">
-                <Text size="regular" weight="medium">
-                  Expiry Date
-                </Text>
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  size="small"
-                  onClick={() =>
-                    regenerateDialogHandle.openWithPayload({
-                      patId,
-                      currentExpiryValue
-                    })
-                  }
-                  data-test-id="frontier-sdk-pat-regenerate-btn"
-                >
-                  Regenerate
-                </Button>
-              </Flex>
-              {createdOn && (
-                <Text size="small">Created on: {createdOn}</Text>
+            <Flex justify="between" align="center">
+              <Text size="regular" weight="medium">
+                Expiry Details
+              </Text>
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                onClick={() =>
+                  regenerateDialogHandle.openWithPayload({
+                    patId,
+                    currentExpiryValue
+                  })
+                }
+                data-test-id="frontier-sdk-pat-regenerate-btn"
+              >
+                Regenerate
+              </Button>
+            </Flex>
+            <Flex direction="column" gap={5}>
+              {expiryInfo && (
+                <DetailRow label="Expiry on:">{expiryInfo}</DetailRow>
               )}
-              {expiryInfo && <Text size="small">{expiryInfo}</Text>}
+              {regeneratedOn && (
+                <DetailRow label="Regenerated on:">{regeneratedOn}</DetailRow>
+              )}
             </Flex>
           </div>
         </>
