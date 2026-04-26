@@ -1,11 +1,7 @@
 'use client';
 
-import { useState, useMemo, useCallback, MouseEvent } from 'react';
-import {
-  DotsHorizontalIcon,
-  CheckCircledIcon,
-  CopyIcon
-} from '@radix-ui/react-icons';
+import { useMemo, useCallback, MouseEvent } from 'react';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Breadcrumb,
   Skeleton,
@@ -16,7 +12,8 @@ import {
   AlertDialog,
   Dialog,
   IconButton,
-  Image
+  Image,
+  CopyButton
 } from '@raystack/apsara-v1';
 import deleteIcon from '../../assets/delete.svg';
 import keyIcon from '../../assets/key.svg';
@@ -30,7 +27,6 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useTerminology } from '../../hooks/useTerminology';
 import { usePermissions } from '../../hooks/usePermissions';
-import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { useServiceUserTokens } from './hooks/useServiceUserTokens';
 import { ViewContainer } from '../../components/view-container';
@@ -289,18 +285,7 @@ function TokenList({
 }
 
 function TokenItem({ token }: { token: ServiceUserToken }) {
-  const [isCopied, setIsCopied] = useState(false);
-  const { copy } = useCopyToClipboard();
-
   const encodedToken = 'Basic ' + btoa(`${token?.id}:${token?.token}`);
-
-  async function onCopy() {
-    const res = await copy(encodedToken);
-    if (res) {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 1000);
-    }
-  }
 
   return (
     <Flex className={styles.tokenItem} direction="column" gap={3}>
@@ -330,18 +315,12 @@ function TokenItem({ token }: { token: ServiceUserToken }) {
             <Text size="regular" weight="medium" className={styles.tokenText}>
               {encodedToken}
             </Text>
-            {isCopied ? (
-              <CheckCircledIcon
-                color="var(--rs-color-foreground-success-primary)"
-                className={styles.copySuccessIcon}
-              />
-            ) : (
-              <CopyIcon
-                onClick={onCopy}
-                data-test-id="frontier-sdk-service-account-token-copy-btn"
-                className={styles.copyButton}
-              />
-            )}
+            <CopyButton
+              text={encodedToken}
+              size={2}
+              className={styles.copyButton}
+              data-test-id="frontier-sdk-service-account-token-copy-btn"
+            />
           </Flex>
         </>
       ) : null}
