@@ -15,7 +15,7 @@ import {
   Flex,
   toastManager
 } from '@raystack/apsara-v1';
-import { useFrontier } from '../../../contexts/FrontierContext';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQueryClient } from '@tanstack/react-query';
 import styles from './delete-service-account-dialog.module.css';
 

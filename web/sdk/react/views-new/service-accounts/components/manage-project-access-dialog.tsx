@@ -26,8 +26,8 @@ import {
   type Policy
 } from '@raystack/proton/frontier';
 import { orderBy } from 'lodash';
-import { useFrontier } from '../../../contexts/FrontierContext';
-import { PERMISSIONS } from '../../../../utils';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { PERMISSIONS } from '~/utils';
 import styles from '../service-account-details-view.module.css';
 
 const PROJECT_ROLES = [

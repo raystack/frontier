@@ -36,9 +36,9 @@ import {
   Skeleton,
   toastManager
 } from '@raystack/apsara-v1';
-import { PERMISSIONS } from '../../../../utils';
-import { useFrontier } from '../../../contexts/FrontierContext';
-import { useTerminology } from '../../../hooks/useTerminology';
+import { PERMISSIONS } from '~/utils';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useTerminology } from '~/react/hooks/useTerminology';
 import { cacheFreshServiceUserToken } from '../hooks/useServiceUserTokens';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';

@@ -14,8 +14,8 @@ import {
   Flex,
   toastManager
 } from '@raystack/apsara-v1';
-import { useFrontier } from '../../../contexts/FrontierContext';
-import { useTerminology } from '../../../hooks/useTerminology';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useTerminology } from '~/react/hooks/useTerminology';
 import styles from './revoke-token-dialog.module.css';
 
 export type RevokeTokenPayload = { tokenId: string };

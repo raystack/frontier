@@ -14,22 +14,22 @@ import {
   Menu,
   Image
 } from '@raystack/apsara-v1';
-import deleteIcon from '../../assets/delete.svg';
-import keyIcon from '../../assets/key.svg';
+import deleteIcon from '~/react/assets/delete.svg';
+import keyIcon from '~/react/assets/key.svg';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
   ListOrganizationServiceUsersRequestSchema
 } from '@raystack/proton/frontier';
-import { useFrontier } from '../../contexts/FrontierContext';
-import { usePermissions } from '../../hooks/usePermissions';
-import { useTerminology } from '../../hooks/useTerminology';
-import { AuthTooltipMessage } from '../../utils';
-import { PERMISSIONS, shouldShowComponent } from '../../../utils';
-import { DEFAULT_DATE_FORMAT } from '../../utils/constants';
-import { ViewContainer } from '../../components/view-container';
-import { ViewHeader } from '../../components/view-header';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { useTerminology } from '~/react/hooks/useTerminology';
+import { AuthTooltipMessage } from '~/react/utils';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { ViewContainer } from '~/react/components/view-container';
+import { ViewHeader } from '~/react/components/view-header';
 import {
   getColumns,
   type ServiceAccountMenuPayload

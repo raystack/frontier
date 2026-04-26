@@ -15,8 +15,8 @@ import {
   Image,
   CopyButton
 } from '@raystack/apsara-v1';
-import deleteIcon from '../../assets/delete.svg';
-import keyIcon from '../../assets/key.svg';
+import deleteIcon from '~/react/assets/delete.svg';
+import keyIcon from '~/react/assets/key.svg';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -24,13 +24,13 @@ import {
   GetServiceUserRequestSchema,
   type ServiceUserToken
 } from '@raystack/proton/frontier';
-import { useFrontier } from '../../contexts/FrontierContext';
-import { useTerminology } from '../../hooks/useTerminology';
-import { usePermissions } from '../../hooks/usePermissions';
-import { PERMISSIONS, shouldShowComponent } from '../../../utils';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useTerminology } from '~/react/hooks/useTerminology';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { useServiceUserTokens } from './hooks/useServiceUserTokens';
-import { ViewContainer } from '../../components/view-container';
-import { ViewHeader } from '../../components/view-header';
+import { ViewContainer } from '~/react/components/view-container';
+import { ViewHeader } from '~/react/components/view-header';
 import { AddTokenForm } from './components/add-token-form';
 import {
   RevokeTokenDialog,

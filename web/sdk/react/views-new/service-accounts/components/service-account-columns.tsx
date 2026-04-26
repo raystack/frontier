@@ -10,7 +10,7 @@ import {
 } from '@raystack/apsara-v1';
 import type { ServiceUser } from '@raystack/proton/frontier';
 import type { Timestamp } from '@bufbuild/protobuf/wkt';
-import { timestampToDayjs } from '../../../../utils/timestamp';
+import { timestampToDayjs } from '~/utils/timestamp';
 import { ProjectsCell } from './projects-cell';
 import styles from './service-account-columns.module.css';
 
