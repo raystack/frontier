@@ -21,6 +21,7 @@ export { OrganizationProjectsView } from "./views/organizations/details/projects
 export { OrganizationInvoicesView } from "./views/organizations/details/invoices";
 export { OrganizationTokensView } from "./views/organizations/details/tokens";
 export { OrganizationApisView } from "./views/organizations/details/apis";
+export { OrganizationPatView } from "./views/organizations/details/pat";
 
 // context exports
 export {
