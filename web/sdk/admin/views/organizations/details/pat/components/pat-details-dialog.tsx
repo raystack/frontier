@@ -5,7 +5,6 @@ import {
   Skeleton,
   Tabs,
   Text,
-  EmptyState,
 } from "@raystack/apsara";
 import { useQuery } from "@connectrpc/connect-query";
 import {
@@ -41,7 +40,7 @@ export function PatDetailsDialog({
     [pat],
   );
 
-  const scopeProjectIds = projectScope?.resourceIds ?? [];
+  const scopeProjectIds = useMemo(() => projectScope?.resourceIds ?? [], [projectScope]);
   const scopeProjects = useMemo(
     () =>
       scopeProjectIds
