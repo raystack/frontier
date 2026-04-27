@@ -3,12 +3,14 @@ import {
   Flex,
   getAvatarColor,
   Text,
-  Tooltip,
   type DataTableColumnDef,
 } from "@raystack/apsara";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import type { PAT, Project, User } from "@raystack/proton/frontier";
+import type {
+  Project,
+  SearchOrganizationPATsResponse_OrganizationPAT,
+} from "@raystack/proton/frontier";
 import {
   isNullTimestamp,
   timestampToDayjs,
@@ -19,16 +21,17 @@ import styles from "./pat.module.css";
 dayjs.extend(relativeTime);
 
 interface GetColumnsOptions {
-  orgMembersMap: Record<string, User>;
   projectsMap: Record<string, Project>;
 }
 
 const DATE_FORMAT = "DD MMM YYYY";
 
 export function getColumns({
-  orgMembersMap,
   projectsMap,
-}: GetColumnsOptions): DataTableColumnDef<PAT, unknown>[] {
+}: GetColumnsOptions): DataTableColumnDef<
+  SearchOrganizationPATsResponse_OrganizationPAT,
+  unknown
+>[] {
   return [
     {
       accessorKey: "title",
@@ -59,34 +62,21 @@ export function getColumns({
         const projectNamesText = resourceIds.map(
           (id) => projectsMap[id]?.title || projectsMap[id]?.name || id,
         ).join(", ");
-        return (
-          <Tooltip
-            message={projectNamesText}
-            contentStyle={{ maxWidth: "600px" }}
-            showArrow={false}
-            side="top-left"
-          >
-            <Text className={styles["truncate-text"]}>{projectNamesText}</Text>
-          </Tooltip>
-        );
+        return <Text className={styles["truncate-text"]}>{projectNamesText}</Text>;
       },
     },
     {
-      accessorKey: "userId",
+      accessorKey: "createdBy",
       header: "Created By",
       enableSorting: false,
-      cell: ({ getValue }) => {
-        const userId = (getValue() as string) || "";
-        const user = orgMembersMap[userId];
-        const title = user?.title || user?.name || user?.email || userId;
+      cell: ({ row }) => {
+        const createdBy = row.original.createdBy;
+        const userId = createdBy?.id || "";
+        const title = createdBy?.title || createdBy?.email || userId || "-";
         const avatarColor = getAvatarColor(userId);
         return (
           <Flex gap={4} align="center">
-            <Avatar
-              src={user?.avatar}
-              fallback={title?.[0]}
-              color={avatarColor}
-            />
+            <Avatar fallback={title?.[0]} color={avatarColor} />
             <Text className={styles["truncate-text"]}>{title}</Text>
           </Flex>
         );

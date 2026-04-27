@@ -2,6 +2,10 @@
   height: 100%;
 }
 
+.zero-state-container {
+  padding: var(--rs-space-10);
+}
+
 .empty-state-subheading {
   max-width: 360px;
   text-wrap: auto;

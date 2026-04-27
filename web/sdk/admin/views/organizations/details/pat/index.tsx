@@ -1,11 +1,13 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { Button, DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { LockClosedIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";
 import {
+  AdminServiceQueries,
   FrontierServiceQueries,
   type Project,
+  type SearchOrganizationPATsResponse_OrganizationPAT,
 } from "@raystack/proton/frontier";
 import { useDebounceValue } from "usehooks-ts";
 import { OrganizationContext } from "../contexts/organization-context";
@@ -17,6 +19,7 @@ import {
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useTerminology } from "../../../../hooks/useTerminology";
 import { getColumns } from "./columns";
+import { PatDetailsDialog } from "./components/pat-details-dialog";
 import styles from "./pat.module.css";
 
 const DEFAULT_SORT: DataTableSort = { name: "createdAt", order: "desc" };
@@ -40,10 +43,23 @@ const NoPats = () => {
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No personal access tokens"
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
+      heading="No PAT found"
+      subHeading="We couldn't find any matches for that keyword. Try alternative terms or check for typos."
       icon={<LockClosedIcon />}
     />
+  );
+};
+
+const ZeroState = () => {
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        icon={<LockClosedIcon />}
+        heading="PAT"
+        subHeading="Personal access tokens (PATs) provide programmatic access to organization resources via the API on behalf of a user."
+      />
+    </div>
   );
 };
 
@@ -63,7 +79,7 @@ const ErrorState = () => {
 
 export function OrganizationPatView() {
   const t = useTerminology();
-  const { organization, search, orgMembersMap } = useContext(OrganizationContext);
+  const { organization, search } = useContext(OrganizationContext);
   const organizationId = organization?.id || "";
   const {
     onChange: onSearchChange,
@@ -72,6 +88,8 @@ export function OrganizationPatView() {
   } = search;
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+  const [selectedPat, setSelectedPat] =
+    useState<SearchOrganizationPATsResponse_OrganizationPAT | null>(null);
 
   const title = `PAT | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
@@ -96,13 +114,13 @@ export function OrganizationPatView() {
     hasNextPage,
     isError,
   } = useInfiniteQuery(
-    FrontierServiceQueries.searchCurrentUserPATs,
+    AdminServiceQueries.searchOrganizationPATs,
     { orgId: organizationId, query },
     {
       enabled: !!organizationId,
       pageParamKey: "query",
       getNextPageParam: (lastPage) =>
-        getConnectNextPageParam(lastPage, { query }, "pats"),
+        getConnectNextPageParam(lastPage, { query }, "organizationPats"),
       staleTime: 0,
       refetchOnWindowFocus: false,
       retry: 1,
@@ -131,8 +149,13 @@ export function OrganizationPatView() {
     [projects],
   );
 
-  const data = infiniteData?.pages?.flatMap((page) => page?.pats ?? []) ?? [];
+  const data =
+    infiniteData?.pages?.flatMap((page) => page?.organizationPats ?? []) ?? [];
   const loading = (isLoading || isFetchingNextPage) && !isError;
+
+  const hasActiveQuery = Boolean(query.search || query.filters?.length);
+  const showZeroState =
+    !isLoading && !isError && !hasActiveQuery && data.length === 0;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
@@ -153,13 +176,29 @@ export function OrganizationPatView() {
   }, [setSearchVisibility, onSearchChange]);
 
   const columns = useMemo(
-    () => getColumns({ orgMembersMap, projectsMap }),
-    [orgMembersMap, projectsMap],
+    () => getColumns({ projectsMap }),
+    [projectsMap],
   );
+
+  const onRowClick = useCallback(
+    (row: SearchOrganizationPATsResponse_OrganizationPAT) => {
+      setSelectedPat(row);
+    },
+    [],
+  );
+
+  const onDialogClose = useCallback(() => {
+    setSelectedPat(null);
+  }, []);
 
   return (
     <Flex justify="center">
       <PageTitle title={title} />
+      <PatDetailsDialog
+        pat={selectedPat}
+        projectsMap={projectsMap}
+        onClose={onDialogClose}
+      />
       <DataTable
         columns={columns}
         data={data}
@@ -168,12 +207,13 @@ export function OrganizationPatView() {
         mode="server"
         onTableQueryChange={onTableQueryChange}
         onLoadMore={fetchMore}
+        onRowClick={onRowClick}
         query={tableQuery}
       >
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content
-            emptyState={isError ? <ErrorState /> : <NoPats />}
+            emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoPats />}
             classNames={{
               table: styles["table"],
               root: styles["table-wrapper"],
