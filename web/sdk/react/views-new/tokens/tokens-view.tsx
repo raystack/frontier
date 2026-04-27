@@ -80,6 +80,7 @@ export function TokensView() {
   }, [transactionsError]);
 
   const isLoading =
+    !activeOrganization?.id ||
     isActiveOrganizationLoading ||
     isBillingAccountLoading ||
     isTokensLoading ||
