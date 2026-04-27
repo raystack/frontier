@@ -100,14 +100,17 @@ export function getColumns({
           );
         }
         return (
-          <Tooltip message={eventName} delayDuration={500}>
-            <Text
-              size="regular"
-              variant="secondary"
-              className={styles.truncate}
-            >
-              {eventName}
-            </Text>
+          <Tooltip>
+            <Tooltip.Trigger render={<span />}>
+              <Text
+                size="regular"
+                variant="secondary"
+                className={styles.truncate}
+              >
+                {eventName}
+              </Text>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{eventName}</Tooltip.Content>
           </Tooltip>
         );
       }
