@@ -11,9 +11,10 @@ import (
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/resource"
 
+	"log/slog"
+
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/raystack/salt/log"
 	"github.com/robfig/cron/v3"
 
 	"gocloud.dev/blob"
@@ -44,7 +45,7 @@ type Resource struct {
 
 // TODO(kushsharma): marked for deletion
 type ResourcesRepository struct {
-	log log.Logger
+	log *slog.Logger
 	mu  *sync.Mutex
 
 	cron   *cron.Cron
@@ -142,7 +143,7 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 	repo.mu.Lock()
 	repo.cached = resources
 	repo.mu.Unlock()
-	repo.log.Debug("resource config cache refreshed", "resource_config_count", len(repo.cached))
+	repo.log.DebugContext(ctx, "resource config cache refreshed", "resource_config_count", len(resources))
 	return nil
 }
 
@@ -152,7 +153,7 @@ func (repo *ResourcesRepository) InitCache(ctx context.Context, refreshDelay tim
 	))
 	if _, err := repo.cron.AddFunc("@every "+refreshDelay.String(), func() {
 		if err := repo.refresh(ctx); err != nil {
-			repo.log.Warn("failed to refresh resource config repository", "err", err)
+			repo.log.WarnContext(ctx, "failed to refresh resource config repository", "err", err)
 		}
 	}); err != nil {
 		return err
@@ -168,7 +169,7 @@ func (repo *ResourcesRepository) Close() error {
 	return repo.Bucket.Close()
 }
 
-func NewResourcesRepository(logger log.Logger, b Bucket) *ResourcesRepository {
+func NewResourcesRepository(logger *slog.Logger, b Bucket) *ResourcesRepository {
 	return &ResourcesRepository{
 		log:    logger,
 		Bucket: b,

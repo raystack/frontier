@@ -13,6 +13,9 @@ import (
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/stretchr/testify/assert"
 
+	"io"
+	"log/slog"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
@@ -26,7 +29,6 @@ import (
 	pkgMetadata "github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
@@ -134,7 +136,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}
 				mockSessionService.EXPECT().ExtractFromContext(mock.Anything).Return(mockSess, nil)
 
-				return authenticate.NewService(log.NewLogrus(), authenticate.Config{},
+				return authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
 					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
@@ -180,7 +182,7 @@ func TestService_GetPrincipal(t *testing.T) {
 
 				mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).Return("", map[string]interface{}{}, errors.New("invalid token"))
 
-				return authenticate.NewService(log.NewLogrus(), authenticate.Config{},
+				return authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
 					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},
@@ -225,7 +227,7 @@ func TestService_GetPrincipal(t *testing.T) {
 
 				mockServiceUserService.EXPECT().GetByJWT(mock.Anything, string(tokenBytes)).Return(serviceuser.ServiceUser{}, errors.New("invalid"))
 
-				return authenticate.NewService(log.NewLogrus(), authenticate.Config{},
+				return authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
 					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
 			},
 		},

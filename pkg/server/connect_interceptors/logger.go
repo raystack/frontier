@@ -2,12 +2,12 @@ package connectinterceptors
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"connectrpc.com/connect"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/pkg/server/consts"
-	"go.uber.org/zap"
 )
 
 type LoggerOption struct {
@@ -32,7 +32,7 @@ func NewLoggerOptions(opts ...LoggerOption) *LoggerOptions {
 	return options
 }
 
-func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) connect.UnaryInterceptorFunc {
+func UnaryConnectLoggerInterceptor(logger *slog.Logger, opts *LoggerOptions) connect.UnaryInterceptorFunc {
 	if opts == nil {
 		opts = NewLoggerOptions()
 	}
@@ -43,8 +43,12 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				return next(ctx, req)
 			}
 
-			// Embed logger in context using grpc-zap method for consistency
-			ctx = grpczap.ToContext(ctx, logger)
+			// Store request-scoped attrs in context for downstream loggers
+			requestID := req.Header().Get(consts.RequestIDHeader)
+			ctx = frontierlogger.AppendCtx(ctx,
+				slog.String("request_id", requestID),
+				slog.String("method", req.Spec().Procedure),
+			)
 
 			startTime := time.Now()
 			resp, err := next(ctx, req)
@@ -55,37 +59,41 @@ func UnaryConnectLoggerInterceptor(logger *zap.Logger, opts *LoggerOptions) conn
 				code = connectErr.Code()
 			}
 
-			fields := []zap.Field{
-				zap.String("system", "connect_rpc"),
-				zap.Time("start_time", startTime),
-				zap.String("method", req.Spec().Procedure),
-				zap.Int64("time_ms", duration.Milliseconds()),
-				zap.String("code", code.String()),
-				zap.String("request_id", req.Header().Get(consts.RequestIDHeader)),
-				zap.Error(err),
+			attrs := []any{
+				"system", "connect_rpc",
+				"start_time", startTime,
+				"method", req.Spec().Procedure,
+				"time_ms", duration.Milliseconds(),
+				"code", code.String(),
+				"request_id", requestID,
 			}
-			if err == nil {
-				logger.Info("finished call", fields...)
-				return resp, err
+			if err != nil {
+				attrs = append(attrs, "error", err)
 			}
 
-			switch code {
-			case connect.CodeCanceled:
-				logger.Warn("client cancelled request", fields...)
-			case connect.CodeDeadlineExceeded:
-				logger.Warn("request timeout", fields...)
-			case connect.CodeInvalidArgument,
-				connect.CodeNotFound,
-				connect.CodeAlreadyExists,
-				connect.CodeUnauthenticated,
-				connect.CodePermissionDenied,
-				connect.CodeFailedPrecondition,
-				connect.CodeOutOfRange:
-				logger.Warn("finished call", fields...)
-			default:
-				logger.Error("finished call", fields...)
-			}
+			level := levelForCode(code, err)
+			logger.Log(ctx, level, "finished call", attrs...)
 			return resp, err
 		}
+	}
+}
+
+func levelForCode(code connect.Code, err error) slog.Level {
+	if err == nil {
+		return slog.LevelInfo
+	}
+	switch code {
+	case connect.CodeCanceled,
+		connect.CodeDeadlineExceeded,
+		connect.CodeInvalidArgument,
+		connect.CodeNotFound,
+		connect.CodeAlreadyExists,
+		connect.CodeUnauthenticated,
+		connect.CodePermissionDenied,
+		connect.CodeFailedPrecondition,
+		connect.CodeOutOfRange:
+		return slog.LevelWarn
+	default:
+		return slog.LevelError
 	}
 }

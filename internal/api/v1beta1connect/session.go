@@ -11,7 +11,6 @@ import (
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	sessionutils "github.com/raystack/frontier/pkg/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -35,8 +34,8 @@ func (h *ConnectHandler) ListSessions(ctx context.Context, request *connect.Requ
 	sessions, err := h.sessionService.List(ctx, principal.ID)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListSessions.List", err,
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type))
+			"principal_id", principal.ID,
+			"principal_type", principal.Type)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -105,7 +104,7 @@ func (h *ConnectHandler) RevokeSession(ctx context.Context, request *connect.Req
 	session, err := h.sessionService.GetByID(ctx, sessionID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "RevokeSession.GetByID", err,
-			zap.String("session_id", sessionID.String()))
+			"session_id", sessionID.String())
 		return nil, connect.NewError(connect.CodeNotFound, ErrSessionNotFound)
 	}
 
@@ -115,9 +114,9 @@ func (h *ConnectHandler) RevokeSession(ctx context.Context, request *connect.Req
 
 	if err := h.sessionService.Delete(ctx, sessionID); err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "RevokeSession", err,
-			zap.String("session_id", sessionID.String()),
-			zap.String("principal_id", principal.ID),
-			zap.String("principal_type", principal.Type))
+			"session_id", sessionID.String(),
+			"principal_id", principal.ID,
+			"principal_type", principal.Type)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -142,7 +141,7 @@ func (h *ConnectHandler) PingUserSession(ctx context.Context, request *connect.R
 
 	if err := h.sessionService.Ping(ctx, session.ID, sessionMetadata); err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "PingUserSession", err,
-			zap.String("session_id", session.ID.String()))
+			"session_id", session.ID.String())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -150,7 +149,7 @@ func (h *ConnectHandler) PingUserSession(ctx context.Context, request *connect.R
 	updatedSession, err := h.sessionService.GetByID(ctx, session.ID)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "PingUserSession.GetByID", err,
-			zap.String("session_id", session.ID.String()))
+			"session_id", session.ID.String())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -181,7 +180,7 @@ func (h *ConnectHandler) ListUserSessions(ctx context.Context, request *connect.
 	sessions, err := h.sessionService.List(ctx, userID)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListUserSessions", err,
-			zap.String("user_id", userID))
+			"user_id", userID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -211,7 +210,7 @@ func (h *ConnectHandler) RevokeUserSession(ctx context.Context, request *connect
 
 	if err := h.sessionService.Delete(ctx, sessionID); err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "RevokeUserSession", err,
-			zap.String("session_id", sessionID.String()))
+			"session_id", sessionID.String())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

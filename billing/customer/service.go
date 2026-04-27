@@ -3,6 +3,7 @@ package customer
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"sync"
 	"time"
@@ -15,8 +16,6 @@ import (
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 
 	"github.com/raystack/frontier/pkg/metadata"
@@ -40,6 +39,7 @@ type CreditService interface {
 }
 
 type Service struct {
+	log           *slog.Logger
 	stripeClient  *client.API
 	repository    Repository
 	creditService CreditService
@@ -49,9 +49,10 @@ type Service struct {
 	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, repository Repository, cfg billing.Config,
+func NewService(logger *slog.Logger, stripeClient *client.API, repository Repository, cfg billing.Config,
 	creditService CreditService) *Service {
 	return &Service{
+		log:           logger,
 		stripeClient:  stripeClient,
 		repository:    repository,
 		mu:            sync.Mutex{},
@@ -390,12 +391,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		record := metrics.BillingSyncLatency("customer")
 		defer record()
 	}
-	logger := grpczap.Extract(ctx)
 	customers, err := s.List(ctx, Filter{
 		State: ActiveState,
 	})
 	if err != nil {
-		logger.Error("customer.backgroundSync", zap.Error(err))
+		s.log.ErrorContext(ctx, "customer.backgroundSync", "error", err)
 		return
 	}
 
@@ -409,11 +409,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
-			logger.Error("customer.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
+			s.log.ErrorContext(ctx, "customer.SyncWithProvider", "error", err, "customer_id", customer.ID)
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
-	logger.Info("customer.backgroundSync finished", zap.Duration("duration", time.Since(start)))
+	s.log.InfoContext(ctx, "customer.backgroundSync finished", "duration", time.Since(start))
 }
 
 // SyncWithProvider syncs the customer state with the billing provider

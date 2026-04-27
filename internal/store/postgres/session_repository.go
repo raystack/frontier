@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"log/slog"
+
 	"github.com/jmoiron/sqlx"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
-	"github.com/raystack/salt/log"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -19,12 +20,12 @@ import (
 )
 
 type SessionRepository struct {
-	log log.Logger
+	log *slog.Logger
 	dbc *db.Client
 	Now func() time.Time
 }
 
-func NewSessionRepository(logger log.Logger, dbc *db.Client) *SessionRepository {
+func NewSessionRepository(logger *slog.Logger, dbc *db.Client) *SessionRepository {
 	return &SessionRepository{
 		log: logger,
 		dbc: dbc,
@@ -199,7 +200,7 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 		}
 
 		count, _ := result.RowsAffected()
-		s.log.Debug("deleted expired and old soft-deleted sessions", "deleted_count", count)
+		s.log.DebugContext(ctx, "deleted expired and old soft-deleted sessions", "deleted_count", count)
 
 		return nil
 	})

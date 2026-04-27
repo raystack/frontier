@@ -7,7 +7,6 @@ import (
 	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -28,7 +27,7 @@ func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request
 	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, req, "CreateWebhook", err,
-			zap.String("url", req.Msg.GetBody().GetUrl()))
+			"url", req.Msg.GetBody().GetUrl())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
@@ -60,8 +59,8 @@ func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request
 	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, req, "UpdateWebhook", err,
-			zap.String("webhook_id", webhookID),
-			zap.String("url", req.Msg.GetBody().GetUrl()))
+			"webhook_id", webhookID,
+			"url", req.Msg.GetBody().GetUrl())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
@@ -104,7 +103,7 @@ func (h *ConnectHandler) DeleteWebhook(ctx context.Context, req *connect.Request
 	err := h.webhookService.DeleteEndpoint(ctx, webhookID)
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, req, "DeleteWebhook", err,
-			zap.String("webhook_id", webhookID))
+			"webhook_id", webhookID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteWebhookResponse{}), nil

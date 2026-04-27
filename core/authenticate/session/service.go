@@ -7,8 +7,9 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/consts"
 
+	"log/slog"
+
 	"github.com/google/uuid"
-	"github.com/raystack/salt/log"
 	"github.com/robfig/cron/v3"
 	"google.golang.org/grpc/metadata"
 )
@@ -32,12 +33,12 @@ type Repository interface {
 type Service struct {
 	repo     Repository
 	validity time.Duration
-	log      log.Logger
+	log      *slog.Logger
 	cron     *cron.Cron
 	Now      func() time.Time
 }
 
-func NewService(logger log.Logger, repo Repository, validity time.Duration) *Service {
+func NewService(logger *slog.Logger, repo Repository, validity time.Duration) *Service {
 	return &Service{
 		log:      logger,
 		repo:     repo,
@@ -64,7 +65,7 @@ func (s Service) Create(ctx context.Context, userID string, metadata SessionMeta
 	}
 	err := s.repo.Set(ctx, sess)
 	if err != nil {
-		s.log.Warn("failed to create session", "err", err)
+		s.log.WarnContext(ctx, "failed to create session", "err", err)
 		return nil, err
 	}
 	return sess, nil
@@ -106,7 +107,7 @@ func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
 func (s Service) InitSessions(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.repo.DeleteExpiredSessions(ctx); err != nil {
-			s.log.Warn("failed to delete expired sessions", "err", err)
+			s.log.WarnContext(ctx, "failed to delete expired sessions", "err", err)
 		}
 	})
 	if err != nil {

@@ -8,7 +8,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/metaschema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -60,7 +59,7 @@ func (h *ConnectHandler) CreateMetaSchema(ctx context.Context, req *connect.Requ
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogServiceError(ctx, req, "CreateMetaSchema.Create", err,
-				zap.String("metaschema_name", req.Msg.GetBody().GetName()))
+				"metaschema_name", req.Msg.GetBody().GetName())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -86,7 +85,7 @@ func (h *ConnectHandler) GetMetaSchema(ctx context.Context, req *connect.Request
 			return nil, connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, req, "GetMetaSchema.Get", err,
-				zap.String("metaschema_id", id))
+				"metaschema_id", id)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -123,8 +122,8 @@ func (h *ConnectHandler) UpdateMetaSchema(ctx context.Context, req *connect.Requ
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
 			errorLogger.LogServiceError(ctx, req, "UpdateMetaSchema.Update", err,
-				zap.String("metaschema_id", id),
-				zap.String("metaschema_name", req.Msg.GetBody().GetName()))
+				"metaschema_id", id,
+				"metaschema_name", req.Msg.GetBody().GetName())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
@@ -151,7 +150,7 @@ func (h *ConnectHandler) DeleteMetaSchema(ctx context.Context, req *connect.Requ
 			return nil, connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound)
 		default:
 			errorLogger.LogServiceError(ctx, req, "DeleteMetaSchema.Delete", err,
-				zap.String("metaschema_id", id))
+				"metaschema_id", id)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

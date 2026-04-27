@@ -367,6 +367,7 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 	rqlSearchSupportedColumns := []string{
 		COLUMN_ID,
 		COLUMN_TITLE,
+		COLUMN_NAME,
 		COLUMN_STATE,
 		COLUMN_PLAN_NAME,
 		COLUMN_SUBSCRIPTION_STATE,

@@ -16,9 +16,9 @@ import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE,
-} from "../../utils/connect-pagination";
+} from "~/utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { transformDataTableQueryToRQLRequest } from "../../utils/transform-query";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useTerminology } from "../../hooks/useTerminology";
 
 const NoInvoices = () => {

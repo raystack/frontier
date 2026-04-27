@@ -14,7 +14,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/salt/log"
+	"log/slog"
 
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/user"
@@ -41,7 +41,7 @@ type Service struct {
 	orgService        OrgService
 	membershipService MembershipService
 	cron              *cron.Cron
-	log               log.Logger
+	log               *slog.Logger
 }
 
 const (
@@ -51,7 +51,7 @@ const (
 	refreshTime        = "0 0 * * *"        // Once a day at midnight (UTC)
 )
 
-func NewService(logger log.Logger, repository Repository, userService UserService, orgService OrgService, membershipService MembershipService) *Service {
+func NewService(logger *slog.Logger, repository Repository, userService UserService, orgService OrgService, membershipService MembershipService) *Service {
 	return &Service{
 		repository:        repository,
 		userService:       userService,
@@ -214,7 +214,7 @@ func (s Service) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]
 func (s Service) InitDomainVerification(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.repository.DeleteExpiredDomainRequests(ctx); err != nil {
-			s.log.Warn("error deleting expired domain requests", "err", err)
+			s.log.WarnContext(ctx, "error deleting expired domain requests", "err", err)
 		}
 	})
 	if err != nil {

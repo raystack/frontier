@@ -528,7 +528,10 @@ function ProjectActionsMenu({
             <Menu.Item
               leadingIcon={<Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />}
               onClick={() =>
-                deleteProjectDialogHandle.openWithPayload({ projectId })
+                deleteProjectDialogHandle.openWithPayload({
+                  projectId,
+                  projectName: projectTitle
+                })
               }
               data-test-id="frontier-sdk-delete-project-details-btn"
               style={{ color: 'var(--rs-color-foreground-danger-primary)' }}

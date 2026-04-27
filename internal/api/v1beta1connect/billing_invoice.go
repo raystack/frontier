@@ -12,7 +12,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -26,8 +25,8 @@ func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.R
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListAllInvoices.ListAll", err,
-			zap.Int32("page_num", request.Msg.GetPageNum()),
-			zap.Int32("page_size", request.Msg.GetPageSize()))
+			"page_num", request.Msg.GetPageNum(),
+			"page_size", request.Msg.GetPageSize())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	var invoicePBs []*frontierv1beta1.Invoice
@@ -63,7 +62,7 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		errorLogger.LogServiceError(ctx, request, "ListInvoices.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	billingID := cust.ID
@@ -74,9 +73,9 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListInvoices.List", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("billing_id", billingID),
-			zap.Bool("nonzero_amount_only", request.Msg.GetNonzeroAmountOnly()))
+			"org_id", request.Msg.GetOrgId(),
+			"billing_id", billingID,
+			"nonzero_amount_only", request.Msg.GetNonzeroAmountOnly())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	var invoicePBs []*frontierv1beta1.Invoice
@@ -116,7 +115,7 @@ func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 		errorLogger.LogServiceError(ctx, request, "GetUpcomingInvoice.GetByOrgID", err,
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	billingID := cust.ID
@@ -124,8 +123,8 @@ func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connec
 	invoice, err := h.invoiceService.GetUpcoming(ctx, billingID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetUpcomingInvoice.GetUpcoming", err,
-			zap.String("org_id", request.Msg.GetOrgId()),
-			zap.String("billing_id", billingID))
+			"org_id", request.Msg.GetOrgId(),
+			"billing_id", billingID)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	invoicePB, err := transformInvoiceToPB(invoice)
@@ -205,8 +204,8 @@ func (h *ConnectHandler) SearchInvoices(ctx context.Context, request *connect.Re
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		errorLogger.LogServiceError(ctx, request, "SearchInvoices.SearchInvoices", err,
-			zap.Int("query_offset", rqlQuery.Offset),
-			zap.Int("query_limit", rqlQuery.Limit))
+			"query_offset", rqlQuery.Offset,
+			"query_limit", rqlQuery.Limit)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

@@ -16,7 +16,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -80,10 +79,10 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateAuditRecord.Create", err,
-			zap.String("event", request.Msg.GetEvent()),
-			zap.String("actor_id", actor.GetId()),
-			zap.String("resource_id", resource.GetId()),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"event", request.Msg.GetEvent(),
+			"actor_id", actor.GetId(),
+			"resource_id", resource.GetId(),
+			"org_id", request.Msg.GetOrgId())
 
 		switch {
 		case errors.Is(err, auditrecord.ErrIdempotencyKeyConflict):
@@ -92,10 +91,10 @@ func (h *ConnectHandler) CreateAuditRecord(ctx context.Context, request *connect
 			return nil, connect.NewError(connect.CodeNotFound, err)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "CreateAuditRecord", err,
-				zap.String("event", request.Msg.GetEvent()),
-				zap.String("actor_id", actor.GetId()),
-				zap.String("resource_id", resource.GetId()),
-				zap.String("org_id", request.Msg.GetOrgId()))
+				"event", request.Msg.GetEvent(),
+				"actor_id", actor.GetId(),
+				"resource_id", resource.GetId(),
+				"org_id", request.Msg.GetOrgId())
 			return nil, err
 		}
 	}

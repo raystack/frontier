@@ -8,7 +8,6 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -82,17 +81,17 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreatePlan.UpsertPlans", err,
-			zap.String("plan_name", planToCreate.Name),
-			zap.String("plan_title", planToCreate.Title),
-			zap.String("interval", planToCreate.Interval),
-			zap.Int("product_count", len(products)))
+			"plan_name", planToCreate.Name,
+			"plan_title", planToCreate.Title,
+			"interval", planToCreate.Interval,
+			"product_count", len(products))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	newPlan, err := h.planService.GetByID(ctx, planToCreate.Name)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreatePlan.GetByID", err,
-			zap.String("plan_name", planToCreate.Name))
+			"plan_name", planToCreate.Name)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
@@ -132,7 +131,7 @@ func (h *ConnectHandler) GetPlan(ctx context.Context, request *connect.Request[f
 	planOb, err := h.planService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetPlan.GetByID", err,
-			zap.String("plan_id", request.Msg.GetId()))
+			"plan_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 

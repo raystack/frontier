@@ -15,7 +15,6 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -82,8 +81,8 @@ func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *conn
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateCurrentUserPAT", err,
-			zap.String("user_id", principal.User.ID),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"user_id", principal.User.ID,
+			"org_id", request.Msg.GetOrgId())
 		return nil, mapPATError(err)
 	}
 
@@ -103,8 +102,8 @@ func (h *ConnectHandler) GetCurrentUserPAT(ctx context.Context, request *connect
 	pat, err := h.userPATService.Get(ctx, principal.User.ID, request.Msg.GetId())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetCurrentUserPAT", err,
-			zap.String("user_id", principal.User.ID),
-			zap.String("pat_id", request.Msg.GetId()))
+			"user_id", principal.User.ID,
+			"pat_id", request.Msg.GetId())
 		return nil, mapPATError(err)
 	}
 
@@ -145,8 +144,8 @@ func (h *ConnectHandler) DeleteCurrentUserPAT(ctx context.Context, request *conn
 
 	if err := h.userPATService.Delete(ctx, principal.User.ID, request.Msg.GetId()); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteCurrentUserPAT", err,
-			zap.String("user_id", principal.User.ID),
-			zap.String("pat_id", request.Msg.GetId()))
+			"user_id", principal.User.ID,
+			"pat_id", request.Msg.GetId())
 		return nil, mapPATError(err)
 	}
 
@@ -170,8 +169,8 @@ func (h *ConnectHandler) UpdateCurrentUserPAT(ctx context.Context, request *conn
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateCurrentUserPAT", err,
-			zap.String("user_id", principal.User.ID),
-			zap.String("pat_id", request.Msg.GetId()))
+			"user_id", principal.User.ID,
+			"pat_id", request.Msg.GetId())
 		return nil, mapPATError(err)
 	}
 
@@ -195,8 +194,8 @@ func (h *ConnectHandler) RegenerateCurrentUserPAT(ctx context.Context, request *
 	regenerated, patValue, err := h.userPATService.Regenerate(ctx, principal.User.ID, request.Msg.GetId(), request.Msg.GetExpiresAt().AsTime())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "RegenerateCurrentUserPAT", err,
-			zap.String("user_id", principal.User.ID),
-			zap.String("pat_id", request.Msg.GetId()))
+			"user_id", principal.User.ID,
+			"pat_id", request.Msg.GetId())
 		return nil, mapPATError(err)
 	}
 
@@ -216,8 +215,8 @@ func (h *ConnectHandler) CheckCurrentUserPATTitle(ctx context.Context, request *
 	available, err := h.userPATService.IsTitleAvailable(ctx, principal.User.ID, request.Msg.GetOrgId(), request.Msg.GetTitle())
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CheckCurrentUserPATTitle", err,
-			zap.String("user_id", principal.User.ID),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"user_id", principal.User.ID,
+			"org_id", request.Msg.GetOrgId())
 		return nil, mapPATError(err)
 	}
 
@@ -299,8 +298,8 @@ func (h *ConnectHandler) SearchCurrentUserPATs(ctx context.Context, request *con
 	result, err := h.userPATService.List(ctx, userID, request.Msg.GetOrgId(), rqlQuery)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "SearchCurrentUserPATs", err,
-			zap.String("user_id", userID),
-			zap.String("org_id", request.Msg.GetOrgId()))
+			"user_id", userID,
+			"org_id", request.Msg.GetOrgId())
 
 		return nil, mapPATError(err)
 	}
