@@ -10,10 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/salt/rql"
-
-	"github.com/raystack/frontier/core/policy"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -33,29 +30,16 @@ type RelationService interface {
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 }
 
-type PolicyService interface {
-	List(ctx context.Context, f policy.Filter) ([]policy.Policy, error)
-}
-
-type RoleService interface {
-	List(ctx context.Context, f role.Filter) ([]role.Role, error)
-}
-
 type Service struct {
 	repository      Repository
 	relationService RelationService
-	policyService   PolicyService
-	roleService     RoleService
 	Now             func() time.Time
 }
 
-func NewService(repository Repository, relationRepo RelationService,
-	policyService PolicyService, roleService RoleService) *Service {
+func NewService(repository Repository, relationRepo RelationService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationRepo,
-		policyService:   policyService,
-		roleService:     roleService,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -94,13 +78,6 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
-	if flt.OrgID != "" {
-		return s.ListByOrg(ctx, flt.OrgID, "")
-	}
-	if flt.GroupID != "" {
-		return s.ListByGroup(ctx, flt.GroupID, "")
-	}
-
 	// state gets filtered in db
 	return s.repository.List(ctx, flt)
 }
@@ -152,84 +129,6 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	return s.repository.Delete(ctx, id)
-}
-
-func (s Service) ListByOrg(ctx context.Context, orgID string, roleFilter string) ([]User, error) {
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		OrgID: orgID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	userIDs, err := s.getUserIDsFromPolicies(ctx, policies, roleFilter)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(userIDs) == 0 {
-		// no users
-		return []User{}, nil
-	}
-
-	return s.repository.GetByIDs(ctx, userIDs)
-}
-
-func (s Service) getUserIDsFromPolicies(ctx context.Context, policies []policy.Policy, roleFilter string) ([]string, error) {
-	var roles []role.Role
-	var err error
-
-	if roleFilter != "" {
-		roleIDs := utils.Map(policies, func(pol policy.Policy) string {
-			return pol.RoleID
-		})
-		roles, err = s.roleService.List(ctx, role.Filter{
-			IDs: roleIDs,
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	userIDs := make([]string, 0)
-	for _, pol := range policies {
-		// get only all users with the permission
-		if pol.PrincipalType != schema.UserPrincipal {
-			continue
-		}
-
-		if roleFilter != "" {
-			for _, currentRole := range roles {
-				if currentRole.ID == pol.RoleID && currentRole.Name == roleFilter {
-					userIDs = append(userIDs, pol.PrincipalID)
-				}
-			}
-		} else {
-			userIDs = append(userIDs, pol.PrincipalID)
-		}
-	}
-	return userIDs, nil
-}
-
-func (s Service) ListByGroup(ctx context.Context, groupID string, roleFilter string) ([]User, error) {
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		GroupID: groupID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	userIDs, err := s.getUserIDsFromPolicies(ctx, policies, roleFilter)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(userIDs) == 0 {
-		// no users
-		return []User{}, nil
-	}
-
-	return s.repository.GetByIDs(ctx, userIDs)
 }
 
 // Sudo add platform permissions to user

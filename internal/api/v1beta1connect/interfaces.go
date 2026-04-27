@@ -34,6 +34,7 @@ import (
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/kyc"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/organization"
@@ -134,8 +135,6 @@ type UserService interface {
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 	Create(ctx context.Context, user user.User) (user.User, error)
 	List(ctx context.Context, flt user.Filter) ([]user.User, error)
-	ListByOrg(ctx context.Context, orgID string, roleFilter string) ([]user.User, error)
-	ListByGroup(ctx context.Context, groupID string, roleFilter string) ([]user.User, error)
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
@@ -210,7 +209,6 @@ type PolicyService interface {
 	List(ctx context.Context, f policy.Filter) ([]policy.Policy, error)
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	Delete(ctx context.Context, id string) error
-	ListRoles(ctx context.Context, principalType, principalID, objectNamespace, objectID string) ([]role.Role, error)
 }
 
 type ResourceService interface {
@@ -301,6 +299,7 @@ type InvitationService interface {
 type GroupService interface {
 	Create(ctx context.Context, grp group.Group) (group.Group, error)
 	Get(ctx context.Context, id string) (group.Group, error)
+	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
@@ -349,9 +348,6 @@ type ProjectService interface {
 	List(ctx context.Context, f project.Filter) ([]project.Project, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
-	ListServiceUsers(ctx context.Context, id string, permissionFilter string) ([]serviceuser.ServiceUser, error)
-	ListGroups(ctx context.Context, id string) ([]group.Group, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -409,6 +405,7 @@ type MembershipService interface {
 	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
 	SetProjectMemberRole(ctx context.Context, projectID, principalID, principalType, roleID string) error
 	RemoveProjectMember(ctx context.Context, projectID, principalID, principalType string) error
+	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
 }
 
 type UserPATService interface {

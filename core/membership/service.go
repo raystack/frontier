@@ -28,6 +28,7 @@ type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
+	ListRoles(ctx context.Context, principalType, principalID, objectNamespace, objectID string) ([]role.Role, error)
 }
 
 type RelationService interface {
@@ -900,4 +901,80 @@ func (s *Service) auditProjectMember(ctx context.Context, event pkgAuditRecord.E
 		OrgID:      prj.Organization.ID,
 		OccurredAt: time.Now(),
 	})
+}
+
+// MemberFilter narrows the results of ListPrincipalsByResource.
+type MemberFilter struct {
+	// PrincipalType restricts the result to a single principal type
+	// (e.g. schema.UserPrincipal, schema.ServiceUserPrincipal, schema.GroupPrincipal).
+	// Empty means no restriction.
+	PrincipalType string
+	// RoleIDs includes principals that have at least one of these roles on the resource.
+	// Empty means no role filtering.
+	RoleIDs []string
+	// WithRoles, when true, populates Member.Roles with the full set of roles
+	// the principal holds on the resource.
+	WithRoles bool
+}
+
+// Member is a principal that has one or more policies on a resource.
+type Member struct {
+	PrincipalID   string
+	PrincipalType string
+	// Roles is populated only when MemberFilter.WithRoles is true.
+	Roles []role.Role
+}
+
+// ListPrincipalsByResource returns the principals (users, service users, groups)
+// that have at least one policy on the given resource, optionally filtered by
+// principal type and/or role, and optionally enriched with the full list of
+// roles each principal holds on the resource.
+func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter MemberFilter) ([]Member, error) {
+	flt := policy.Filter{
+		PrincipalType: filter.PrincipalType,
+		RoleIDs:       filter.RoleIDs,
+		ResourceType:  resourceType,
+	}
+	switch resourceType {
+	case schema.OrganizationNamespace:
+		flt.OrgID = resourceID
+	case schema.ProjectNamespace:
+		flt.ProjectID = resourceID
+	case schema.GroupNamespace:
+		flt.GroupID = resourceID
+	default:
+		return nil, ErrInvalidResourceType
+	}
+
+	policies, err := s.policyService.List(ctx, flt)
+	if err != nil {
+		return nil, fmt.Errorf("list policies: %w", err)
+	}
+
+	// deduplicate by (principalID, principalType) preserving order
+	seen := make(map[string]struct{}, len(policies))
+	members := make([]Member, 0, len(policies))
+	for _, pol := range policies {
+		key := pol.PrincipalType + "\x00" + pol.PrincipalID
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		members = append(members, Member{
+			PrincipalID:   pol.PrincipalID,
+			PrincipalType: pol.PrincipalType,
+		})
+	}
+
+	if filter.WithRoles {
+		for i := range members {
+			roles, err := s.policyService.ListRoles(ctx, members[i].PrincipalType, members[i].PrincipalID, resourceType, resourceID)
+			if err != nil {
+				return nil, fmt.Errorf("list roles for principal %s: %w", members[i].PrincipalID, err)
+			}
+			members[i].Roles = roles
+		}
+	}
+
+	return members, nil
 }

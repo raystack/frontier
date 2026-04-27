@@ -23,29 +23,29 @@ func (_m *UserService) EXPECT() *UserService_Expecter {
 	return &UserService_Expecter{mock: &_m.Mock}
 }
 
-// ListByOrg provides a mock function with given fields: ctx, orgID, roleFilter
-func (_m *UserService) ListByOrg(ctx context.Context, orgID string, roleFilter string) ([]user.User, error) {
-	ret := _m.Called(ctx, orgID, roleFilter)
+// GetByIDs provides a mock function with given fields: ctx, userIDs
+func (_m *UserService) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
+	ret := _m.Called(ctx, userIDs)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListByOrg")
+		panic("no return value specified for GetByIDs")
 	}
 
 	var r0 []user.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]user.User, error)); ok {
-		return rf(ctx, orgID, roleFilter)
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]user.User, error)); ok {
+		return rf(ctx, userIDs)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
-		r0 = rf(ctx, orgID, roleFilter)
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []user.User); ok {
+		r0 = rf(ctx, userIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]user.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, orgID, roleFilter)
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, userIDs)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -53,32 +53,31 @@ func (_m *UserService) ListByOrg(ctx context.Context, orgID string, roleFilter s
 	return r0, r1
 }
 
-// UserService_ListByOrg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByOrg'
-type UserService_ListByOrg_Call struct {
+// UserService_GetByIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByIDs'
+type UserService_GetByIDs_Call struct {
 	*mock.Call
 }
 
-// ListByOrg is a helper method to define mock.On call
+// GetByIDs is a helper method to define mock.On call
 //   - ctx context.Context
-//   - orgID string
-//   - roleFilter string
-func (_e *UserService_Expecter) ListByOrg(ctx interface{}, orgID interface{}, roleFilter interface{}) *UserService_ListByOrg_Call {
-	return &UserService_ListByOrg_Call{Call: _e.mock.On("ListByOrg", ctx, orgID, roleFilter)}
+//   - userIDs []string
+func (_e *UserService_Expecter) GetByIDs(ctx interface{}, userIDs interface{}) *UserService_GetByIDs_Call {
+	return &UserService_GetByIDs_Call{Call: _e.mock.On("GetByIDs", ctx, userIDs)}
 }
 
-func (_c *UserService_ListByOrg_Call) Run(run func(ctx context.Context, orgID string, roleFilter string)) *UserService_ListByOrg_Call {
+func (_c *UserService_GetByIDs_Call) Run(run func(ctx context.Context, userIDs []string)) *UserService_GetByIDs_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].([]string))
 	})
 	return _c
 }
 
-func (_c *UserService_ListByOrg_Call) Return(_a0 []user.User, _a1 error) *UserService_ListByOrg_Call {
+func (_c *UserService_GetByIDs_Call) Return(_a0 []user.User, _a1 error) *UserService_GetByIDs_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserService_ListByOrg_Call) RunAndReturn(run func(context.Context, string, string) ([]user.User, error)) *UserService_ListByOrg_Call {
+func (_c *UserService_GetByIDs_Call) RunAndReturn(run func(context.Context, []string) ([]user.User, error)) *UserService_GetByIDs_Call {
 	_c.Call.Return(run)
 	return _c
 }

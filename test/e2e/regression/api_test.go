@@ -1226,8 +1226,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
-			Id:               existingOrg.Msg.GetOrganization().GetId(),
-			PermissionFilter: organization.MemberRole,
+			Id:          existingOrg.Msg.GetOrganization().GetId(),
+			RoleFilters: []string{organization.MemberRole},
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersRespAfterRelation.Msg.GetUsers())) // one self one admin
@@ -1305,8 +1305,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
-			Id:               existingOrg.Msg.GetOrganization().GetId(),
-			PermissionFilter: organization.MemberRole,
+			Id:          existingOrg.Msg.GetOrganization().GetId(),
+			RoleFilters: []string{organization.MemberRole},
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersRespAfterRelation.Msg.GetUsers()))
