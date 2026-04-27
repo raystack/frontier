@@ -248,10 +248,8 @@ export function TokensView() {
             Token transactions
           </Text>
           <DataTable.Toolbar />
-          <DataTable.VirtualizedContent
+          <DataTable.Content
             classNames={{ root: styles.tableRoot }}
-            rowHeight={48}
-            overscan={10}
             emptyState={isError ? <ErrorState /> : <NoTokens />}
           />
         </Flex>
