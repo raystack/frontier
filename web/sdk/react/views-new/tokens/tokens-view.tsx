@@ -15,6 +15,7 @@ import {
   Tooltip
 } from '@raystack/apsara-v1';
 import type { DataTableQuery, DataTableSort } from '@raystack/apsara-v1';
+import { FilterIcon } from '@raystack/apsara-v1/icons';
 import {
   InfoCircledIcon,
   PlusIcon,
@@ -247,7 +248,19 @@ export function TokensView() {
           <Text size="small" weight="medium">
             Token transactions
           </Text>
-          <DataTable.Toolbar />
+          <DataTable.Filters
+            className={styles.filtersBar}
+            trigger={
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                leadingIcon={<FilterIcon />}
+              >
+                Filter
+              </Button>
+            }
+          />
           <DataTable.Content
             classNames={{ root: styles.tableRoot }}
             emptyState={isError ? <ErrorState /> : <NoTokens />}

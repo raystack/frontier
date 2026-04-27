@@ -18,6 +18,16 @@
   border: none;
 }
 
+.tableRoot :global(thead th) {
+  border-bottom: none;
+}
+
+.filtersBar {
+  padding: var(--rs-space-3) 0;
+  align-self: stretch;
+  background: var(--rs-color-background-base-primary);
+}
+
 .truncate {
   overflow: hidden;
   text-overflow: ellipsis;
