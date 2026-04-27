@@ -20,8 +20,8 @@ import { RemoveMember } from './remove-member';
 import {
   getConnectNextPageParam,
   DEFAULT_PAGE_SIZE
-} from '../../../../utils/connect-pagination';
-import { transformDataTableQueryToRQLRequest } from '../../../../utils/transform-query';
+} from '~/utils/connect-pagination';
+import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebounceValue } from 'usehooks-ts';
 
 const DEFAULT_SORT: DataTableSort = { name: 'orgJoinedAt', order: 'desc' };

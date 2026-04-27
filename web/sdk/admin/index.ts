@@ -39,11 +39,11 @@ export {
   DEFAULT_PAGE_SIZE,
   getGroupCountMapFromFirstPage,
   type ConnectRPCPaginatedResponse,
-} from "./utils/connect-pagination";
+} from "~/utils/connect-pagination";
 export {
   transformDataTableQueryToRQLRequest,
   type TransformOptions,
-} from "./utils/transform-query";
+} from "~/utils/transform-query";
 export {
   type Config,
   type AdminTerminologyConfig,
