@@ -1,0 +1,14 @@
+.compact {
+  display: flex;
+  gap: var(--rs-space-2);
+}
+
+.expanded {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rs-space-2);
+}
+
+.countChip {
+  cursor: pointer;
+}
