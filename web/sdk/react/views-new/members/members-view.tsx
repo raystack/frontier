@@ -188,7 +188,8 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
               />
             }
             classNames={{
-              root: styles.tableRoot
+              root: styles.tableRoot,
+              table: styles.table
             }}
           />
         </Flex>

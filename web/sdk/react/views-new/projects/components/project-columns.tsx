@@ -57,6 +57,10 @@ export const getColumns = ({
       header: 'Members',
       accessorKey: 'membersCount',
       enableSorting: false,
+      styles: {
+        cell: { maxWidth: '300px' },
+        header: { maxWidth: '300px' }
+      },
       cell: ({ row }) => {
         const project = row.original as Project;
         return <MembersCell projectId={project.id || ''} />;
@@ -67,7 +71,8 @@ export const getColumns = ({
       accessorKey: 'id',
       enableSorting: false,
       styles: {
-        cell: { width: '48px' }
+        cell: { width: '48px' },
+        header: { width: '48px' }
       },
       cell: ({ row }) => {
         const project = row.original as Project;

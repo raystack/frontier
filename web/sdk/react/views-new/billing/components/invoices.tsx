@@ -234,7 +234,9 @@ export function Invoices() {
           <DataTable.DisplayControls
           />
         </Flex>
-        <DataTable.Content
+        <DataTable.VirtualizedContent
+          rowHeight={48}
+          groupHeaderHeight={48}
           emptyState={isError ? <ErrorState /> : <NoInvoices />}
         />
       </Flex>
