@@ -261,8 +261,10 @@ export function TokensView() {
               </Button>
             }
           />
-          <DataTable.Content
+          <DataTable.VirtualizedContent
             classNames={{ root: styles.tableRoot }}
+            rowHeight={48}
+            overscan={10}
             emptyState={isError ? <ErrorState /> : <NoTokens />}
           />
         </Flex>

@@ -16,6 +16,8 @@
 
 .tableRoot {
   border: none;
+  max-height: calc(100vh - 320px);
+  min-height: 320px;
 }
 
 .tableRoot :global(thead th) {
