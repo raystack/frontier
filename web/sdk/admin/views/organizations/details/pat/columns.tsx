@@ -44,6 +44,7 @@ export function getColumns({
         const value = (getValue() as string) || "";
         return <Text className={styles["truncate-text"]}>{value}</Text>;
       },
+      enableSorting: true,
       enableColumnFilter: true,
     },
     {
@@ -69,6 +70,8 @@ export function getColumns({
       accessorKey: "createdBy",
       header: "Created By",
       enableSorting: false,
+      enableColumnFilter: true,
+      enableHiding: true,
       cell: ({ row }) => {
         const createdBy = row.original.createdBy;
         const userId = createdBy?.id || "";
@@ -93,6 +96,7 @@ export function getColumns({
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",
+      enableHiding: true
     },
     {
       accessorKey: "expiresAt",
@@ -107,12 +111,16 @@ export function getColumns({
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",
+      enableHiding: true,
     },
     {
       accessorKey: "usedAt",
       header: "Last used",
       styles: { header: { width: "152px" } },
       enableSorting: false,
+      enableColumnFilter: true,
+      filterType: "date",
+      enableHiding: true,
       cell: ({ row }) => {
         const usedAt = row.original.usedAt;
         if (!usedAt || isNullTimestamp(usedAt)) return <Text>-</Text>;

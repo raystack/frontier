@@ -33,6 +33,7 @@ const TRANSFORM_OPTIONS = {
     updatedAt: "updated_at",
     expiresAt: "expires_at",
     usedAt: "used_at",
+    createdBy: "created_by_title",
   },
 };
 
