@@ -1,4 +1,4 @@
-import { GeneralView } from '@raystack/frontier/react';
+import { GeneralView } from '@raystack/frontier/client';
 import { useNavigate } from 'react-router-dom';
 
 export default function General() {

@@ -3,15 +3,18 @@ import {
   Avatar,
   Button,
   DataTable,
-  DropdownMenu,
+  Menu,
   Flex,
   Navbar,
   Text,
   useTheme,
   getAvatarColor,
+  toastManager,
+  IconButton,
+  Separator,
   type DataTableColumnDef,
 } from '@raystack/apsara';
-import { useFrontier, useTerminology } from '@raystack/frontier/react';
+import { useFrontier, useTerminology } from '@raystack/frontier/client';
 import {
   useMutation,
   useQuery,
@@ -20,7 +23,6 @@ import {
 } from '@raystack/frontier/hooks';
 import { useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useMemo, useCallback, useState, type MouseEvent } from 'react';
-import { toast, IconButton, Separator } from '@raystack/apsara';
 import { DesktopIcon, MagnifyingGlassIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 
 type OrgRow = {
@@ -253,11 +255,15 @@ export default function Home() {
       setAcceptingId(row.invitationId!);
       try {
         await acceptInvitation({ id: row.invitationId!, orgId: row.orgId });
-        toast.success('Invitation accepted');
+        toastManager.add({ title: 'Invitation accepted', type: 'success' });
         queryClient.invalidateQueries();
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Something went wrong';
-        toast.error(`Failed to accept: ${message}`);
+        toastManager.add({
+          title: 'Failed to accept',
+          description: message,
+          type: 'error'
+        });
       } finally {
         setAcceptingId(null);
       }
@@ -349,62 +355,66 @@ export default function Home() {
                   <MagnifyingGlassIcon />
                 </IconButton>
               )}
-              <DropdownMenu>
-                <DropdownMenu.Trigger asChild>
-                  <IconButton
-                    data-test-id="navbar-theme-toggle"
-                    size={3}
-                    aria-label="Theme options"
-                  >
-                    {activeTheme === 'system' ? (
-                      <DesktopIcon />
-                    ) : activeTheme === 'dark' ? (
-                      <MoonIcon />
-                    ) : (
-                      <SunIcon />
-                    )}
-                  </IconButton>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
+              <Menu>
+                <Menu.Trigger
+                  render={
+                    <IconButton
+                      data-test-id="navbar-theme-toggle"
+                      size={3}
+                      aria-label="Theme options"
+                    >
+                      {activeTheme === 'system' ? (
+                        <DesktopIcon />
+                      ) : activeTheme === 'dark' ? (
+                        <MoonIcon />
+                      ) : (
+                        <SunIcon />
+                      )}
+                    </IconButton>
+                  }
+                />
+                <Menu.Content>
                   {themeOptions.map((item) => (
-                    <DropdownMenu.Item
+                    <Menu.Item
                       key={item.key}
                       onClick={() => setTheme(item.key)}
                       disabled={activeTheme === item.key}
                       data-test-id={item.testId}
                     >
                       {item.icon} {item.label}
-                    </DropdownMenu.Item>
+                    </Menu.Item>
                   ))}
-                </DropdownMenu.Content>
-              </DropdownMenu>
+                </Menu.Content>
+              </Menu>
               <Separator orientation="vertical" size="small" />
-              <DropdownMenu>
-                <DropdownMenu.Trigger asChild>
-                  <button
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                    data-test-id="user-menu-trigger"
-                  >
-                    <Avatar
-                      src={user?.avatar}
-                      fallback={userInitial}
-                      color={avatarColor}
-                      size={3}
-                    />
-                  </button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                  <DropdownMenu.Item disabled>
+              <Menu>
+                <Menu.Trigger
+                  render={
+                    <button
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                      data-test-id="user-menu-trigger"
+                    >
+                      <Avatar
+                        src={user?.avatar}
+                        fallback={userInitial}
+                        color={avatarColor}
+                        size={3}
+                      />
+                    </button>
+                  }
+                />
+                <Menu.Content>
+                  <Menu.Item disabled>
                     {user?.email}
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item
+                  </Menu.Item>
+                  <Menu.Item
                     onClick={logout}
                     data-test-id="logout-button"
                   >
                     Logout
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu>
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu>
             </Flex>
           </Navbar.End>
         </Navbar>

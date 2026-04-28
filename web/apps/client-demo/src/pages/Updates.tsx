@@ -1,6 +1,5 @@
 import { Flex } from '@raystack/apsara';
-// import { Updates } from '@raystack/frontier/react';
-import React from 'react';
+import { UpdatesView } from '@raystack/frontier/client';
 
 export default function Updates() {
   return (
@@ -9,7 +8,7 @@ export default function Updates() {
       align="center"
       style={{ height: '100vh', width: '100vw' }}
     >
-      {/* <Updates onSubmit={data => alert(JSON.stringify(data))} /> */}
+      <UpdatesView />
     </Flex>
   );
 }

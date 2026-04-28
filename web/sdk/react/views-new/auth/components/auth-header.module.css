@@ -1,0 +1,15 @@
+.container {
+  min-width: 220px;
+  max-width: 100%;
+  color: var(--rs-color-foreground-base-primary);
+}
+
+.title {
+  font-weight: 400;
+}
+
+.logo {
+  border-radius: var(--rs-space-3);
+  width: 80px;
+  height: 80px;
+}

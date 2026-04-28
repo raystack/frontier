@@ -1,0 +1,6 @@
+.container {
+  min-width: 220px;
+  max-width: 480px;
+  width: 100%;
+  color: var(--rs-color-foreground-base-primary);
+}

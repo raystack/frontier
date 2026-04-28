@@ -14,9 +14,26 @@ export default defineConfig(() => [
     format: ['cjs', 'esm'],
     dts: true
   },
-  // React APIs
+  // React APIs (legacy)
   {
     entry: ['react/index.ts'],
+    outDir: 'react/dist',
+    banner: {
+      js: "'use client'"
+    },
+    format: ['cjs', 'esm'],
+    external: ['react', 'react-dom', 'svelte', 'vue', 'solid-js'],
+    dts: true,
+    loader: {
+      '.svg': 'dataurl',
+      '.png': 'dataurl',
+      '.jpg': 'dataurl'
+    },
+    esbuildPlugins: [cssModulesPlugin({ localsConvention: 'camelCase' })]
+  },
+  // React APIs (client - new views, apsara v1)
+  {
+    entry: ['react/client.ts'],
     outDir: 'react/dist',
     banner: {
       js: "'use client'"

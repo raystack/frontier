@@ -1,4 +1,4 @@
-import { MembersView } from '@raystack/frontier/react';
+import { MembersView } from '@raystack/frontier/client';
 
 export default function Members() {
   return <MembersView />;

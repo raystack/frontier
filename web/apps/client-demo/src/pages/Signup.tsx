@@ -1,6 +1,6 @@
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 import { Flex } from '@raystack/apsara';
-import { SignUp } from '@raystack/frontier/react';
+import { SignUpView } from '@raystack/frontier/client';
 
 export default function Signup() {
   useAuthRedirect();
@@ -11,7 +11,7 @@ export default function Signup() {
       align="center"
       style={{ height: '100vh', width: '100vw' }}
     >
-      <SignUp />
+      <SignUpView />
     </Flex>
   );
 }

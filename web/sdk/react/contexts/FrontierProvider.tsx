@@ -1,4 +1,4 @@
-import { ThemeProvider } from '@raystack/apsara';
+import { ThemeProvider } from '@raystack/apsara-v1';
 import { FrontierProviderProps } from '../../shared/types';
 import { FrontierContextProvider } from './FrontierContext';
 import { CustomizationProvider } from './CustomizationContext';
