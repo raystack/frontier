@@ -10,8 +10,9 @@ import {
 } from '@raystack/apsara-v1';
 import type { ServiceUser } from '@raystack/proton/frontier';
 import type { Timestamp } from '@bufbuild/protobuf/wkt';
-import { timestampToDayjs } from '../../../../utils/timestamp';
+import { timestampToDayjs } from '~/utils/timestamp';
 import { ProjectsCell } from './projects-cell';
+import styles from './service-account-columns.module.css';
 
 export interface ServiceAccountMenuPayload {
   serviceAccountId: string;
@@ -47,6 +48,10 @@ export const getColumns = ({
     id: 'projects',
     accessorKey: 'id',
     enableSorting: false,
+    styles: {
+      cell: { maxWidth: '600px' },
+      header: { maxWidth: '600px' }
+    },
     cell: ({ getValue }) => {
       const serviceUserId = getValue() as string;
       return <ProjectsCell serviceUserId={serviceUserId} orgId={orgId} />;
@@ -55,6 +60,10 @@ export const getColumns = ({
   {
     header: 'Created On',
     accessorKey: 'createdAt',
+    styles: {
+      cell: { maxWidth: '300px' },
+      header: { maxWidth: '300px' }
+    },
     cell: ({ getValue }) => {
       const value = getValue() as Timestamp | undefined;
       return (
@@ -70,7 +79,8 @@ export const getColumns = ({
     accessorKey: 'id',
     enableSorting: false,
     styles: {
-      cell: { width: '48px' }
+      cell: { width: '48px', minWidth: '48px', maxWidth: '48px' },
+      header: { width: '48px', minWidth: '48px', maxWidth: '48px' }
     },
     cell: ({ getValue }) => {
       const serviceAccountId = getValue() as string;
@@ -78,7 +88,7 @@ export const getColumns = ({
       if (!canUpdateWorkspace) return null;
 
       return (
-        <Flex align="center" justify="center">
+        <Flex align="center" justify="center" className={styles.actionsCell}>
           <Menu.Trigger
             handle={menuHandle}
             payload={{
@@ -91,6 +101,7 @@ export const getColumns = ({
                 size={3}
                 aria-label="Service account actions"
                 data-test-id="frontier-sdk-service-account-actions-btn"
+                className={styles.actionButton}
               />
             }
           >

@@ -9,6 +9,9 @@
       "DOM"
     ],
     "paths": {
+      "~/utils": [
+        "./utils/index.ts"
+      ],
       "~/*": [
         "./*"
       ],
