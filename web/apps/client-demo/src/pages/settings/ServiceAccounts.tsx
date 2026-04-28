@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ServiceAccountsView } from '@raystack/frontier/react';
+import { ServiceAccountsView } from '@raystack/frontier/client';
 
 export default function ServiceAccounts() {
   const { orgId } = useParams<{ orgId: string }>();

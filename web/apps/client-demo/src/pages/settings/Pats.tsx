@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { PatsView } from '@raystack/frontier/react';
+import { PatsView } from '@raystack/frontier/client';
 
 export default function Pats() {
   const { orgId } = useParams<{ orgId: string }>();

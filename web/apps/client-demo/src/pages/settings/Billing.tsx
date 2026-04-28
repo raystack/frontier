@@ -1,4 +1,4 @@
-import { BillingView } from '@raystack/frontier/react';
+import { BillingView } from '@raystack/frontier/client';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function Billing() {

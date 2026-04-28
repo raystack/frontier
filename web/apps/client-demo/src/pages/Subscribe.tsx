@@ -1,6 +1,5 @@
 import { Flex } from '@raystack/apsara';
-// import { Subscribe } from '@raystack/frontier/react';
-import React from 'react';
+import { SubscribeView } from '@raystack/frontier/client';
 
 export default function Subscribe() {
   return (
@@ -10,9 +9,7 @@ export default function Subscribe() {
       align="center"
       style={{ width: '100vw', height: '95vh' }}
     >
-      {/* <Subscribe
-        onSubmit={data => console.log(JSON.stringify(data))}
-      /> */}
+      <SubscribeView />
     </Flex>
   );
 }

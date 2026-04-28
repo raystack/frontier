@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ProjectDetailsView } from '@raystack/frontier/react';
+import { ProjectDetailsView } from '@raystack/frontier/client';
 
 export default function ProjectDetails() {
   const { orgId, projectId } = useParams<{ orgId: string; projectId: string }>();

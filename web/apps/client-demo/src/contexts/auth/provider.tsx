@@ -2,7 +2,7 @@
 
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import AuthContext from '.';
-import { useFrontier } from '@raystack/frontier/react';
+import { useFrontier } from '@raystack/frontier/client';
 
 const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [isAuthorized, setIsAuthorized] = useState(false);

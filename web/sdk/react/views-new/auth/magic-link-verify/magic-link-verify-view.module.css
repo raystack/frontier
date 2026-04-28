@@ -1,0 +1,27 @@
+.button {
+  width: 100%;
+}
+
+.form {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-space-8);
+  letter-spacing: 0.4px;
+}
+
+.otpInputContainer {
+  position: relative;
+}
+
+.error {
+  color: var(--rs-color-foreground-danger-primary);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.textFieldCode {
+  text-align: center;
+}
