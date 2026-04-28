@@ -1,0 +1,4 @@
+.body {
+  padding: var(--rs-space-9) var(--rs-space-7) !important;
+  gap: var(--rs-space-7) !important;
+}

@@ -16,8 +16,8 @@ import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
   DEFAULT_PAGE_SIZE,
-} from "../../../../utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "../../../../utils/transform-query";
+} from "~/utils/connect-pagination";
+import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useDebounceValue } from "usehooks-ts";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
