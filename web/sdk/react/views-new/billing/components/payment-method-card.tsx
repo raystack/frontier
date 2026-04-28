@@ -90,6 +90,8 @@ export function PaymentMethodCard({
 
   const isBtnDisabled = isLoading || isActionLoading;
 
+  const actionBtnText = isPaymentMethodAvailable ? 'Update' : 'Add method';
+
   const actionBtn = (
     <Button
       variant="outline"
@@ -97,9 +99,11 @@ export function PaymentMethodCard({
       size="small"
       onClick={updatePaymentMethod}
       disabled={isBtnDisabled}
+      loading={isActionLoading}
+      loaderText={actionBtnText}
       data-test-id="frontier-sdk-update-payment-method-btn"
     >
-      {isPaymentMethodAvailable ? 'Update' : 'Add method'}
+      {actionBtnText}
     </Button>
   );
 
@@ -109,7 +113,7 @@ export function PaymentMethodCard({
         <Text size="regular" weight="medium">
           Payment method
         </Text>
-        {isAllowed ? (
+        {!isLoading && isAllowed ? (
           isBtnDisabled ? (
             <Tooltip>
               <Tooltip.Trigger render={<span />}>
@@ -122,22 +126,32 @@ export function PaymentMethodCard({
           ) : actionBtn
         ) : null}
       </Flex>
-      <Flex direction="column" gap={2}>
-        <Text size="mini" weight="medium" variant="secondary">
-          Card information
-        </Text>
-        <Text size="regular">
-          {isLoading ? <Skeleton /> : cardInfo}
-        </Text>
-      </Flex>
-      <Flex direction="column" gap={2}>
-        <Text size="mini" weight="medium" variant="secondary">
-          Expiry
-        </Text>
-        <Text size="regular">
-          {isLoading ? <Skeleton /> : cardExp}
-        </Text>
-      </Flex>
+      {isLoading ? (
+        <Flex direction="column" gap={2}>
+          <Skeleton height={16} width={100} />
+          <Skeleton height={20} width={250} />
+        </Flex>
+      ) : (
+        <Flex direction="column" gap={2}>
+          <Text size="mini" weight="medium" variant="secondary">
+            Card information
+          </Text>
+          <Text size="regular">{cardInfo}</Text>
+        </Flex>
+      )}
+      {isLoading ? (
+        <Flex direction="column" gap={2}>
+          <Skeleton height={16} width={60} />
+          <Skeleton height={20} width={150} />
+        </Flex>
+      ) : (
+        <Flex direction="column" gap={2}>
+          <Text size="mini" weight="medium" variant="secondary">
+            Expiry
+          </Text>
+          <Text size="regular">{cardExp}</Text>
+        </Flex>
+      )}
     </div>
   );
 }

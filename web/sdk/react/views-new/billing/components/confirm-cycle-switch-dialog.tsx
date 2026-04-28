@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import {
+  Amount,
   Button,
   Skeleton,
   Text,
@@ -40,6 +41,7 @@ export function ConfirmCycleSwitchDialog({
     isAllPlansLoading
   } = useFrontier();
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
+  const hideDecimals = config?.billing?.hideDecimals;
 
   const {
     checkoutPlan,
@@ -64,6 +66,7 @@ export function ConfirmCycleSwitchDialog({
             paymentMethod={paymentMethod}
             activeSubscription={activeSubscription}
             dateFormat={dateFormat}
+            hideDecimals={hideDecimals}
             isLoading={isLoading}
             isPlanActionLoading={isPlanActionLoading}
             checkoutPlan={checkoutPlan}
@@ -84,6 +87,7 @@ interface ConfirmCycleSwitchContentProps {
   paymentMethod: ReturnType<typeof useFrontier>['paymentMethod'];
   activeSubscription: ReturnType<typeof useFrontier>['activeSubscription'];
   dateFormat: string;
+  hideDecimals?: boolean;
   isLoading: boolean;
   isPlanActionLoading: boolean;
   checkoutPlan: ReturnType<typeof usePlans>['checkoutPlan'];
@@ -99,6 +103,7 @@ function ConfirmCycleSwitchContent({
   paymentMethod,
   activeSubscription,
   dateFormat,
+  hideDecimals,
   isLoading,
   isPlanActionLoading,
   checkoutPlan,
@@ -243,8 +248,12 @@ function ConfirmCycleSwitchContent({
             <Text size="small" variant="secondary">
               You can save{' '}
               <Text as="span" size="small" weight="medium">
-                {savings.currency === 'usd' ? '$' : ''}
-                {savings.amount}
+                <Amount
+                  value={savings.amount}
+                  currency={savings.currency}
+                  valueInMinorUnits={false}
+                  hideDecimals={hideDecimals}
+                />
               </Text>{' '}
               with {savings.interval} cycle.
             </Text>

@@ -4,7 +4,8 @@
   gap: var(--rs-space-6);
   width: 272px;
   min-width: 272px;
-  padding: var(--rs-space-5) var(--rs-space-5) var(--rs-space-9) var(--rs-space-5);
+  padding: var(--rs-space-5) var(--rs-space-5) var(--rs-space-9)
+    var(--rs-space-5);
   box-sizing: border-box;
   background: var(--rs-color-background-base-primary);
 }
@@ -22,4 +23,21 @@
 .trialWrapper {
   min-height: 32px;
   width: 100%;
+}
+
+.intervalTabs {
+  align-items: center;
+}
+
+.intervalTabsList {
+  width: fit-content;
+}
+
+.intervalTab {
+  height: var(--rs-space-5);
+  padding: 0 var(--rs-space-2);
+  font-size: var(--rs-font-size-mini);
+  font-weight: var(--rs-font-weight-medium);
+  line-height: var(--rs-line-height-mini);
+  letter-spacing: var(--rs-letter-spacing-mini);
 }

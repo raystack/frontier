@@ -179,7 +179,6 @@ export function PlanCard({
                   value={amount || 0}
                   currency={selectedIntervalPricing?.currency}
                   hideDecimals={config?.billing?.hideDecimals}
-                  valueInMinorUnits={false}
                 />
               </Text>
               <Text size="small" variant="secondary">
@@ -208,12 +207,14 @@ export function PlanCard({
           <Tabs
             value={selectedInterval}
             onValueChange={value => onIntervalChange(value as IntervalKeys)}
+            className={styles.intervalTabs}
           >
-            <Tabs.List>
+            <Tabs.List className={styles.intervalTabsList}>
               {planIntervals.map(key => (
                 <Tabs.Tab
                   value={key}
                   key={key}
+                  className={styles.intervalTab}
                   data-test-id={`frontier-sdk-plan-interval-toggle-${plan.slug}-${key}`}
                 >
                   {IntervalLabelMap[key]}

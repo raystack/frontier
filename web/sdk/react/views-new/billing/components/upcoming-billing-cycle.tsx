@@ -57,9 +57,11 @@ export function UpcomingBillingCycle({
 }: UpcomingBillingCycleProps) {
   const {
     billingAccount,
+    isBillingAccountLoading,
     config,
     activeSubscription,
     trialSubscription,
+    isActiveSubscriptionLoading,
     isActiveOrganizationLoading,
     basePlan,
     allPlans,
@@ -119,13 +121,13 @@ export function UpcomingBillingCycle({
   const planInfo =
     activeSubscription || basePlan
       ? {
-          message: `You are subscribed to ${planName}.`,
-          action: { label: 'Upgrade' }
-        }
+        message: `You are subscribed to ${planName}.`,
+        action: { label: 'Upgrade' }
+      }
       : {
-          message: 'You are not subscribed to any plan',
-          action: { label: 'Subscribe' }
-        };
+        message: 'You are not subscribed to any plan',
+        action: { label: 'Subscribe' }
+      };
 
   const alreadyPhased = activeSubscription?.phases?.find(
     phase => phase.planId === switchablePlan?.id
@@ -143,6 +145,8 @@ export function UpcomingBillingCycle({
 
   const isLoading =
     isActiveOrganizationLoading ||
+    isBillingAccountLoading ||
+    isActiveSubscriptionLoading ||
     isInvoiceLoading ||
     isMemberCountLoading ||
     isAllPlansLoading ||
@@ -151,7 +155,7 @@ export function UpcomingBillingCycle({
   const isUserOnlyTrialing = !activeSubscription?.id && trialSubscription?.id;
   const dueDate = upcomingInvoice?.dueDate || upcomingInvoice?.periodEndAt;
 
-  if (isLoading) return <Skeleton />;
+  if (isLoading) return <Skeleton height={49} />;
 
   if (dueDate && !isUserOnlyTrialing) {
     const switchableIntervalName = switchablePlan
