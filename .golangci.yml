@@ -6,6 +6,8 @@ output:
 linters:
   default: none
   enable:
+    - forbidigo
+    - gosec
     - govet
     - importas
     - ineffassign
@@ -20,6 +22,21 @@ linters:
   settings:
     revive:
       severity: warning
+    gosec:
+      # Only run SQL-injection rules. Revisit if specific risks emerge.
+      includes:
+        - G201  # SQL query construction using format string (fmt.Sprintf)
+        - G202  # SQL query construction using string concatenation
+    forbidigo:
+      # SQL safety.
+      analyze-types: false
+      forbid:
+        - pattern: 'goqu\.L\("[^"'']*''[^'']*\?[^'']*'''
+          msg: "Don't put ? inside a single-quoted string in goqu.L — breaks prepared mode. Use make_interval(secs => ?)-style functions instead."
+        - pattern: '\w+,\s*_,\s*err\s*[:=]+[^=]*\.ToSQL\(\)'
+          msg: "Don't discard params from ToSQL(); capture and pass via …Context(ctx, …, query, params...)."
+        - pattern: 'goqu\.From\('
+          msg: "Use dialect.From(...) not goqu.From(...). The latter uses goqu's default dialect (? placeholders) which PostgreSQL rejects in prepared mode."
   exclusions:
     generated: lax
     presets:

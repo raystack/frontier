@@ -236,14 +236,14 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 		limit := flt.Pagination.PageSize
 
 		totalCountStmt := stmt.Select(goqu.COUNT("*"))
-		totalCountQuery, _, err := totalCountStmt.ToSQL()
+		totalCountQuery, totalCountParams, err := totalCountStmt.ToSQL()
 		if err != nil {
 			return []organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
 		}
 
 		var totalCount int32
 		if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Count", func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery)
+			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery, totalCountParams...)
 		}); err != nil {
 			return nil, fmt.Errorf("%w: %w", dbErr, err)
 		}

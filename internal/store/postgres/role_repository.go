@@ -122,22 +122,22 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	query, _, err := dialect.Insert(TABLE_ROLES).Rows(
+	query, params, err := dialect.Insert(TABLE_ROLES).Rows(
 		goqu.Record{
-			"id":          goqu.L("$1"),
-			"org_id":      goqu.L("$2"),
-			"name":        goqu.L("$3"),
-			"title":       goqu.L("$4"),
-			"permissions": goqu.L("$5"),
-			"state":       goqu.L("$6"),
-			"metadata":    goqu.L("$7"),
-			"scopes":      goqu.L("$8"),
+			"id":          rl.ID,
+			"org_id":      rl.OrgID,
+			"name":        rl.Name,
+			"title":       rl.Title,
+			"permissions": marshaledPermissions,
+			"state":       rl.State,
+			"metadata":    marshaledMetadata,
+			"scopes":      pq.Array(rl.Scopes),
 		}).OnConflict(goqu.DoUpdate("org_id, name", goqu.Record{
-		"title":       goqu.L("$4"),
-		"permissions": goqu.L("$5"),
-		"state":       goqu.L("$6"),
-		"metadata":    goqu.L("$7"),
-		"scopes":      goqu.L("$8"),
+		"title":       rl.Title,
+		"permissions": marshaledPermissions,
+		"state":       rl.State,
+		"metadata":    marshaledMetadata,
+		"scopes":      pq.Array(rl.Scopes),
 	})).Returning(&Role{}).ToSQL()
 	if err != nil {
 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -145,8 +145,7 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 
 	var roleDB Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, rl.Title, marshaledPermissions,
-			rl.State, marshaledMetadata, pq.Array(rl.Scopes)).StructScan(&roleDB)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&roleDB)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -221,17 +220,17 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	query, _, err := dialect.Update(TABLE_ROLES).Set(
+	query, params, err := dialect.Update(TABLE_ROLES).Set(
 		goqu.Record{
-			"name":        goqu.L("$2"),
-			"permissions": goqu.L("$3"),
-			"title":       goqu.L("$4"),
-			"state":       goqu.L("$5"),
-			"metadata":    goqu.L("$6"),
-			"scopes":      goqu.L("$7"),
+			"name":        rl.Name,
+			"permissions": marshaledPermissions,
+			"title":       rl.Title,
+			"state":       rl.State,
+			"metadata":    marshaledMetadata,
+			"scopes":      pq.Array(rl.Scopes),
 			"updated_at":  goqu.L("now()"),
 		}).Where(
-		goqu.Ex{"id": goqu.L("$1")},
+		goqu.Ex{"id": rl.ID},
 	).Returning(&Role{}).ToSQL()
 	if err != nil {
 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -239,8 +238,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 
 	var roleDB Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.Title, rl.State,
-			marshaledMetadata, pq.Array(rl.Scopes)).StructScan(&roleDB)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&roleDB)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

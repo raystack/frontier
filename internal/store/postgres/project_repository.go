@@ -180,7 +180,7 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 
 		// always make this call after all the filters have been applied
 		totalCountStmt := stmt.Select(goqu.COUNT("*"))
-		totalCountQuery, _, err := totalCountStmt.ToSQL()
+		totalCountQuery, totalCountParams, err := totalCountStmt.ToSQL()
 
 		if err != nil {
 			return []project.Project{}, fmt.Errorf("%w: %w", queryErr, err)
@@ -188,7 +188,7 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 
 		var totalCount int32
 		if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Count", func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery)
+			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery, totalCountParams...)
 		}); err != nil {
 			return nil, fmt.Errorf("%w: %w", dbErr, err)
 		}
