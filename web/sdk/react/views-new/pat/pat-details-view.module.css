@@ -1,0 +1,23 @@
+.section {
+  border: 1px solid var(--rs-color-border-base-primary);
+  border-radius: var(--rs-radius-2);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-space-6);
+  padding: var(--rs-space-5);
+}
+
+.detailRow {
+  display: flex;
+  gap: var(--rs-space-3);
+  align-items: flex-start;
+}
+
+.menuContent {
+  min-width: 160px;
+}
+
+.callout {
+  width: 100%;
+}

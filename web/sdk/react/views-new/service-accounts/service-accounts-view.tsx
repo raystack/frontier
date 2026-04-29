@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ExclamationTriangleIcon, KeyboardIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import {
   Button,
   Tooltip,
@@ -153,7 +153,7 @@ export function ServiceAccountsView({
         />
       ) : hasNoServiceAccounts ? (
         <EmptyState
-          icon={<KeyboardIcon />}
+          icon={<ExclamationTriangleIcon />}
           heading="No Service Account Found"
           subHeading={`Create a new account to use the APIs of ${t.appName()} platform`}
           primaryAction={
@@ -241,8 +241,8 @@ export function ServiceAccountsView({
                     <Image
                       src={keyIcon as unknown as string}
                       alt="Manage access"
-                      width={16}
-                      height={16}
+                      width="var(--rs-space-5)"
+                      height="var(--rs-space-5)"
                     />
                   }
                   onClick={() => {
