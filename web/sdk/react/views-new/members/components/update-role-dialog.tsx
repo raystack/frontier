@@ -148,7 +148,7 @@ function UpdateRoleContent({
             color="neutral"
             onClick={onClose}
             disabled={isLoading}
-            data-test-id="cancel-update-role-dialog"
+            data-test-id="frontier-sdk-cancel-update-role-dialog"
           >
             Cancel
           </Button>
@@ -159,7 +159,7 @@ function UpdateRoleContent({
             disabled={isLoading}
             loading={isLoading}
             loaderText="Updating..."
-            data-test-id="confirm-update-role-dialog"
+            data-test-id="frontier-sdk-confirm-update-role-dialog"
           >
             Update
           </Button>
