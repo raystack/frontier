@@ -1,5 +1,10 @@
-title: Frontier
-description: Identity and authorization for your APIs
+site:
+  title: Frontier
+  description: Identity and authorization for your APIs
+
+content:
+  - dir: docs
+    label: Docs
 
 theme:
   name: default
@@ -7,12 +12,3 @@ theme:
 search:
   enabled: true
   placeholder: Search documentation...
-
-llms:
-  enabled: true
-
-footer:
-  copyright: "Raystack"
-  links:
-    - label: GitHub
-      href: https://github.com/raystack/frontier
