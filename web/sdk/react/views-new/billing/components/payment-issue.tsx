@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Button, Skeleton, Text, Flex } from '@raystack/apsara-v1';
+import { Button, Text, Flex } from '@raystack/apsara-v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '../../../utils/constants';
 import { Subscription, Invoice } from '@raystack/proton/frontier';
@@ -33,8 +33,7 @@ export function PaymentIssue({
     window.location.href = openInvoices[0]?.hostedUrl || '';
   }, [openInvoices]);
 
-  if (isLoading) return <Skeleton />;
-  if (!isPastDue) return null;
+  if (isLoading || !isPastDue) return null;
 
   return (
     <Flex className={styles.paymentIssueBox} justify="between" align="center">

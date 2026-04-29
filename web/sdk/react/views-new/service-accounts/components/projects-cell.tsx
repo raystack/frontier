@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Text } from '@raystack/apsara-v1';
+import { Skeleton, Text, Tooltip } from '@raystack/apsara-v1';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
   ListServiceUserProjectsRequestSchema
 } from '@raystack/proton/frontier';
+import styles from './projects-cell.module.css';
 
 interface ProjectsCellProps {
   serviceUserId: string;
@@ -15,7 +16,7 @@ interface ProjectsCellProps {
 }
 
 export function ProjectsCell({ serviceUserId, orgId }: ProjectsCellProps) {
-  const { data } = useQuery(
+  const { data, isLoading } = useQuery(
     FrontierServiceQueries.listServiceUserProjects,
     create(ListServiceUserProjectsRequestSchema, {
       id: serviceUserId,
@@ -32,16 +33,24 @@ export function ProjectsCell({ serviceUserId, orgId }: ProjectsCellProps) {
     return projects.map(p => p.title).join(', ');
   }, [data]);
 
+  if (isLoading) {
+    return <Skeleton height="16px" width="200px" />;
+  }
+
+  if (!projectNames) {
+    return <Text size="small">-</Text>;
+  }
+
   return (
-    <Text
-      size="small"
-      style={{
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
-      }}
-    >
-      {projectNames || '-'}
-    </Text>
+    <Tooltip>
+      <Tooltip.Trigger
+        render={<Text size="small" className={styles.text} />}
+      >
+        {projectNames}
+      </Tooltip.Trigger>
+      <Tooltip.Content className={styles.tooltipContent}>
+        {projectNames}
+      </Tooltip.Content>
+    </Tooltip>
   );
 }

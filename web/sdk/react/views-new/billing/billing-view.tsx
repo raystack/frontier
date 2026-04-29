@@ -1,12 +1,18 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { Flex, Dialog, toastManager } from '@raystack/apsara-v1';
+import { useCallback, useEffect, useMemo } from 'react';
+import qs from 'query-string';
+import { Flex, Dialog, EmptyState, toastManager } from '@raystack/apsara-v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import {
+  CreateCheckoutRequestSchema,
   ListInvoicesRequestSchema,
   FrontierServiceQueries
 } from '@raystack/proton/frontier';
-import { useQuery as useConnectQuery } from '@connectrpc/connect-query';
+import {
+  useMutation,
+  useQuery as useConnectQuery
+} from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useBillingPermission } from '../../hooks/useBillingPermission';
@@ -22,11 +28,9 @@ import {
   ConfirmCycleSwitchDialog,
   type ConfirmCycleSwitchPayload
 } from './components/confirm-cycle-switch-dialog';
-import { BillingDetailsDialog } from './components/billing-details-dialog';
 
 const cycleSwitchDialogHandle =
   Dialog.createHandle<ConfirmCycleSwitchPayload>();
-const billingDetailsDialogHandle = Dialog.createHandle();
 
 export interface BillingViewProps {
   onNavigateToPlans?: () => void;
@@ -45,7 +49,10 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
     activeOrganization
   } = useFrontier();
 
-  const { isAllowed, isFetching } = useBillingPermission();
+  const { isAllowed, canSeeBilling, isFetching } = useBillingPermission();
+
+  const isPermissionsLoading = !activeOrganization?.id || isFetching;
+  const hasNoAccess = !canSeeBilling && !isPermissionsLoading;
 
   const {
     data: invoicesData,
@@ -58,7 +65,7 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
       nonzeroAmountOnly: true
     }),
     {
-      enabled: !!activeOrganization?.id
+      enabled: !!activeOrganization?.id && canSeeBilling
     }
   );
 
@@ -74,7 +81,7 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
     }
   }, [invoicesError]);
 
-  const isLoading =
+  const isLoading = !activeOrganization?.id ||
     isBillingAccountLoading ||
     isActiveSubscriptionLoading ||
     isInvoicesLoading ||
@@ -93,54 +100,116 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
     cycleSwitchDialogHandle.openWithPayload({ planId });
   }
 
-  function handleBillingDetailsUpdateClick() {
-    billingDetailsDialogHandle.open(null);
-  }
+  const { mutateAsync: createCheckoutMutation, isPending: isCheckoutPending } =
+    useMutation(FrontierServiceQueries.createCheckout, {
+      onError: (err: Error) => {
+        toastManager.add({
+          title: 'Something went wrong',
+          description: err?.message,
+          type: 'error'
+        });
+      }
+    });
+
+  const handleBillingDetailsUpdateClick = useCallback(async () => {
+    const orgId = activeOrganization?.id || '';
+    if (!orgId) return;
+
+    try {
+      const query = qs.stringify(
+        {
+          details: btoa(
+            qs.stringify({
+              organization_id: orgId,
+              type: 'billing'
+            })
+          ),
+          checkout_id: '{{.CheckoutID}}'
+        },
+        { encode: false }
+      );
+      const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+      const success_url = `${config?.billing?.successUrl}?${query}`;
+
+      const resp = await createCheckoutMutation(
+        create(CreateCheckoutRequestSchema, {
+          orgId,
+          cancelUrl: cancel_url,
+          successUrl: success_url,
+          setupBody: {
+            paymentMethod: false,
+            customerPortal: true
+          }
+        })
+      );
+      const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, [
+    activeOrganization?.id,
+    createCheckoutMutation,
+    config?.billing?.cancelUrl,
+    config?.billing?.successUrl
+  ]);
 
   return (
     <ViewContainer>
       <ViewHeader title="Billing" description={description} />
 
-      <Flex direction="column" gap={7}>
-        <PaymentIssue
-          isLoading={isLoading}
-          subscription={activeSubscription}
-          invoices={invoices}
+      {hasNoAccess ? (
+        <EmptyState
+          icon={<ExclamationTriangleIcon />}
+          heading="Restricted Access"
+          subHeading="Admin access required, please reach out to your admin to view billing."
         />
+      ) : (
+        <>
+          <Flex direction="column" gap={7}>
+            <PaymentIssue
+              isLoading={isLoading}
+              subscription={activeSubscription}
+              invoices={invoices}
+            />
 
-        <UpcomingPlanChangeBanner
-          isLoading={isLoading}
-          subscription={activeSubscription}
-          isAllowed={isAllowed}
-        />
+            <UpcomingPlanChangeBanner
+              isLoading={isLoading}
+              subscription={activeSubscription}
+              isAllowed={isAllowed}
+            />
 
-        <Flex gap={7}>
-          <PaymentMethodCard
-            paymentMethod={paymentMethod}
-            isLoading={isLoading}
-            isAllowed={isAllowed}
-          />
-          <BillingDetailsCard
-            billingAccount={billingAccount}
-            isLoading={isLoading}
-            isAllowed={isAllowed}
-            disabled={isOrganizationKycCompleted}
-            onUpdateClick={handleBillingDetailsUpdateClick}
-          />
-        </Flex>
+            <Flex gap={7}>
+              <PaymentMethodCard
+                paymentMethod={paymentMethod}
+                isLoading={isLoading}
+                isAllowed={isAllowed}
+              />
+              <BillingDetailsCard
+                billingAccount={billingAccount}
+                isLoading={isLoading}
+                isAllowed={isAllowed}
+                disabled={isOrganizationKycCompleted}
+                isActionLoading={isCheckoutPending}
+                onUpdateClick={handleBillingDetailsUpdateClick}
+              />
+            </Flex>
 
-        <UpcomingBillingCycle
-          isAllowed={isAllowed}
-          isPermissionLoading={isFetching}
-          onCycleSwitchClick={handleCycleSwitchClick}
-          onNavigateToPlans={onNavigateToPlans}
-        />
+            <UpcomingBillingCycle
+              isAllowed={isAllowed}
+              isPermissionLoading={isPermissionsLoading}
+              onCycleSwitchClick={handleCycleSwitchClick}
+              onNavigateToPlans={onNavigateToPlans}
+            />
 
-        <Invoices />
-      </Flex>
+            <Invoices />
+          </Flex>
 
-      <ConfirmCycleSwitchDialog handle={cycleSwitchDialogHandle} />
-      <BillingDetailsDialog handle={billingDetailsDialogHandle} />
+          <ConfirmCycleSwitchDialog handle={cycleSwitchDialogHandle} />
+        </>
+      )}
     </ViewContainer>
   );
 }

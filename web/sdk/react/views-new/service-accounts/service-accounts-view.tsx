@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ExclamationTriangleIcon, KeyboardIcon, TrashIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import {
   Button,
   Tooltip,
@@ -11,22 +11,25 @@ import {
   DataTable,
   Dialog,
   AlertDialog,
-  Menu
+  Menu,
+  Image
 } from '@raystack/apsara-v1';
+import deleteIcon from '~/react/assets/delete.svg';
+import keyIcon from '~/react/assets/key.svg';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
   ListOrganizationServiceUsersRequestSchema
 } from '@raystack/proton/frontier';
-import { useFrontier } from '../../contexts/FrontierContext';
-import { usePermissions } from '../../hooks/usePermissions';
-import { useTerminology } from '../../hooks/useTerminology';
-import { AuthTooltipMessage } from '../../utils';
-import { PERMISSIONS, shouldShowComponent } from '../../../utils';
-import { DEFAULT_DATE_FORMAT } from '../../utils/constants';
-import { ViewContainer } from '../../components/view-container';
-import { ViewHeader } from '../../components/view-header';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { useTerminology } from '~/react/hooks/useTerminology';
+import { AuthTooltipMessage } from '~/react/utils';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { ViewContainer } from '~/react/components/view-container';
+import { ViewHeader } from '~/react/components/view-header';
 import {
   getColumns,
   type ServiceAccountMenuPayload
@@ -106,7 +109,7 @@ export function ServiceAccountsView({
   );
 
   const isPermissionsLoading =
-    isActiveOrganizationLoading || isPermissionsFetching;
+    !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
 
   const isLoading = isPermissionsLoading || isServiceUsersLoading;
 
@@ -150,7 +153,7 @@ export function ServiceAccountsView({
         />
       ) : hasNoServiceAccounts ? (
         <EmptyState
-          icon={<KeyboardIcon />}
+          icon={<ExclamationTriangleIcon />}
           heading="No Service Account Found"
           subHeading={`Create a new account to use the APIs of ${t.appName()} platform`}
           primaryAction={
@@ -219,7 +222,8 @@ export function ServiceAccountsView({
                 />
               }
               classNames={{
-                root: styles.tableRoot
+                root: styles.tableRoot,
+                table: styles.table
               }}
             />
           </Flex>
@@ -233,7 +237,14 @@ export function ServiceAccountsView({
             <Menu.Content align="end" className={styles.menuContent}>
               {payload?.canManageAccess && (
                 <Menu.Item
-                  leadingIcon={<KeyboardIcon />}
+                  leadingIcon={
+                    <Image
+                      src={keyIcon as unknown as string}
+                      alt="Manage access"
+                      width="var(--rs-space-5)"
+                      height="var(--rs-space-5)"
+                    />
+                  }
                   onClick={() => {
                     if (payload) {
                       setManageAccessServiceUserId(payload.serviceAccountId);
@@ -247,7 +258,14 @@ export function ServiceAccountsView({
               )}
               {payload?.canDelete && (
                 <Menu.Item
-                  leadingIcon={<TrashIcon />}
+                  leadingIcon={
+                    <Image
+                      src={deleteIcon as unknown as string}
+                      alt="Delete"
+                      width={16}
+                      height={16}
+                    />
+                  }
                   onClick={() =>
                     payload &&
                     deleteDialogHandle.openWithPayload({
@@ -255,6 +273,7 @@ export function ServiceAccountsView({
                     })
                   }
                   data-test-id="frontier-sdk-delete-account-menu-item"
+                  style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
                 >
                   Delete Account
                 </Menu.Item>

@@ -14,7 +14,9 @@ import type {
   DataTableQuery,
   DataTableSort
 } from '@raystack/apsara-v1';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import {
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { useInfiniteQuery } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
@@ -58,77 +60,82 @@ const getColumns = ({
   SearchOrganizationInvoicesResponse_OrganizationInvoice,
   unknown
 >[] => [
-  {
-    header: 'Date',
-    id: 'created_at',
-    accessorKey: 'createdAt',
-    enableSorting: true,
-    cell: ({ getValue }) => {
-      const value = getValue() as TimeStamp;
-      const date = timestampToDayjs(value);
-      return (
-        <Text size="regular" variant="secondary">
-          {date ? date.format(dateFormat) : '-'}
-        </Text>
-      );
-    }
-  },
-  {
-    header: 'Status',
-    accessorKey: 'state',
-    enableSorting: true,
-    enableHiding: true,
-    enableGrouping: true,
-    groupLabelsMap: InvoiceStatusesMap,
-    showGroupCount: true,
-    groupCountMap: groupCountMap['state'] || {},
-    cell: ({ getValue }) => {
-      const value = getValue() as keyof typeof InvoiceStatusesMap;
-      return (
-        <Text size="regular" variant="secondary">
-          {InvoiceStatusesMap[value] ?? capitalize(value as string)}
-        </Text>
-      );
-    }
-  },
-  {
-    header: 'Amount',
-    accessorKey: 'amount',
-    enableSorting: true,
-    enableHiding: true,
-    cell: ({ row, getValue }) => {
-      const value = Number(getValue());
-      return (
-        <Text size="regular" variant="secondary">
-          <Amount currency={row?.original?.currency} value={value} />
-        </Text>
-      );
-    }
-  },
-  {
-    header: '',
-    accessorKey: 'invoiceLink',
-    enableSorting: false,
-    classNames: {
-      cell: styles.linkColumn
+    {
+      header: 'Date',
+      id: 'created_at',
+      accessorKey: 'createdAt',
+      enableSorting: true,
+      cell: ({ getValue }) => {
+        const value = getValue() as TimeStamp;
+        const date = timestampToDayjs(value);
+        return (
+          <Text size="regular" variant="secondary">
+            {date ? date.format(dateFormat) : '-'}
+          </Text>
+        );
+      }
     },
-    cell: ({ getValue }) => {
-      const link = getValue() as string;
-      if (!link) return null;
-      return (
-        <Button
-          variant="text"
-          color="neutral"
-          size="small"
-          onClick={() => window.open(link, '_blank', 'noopener,noreferrer')}
-          data-test-id="frontier-sdk-view-invoice-link"
-        >
-          View invoice
-        </Button>
-      );
+    {
+      header: 'Status',
+      accessorKey: 'state',
+      enableSorting: true,
+      enableHiding: true,
+      enableGrouping: true,
+      groupLabelsMap: InvoiceStatusesMap,
+      showGroupCount: true,
+      groupCountMap: groupCountMap['state'] || {},
+      cell: ({ getValue }) => {
+        const value = getValue() as keyof typeof InvoiceStatusesMap;
+        return (
+          <Text size="regular" variant="secondary">
+            {InvoiceStatusesMap[value] ?? capitalize(value as string)}
+          </Text>
+        );
+      }
+    },
+    {
+      header: 'Amount',
+      accessorKey: 'amount',
+      enableSorting: true,
+      enableHiding: true,
+      cell: ({ row, getValue }) => {
+        const value = Number(getValue());
+        return (
+          <Text size="regular" variant="secondary">
+            <Amount currency={row?.original?.currency} value={value} />
+          </Text>
+        );
+      }
+    },
+    {
+      header: '',
+      accessorKey: 'invoiceLink',
+      enableSorting: false,
+      classNames: {
+        cell: styles.linkColumn
+      },
+      styles: {
+        cell: { width: '120px', maxWidth: '120px' },
+        header: { width: '120px', maxWidth: '120px' }
+      },
+      cell: ({ getValue }) => {
+        const link = getValue() as string;
+        if (!link) return null;
+        return (
+          <Button
+            variant="text"
+            color="neutral"
+            size="small"
+            className={styles.viewInvoiceBtn}
+            onClick={() => window.open(link, '_blank', 'noopener,noreferrer')}
+            data-test-id="frontier-sdk-view-invoice-link"
+          >
+            View invoice
+          </Button>
+        );
+      }
     }
-  }
-];
+  ];
 
 const NoInvoices = () => (
   <EmptyState
@@ -185,7 +192,7 @@ export function Invoices() {
       infiniteData?.pages?.flatMap(page => page.organizationInvoices) ?? [],
     [infiniteData]
   );
-  const loading = (isLoading || isFetchingNextPage) && !isError;
+  const loading = (!activeOrganization?.id || isLoading || isFetchingNextPage) && !isError;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
@@ -212,14 +219,21 @@ export function Invoices() {
       columns={columns}
       data={invoices}
       isLoading={loading}
+      loadingRowCount={5}
       defaultSort={DEFAULT_SORT}
       mode="server"
       onTableQueryChange={onTableQueryChange}
       onLoadMore={fetchMore}
       query={tableQuery}
     >
-      <Flex direction="column" style={{ width: '100%' }}>
-        <DataTable.Toolbar />
+      <Flex direction="column" gap={4} style={{ width: '100%' }}>
+        <Flex justify="between" align="center">
+          <Text size="small" weight="medium">
+            Billing transactions
+          </Text>
+          <DataTable.DisplayControls
+          />
+        </Flex>
         <DataTable.Content
           emptyState={isError ? <ErrorState /> : <NoInvoices />}
         />

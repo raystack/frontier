@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { Button, Skeleton, Text, Flex, toastManager } from '@raystack/apsara-v1';
+import { Button, Text, Flex, toastManager } from '@raystack/apsara-v1';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import {
@@ -132,8 +132,7 @@ export function UpcomingPlanChangeBanner({
     nextPhase?.planId ||
     (subscription?.state === 'active' && nextPhase?.reason === 'cancel');
 
-  if (showLoader) return <Skeleton />;
-  if (!showBanner) return null;
+  if (showLoader || !showBanner) return null;
 
   return (
     <Flex className={styles.currentPlanInfoBox} justify="between" align="center">

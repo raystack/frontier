@@ -1,0 +1,11 @@
+.text {
+  display: block;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltipContent {
+  max-width: 550px;
+}

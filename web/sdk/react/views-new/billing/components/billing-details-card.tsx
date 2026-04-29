@@ -10,6 +10,7 @@ interface BillingDetailsCardProps {
   isLoading: boolean;
   isAllowed: boolean;
   disabled?: boolean;
+  isActionLoading?: boolean;
   onUpdateClick?: () => void;
 }
 
@@ -18,11 +19,12 @@ export function BillingDetailsCard({
   isLoading,
   isAllowed,
   disabled = false,
+  isActionLoading = false,
   onUpdateClick
 }: BillingDetailsCardProps) {
   const btnText =
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
-  const isButtonDisabled = isLoading || disabled;
+  const isButtonDisabled = isLoading || disabled || isActionLoading;
 
   const address = convertBillingAddressToString(billingAccount?.address);
 
@@ -32,7 +34,7 @@ export function BillingDetailsCard({
         <Text size="regular" weight="medium">
           Billing details
         </Text>
-        {isAllowed ? (
+        {!isLoading && isAllowed ? (
           <Tooltip>
             <Tooltip.Trigger
               disabled={!isButtonDisabled}
@@ -44,6 +46,8 @@ export function BillingDetailsCard({
                 size="small"
                 onClick={onUpdateClick}
                 disabled={isButtonDisabled}
+                loading={isActionLoading}
+                loaderText={btnText}
                 data-test-id="frontier-sdk-billing-details-update-button"
               >
                 {btnText}
@@ -57,22 +61,32 @@ export function BillingDetailsCard({
           </Tooltip>
         ) : null}
       </Flex>
-      <Flex direction="column" gap={2}>
-        <Text size="mini" weight="medium" variant="secondary">
-          Name
-        </Text>
-        <Text size="regular">
-          {isLoading ? <Skeleton /> : billingAccount?.name || 'N/A'}
-        </Text>
-      </Flex>
-      <Flex direction="column" gap={2}>
-        <Text size="mini" weight="medium" variant="secondary">
-          Address
-        </Text>
-        <Text size="regular">
-          {isLoading ? <Skeleton /> : address || 'N/A'}
-        </Text>
-      </Flex>
+      {isLoading ? (
+        <Flex direction="column" gap={2}>
+          <Skeleton height={16} width={60} />
+          <Skeleton height={20} width={250} />
+        </Flex>
+      ) : (
+        <Flex direction="column" gap={2}>
+          <Text size="mini" weight="medium" variant="secondary">
+            Name
+          </Text>
+          <Text size="regular">{billingAccount?.name || 'N/A'}</Text>
+        </Flex>
+      )}
+      {isLoading ? (
+        <Flex direction="column" gap={2}>
+          <Skeleton height={16} width={80} />
+          <Skeleton height={20} width={300} />
+        </Flex>
+      ) : (
+        <Flex direction="column" gap={2}>
+          <Text size="mini" weight="medium" variant="secondary">
+            Address
+          </Text>
+          <Text size="regular">{address || 'N/A'}</Text>
+        </Flex>
+      )}
     </div>
   );
 }
