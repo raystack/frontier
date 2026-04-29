@@ -11,13 +11,13 @@ import {
 } from "@raystack/proton/frontier";
 import { useDebounceValue } from "usehooks-ts";
 import { OrganizationContext } from "../contexts/organization-context";
-import { PageTitle } from "../../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
 import {
   DEFAULT_PAGE_SIZE,
   getConnectNextPageParam,
 } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
-import { useTerminology } from "../../../../hooks/useTerminology";
+import { useTerminology } from "~/admin/hooks/useTerminology";
 import { getColumns } from "./columns";
 import { PatDetailsDialog } from "./components/pat-details-dialog";
 import styles from "./pat.module.css";
@@ -150,8 +150,11 @@ export function OrganizationPatView() {
     [projects],
   );
 
-  const data =
-    infiniteData?.pages?.flatMap((page) => page?.organizationPats ?? []) ?? [];
+  const data = useMemo(
+    () =>
+      infiniteData?.pages?.flatMap((page) => page?.organizationPats ?? []) ?? [],
+    [infiniteData],
+  );
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
   const hasActiveQuery = Boolean(query.search || query.filters?.length);

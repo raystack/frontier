@@ -13,8 +13,8 @@ import {
   type Role,
   type SearchOrganizationPATsResponse_OrganizationPAT,
 } from "@raystack/proton/frontier";
-import { useTerminology } from "../../../../../hooks/useTerminology";
-import { SCOPES } from "../../../../../utils/constants";
+import { useTerminology } from "~/admin/hooks/useTerminology";
+import { SCOPES } from "~/admin/utils/constants";
 import styles from "./pat-details-dialog.module.css";
 
 interface PatDetailsDialogProps {
@@ -168,6 +168,6 @@ export function PatDetailsDialog({
           </Tabs>
         </Dialog.Body>
       </Dialog.Content>
-    </Dialog >
+    </Dialog>
   );
 }

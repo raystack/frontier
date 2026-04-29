@@ -14,8 +14,9 @@ import type {
 import {
   isNullTimestamp,
   timestampToDayjs,
-} from "../../../../utils/connect-timestamp";
-import { SCOPES } from "../../../../utils/constants";
+} from "~/admin/utils/connect-timestamp";
+import { SCOPES } from "~/admin/utils/constants";
+import { getInitials } from "~/utils";
 import styles from "./pat.module.css";
 
 dayjs.extend(relativeTime);
@@ -79,7 +80,7 @@ export function getColumns({
         const avatarColor = getAvatarColor(userId);
         return (
           <Flex gap={4} align="center">
-            <Avatar fallback={title?.[0]} color={avatarColor} />
+            <Avatar fallback={getInitials(title)} color={avatarColor} />
             <Text className={styles["truncate-text"]}>{title}</Text>
           </Flex>
         );
