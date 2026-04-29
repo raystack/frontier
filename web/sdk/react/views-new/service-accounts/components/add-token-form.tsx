@@ -12,7 +12,7 @@ import {
   CreateServiceUserTokenRequestSchema,
   type ServiceUserToken
 } from '@raystack/proton/frontier';
-import { useFrontier } from '../../../contexts/FrontierContext';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from '../service-account-details-view.module.css';
 
 const tokenSchema = yup

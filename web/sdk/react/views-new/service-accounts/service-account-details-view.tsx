@@ -1,11 +1,7 @@
 'use client';
 
-import { useState, useMemo, useCallback, MouseEvent } from 'react';
-import {
-  DotsHorizontalIcon,
-  CheckCircledIcon,
-  CopyIcon
-} from '@radix-ui/react-icons';
+import { useMemo, useCallback, MouseEvent } from 'react';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Breadcrumb,
   Skeleton,
@@ -16,9 +12,11 @@ import {
   AlertDialog,
   Dialog,
   IconButton,
-  Image
+  Image,
+  CopyButton
 } from '@raystack/apsara-v1';
-import deleteIcon from '../../assets/delete.svg';
+import deleteIcon from '~/react/assets/delete.svg';
+import keyIcon from '~/react/assets/key.svg';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -26,14 +24,13 @@ import {
   GetServiceUserRequestSchema,
   type ServiceUserToken
 } from '@raystack/proton/frontier';
-import { useFrontier } from '../../contexts/FrontierContext';
-import { useTerminology } from '../../hooks/useTerminology';
-import { usePermissions } from '../../hooks/usePermissions';
-import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
-import { PERMISSIONS, shouldShowComponent } from '../../../utils';
-import { useServiceUserTokens } from '../../views/api-keys/hooks/useServiceUserTokens';
-import { ViewContainer } from '../../components/view-container';
-import { ViewHeader } from '../../components/view-header';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useTerminology } from '~/react/hooks/useTerminology';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { useServiceUserTokens } from './hooks/useServiceUserTokens';
+import { ViewContainer } from '~/react/components/view-container';
+import { ViewHeader } from '~/react/components/view-header';
 import { AddTokenForm } from './components/add-token-form';
 import {
   RevokeTokenDialog,
@@ -84,7 +81,8 @@ export function ServiceAccountDetailsView({
     tokens: serviceUserTokens,
     isLoading: isTokensLoading,
     addToken,
-    removeToken
+    removeToken,
+    clearFreshTokens
   } = useServiceUserTokens({
     id: serviceAccountId,
     orgId,
@@ -113,32 +111,38 @@ export function ServiceAccountDetailsView({
     [permissions, resource]
   );
 
-  const isLoading = isServiceUserLoading || isTokensLoading || isPermissionsFetching;
+  const isLoading = !organization?.id || isServiceUserLoading || isTokensLoading || isPermissionsFetching;
 
   const serviceAccountTitle = serviceUser?.title || '';
 
+  const handleNavigateToServiceAccounts = useCallback(() => {
+    clearFreshTokens();
+    onNavigateToServiceAccounts?.();
+  }, [clearFreshTokens, onNavigateToServiceAccounts]);
+
   const handleDeleteSuccess = useCallback(() => {
+    clearFreshTokens();
     onDeleteSuccess?.();
-  }, [onDeleteSuccess]);
+  }, [clearFreshTokens, onDeleteSuccess]);
 
   return (
     <ViewContainer>
       <ViewHeader
-        title={isServiceUserLoading ? '' : serviceAccountTitle}
+        title={isLoading ? '' : serviceAccountTitle}
         breadcrumb={
           <Breadcrumb size="small">
             <Breadcrumb.Item
               href="#"
               onClick={(e: MouseEvent) => {
                 e.preventDefault();
-                onNavigateToServiceAccounts?.();
+                handleNavigateToServiceAccounts();
               }}
             >
               {serviceAccountsLabel}
             </Breadcrumb.Item>
             <Breadcrumb.Separator />
             <Breadcrumb.Item current>
-              {isServiceUserLoading ? (
+              {isLoading ? (
                 <Skeleton height="16px" width="100px" />
               ) : (
                 serviceAccountTitle
@@ -153,18 +157,22 @@ export function ServiceAccountDetailsView({
       </ViewHeader>
 
       <Flex direction="column" gap={7}>
-        {isServiceUserLoading ? (
-          <Skeleton height="20px" width="300px" />
+        {isLoading ? (
+          <>
+            <Skeleton height="20px" width="300px" />
+            <Skeleton height="20px" />
+          </>
         ) : (
-          <Text size="regular" variant="secondary">
-            Create API key for accessing {t.appName()} and its features
-          </Text>
+          <>
+            <Text size="regular" variant="secondary">
+              Create API key for accessing {t.appName()} and its features
+            </Text>
+            <AddTokenForm
+              serviceUserId={serviceAccountId}
+              onAddToken={addToken}
+            />
+          </>
         )}
-
-        <AddTokenForm
-          serviceUserId={serviceAccountId}
-          onAddToken={addToken}
-        />
 
         {serviceUserTokens.length > 0 && (
           <TokenList
@@ -213,6 +221,14 @@ function ActionsMenu({ serviceAccountId }: ActionsMenuProps) {
       <Menu handle={actionsMenuHandle} modal={false}>
         <Menu.Content align="start" className={styles.menuContent}>
           <Menu.Item
+            leadingIcon={
+              <Image
+                src={keyIcon as unknown as string}
+                alt="Manage access"
+                width={16}
+                height={16}
+              />
+            }
             onClick={() => manageAccessDialogHandle.open(null)}
             data-test-id="frontier-sdk-service-account-manage-access-btn"
           >
@@ -269,18 +285,7 @@ function TokenList({
 }
 
 function TokenItem({ token }: { token: ServiceUserToken }) {
-  const [isCopied, setIsCopied] = useState(false);
-  const { copy } = useCopyToClipboard();
-
   const encodedToken = 'Basic ' + btoa(`${token?.id}:${token?.token}`);
-
-  async function onCopy() {
-    const res = await copy(encodedToken);
-    if (res) {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 1000);
-    }
-  }
 
   return (
     <Flex className={styles.tokenItem} direction="column" gap={3}>
@@ -301,26 +306,23 @@ function TokenItem({ token }: { token: ServiceUserToken }) {
         </Button>
       </Flex>
       {token?.token ? (
-        <Flex gap={3} direction="column">
+        <>
           <Text size="small" variant="secondary">
             Note: Please save your key securely, it cannot be recovered after
             leaving this page
           </Text>
-          <Flex className={styles.tokenBox} justify="between" gap={5} align="center">
+          <Flex align="center" gap={3}>
             <Text size="regular" weight="medium" className={styles.tokenText}>
               {encodedToken}
             </Text>
-            {isCopied ? (
-              <CheckCircledIcon color="var(--rs-color-foreground-success-primary)" />
-            ) : (
-              <CopyIcon
-                onClick={onCopy}
-                data-test-id="frontier-sdk-service-account-token-copy-btn"
-                style={{ cursor: 'pointer' }}
-              />
-            )}
+            <CopyButton
+              text={encodedToken}
+              size={2}
+              className={styles.copyButton}
+              data-test-id="frontier-sdk-service-account-token-copy-btn"
+            />
           </Flex>
-        </Flex>
+        </>
       ) : null}
     </Flex>
   );

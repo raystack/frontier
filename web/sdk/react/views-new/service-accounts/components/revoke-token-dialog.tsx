@@ -14,8 +14,9 @@ import {
   Flex,
   toastManager
 } from '@raystack/apsara-v1';
-import { useFrontier } from '../../../contexts/FrontierContext';
-import { useTerminology } from '../../../hooks/useTerminology';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useTerminology } from '~/react/hooks/useTerminology';
+import styles from './revoke-token-dialog.module.css';
 
 export type RevokeTokenPayload = { tokenId: string };
 
@@ -68,11 +69,9 @@ export function RevokeTokenDialog({
       {({ payload: rawPayload }) => {
         const payload = rawPayload as RevokeTokenPayload | undefined;
         return (
-          <AlertDialog.Content width={400}>
-            <AlertDialog.Header>
+          <AlertDialog.Content width={400} showCloseButton={false}>
+            <AlertDialog.Body className={styles.body}>
               <AlertDialog.Title>Revoke API Key</AlertDialog.Title>
-            </AlertDialog.Header>
-            <AlertDialog.Body>
               <Text size="small" variant="secondary">
                 This is an irreversible action doing this might lead to
                 discontinuation of access to the {t.appName()} features. Do you

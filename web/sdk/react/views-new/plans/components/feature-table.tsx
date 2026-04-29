@@ -1,6 +1,6 @@
 'use client';
 
-import { Flex, Image, Text } from '@raystack/apsara-v1';
+import { Flex, Image, Skeleton, Text } from '@raystack/apsara-v1';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { get } from 'lodash';
 import {
@@ -45,13 +45,47 @@ export interface FeatureTableProps {
   features: string[];
   plans: PlanIntervalPricing[];
   selectedIntervals: Record<string, IntervalKeys>;
+  isLoading?: boolean;
 }
+
+const SKELETON_ROW_COUNT = 5;
 
 export function FeatureTable({
   features,
   plans,
-  selectedIntervals
+  selectedIntervals,
+  isLoading = false
 }: FeatureTableProps) {
+  if (isLoading) {
+    return (
+      <Flex className={styles.table}>
+        <Flex direction="column" className={styles.featureColumn}>
+          {Array.from({ length: SKELETON_ROW_COUNT }).map((_, i) => (
+            <Flex key={i} className={styles.cell}>
+              <Skeleton height={16} width="60%" />
+            </Flex>
+          ))}
+        </Flex>
+        {plans.map(plan => (
+          <Flex
+            key={plan.slug}
+            direction="column"
+            className={styles.planColumn}
+          >
+            {Array.from({ length: SKELETON_ROW_COUNT }).map((_, i) => (
+              <Flex
+                key={i}
+                className={`${styles.cell} ${styles.valueCell}`}
+              >
+                <Skeleton height={16} width={40} />
+              </Flex>
+            ))}
+          </Flex>
+        ))}
+      </Flex>
+    );
+  }
+
   if (features.length === 0) return null;
 
   return (

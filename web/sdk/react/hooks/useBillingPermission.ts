@@ -12,6 +12,10 @@ export const useBillingPermission = () => {
       {
         permission: PERMISSIONS.DeletePermission,
         resource
+      },
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
       }
     ],
     [resource]
@@ -22,17 +26,22 @@ export const useBillingPermission = () => {
     !!activeOrganization?.id
   );
 
-  const { isAllowed } = useMemo(() => {
+  const { isAllowed, canSeeBilling } = useMemo(() => {
     return {
       isAllowed: shouldShowComponent(
         permissions,
         `${PERMISSIONS.DeletePermission}::${resource}`
+      ),
+      canSeeBilling: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
       )
     };
   }, [permissions, resource]);
 
   return {
     isFetching,
-    isAllowed
+    isAllowed,
+    canSeeBilling
   };
 };
