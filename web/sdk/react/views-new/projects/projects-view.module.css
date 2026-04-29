@@ -2,6 +2,10 @@
   border: none;
 }
 
+.table {
+  table-layout: fixed;
+}
+
 .menuContent {
   min-width: 6;
 }

@@ -60,4 +60,6 @@ export interface FrontierProviderProps {
   initialState?: InitialState;
   customHeaders?: Record<string, CustomHeaderValue>;
   theme?: ThemeProviderProps;
+  renderToastProvider?: boolean;
+  renderThemeProvider?: boolean;
 }
