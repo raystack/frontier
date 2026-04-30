@@ -22,9 +22,7 @@ export const AuthHeader = ({ title, logo }: AuthHeaderProps) => {
       gap={9}
     >
       <div>{logo ? logo : defaultLogo}</div>
-      <div className={styles.title}>
-        <Headline size="t2">{title}</Headline>
-      </div>
+      <Headline size="t2" weight="regular">{title}</Headline>
     </Flex>
   );
 };

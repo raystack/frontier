@@ -3,5 +3,5 @@
 }
 
 .logo {
-  margin-right: 4px;
+  margin-right: var(--rs-space-2);
 }

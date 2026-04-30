@@ -79,18 +79,16 @@ export const SignInView = ({
         {mailotp && <MagicLinkView inline />}
       </Flex>
       {footer && (
-        <div className={styles.footer}>
-          <Text size="small">
-            Don&apos;t have an account?{' '}
-            <Link
-              href={config.redirectSignup || ''}
-              className={styles.redirectLink}
-              data-test-id="frontier-sdk-signup-btn"
-            >
-              Signup
-            </Link>
-          </Text>
-        </div>
+        <Text size="small" weight="regular">
+          Don&apos;t have an account?{' '}
+          <Link
+            href={config.redirectSignup || ''}
+            className={styles.redirectLink}
+            data-test-id="frontier-sdk-signup-btn"
+          >
+            Signup
+          </Link>
+        </Text>
       )}
     </AuthContainer>
   );
