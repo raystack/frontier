@@ -16,4 +16,24 @@
 
 .tableRoot {
   border: none;
+  max-height: calc(100vh - 320px);
+  min-height: 320px;
+}
+
+.tableRoot :global(thead th) {
+  border-bottom: none;
+}
+
+.filtersBar {
+  padding: var(--rs-space-3) 0;
+  align-self: stretch;
+  background: var(--rs-color-background-base-primary);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 240px;
 }

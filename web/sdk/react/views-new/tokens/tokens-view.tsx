@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Callout,
@@ -14,19 +14,26 @@ import {
   Text,
   Tooltip
 } from '@raystack/apsara-v1';
-import { toastManager } from '@raystack/apsara-v1';
-import { InfoCircledIcon, PlusIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { useQuery } from '@connectrpc/connect-query';
-import { create } from '@bufbuild/protobuf';
+import type { DataTableQuery, DataTableSort } from '@raystack/apsara-v1';
+import { FilterIcon } from '@raystack/apsara-v1/icons';
+import {
+  InfoCircledIcon,
+  PlusIcon,
+  ExclamationTriangleIcon
+} from '@radix-ui/react-icons';
+import { useInfiniteQuery } from '@connectrpc/connect-query';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { useDebounceValue } from 'usehooks-ts';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import {
-  FrontierServiceQueries,
-  ListBillingTransactionsRequestSchema
-} from '@raystack/proton/frontier';
+  DEFAULT_PAGE_SIZE,
+  getConnectNextPageParam
+} from '~/react/utils/connect-pagination';
+import { transformDataTableQueryToRQLRequest } from '~/react/utils/transform-query';
 import { ViewContainer } from '~/react/components/view-container';
 import { ViewHeader } from '~/react/components/view-header';
 import coin from '~/react/assets/coin.svg';
@@ -35,6 +42,35 @@ import { AddTokensDialog } from './components/add-tokens-dialog';
 import styles from './tokens-view.module.css';
 
 const addTokensDialogHandle = Dialog.createHandle();
+
+const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
+
+const INITIAL_QUERY: DataTableQuery = {
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE
+};
+
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    createdAt: 'created_at',
+    userTitle: 'user_title'
+  }
+};
+
+const NoTokens = () => (
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No Transactions"
+  />
+);
+
+const ErrorState = () => (
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="Error loading transactions"
+    subHeading="Something went wrong. Please try refreshing the page."
+  />
+);
 
 export function TokensView() {
   const {
@@ -49,35 +85,51 @@ export function TokensView() {
     useBillingPermission();
   const { tokenBalance, isTokensLoading } = useTokens();
 
-  const {
-    data: transactionsRawData,
-    isLoading: isTransactionsListLoading,
-    error: transactionsError
-  } = useQuery(
-    FrontierServiceQueries.listBillingTransactions,
-    create(ListBillingTransactionsRequestSchema, {
-      orgId: activeOrganization?.id ?? '',
-      expand: ['user']
-    }),
-    {
-      enabled: !!activeOrganization?.id
-    }
+  const organizationId = activeOrganization?.id ?? '';
+
+  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
+
+  const computedQuery = useMemo(
+    () => transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS),
+    [tableQuery]
   );
 
-  const transactionsData = useMemo(
-    () => transactionsRawData?.transactions ?? [],
-    [transactionsRawData]
+  const [query] = useDebounceValue(computedQuery, 200);
+
+  const {
+    data: infiniteData,
+    isLoading: isTransactionsListLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    error: transactionsError
+  } = useInfiniteQuery(
+    FrontierServiceQueries.searchOrganizationTokens,
+    { id: organizationId, query },
+    {
+      enabled: !!organizationId,
+      pageParamKey: 'query',
+      getNextPageParam: lastPage =>
+        getConnectNextPageParam(lastPage, { query }, 'organizationTokens'),
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 1000
+    }
   );
 
   useEffect(() => {
     if (transactionsError) {
-      console.error(transactionsError);
-      toastManager.add({
-        title: 'Unable to fetch transactions',
-        type: 'error'
-      });
+      console.error('Unable to fetch transactions', transactionsError);
     }
   }, [transactionsError]);
+
+  const transactionsData = useMemo(
+    () =>
+      infiniteData?.pages?.flatMap(page => page.organizationTokens) ?? [],
+    [infiniteData]
+  );
 
   const isLoading =
     isActiveOrganizationLoading ||
@@ -85,7 +137,22 @@ export function TokensView() {
     isTokensLoading ||
     isPermissionsFetching;
 
-  const isTxnDataLoading = isLoading || isTransactionsListLoading;
+  const isTxnDataLoading =
+    (isLoading || isTransactionsListLoading || isFetchingNextPage) && !isError;
+
+  const onTableQueryChange = (newQuery: DataTableQuery) => {
+    setTableQuery(newQuery);
+  };
+
+  const fetchMore = async () => {
+    if (hasNextPage && !isFetchingNextPage && !isError) {
+      try {
+        await fetchNextPage();
+      } catch (err) {
+        console.error('Unable to fetch next page of transactions', err);
+      }
+    }
+  };
 
   const columns = useMemo(
     () =>
@@ -115,17 +182,17 @@ export function TokensView() {
       <ViewHeader title="Tokens" description={description} />
 
       {isPostpaid && isAllowed ? (
-        <Callout type="accent" icon={<InfoCircledIcon />} className={styles.callout}>
-          You can now add tokens anytime to reduce next month&apos;s invoice. But
-          this won&apos;t settle any existing or overdue invoices.
+        <Callout
+          type="accent"
+          icon={<InfoCircledIcon />}
+          className={styles.callout}
+        >
+          You can now add tokens anytime to reduce next month&apos;s invoice.
+          But this won&apos;t settle any existing or overdue invoices.
         </Callout>
       ) : null}
 
-      <Flex
-        className={styles.balancePanel}
-        justify="between"
-        align="center"
-      >
+      <Flex className={styles.balancePanel} justify="between" align="center">
         <Flex gap={4} align="center">
           <Image
             src={coin as unknown as string}
@@ -139,9 +206,7 @@ export function TokensView() {
             {isLoading ? (
               <Skeleton height="28px" width="120px" />
             ) : (
-              <Headline size="t2">
-                {formattedBalance}
-              </Headline>
+              <Headline size="t2">{formattedBalance}</Headline>
             )}
           </Flex>
         </Flex>
@@ -149,10 +214,7 @@ export function TokensView() {
           <Skeleton height="28px" width="100px" />
         ) : (
           <Tooltip>
-            <Tooltip.Trigger
-              disabled={isAllowed}
-              render={<span />}
-            >
+            <Tooltip.Trigger disabled={isAllowed} render={<span />}>
               <Button
                 variant="outline"
                 color="neutral"
@@ -173,27 +235,37 @@ export function TokensView() {
       </Flex>
 
       <DataTable
-        data={transactionsData}
         columns={columns}
+        data={transactionsData}
         isLoading={isTxnDataLoading}
-        mode="client"
-        defaultSort={{ name: 'createdAt', order: 'desc' }}
+        defaultSort={DEFAULT_SORT}
+        mode="server"
+        onTableQueryChange={onTableQueryChange}
+        onLoadMore={fetchMore}
+        query={tableQuery}
       >
-        <Flex direction="column" gap={5}>
+        <Flex direction="column" gap={5} style={{ width: '100%' }}>
           <Text size="small" weight="medium">
             Token transactions
           </Text>
-          <DataTable.Filters />
+          <DataTable.Filters
+            className={styles.filtersBar}
+            trigger={
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                leadingIcon={<FilterIcon />}
+              >
+                Filter
+              </Button>
+            }
+          />
           <DataTable.VirtualizedContent
             classNames={{ root: styles.tableRoot }}
             rowHeight={48}
             overscan={10}
-            emptyState={
-              <EmptyState
-                icon={<ExclamationTriangleIcon />}
-                heading="No Transactions"
-              />
-            }
+            emptyState={isError ? <ErrorState /> : <NoTokens />}
           />
         </Flex>
       </DataTable>

@@ -1,6 +1,12 @@
-import { Avatar, Flex, Text, getAvatarColor } from '@raystack/apsara-v1';
+import {
+  Avatar,
+  Flex,
+  Text,
+  Tooltip,
+  getAvatarColor
+} from '@raystack/apsara-v1';
 import type { DataTableColumnDef } from '@raystack/apsara-v1';
-import type { BillingTransaction } from '@raystack/proton/frontier';
+import type { SearchOrganizationTokensResponse_OrganizationToken } from '@raystack/proton/frontier';
 import { has, get } from 'lodash';
 import { getInitials } from '~/utils';
 import {
@@ -9,54 +15,39 @@ import {
   timestampToDate
 } from '~/utils/timestamp';
 import dayjs from 'dayjs';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import styles from '../tokens-view.module.css';
 
-dayjs.extend(isSameOrBefore);
-dayjs.extend(isSameOrAfter);
-
-interface GetColumnsOptions {
-  dateFormat: string;
-}
-
+// Backend source constants mirror frontier/billing/credit/credit.go
 const TxnEventSourceMap: Record<string, string> = {
   'system.starter': 'Starter tokens',
   'system.buy': 'Recharge',
   'system.awarded': 'Complimentary tokens',
-  'system.revert': 'Refund'
+  'system.revert': 'Refund',
+  'system.overdraft': 'Overdraft'
 };
 
 const eventFilterOptions = Object.entries(TxnEventSourceMap).map(
   ([value, label]) => ({ value, label })
 );
 
+interface GetColumnsOptions {
+  dateFormat: string;
+}
+
 export function getColumns({
   dateFormat
-}: GetColumnsOptions): DataTableColumnDef<BillingTransaction, unknown>[] {
+}: GetColumnsOptions): DataTableColumnDef<
+  SearchOrganizationTokensResponse_OrganizationToken,
+  unknown
+>[] {
   return [
     {
       header: 'Date',
       accessorKey: 'createdAt',
+      enableSorting: true,
       enableColumnFilter: true,
       filterType: 'date',
       styles: { cell: { flex: '0 0 140px' }, header: { flex: '0 0 140px' } },
-      filterFn: (row, columnId, filterValue) => {
-        const ts = row.getValue(columnId) as unknown as TimeStamp;
-        if (isNullTimestamp(ts)) return false;
-        const rowDate = dayjs(timestampToDate(ts));
-        const filterDate = dayjs(filterValue.date);
-        if (!rowDate.isValid() || !filterDate.isValid()) return false;
-        const op = filterValue.operator || 'eq';
-        switch (op) {
-          case 'eq': return rowDate.isSame(filterDate, 'day');
-          case 'neq': return !rowDate.isSame(filterDate, 'day');
-          case 'lt': return rowDate.isBefore(filterDate, 'day');
-          case 'lte': return rowDate.isSameOrBefore(filterDate, 'day');
-          case 'gt': return rowDate.isAfter(filterDate, 'day');
-          case 'gte': return rowDate.isSameOrAfter(filterDate, 'day');
-          default: return true;
-        }
-      },
       cell: ({ getValue }) => {
         const value = getValue() as TimeStamp;
         const date = isNullTimestamp(value)
@@ -72,14 +63,17 @@ export function getColumns({
     {
       header: 'Tokens',
       accessorKey: 'amount',
+      enableSorting: true,
+      enableColumnFilter: true,
+      filterType: 'number',
       styles: { cell: { flex: '0 0 200px' }, header: { flex: '0 0 200px' } },
       cell: ({ row, getValue }) => {
-        const value = getValue() as bigint;
+        const value = Number(getValue());
         const prefix = row?.original?.type === 'credit' ? '+' : '-';
         return (
           <Text size="regular" variant="secondary">
             {prefix}
-            {Number(value)}
+            {value}
           </Text>
         );
       }
@@ -87,6 +81,7 @@ export function getColumns({
     {
       header: 'Event',
       accessorKey: 'source',
+      enableHiding: true,
       enableColumnFilter: true,
       filterType: 'multiselect',
       filterOptions: eventFilterOptions,
@@ -97,35 +92,49 @@ export function getColumns({
             ? get(TxnEventSourceMap, value)
             : row?.original?.description
         ) as string;
+        if (!eventName) {
+          return (
+            <Text size="regular" variant="secondary">
+              -
+            </Text>
+          );
+        }
         return (
-          <Text
-            size="regular"
-            variant="secondary"
-            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
-          >
-            {eventName || '-'}
-          </Text>
+          <Tooltip>
+            <Tooltip.Trigger render={<span />}>
+              <Text
+                size="regular"
+                variant="secondary"
+                className={styles.truncate}
+              >
+                {eventName}
+              </Text>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{eventName}</Tooltip.Content>
+          </Tooltip>
         );
       }
     },
     {
       header: 'Member',
-      accessorKey: 'userId',
+      accessorKey: 'userTitle',
+      enableSorting: true,
+      enableHiding: true,
       cell: ({ row, getValue }) => {
-        const userTitle =
-          row?.original?.user?.title || row?.original?.user?.email || '-';
-        const avatarSrc = row?.original?.user?.avatar;
-        const color = getAvatarColor(getValue() as string);
+        const userId = row?.original?.userId || '';
+        const title = (getValue() as string) || '-';
+        const avatarSrc = row?.original?.userAvatar;
+        const color = getAvatarColor(userId);
         return (
           <Flex direction="row" gap={4} align="center">
             <Avatar
               src={avatarSrc}
-              fallback={getInitials(userTitle)}
+              fallback={getInitials(title)}
               size={3}
               radius="full"
               color={color}
             />
-            <Text size="regular">{userTitle}</Text>
+            <Text size="regular">{title}</Text>
           </Flex>
         );
       }
