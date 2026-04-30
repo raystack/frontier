@@ -6,7 +6,7 @@ import { ViewHeader } from '~/react/components/view-header';
 import { usePreferences } from '~/react/hooks/usePreferences';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 import { PreferenceRow } from './components/preference-row';
-import { useTheme } from '@raystack/apsara';
+import { useTheme } from '@raystack/apsara-v1';
 import styles from './preferences-view.module.css';
 import { ReactNode } from 'react';
 

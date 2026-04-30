@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { Button, Dialog, Flex, Skeleton, Text } from '@raystack/apsara-v1';
-import { useSessions } from '~/react/hooks/useSessions';
+import { useSessions } from '~/react/hooks/useSessionsV1';
 import { RevokeSessionConfirmDialog } from './revoke-session-confirm-dialog';
 import styles from './revoke-session-dialog.module.css';
 

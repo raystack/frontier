@@ -1,4 +1,4 @@
-import { SessionsView } from '@raystack/frontier/react';
+import { SessionsView } from '@raystack/frontier/client';
 
 export default function Sessions() {
   return <SessionsView onLogout={() => {

@@ -1,0 +1,7 @@
+.button {
+  width: 100%;
+}
+
+.logo {
+  margin-right: var(--rs-space-2);
+}

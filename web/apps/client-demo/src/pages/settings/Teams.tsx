@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { TeamsView } from '@raystack/frontier/react';
+import { TeamsView } from '@raystack/frontier/client';
 
 export default function Teams() {
   const { orgId } = useParams<{ orgId: string }>();

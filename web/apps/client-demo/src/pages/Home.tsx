@@ -3,24 +3,26 @@ import {
   Avatar,
   Button,
   DataTable,
-  DropdownMenu,
+  Menu,
   Flex,
   Navbar,
   Text,
   useTheme,
   getAvatarColor,
+  toastManager,
+  IconButton,
+  Separator,
   type DataTableColumnDef,
 } from '@raystack/apsara';
-import { useFrontier, useTerminology } from '@raystack/frontier/react';
+import { useFrontier, useTerminology } from '@raystack/frontier/client';
 import {
   useMutation,
   useQuery,
   FrontierServiceQueries,
   useQueryClient,
 } from '@raystack/frontier/hooks';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useMemo, useCallback, useState, type MouseEvent } from 'react';
-import { toast, IconButton, Separator } from '@raystack/apsara';
 import { DesktopIcon, MagnifyingGlassIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 
 type OrgRow = {
@@ -62,9 +64,7 @@ function tsToMs(ts?: { seconds?: bigint; nanos?: number }): number {
 
 function getColumns(
   onAccept: (row: OrgRow) => void,
-  onOpen: (row: OrgRow, e: MouseEvent) => void,
-  acceptingId: string | null,
-  navigate: (path: string) => void
+  acceptingId: string | null
 ): DataTableColumnDef<OrgRow, unknown>[] {
   return [
     {
@@ -135,31 +135,15 @@ function getColumns(
         }
         if (status === 'joined') {
           return (
-            <Flex gap={4}>
-              <Button
-                variant="outline"
-                size="small"
-                data-test-id={`open-org-${row.original.orgId}`}
-                onClick={(e: MouseEvent) => {
-                  e.stopPropagation();
-                  onOpen(row.original, e);
-                }}
-              >
-                Open
-              </Button>
-              <Button
-                variant="outline"
-                size="small"
-                style={{ minWidth: 64 }}
-                data-test-id={`open-org-${row.original.orgId}`}
-                onClick={(e: MouseEvent) => {
-                  e.stopPropagation();
-                  navigate(`/${row.original.slug}/settings`);
-                }}
-              >
-                Open (NEW UI)
-              </Button>
-            </Flex>
+            <Button
+              variant="outline"
+              size="small"
+              style={{ minWidth: 64 }}
+              data-test-id={`open-org-${row.original.orgId}`}
+              render={<Link to={`/${row.original.slug}/settings`} />}
+            >
+              Open
+            </Button>
           );
         }
         return null;
@@ -253,11 +237,15 @@ export default function Home() {
       setAcceptingId(row.invitationId!);
       try {
         await acceptInvitation({ id: row.invitationId!, orgId: row.orgId });
-        toast.success('Invitation accepted');
+        toastManager.add({ title: 'Invitation accepted', type: 'success' });
         queryClient.invalidateQueries();
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Something went wrong';
-        toast.error(`Failed to accept: ${message}`);
+        toastManager.add({
+          title: 'Failed to accept',
+          description: message,
+          type: 'error'
+        });
       } finally {
         setAcceptingId(null);
       }
@@ -265,19 +253,7 @@ export default function Home() {
     [acceptInvitation, queryClient],
   );
 
-  const handleOpen = useCallback(
-    (row: OrgRow, e: MouseEvent) => {
-      const path = `/organizations/${row.orgId}`;
-      if (e.metaKey || e.ctrlKey) {
-        window.open(path, '_blank');
-      } else {
-        navigate(path);
-      }
-    },
-    [navigate],
-  );
-
-  const columns = useMemo(() => getColumns(handleAccept, handleOpen, acceptingId, navigate), [handleAccept, handleOpen, acceptingId, navigate]);
+  const columns = useMemo(() => getColumns(handleAccept, acceptingId), [handleAccept, acceptingId]);
 
   async function logout() {
     try {
@@ -349,62 +325,66 @@ export default function Home() {
                   <MagnifyingGlassIcon />
                 </IconButton>
               )}
-              <DropdownMenu>
-                <DropdownMenu.Trigger asChild>
-                  <IconButton
-                    data-test-id="navbar-theme-toggle"
-                    size={3}
-                    aria-label="Theme options"
-                  >
-                    {activeTheme === 'system' ? (
-                      <DesktopIcon />
-                    ) : activeTheme === 'dark' ? (
-                      <MoonIcon />
-                    ) : (
-                      <SunIcon />
-                    )}
-                  </IconButton>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
+              <Menu>
+                <Menu.Trigger
+                  render={
+                    <IconButton
+                      data-test-id="navbar-theme-toggle"
+                      size={3}
+                      aria-label="Theme options"
+                    >
+                      {activeTheme === 'system' ? (
+                        <DesktopIcon />
+                      ) : activeTheme === 'dark' ? (
+                        <MoonIcon />
+                      ) : (
+                        <SunIcon />
+                      )}
+                    </IconButton>
+                  }
+                />
+                <Menu.Content>
                   {themeOptions.map((item) => (
-                    <DropdownMenu.Item
+                    <Menu.Item
                       key={item.key}
                       onClick={() => setTheme(item.key)}
                       disabled={activeTheme === item.key}
                       data-test-id={item.testId}
                     >
                       {item.icon} {item.label}
-                    </DropdownMenu.Item>
+                    </Menu.Item>
                   ))}
-                </DropdownMenu.Content>
-              </DropdownMenu>
+                </Menu.Content>
+              </Menu>
               <Separator orientation="vertical" size="small" />
-              <DropdownMenu>
-                <DropdownMenu.Trigger asChild>
-                  <button
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                    data-test-id="user-menu-trigger"
-                  >
-                    <Avatar
-                      src={user?.avatar}
-                      fallback={userInitial}
-                      color={avatarColor}
-                      size={3}
-                    />
-                  </button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                  <DropdownMenu.Item disabled>
+              <Menu>
+                <Menu.Trigger
+                  render={
+                    <button
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                      data-test-id="user-menu-trigger"
+                    >
+                      <Avatar
+                        src={user?.avatar}
+                        fallback={userInitial}
+                        color={avatarColor}
+                        size={3}
+                      />
+                    </button>
+                  }
+                />
+                <Menu.Content>
+                  <Menu.Item disabled>
                     {user?.email}
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item
+                  </Menu.Item>
+                  <Menu.Item
                     onClick={logout}
                     data-test-id="logout-button"
                   >
                     Logout
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu>
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu>
             </Flex>
           </Navbar.End>
         </Navbar>

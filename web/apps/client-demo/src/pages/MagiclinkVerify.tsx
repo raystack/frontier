@@ -1,6 +1,5 @@
 import { Flex } from '@raystack/apsara';
-import { MagicLinkVerify } from '@raystack/frontier/react';
-import React from 'react';
+import { MagicLinkVerifyView } from '@raystack/frontier/client';
 
 export default function MagiclinkVerify() {
   return (
@@ -9,7 +8,7 @@ export default function MagiclinkVerify() {
       align="center"
       style={{ height: '100vh', width: '100vw' }}
     >
-      <MagicLinkVerify />
+      <MagicLinkVerifyView />
     </Flex>
   );
 }

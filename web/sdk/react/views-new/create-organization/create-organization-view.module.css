@@ -1,0 +1,27 @@
+.container {
+  min-width: 220px;
+  max-width: 480px;
+  width: 100%;
+  color: var(--rs-color-foreground-base-primary);
+}
+
+.description {
+  text-align: center;
+}
+
+.form {
+  width: 100%;
+}
+
+.card {
+  margin: auto;
+  width: 100%;
+  max-width: 384px;
+  padding: var(--rs-space-9);
+  border-radius: var(--rs-radius-4);
+  box-shadow: var(--rs-shadow-soft);
+}
+
+.submit {
+  width: 100%;
+}

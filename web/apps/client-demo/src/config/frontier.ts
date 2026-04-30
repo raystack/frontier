@@ -1,4 +1,4 @@
-import type { FrontierClientOptions } from '@raystack/frontier/react';
+import type { FrontierClientOptions } from '@raystack/frontier/client';
 
 const config: FrontierClientOptions = {
   endpoint: '/api',

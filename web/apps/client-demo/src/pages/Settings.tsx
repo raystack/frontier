@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Flex, Sidebar, Text } from '@raystack/apsara';
 import { Outlet, useParams, useLocation, Navigate, Link } from 'react-router-dom';
-import { useFrontier } from '@raystack/frontier/react';
+import { useFrontier } from '@raystack/frontier/client';
 
 const NAV_ITEMS = [
   { label: 'General', path: 'general' },

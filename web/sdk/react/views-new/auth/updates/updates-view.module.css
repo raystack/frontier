@@ -1,0 +1,12 @@
+.button {
+  width: 100%;
+}
+
+.updatesContainer {
+  width: 100%;
+  max-width: 496px;
+  padding: var(--rs-space-9);
+  box-sizing: border-box;
+  box-shadow: var(--rs-shadow-soft);
+  border-radius: var(--rs-radius-2);
+}

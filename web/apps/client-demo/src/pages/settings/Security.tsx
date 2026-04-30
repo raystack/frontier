@@ -1,4 +1,4 @@
-import { SecurityView } from '@raystack/frontier/react';
+import { SecurityView } from '@raystack/frontier/client';
 
 export default function Security() {
   return <SecurityView />;

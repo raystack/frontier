@@ -1,4 +1,4 @@
-import { ThemeProvider } from '@raystack/apsara';
+import { ThemeProvider, Toast } from '@raystack/apsara-v1';
 import { FrontierProviderProps } from '../../shared/types';
 import { FrontierContextProvider } from './FrontierContext';
 import { CustomizationProvider } from './CustomizationContext';
@@ -8,7 +8,6 @@ import { TransportProvider } from '@connectrpc/connect-query';
 import { createConnectTransport } from '@connectrpc/connect-web';
 import { ComponentType, ReactNode, useMemo } from 'react';
 import { createFetchWithCreds } from '../utils/fetch';
-import { Toast } from '@raystack/apsara-v1';
 
 export const multipleFrontierProvidersError =
   "Frontier: You've added multiple <FrontierProvider> components in your React component tree. Wrap your components in a single <FrontierProvider>.";

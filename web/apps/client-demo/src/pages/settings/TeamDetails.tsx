@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { TeamDetailsView } from '@raystack/frontier/react';
+import { TeamDetailsView } from '@raystack/frontier/client';
 
 export default function TeamDetails() {
   const { orgId, teamId } = useParams<{ orgId: string; teamId: string }>();

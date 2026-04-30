@@ -51,6 +51,12 @@
       "module": "./react/dist/index.mjs",
       "require": "./react/dist/index.js"
     },
+    "./client": {
+      "types": "./react/dist/client.d.ts",
+      "import": "./react/dist/client.mjs",
+      "module": "./react/dist/client.mjs",
+      "require": "./react/dist/client.js"
+    },
     "./hooks": {
       "types": "./hooks/dist/index.d.ts",
       "import": "./hooks/dist/index.mjs",

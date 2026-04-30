@@ -1,0 +1,22 @@
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--rs-space-5);
+}
+
+.button {
+  width: 100%;
+}
+
+.field {
+  width: 100%;
+  position: relative;
+  margin-bottom: var(--rs-space-5);
+}
+
+.error {
+  position: absolute;
+  top: calc(100% + 4px);
+}
