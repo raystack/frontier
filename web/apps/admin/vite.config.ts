@@ -42,11 +42,6 @@ export default defineConfig(() => {
     },
     server: {
       proxy: {
-        "/frontier-api": {
-          target: process.env.FRONTIER_API_URL,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/frontier-api/, ""),
-        },
         "/frontier-connect": {
           target: process.env.FRONTIER_CONNECTRPC_URL,
           changeOrigin: true,
@@ -67,9 +62,6 @@ export default defineConfig(() => {
     define: {
       "process.env.NEXT_PUBLIC_FRONTIER_CONNECT_URL": JSON.stringify(
         process.env.NEXT_PUBLIC_FRONTIER_CONNECT_URL || ""
-      ),
-      "process.env.FRONTIER_API_URL": JSON.stringify(
-        process.env.FRONTIER_API_URL || ""
       ),
       "process.env.FRONTIER_CONNECTRPC_URL": JSON.stringify(
         process.env.FRONTIER_CONNECTRPC_URL || ""
