@@ -31,6 +31,7 @@ import {
   OrganizationInvoicesView,
   OrganizationTokensView,
   OrganizationApisView,
+  OrganizationPatView,
   useAdminPaths,
 } from "@raystack/frontier/admin";
 
@@ -72,6 +73,7 @@ export default memo(function AppRoutes() {
           <Route path="invoices" element={<OrganizationInvoicesView />} />
           <Route path="tokens" element={<OrganizationTokensView />} />
           <Route path="apis" element={<OrganizationApisView />} />
+          <Route path="pat" element={<OrganizationPatView />} />
         </Route>
         <Route path={paths.users} element={<UsersPage />}>
           <Route path=":userId" element={<UsersPage />} />

@@ -1,0 +1,50 @@
+.details-dialog {
+  width: 100%;
+  max-width: 400px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.tab-root {
+  gap: var(--rs-space-2);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.list-item {
+  padding: var(--rs-space-5) 0;
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skeleton {
+  flex: 1;
+  padding: var(--rs-space-5) 0;
+}
+
+.empty-state {
+  height: 200px;
+}
