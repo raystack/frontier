@@ -56,7 +56,7 @@ func TestClientGroup(t *testing.T) {
 				name:        "`group` edit with host flag should throw error missing required flag",
 				want:        "",
 				subCommands: []string{"edit", "123", "-h", "test"},
-				err:         errors.New("required flag(s) \"file\" not set"),
+				err:         errors.New("required flag(s) \"file\", \"header\" not set"),
 			},
 			{
 				name:        "`group` view without host should throw error host not found",

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -95,7 +94,7 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 }
 
 func editProjectCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "edit",
@@ -122,10 +121,14 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 			}
 
 			projectID := args[0]
-			_, err = client.UpdateProject(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
+			req, err := newRequest(&frontierv1beta1.UpdateProjectRequest{
 				Id:   projectID,
 				Body: &reqBody,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.UpdateProject(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -138,12 +141,15 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the project body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
 
 func viewProjectCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
+	var header string
 
 	cmd := &cli.Command{
 		Use:   "view",
@@ -165,9 +171,13 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 			}
 
 			projectID := args[0]
-			res, err := client.GetProject(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetProjectRequest{
+			req, err := newRequest(&frontierv1beta1.GetProjectRequest{
 				Id: projectID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetProject(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -208,11 +218,14 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
 
 func listProjectCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all projects",
@@ -232,9 +245,13 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			res, err := client.ListOrganizationProjects(cmd.Context(), connect.NewRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
+			req, err := newRequest(&frontierv1beta1.ListOrganizationProjectsRequest{
 				Id: args[0],
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.ListOrganizationProjects(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -264,6 +281,9 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
