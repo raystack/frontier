@@ -24,7 +24,8 @@ export function BillingDetailsCard({
 }: BillingDetailsCardProps) {
   const btnText =
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
-  const isButtonDisabled = isLoading || disabled || isActionLoading;
+  const isRestricted = isLoading || disabled;
+  const isButtonDisabled = isRestricted || isActionLoading;
 
   const address = convertBillingAddressToString(billingAccount?.address);
 
@@ -37,7 +38,7 @@ export function BillingDetailsCard({
         {!isLoading && isAllowed ? (
           <Tooltip>
             <Tooltip.Trigger
-              disabled={!isButtonDisabled}
+              disabled={!isRestricted}
               render={<span />}
             >
               <Button
@@ -53,7 +54,7 @@ export function BillingDetailsCard({
                 {btnText}
               </Button>
             </Tooltip.Trigger>
-            {isButtonDisabled && (
+            {isRestricted && (
               <Tooltip.Content>
                 Contact support to update your billing address.
               </Tooltip.Content>

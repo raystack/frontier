@@ -1,10 +1,14 @@
 package postgres
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
@@ -174,4 +178,106 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 			assert.Equal(t, tt.wantParams, gotParams)
 		})
 	}
+}
+
+// Prepared-mode regression guards. Each test mirrors the goqu chain at its named site.
+
+// Mirror of relation_repository.go::GetByFields query construction.
+func TestRelationRepository_GetByFields_PreparedSQLForwardsParams(t *testing.T) {
+	rel := relation.Relation{
+		Object:       relation.Object{ID: "obj-1", Namespace: "ns-obj"},
+		Subject:      relation.Subject{ID: "sub-1", Namespace: "ns-sub"},
+		RelationName: "owner",
+	}
+
+	stmt := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Prepared(true)
+	if rel.Object.ID != "" {
+		stmt = stmt.Where(goqu.Ex{"object_id": rel.Object.ID})
+	}
+	if rel.Object.Namespace != "" {
+		stmt = stmt.Where(goqu.Ex{"object_namespace_name": rel.Object.Namespace})
+	}
+	if rel.Subject.ID != "" {
+		stmt = stmt.Where(goqu.Ex{"subject_id": rel.Subject.ID})
+	}
+	if rel.Subject.Namespace != "" {
+		stmt = stmt.Where(goqu.Ex{"subject_namespace_name": rel.Subject.Namespace})
+	}
+	if rel.RelationName != "" {
+		stmt = stmt.Where(goqu.Ex{"relation_name": rel.RelationName})
+	}
+
+	sql, params, err := stmt.ToSQL()
+	require.NoError(t, err)
+
+	assert.True(t, strings.Contains(sql, "$1"), "SQL must use $N placeholders, got: %s", sql)
+	assert.Equal(t, []interface{}{"obj-1", "ns-obj", "sub-1", "ns-sub", "owner"}, params)
+}
+
+// Mirror of relation_repository.go::ListByFields query construction.
+func TestRelationRepository_ListByFields_PreparedSQLForwardsParams(t *testing.T) {
+	rel := relation.Relation{
+		Subject:      relation.Subject{ID: "sub-1", SubRelationName: "member"},
+		RelationName: "team",
+		Object:       relation.Object{ID: "obj-1"},
+	}
+	like := "%:" + rel.Subject.SubRelationName
+
+	var exprs []goqu.Expression
+	if len(rel.Subject.ID) != 0 {
+		exprs = append(exprs, goqu.Ex{"subject_id": rel.Subject.ID})
+	}
+	if len(rel.RelationName) != 0 {
+		exprs = append(exprs, goqu.Ex{"relation_name": goqu.Op{"like": like}})
+	}
+	if len(rel.Object.ID) != 0 {
+		exprs = append(exprs, goqu.Ex{"object_id": rel.Object.ID})
+	}
+
+	sql, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Prepared(true).Where(exprs...).ToSQL()
+	require.NoError(t, err)
+
+	assert.True(t, strings.Contains(sql, "$1"), "SQL must use $N placeholders, got: %s", sql)
+	assert.Equal(t, []interface{}{"sub-1", "%:member", "obj-1"}, params)
+}
+
+// Mirror of organization_repository.go::List totalCount path.
+func TestOrganizationRepository_ListTotalCount_PreparedSQLForwardsParams(t *testing.T) {
+	stmt := dialect.From(TABLE_ORGANIZATIONS).Prepared(true).Where(goqu.Ex{"state": "enabled"})
+	stmt = stmt.Where(goqu.Ex{"id": goqu.Op{"in": []string{"o-1", "o-2"}}})
+
+	totalCountStmt := stmt.Select(goqu.COUNT("*"))
+	sql, params, err := totalCountStmt.ToSQL()
+	require.NoError(t, err)
+
+	assert.True(t, strings.Contains(sql, "$1"), "SQL must use $N placeholders, got: %s", sql)
+	assert.Equal(t, []interface{}{"enabled", "o-1", "o-2"}, params)
+}
+
+// Mirror of project_repository.go::List totalCount path.
+func TestProjectRepository_ListTotalCount_PreparedSQLForwardsParams(t *testing.T) {
+	stmt := dialect.From(TABLE_PROJECTS).Prepared(true).Where(goqu.Ex{"org_id": "org-1"})
+	stmt = stmt.Where(goqu.Ex{"id": goqu.Op{"in": []string{"p-1", "p-2"}}})
+	stmt = stmt.Where(goqu.Ex{"state": "enabled"})
+
+	totalCountStmt := stmt.Select(goqu.COUNT("*"))
+	sql, params, err := totalCountStmt.ToSQL()
+	require.NoError(t, err)
+
+	assert.True(t, strings.Contains(sql, "$1"), "SQL must use $N placeholders, got: %s", sql)
+	assert.Equal(t, []interface{}{"org-1", "p-1", "p-2", "enabled"}, params)
+}
+
+// Mirror of billing_invoice_repository.go::List totalCount path.
+func TestBillingInvoiceRepository_ListTotalCount_PreparedSQLForwardsParams(t *testing.T) {
+	stmt := dialect.Select().From(TABLE_BILLING_INVOICES).Prepared(true).Where(goqu.Ex{"customer_id": "cust-1"})
+	stmt = stmt.Where(goqu.Ex{"amount": goqu.Op{"gt": 0}})
+	stmt = stmt.Where(goqu.Ex{"state": "paid"})
+
+	totalCountStmt := stmt.Select(goqu.COUNT("*"))
+	sql, params, err := totalCountStmt.ToSQL()
+	require.NoError(t, err)
+
+	assert.True(t, strings.Contains(sql, "$1"), "SQL must use $N placeholders, got: %s", sql)
+	assert.Equal(t, []interface{}{"cust-1", int64(0), "paid"}, params)
 }

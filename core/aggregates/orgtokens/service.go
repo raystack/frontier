@@ -43,6 +43,7 @@ type Page struct {
 type AggregatedToken struct {
 	Amount      int64     `rql:"name=amount,type=number"`
 	Type        string    `rql:"name=type,type=string"`
+	Source      string    `rql:"name=source,type=string"`
 	Description string    `rql:"name=description,type=string"`
 	UserID      string    `rql:"name=user_id,type=string"`
 	UserTitle   string    `rql:"name=user_title,type=string"`
@@ -59,6 +60,7 @@ func (s Service) Search(ctx context.Context, orgID string, query *rql.Query) (Or
 type CSVExport struct {
 	Amount      string `csv:"Amount"`
 	Type        string `csv:"Type"`
+	Source      string `csv:"Source"`
 	Description string `csv:"Description"`
 	UserID      string `csv:"User ID"`
 	UserTitle   string `csv:"User Title"`
@@ -71,6 +73,7 @@ func NewCSVExport(token AggregatedToken) CSVExport {
 	return CSVExport{
 		Amount:      strconv.FormatInt(token.Amount, 10),
 		Type:        token.Type,
+		Source:      token.Source,
 		Description: token.Description,
 		UserID:      token.UserID,
 		UserTitle:   token.UserTitle,

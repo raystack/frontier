@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: 'Tokens', path: 'tokens' },
   { label: 'Teams', path: 'teams' },
   { label: 'Service Accounts', path: 'service-accounts' },
+  { label: 'Personal Access Tokens', path: 'pats' },
   { label: 'Plans', path: 'plans' }
 ];
 

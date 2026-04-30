@@ -238,6 +238,7 @@ const NavLinks = ({
     { name: "Invoices", path: `${basePath}/invoices` },
     { name: "Tokens", path: `${basePath}/tokens` },
     { name: "API", path: `${basePath}/apis` },
+    { name: "PAT", path: `${basePath}/pat` },
     { name: "Security", path: `${basePath}/security` },
   ];
 
