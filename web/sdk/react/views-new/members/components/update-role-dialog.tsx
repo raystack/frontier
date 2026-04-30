@@ -136,8 +136,8 @@ function UpdateRoleContent({
             Update role
           </Text>
           <Text size="small" variant="secondary">
-            This action will remove access to all projects where the user
-            doesn&apos;t have an explicit project-level role.
+            This will grant additional permissions to the user based on the new
+            role.
           </Text>
         </Flex>
       </Dialog.Body>
@@ -148,6 +148,7 @@ function UpdateRoleContent({
             color="neutral"
             onClick={onClose}
             disabled={isLoading}
+            data-test-id="frontier-sdk-cancel-update-role-dialog"
           >
             Cancel
           </Button>
@@ -158,6 +159,7 @@ function UpdateRoleContent({
             disabled={isLoading}
             loading={isLoading}
             loaderText="Updating..."
+            data-test-id="frontier-sdk-confirm-update-role-dialog"
           >
             Update
           </Button>
