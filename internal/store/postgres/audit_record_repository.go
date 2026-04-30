@@ -318,7 +318,10 @@ func (r AuditRecordRepository) executeCursorQuery(ctx context.Context, selectQue
 				return fmt.Errorf("failed to generate cursor name: %w", err)
 			}
 
-			// Declare cursor with the SELECT query
+			// Declare cursor with the SELECT query.
+			// #nosec G201 -- cursorName is server-generated (generateCursorName: crypto/rand
+			// hex); `query` is built by goqu with parameter binding (params... are forwarded).
+			// Postgres has no parameter binding for cursor names.
 			declareSQL := fmt.Sprintf("DECLARE %s CURSOR FOR %s", cursorName, query)
 			_, err = tx.ExecContext(ctx, declareSQL, params...)
 			if err != nil {
@@ -406,7 +409,10 @@ func (r AuditRecordRepository) streamCursorToCSV(ctx context.Context, tx *sql.Tx
 
 	rowCount := 0
 	for {
-		// Fetch batch from cursor
+		// Fetch batch from cursor.
+		// #nosec G201 -- cursorName is server-generated (generateCursorName: crypto/rand
+		// hex); BATCH_SIZE is a compile-time const. Postgres has no parameter binding for
+		// cursor names or FETCH counts.
 		fetchSQL := fmt.Sprintf("FETCH %d FROM %s", BATCH_SIZE, cursorName)
 		rows, err := tx.QueryContext(ctx, fetchSQL)
 		if err != nil {

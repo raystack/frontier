@@ -6,9 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
-
 	"log/slog"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
@@ -209,7 +208,7 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error {
 	query, params, err := dialect.Update(TABLE_SESSIONS).Set(
 		goqu.Record{
-			"expires_at": goqu.L("expires_at + INTERVAL '? hours'", validity.Hours()),
+			"expires_at": goqu.L("expires_at + make_interval(secs => ?)", validity.Seconds()),
 		}).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
