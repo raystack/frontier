@@ -17,7 +17,6 @@ export function PreferencesView({ children }: PreferencesViewProps) {
   const { theme, setTheme } = useTheme();
   const { preferences, isLoading, isFetching, updatePreferences } =
     usePreferences({});
-  console.log(theme);
 
   const newsletterValue =
     preferences?.[PREFERENCE_OPTIONS.NEWSLETTER]?.value ?? 'false';

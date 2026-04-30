@@ -75,6 +75,10 @@ export function getColumns({
     {
       header: 'Role',
       accessorKey: 'email',
+      styles: {
+        cell: { maxWidth: '300px' },
+        header: { maxWidth: '300px' }
+      },
       cell: ({ row }) => {
         const member = row.original;
         const roleList = member.isTeam
@@ -95,7 +99,8 @@ export function getColumns({
       accessorKey: 'id',
       enableSorting: false,
       styles: {
-        cell: { width: '32px' }
+        cell: { width: '32px' },
+        header: { width: '32px' }
       },
       cell: ({ row }) => {
         if (!canUpdateProject) return null;

@@ -132,6 +132,7 @@ export function TokensView() {
   );
 
   const isLoading =
+    !activeOrganization?.id ||
     isActiveOrganizationLoading ||
     isBillingAccountLoading ||
     isTokensLoading ||
