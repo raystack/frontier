@@ -7,8 +7,8 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 import { usePreferences } from '~/react/hooks/usePreferences';
-import { AuthContainer } from '../components/auth-container';
-import { AuthHeader } from '../components/auth-header';
+import { AuthContainer } from '~/react/components/auth-container';
+import { AuthHeader } from '~/react/components/auth-header';
 import styles from './updates-view.module.css';
 
 const schema = yup.object({

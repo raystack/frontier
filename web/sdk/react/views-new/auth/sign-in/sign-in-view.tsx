@@ -6,10 +6,10 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   AuthContainer,
   type AuthContainerProps
-} from '../components/auth-container';
-import { AuthHeader } from '../components/auth-header';
-import { MagicLinkForm } from '../components/magic-link-form';
-import { OIDCButton } from '../components/oidc-button';
+} from '~/react/components/auth-container';
+import { AuthHeader } from '~/react/components/auth-header';
+import { AuthOIDCButton } from '~/react/components/auth-oidc-button';
+import { MagicLinkView } from '../magic-link/magic-link-view';
 import styles from './sign-in-view.module.css';
 
 export type SignInViewProps = ComponentPropsWithRef<'div'> &
@@ -67,7 +67,7 @@ export const SignInView = ({
       <Flex direction="column" width="full" gap={5}>
         {filteredOIDC.map((s, index) => {
           return (
-            <OIDCButton
+            <AuthOIDCButton
               key={index}
               onClick={() => clickHandler(s.name)}
               provider={s.name || ''}
@@ -76,7 +76,7 @@ export const SignInView = ({
           );
         })}
 
-        {mailotp && <MagicLinkForm />}
+        {mailotp && <MagicLinkView inline />}
       </Flex>
       {footer && (
         <div className={styles.footer}>

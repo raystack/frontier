@@ -4,21 +4,15 @@ import '@raystack/apsara-v1/normalize.css';
 export { ImageUpload } from './components/image-upload';
 export { ViewContainer } from './components/view-container';
 export { ViewHeader } from './components/view-header';
+export { AuthContainer } from './components/auth-container';
+export { AuthHeader } from './components/auth-header';
 
-export {
-  SignInView,
-  SignUpView,
-  MagicLinkVerifyView,
-  SubscribeView,
-  UpdatesView
-} from './views-new/auth';
-export type {
-  SignInViewProps,
-  SignUpViewProps,
-  MagicLinkVerifyViewProps,
-  SubscribeViewProps,
-  UpdatesViewProps
-} from './views-new/auth';
+export { SignInView } from './views-new/auth/sign-in';
+export { SignUpView } from './views-new/auth/sign-up';
+export { MagicLinkView } from './views-new/auth/magic-link';
+export { MagicLinkVerifyView } from './views-new/auth/magic-link-verify';
+export { SubscribeView } from './views-new/auth/subscribe';
+export { UpdatesView } from './views-new/auth/updates';
 
 export { GeneralView } from './views-new/general';
 export { PreferencesView, PreferenceRow } from './views-new/preferences';

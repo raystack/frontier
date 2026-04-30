@@ -2,15 +2,15 @@ import { Button, Text } from '@raystack/apsara-v1';
 import { HTMLProps } from 'react';
 import GoogleLogo from '~/react/assets/logos/google-logo.svg';
 import { capitalize } from '~/utils';
-import styles from './oidc-button.module.css';
+import styles from './auth-oidc-button.module.css';
 
 const oidcLogoMap = new Map([['google', GoogleLogo]]);
 
-type OIDCButtonProps = HTMLProps<HTMLButtonElement> & {
+export type AuthOIDCButtonProps = HTMLProps<HTMLButtonElement> & {
   provider: string;
 };
 
-export const OIDCButton = ({ onClick, provider }: OIDCButtonProps) => (
+export const AuthOIDCButton = ({ onClick, provider }: AuthOIDCButtonProps) => (
   <Button
     variant="outline"
     color="neutral"

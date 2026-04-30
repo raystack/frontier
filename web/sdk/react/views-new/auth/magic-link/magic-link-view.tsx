@@ -6,7 +6,7 @@ import {
   Flex,
   InputField
 } from '@raystack/apsara-v1';
-import { ReactNode, useCallback, useState } from 'react';
+import { ComponentPropsWithRef, ReactNode, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import isEmail from 'validator/lib/isEmail';
@@ -14,12 +14,20 @@ import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { HttpErrorResponse } from '~/react/utils';
-import styles from './magic-link-form.module.css';
+import {
+  AuthContainer,
+  type AuthContainerProps
+} from '~/react/components/auth-container';
+import { AuthHeader } from '~/react/components/auth-header';
+import styles from './magic-link-view.module.css';
 
-type MagicLinkFormProps = {
-  open?: boolean;
-  children?: ReactNode;
-};
+export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
+  AuthContainerProps & {
+    logo?: ReactNode;
+    title?: string;
+    open?: boolean;
+    inline?: boolean;
+  };
 
 const emailSchema = yup.object({
   email: yup
@@ -36,10 +44,13 @@ const emailSchema = yup.object({
 
 type FormData = yup.InferType<typeof emailSchema>;
 
-export const MagicLinkForm = ({
+export const MagicLinkView = ({
+  logo,
+  title = 'Login to Raystack',
   open = false,
+  inline = false,
   ...props
-}: MagicLinkFormProps) => {
+}: MagicLinkViewProps) => {
   const { config } = useFrontier();
   const [visible, setVisible] = useState<boolean>(open);
 
@@ -90,20 +101,17 @@ export const MagicLinkForm = ({
 
   const email = watch('email', '');
 
-  if (!visible)
-    return (
-      <Button
-        variant="outline"
-        color="neutral"
-        className={styles.button}
-        onClick={() => setVisible(true)}
-        data-test-id="frontier-sdk-mail-otp-login-btn"
-      >
-        Continue with Email
-      </Button>
-    );
-
-  return (
+  const formContent = !visible ? (
+    <Button
+      variant="outline"
+      color="neutral"
+      className={styles.button}
+      onClick={() => setVisible(true)}
+      data-test-id="frontier-sdk-mail-otp-login-btn"
+    >
+      Continue with Email
+    </Button>
+  ) : (
     <form className={styles.form} onSubmit={handleSubmit(magicLinkHandler)}>
       {!open && <Separator />}
       <Flex direction="column" align="start" className={styles.field}>
@@ -117,7 +125,6 @@ export const MagicLinkForm = ({
         </Text>
       </Flex>
       <Button
-        {...props}
         className={styles.button}
         disabled={!email}
         type="submit"
@@ -128,5 +135,14 @@ export const MagicLinkForm = ({
         Continue with Email
       </Button>
     </form>
+  );
+
+  if (inline) return formContent;
+
+  return (
+    <AuthContainer {...props}>
+      <AuthHeader logo={logo} title={title} />
+      {formContent}
+    </AuthContainer>
   );
 };

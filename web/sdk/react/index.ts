@@ -1,6 +1,4 @@
 import '@raystack/apsara/style.css';
-import '@raystack/apsara-v1/style.css';
-import '@raystack/apsara-v1/normalize.css';
 
 export { AvatarUpload } from './components/avatar-upload';
 export { Container } from './components/Container';

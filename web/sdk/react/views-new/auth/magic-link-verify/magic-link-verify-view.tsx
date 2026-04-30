@@ -17,8 +17,8 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   AuthContainer,
   type AuthContainerProps
-} from '../components/auth-container';
-import { AuthHeader } from '../components/auth-header';
+} from '~/react/components/auth-container';
+import { AuthHeader } from '~/react/components/auth-header';
 import styles from './magic-link-verify-view.module.css';
 
 export type MagicLinkVerifyViewProps = ComponentPropsWithRef<'div'> &
