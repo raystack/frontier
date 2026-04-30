@@ -210,7 +210,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 		}
 		break
 	}
-	if len(parseErrs) > 0 {
+	if len(parseErrs) == len(p.billingConf.StripeWebhookSecrets) {
 		return fmt.Errorf("failed to construct event: %w", errors.Join(parseErrs...))
 	}
 	ctx = context.WithoutCancel(ctx)
