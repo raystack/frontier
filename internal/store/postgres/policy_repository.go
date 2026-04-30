@@ -367,7 +367,7 @@ func (r PolicyRepository) GroupMemberCount(ctx context.Context, groupIDs []strin
 	if len(groupIDs) == 0 {
 		return nil, policy.ErrInvalidID
 	}
-	stmt := goqu.From("policies").
+	stmt := dialect.From("policies").
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.GroupNamespace,
@@ -404,7 +404,7 @@ func (r PolicyRepository) ProjectMemberCount(ctx context.Context, projectIDs []s
 	if len(projectIDs) == 0 {
 		return nil, policy.ErrInvalidID
 	}
-	stmt := goqu.From("policies").
+	stmt := dialect.From("policies").
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.ProjectNamespace,
@@ -440,7 +440,7 @@ func (r PolicyRepository) OrgMemberCount(ctx context.Context, id string) (policy
 	if len(id) == 0 {
 		return policy.MemberCount{}, policy.ErrInvalidID
 	}
-	stmt := goqu.From("policies").
+	stmt := dialect.From("policies").
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.OrganizationNamespace,

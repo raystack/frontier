@@ -109,10 +109,11 @@ func TestOrgUsersRepository_PrepareDataQuery(t *testing.T) {
 
 func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 	tests := []struct {
-		name    string
-		filter  rql.Filter
-		wantSQL string
-		wantErr bool
+		name     string
+		filter   rql.Filter
+		wantSQL  string
+		wantArgs []interface{}
+		wantErr  bool
 	}{
 		{
 			name: "eq operator",
@@ -121,7 +122,8 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Operator: "eq",
 				Value:    "test@example.com",
 			},
-			wantSQL: `("users"."email" = 'test@example.com')`,
+			wantSQL:  `("users"."email" = $1)`,
+			wantArgs: []interface{}{"test@example.com"},
 		},
 		{
 			name: "like operator",
@@ -130,7 +132,8 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Operator: "like",
 				Value:    "john",
 			},
-			wantSQL: `(CAST("users"."name" AS TEXT) ILIKE '%john%')`,
+			wantSQL:  `(CAST("users"."name" AS TEXT) ILIKE $1)`,
+			wantArgs: []interface{}{"%john%"},
 		},
 		{
 			name: "notlike operator",
@@ -139,7 +142,8 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Operator: "notlike",
 				Value:    "john",
 			},
-			wantSQL: `(CAST("users"."name" AS TEXT) NOT ILIKE '%john%')`,
+			wantSQL:  `(CAST("users"."name" AS TEXT) NOT ILIKE $1)`,
+			wantArgs: []interface{}{"%john%"},
 		},
 		{
 			name: "in operator",
@@ -148,7 +152,8 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Operator: "in",
 				Value:    "active,inactive",
 			},
-			wantSQL: `("users"."state" IN ('active', 'inactive'))`,
+			wantSQL:  `("users"."state" IN ($1, $2))`,
+			wantArgs: []interface{}{"active", "inactive"},
 		},
 		{
 			name: "empty operator",
@@ -156,7 +161,8 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Name:     "title",
 				Operator: "empty",
 			},
-			wantSQL: `(("users"."title" IS NULL) OR ("users"."title" = ''))`,
+			wantSQL:  `(("users"."title" IS NULL) OR ("users"."title" = $1))`,
+			wantArgs: []interface{}{""},
 		},
 		{
 			name: "invalid operator",
@@ -180,22 +186,24 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
-			sql, _, err := dialect.From("dummy").Where(got).ToSQL()
+			sql, args, err := dialect.From("dummy").Prepared(true).Where(got).ToSQL()
 			assert.NoError(t, err)
 			// Remove the "SELECT * FROM "dummy" WHERE" part from the generated SQL
 			actualSQL := strings.TrimPrefix(sql, `SELECT * FROM "dummy" WHERE `)
 			assert.Equal(t, tt.wantSQL, actualSQL)
+			assert.Equal(t, tt.wantArgs, args)
 		})
 	}
 }
 
 func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 	tests := []struct {
-		name    string
-		orgID   string
-		filter  rql.Filter
-		wantSQL string
-		wantErr bool
+		name     string
+		orgID    string
+		filter   rql.Filter
+		wantSQL  string
+		wantArgs []interface{}
+		wantErr  bool
 	}{
 		{
 			name:  "eq operator",
@@ -205,7 +213,8 @@ func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 				Operator: "eq",
 				Value:    "admin",
 			},
-			wantSQL: `EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = 'org123') AND ("policies"."resource_type" = 'app/organization') AND ("roles"."name" = 'admin')) LIMIT 1)`,
+			wantSQL:  `EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("roles"."name" = $3)) LIMIT $4)`,
+			wantArgs: []interface{}{"org123", "app/organization", "admin", int64(1)},
 		},
 		{
 			name:  "neq operator",
@@ -215,7 +224,8 @@ func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 				Operator: "neq",
 				Value:    "admin",
 			},
-			wantSQL: `(NOT EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = 'org123') AND ("policies"."resource_type" = 'app/organization') AND ("roles"."name" = 'admin')) LIMIT 1) AND EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = 'org123') AND ("policies"."resource_type" = 'app/organization')) LIMIT 1))`,
+			wantSQL:  `(NOT EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("roles"."name" = $3)) LIMIT $4) AND EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = $5) AND ("policies"."resource_type" = $6)) LIMIT $7))`,
+			wantArgs: []interface{}{"org123", "app/organization", "admin", int64(1), "org123", "app/organization", int64(1)},
 		},
 		{
 			name:  "invalid operator",
@@ -240,11 +250,12 @@ func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
-			sql, _, err := dialect.From("dummy").Where(goqu.And(got...)).ToSQL()
+			sql, args, err := dialect.From("dummy").Prepared(true).Where(goqu.And(got...)).ToSQL()
 			assert.NoError(t, err)
 			// Remove the "SELECT * FROM "dummy" WHERE" part from the generated SQL
 			actualSQL := strings.TrimPrefix(sql, `SELECT * FROM "dummy" WHERE `)
 			assert.Equal(t, tt.wantSQL, actualSQL)
+			assert.Equal(t, tt.wantArgs, args)
 		})
 	}
 }

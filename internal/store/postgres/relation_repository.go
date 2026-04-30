@@ -193,12 +193,12 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 		})
 	}
 
-	query, _, err := stmt.ToSQL()
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "GetByFields", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedRelations, query)
+		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -230,12 +230,12 @@ func (r RelationRepository) ListByFields(ctx context.Context, rel relation.Relat
 	if len(rel.Object.ID) != 0 {
 		exprs = append(exprs, goqu.Ex{"object_id": rel.Object.ID})
 	}
-	query, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(exprs...).ToSQL()
+	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(exprs...).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "GetByFields", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedRelation, query)
+		return r.dbc.SelectContext(ctx, &fetchedRelation, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

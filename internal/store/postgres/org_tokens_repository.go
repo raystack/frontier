@@ -14,6 +14,7 @@ import (
 
 const (
 	COLUMN_TYPE        = "type"
+	COLUMN_SOURCE      = "source"
 	COLUMN_DESCRIPTION = "description"
 	COLUMN_USER_ID     = "user_id"
 	COLUMN_ACCOUNT_ID  = "account_id"
@@ -22,6 +23,7 @@ const (
 type OrgToken struct {
 	Amount      sql.NullInt64  `db:"token_amount"`
 	Type        sql.NullString `db:"token_type"`
+	Source      sql.NullString `db:"token_source"`
 	Description sql.NullString `db:"token_description"`
 	UserID      sql.NullString `db:"token_user_id"`
 	UserTitle   sql.NullString `db:"user_title"`
@@ -34,6 +36,7 @@ func (t *OrgToken) transformToAggregatedToken() svc.AggregatedToken {
 	return svc.AggregatedToken{
 		Amount:      t.Amount.Int64,
 		Type:        t.Type.String,
+		Source:      t.Source.String,
 		Description: t.Description.String,
 		UserID:      t.UserID.String,
 		UserTitle:   t.UserTitle.String,
@@ -119,6 +122,7 @@ func (r OrgTokensRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		Select(
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_AMOUNT).As("token_amount"),
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_TYPE).As("token_type"),
+			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_SOURCE).As("token_source"),
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_DESCRIPTION).As("token_description"),
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_USER_ID).As("token_user_id"),
 			goqu.I(TABLE_USERS+".title").As("user_title"),
@@ -144,6 +148,7 @@ func (r OrgTokensRepository) addFilter(query *goqu.SelectDataset, filter rql.Fil
 		COLUMN_TITLE:       TABLE_USERS + "." + COLUMN_TITLE,
 		COLUMN_DESCRIPTION: TABLE_BILLING_TRANSACTIONS + "." + COLUMN_DESCRIPTION,
 		COLUMN_TYPE:        TABLE_BILLING_TRANSACTIONS + "." + COLUMN_TYPE,
+		COLUMN_SOURCE:      TABLE_BILLING_TRANSACTIONS + "." + COLUMN_SOURCE,
 		COLUMN_AMOUNT:      TABLE_BILLING_TRANSACTIONS + "." + COLUMN_AMOUNT,
 		COLUMN_CREATED_AT:  TABLE_BILLING_TRANSACTIONS + "." + COLUMN_CREATED_AT,
 	}

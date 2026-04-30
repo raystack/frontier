@@ -111,7 +111,8 @@ export const getColumns = ({
       accessorKey: 'id',
       enableSorting: false,
       styles: {
-        cell: { width: '48px' }
+        cell: { width: '48px' },
+        header: { width: '48px' }
       },
       cell: ({ row }) => {
         const member = row.original;
