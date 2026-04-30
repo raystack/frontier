@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -30,6 +31,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
 	"github.com/stripe/stripe-go/v79"
 
@@ -104,8 +106,6 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/frontier/pkg/db"
-
-	"log/slog"
 
 	"github.com/pkg/profile"
 )
@@ -694,6 +694,10 @@ func getStripeClient(logger *slog.Logger, cfg *config.Frontier) *client.API {
 }
 
 func setupDB(cfg db.Config, logger *slog.Logger) (dbc *db.Client, err error) {
+	// Force every goqu dataset to use prepared statements ($N placeholders +
+	// separate args) instead of inlining values into the SQL string.
+	goqu.SetDefaultPrepared(true)
+
 	// prefer use pgx instead of lib/pq for postgres to catch pg error
 	if cfg.Driver == "postgres" {
 		cfg.Driver = "pgx"
