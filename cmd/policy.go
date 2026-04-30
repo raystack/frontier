@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -93,7 +92,7 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 }
 
 func editPolicyCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "edit",
@@ -120,10 +119,14 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 			}
 
 			policyID := args[0]
-			_, err = client.UpdatePolicy(cmd.Context(), connect.NewRequest(&frontierv1beta1.UpdatePolicyRequest{
+			req, err := newRequest(&frontierv1beta1.UpdatePolicyRequest{
 				Id:   policyID,
 				Body: &reqBody,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			_, err = client.UpdatePolicy(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -136,11 +139,14 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the policy body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
 
 func viewPolicyCommand(cliConfig *Config) *cli.Command {
+	var header string
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View a policy",
@@ -161,9 +167,13 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 			}
 
 			policyID := args[0]
-			res, err := client.GetPolicy(cmd.Context(), connect.NewRequest(&frontierv1beta1.GetPolicyRequest{
+			req, err := newRequest(&frontierv1beta1.GetPolicyRequest{
 				Id: policyID,
-			}))
+			}, header)
+			if err != nil {
+				return err
+			}
+			res, err := client.GetPolicy(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -186,6 +196,9 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
