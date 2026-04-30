@@ -120,10 +120,9 @@ export function ServiceAccountsView({
       getColumns({
         dateFormat,
         menuHandle: serviceAccountMenuHandle,
-        canUpdateWorkspace,
-        orgId
+        canUpdateWorkspace
       }),
-    [dateFormat, canUpdateWorkspace, orgId]
+    [dateFormat, canUpdateWorkspace]
   );
 
   const handleCreated = (serviceUserId: string) => {

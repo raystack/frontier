@@ -11,7 +11,6 @@ import {
 import type { ServiceUser } from '@raystack/proton/frontier';
 import type { Timestamp } from '@bufbuild/protobuf/wkt';
 import { timestampToDayjs } from '~/utils/timestamp';
-import { ProjectsCell } from './projects-cell';
 import styles from './service-account-columns.module.css';
 
 export interface ServiceAccountMenuPayload {
@@ -26,14 +25,12 @@ interface GetColumnsOptions {
   dateFormat: string;
   menuHandle: MenuHandle;
   canUpdateWorkspace: boolean;
-  orgId: string;
 }
 
 export const getColumns = ({
   dateFormat,
   menuHandle,
-  canUpdateWorkspace,
-  orgId
+  canUpdateWorkspace
 }: GetColumnsOptions): DataTableColumnDef<ServiceUser, unknown>[] => [
   {
     header: 'Name',
@@ -41,20 +38,6 @@ export const getColumns = ({
     cell: ({ getValue }) => {
       const value = getValue() as string;
       return <Text size="regular">{value}</Text>;
-    }
-  },
-  {
-    header: 'Projects',
-    id: 'projects',
-    accessorKey: 'id',
-    enableSorting: false,
-    styles: {
-      cell: { maxWidth: '600px' },
-      header: { maxWidth: '600px' }
-    },
-    cell: ({ getValue }) => {
-      const serviceUserId = getValue() as string;
-      return <ProjectsCell serviceUserId={serviceUserId} orgId={orgId} />;
     }
   },
   {
