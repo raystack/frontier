@@ -65,7 +65,9 @@ export default defineConfig(() => {
       dedupe: ["react", "react-dom", "@tanstack/react-query", "@connectrpc/connect-query"],
     },
     define: {
-      "process.env": process.env,
+      "process.env.NEXT_PUBLIC_FRONTIER_CONNECT_URL": JSON.stringify(
+        process.env.NEXT_PUBLIC_FRONTIER_CONNECT_URL || ""
+      ),
     },
   };
 });
