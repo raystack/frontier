@@ -28,6 +28,7 @@ type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
+	DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string, resourceID string, resourceType string) error
 }
 
 type RelationService interface {
@@ -222,7 +223,11 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return err
 	}
 
-	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing); err != nil {
+	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
+	if err != nil {
+		return fmt.Errorf("get owner role for guard: %w", err)
+	}
+	if err := s.replacePolicyWithOwnerGuard(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing, ownerRole.ID); err != nil {
 		return err
 	}
 
@@ -445,6 +450,34 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 	}
 	if len(ownerPolicies) <= 1 {
 		return ErrLastOwnerRole
+	}
+	return nil
+}
+
+// replacePolicyWithOwnerGuard deletes existing policies using an atomic SQL guard
+// that prevents removing the last owner, then creates the new policy.
+func (s *Service) replacePolicyWithOwnerGuard(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy, ownerRoleID string) error {
+	for _, p := range existing {
+		err := s.policyService.DeleteWithMinRoleGuard(ctx, p.ID, ownerRoleID, resourceID, resourceType)
+		if err != nil {
+			if errors.Is(err, policy.ErrLastRoleGuard) {
+				return ErrLastOwnerRole
+			}
+			return fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+
+	_, err := s.createPolicy(ctx, resourceID, resourceType, principalID, principalType, roleID)
+	if err != nil {
+		s.log.ErrorContext(ctx, "membership state inconsistent: old policies deleted but new policy creation failed, needs manual fix",
+			"resource_id", resourceID,
+			"resource_type", resourceType,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"role_id", roleID,
+			"error", err,
+		)
+		return err
 	}
 	return nil
 }

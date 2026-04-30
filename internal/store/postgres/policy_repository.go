@@ -363,6 +363,64 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// DeleteWithMinRoleGuard atomically deletes a policy only if at least one other
+// policy with the same guarded role remains for the given resource. This prevents
+// the TOCTOU race where concurrent requests both pass a count check then both delete.
+func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string, resourceID string, resourceType string) error {
+	existingPolicy, err := r.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_POLICIES, "DeleteWithMinRoleGuard", func(ctx context.Context) error {
+			query := `DELETE FROM policies WHERE id = $1 AND (
+				role_id != $2
+				OR (SELECT COUNT(*) FROM policies
+					WHERE resource_id = $3
+					AND resource_type = $4
+					AND role_id = $2
+					AND id != $1
+				) > 0
+			)`
+			result, err := tx.ExecContext(ctx, query, id, guardRoleID, resourceID, resourceType)
+			if err != nil {
+				return err
+			}
+			rowsAffected, err := result.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if rowsAffected == 0 {
+				return policy.ErrLastRoleGuard
+			}
+
+			policyDB := Policy{
+				ID:            existingPolicy.ID,
+				RoleID:        existingPolicy.RoleID,
+				ResourceID:    existingPolicy.ResourceID,
+				ResourceType:  existingPolicy.ResourceType,
+				PrincipalID:   existingPolicy.PrincipalID,
+				PrincipalType: existingPolicy.PrincipalType,
+			}
+			auditRecord := r.buildPolicyAuditRecord(ctx, tx, auditrecord.PolicyDeletedEvent, policyDB, time.Now(), nil)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
+	}); err != nil {
+		if errors.Is(err, policy.ErrLastRoleGuard) {
+			return err
+		}
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return policy.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
 func (r PolicyRepository) GroupMemberCount(ctx context.Context, groupIDs []string) ([]policy.MemberCount, error) {
 	if len(groupIDs) == 0 {
 		return nil, policy.ErrInvalidID
