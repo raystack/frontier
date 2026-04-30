@@ -30,6 +30,7 @@ export {
 } from './views-new/service-accounts';
 export { PlansView } from './views-new/plans';
 export { PatsView, PATDetailsView } from './views-new/pat';
+export { CreateOrganizationView } from './views-new/create-organization';
 
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider, queryClient } from './contexts/FrontierProvider';
