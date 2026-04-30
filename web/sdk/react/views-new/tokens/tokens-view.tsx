@@ -20,7 +20,7 @@ import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
-import { useTokens } from '~/react/hooks/useTokens';
+import { useTokens } from '~/react/hooks/useTokensV1';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import {

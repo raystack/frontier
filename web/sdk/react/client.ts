@@ -37,7 +37,7 @@ export { FrontierProvider, queryClient } from './contexts/FrontierProvider';
 export { CustomizationProvider } from './contexts/CustomizationContext';
 
 export { useTerminology } from './hooks/useTerminology';
-export { useTokens } from './hooks/useTokens';
+export { useTokens } from './hooks/useTokensV1';
 export { useBillingPermission } from './hooks/useBillingPermission';
 export { useConnectQueryPolling } from './hooks/useConnectQueryPolling';
 export { usePreferences } from './hooks/usePreferences';

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { DotFilledIcon } from '@radix-ui/react-icons';
 import { Button, Flex, Skeleton, Text } from '@raystack/apsara-v1';
-import { useSessions } from '~/react/hooks/useSessions';
+import { useSessions } from '~/react/hooks/useSessionsV1';
 import { ViewContainer } from '~/react/components/view-container';
 import { ViewHeader } from '~/react/components/view-header';
 import { RevokeSessionDialog } from './components/revoke-session-dialog';

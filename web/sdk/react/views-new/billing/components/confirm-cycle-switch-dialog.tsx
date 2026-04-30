@@ -14,7 +14,7 @@ import { useFrontier } from '../../../contexts/FrontierContext';
 import { getPlanIntervalName, getPlanPrice } from '../../../utils';
 import { DEFAULT_DATE_FORMAT } from '../../../utils/constants';
 import { timestampToDayjs } from '../../../../utils/timestamp';
-import { usePlans } from '../../../views/plans/hooks/usePlans';
+import { usePlans } from '../../plans/hooks/use-plans';
 import { isEmpty } from 'lodash';
 
 export interface ConfirmCycleSwitchPayload {

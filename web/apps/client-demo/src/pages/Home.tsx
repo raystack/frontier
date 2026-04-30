@@ -21,7 +21,7 @@ import {
   FrontierServiceQueries,
   useQueryClient,
 } from '@raystack/frontier/hooks';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useMemo, useCallback, useState, type MouseEvent } from 'react';
 import { DesktopIcon, MagnifyingGlassIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 
@@ -64,9 +64,7 @@ function tsToMs(ts?: { seconds?: bigint; nanos?: number }): number {
 
 function getColumns(
   onAccept: (row: OrgRow) => void,
-  onOpen: (row: OrgRow, e: MouseEvent) => void,
-  acceptingId: string | null,
-  navigate: (path: string) => void
+  acceptingId: string | null
 ): DataTableColumnDef<OrgRow, unknown>[] {
   return [
     {
@@ -137,31 +135,15 @@ function getColumns(
         }
         if (status === 'joined') {
           return (
-            <Flex gap={4}>
-              <Button
-                variant="outline"
-                size="small"
-                data-test-id={`open-org-${row.original.orgId}`}
-                onClick={(e: MouseEvent) => {
-                  e.stopPropagation();
-                  onOpen(row.original, e);
-                }}
-              >
-                Open
-              </Button>
-              <Button
-                variant="outline"
-                size="small"
-                style={{ minWidth: 64 }}
-                data-test-id={`open-org-${row.original.orgId}`}
-                onClick={(e: MouseEvent) => {
-                  e.stopPropagation();
-                  navigate(`/${row.original.slug}/settings`);
-                }}
-              >
-                Open (NEW UI)
-              </Button>
-            </Flex>
+            <Button
+              variant="outline"
+              size="small"
+              style={{ minWidth: 64 }}
+              data-test-id={`open-org-${row.original.orgId}`}
+              render={<Link to={`/${row.original.slug}/settings`} />}
+            >
+              Open
+            </Button>
           );
         }
         return null;
@@ -271,19 +253,7 @@ export default function Home() {
     [acceptInvitation, queryClient],
   );
 
-  const handleOpen = useCallback(
-    (row: OrgRow, e: MouseEvent) => {
-      const path = `/organizations/${row.orgId}`;
-      if (e.metaKey || e.ctrlKey) {
-        window.open(path, '_blank');
-      } else {
-        navigate(path);
-      }
-    },
-    [navigate],
-  );
-
-  const columns = useMemo(() => getColumns(handleAccept, handleOpen, acceptingId, navigate), [handleAccept, handleOpen, acceptingId, navigate]);
+  const columns = useMemo(() => getColumns(handleAccept, acceptingId), [handleAccept, acceptingId]);
 
   async function logout() {
     try {
