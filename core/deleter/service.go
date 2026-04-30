@@ -28,6 +28,7 @@ import (
 
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/core/serviceuser"
 )
 
 const (
@@ -77,6 +78,11 @@ type UserService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type ServiceUserService interface {
+	List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type CustomerService interface {
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
@@ -92,37 +98,40 @@ type InvoiceService interface {
 }
 
 type Service struct {
-	projService       ProjectService
-	orgService        OrganizationService
-	resService        ResourceService
-	groupService      GroupService
-	policyService     PolicyService
-	roleService       RoleService
-	invitationService InvitationService
-	userService       UserService
-	customerService   CustomerService
-	subService        SubscriptionService
-	invoiceService    InvoiceService
+	projService        ProjectService
+	orgService         OrganizationService
+	resService         ResourceService
+	groupService       GroupService
+	policyService      PolicyService
+	roleService        RoleService
+	invitationService  InvitationService
+	userService        UserService
+	serviceUserService ServiceUserService
+	customerService    CustomerService
+	subService         SubscriptionService
+	invoiceService     InvoiceService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
 	resService ResourceService, groupService GroupService,
 	policyService PolicyService, roleService RoleService,
 	invitationService InvitationService, userService UserService,
+	serviceUserService ServiceUserService,
 	customerService CustomerService, subService SubscriptionService,
 	invoiceService InvoiceService) *Service {
 	return &Service{
-		projService:       projService,
-		orgService:        orgService,
-		resService:        resService,
-		groupService:      groupService,
-		policyService:     policyService,
-		roleService:       roleService,
-		invitationService: invitationService,
-		userService:       userService,
-		customerService:   customerService,
-		subService:        subService,
-		invoiceService:    invoiceService,
+		projService:        projService,
+		orgService:         orgService,
+		resService:         resService,
+		groupService:       groupService,
+		policyService:      policyService,
+		roleService:        roleService,
+		invitationService:  invitationService,
+		userService:        userService,
+		serviceUserService: serviceUserService,
+		customerService:    customerService,
+		subService:         subService,
+		invoiceService:     invoiceService,
 	}
 }
 
@@ -196,6 +205,17 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	for _, g := range groups {
 		if err = d.groupService.Delete(ctx, g.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Name, err)
+		}
+	}
+
+	// delete all service users (clears credentials, org membership, and SpiceDB tuples)
+	serviceUsers, err := d.serviceUserService.List(ctx, serviceuser.Filter{OrgID: id})
+	if err != nil {
+		return err
+	}
+	for _, su := range serviceUsers {
+		if err = d.serviceUserService.Delete(ctx, su.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a service user[%s]: %w", su.ID, err)
 		}
 	}
 

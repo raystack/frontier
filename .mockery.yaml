@@ -87,3 +87,7 @@ packages:
     config:
       dir: "core/event/mocks"
       all: true
+  github.com/raystack/frontier/core/deleter:
+    config:
+      dir: "core/deleter/mocks"
+      all: true
