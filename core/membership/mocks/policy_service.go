@@ -127,17 +127,17 @@ func (_c *PolicyService_Delete_Call) RunAndReturn(run func(context.Context, stri
 	return _c
 }
 
-// DeleteWithMinRoleGuard provides a mock function with given fields: ctx, id, guardRoleID, resourceID, resourceType
-func (_m *PolicyService) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string, resourceID string, resourceType string) error {
-	ret := _m.Called(ctx, id, guardRoleID, resourceID, resourceType)
+// DeleteWithMinRoleGuard provides a mock function with given fields: ctx, id, guardRoleID
+func (_m *PolicyService) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error {
+	ret := _m.Called(ctx, id, guardRoleID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteWithMinRoleGuard")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
-		r0 = rf(ctx, id, guardRoleID, resourceID, resourceType)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, guardRoleID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -154,15 +154,13 @@ type PolicyService_DeleteWithMinRoleGuard_Call struct {
 //   - ctx context.Context
 //   - id string
 //   - guardRoleID string
-//   - resourceID string
-//   - resourceType string
-func (_e *PolicyService_Expecter) DeleteWithMinRoleGuard(ctx interface{}, id interface{}, guardRoleID interface{}, resourceID interface{}, resourceType interface{}) *PolicyService_DeleteWithMinRoleGuard_Call {
-	return &PolicyService_DeleteWithMinRoleGuard_Call{Call: _e.mock.On("DeleteWithMinRoleGuard", ctx, id, guardRoleID, resourceID, resourceType)}
+func (_e *PolicyService_Expecter) DeleteWithMinRoleGuard(ctx interface{}, id interface{}, guardRoleID interface{}) *PolicyService_DeleteWithMinRoleGuard_Call {
+	return &PolicyService_DeleteWithMinRoleGuard_Call{Call: _e.mock.On("DeleteWithMinRoleGuard", ctx, id, guardRoleID)}
 }
 
-func (_c *PolicyService_DeleteWithMinRoleGuard_Call) Run(run func(ctx context.Context, id string, guardRoleID string, resourceID string, resourceType string)) *PolicyService_DeleteWithMinRoleGuard_Call {
+func (_c *PolicyService_DeleteWithMinRoleGuard_Call) Run(run func(ctx context.Context, id string, guardRoleID string)) *PolicyService_DeleteWithMinRoleGuard_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
@@ -172,7 +170,7 @@ func (_c *PolicyService_DeleteWithMinRoleGuard_Call) Return(_a0 error) *PolicySe
 	return _c
 }
 
-func (_c *PolicyService_DeleteWithMinRoleGuard_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *PolicyService_DeleteWithMinRoleGuard_Call {
+func (_c *PolicyService_DeleteWithMinRoleGuard_Call) RunAndReturn(run func(context.Context, string, string) error) *PolicyService_DeleteWithMinRoleGuard_Call {
 	_c.Call.Return(run)
 	return _c
 }

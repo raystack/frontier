@@ -364,9 +364,11 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 }
 
 // DeleteWithMinRoleGuard atomically deletes a policy only if at least one other
-// policy with the same guarded role remains for the given resource. This prevents
-// the TOCTOU race where concurrent requests both pass a count check then both delete.
-func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string, resourceID string, resourceType string) error {
+// policy with the same guarded role remains for the resource. Uses SELECT FOR UPDATE
+// to serialize concurrent deletions under READ COMMITTED isolation, preventing the
+// TOCTOU race where two concurrent requests both pass a count check then both delete.
+// Resource ID and type are derived from the existing policy, not from caller input.
+func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error {
 	existingPolicy, err := r.Get(ctx, id)
 	if err != nil {
 		return err
@@ -374,16 +376,23 @@ func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string,
 
 	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_POLICIES, "DeleteWithMinRoleGuard", func(ctx context.Context) error {
-			query := `DELETE FROM policies WHERE id = $1 AND (
-				role_id != $2
-				OR (SELECT COUNT(*) FROM policies
-					WHERE resource_id = $3
-					AND resource_type = $4
-					AND role_id = $2
-					AND id != $1
-				) > 0
+			query := `WITH locked AS (
+				SELECT id FROM ` + TABLE_POLICIES + `
+				WHERE resource_id = $2
+				AND resource_type = $3
+				AND role_id = $4
+				FOR UPDATE
+			)
+			DELETE FROM ` + TABLE_POLICIES + ` WHERE id = $1 AND (
+				(SELECT role_id FROM ` + TABLE_POLICIES + ` WHERE id = $1) != $4
+				OR (SELECT COUNT(*) FROM locked WHERE id != $1) > 0
 			)`
-			result, err := tx.ExecContext(ctx, query, id, guardRoleID, resourceID, resourceType)
+			result, err := tx.ExecContext(ctx, query,
+				id,
+				existingPolicy.ResourceID,
+				existingPolicy.ResourceType,
+				guardRoleID,
+			)
 			if err != nil {
 				return err
 			}

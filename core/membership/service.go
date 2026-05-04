@@ -28,7 +28,7 @@ type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
-	DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string, resourceID string, resourceType string) error
+	DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error
 }
 
 type RelationService interface {
@@ -219,15 +219,12 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return nil
 	}
 
-	if err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing); err != nil {
+	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing)
+	if err != nil {
 		return err
 	}
 
-	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
-	if err != nil {
-		return fmt.Errorf("get owner role for guard: %w", err)
-	}
-	if err := s.replacePolicyWithOwnerGuard(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing, ownerRole.ID); err != nil {
+	if err := s.replacePolicyWithOwnerGuard(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing, ownerRoleID); err != nil {
 		return err
 	}
 
@@ -277,7 +274,7 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return ErrNotMember
 	}
 
-	if err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies); err != nil {
+	if _, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies); err != nil {
 		return err
 	}
 
@@ -417,15 +414,16 @@ func (s *Service) removeRelations(ctx context.Context, resourceID, resourceType,
 }
 
 // validateMinOwnerConstraint ensures the org always has at least one owner after a role change.
-func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existing []policy.Policy) error {
+// Returns the resolved owner role ID for reuse by callers.
+func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existing []policy.Policy) (string, error) {
 	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
 	if err != nil {
-		return fmt.Errorf("get owner role: %w", err)
+		return "", fmt.Errorf("get owner role: %w", err)
 	}
 
 	// no constraint if promoting to owner
 	if newRoleID == ownerRole.ID {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	// no constraint if user is not currently an owner
@@ -437,7 +435,7 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 		}
 	}
 	if !isCurrentlyOwner {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	// user is owner, being demoted — make sure at least one other owner remains
@@ -446,19 +444,19 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 		RoleID: ownerRole.ID,
 	})
 	if err != nil {
-		return fmt.Errorf("list owner policies: %w", err)
+		return "", fmt.Errorf("list owner policies: %w", err)
 	}
 	if len(ownerPolicies) <= 1 {
-		return ErrLastOwnerRole
+		return "", ErrLastOwnerRole
 	}
-	return nil
+	return ownerRole.ID, nil
 }
 
 // replacePolicyWithOwnerGuard deletes existing policies using an atomic SQL guard
 // that prevents removing the last owner, then creates the new policy.
 func (s *Service) replacePolicyWithOwnerGuard(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy, ownerRoleID string) error {
 	for _, p := range existing {
-		err := s.policyService.DeleteWithMinRoleGuard(ctx, p.ID, ownerRoleID, resourceID, resourceType)
+		err := s.policyService.DeleteWithMinRoleGuard(ctx, p.ID, ownerRoleID)
 		if err != nil {
 			if errors.Is(err, policy.ErrLastRoleGuard) {
 				return ErrLastOwnerRole

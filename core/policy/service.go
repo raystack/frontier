@@ -89,16 +89,16 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	return s.repository.Delete(ctx, id)
 }
 
-func (s Service) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string, resourceID string, resourceType string) error {
-	if err := s.relationService.Delete(ctx, relation.Relation{
+func (s Service) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error {
+	if err := s.repository.DeleteWithMinRoleGuard(ctx, id, guardRoleID); err != nil {
+		return err
+	}
+	return s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        id,
 			Namespace: schema.RoleBindingNamespace,
 		},
-	}); err != nil {
-		return err
-	}
-	return s.repository.DeleteWithMinRoleGuard(ctx, id, guardRoleID, resourceID, resourceType)
+	})
 }
 
 // AssignRole Note: ideally this should be in a single transaction
