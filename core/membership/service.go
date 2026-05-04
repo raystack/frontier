@@ -274,7 +274,8 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return ErrNotMember
 	}
 
-	if _, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies); err != nil {
+	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
+	if err != nil {
 		return err
 	}
 
@@ -308,13 +309,13 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 
 	// delete sub-resource policies first (projects, groups), then relations,
 	// then org policies last — so a retry after partial failure won't hit ErrNotMember
-	var orgPolicyIDs []string
+	var orgPoliciesToDelete []policy.Policy
 	var errs error
 	for _, pol := range allPolicies {
 		switch pol.ResourceType {
 		case schema.OrganizationNamespace:
 			if pol.ResourceID == orgID {
-				orgPolicyIDs = append(orgPolicyIDs, pol.ID)
+				orgPoliciesToDelete = append(orgPoliciesToDelete, pol)
 			}
 		case schema.ProjectNamespace:
 			if _, ok := orgProjectIDSet[pol.ResourceID]; ok {
@@ -377,17 +378,31 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		}
 	}
 
-	// delete org-level policies last
-	for _, policyID := range orgPolicyIDs {
-		if err := s.policyService.Delete(ctx, policyID); err != nil {
+	// delete org-level policies last, using guarded delete for owner policies
+	for _, pol := range orgPoliciesToDelete {
+		if pol.RoleID == ownerRoleID {
+			if err := s.policyService.DeleteWithMinRoleGuard(ctx, pol.ID, ownerRoleID); err != nil {
+				if errors.Is(err, policy.ErrLastRoleGuard) {
+					return ErrLastOwnerRole
+				}
+				s.log.Error("partial failure removing member: org policy deletion failed, manual cleanup may be needed",
+					"org_id", orgID,
+					"policy_id", pol.ID,
+					"principal_id", principalID,
+					"principal_type", principalType,
+					"error", err,
+				)
+				return fmt.Errorf("delete org policy %s: %w", pol.ID, err)
+			}
+		} else if err := s.policyService.Delete(ctx, pol.ID); err != nil {
 			s.log.Error("partial failure removing member: org policy deletion failed, manual cleanup may be needed",
 				"org_id", orgID,
-				"policy_id", policyID,
+				"policy_id", pol.ID,
 				"principal_id", principalID,
 				"principal_type", principalType,
 				"error", err,
 			)
-			return fmt.Errorf("delete org policy %s: %w", policyID, err)
+			return fmt.Errorf("delete org policy %s: %w", pol.ID, err)
 		}
 	}
 
@@ -456,12 +471,18 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 // that prevents removing the last owner, then creates the new policy.
 func (s *Service) replacePolicyWithOwnerGuard(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy, ownerRoleID string) error {
 	for _, p := range existing {
-		err := s.policyService.DeleteWithMinRoleGuard(ctx, p.ID, ownerRoleID)
-		if err != nil {
-			if errors.Is(err, policy.ErrLastRoleGuard) {
-				return ErrLastOwnerRole
+		if p.RoleID == ownerRoleID {
+			err := s.policyService.DeleteWithMinRoleGuard(ctx, p.ID, ownerRoleID)
+			if err != nil {
+				if errors.Is(err, policy.ErrLastRoleGuard) {
+					return ErrLastOwnerRole
+				}
+				return fmt.Errorf("delete policy %s: %w", p.ID, err)
 			}
-			return fmt.Errorf("delete policy %s: %w", p.ID, err)
+		} else {
+			if err := s.policyService.Delete(ctx, p.ID); err != nil {
+				return fmt.Errorf("delete policy %s: %w", p.ID, err)
+			}
 		}
 	}
 
