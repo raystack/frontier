@@ -769,7 +769,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "proj-p1").Return(errors.New("delete failed"))
 			},
-			wantErrContain: "delete project policy",
+			wantErrContain: "delete sub-resource policy",
 		},
 		{
 			name: "should return error if org relation removal fails after org policies deleted",
