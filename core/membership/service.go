@@ -341,44 +341,8 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return errs
 	}
 
-	// remove relations at group level
-	for _, g := range orgGroups {
-		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
-			s.log.Error("partial failure removing member: group relation cleanup failed, manual cleanup may be needed",
-				"org_id", orgID,
-				"group_id", g.ID,
-				"principal_id", principalID,
-				"principal_type", principalType,
-				"error", err,
-			)
-			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
-		}
-	}
-
-	// remove relations at org level
-	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
-		s.log.Error("partial failure removing member: org relation cleanup failed, manual cleanup may be needed",
-			"org_id", orgID,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"error", err,
-		)
-		return fmt.Errorf("remove org relations: %w", err)
-	}
-
-	// remove identity link for service users (serviceuser#org@organization)
-	if principalType == schema.ServiceUserPrincipal {
-		err := s.relationService.Delete(ctx, relation.Relation{
-			Object:       relation.Object{ID: principalID, Namespace: schema.ServiceUserPrincipal},
-			Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
-			RelationName: schema.OrganizationRelationName,
-		})
-		if err != nil && !errors.Is(err, relation.ErrNotExist) {
-			return fmt.Errorf("remove serviceuser identity link: %w", err)
-		}
-	}
-
-	// delete org-level policies last, using guarded delete for owner policies
+	// delete org-level owner policies first via guarded delete — if the guard rejects
+	// (last owner), we return early before touching any relations or other policies
 	for _, pol := range orgPoliciesToDelete {
 		if pol.RoleID == ownerRoleID {
 			if err := s.policyService.DeleteWithMinRoleGuard(ctx, pol.ID, ownerRoleID); err != nil {
@@ -403,6 +367,41 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 				"error", err,
 			)
 			return fmt.Errorf("delete org policy %s: %w", pol.ID, err)
+		}
+	}
+
+	// guarded deletes passed — safe to clean up relations
+	for _, g := range orgGroups {
+		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
+			s.log.Error("partial failure removing member: group relation cleanup failed, manual cleanup may be needed",
+				"org_id", orgID,
+				"group_id", g.ID,
+				"principal_id", principalID,
+				"principal_type", principalType,
+				"error", err,
+			)
+			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
+		}
+	}
+
+	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
+		s.log.Error("partial failure removing member: org relation cleanup failed, manual cleanup may be needed",
+			"org_id", orgID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"error", err,
+		)
+		return fmt.Errorf("remove org relations: %w", err)
+	}
+
+	if principalType == schema.ServiceUserPrincipal {
+		err := s.relationService.Delete(ctx, relation.Relation{
+			Object:       relation.Object{ID: principalID, Namespace: schema.ServiceUserPrincipal},
+			Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+			RelationName: schema.OrganizationRelationName,
+		})
+		if err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return fmt.Errorf("remove serviceuser identity link: %w", err)
 		}
 	}
 
