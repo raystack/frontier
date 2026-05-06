@@ -381,6 +381,7 @@ func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string,
 				WHERE resource_id = $2
 				AND resource_type = $3
 				AND role_id = $4
+				ORDER BY id
 				FOR UPDATE
 			)
 			DELETE FROM ` + TABLE_POLICIES + ` WHERE id = $1 AND (
