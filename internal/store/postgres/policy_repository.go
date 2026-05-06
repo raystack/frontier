@@ -401,6 +401,12 @@ func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string,
 				return err
 			}
 			if rowsAffected == 0 {
+				var existingID string
+				if err := tx.QueryRowContext(ctx,
+					`SELECT id FROM `+TABLE_POLICIES+` WHERE id = $1`, id,
+				).Scan(&existingID); errors.Is(err, sql.ErrNoRows) {
+					return sql.ErrNoRows
+				}
 				return policy.ErrLastRoleGuard
 			}
 
