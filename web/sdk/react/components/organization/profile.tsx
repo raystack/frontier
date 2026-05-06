@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   RouterProvider,
   createMemoryHistory,
@@ -30,7 +31,9 @@ export const OrganizationProfile = ({
   showPreferences = false,
   hideToast = false,
   customScreens = [],
-  onLogout = () => {}
+  onLogout = () => { },
+  theme,
+  onThemeChange,
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
@@ -40,21 +43,47 @@ export const OrganizationProfile = ({
 
   const routeTree = getRootTree({ customScreens });
 
-  const memoryRouter = createRouter({
-    routeTree,
-    history: memoryHistory,
-    context: {
-      organizationId,
-      showBilling,
-      showTokens,
-      showAPIKeys,
-      hideToast,
-      showPreferences,
-      customRoutes,
-      onLogout
-    }
-  });
-  return <RouterProvider router={memoryRouter} />;
+  const memoryRouter = useMemo(
+    () =>
+      createRouter({
+        routeTree,
+        history: memoryHistory,
+        context: {
+          organizationId,
+          showBilling,
+          showTokens,
+          showAPIKeys,
+          hideToast,
+          showPreferences,
+          customRoutes,
+          onLogout,
+          theme,
+          onThemeChange
+        }
+      }),
+    // Router is created once; dynamic context flows through RouterProvider's
+    // context prop so updates don't recreate the router and reset navigation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  return (
+    <RouterProvider
+      router={memoryRouter}
+      context={{
+        organizationId,
+        showBilling,
+        showTokens,
+        showAPIKeys,
+        hideToast,
+        showPreferences,
+        customRoutes,
+        onLogout,
+        theme,
+        onThemeChange
+      }}
+    />
+  );
 };
 
 declare module '@tanstack/react-router' {

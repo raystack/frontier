@@ -72,11 +72,34 @@ const newsletterOptions = [
     value: 'false'
   }
 ];
+type Theme = 'light' | 'dark' | 'system';
 
-export default function PreferencesPage() {
+interface PreferencesPageProps {
+  /**
+   * The theme to use for Theme Select.
+   * If not provided, the theme will be fetched from ThemeProvider.
+   */
+  theme?: Theme;
+  /**
+   * The callback to call when the theme is changed.
+   * If not provided, the theme will be set in the ThemeProvider.
+   */
+  onThemeChange?: (theme: Theme) => void;
+}
+
+export default function PreferencesPage({ theme: providedTheme, onThemeChange }: PreferencesPageProps) {
   const { theme, setTheme } = useTheme();
   const { preferences, isLoading, isFetching, updatePreferences } =
     usePreferences({});
+
+  const computedTheme = providedTheme ?? theme;
+  const handleThemeChange = (theme: string) => {
+    if (onThemeChange) {
+      onThemeChange(theme as Theme);
+    } else {
+      setTheme(theme);
+    }
+  }
 
   const newsletterValue =
     preferences?.[PREFERENCE_OPTIONS.NEWSLETTER]?.value ?? 'false';
@@ -91,28 +114,28 @@ export default function PreferencesPage() {
           />
         </Flex>
         <Flex direction="column" gap={9}>
-        <PreferencesSelection
-          label="Theme"
-          text="Customise your interface color scheme."
-          name="theme"
-          defaultValue={theme}
-          values={themeOptions}
-          onSelection={value => setTheme(value)}
-        />
-        <Separator />
-        <PreferencesSelection
-          label="Updates, News & Events"
-          text="Stay informed on new features, improvements, and key updates."
-          name={PREFERENCE_OPTIONS.NEWSLETTER}
-          defaultValue={newsletterValue}
-          values={newsletterOptions}
-          isLoading={isFetching}
-          disabled={isLoading}
-          onSelection={value => {
-            updatePreferences([{ name: PREFERENCE_OPTIONS.NEWSLETTER, value }]);
-          }}
-        />
-        <Separator />
+          <PreferencesSelection
+            label="Theme"
+            text="Customise your interface color scheme."
+            name="theme"
+            defaultValue={computedTheme}
+            values={themeOptions}
+            onSelection={handleThemeChange}
+          />
+          <Separator />
+          <PreferencesSelection
+            label="Updates, News & Events"
+            text="Stay informed on new features, improvements, and key updates."
+            name={PREFERENCE_OPTIONS.NEWSLETTER}
+            defaultValue={newsletterValue}
+            values={newsletterOptions}
+            isLoading={isFetching}
+            disabled={isLoading}
+            onSelection={value => {
+              updatePreferences([{ name: PREFERENCE_OPTIONS.NEWSLETTER, value }]);
+            }}
+          />
+          <Separator />
         </Flex>
       </Flex>
     </Flex>

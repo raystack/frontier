@@ -10,13 +10,48 @@ import { useTheme } from '@raystack/apsara-v1';
 import styles from './preferences-view.module.css';
 import { ReactNode } from 'react';
 
+const THEME_OPTIONS = {
+  light: {
+    label: 'Light',
+    icon: <SunIcon />
+  },
+  dark: {
+    label: 'Dark',
+    icon: <MoonIcon />
+  },
+  system: {
+    label: 'System',
+    icon: <GearIcon />
+  }
+}
+type Theme = keyof typeof THEME_OPTIONS;
+
 interface PreferencesViewProps {
   children?: ReactNode;
+  /**
+   * The theme to use for Theme Select.
+   * If not provided, the theme will be fetched from ThemeProvider.
+   */
+  theme?: Theme;
+  /**
+   * The callback to call when the theme is changed.
+   * If not provided, the theme will be set in the ThemeProvider.
+   */
+  onThemeChange?: (theme: Theme) => void;
 }
-export function PreferencesView({ children }: PreferencesViewProps) {
+export function PreferencesView({ children, theme: providedTheme, onThemeChange }: PreferencesViewProps) {
   const { theme, setTheme } = useTheme();
   const { preferences, isLoading, isFetching, updatePreferences } =
     usePreferences({});
+  const computedTheme = providedTheme ?? theme;
+
+  const handleThemeChange = (theme: string) => {
+    if (onThemeChange) {
+      onThemeChange(theme as Theme);
+    } else {
+      setTheme(theme);
+    }
+  }
 
   const newsletterValue =
     preferences?.[PREFERENCE_OPTIONS.NEWSLETTER]?.value ?? 'false';
@@ -32,20 +67,16 @@ export function PreferencesView({ children }: PreferencesViewProps) {
           title="Theme"
           description="Customise your interface color scheme."
         >
-          <Select defaultValue={theme} onValueChange={setTheme}>
+          <Select defaultValue={computedTheme} onValueChange={handleThemeChange}>
             <Select.Trigger className={styles.selectTrigger}>
               <Select.Value placeholder="Theme" />
             </Select.Trigger>
             <Select.Content>
-              <Select.Item value="light" leadingIcon={<SunIcon />}>
-                Light
-              </Select.Item>
-              <Select.Item value="dark" leadingIcon={<MoonIcon />}>
-                Dark
-              </Select.Item>
-              <Select.Item value="system" leadingIcon={<GearIcon />}>
-                System
-              </Select.Item>
+              {Object.entries(THEME_OPTIONS).map(([value, { label, icon }]) => (
+                <Select.Item key={value} value={value} leadingIcon={icon}>
+                  {label}
+                </Select.Item>
+              ))}
             </Select.Content>
           </Select>
         </PreferenceRow>

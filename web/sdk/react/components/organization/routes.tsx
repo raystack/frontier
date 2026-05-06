@@ -38,6 +38,8 @@ export interface CustomScreen {
   component: RouteComponent;
 }
 
+export type Theme = 'light' | 'dark' | 'system';
+
 export interface OrganizationProfileProps {
   organizationId: string;
   defaultRoute?: string;
@@ -48,6 +50,8 @@ export interface OrganizationProfileProps {
   hideToast?: boolean;
   customScreens?: CustomScreen[];
   onLogout?: () => void;
+  theme?: Theme;
+  onThemeChange?: (theme: Theme) => void;
 }
 
 export interface CustomRoutes {
@@ -55,7 +59,7 @@ export interface CustomRoutes {
   User: Pick<CustomScreen, 'name' | 'path'>[];
 }
 
-type RouterContext = Pick<
+export type RouterContext = Pick<
   OrganizationProfileProps,
   | 'organizationId'
   | 'showBilling'
@@ -63,6 +67,8 @@ type RouterContext = Pick<
   | 'showAPIKeys'
   | 'hideToast'
   | 'showPreferences'
+  | 'theme'
+  | 'onThemeChange'
 > & { customRoutes: CustomRoutes; onLogout?: () => void };
 
 export function getCustomRoutes(customScreens: CustomScreen[] = []) {
