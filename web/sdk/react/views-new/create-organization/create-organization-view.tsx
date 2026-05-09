@@ -6,7 +6,8 @@ import {
   Text,
   Headline,
   Flex,
-  InputField,
+  Field,
+  Input,
   toastManager
 } from '@raystack/apsara-v1';
 import { ComponentPropsWithRef } from 'react';
@@ -94,20 +95,26 @@ export const CreateOrganizationView = ({
       </Flex>
       <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
         <Flex direction="column" align="center" gap={9} className={styles.card}>
-          <InputField
+          <Field
             label={`${t.organization({ case: 'capital' })} name`}
-            size="large"
             error={errors.title && String(errors.title?.message)}
-            {...register('title')}
-            placeholder={`Provide ${t.organization({ case: 'lower' })} name`}
-          />
-          <InputField
+          >
+            <Input
+              size="large"
+              {...register('title')}
+              placeholder={`Provide ${t.organization({ case: 'lower' })} name`}
+            />
+          </Field>
+          <Field
             label={`${t.organization({ case: 'capital' })} URL`}
-            size="large"
             error={errors.name && String(errors.name?.message)}
-            {...register('name')}
-            placeholder="raystack.org/"
-          />
+          >
+            <Input
+              size="large"
+              {...register('name')}
+              placeholder="raystack.org/"
+            />
+          </Field>
           <Button
             className={styles.submit}
             type="submit"

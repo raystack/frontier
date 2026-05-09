@@ -13,7 +13,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   Button,
   Flex,
-  InputField,
+  Field,
+  Input,
   Skeleton,
   toastManager
 } from '@raystack/apsara-v1';
@@ -141,26 +142,32 @@ export function ProfileView() {
                 </>
               ) : (
                 <>
-                  <InputField
+                  <Field
                     label="Full name"
-                    size="large"
                     error={errors.title && String(errors.title?.message)}
-                    defaultValue={user?.title || ''}
-                    placeholder="Provide full name"
-                    {...register('title')}
-                    disabled={isLoading}
-                  />
-                  <InputField
+                  >
+                    <Input
+                      size="large"
+                      defaultValue={user?.title || ''}
+                      placeholder="Provide full name"
+                      {...register('title')}
+                      disabled={isLoading}
+                    />
+                  </Field>
+                  <Field
                     label="Email address"
-                    size="large"
                     error={errors.email && String(errors.email?.message)}
-                    value={user?.email || ''}
-                    type="email"
-                    placeholder="Provide email address"
-                    {...register('email')}
-                    readOnly
-                    disabled
-                  />
+                  >
+                    <Input
+                      size="large"
+                      value={user?.email || ''}
+                      type="email"
+                      placeholder="Provide email address"
+                      {...register('email')}
+                      readOnly
+                      disabled
+                    />
+                  </Field>
                 </>
               )}
             </Flex>

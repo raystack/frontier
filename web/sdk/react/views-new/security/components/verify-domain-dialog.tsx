@@ -14,7 +14,7 @@ import {
   Flex,
   Text,
   Dialog,
-  InputField,
+  Input,
   Skeleton,
   toastManager
 } from '@raystack/apsara-v1';
@@ -133,7 +133,7 @@ function VerifyDomainContent({
                 Before we can verify {domain?.name}, you&apos;ll need to create
                 a TXT record in your DNS configuration for this hostname.
               </Text>
-              <InputField
+              <Input
                 value={domain?.token || ''}
                 size="large"
                 readOnly

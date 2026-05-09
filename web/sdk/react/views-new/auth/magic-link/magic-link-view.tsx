@@ -4,7 +4,7 @@ import {
   Text,
   Separator,
   Flex,
-  InputField
+  Input
 } from '@raystack/apsara-v1';
 import { ComponentPropsWithRef, ReactNode, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -115,7 +115,7 @@ export const MagicLinkView = ({
     <form className={styles.form} onSubmit={handleSubmit(magicLinkHandler)}>
       {!open && <Separator />}
       <Flex direction="column" align="start" className={styles.field}>
-        <InputField
+        <Input
           {...register('email')}
           size="large"
           placeholder="name@example.com"

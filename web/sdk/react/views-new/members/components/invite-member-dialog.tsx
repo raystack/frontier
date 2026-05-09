@@ -21,6 +21,7 @@ import {
   Select,
   Flex,
   Dialog,
+  Field,
   TextArea,
   toastManager
 } from '@raystack/apsara-v1';
@@ -169,11 +170,12 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
               {isLoading ? (
                 <Skeleton height="80px" />
               ) : (
-                <TextArea
-                  label="Email"
-                  {...register('emails')}
-                  placeholder="abc@example.com, xyz@example.com"
-                />
+                <Field label="Email">
+                  <TextArea
+                    {...register('emails')}
+                    placeholder="abc@example.com, xyz@example.com"
+                  />
+                </Field>
               )}
               <Flex direction="column" gap={2}>
                 <Label>Invite as</Label>
