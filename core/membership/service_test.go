@@ -1077,10 +1077,14 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
 					{PrincipalID: user2, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
 				}, nil)
+				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.OrganizationNamespace, orgID).
+					Return([]role.Role{viewerRole, ownerRole}, nil)
+				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user2, schema.OrganizationNamespace, orgID).
+					Return([]role.Role{viewerRole}, nil)
 			},
 			want: []membership.Member{
-				{PrincipalID: user1, PrincipalType: schema.UserPrincipal},
-				{PrincipalID: user2, PrincipalType: schema.UserPrincipal},
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole, ownerRole}},
+				{PrincipalID: user2, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole}},
 			},
 		},
 		{
@@ -1097,16 +1101,18 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 				}).Return([]policy.Policy{
 					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
 				}, nil)
+				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.OrganizationNamespace, orgID).
+					Return([]role.Role{ownerRole}, nil)
 			},
 			want: []membership.Member{
-				{PrincipalID: user1, PrincipalType: schema.UserPrincipal},
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{ownerRole}},
 			},
 		},
 		{
-			name:         "enriches with roles when WithRoles is true",
+			name:         "enriches members with roles",
 			resourceID:   projectID,
 			resourceType: schema.ProjectNamespace,
-			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal, WithRoles: true},
+			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
 			setup: func(ps *mocks.PolicyService) {
 				ps.EXPECT().List(ctx, policy.Filter{
 					ProjectID:     projectID,
@@ -1135,9 +1141,11 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 				}).Return([]policy.Policy{
 					{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleViewerID},
 				}, nil)
+				ps.EXPECT().ListRoles(ctx, schema.ServiceUserPrincipal, suID, schema.ProjectNamespace, projectID).
+					Return([]role.Role{viewerRole}, nil)
 			},
 			want: []membership.Member{
-				{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal},
+				{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal, Roles: []role.Role{viewerRole}},
 			},
 		},
 		{
@@ -1153,9 +1161,11 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 				}).Return([]policy.Policy{
 					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
 				}, nil)
+				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.GroupNamespace, groupID).
+					Return([]role.Role{viewerRole}, nil)
 			},
 			want: []membership.Member{
-				{PrincipalID: user1, PrincipalType: schema.UserPrincipal},
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole}},
 			},
 		},
 		{

@@ -841,16 +841,6 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return invalid argument error if role filters and with_roles are both provided",
-			request: connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
-				Id:          testOrgID,
-				RoleFilters: []string{"admin"},
-				WithRoles:   true,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrRoleFilter),
-		},
-		{
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, errors.New("test error"))
@@ -935,6 +925,12 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 						},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+				RolePairs: []*frontierv1beta1.ListOrganizationUsersResponse_RolePair{
+					{
+						UserId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Roles:  []*frontierv1beta1.Role{},
 					},
 				},
 			}),

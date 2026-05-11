@@ -1122,28 +1122,32 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
 				},
+				RolePairs: []*frontierv1beta1.ListGroupUsersResponse_RolePair{
+					{
+						UserId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Roles:  []*frontierv1beta1.Role{},
+					},
+				},
 			}),
 			wantErr: nil,
 		},
 		{
-			name: "should return error if membership service fails when WithRoles is true",
+			name: "should return error if membership service fails",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
 				ms.EXPECT().ListPrincipalsByResource(mock.Anything, someGroupID, schema.GroupNamespace, membership.MemberFilter{
 					PrincipalType: schema.UserPrincipal,
-					WithRoles:     true,
 				}).Return(nil, errors.New("policy error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-				Id:        someGroupID,
-				OrgId:     testOrgID,
-				WithRoles: true,
+				Id:    someGroupID,
+				OrgId: testOrgID,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
 		{
-			name: "should return success with roles when WithRoles is true",
+			name: "should return success with roles",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
 				var testUserList []user.User
@@ -1160,14 +1164,12 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 				}
 				ms.EXPECT().ListPrincipalsByResource(mock.Anything, someGroupID, schema.GroupNamespace, membership.MemberFilter{
 					PrincipalType: schema.UserPrincipal,
-					WithRoles:     true,
 				}).Return(membersFromUsers(testUserList, testRoles...), nil)
 				us.EXPECT().GetByIDs(mock.Anything, userIDsOf(testUserList)).Return(testUserList, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-				Id:        someGroupID,
-				OrgId:     testOrgID,
-				WithRoles: true,
+				Id:    someGroupID,
+				OrgId: testOrgID,
 			}),
 			want: connect.NewResponse(&frontierv1beta1.ListGroupUsersResponse{
 				Users: []*frontierv1beta1.User{

@@ -380,10 +380,6 @@ func (h *ConnectHandler) ListOrganizationAdmins(ctx context.Context, request *co
 func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationUsersRequest]) (*connect.Response[frontierv1beta1.ListOrganizationUsersResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	if len(request.Msg.GetRoleFilters()) > 0 && request.Msg.GetWithRoles() {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrRoleFilter)
-	}
-
 	orgResp, err := h.orgService.Get(ctx, request.Msg.GetId())
 	if err != nil {
 		switch {
@@ -421,7 +417,6 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, orgResp.ID, schema.OrganizationNamespace, membership.MemberFilter{
 		PrincipalType: schema.UserPrincipal,
 		RoleIDs:       roleIDs,
-		WithRoles:     request.Msg.GetWithRoles(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.ListPrincipalsByResource", err,
@@ -439,23 +434,21 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 	}
 
 	var rolePairPBs []*frontierv1beta1.ListOrganizationUsersResponse_RolePair
-	if request.Msg.GetWithRoles() {
-		for _, m := range members {
-			rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(r)
-				if err != nil {
-					slog.ErrorContext(ctx, "failed to transform role for user", "error", err)
-					return nil
-				}
-				return &pb
-			}), func(r *frontierv1beta1.Role) bool {
-				return r != nil
-			})
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListOrganizationUsersResponse_RolePair{
-				UserId: m.PrincipalID,
-				Roles:  rolesPb,
-			})
-		}
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
+			if err != nil {
+				slog.ErrorContext(ctx, "failed to transform role for user", "error", err)
+				return nil
+			}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListOrganizationUsersResponse_RolePair{
+			UserId: m.PrincipalID,
+			Roles:  rolesPb,
+		})
 	}
 
 	var usersPB []*frontierv1beta1.User

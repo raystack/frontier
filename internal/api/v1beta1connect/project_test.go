@@ -740,7 +740,12 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
 				},
-				RolePairs: []*frontierv1beta1.ListProjectUsersResponse_RolePair{},
+				RolePairs: []*frontierv1beta1.ListProjectUsersResponse_RolePair{
+					{
+						UserId: "user-1",
+						Roles:  []*frontierv1beta1.Role{},
+					},
+				},
 			}),
 			err: nil,
 		},

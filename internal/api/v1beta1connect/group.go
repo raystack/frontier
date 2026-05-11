@@ -343,7 +343,6 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, request.Msg.GetId(), schema.GroupNamespace, membership.MemberFilter{
 		PrincipalType: schema.UserPrincipal,
-		WithRoles:     request.Msg.GetWithRoles(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListGroupUsers.ListPrincipalsByResource", err,
@@ -370,23 +369,21 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 		userPBs = append(userPBs, userPb)
 	}
 
-	if request.Msg.GetWithRoles() {
-		for _, m := range members {
-			rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(r)
-				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListGroupUsers.transformRoleToPB", r.ID, err)
-					return nil
-				}
-				return &pb
-			}), func(r *frontierv1beta1.Role) bool {
-				return r != nil
-			})
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListGroupUsersResponse_RolePair{
-				UserId: m.PrincipalID,
-				Roles:  rolesPb,
-			})
-		}
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
+			if err != nil {
+				errorLogger.LogTransformError(ctx, request, "ListGroupUsers.transformRoleToPB", r.ID, err)
+				return nil
+			}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListGroupUsersResponse_RolePair{
+			UserId: m.PrincipalID,
+			Roles:  rolesPb,
+		})
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListGroupUsersResponse{

@@ -191,7 +191,6 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
 		PrincipalType: schema.UserPrincipal,
-		WithRoles:     request.Msg.GetWithRoles(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectUsers.ListPrincipalsByResource", err,
@@ -219,23 +218,21 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 		transformedUsers = append(transformedUsers, u)
 	}
 
-	if request.Msg.GetWithRoles() {
-		for _, m := range members {
-			rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(r)
-				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListProjectUsers.TransformRole", r.ID, err)
-					return nil
-				}
-				return &pb
-			}), func(r *frontierv1beta1.Role) bool {
-				return r != nil
-			})
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectUsersResponse_RolePair{
-				UserId: m.PrincipalID,
-				Roles:  rolesPb,
-			})
-		}
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
+			if err != nil {
+				errorLogger.LogTransformError(ctx, request, "ListProjectUsers.TransformRole", r.ID, err)
+				return nil
+			}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectUsersResponse_RolePair{
+			UserId: m.PrincipalID,
+			Roles:  rolesPb,
+		})
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectUsersResponse{
@@ -257,7 +254,6 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
 		PrincipalType: schema.ServiceUserPrincipal,
-		WithRoles:     request.Msg.GetWithRoles(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.ListPrincipalsByResource", err,
@@ -288,23 +284,21 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 		transformedUsers = append(transformedUsers, u)
 	}
 
-	if request.Msg.GetWithRoles() {
-		for _, m := range members {
-			rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(r)
-				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListProjectServiceUsers.TransformRole", r.ID, err)
-					return nil
-				}
-				return &pb
-			}), func(r *frontierv1beta1.Role) bool {
-				return r != nil
-			})
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectServiceUsersResponse_RolePair{
-				ServiceuserId: m.PrincipalID,
-				Roles:         rolesPb,
-			})
-		}
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
+			if err != nil {
+				errorLogger.LogTransformError(ctx, request, "ListProjectServiceUsers.TransformRole", r.ID, err)
+				return nil
+			}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectServiceUsersResponse_RolePair{
+			ServiceuserId: m.PrincipalID,
+			Roles:         rolesPb,
+		})
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectServiceUsersResponse{
@@ -326,7 +320,6 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
 		PrincipalType: schema.GroupPrincipal,
-		WithRoles:     request.Msg.GetWithRoles(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectGroups.ListPrincipalsByResource", err,
@@ -357,24 +350,22 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 		groupsPB = append(groupsPB, &u)
 	}
 
-	if request.Msg.GetWithRoles() {
-		for _, m := range members {
-			rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(r)
-				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListProjectGroups.TransformRole", r.ID, err)
-					return nil
-				}
-				return &pb
-			}), func(r *frontierv1beta1.Role) bool {
-				return r != nil
-			})
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
+			if err != nil {
+				errorLogger.LogTransformError(ctx, request, "ListProjectGroups.TransformRole", r.ID, err)
+				return nil
+			}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
 
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectGroupsResponse_RolePair{
-				GroupId: m.PrincipalID,
-				Roles:   rolesPb,
-			})
-		}
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectGroupsResponse_RolePair{
+			GroupId: m.PrincipalID,
+			Roles:   rolesPb,
+		})
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectGroupsResponse{

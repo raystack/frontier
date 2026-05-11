@@ -912,17 +912,13 @@ type MemberFilter struct {
 	// RoleIDs includes principals that have at least one of these roles on the resource.
 	// Empty means no role filtering.
 	RoleIDs []string
-	// WithRoles, when true, populates Member.Roles with the full set of roles
-	// the principal holds on the resource.
-	WithRoles bool
 }
 
 // Member is a principal that has one or more policies on a resource.
 type Member struct {
 	PrincipalID   string
 	PrincipalType string
-	// Roles is populated only when MemberFilter.WithRoles is true.
-	Roles []role.Role
+	Roles         []role.Role
 }
 
 // ListPrincipalsByResource returns the principals (users, service users, groups)
@@ -966,14 +962,12 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 		})
 	}
 
-	if filter.WithRoles {
-		for i := range members {
-			roles, err := s.policyService.ListRoles(ctx, members[i].PrincipalType, members[i].PrincipalID, resourceType, resourceID)
-			if err != nil {
-				return nil, fmt.Errorf("list roles for principal %s: %w", members[i].PrincipalID, err)
-			}
-			members[i].Roles = roles
+	for i := range members {
+		roles, err := s.policyService.ListRoles(ctx, members[i].PrincipalType, members[i].PrincipalID, resourceType, resourceID)
+		if err != nil {
+			return nil, fmt.Errorf("list roles for principal %s: %w", members[i].PrincipalID, err)
 		}
+		members[i].Roles = roles
 	}
 
 	return members, nil
