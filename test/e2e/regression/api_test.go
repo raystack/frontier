@@ -64,6 +64,7 @@ type APIRegressionTestSuite struct {
 	testBench     *testbench.TestBench
 	adminCookie   string
 	orgViewerRole string
+	orgOwnerRole  string
 }
 
 func (s *APIRegressionTestSuite) SetupSuite() {
@@ -121,12 +122,15 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 	}))
 	s.Require().NoError(err)
 	for _, r := range rolesResp.Msg.GetRoles() {
-		if r.GetName() == schema.RoleOrganizationViewer {
+		switch r.GetName() {
+		case schema.RoleOrganizationViewer:
 			s.orgViewerRole = r.GetId()
-			break
+		case schema.RoleOrganizationOwner:
+			s.orgOwnerRole = r.GetId()
 		}
 	}
 	s.Require().NotEmpty(s.orgViewerRole, "org viewer role not found")
+	s.Require().NotEmpty(s.orgOwnerRole, "org owner role not found")
 }
 
 func (s *APIRegressionTestSuite) TearDownSuite() {
@@ -417,8 +421,8 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 
 		// list only owner
 		orgUsersRespOwner, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
-			Id:          createOrgResp.Msg.GetOrganization().GetId(),
-			RoleFilters: []string{schema.RoleOrganizationOwner},
+			Id:      createOrgResp.Msg.GetOrganization().GetId(),
+			RoleIds: []string{s.orgOwnerRole},
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersRespOwner.Msg.GetUsers()))
@@ -1226,8 +1230,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
-			Id:          existingOrg.Msg.GetOrganization().GetId(),
-			RoleFilters: []string{organization.MemberRole},
+			Id:      existingOrg.Msg.GetOrganization().GetId(),
+			RoleIds: []string{s.orgViewerRole},
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersRespAfterRelation.Msg.GetUsers())) // one self one admin
@@ -1305,8 +1309,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{
-			Id:          existingOrg.Msg.GetOrganization().GetId(),
-			RoleFilters: []string{organization.MemberRole},
+			Id:      existingOrg.Msg.GetOrganization().GetId(),
+			RoleIds: []string{s.orgViewerRole},
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersRespAfterRelation.Msg.GetUsers()))

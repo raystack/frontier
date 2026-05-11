@@ -394,34 +394,14 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 		}
 	}
 
-	roleFilters := request.Msg.GetRoleFilters()
-	var roleIDs []string
-	if len(roleFilters) > 0 {
-		roleIDs = make([]string, len(roleFilters))
-		for i, roleFilter := range roleFilters {
-			if utils.IsValidUUID(roleFilter) {
-				roleIDs[i] = roleFilter
-				continue
-			}
-			role, err := h.roleService.Get(ctx, roleFilter)
-			if err != nil {
-				errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.roleService.Get", err,
-					"org_id", request.Msg.GetId(),
-					"role_filter", roleFilter)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-			}
-			roleIDs[i] = role.ID
-		}
-	}
-
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, orgResp.ID, schema.OrganizationNamespace, membership.MemberFilter{
 		PrincipalType: schema.UserPrincipal,
-		RoleIDs:       roleIDs,
+		RoleIDs:       request.Msg.GetRoleIds(),
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListOrganizationUsers.ListPrincipalsByResource", err,
 			"org_id", orgResp.ID,
-			"role_ids", roleIDs)
+			"role_ids", request.Msg.GetRoleIds())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
