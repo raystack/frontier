@@ -41,21 +41,28 @@ type RoleService interface {
 	List(ctx context.Context, f role.Filter) ([]role.Role, error)
 }
 
+type SessionService interface {
+	DeleteByUserID(ctx context.Context, userID string) error
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	policyService   PolicyService
 	roleService     RoleService
+	sessionService  SessionService
 	Now             func() time.Time
 }
 
 func NewService(repository Repository, relationRepo RelationService,
-	policyService PolicyService, roleService RoleService) *Service {
+	policyService PolicyService, roleService RoleService,
+	sessionService SessionService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationRepo,
 		policyService:   policyService,
 		roleService:     roleService,
+		sessionService:  sessionService,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -139,7 +146,10 @@ func (s Service) Disable(ctx context.Context, id string) error {
 	if !utils.IsValidUUID(id) {
 		return ErrInvalidID
 	}
-	return s.repository.SetState(ctx, id, Disabled)
+	if err := s.repository.SetState(ctx, id, Disabled); err != nil {
+		return err
+	}
+	return s.sessionService.DeleteByUserID(ctx, id)
 }
 
 // Delete by user uuid
