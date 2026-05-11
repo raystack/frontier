@@ -147,8 +147,17 @@ func (h *ConnectHandler) ListProjectAdmins(ctx context.Context, request *connect
 		return nil, translateProjectServiceError(err)
 	}
 
+	ownerRole, err := h.roleService.Get(ctx, project.OwnerRole)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.roleService.Get", err,
+			"project_id", prj.ID,
+			"role", project.OwnerRole)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
 		PrincipalType: schema.UserPrincipal,
+		RoleIDs:       []string{ownerRole.ID},
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.ListPrincipalsByResource", err,

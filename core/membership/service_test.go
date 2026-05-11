@@ -1038,9 +1038,10 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 		resourceID   string
 		resourceType string
 		filter       membership.MemberFilter
-		setup        func(*mocks.PolicyService)
+		setup        func(*mocks.PolicyService, *mocks.RoleService)
 		want         []membership.Member
 		wantErrIs    error
+		wantErrMsg   string
 	}{
 		{
 			name:         "rejects unsupported resource type",
@@ -1053,7 +1054,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 			resourceID:   orgID,
 			resourceType: schema.OrganizationNamespace,
 			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
-			setup: func(ps *mocks.PolicyService) {
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
 				ps.EXPECT().List(ctx, policy.Filter{
 					OrgID:         orgID,
 					PrincipalType: schema.UserPrincipal,
@@ -1067,20 +1068,20 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 			resourceID:   orgID,
 			resourceType: schema.OrganizationNamespace,
 			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
-			setup: func(ps *mocks.PolicyService) {
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
+				orgPolicies := []policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
+					{PrincipalID: user2, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+				}
 				ps.EXPECT().List(ctx, policy.Filter{
 					OrgID:         orgID,
 					PrincipalType: schema.UserPrincipal,
 					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{
-					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
-					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
-					{PrincipalID: user2, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
-				}, nil)
-				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.OrganizationNamespace, orgID).
-					Return([]role.Role{viewerRole, ownerRole}, nil)
-				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user2, schema.OrganizationNamespace, orgID).
-					Return([]role.Role{viewerRole}, nil)
+				}).Return(orgPolicies, nil).Times(2)
+				rs.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 2
+				})).Return([]role.Role{viewerRole, ownerRole}, nil)
 			},
 			want: []membership.Member{
 				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole, ownerRole}},
@@ -1092,7 +1093,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 			resourceID:   orgID,
 			resourceType: schema.OrganizationNamespace,
 			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal, RoleIDs: []string{roleOwnerID}},
-			setup: func(ps *mocks.PolicyService) {
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
 				ps.EXPECT().List(ctx, policy.Filter{
 					OrgID:         orgID,
 					PrincipalType: schema.UserPrincipal,
@@ -1101,11 +1102,20 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 				}).Return([]policy.Policy{
 					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
 				}, nil)
-				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.OrganizationNamespace, orgID).
-					Return([]role.Role{ownerRole}, nil)
+				ps.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
+				}, nil)
+				rs.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 2
+				})).Return([]role.Role{viewerRole, ownerRole}, nil)
 			},
 			want: []membership.Member{
-				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{ownerRole}},
+				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole, ownerRole}},
 			},
 		},
 		{
@@ -1113,16 +1123,19 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 			resourceID:   projectID,
 			resourceType: schema.ProjectNamespace,
 			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
-			setup: func(ps *mocks.PolicyService) {
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
+				projectPolicies := []policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleOwnerID},
+				}
 				ps.EXPECT().List(ctx, policy.Filter{
 					ProjectID:     projectID,
 					PrincipalType: schema.UserPrincipal,
 					ResourceType:  schema.ProjectNamespace,
-				}).Return([]policy.Policy{
-					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
-				}, nil)
-				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.ProjectNamespace, projectID).
-					Return([]role.Role{viewerRole, ownerRole}, nil)
+				}).Return(projectPolicies, nil).Times(2)
+				rs.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 2
+				})).Return([]role.Role{viewerRole, ownerRole}, nil)
 			},
 			want: []membership.Member{
 				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole, ownerRole}},
@@ -1133,16 +1146,16 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 			resourceID:   projectID,
 			resourceType: schema.ProjectNamespace,
 			filter:       membership.MemberFilter{PrincipalType: schema.ServiceUserPrincipal},
-			setup: func(ps *mocks.PolicyService) {
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
+				suPolicies := []policy.Policy{
+					{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleViewerID},
+				}
 				ps.EXPECT().List(ctx, policy.Filter{
 					ProjectID:     projectID,
 					PrincipalType: schema.ServiceUserPrincipal,
 					ResourceType:  schema.ProjectNamespace,
-				}).Return([]policy.Policy{
-					{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleViewerID},
-				}, nil)
-				ps.EXPECT().ListRoles(ctx, schema.ServiceUserPrincipal, suID, schema.ProjectNamespace, projectID).
-					Return([]role.Role{viewerRole}, nil)
+				}).Return(suPolicies, nil).Times(2)
+				rs.EXPECT().List(ctx, role.Filter{IDs: []string{roleViewerID}}).Return([]role.Role{viewerRole}, nil)
 			},
 			want: []membership.Member{
 				{PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal, Roles: []role.Role{viewerRole}},
@@ -1153,16 +1166,16 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 			resourceID:   groupID,
 			resourceType: schema.GroupNamespace,
 			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
-			setup: func(ps *mocks.PolicyService) {
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
+				groupPolicies := []policy.Policy{
+					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
+				}
 				ps.EXPECT().List(ctx, policy.Filter{
 					GroupID:       groupID,
 					PrincipalType: schema.UserPrincipal,
 					ResourceType:  schema.GroupNamespace,
-				}).Return([]policy.Policy{
-					{PrincipalID: user1, PrincipalType: schema.UserPrincipal, RoleID: roleViewerID},
-				}, nil)
-				ps.EXPECT().ListRoles(ctx, schema.UserPrincipal, user1, schema.GroupNamespace, groupID).
-					Return([]role.Role{viewerRole}, nil)
+				}).Return(groupPolicies, nil).Times(2)
+				rs.EXPECT().List(ctx, role.Filter{IDs: []string{roleViewerID}}).Return([]role.Role{viewerRole}, nil)
 			},
 			want: []membership.Member{
 				{PrincipalID: user1, PrincipalType: schema.UserPrincipal, Roles: []role.Role{viewerRole}},
@@ -1173,28 +1186,30 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 			resourceID:   orgID,
 			resourceType: schema.OrganizationNamespace,
 			filter:       membership.MemberFilter{PrincipalType: schema.UserPrincipal},
-			setup: func(ps *mocks.PolicyService) {
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
 				ps.EXPECT().List(ctx, mock.Anything).Return(nil, errors.New("db down"))
 			},
+			wantErrMsg: "db down",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockPolicySvc := mocks.NewPolicyService(t)
+			mockRoleSvc := mocks.NewRoleService(t)
 			if tt.setup != nil {
-				tt.setup(mockPolicySvc)
+				tt.setup(mockPolicySvc, mockRoleSvc)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
 
 			got, err := svc.ListPrincipalsByResource(ctx, tt.resourceID, tt.resourceType, tt.filter)
 			if tt.wantErrIs != nil {
 				assert.ErrorIs(t, err, tt.wantErrIs)
 				return
 			}
-			if tt.name == "wraps policy list errors" {
-				assert.ErrorContains(t, err, "db down")
+			if tt.wantErrMsg != "" {
+				assert.ErrorContains(t, err, tt.wantErrMsg)
 				return
 			}
 			assert.NoError(t, err)

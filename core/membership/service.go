@@ -28,7 +28,6 @@ type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
-	ListRoles(ctx context.Context, principalType, principalID, objectNamespace, objectID string) ([]role.Role, error)
 }
 
 type RelationService interface {
@@ -38,6 +37,7 @@ type RelationService interface {
 
 type RoleService interface {
 	Get(ctx context.Context, idOrName string) (role.Role, error)
+	List(ctx context.Context, flt role.Filter) ([]role.Role, error)
 }
 
 type OrgService interface {
@@ -948,26 +948,73 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	}
 
 	// deduplicate by (principalID, principalType) preserving order
-	seen := make(map[string]struct{}, len(policies))
+	memberIndex := make(map[string]int, len(policies))
 	members := make([]Member, 0, len(policies))
 	for _, pol := range policies {
 		key := pol.PrincipalType + "\x00" + pol.PrincipalID
-		if _, ok := seen[key]; ok {
+		if _, ok := memberIndex[key]; ok {
 			continue
 		}
-		seen[key] = struct{}{}
+		memberIndex[key] = len(members)
 		members = append(members, Member{
 			PrincipalID:   pol.PrincipalID,
 			PrincipalType: pol.PrincipalType,
 		})
 	}
 
-	for i := range members {
-		roles, err := s.policyService.ListRoles(ctx, members[i].PrincipalType, members[i].PrincipalID, resourceType, resourceID)
-		if err != nil {
-			return nil, fmt.Errorf("list roles for principal %s: %w", members[i].PrincipalID, err)
+	// fetch all policies for the resource (without role filtering) to get
+	// the complete set of roles per principal in a single query
+	roleFlt := flt
+	roleFlt.RoleIDs = nil
+	allPolicies, err := s.policyService.List(ctx, roleFlt)
+	if err != nil {
+		return nil, fmt.Errorf("list policies for role enrichment: %w", err)
+	}
+
+	principalRoleIDs := make(map[string][]string, len(members))
+	roleSeen := make(map[string]map[string]struct{}, len(members))
+	uniqueRoleIDs := make(map[string]struct{})
+	for _, pol := range allPolicies {
+		if pol.RoleID == "" {
+			continue
 		}
-		members[i].Roles = roles
+		key := pol.PrincipalType + "\x00" + pol.PrincipalID
+		if _, ok := memberIndex[key]; !ok {
+			continue
+		}
+		if roleSeen[key] == nil {
+			roleSeen[key] = make(map[string]struct{})
+		}
+		if _, ok := roleSeen[key][pol.RoleID]; ok {
+			continue
+		}
+		roleSeen[key][pol.RoleID] = struct{}{}
+		principalRoleIDs[key] = append(principalRoleIDs[key], pol.RoleID)
+		uniqueRoleIDs[pol.RoleID] = struct{}{}
+	}
+
+	if len(uniqueRoleIDs) > 0 {
+		ids := make([]string, 0, len(uniqueRoleIDs))
+		for id := range uniqueRoleIDs {
+			ids = append(ids, id)
+		}
+		roles, err := s.roleService.List(ctx, role.Filter{IDs: ids})
+		if err != nil {
+			return nil, fmt.Errorf("list roles: %w", err)
+		}
+		roleByID := make(map[string]role.Role, len(roles))
+		for _, r := range roles {
+			roleByID[r.ID] = r
+		}
+		for key, idx := range memberIndex {
+			memberRoles := make([]role.Role, 0, len(principalRoleIDs[key]))
+			for _, rid := range principalRoleIDs[key] {
+				if r, ok := roleByID[rid]; ok {
+					memberRoles = append(memberRoles, r)
+				}
+			}
+			members[idx].Roles = memberRoles
+		}
 	}
 
 	return members, nil
