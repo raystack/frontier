@@ -154,13 +154,15 @@ func TestService_DeleteByUserID(t *testing.T) {
 		mockRepository := mocks.NewRepository(t)
 		svc := session.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockRepository, 24*time.Hour)
 		sess1 := &session.Session{ID: uuid.New(), UserID: userID}
+		sess2 := &session.Session{ID: uuid.New(), UserID: userID}
 
-		mockRepository.On("List", mock.Anything, userID).Return([]*session.Session{sess1}, nil)
+		mockRepository.On("List", mock.Anything, userID).Return([]*session.Session{sess1, sess2}, nil)
 		mockRepository.On("Delete", mock.Anything, sess1.ID).Return(errors.New("revoke failed"))
 
 		err := svc.DeleteByUserID(context.Background(), userID)
 
 		assert.ErrorContains(t, err, "revoke failed")
+		mockRepository.AssertNotCalled(t, "Delete", mock.Anything, sess2.ID)
 	})
 }
 

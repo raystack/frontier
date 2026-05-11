@@ -3,11 +3,10 @@ package session
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/raystack/frontier/pkg/server/consts"
-
-	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
@@ -89,7 +88,7 @@ func (s Service) DeleteByUserID(ctx context.Context, userID string) error {
 		return err
 	}
 	for _, sess := range sessions {
-		if err := s.repo.Delete(ctx, sess.ID); err != nil {
+		if err := s.Delete(ctx, sess.ID); err != nil {
 			return err
 		}
 	}
