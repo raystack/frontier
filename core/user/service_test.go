@@ -476,6 +476,7 @@ func TestService_Disable(t *testing.T) {
 			setup: func() *user.Service {
 				repo, relationService, sessionService := mockService(t)
 				repo.EXPECT().SetState(mock.Anything, validID, user.Disabled).Return(nil)
+				sessionService.EXPECT().DeleteByUserID(mock.Anything, validID).Return(nil)
 				return user.NewService(repo, relationService, sessionService)
 			},
 		},
