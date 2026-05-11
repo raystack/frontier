@@ -81,6 +81,21 @@ func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.Delete(ctx, sessionID)
 }
 
+// DeleteByUserID soft-deletes all active sessions belonging to a user.
+// Iterates over the user's active sessions and revokes each via Delete.
+func (s Service) DeleteByUserID(ctx context.Context, userID string) error {
+	sessions, err := s.repo.List(ctx, userID)
+	if err != nil {
+		return err
+	}
+	for _, sess := range sessions {
+		if err := s.repo.Delete(ctx, sess.ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s Service) Get(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
 	return s.repo.Get(ctx, sessionID)
 }

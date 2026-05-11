@@ -110,6 +110,60 @@ func TestService_Delete(t *testing.T) {
 	})
 }
 
+func TestService_DeleteByUserID(t *testing.T) {
+	userID := uuid.New().String()
+
+	t.Run("revokes each active session for the user", func(t *testing.T) {
+		mockRepository := mocks.NewRepository(t)
+		svc := session.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockRepository, 24*time.Hour)
+		sess1 := &session.Session{ID: uuid.New(), UserID: userID}
+		sess2 := &session.Session{ID: uuid.New(), UserID: userID}
+
+		mockRepository.On("List", mock.Anything, userID).Return([]*session.Session{sess1, sess2}, nil)
+		mockRepository.On("Delete", mock.Anything, sess1.ID).Return(nil)
+		mockRepository.On("Delete", mock.Anything, sess2.ID).Return(nil)
+
+		err := svc.DeleteByUserID(context.Background(), userID)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("returns nil when user has no active sessions", func(t *testing.T) {
+		mockRepository := mocks.NewRepository(t)
+		svc := session.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockRepository, 24*time.Hour)
+
+		mockRepository.On("List", mock.Anything, userID).Return([]*session.Session{}, nil)
+
+		err := svc.DeleteByUserID(context.Background(), userID)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("propagates list errors", func(t *testing.T) {
+		mockRepository := mocks.NewRepository(t)
+		svc := session.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockRepository, 24*time.Hour)
+
+		mockRepository.On("List", mock.Anything, userID).Return(nil, errors.New("db down"))
+
+		err := svc.DeleteByUserID(context.Background(), userID)
+
+		assert.ErrorContains(t, err, "db down")
+	})
+
+	t.Run("stops and returns error when an individual delete fails", func(t *testing.T) {
+		mockRepository := mocks.NewRepository(t)
+		svc := session.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockRepository, 24*time.Hour)
+		sess1 := &session.Session{ID: uuid.New(), UserID: userID}
+
+		mockRepository.On("List", mock.Anything, userID).Return([]*session.Session{sess1}, nil)
+		mockRepository.On("Delete", mock.Anything, sess1.ID).Return(errors.New("revoke failed"))
+
+		err := svc.DeleteByUserID(context.Background(), userID)
+
+		assert.ErrorContains(t, err, "revoke failed")
+	})
+}
+
 func TestService_ExtractFromContext(t *testing.T) {
 	t.Run("should be able to extract session from context if it is present", func(t *testing.T) {
 		mockRepository := mocks.NewRepository(t)

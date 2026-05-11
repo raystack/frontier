@@ -420,7 +420,7 @@ func buildAPIDependencies(
 
 	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository, cfg.App.PAT.DeniedPermissionsSet())
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
-	userService := user.NewService(userRepository, relationService, policyService, roleService)
+	userService := user.NewService(userRepository, relationService, policyService, roleService, sessionService)
 	patValidator := userpat.NewValidator(logger, userPATRepo, cfg.App.PAT)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator)
