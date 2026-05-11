@@ -3,11 +3,10 @@ package session
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/raystack/frontier/pkg/server/consts"
-
-	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
@@ -79,6 +78,21 @@ func (s Service) Refresh(ctx context.Context, sessionID uuid.UUID) error {
 // Delete marks a session as deleted without removing it from the database
 func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.Delete(ctx, sessionID)
+}
+
+// DeleteByUserID soft-deletes all active sessions belonging to a user.
+// Iterates over the user's active sessions and revokes each via Delete.
+func (s Service) DeleteByUserID(ctx context.Context, userID string) error {
+	sessions, err := s.repo.List(ctx, userID)
+	if err != nil {
+		return err
+	}
+	for _, sess := range sessions {
+		if err := s.Delete(ctx, sess.ID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s Service) Get(ctx context.Context, sessionID uuid.UUID) (*Session, error) {
