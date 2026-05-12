@@ -1,15 +1,16 @@
 import { Cross1Icon } from "@radix-ui/react-icons";
 import {
   Button,
+  Field,
   Flex,
   IconButton,
-  InputField,
+  Input,
   Text,
   Select,
-  Sheet,
+  Drawer,
   SidePanel,
-  toast,
-} from "@raystack/apsara";
+  toastManager,
+} from "@raystack/apsara-v1";
 import styles from "./edit.module.css";
 import { useCallback, useContext, useEffect, useMemo } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
@@ -113,8 +114,10 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     AdminServiceQueries.updateBillingAccountDetails,
     {
       onError: (error) => {
-        toast.error("Something went wrong", {
+        toastManager.add({
+          title: "Something went wrong",
           description: error.message,
+          type: "error",
         });
         console.error("Unable to update billing details:", error);
       },
@@ -144,10 +147,12 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
       // Refetch current dialog's billing details
       fetchBillingAccountDetails()
 
-      toast.success("Billing details updated");
+      toastManager.add({ title: "Billing details updated", type: "success" });
     } catch (error) {
-      toast.error("Something went wrong", {
+      toastManager.add({
+        title: "Something went wrong",
         description: "Failed to update billing details",
+        type: "error",
       });
       console.error("Failed to update billing details:", error);
     }
@@ -169,8 +174,8 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
   const isPrepaid = tokenPaymentType === "prepaid";
 
   return (
-    <Sheet open>
-      <Sheet.Content className={styles["drawer-content"]}>
+    <Drawer open>
+      <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-billing-panel"
           className={styles["side-panel"]}
@@ -220,25 +225,28 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
               {isLoading ? (
                 <Skeleton height={"32px"} />
               ) : (
-                <InputField
-                  disabled={isPrepaid}
-                  label="Credit limit"
-                  type="text"
-                  {...register("creditMin", {})}
-                  error={errors?.creditMin?.message}
-                />
+                <Field label="Credit limit" error={errors?.creditMin?.message}>
+                  <Input
+                    disabled={isPrepaid}
+                    type="text"
+                    {...register("creditMin", {})}
+                  />
+                </Field>
               )}
               {isLoading ? (
                 <Skeleton height={"32px"} />
               ) : (
-                <InputField
-                  disabled={isPrepaid}
+                <Field
                   label="Billing due date"
-                  type="text"
-                  suffix="Days"
-                  {...register("dueInDays", {})}
                   error={errors?.dueInDays?.message}
-                />
+                >
+                  <Input
+                    disabled={isPrepaid}
+                    type="text"
+                    suffix="Days"
+                    {...register("dueInDays", {})}
+                  />
+                </Field>
               )}
             </Flex>
 
@@ -263,7 +271,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
             </Flex>
           </form>
         </SidePanel>
-      </Sheet.Content>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer>
   );
 }

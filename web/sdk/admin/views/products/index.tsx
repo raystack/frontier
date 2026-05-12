@@ -1,4 +1,4 @@
-import { EmptyState, Flex, DataTable } from "@raystack/apsara";
+import { EmptyState, Flex, DataTable } from "@raystack/apsara-v1";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import type { Product } from "@raystack/proton/frontier";

@@ -1,5 +1,5 @@
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { Flex, Text } from "@raystack/apsara";
+import { Flex, Text } from "@raystack/apsara-v1";
 
 type SheetHeaderProps = {
   title: string;
@@ -9,7 +9,7 @@ type SheetHeaderProps = {
 export function SheetHeader({ title, onClick }: SheetHeaderProps) {
   return (
     <Flex justify="between" style={styles.header}>
-      <Text size={4} style={{ fontWeight: "500" }}>
+      <Text size="regular" weight="medium">
         {title}
       </Text>
       <Cross1Icon

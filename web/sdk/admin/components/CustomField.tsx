@@ -5,7 +5,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@radix-ui/react-form";
-import { Flex, Select, Switch, Text, InputField } from "@raystack/apsara";
+import { Flex, Select, Switch, Text, Input } from "@raystack/apsara-v1";
 import React, { CSSProperties } from "react";
 
 import { Control, Controller, UseFormRegister } from "react-hook-form";
@@ -48,9 +48,9 @@ export const CustomFieldName = ({
       style={{ width: "100%" }}
       asChild
     >
-      <Flex direction="column" gap="small">
+      <Flex direction="column" gap={3}>
         <Flex
-          gap="medium"
+          gap={5}
           style={{
             alignItems: "baseline",
             justifyContent: "space-between",
@@ -140,7 +140,7 @@ export const CustomFieldName = ({
                   default: {
                     const { ref, ...rest } = field;
                     return (
-                      <InputField
+                      <Input
                         {...rest}
                         placeholder={
                           placeholder ||

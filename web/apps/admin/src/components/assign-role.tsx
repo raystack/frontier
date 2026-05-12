@@ -5,8 +5,8 @@ import {
   Flex,
   Label,
   Text,
-  toast,
-} from "@raystack/apsara";
+  toastManager,
+} from "@raystack/apsara-v1";
 import { useCallback } from "react";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
@@ -139,9 +139,9 @@ export const AssignRole = ({
         onRoleUpdate();
       }
 
-      toast.success("Role assigned successfully");
+      toastManager.add({ title: "Role assigned successfully", type: "success" });
     } catch (error) {
-      toast.error("Failed to assign role");
+      toastManager.add({ title: "Failed to assign role", type: "error" });
       console.error(error);
     }
   };
@@ -187,16 +187,18 @@ export const AssignRole = ({
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>
-            <Dialog.Close asChild>
-              <Button
-                type="button"
-                variant="outline"
-                color="neutral"
-                data-test-id="assign-role-cancel-button"
-              >
-                Cancel
-              </Button>
-            </Dialog.Close>
+            <Dialog.Close
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  color="neutral"
+                  data-test-id="assign-role-cancel-button"
+                >
+                  Cancel
+                </Button>
+              }
+            />
             <Button
               type="submit"
               data-test-id="assign-role-update-button"

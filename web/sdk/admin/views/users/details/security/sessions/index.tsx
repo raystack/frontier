@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flex, Text, Button, toast } from "@raystack/apsara";
+import { Flex, Text, Button, toastManager } from "@raystack/apsara-v1";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
 import { SessionSkeleton } from "./session-skeleton";
@@ -96,11 +96,13 @@ export const UserSessions = () => {
           cardinality: "finite",
         }),
       });
-      toast.success('Session revoked successfully');
+      toastManager.add({ title: 'Session revoked successfully', type: "success" });
     },
     onError: (error: any) => {
-      toast.error('Failed to revoke session', {
-        description: getErrorMessage(error)
+      toastManager.add({
+        title: 'Failed to revoke session',
+        description: getErrorMessage(error),
+        type: "error",
       });
     },
   });

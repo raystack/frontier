@@ -1,4 +1,4 @@
-import { Flex, Text, Grid, Sheet } from "@raystack/apsara";
+import { Flex, Text, Grid, Drawer } from "@raystack/apsara-v1";
 import type { Product } from "@raystack/proton/frontier";
 import styles from "./products.module.css";
 import { SheetHeader } from "../../components/SheetHeader";
@@ -15,19 +15,19 @@ export default function ProductDetails({
   onNavigateToPrices,
 }: ProductDetailsProps) {
   return (
-    <Sheet open>
-      <Sheet.Content className={styles.sheetContent}>
+    <Drawer open>
+      <Drawer.Content showCloseButton={false} className={styles.sheetContent}>
         <SheetHeader title="Product Details" onClick={onClose} />
         <Flex className={styles.sheetContentBody} direction="column" gap={9}>
-          <Text size={4}>{product?.title}</Text>
+          <Text size="regular">{product?.title}</Text>
           <Flex direction="column" gap={9}>
-            <Grid columns={2} gap="small">
-              <Text size={1}>Name</Text>
-              <Text size={1}>{product?.title}</Text>
+            <Grid columns={2} gap={3}>
+              <Text size="mini">Name</Text>
+              <Text size="mini">{product?.title}</Text>
             </Grid>
-            <Grid columns={2} gap="small">
-              <Text size={1}>Prices</Text>
-              <Text size={1}>
+            <Grid columns={2} gap={3}>
+              <Text size="mini">Prices</Text>
+              <Text size="mini">
                 <button
                   type="button"
                   className={styles.linkButton}
@@ -40,7 +40,7 @@ export default function ProductDetails({
             </Grid>
           </Flex>
         </Flex>
-      </Sheet.Content>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer>
   );
 }

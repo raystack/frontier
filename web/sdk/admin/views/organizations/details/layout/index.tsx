@@ -1,9 +1,9 @@
 import { OrganizationsDetailsNavabar } from "./navbar";
 import styles from "./layout.module.css";
-import { EmptyState, Flex, Spinner } from "@raystack/apsara";
+import { EmptyState, Flex, Spinner } from "@raystack/apsara-v1";
 import { OrgSidePanel } from "../side-panel/";
 import React, { useState } from "react";
-import { OrganizationIcon } from "@raystack/apsara/icons";
+import { OrganizationIcon } from "@raystack/apsara-v1/icons";
 import { PageTitle } from "../../../../components/PageTitle";
 import { EditKYCPanel } from "../edit/kyc";
 import { EditOrganizationPanel } from "../edit/organization";
@@ -87,7 +87,7 @@ export const OrganizationDetailsLayout = ({
         currentPath={currentPath}
         onNavigate={onNavigate}
       />
-      <Flex justify="between" style={{ height: "100%" }}>
+      <Flex justify="between" style={{ flex: 1, minHeight: 0 }}>
         <Flex
           className={
             showSidePanel

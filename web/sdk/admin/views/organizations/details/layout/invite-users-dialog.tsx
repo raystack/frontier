@@ -6,8 +6,8 @@ import {
   Select,
   Text,
   TextArea,
-  toast
-} from '@raystack/apsara';
+  toastManager
+} from '@raystack/apsara-v1';
 import { useContext, useMemo } from 'react';
 import styles from './layout.module.css';
 import { OrganizationContext } from '../contexts/organization-context';
@@ -75,9 +75,10 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
           })
         });
         const inviteCount = data?.invitations?.length ?? 0;
-        toast.success(
-          `${t.user({ case: 'capital', plural: inviteCount > 1 })} invited`
-        );
+        toastManager.add({
+          title: `${t.user({ case: 'capital', plural: inviteCount > 1 })} invited`,
+          type: "success",
+        });
         onOpenChange(false);
       }
     }
@@ -95,13 +96,13 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
       );
     } catch (error) {
       handleConnectError(error, {
-        AlreadyExists: () => toast.error('Invitation already exists'),
+        AlreadyExists: () => toastManager.add({ title: 'Invitation already exists', type: "error" }),
         InvalidArgument: err =>
-          toast.error('Invalid input', { description: err.message }),
+          toastManager.add({ title: 'Invalid input', description: err.message, type: "error" }),
         PermissionDenied: () =>
-          toast.error("You don't have permission to perform this action"),
+          toastManager.add({ title: "You don't have permission to perform this action", type: "error" }),
         Default: err =>
-          toast.error('Something went wrong', { description: err.message })
+          toastManager.add({ title: 'Something went wrong', description: err.message, type: "error" })
       });
     }
   };
@@ -115,7 +116,6 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             <Dialog.Header>
               <Dialog.Title>Invite {t.user({ case: 'lower' })}</Dialog.Title>
-              <Dialog.CloseButton data-test-id="invite-users-close-button" />
             </Dialog.Header>
             <Dialog.Body className={styles['invite-users-dialog-body']}>
               <Flex direction="column" gap={7}>
@@ -126,17 +126,20 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                   <Controller
                     name="emails"
                     control={methods.control}
-                    render={({ field }) => (
-                      <TextArea
-                        {...field}
-                        // @ts-expect-error placeholder props not defined in TS
-                        placeholder="abc@example.com, xyz@example.com"
-                        className={styles['invite-users-emails-textarea']}
-                      />
-                    )}
+                    render={({ field }) => {
+                      const { value, ...rest } = field;
+                      return (
+                        <TextArea
+                          {...rest}
+                          value={Array.isArray(value) ? value.join(", ") : (value ?? "") as string}
+                          placeholder="abc@example.com, xyz@example.com"
+                          className={styles['invite-users-emails-textarea']}
+                        />
+                      );
+                    }}
                   />
                   {errors?.emails?.message || errors?.emails?.length ? (
-                    <Text size={1} className={styles['form-error-message']}>
+                    <Text size="mini" className={styles['form-error-message']}>
                       {errors?.emails?.message || errors?.emails?.[0]?.message}
                     </Text>
                   ) : null}
@@ -176,7 +179,7 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                   />
 
                   {errors?.role?.message && (
-                    <Text size={1} className={styles['form-error-message']}>
+                    <Text size="mini" className={styles['form-error-message']}>
                       {errors?.role?.message}
                     </Text>
                   )}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
+import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface SuspendDropdownProps {
@@ -19,7 +19,7 @@ export const SuspendUser = ({
   const handleSuspend = async () => {
     try {
       setIsSubmitting(true);
-      toast.success(`${t.user({ case: "capital" })} suspended successfully`);
+      toastManager.add({ title: `${t.user({ case: "capital" })} suspended successfully`, type: "success" });
       onSubmit?.();
     } catch (error) {
       console.error(error);
@@ -32,7 +32,7 @@ export const SuspendUser = ({
     <Dialog open onOpenChange={onClose}>
       <Dialog.Content width={400}>
         <Dialog.Body>
-          <Flex direction="column" gap="small">
+          <Flex direction="column" gap={3}>
             <Dialog.Title>Suspend {t.user({ case: "capital" })}</Dialog.Title>
             <Text variant="secondary">
               Suspending this {t.user({ case: "lower" })} will permanently restrict access to its
@@ -42,16 +42,18 @@ export const SuspendUser = ({
           </Flex>
         </Dialog.Body>
         <Dialog.Footer>
-          <Dialog.Close asChild>
-            <Button
-              type="button"
-              variant="outline"
-              color="neutral"
-              data-test-id="admin-user-details-suspend-cancel"
-            >
-              Cancel
-            </Button>
-          </Dialog.Close>
+          <Dialog.Close
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                color="neutral"
+                data-test-id="admin-user-details-suspend-cancel"
+              >
+                Cancel
+              </Button>
+            }
+          />
           <Button
             type="button"
             variant="solid"

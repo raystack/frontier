@@ -8,7 +8,7 @@ import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
+import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
@@ -47,9 +47,9 @@ export const RemoveMember = ({
         onRemove(user);
       }
 
-      toast.success(`${t.member({ case: "capital" })} removed successfully`);
+      toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      toast.error(`Failed to remove ${t.member({ case: "lower" })}`);
+      toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}`, type: "error" });
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -60,12 +60,11 @@ export const RemoveMember = ({
     <Dialog open onOpenChange={onClose}>
       <Dialog.Content
         width={400}
-        overlayClassName={styles["action-dialog-overlay"]}
+        overlay={{ className: styles["action-dialog-overlay"] }}
         className={styles["action-dialog-content"]}
       >
         <Dialog.Header>
           <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
-          <Dialog.CloseButton data-test-id="remove-member-close-button" />
         </Dialog.Header>
         <Dialog.Body>
           <Flex direction="column" gap={7}>
@@ -80,16 +79,18 @@ export const RemoveMember = ({
           </Flex>
         </Dialog.Body>
         <Dialog.Footer>
-          <Dialog.Close asChild>
-            <Button
-              type="button"
-              variant="outline"
-              color="neutral"
-              data-test-id="remove-member-cancel-button"
-            >
-              Cancel
-            </Button>
-          </Dialog.Close>
+          <Dialog.Close
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                color="neutral"
+                data-test-id="remove-member-cancel-button"
+              >
+                Cancel
+              </Button>
+            }
+          />
           <Button
             type="submit"
             data-test-id="remove-member-submit-button"

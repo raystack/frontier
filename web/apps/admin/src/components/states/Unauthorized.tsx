@@ -1,5 +1,5 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { Button, EmptyState, Flex } from "@raystack/apsara";
+import { Button, EmptyState, Flex } from "@raystack/apsara-v1";
 import { useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 

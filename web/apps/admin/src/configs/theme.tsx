@@ -1,4 +1,4 @@
-import { ThemeProviderProps } from "@raystack/apsara";
+import { ThemeProviderProps } from "@raystack/apsara-v1";
 
 export const themeConfig: ThemeProviderProps = {
   defaultTheme: "system",

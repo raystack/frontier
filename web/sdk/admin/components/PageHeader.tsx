@@ -1,5 +1,5 @@
 import type { CSSProperties, PropsWithChildren } from "react";
-import { Flex, Text } from "@raystack/apsara";
+import { Flex, Text } from "@raystack/apsara-v1";
 import styles from "./page-header.module.css";
 
 export type PageHeaderTypes = {
@@ -28,8 +28,8 @@ export function PageHeader({
       style={{ padding: "16px 24px", ...style }}
       {...props}
     >
-      <Flex align="center" gap="medium">
-        <Flex align="center" gap="small" className={styles.breadcrumb}>
+      <Flex align="center" gap={5}>
+        <Flex align="center" gap={3} className={styles.breadcrumb}>
           <Text style={{ fontSize: "14px", fontWeight: "500" }}>{title}</Text>
           {breadcrumb.map((item) =>
             item.href && onBreadcrumbClick ? (
@@ -58,7 +58,7 @@ export function PageHeader({
           )}
         </Flex>
       </Flex>
-      <Flex gap="small">{children}</Flex>
+      <Flex gap={3}>{children}</Flex>
     </Flex>
   );
 }

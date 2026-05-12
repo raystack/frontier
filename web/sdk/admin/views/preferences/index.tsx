@@ -1,4 +1,4 @@
-import { EmptyState, DataTable, Flex } from "@raystack/apsara";
+import { EmptyState, DataTable, Flex } from "@raystack/apsara-v1";
 import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
 import { PageHeader } from "../../components/PageHeader";
 import { getColumns } from "./columns";

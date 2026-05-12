@@ -1,4 +1,4 @@
-import { DataTable } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara-v1";
 import { PageHeader } from "../../components/PageHeader";
 import styles from "./plans.module.css";
 

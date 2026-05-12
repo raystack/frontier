@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Button, Flex, Sheet } from "@raystack/apsara";
+import { Button, Flex, Drawer, toastManager } from "@raystack/apsara-v1";
 import { SheetHeader } from "../../../../components/SheetHeader";
 import { SheetFooter } from "../../../../components/SheetFooter";
 import * as z from "zod";
@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "../../../../components/CustomField";
 import events from "../../../../utils/webhook-events";
-import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
@@ -63,19 +62,19 @@ export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksP
       const resp = await createWebhook({ body });
 
       if (resp?.webhook) {
-        toast.success("Webhook created");
+        toastManager.add({ title: "Webhook created", type: "success" });
         await invalidateWebhooksList();
         onOpenChange();
       }
     } catch (err) {
       console.error("Failed to create webhook:", err);
-      toast.error("Something went wrong");
+      toastManager.add({ title: "Something went wrong", type: "error" });
     }
   };
 
   return (
-    <Sheet open={true}>
-      <Sheet.Content
+    <Drawer open={true}>
+      <Drawer.Content
         side="right"
         // @ts-ignore
         style={{
@@ -83,7 +82,7 @@ export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksP
           padding: 0,
           boxShadow: "var(--rs-shadow-soft)",
         }}
-        close={false}
+        showCloseButton={false}
       >
         <FormProvider {...methods}>
           <Form onSubmit={methods.handleSubmit(onSubmit)}>
@@ -136,8 +135,8 @@ export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksP
             </SheetFooter>
           </Form>
         </FormProvider>
-      </Sheet.Content>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer>
   );
 }
 

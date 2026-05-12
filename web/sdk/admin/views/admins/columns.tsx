@@ -1,4 +1,4 @@
-import { Text, type DataTableColumnDef } from "@raystack/apsara";
+import { Text, type DataTableColumnDef } from "@raystack/apsara-v1";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
 import { TerminologyEntity } from "../../hooks/useTerminology";
 

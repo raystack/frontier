@@ -2,12 +2,12 @@ import {
   Button,
   Dialog,
   Flex,
-  InputField,
+  Input,
   Label,
   Text,
-  toast,
-} from "@raystack/apsara";
-import { useContext } from "react";
+  toastManager,
+} from "@raystack/apsara-v1";
+import React, { useContext } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import styles from "./layout.module.css";
@@ -65,12 +65,14 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
           }),
         });
         fetchTokenBalance();
-        toast.success("Tokens added");
+        toastManager.add({ title: "Tokens added", type: "success" });
         onOpenChange(false);
       },
       onError: (error) => {
-        toast.error("Something went wrong", {
+        toastManager.add({
+          title: "Something went wrong",
           description: error.message,
+          type: "error",
         });
         console.error("Unable to add tokens:", error);
       },
@@ -101,7 +103,6 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             <Dialog.Header>
               <Dialog.Title>Add tokens</Dialog.Title>
-              <Dialog.CloseButton data-test-id="add-tokens-close-button" />
             </Dialog.Header>
             <Dialog.Body>
               <Flex direction="column" gap={7}>
@@ -112,23 +113,23 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                     control={methods.control}
                     render={({ field }) => {
                       return (
-                        <InputField
+                        <Input
                           {...field}
                           type="number"
                           min={0}
                           className={styles["add-token-dialog-tokens-field"]}
-                          onKeyDown={(e) =>
+                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                             ["+", "-", ".", "e", "E"].includes(e.key) &&
                             e.preventDefault()
                           }
-                          onPaste={(e) => e.preventDefault()}
+                          onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => e.preventDefault()}
                         />
                       );
                     }}
                   />
 
                   {errors?.quantity?.message ? (
-                    <Text size={1} className={styles["form-error-message"]}>
+                    <Text size="mini" className={styles["form-error-message"]}>
                       {errors?.quantity?.message}
                     </Text>
                   ) : null}
@@ -136,16 +137,18 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
               </Flex>
             </Dialog.Body>
             <Dialog.Footer>
-              <Dialog.Close asChild>
-                <Button
-                  data-test-id="add-tokens-invite-button"
-                  type="reset"
-                  color="neutral"
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
-              </Dialog.Close>
+              <Dialog.Close
+                render={
+                  <Button
+                    data-test-id="add-tokens-invite-button"
+                    type="reset"
+                    color="neutral"
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                }
+              />
               <Button
                 data-test-id="add-tokens-invite-button"
                 type="submit"

@@ -1,4 +1,5 @@
-import { Button, Checkbox, Command, Flex, Popover } from "@raystack/apsara";
+import { Button, Checkbox, Command, Flex, Popover } from "@raystack/apsara-v1";
+import React from "react";
 
 interface Option<T> {
   value: T;
@@ -35,31 +36,33 @@ export function MultiSelect<T>({
 
   return (
     <Popover>
-      <Popover.Trigger asChild>
-        <Button data-test-id="admin-selected">
-          {selectedValues.size} selected
-        </Button>
-      </Popover.Trigger>
+      <Popover.Trigger
+        render={
+          <Button data-test-id="admin-selected">
+            {selectedValues.size} selected
+          </Button>
+        }
+      />
       <Popover.Content align="start" style={{ padding: 0 }}>
         <Command>
           <Command.Input />
-          <Command.List>
+          <Command.Content>
             <Command.Empty>No results found.</Command.Empty>
             <Command.Group>
               {options.map((option: Option<T>) => {
                 const isSelected = selectedValues.has(option.value);
                 return (
                   <Command.Item
-                    key={option.value}
-                    onSelect={() => handleSelect(option.value)}
+                    key={option.value as React.Key}
+                    onClick={() => handleSelect(option.value)}
                   >
                     <Flex
                       justify="start"
-                      gap="small"
+                      gap={3}
                       style={{ padding: "4px 0px", cursor: "pointer" }}
                     >
                       <Checkbox checked={isSelected} />
-                      <Flex align="center" gap="small">
+                      <Flex align="center" gap={3}>
                         <span>{option.label}</span>
                       </Flex>
                     </Flex>
@@ -67,11 +70,11 @@ export function MultiSelect<T>({
                 );
               })}
             </Command.Group>
-          </Command.List>
+          </Command.Content>
           <>
             <Command.Separator />
             <Command.Group>
-              <Command.Item onSelect={onClear}>
+              <Command.Item onClick={onClear}>
                 <Flex
                   justify="center"
                   style={{ padding: "4px 0px", cursor: "pointer" }}

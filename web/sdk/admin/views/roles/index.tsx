@@ -1,4 +1,4 @@
-import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
+import { EmptyState, Flex, DataTable, Drawer } from "@raystack/apsara-v1";
 import { useCallback, useState } from "react";
 
 import { reduceByKey } from "../../utils/helper";
@@ -90,8 +90,8 @@ export default function RolesView({
             table: styles.table,
           }}
         />
-        <Sheet open={selectedRoleId !== undefined}>
-          <Sheet.Content className={styles.sheetContent}>
+        <Drawer open={selectedRoleId !== undefined}>
+          <Drawer.Content showCloseButton={false} className={styles.sheetContent}>
             <SheetHeader
               title="Role Details"
               onClick={handleClose}
@@ -102,8 +102,8 @@ export default function RolesView({
                 role={selectedRoleId ? roleMapByName[selectedRoleId] ?? null : null}
               />
             </Flex>
-          </Sheet.Content>
-        </Sheet>
+          </Drawer.Content>
+        </Drawer>
       </Flex>
     </DataTable>
   );

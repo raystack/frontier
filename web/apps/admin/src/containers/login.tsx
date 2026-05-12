@@ -1,7 +1,7 @@
 "use client";
 
-import { Box, Flex, Image } from "@raystack/apsara";
-import { Header, MagicLink } from "@raystack/frontier/react";
+import { Box, Flex, Image } from "@raystack/apsara-v1";
+import { AuthHeader, MagicLinkView } from "@raystack/frontier/client";
 import { useContext } from "react";
 import PageTitle from "~/components/page-title";
 import { AppContext } from "~/contexts/App";
@@ -26,7 +26,7 @@ export default function Login() {
           }}
         >
           <Flex direction="column" gap={5} style={{ width: "100%" }}>
-            <Header
+            <AuthHeader
               logo={
                 config?.logo ? (
                   <Image
@@ -42,7 +42,7 @@ export default function Login() {
               }
               title={`Login to ${config?.title || defaultConfig.title}`}
             />
-            <MagicLink open />
+            <MagicLinkView open inline />
           </Flex>
         </Flex>
       </Box>

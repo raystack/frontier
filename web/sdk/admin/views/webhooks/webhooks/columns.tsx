@@ -1,10 +1,10 @@
 import { DotsVerticalIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
 import {
-  DropdownMenu,
+  Menu,
   Flex,
   Text,
   type DataTableColumnDef,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import styles from "./webhooks.module.css";
 import { type Webhook } from "@raystack/proton/frontier";
 import {
@@ -70,37 +70,37 @@ export const getColumns: (
           return (
             <>
               {/* @ts-ignore */}
-              <DropdownMenu style={{ padding: "0 !important" }}>
-                <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
-                  <DotsVerticalIcon />
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                  <DropdownMenu.Group style={{ padding: 0 }}>
-                    <DropdownMenu.Item style={{ padding: 0 }}>
+              <Menu style={{ padding: "0 !important" }}>
+                <Menu.Trigger
+                  render={<DotsVerticalIcon style={{ cursor: "pointer" }} />}
+                />
+                <Menu.Content>
+                  <Menu.Group style={{ padding: 0 }}>
+                    <Menu.Item style={{ padding: 0 }}>
                       <Flex
                         style={{ padding: "12px" }}
-                        gap={"small"}
+                        gap={3}
                         data-test-id="admin-webhook-update-btn"
                         onClick={() => openEditPage(webhookId)}
                       >
                         <UpdateIcon />
                         Update
                       </Flex>
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item style={{ padding: 0 }} disabled={!enableDelete}>
+                    </Menu.Item>
+                    <Menu.Item style={{ padding: 0 }} disabled={!enableDelete}>
                       <Flex
                         className={styles.deleteMenuItem}
-                        gap={"small"}
+                        gap={3}
                         data-test-id="admin-webhook-delete-btn"
                         onClick={() => enableDelete && setIsDeleteDialogOpen(true)}
                       >
                         <TrashIcon />
                         Delete
                       </Flex>
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Group>
-                </DropdownMenu.Content>
-              </DropdownMenu>
+                    </Menu.Item>
+                  </Menu.Group>
+                </Menu.Content>
+              </Menu>
 
               <DeleteWebhookDialog
                 isOpen={isDeleteDialogOpen}

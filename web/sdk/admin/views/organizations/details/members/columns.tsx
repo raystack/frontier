@@ -4,8 +4,8 @@ import {
   Avatar,
   Flex,
   Text,
-  DropdownMenu,
-} from "@raystack/apsara";
+  Menu,
+} from "@raystack/apsara-v1";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
   Role,
@@ -137,25 +137,23 @@ export const getColumns = ({
       },
       cell: ({ row }) => {
         return (
-          <DropdownMenu>
-            <DropdownMenu.Trigger asChild>
-              <DotsHorizontalIcon />
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content className={styles["table-action-dropdown"]}>
-              <DropdownMenu.Item
+          <Menu>
+            <Menu.Trigger render={<DotsHorizontalIcon />} />
+            <Menu.Content className={styles["table-action-dropdown"]}>
+              <Menu.Item
                 onClick={() => handleAssignRoleAction(row.original)}
                 data-test-id="admin-assign-role-action"
               >
                 Assign role...
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
+              </Menu.Item>
+              <Menu.Item
                 onClick={() => handleRemoveMemberAction(row.original)}
                 data-test-id="admin-remove-member-action"
               >
                 Remove...
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu>
+              </Menu.Item>
+            </Menu.Content>
+          </Menu>
         );
       },
     },

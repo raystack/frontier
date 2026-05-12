@@ -4,7 +4,7 @@ import {
   type DataTableSort,
   EmptyState,
   Flex,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import { useState } from "react";
 import { PageTitle } from "../../components/PageTitle";
 import { InvoicesNavabar } from "./navbar";

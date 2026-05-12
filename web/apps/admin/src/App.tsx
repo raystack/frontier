@@ -1,7 +1,7 @@
-import { Flex } from "@raystack/apsara";
+import { Flex } from "@raystack/apsara-v1";
 import { Outlet } from "react-router-dom";
-import "@raystack/apsara/style.css";
-import "@raystack/apsara/normalize.css";
+import "@raystack/apsara-v1/normalize.css";
+import "@raystack/apsara-v1/style.css";
 import "./App.css";
 import IAMSidebar from "./components/Sidebar";
 

@@ -5,7 +5,7 @@ import {
   Flex,
   getAvatarColor,
   Text,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import { getUserName, USER_STATES, UserState } from "../util";

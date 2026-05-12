@@ -1,4 +1,4 @@
-import { Avatar, getAvatarColor, SidePanel, Text } from "@raystack/apsara";
+import { Avatar, getAvatarColor, SidePanel, Text } from "@raystack/apsara-v1";
 import { SidePanelDetails } from "./side-panel-details";
 import { SidePanelMembership } from "./side-panel-membership";
 import styles from "./side-panel.module.css";

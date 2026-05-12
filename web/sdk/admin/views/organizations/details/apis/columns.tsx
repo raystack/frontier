@@ -1,4 +1,4 @@
-import { Text, type DataTableColumnDef } from "@raystack/apsara";
+import { Text, type DataTableColumnDef } from "@raystack/apsara-v1";
 import dayjs from "dayjs";
 import { NULL_DATE } from "../../../../utils/constants";
 import styles from "./apis.module.css";

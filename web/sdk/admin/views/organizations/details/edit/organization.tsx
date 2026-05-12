@@ -3,15 +3,16 @@ import { OrganizationContext } from "../contexts/organization-context";
 import styles from "./edit.module.css";
 import {
   Button,
+  Field,
   Flex,
   IconButton,
-  InputField,
+  Input,
   Select,
-  Sheet,
+  Drawer,
   SidePanel,
   Text,
   Label,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { AvatarUpload } from "../../../../../react/components/avatar-upload";
 import { z } from "zod";
@@ -159,8 +160,8 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
   const showOtherTypeField = watch("type", "other") === "other";
 
   return (
-    <Sheet open>
-      <Sheet.Content className={styles["drawer-content"]}>
+    <Drawer open>
+      <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-org-panel"
           className={styles["side-panel"]}
@@ -194,7 +195,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                     <>
                       <Flex
                         align="center"
-                        gap="medium"
+                        gap={5}
                         style={{ width: "100%" }}
                       >
                         <AvatarUpload {...field} data-test-id="avatar-upload" />
@@ -204,20 +205,22 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                   );
                 }}
               />
-              <InputField {...register("title")} label={`${t.organization({ case: "capital" })} title`} />
-              <InputField
-                {...register("name")}
-                prefix={appUrl}
+              <Field label={`${t.organization({ case: "capital" })} title`}>
+                <Input {...register("title")} />
+              </Field>
+              <Field
                 label={`${t.organization({ case: "capital" })} URL`}
-                helperText={`This will be your ${t.organization({ case: "lower" })} unique web address`}
+                description={`This will be your ${t.organization({ case: "lower" })} unique web address`}
                 error={errors.name?.message}
-              />
-              <InputField
-                {...register("size")}
-                type="number"
+              >
+                <Input {...register("name")} prefix={appUrl} />
+              </Field>
+              <Field
                 label={`${t.organization({ case: "capital" })} size`}
                 error={errors.size?.message}
-              />
+              >
+                <Input {...register("size")} type="number" />
+              </Field>
               <Controller
                 name="type"
                 control={control}
@@ -255,11 +258,12 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                 }}
               />
               {showOtherTypeField ? (
-                <InputField
+                <Field
                   label={`${t.organization({ case: "capital" })} industry (other)`}
-                  {...register("otherType")}
                   error={errors.otherType?.message}
-                />
+                >
+                  <Input {...register("otherType")} />
+                </Field>
               ) : null}
               <Controller
                 name="country"
@@ -316,7 +320,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
             </Flex>
           </form>
         </SidePanel>
-      </Sheet.Content>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer>
   );
 }

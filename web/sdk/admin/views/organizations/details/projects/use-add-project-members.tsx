@@ -1,6 +1,6 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
-import { toast } from "@raystack/apsara";
+import { toastManager } from "@raystack/apsara-v1";
 import { DEFAULT_ROLES, SCOPES } from "~/admin/utils/constants";
 import { useQuery, useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, ListProjectUsersRequestSchema, ListRolesRequestSchema, SetProjectMemberRoleRequestSchema } from "@raystack/proton/frontier";
@@ -78,15 +78,15 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
             roleId: viewerRoleId,
           }),
         );
-        toast.success(`${memberLabel} added`);
+        toastManager.add({ title: `${memberLabel} added`, type: "success" });
         await refetch();
         return projectMembers;
       } catch (error: unknown) {
         handleConnectError(error, {
-          AlreadyExists: () => toast.error(`${memberLabel} already exists in this project`),
-          PermissionDenied: () => toast.error("You don't have permission to perform this action"),
-          InvalidArgument: (err) => toast.error('Invalid input', { description: err.message }),
-          Default: (err) => toast.error('Something went wrong', { description: err.message }),
+          AlreadyExists: () => toastManager.add({ title: `${memberLabel} already exists in this project`, type: "error" }),
+          PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: "error" }),
+          InvalidArgument: (err) => toastManager.add({ title: 'Invalid input', description: err.message, type: "error" }),
+          Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: "error" }),
         });
       }
     },

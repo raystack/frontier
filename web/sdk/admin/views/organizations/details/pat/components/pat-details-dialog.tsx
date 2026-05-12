@@ -5,7 +5,7 @@ import {
   Skeleton,
   Tabs,
   Text,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import { useQuery } from "@connectrpc/connect-query";
 import {
   FrontierServiceQueries,
@@ -104,12 +104,12 @@ export function PatDetailsDialog({
         <Dialog.Body className={styles["dialog-body"]}>
           <Tabs defaultValue="projects" className={styles["tab-root"]}>
             <Tabs.List>
-              <Tabs.Trigger value="projects">
+              <Tabs.Tab value="projects">
                 {t.project({ plural: true, case: "capital" })} ({projectCount})
-              </Tabs.Trigger>
-              <Tabs.Trigger value="roles">
+              </Tabs.Tab>
+              <Tabs.Tab value="roles">
                 Roles ({roleEntries.length})
-              </Tabs.Trigger>
+              </Tabs.Tab>
             </Tabs.List>
             <Tabs.Content value="projects" className={styles["tab-content"]}>
               {scopeProjects.length === 0 ? null : (

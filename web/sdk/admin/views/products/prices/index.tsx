@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Flex, EmptyState, DataTable } from "@raystack/apsara";
+import { Flex, EmptyState, DataTable } from "@raystack/apsara-v1";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, type Product } from "@raystack/proton/frontier";
 import { ProductsHeader } from "../header";

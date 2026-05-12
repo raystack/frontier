@@ -1,4 +1,4 @@
-import { Flex, Spinner } from "@raystack/apsara";
+import { Flex, Spinner } from "@raystack/apsara-v1";
 
 export default function LoadingState() {
   return (

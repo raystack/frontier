@@ -6,12 +6,12 @@ import {
   Separator,
   Switch,
   Text,
-  InputField,
-} from "@raystack/apsara";
-import { useCallback, useEffect, useState } from "react";
+  Input,
+  toastManager,
+} from "@raystack/apsara-v1";
+import React, { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
-import { toast } from "sonner";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { AdminServiceQueries, CreatePreferencesRequestSchema, ListPreferencesResponse } from "@raystack/proton/frontier";
 import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
@@ -40,9 +40,9 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
     trait.inputType === PreferenceTrait_InputType.TEXTAREA
   ) {
     return (
-      <InputField
+      <Input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
         data-test-id="admin-preference-value-input"
       />
     );
@@ -183,10 +183,10 @@ export default function PreferenceDetails({
           },
         ],
       }));
-      toast.success("preference updated");
+      toastManager.add({ title: "preference updated", type: "success" });
     } catch (err) {
       console.error("ConnectRPC Error:", err);
-      toast.error("something went wrong");
+      toastManager.add({ title: "something went wrong", type: "error" });
     }
   }, [name, value, createPreferences]);
 
@@ -204,16 +204,16 @@ export default function PreferenceDetails({
       <Flex direction="column" gap={9} style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) =>
           isLoading ? (
-            <Grid columns={2} gap="small" key={detailItem.key}>
+            <Grid columns={2} gap={3} key={detailItem.key}>
               <Skeleton />
               <Skeleton />
             </Grid>
           ) : (
-            <Grid columns={2} gap="small" key={detailItem.key}>
-              <Text size={1} weight={500}>
+            <Grid columns={2} gap={3} key={detailItem.key}>
+              <Text size="mini" weight="medium">
                 {detailItem.key}
               </Text>
-              <Text size={1}>{detailItem.value}</Text>
+              <Text size="mini">{detailItem.value}</Text>
             </Grid>
           ),
         )}
@@ -221,12 +221,12 @@ export default function PreferenceDetails({
         {isLoading ? (
           <Skeleton />
         ) : (
-          <Text size={1} weight={500}>
+          <Text size="mini" weight="medium">
             Value
           </Text>
         )}
         {trait ? (
-          <Flex direction="column" gap={"medium"} data-test-id="preference-value-save">
+          <Flex direction="column" gap={5} data-test-id="preference-value-save">
             <PreferenceValue
               trait={trait}
               value={value}

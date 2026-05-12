@@ -1,4 +1,4 @@
-import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
+import { EmptyState, Flex, DataTable, Drawer } from "@raystack/apsara-v1";
 import type { Plan } from "@raystack/proton/frontier";
 import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
@@ -76,16 +76,16 @@ export default function PlansView({
           classNames={{ root: styles.tableRoot, table: styles.table }}
         />
       </Flex>
-      <Sheet open={selectedPlanId !== undefined}>
-        <Sheet.Content className={styles.sheetContent}>
+      <Drawer open={selectedPlanId !== undefined}>
+        <Drawer.Content showCloseButton={false} className={styles.sheetContent}>
           <SheetHeader title="Plan Details" onClick={onCloseDetail ?? (() => {})} />
           <Flex className={styles.sheetContentBody}>
             <PlanDetails
               plan={selectedPlanId ? planMapById[selectedPlanId] ?? null : null}
             />
           </Flex>
-        </Sheet.Content>
-      </Sheet>
+        </Drawer.Content>
+      </Drawer>
     </DataTable>
   );
 }

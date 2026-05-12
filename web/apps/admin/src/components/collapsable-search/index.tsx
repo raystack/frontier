@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { IconButton, Search } from "@raystack/apsara";
+import { IconButton, Search } from "@raystack/apsara-v1";
 import React, { useState } from "react";
 
 interface CollapsableSearchProps {

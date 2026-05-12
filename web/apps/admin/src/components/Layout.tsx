@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Flex } from "@raystack/apsara";
+import { Box, Flex } from "@raystack/apsara-v1";
 
 type Props = {
   header?: React.ReactNode;

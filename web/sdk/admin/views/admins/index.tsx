@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
 import { getColumns } from "./columns";
 import styles from "./admins.module.css";
 import { useQuery } from "@connectrpc/connect-query";

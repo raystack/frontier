@@ -1,4 +1,4 @@
-import { FrontierProvider } from "@raystack/frontier/react";
+import { FrontierProvider } from "@raystack/frontier/client";
 import { Outlet } from "react-router-dom";
 import { frontierConfig } from "~/configs/frontier";
 import { themeConfig } from "~/configs/theme";

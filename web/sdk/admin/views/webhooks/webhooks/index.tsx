@@ -1,4 +1,4 @@
-import { Flex, DataTable, EmptyState } from "@raystack/apsara";
+import { Flex, DataTable, EmptyState } from "@raystack/apsara-v1";
 import { useCallback } from "react";
 import { getColumns } from "./columns";
 import { WebhooksHeader } from "./header";
