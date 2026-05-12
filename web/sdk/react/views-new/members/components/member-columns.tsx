@@ -97,7 +97,7 @@ export const getColumns = ({
           <Text size="regular" variant="secondary">
             {roleDisplay}
             {member.invited && (
-              <Text as="span" size="regular" className={styles.pendingText}>
+              <Text size="regular" className={styles.pendingText}>
                 {' '}
                 (Pending invite)
               </Text>

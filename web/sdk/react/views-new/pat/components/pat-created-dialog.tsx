@@ -7,7 +7,7 @@ import {
   CopyButton,
   Dialog,
   Flex,
-  InputField,
+  Input,
   Text
 } from '@raystack/apsara-v1';
 
@@ -42,7 +42,7 @@ export function PATCreatedDialog({ handle, onClose }: PATCreatedDialogProps) {
             <Dialog.Body>
               <Flex direction="column" gap={7}>
                 <Text size="small">{description}</Text>
-                <InputField
+                <Input
                   value={token}
                   readOnly
                   trailingIcon={

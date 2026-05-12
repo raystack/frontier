@@ -8,7 +8,8 @@ import {
   Button,
   Flex,
   Text,
-  InputField,
+  Field,
+  Input,
   Toast,
   toastManager,
   Image,
@@ -167,30 +168,33 @@ export const SubscribeView = ({
               {desc}
             </Text>
           </Flex>
-          <InputField
-            {...register('name')}
-            label="Name"
-            placeholder="Enter name"
-            error={errors.name?.message}
-            data-test-id="subscribe-name-input"
-          />
-          <InputField
-            {...register('email')}
-            label="Email"
-            type="email"
-            placeholder="Enter email"
-            error={errors.email?.message}
-            data-test-id="subscribe-email-input"
-          />
-          <InputField
-            {...register('contactNumber')}
-            optional
+          <Field label="Name" error={errors.name?.message}>
+            <Input
+              {...register('name')}
+              placeholder="Enter name"
+              data-test-id="subscribe-name-input"
+            />
+          </Field>
+          <Field label="Email" error={errors.email?.message}>
+            <Input
+              {...register('email')}
+              type="email"
+              placeholder="Enter email"
+              data-test-id="subscribe-email-input"
+            />
+          </Field>
+          <Field
             label="Contact number"
-            placeholder="Enter contact"
+            description="Add country code at the start"
+            required={false}
             error={errors.contactNumber?.message}
-            helperText="Add country code at the start"
-            data-test-id="subscribe-contact-input"
-          />
+          >
+            <Input
+              {...register('contactNumber')}
+              placeholder="Enter contact"
+              data-test-id="subscribe-contact-input"
+            />
+          </Field>
           <Button
             className={styles.button}
             type="submit"

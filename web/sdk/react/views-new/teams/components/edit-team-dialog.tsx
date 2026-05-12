@@ -5,7 +5,8 @@ import {
   Button,
   Flex,
   Dialog,
-  InputField
+  Field,
+  Input
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import * as yup from 'yup';
@@ -124,20 +125,24 @@ function EditTeamForm({ payload, handle, refetch }: EditTeamFormProps) {
       </Dialog.Header>
       <Dialog.Body>
         <Flex direction="column" gap={5}>
-          <InputField
+          <Field
             label="Team title"
-            size="large"
             error={errors.title && String(errors.title?.message)}
-            {...register('title')}
-            placeholder="Provide team title"
-          />
-          <InputField
-            label="Team name"
-            size="large"
-            value={payload.name}
-            disabled
-            placeholder="Team name"
-          />
+          >
+            <Input
+              size="large"
+              {...register('title')}
+              placeholder="Provide team title"
+            />
+          </Field>
+          <Field label="Team name">
+            <Input
+              size="large"
+              value={payload.name}
+              disabled
+              placeholder="Team name"
+            />
+          </Field>
         </Flex>
       </Dialog.Body>
       <Dialog.Footer>
