@@ -171,7 +171,7 @@ export function UpcomingBillingCycle({
       >
         <Flex gap={3} align="center">
           <Text size="small">
-            <Text as="span" size="small" weight="medium">Plan:</Text>
+            <Text size="small" weight="medium">Plan:</Text>
             {' '}{planName}
           </Text>
           {switchablePlan && isAllowed && !alreadyPhased ? (
@@ -188,18 +188,18 @@ export function UpcomingBillingCycle({
         </Flex>
         <Flex gap={5} align="center">
           <Text size="small">
-            <Text as="span" size="small" weight="medium">Next billing:</Text>
+            <Text size="small" weight="medium">Next billing:</Text>
             {' '}{timestampToDayjs(dueDate)?.format(config.dateFormat) || '-'}
           </Text>
           <div className={styles.separator} />
           <Text size="small">
-            <Text as="span" size="small" weight="medium">Users:</Text>
+            <Text size="small" weight="medium">Users:</Text>
             {' '}{memberCount}
           </Text>
           <div className={styles.separator} />
           <Flex gap={2} align="center">
             <Text size="small">
-              <Text as="span" size="small" weight="medium">Amount:</Text>
+              <Text size="small" weight="medium">Amount:</Text>
               {' '}
               <Amount
                 currency={upcomingInvoice?.currency}

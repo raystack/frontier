@@ -23,7 +23,8 @@ import {
   Chip,
   Dialog,
   Flex,
-  InputField,
+  Field,
+  Input,
   Label,
   Radio,
   Select,
@@ -356,28 +357,8 @@ export function PATFormDialog({
                 </Flex>
               ) : (
                 <>
-                  <InputField
+                  <Field
                     label="Name"
-                    name={titleField.name}
-                    ref={titleField.ref}
-                    onChange={e => {
-                      titleField.onChange(e);
-                      if (
-                        isUpdateMode &&
-                        e.target.value === initialData?.title
-                      ) {
-                        setTitleAvailable(true);
-                      } else {
-                        setTitleAvailable(null);
-                      }
-                    }}
-                    onBlur={async e => {
-                      titleField.onBlur(e);
-                      await handleTitleBlur();
-                    }}
-                    size="large"
-                    placeholder="Enter token name"
-                    trailingIcon={titleChecking ? <Spinner size={2} /> : undefined}
                     error={
                       errors.title
                         ? String(errors.title?.message)
@@ -385,8 +366,31 @@ export function PATFormDialog({
                           ? 'This name is already taken'
                           : undefined
                     }
-                    data-test-id="frontier-sdk-pat-form-title-input"
-                  />
+                  >
+                    <Input
+                      name={titleField.name}
+                      ref={titleField.ref}
+                      onChange={e => {
+                        titleField.onChange(e);
+                        if (
+                          isUpdateMode &&
+                          e.target.value === initialData?.title
+                        ) {
+                          setTitleAvailable(true);
+                        } else {
+                          setTitleAvailable(null);
+                        }
+                      }}
+                      onBlur={async e => {
+                        titleField.onBlur(e);
+                        await handleTitleBlur();
+                      }}
+                      size="large"
+                      placeholder="Enter token name"
+                      trailingIcon={titleChecking ? <Spinner size={2} /> : undefined}
+                      data-test-id="frontier-sdk-pat-form-title-input"
+                    />
+                  </Field>
 
                   {!isUpdateMode && (
                     <Flex direction="column" gap={2}>
@@ -529,7 +533,15 @@ export function PATFormDialog({
                       <Controller
                         name="projectIds"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                          const selectedIds = field.value ?? [];
+                          const visible = selectedIds.slice(
+                            0,
+                            MAX_VISIBLE_PROJECT_CHIPS
+                          );
+                          const remaining =
+                            selectedIds.length - visible.length;
+                          return (
                           <Select
                             multiple
                             value={field.value}
@@ -540,38 +552,28 @@ export function PATFormDialog({
                           >
                             <Select.Trigger>
                               <Select.Value placeholder="Select projects">
-                                {() => {
-                                  const selectedIds = field.value;
-                                  const visible = selectedIds.slice(
-                                    0,
-                                    MAX_VISIBLE_PROJECT_CHIPS
-                                  );
-                                  const remaining =
-                                    selectedIds.length - visible.length;
-                                  return (
-                                    <Flex gap={2} align="center">
-                                      {visible.map(id => (
-                                        <Chip
-                                          key={id}
-                                          className={styles.projectChip}
+                                {selectedIds.length === 0 ? null : (
+                                  <Flex gap={2} align="center">
+                                    {visible.map(id => (
+                                      <Chip
+                                        key={id}
+                                        className={styles.projectChip}
+                                      >
+                                        <span
+                                          className={
+                                            styles.projectChipLabel
+                                          }
                                         >
-                                          <span
-                                            className={
-                                              styles.projectChipLabel
-                                            }
-                                          >
-                                            {projects.find(p => p.id === id)
-                                              ?.title || id}
-                                          </span>
-                                        </Chip>
-                                      ))}
-                                      {remaining > 0 && (
-                                        <Chip>{`+${remaining}`}</Chip>
-                                      )}
-                                    </Flex>
-                                  );
-                                }
-                                }
+                                          {projects.find(p => p.id === id)
+                                            ?.title || id}
+                                        </span>
+                                      </Chip>
+                                    ))}
+                                    {remaining > 0 && (
+                                      <Chip>{`+${remaining}`}</Chip>
+                                    )}
+                                  </Flex>
+                                )}
                               </Select.Value>
                             </Select.Trigger>
                             <Select.Content>
@@ -585,7 +587,8 @@ export function PATFormDialog({
                               ))}
                             </Select.Content>
                           </Select>
-                        )}
+                          );
+                        }}
                       />
                     )}
                     {errors.projectIds && (

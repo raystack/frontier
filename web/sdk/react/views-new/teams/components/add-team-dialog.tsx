@@ -4,7 +4,8 @@ import {
   Button,
   Flex,
   Dialog,
-  InputField
+  Field,
+  Input
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import * as yup from 'yup';
@@ -96,20 +97,26 @@ export function AddTeamDialog({ handle, refetch }: AddTeamDialogProps) {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex direction="column" gap={5}>
-              <InputField
+              <Field
                 label="Team title"
-                size="large"
                 error={errors.title && String(errors.title?.message)}
-                {...register('title')}
-                placeholder="Provide team title"
-              />
-              <InputField
+              >
+                <Input
+                  size="large"
+                  {...register('title')}
+                  placeholder="Provide team title"
+                />
+              </Field>
+              <Field
                 label="Team name"
-                size="large"
                 error={errors.name && String(errors.name?.message)}
-                {...register('name')}
-                placeholder="Provide team name"
-              />
+              >
+                <Input
+                  size="large"
+                  {...register('name')}
+                  placeholder="Provide team name"
+                />
+              </Field>
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>

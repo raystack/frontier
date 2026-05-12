@@ -216,10 +216,10 @@ function ConfirmPlanChangeContent({
             <Skeleton height="16px" />
           ) : (
             <Text size="small">
-              <Text size="small" weight="medium" as="span">
+              <Text size="small" weight="medium">
                 Current plan:
               </Text>{' '}
-              <Text size="small" variant="secondary" as="span">
+              <Text size="small" variant="secondary">
                 {activePlan?.title}
               </Text>
             </Text>
@@ -229,10 +229,10 @@ function ConfirmPlanChangeContent({
             <Skeleton height="16px" />
           ) : (
             <Text size="small">
-              <Text size="small" weight="medium" as="span">
+              <Text size="small" weight="medium">
                 New plan:
               </Text>{' '}
-              <Text size="small" variant="secondary" as="span">
+              <Text size="small" variant="secondary">
                 {newPlan?.title} ({effectiveDateLabel})
               </Text>
             </Text>
@@ -242,10 +242,10 @@ function ConfirmPlanChangeContent({
             <Skeleton height="16px" />
           ) : isUpgrade ? (
             <Text size="small">
-              <Text size="small" weight="medium" as="span">
+              <Text size="small" weight="medium">
                 Price:
               </Text>{' '}
-              <Text size="small" variant="secondary" as="span">
+              <Text size="small" variant="secondary">
                 <Amount
                   value={amount || 0}
                   currency={currency}

@@ -18,7 +18,8 @@ import {
   Checkbox,
   Flex,
   Text,
-  InputField,
+  Field,
+  Input,
   Skeleton,
   toastManager
 } from '@raystack/apsara-v1';
@@ -160,14 +161,17 @@ function DeleteDomainContent({
                   This action can not be undone. This will permanently delete{' '}
                   <b>{domain?.name}</b>.
                 </Text>
-                <InputField
+                <Field
                   label="Please enter the domain name to confirm."
-                  size="large"
                   error={errors.domain && String(errors.domain?.message)}
-                  {...register('domain')}
-                  placeholder="Enter the domain name"
-                  data-test-id="frontier-sdk-delete-domain-input"
-                />
+                >
+                  <Input
+                    size="large"
+                    {...register('domain')}
+                    placeholder="Enter the domain name"
+                    data-test-id="frontier-sdk-delete-domain-input"
+                  />
+                </Field>
                 <Flex gap={3} align="start">
                   <Checkbox
                     checked={isAcknowledged}

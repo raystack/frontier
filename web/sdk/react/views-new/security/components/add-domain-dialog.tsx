@@ -16,7 +16,8 @@ import {
   Flex,
   Text,
   Dialog,
-  InputField,
+  Field,
+  Input,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
@@ -116,14 +117,17 @@ export function AddDomainDialog({
                 <Text size="small">
                   Adding a domain to allowed domains will result in charges for each user onboarded under that domain.
                 </Text>
-                <InputField
+                <Field
                   label="Domain name"
-                  size="large"
                   error={errors.domain && String(errors.domain?.message)}
-                  {...register('domain')}
-                  placeholder="example.com"
-                  data-test-id="frontier-sdk-add-domain-input"
-                />
+                >
+                  <Input
+                    size="large"
+                    {...register('domain')}
+                    placeholder="example.com"
+                    data-test-id="frontier-sdk-add-domain-input"
+                  />
+                </Field>
               </Flex>
             </Dialog.Body>
             <Dialog.Footer>
