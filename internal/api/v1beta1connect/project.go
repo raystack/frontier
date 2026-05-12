@@ -103,7 +103,6 @@ func (h *ConnectHandler) GetProject(ctx context.Context, request *connect.Reques
 
 func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateProjectRequest]) (*connect.Response[frontierv1beta1.UpdateProjectResponse], error) {
 	errorLogger := NewErrorLogger()
-	auditor := audit.GetAuditor(ctx, request.Msg.GetBody().GetOrgId())
 
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -112,17 +111,15 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 
 	updatedProject, err := h.projectService.Update(ctx, project.Project{
-		ID:           request.Msg.GetId(),
-		Name:         request.Msg.GetBody().GetName(),
-		Title:        request.Msg.GetBody().GetTitle(),
-		Organization: organization.Organization{ID: request.Msg.GetBody().GetOrgId()},
-		Metadata:     metaDataMap,
+		ID:       request.Msg.GetId(),
+		Name:     request.Msg.GetBody().GetName(),
+		Title:    request.Msg.GetBody().GetTitle(),
+		Metadata: metaDataMap,
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateProject", err,
 			"project_id", request.Msg.GetId(),
-			"project_name", request.Msg.GetBody().GetName(),
-			"org_id", request.Msg.GetBody().GetOrgId())
+			"project_name", request.Msg.GetBody().GetName())
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -132,7 +129,7 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	auditor.Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
+	audit.GetAuditor(ctx, updatedProject.Organization.ID).Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
 	return connect.NewResponse(&frontierv1beta1.UpdateProjectResponse{Project: projectPB}), nil
 }
 

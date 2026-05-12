@@ -238,7 +238,6 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
 		goqu.Record{
 			"title":      prj.Title,
-			"org_id":     prj.Organization.ID,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{"id": prj.ID}).Returning(&Project{}).ToSQL()
@@ -258,8 +257,6 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 			return project.Project{}, project.ErrInvalidUUID
 		case errors.Is(err, ErrDuplicateKey):
 			return project.Project{}, project.ErrConflict
-		case errors.Is(err, ErrForeignKeyViolation):
-			return project.Project{}, organization.ErrNotExist
 		default:
 			return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
@@ -286,7 +283,6 @@ func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project
 	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
 		goqu.Record{
 			"title":      prj.Title,
-			"org_id":     prj.Organization.ID,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{"name": prj.Name}).Returning(&Project{}).ToSQL()
@@ -306,8 +302,6 @@ func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project
 			return project.Project{}, project.ErrInvalidUUID
 		case errors.Is(err, ErrDuplicateKey):
 			return project.Project{}, project.ErrConflict
-		case errors.Is(err, ErrForeignKeyViolation):
-			return project.Project{}, organization.ErrNotExist
 		default:
 			return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 		}

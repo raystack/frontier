@@ -503,9 +503,8 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 	s.Run("6. org admin update a new project with using project name instead of id should work", func() {
 		_, err := s.testBench.Client.UpdateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
 			Id: "new-project",
-			Body: &frontierv1beta1.ProjectRequestBody{
-				Name:  "new-project",
-				OrgId: myOrg.GetId(),
+			Body: &frontierv1beta1.UpdateProjectRequestBody{
+				Name: "new-project",
 			},
 		}))
 		s.Assert().NoError(err)
