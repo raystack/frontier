@@ -24,7 +24,6 @@ var (
 	ErrProspectNotFound            = errors.New("record not found for the given input")
 	ErrRQLParse                    = errors.New("error parsing RQL query")
 	ErrOrgDisabled                 = errors.New("org is disabled. Please contact your administrator to enable it")
-	ErrRoleFilter                  = errors.New("cannot use role filters and with_roles together")
 	ErrMinAdminCount               = errors.New("org must have at least one admin, consider adding another admin before removing")
 	ErrLastOwnerRole               = errors.New("org must have at least one owner, consider assigning another owner before changing this user's role")
 	ErrDomainNotFound              = errors.New("domain whitelist request doesn't exist")

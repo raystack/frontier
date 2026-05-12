@@ -394,28 +394,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			ErrString: project.ErrInvalidUUID.Error(),
 		},
 		{
-			Description: "should return error if org id is not uuid",
-			ProjectToUpdate: project.Project{
-				ID:   s.projects[0].ID,
-				Name: "not-exist",
-				Organization: organization.Organization{
-					ID: "not-uuid",
-				},
-			},
-			ErrString: project.ErrInvalidUUID.Error(),
-		},
-		{
-			Description: "should return error if org id not exist",
-			ProjectToUpdate: project.Project{
-				ID:   s.projects[0].ID,
-				Name: "not-exist",
-				Organization: organization.Organization{
-					ID: uuid.NewString(),
-				},
-			},
-			ErrString: organization.ErrNotExist.Error(),
-		},
-		{
 			Description: "should return error if project id is empty",
 			ErrString:   project.ErrInvalidID.Error(),
 		},
@@ -464,26 +442,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByName() {
 				Name: "not-exist",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
-				},
-			},
-			ErrString: project.ErrNotExist.Error(),
-		},
-		{
-			Description: "should return error if org id is not uuid",
-			ProjectToUpdate: project.Project{
-				Name: "not-exist",
-				Organization: organization.Organization{
-					ID: "not-uuid",
-				},
-			},
-			ErrString: organization.ErrInvalidUUID.Error(),
-		},
-		{
-			Description: "should return error if org id not exist",
-			ProjectToUpdate: project.Project{
-				Name: "not-exist",
-				Organization: organization.Organization{
-					ID: uuid.NewString(),
 				},
 			},
 			ErrString: project.ErrNotExist.Error(),

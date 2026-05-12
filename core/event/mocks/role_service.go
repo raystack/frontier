@@ -80,65 +80,6 @@ func (_c *RoleService_Get_Call) RunAndReturn(run func(context.Context, string) (
 	return _c
 }
 
-// List provides a mock function with given fields: ctx, flt
-func (_m *RoleService) List(ctx context.Context, flt role.Filter) ([]role.Role, error) {
-	ret := _m.Called(ctx, flt)
-
-	if len(ret) == 0 {
-		panic("no return value specified for List")
-	}
-
-	var r0 []role.Role
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, role.Filter) ([]role.Role, error)); ok {
-		return rf(ctx, flt)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, role.Filter) []role.Role); ok {
-		r0 = rf(ctx, flt)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]role.Role)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, role.Filter) error); ok {
-		r1 = rf(ctx, flt)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// RoleService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
-type RoleService_List_Call struct {
-	*mock.Call
-}
-
-// List is a helper method to define mock.On call
-//   - ctx context.Context
-//   - flt role.Filter
-func (_e *RoleService_Expecter) List(ctx interface{}, flt interface{}) *RoleService_List_Call {
-	return &RoleService_List_Call{Call: _e.mock.On("List", ctx, flt)}
-}
-
-func (_c *RoleService_List_Call) Run(run func(ctx context.Context, flt role.Filter)) *RoleService_List_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(role.Filter))
-	})
-	return _c
-}
-
-func (_c *RoleService_List_Call) Return(_a0 []role.Role, _a1 error) *RoleService_List_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RoleService_List_Call) RunAndReturn(run func(context.Context, role.Filter) ([]role.Role, error)) *RoleService_List_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewRoleService creates a new instance of RoleService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRoleService(t interface {

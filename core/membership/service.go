@@ -37,6 +37,7 @@ type RelationService interface {
 
 type RoleService interface {
 	Get(ctx context.Context, idOrName string) (role.Role, error)
+	List(ctx context.Context, flt role.Filter) ([]role.Role, error)
 }
 
 type OrgService interface {
@@ -900,4 +901,121 @@ func (s *Service) auditProjectMember(ctx context.Context, event pkgAuditRecord.E
 		OrgID:      prj.Organization.ID,
 		OccurredAt: time.Now(),
 	})
+}
+
+// MemberFilter narrows the results of ListPrincipalsByResource.
+type MemberFilter struct {
+	// PrincipalType restricts the result to a single principal type
+	// (e.g. schema.UserPrincipal, schema.ServiceUserPrincipal, schema.GroupPrincipal).
+	// Empty means no restriction.
+	PrincipalType string
+	// RoleIDs includes principals that have at least one of these roles on the resource.
+	// Empty means no role filtering.
+	RoleIDs []string
+}
+
+// Member is a principal that has one or more policies on a resource.
+type Member struct {
+	PrincipalID   string
+	PrincipalType string
+	Roles         []role.Role
+}
+
+// ListPrincipalsByResource returns the principals (users, service users, groups)
+// that have at least one policy on the given resource, optionally filtered by
+// principal type and/or role, and optionally enriched with the full list of
+// roles each principal holds on the resource.
+func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter MemberFilter) ([]Member, error) {
+	flt := policy.Filter{
+		PrincipalType: filter.PrincipalType,
+		RoleIDs:       filter.RoleIDs,
+		ResourceType:  resourceType,
+	}
+	switch resourceType {
+	case schema.OrganizationNamespace:
+		flt.OrgID = resourceID
+	case schema.ProjectNamespace:
+		flt.ProjectID = resourceID
+	case schema.GroupNamespace:
+		flt.GroupID = resourceID
+	default:
+		return nil, ErrInvalidResourceType
+	}
+
+	policies, err := s.policyService.List(ctx, flt)
+	if err != nil {
+		return nil, fmt.Errorf("list policies: %w", err)
+	}
+
+	// deduplicate by (principalID, principalType) preserving order
+	memberIndex := make(map[string]int, len(policies))
+	members := make([]Member, 0, len(policies))
+	for _, pol := range policies {
+		key := pol.PrincipalType + "\x00" + pol.PrincipalID
+		if _, ok := memberIndex[key]; ok {
+			continue
+		}
+		memberIndex[key] = len(members)
+		members = append(members, Member{
+			PrincipalID:   pol.PrincipalID,
+			PrincipalType: pol.PrincipalType,
+		})
+	}
+
+	// fetch all policies for the resource (without role filtering) to get
+	// the complete set of roles per principal in a single query
+	roleFlt := flt
+	roleFlt.RoleIDs = nil
+	allPolicies, err := s.policyService.List(ctx, roleFlt)
+	if err != nil {
+		return nil, fmt.Errorf("list policies for role enrichment: %w", err)
+	}
+
+	principalRoleIDs := make(map[string][]string, len(members))
+	roleSeen := make(map[string]map[string]struct{}, len(members))
+	uniqueRoleIDs := make(map[string]struct{})
+	for _, pol := range allPolicies {
+		if pol.RoleID == "" {
+			continue
+		}
+		key := pol.PrincipalType + "\x00" + pol.PrincipalID
+		if _, ok := memberIndex[key]; !ok {
+			continue
+		}
+		if roleSeen[key] == nil {
+			roleSeen[key] = make(map[string]struct{})
+		}
+		if _, ok := roleSeen[key][pol.RoleID]; ok {
+			continue
+		}
+		roleSeen[key][pol.RoleID] = struct{}{}
+		principalRoleIDs[key] = append(principalRoleIDs[key], pol.RoleID)
+		uniqueRoleIDs[pol.RoleID] = struct{}{}
+	}
+
+	if len(uniqueRoleIDs) > 0 {
+		ids := make([]string, 0, len(uniqueRoleIDs))
+		for id := range uniqueRoleIDs {
+			ids = append(ids, id)
+		}
+		roles, err := s.roleService.List(ctx, role.Filter{IDs: ids})
+		if err != nil {
+			return nil, fmt.Errorf("list roles: %w", err)
+		}
+		roleByID := make(map[string]role.Role, len(roles))
+		for _, r := range roles {
+			roleByID[r.ID] = r
+		}
+		for key, idx := range memberIndex {
+			memberRoles := make([]role.Role, 0, len(principalRoleIDs[key]))
+			for _, rid := range principalRoleIDs[key] {
+				if r, ok := roleByID[rid]; ok {
+					memberRoles = append(memberRoles, r)
+				}
+			}
+			members[idx].Roles = memberRoles
+		}
+	}
+
+	return members, nil
 }

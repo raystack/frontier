@@ -12,4 +12,5 @@ var (
 	ErrInvalidPrincipalType = errors.New("unsupported principal type")
 	ErrNotOrgMember         = errors.New("principal is not a member of the organization")
 	ErrInvalidProjectRole   = errors.New("role is not valid for project scope")
+	ErrInvalidResourceType  = errors.New("unsupported resource type")
 )

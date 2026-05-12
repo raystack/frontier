@@ -103,7 +103,6 @@ func (h *ConnectHandler) GetProject(ctx context.Context, request *connect.Reques
 
 func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateProjectRequest]) (*connect.Response[frontierv1beta1.UpdateProjectResponse], error) {
 	errorLogger := NewErrorLogger()
-	auditor := audit.GetAuditor(ctx, request.Msg.GetBody().GetOrgId())
 
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -112,17 +111,15 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 
 	updatedProject, err := h.projectService.Update(ctx, project.Project{
-		ID:           request.Msg.GetId(),
-		Name:         request.Msg.GetBody().GetName(),
-		Title:        request.Msg.GetBody().GetTitle(),
-		Organization: organization.Organization{ID: request.Msg.GetBody().GetOrgId()},
-		Metadata:     metaDataMap,
+		ID:       request.Msg.GetId(),
+		Name:     request.Msg.GetBody().GetName(),
+		Title:    request.Msg.GetBody().GetTitle(),
+		Metadata: metaDataMap,
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateProject", err,
 			"project_id", request.Msg.GetId(),
-			"project_name", request.Msg.GetBody().GetName(),
-			"org_id", request.Msg.GetBody().GetOrgId())
+			"project_name", request.Msg.GetBody().GetName())
 		return nil, translateProjectServiceError(err)
 	}
 
@@ -132,7 +129,7 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	auditor.Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
+	audit.GetAuditor(ctx, updatedProject.Organization.ID).Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
 	return connect.NewResponse(&frontierv1beta1.UpdateProjectResponse{Project: projectPB}), nil
 }
 
@@ -140,11 +137,37 @@ func (h *ConnectHandler) ListProjectAdmins(ctx context.Context, request *connect
 	errorLogger := NewErrorLogger()
 	projectID := request.Msg.GetId()
 
-	users, err := h.projectService.ListUsers(ctx, projectID, project.AdminPermission)
+	prj, err := h.projectService.Get(ctx, projectID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins", err,
+		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.Get", err,
 			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
+	}
+
+	ownerRole, err := h.roleService.Get(ctx, project.OwnerRole)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.roleService.Get", err,
+			"project_id", prj.ID,
+			"role", project.OwnerRole)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+		RoleIDs:       []string{ownerRole.ID},
+	})
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.ListPrincipalsByResource", err,
+			"project_id", prj.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	users, err := h.userService.GetByIDs(ctx, userIDs)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.GetByIDs", err,
+			"project_id", prj.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	var transformedAdmins []*frontierv1beta1.User
@@ -165,17 +188,28 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 	errorLogger := NewErrorLogger()
 	projectID := request.Msg.GetId()
 
-	permissionFilter := project.MemberPermission
-	if len(request.Msg.GetPermissionFilter()) > 0 {
-		permissionFilter = request.Msg.GetPermissionFilter()
+	prj, err := h.projectService.Get(ctx, projectID)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectUsers.Get", err,
+			"project_id", projectID)
+		return nil, translateProjectServiceError(err)
 	}
 
-	users, err := h.projectService.ListUsers(ctx, projectID, permissionFilter)
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectUsers", err,
-			"project_id", projectID,
-			"permission_filter", permissionFilter)
-		return nil, translateProjectServiceError(err)
+		errorLogger.LogServiceError(ctx, request, "ListProjectUsers.ListPrincipalsByResource", err,
+			"project_id", prj.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	users, err := h.userService.GetByIDs(ctx, userIDs)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectUsers.GetByIDs", err,
+			"project_id", prj.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	var transformedUsers []*frontierv1beta1.User
@@ -190,31 +224,21 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 		transformedUsers = append(transformedUsers, u)
 	}
 
-	if request.Msg.GetWithRoles() {
-		for _, user := range users {
-			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.ProjectNamespace, projectID)
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
 			if err != nil {
-				errorLogger.LogServiceError(ctx, request, "ListProjectUsers.ListRoles", err,
-					"project_id", projectID,
-					"user_id", user.ID)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				errorLogger.LogTransformError(ctx, request, "ListProjectUsers.TransformRole", r.ID, err)
+				return nil
 			}
-
-			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(role)
-				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListProjectUsers.TransformRole", role.ID, err)
-					return nil
-				}
-				return &pb
-			}), func(role *frontierv1beta1.Role) bool {
-				return role != nil
-			})
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectUsersResponse_RolePair{
-				UserId: user.ID,
-				Roles:  rolesPb,
-			})
-		}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectUsersResponse_RolePair{
+			UserId: m.PrincipalID,
+			Roles:  rolesPb,
+		})
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectUsersResponse{
@@ -227,11 +251,31 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	errorLogger := NewErrorLogger()
 	projectID := request.Msg.GetId()
 
-	users, err := h.projectService.ListServiceUsers(ctx, projectID, project.MemberPermission)
+	prj, err := h.projectService.Get(ctx, projectID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers", err,
+		errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.Get", err,
 			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
+	}
+
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
+		PrincipalType: schema.ServiceUserPrincipal,
+	})
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.ListPrincipalsByResource", err,
+			"project_id", prj.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	suIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	var users []serviceuser.ServiceUser
+	if len(suIDs) > 0 {
+		users, err = h.serviceUserService.GetByIDs(ctx, suIDs)
+		if err != nil {
+			errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.GetByIDs", err,
+				"project_id", prj.ID)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
 
 	var transformedUsers []*frontierv1beta1.ServiceUser
@@ -246,31 +290,21 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 		transformedUsers = append(transformedUsers, u)
 	}
 
-	if request.Msg.GetWithRoles() {
-		for _, user := range users {
-			roles, err := h.policyService.ListRoles(ctx, schema.ServiceUserPrincipal, user.ID, schema.ProjectNamespace, projectID)
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
 			if err != nil {
-				errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.ListRoles", err,
-					"project_id", projectID,
-					"service_user_id", user.ID)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				errorLogger.LogTransformError(ctx, request, "ListProjectServiceUsers.TransformRole", r.ID, err)
+				return nil
 			}
-
-			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(role)
-				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListProjectServiceUsers.TransformRole", role.ID, err)
-					return nil
-				}
-				return &pb
-			}), func(role *frontierv1beta1.Role) bool {
-				return role != nil
-			})
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectServiceUsersResponse_RolePair{
-				ServiceuserId: user.ID,
-				Roles:         rolesPb,
-			})
-		}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectServiceUsersResponse_RolePair{
+			ServiceuserId: m.PrincipalID,
+			Roles:         rolesPb,
+		})
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectServiceUsersResponse{
@@ -283,11 +317,31 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 	errorLogger := NewErrorLogger()
 	projectID := request.Msg.GetId()
 
-	groups, err := h.projectService.ListGroups(ctx, projectID)
+	prj, err := h.projectService.Get(ctx, projectID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectGroups", err,
+		errorLogger.LogServiceError(ctx, request, "ListProjectGroups.Get", err,
 			"project_id", projectID)
 		return nil, translateProjectServiceError(err)
+	}
+
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
+		PrincipalType: schema.GroupPrincipal,
+	})
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListProjectGroups.ListPrincipalsByResource", err,
+			"project_id", prj.ID)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	groupIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	var groups []group.Group
+	if len(groupIDs) > 0 {
+		groups, err = h.groupService.GetByIDs(ctx, groupIDs)
+		if err != nil {
+			errorLogger.LogServiceError(ctx, request, "ListProjectGroups.GetByIDs", err,
+				"project_id", prj.ID)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
 
 	var groupsPB []*frontierv1beta1.Group
@@ -302,33 +356,22 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 		groupsPB = append(groupsPB, &u)
 	}
 
-	if request.Msg.GetWithRoles() {
-		for _, group := range groups {
-			roles, err := h.policyService.ListRoles(ctx, schema.GroupPrincipal, group.ID,
-				schema.ProjectNamespace, projectID)
+	for _, m := range members {
+		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
+			pb, err := transformRoleToPB(r)
 			if err != nil {
-				errorLogger.LogServiceError(ctx, request, "ListProjectGroups.ListRoles", err,
-					"project_id", projectID,
-					"group_id", group.ID)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				errorLogger.LogTransformError(ctx, request, "ListProjectGroups.TransformRole", r.ID, err)
+				return nil
 			}
+			return &pb
+		}), func(r *frontierv1beta1.Role) bool {
+			return r != nil
+		})
 
-			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(role)
-				if err != nil {
-					errorLogger.LogTransformError(ctx, request, "ListProjectGroups.TransformRole", role.ID, err)
-					return nil
-				}
-				return &pb
-			}), func(role *frontierv1beta1.Role) bool {
-				return role != nil
-			})
-
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectGroupsResponse_RolePair{
-				GroupId: group.ID,
-				Roles:   rolesPb,
-			})
-		}
+		rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectGroupsResponse_RolePair{
+			GroupId: m.PrincipalID,
+			Roles:   rolesPb,
+		})
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectGroupsResponse{
