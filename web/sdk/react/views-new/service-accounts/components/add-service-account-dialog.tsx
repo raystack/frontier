@@ -30,7 +30,8 @@ import {
   Text,
   Dialog,
   Flex,
-  InputField,
+  Field,
+  Input,
   Label,
   Select,
   Skeleton,
@@ -258,13 +259,16 @@ export function AddServiceAccountDialog({
                 </Flex>
               ) : (
                 <>
-                  <InputField
+                  <Field
                     label="Name"
-                    {...register('title')}
-                    size="large"
-                    placeholder="Provide service account name"
                     error={errors.title && String(errors.title?.message)}
-                  />
+                  >
+                    <Input
+                      {...register('title')}
+                      size="large"
+                      placeholder="Provide service account name"
+                    />
+                  </Field>
                   <Flex direction="column" gap={2}>
                     <Label>Project</Label>
                     <Controller

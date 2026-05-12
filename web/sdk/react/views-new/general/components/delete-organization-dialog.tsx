@@ -14,7 +14,8 @@ import {
   Text,
   Flex,
   Dialog,
-  InputField,
+  Field,
+  Input,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
@@ -104,17 +105,20 @@ export const DeleteOrganizationDialog = ({
                 This action can not be undone. This will permanently
                 delete all the projects and resources in {organization?.title}.
               </Text>
-              <InputField
+              <Field
                 label={`Please type name of the ${orgLabel} to confirm.`}
-                size="large"
                 error={
                   errors.title
                     ? String(errors.title.message)
                     : undefined
                 }
-                {...register('title')}
-                placeholder={`Provide the ${orgLabel} name`}
-              />
+              >
+                <Input
+                  size="large"
+                  {...register('title')}
+                  placeholder={`Provide the ${orgLabel} name`}
+                />
+              </Field>
               <Flex gap={3} align="start">
                 <Checkbox
                   checked={isAcknowledged}

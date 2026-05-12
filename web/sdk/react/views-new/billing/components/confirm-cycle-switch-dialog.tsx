@@ -224,7 +224,7 @@ function ConfirmCycleSwitchContent({
             <Skeleton />
           ) : (
             <Text size="small" variant="secondary">
-              <Text as="span" size="small" weight="medium">
+              <Text size="small" weight="medium">
                 Current cycle:
               </Text>{' '}
               {activePlanIntervalName}
@@ -234,7 +234,7 @@ function ConfirmCycleSwitchContent({
             <Skeleton />
           ) : (
             <Text size="small" variant="secondary">
-              <Text as="span" size="small" weight="medium">
+              <Text size="small" weight="medium">
                 New cycle:
               </Text>{' '}
               {nextPlanIntervalName} (
@@ -247,7 +247,7 @@ function ConfirmCycleSwitchContent({
           {!isLoading && savings && (
             <Text size="small" variant="secondary">
               You can save{' '}
-              <Text as="span" size="small" weight="medium">
+              <Text size="small" weight="medium">
                 <Amount
                   value={savings.amount}
                   currency={savings.currency}

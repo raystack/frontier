@@ -1,5 +1,5 @@
 import { ClipboardEvent, KeyboardEvent, useMemo } from 'react';
-import { Button, Dialog, Flex, InputField, Skeleton } from '@raystack/apsara-v1';
+import { Button, Dialog, Flex, Field, Input, Skeleton } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
@@ -142,32 +142,35 @@ export function AddTokensDialog({ handle }: AddTokensDialogProps) {
               {isLoading ? (
                 <Skeleton height="60px" width="100%" />
               ) : (
-                <InputField
+                <Field
                   label="Add tokens"
-                  size="large"
-                  type="number"
+                  description={productDescription}
                   error={errors.tokens && String(errors.tokens.message)}
-                  {...register('tokens', { valueAsNumber: true })}
-                  placeholder="Enter no. of tokens"
-                  helperText={productDescription}
-                  onKeyDown={(e: KeyboardEvent) =>
-                    ['e', 'E', '+', '-', '.'].includes(e.key) &&
-                    e.preventDefault()
-                  }
-                  onPaste={(e: ClipboardEvent) => {
-                    const pastedText = e.clipboardData.getData('text/plain');
-                    const parsedValue = parseInt(pastedText);
-                    e.preventDefault();
-                    if (
-                      !isNaN(parsedValue) &&
-                      parsedValue >= minQuantity &&
-                      parsedValue <= maxQuantity
-                    ) {
-                      setValue('tokens', parsedValue, { shouldDirty: true });
+                >
+                  <Input
+                    size="large"
+                    type="number"
+                    {...register('tokens', { valueAsNumber: true })}
+                    placeholder="Enter no. of tokens"
+                    onKeyDown={(e: KeyboardEvent) =>
+                      ['e', 'E', '+', '-', '.'].includes(e.key) &&
+                      e.preventDefault()
                     }
-                  }}
-                  data-test-id="frontier-sdk-add-tokens-input"
-                />
+                    onPaste={(e: ClipboardEvent) => {
+                      const pastedText = e.clipboardData.getData('text/plain');
+                      const parsedValue = parseInt(pastedText);
+                      e.preventDefault();
+                      if (
+                        !isNaN(parsedValue) &&
+                        parsedValue >= minQuantity &&
+                        parsedValue <= maxQuantity
+                      ) {
+                        setValue('tokens', parsedValue, { shouldDirty: true });
+                      }
+                    }}
+                    data-test-id="frontier-sdk-add-tokens-input"
+                  />
+                </Field>
               )}
             </Flex>
           </Dialog.Body>

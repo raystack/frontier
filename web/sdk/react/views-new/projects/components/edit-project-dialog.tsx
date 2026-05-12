@@ -6,7 +6,8 @@ import {
   Flex,
   Text,
   Dialog,
-  InputField,
+  Field,
+  Input,
   Radio
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
@@ -135,13 +136,16 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
       </Dialog.Header>
       <Dialog.Body>
         <Flex direction="column" gap={5}>
-          <InputField
+          <Field
             label="Project name"
-            size="large"
             error={errors.title && String(errors.title?.message)}
-            {...register('title')}
-            placeholder="Enter project name"
-          />
+          >
+            <Input
+              size="large"
+              {...register('title')}
+              placeholder="Enter project name"
+            />
+          </Field>
           <Flex direction="column" gap={4}>
             <Text size="mini" weight="medium" variant="secondary">
               Project privacy

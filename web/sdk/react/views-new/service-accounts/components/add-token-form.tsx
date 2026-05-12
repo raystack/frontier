@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Flex, Button, InputField, toastManager } from '@raystack/apsara-v1';
+import { Flex, Button, Field, Input, toastManager } from '@raystack/apsara-v1';
 import { useMutation } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -74,13 +74,16 @@ export function AddTokenForm({ serviceUserId, onAddToken }: AddTokenFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex className={styles.addTokenRow} align="start">
-        <InputField
-          {...register('title')}
-          size="large"
-          placeholder="Label Name"
+        <Field
           error={errors.title && String(errors.title?.message)}
           className={styles.addTokenInput}
-        />
+        >
+          <Input
+            {...register('title')}
+            size="large"
+            placeholder="Label Name"
+          />
+        </Field>
         <Button
           variant="solid"
           color="accent"

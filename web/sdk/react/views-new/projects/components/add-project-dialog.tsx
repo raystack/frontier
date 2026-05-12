@@ -4,7 +4,8 @@ import {
   Button,
   Flex,
   Dialog,
-  InputField
+  Field,
+  Input
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import * as yup from 'yup';
@@ -95,13 +96,16 @@ export function AddProjectDialog({ handle, refetch }: AddProjectDialogProps) {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex direction="column" gap={5}>
-              <InputField
+              <Field
                 label="Project title"
-                size="large"
                 error={errors.title && String(errors.title?.message)}
-                {...register('title')}
-                placeholder="Provide project title"
-              />
+              >
+                <Input
+                  size="large"
+                  {...register('title')}
+                  placeholder="Provide project title"
+                />
+              </Field>
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>

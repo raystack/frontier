@@ -69,7 +69,7 @@ export function PATProjectChips({ projects }: PATProjectChipsProps) {
         <Chip
           className={styles.countChip}
           onClick={() => setExpanded(true)}
-          ariaLabel={`Show ${hidden} more projects`}
+          aria-label={`Show ${hidden} more projects`}
           data-test-id="frontier-sdk-pat-project-chips-expand-btn"
         >
           +{hidden}

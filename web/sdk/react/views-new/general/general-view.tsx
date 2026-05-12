@@ -21,7 +21,8 @@ import {
   Skeleton,
   Text,
   Flex,
-  InputField,
+  Field,
+  Input,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../contexts/FrontierContext';
@@ -207,25 +208,31 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                 </>
               ) : (
                 <>
-                  <InputField
+                  <Field
                     label={`${orgLabel} name`}
-                    size="large"
                     error={errors.title && String(errors.title?.message)}
-                    defaultValue={organization?.title || ''}
-                    disabled={!canUpdateWorkspace}
-                    placeholder={`Provide ${orgLabelLower} name`}
-                    {...register('title')}
-                  />
-                  <InputField
+                  >
+                    <Input
+                      size="large"
+                      defaultValue={organization?.title || ''}
+                      disabled={!canUpdateWorkspace}
+                      placeholder={`Provide ${orgLabelLower} name`}
+                      {...register('title')}
+                    />
+                  </Field>
+                  <Field
                     label={`${orgLabel} URL`}
-                    size="large"
                     error={errors.name && String(errors.name?.message)}
-                    defaultValue={organization?.name || ''}
-                    disabled
-                    prefix={URL_PREFIX}
-                    placeholder={`Provide ${orgLabelLower} URL`}
-                    {...register('name')}
-                  />
+                  >
+                    <Input
+                      size="large"
+                      defaultValue={organization?.name || ''}
+                      disabled
+                      prefix={URL_PREFIX}
+                      placeholder={`Provide ${orgLabelLower} URL`}
+                      {...register('name')}
+                    />
+                  </Field>
                 </>
               )}
             </Flex>

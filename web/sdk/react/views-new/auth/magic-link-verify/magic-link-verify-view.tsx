@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Text, Link, Flex, InputField } from '@raystack/apsara-v1';
+import { Button, Text, Link, Flex, Input } from '@raystack/apsara-v1';
 import {
   ChangeEvent,
   ComponentPropsWithRef,
@@ -96,7 +96,7 @@ export const MagicLinkVerifyView = ({
 
       <form onSubmit={OTPVerifyHandler} className={styles.form}>
         <Flex direction="column" gap={2} className={styles.otpInputContainer}>
-          <InputField
+          <Input
             data-test-id="enter-code"
             autoFocus
             size="large"

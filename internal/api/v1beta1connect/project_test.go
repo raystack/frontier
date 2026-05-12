@@ -7,10 +7,13 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
@@ -490,20 +493,26 @@ func TestHandler_UpdateProject(t *testing.T) {
 }
 
 func TestHandler_ListProjectAdmins(t *testing.T) {
+	ownerRoleID := "owner-role-id"
 	table := []struct {
 		title string
-		setup func(ps *mocks.ProjectService)
+		setup func(ps *mocks.ProjectService, us *mocks.UserService, ms *mocks.MembershipService, rs *mocks.RoleService)
 		req   *connect.Request[frontierv1beta1.ListProjectAdminsRequest]
 		want  *connect.Response[frontierv1beta1.ListProjectAdminsResponse]
 		err   error
 	}{
 		{
-			title: "should return internal error if project service return some error",
+			title: "should return internal error if membership service returns some error",
 			req: connect.NewRequest(&frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
 			}),
-			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, project.AdminPermission).Return([]user.User{}, errors.New("test error"))
+			setup: func(ps *mocks.ProjectService, us *mocks.UserService, ms *mocks.MembershipService, rs *mocks.RoleService) {
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(project.Project{ID: testProjectID}, nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), project.OwnerRole).Return(role.Role{ID: ownerRoleID}, nil)
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testProjectID, schema.ProjectNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+					RoleIDs:       []string{ownerRoleID},
+				}).Return(nil, errors.New("test error"))
 			},
 			want: nil,
 			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
@@ -513,8 +522,10 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 			req: connect.NewRequest(&frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
 			}),
-			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, project.AdminPermission).Return([]user.User{
+			setup: func(ps *mocks.ProjectService, us *mocks.UserService, ms *mocks.MembershipService, rs *mocks.RoleService) {
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(project.Project{ID: testProjectID}, nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), project.OwnerRole).Return(role.Role{ID: ownerRoleID}, nil)
+				testUsers := []user.User{
 					{
 						ID:        "user-1",
 						Name:      "User One",
@@ -523,7 +534,12 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					},
-				}, nil)
+				}
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testProjectID, schema.ProjectNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+					RoleIDs:       []string{ownerRoleID},
+				}).Return([]membership.Member{{PrincipalID: "user-1", PrincipalType: schema.UserPrincipal}}, nil)
+				us.EXPECT().GetByIDs(mock.AnythingOfType("context.backgroundCtx"), []string{"user-1"}).Return(testUsers, nil)
 			},
 			want: connect.NewResponse(&frontierv1beta1.ListProjectAdminsResponse{
 				Users: []*frontierv1beta1.User{
@@ -543,10 +559,18 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockProjectSrv := new(mocks.ProjectService)
+			mockUserSrv := new(mocks.UserService)
+			mockMembershipSrv := new(mocks.MembershipService)
+			mockRoleSrv := new(mocks.RoleService)
 			if tt.setup != nil {
-				tt.setup(mockProjectSrv)
+				tt.setup(mockProjectSrv, mockUserSrv, mockMembershipSrv, mockRoleSrv)
 			}
-			mockDep := ConnectHandler{projectService: mockProjectSrv}
+			mockDep := ConnectHandler{
+				projectService:    mockProjectSrv,
+				userService:       mockUserSrv,
+				membershipService: mockMembershipSrv,
+				roleService:       mockRoleSrv,
+			}
 			resp, err := mockDep.ListProjectAdmins(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -647,18 +671,21 @@ func TestHandler_DisableProject(t *testing.T) {
 func TestHandler_ListProjectUsers(t *testing.T) {
 	table := []struct {
 		title string
-		setup func(ps *mocks.ProjectService)
+		setup func(ps *mocks.ProjectService, us *mocks.UserService, ms *mocks.MembershipService)
 		req   *connect.Request[frontierv1beta1.ListProjectUsersRequest]
 		want  *connect.Response[frontierv1beta1.ListProjectUsersResponse]
 		err   error
 	}{
 		{
-			title: "should return internal error if project service return some error",
+			title: "should return internal error if membership service returns some error",
 			req: connect.NewRequest(&frontierv1beta1.ListProjectUsersRequest{
 				Id: testProjectID,
 			}),
-			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, project.MemberPermission).Return([]user.User{}, errors.New("test error"))
+			setup: func(ps *mocks.ProjectService, us *mocks.UserService, ms *mocks.MembershipService) {
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(project.Project{ID: testProjectID}, nil)
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testProjectID, schema.ProjectNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+				}).Return(nil, errors.New("test error"))
 			},
 			want: nil,
 			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
@@ -668,8 +695,9 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 			req: connect.NewRequest(&frontierv1beta1.ListProjectUsersRequest{
 				Id: testProjectID,
 			}),
-			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, project.MemberPermission).Return([]user.User{
+			setup: func(ps *mocks.ProjectService, us *mocks.UserService, ms *mocks.MembershipService) {
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(project.Project{ID: testProjectID}, nil)
+				testUsers := []user.User{
 					{
 						ID:        "user-1",
 						Name:      "User One",
@@ -678,7 +706,11 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					},
-				}, nil)
+				}
+				ms.EXPECT().ListPrincipalsByResource(mock.AnythingOfType("context.backgroundCtx"), testProjectID, schema.ProjectNamespace, membership.MemberFilter{
+					PrincipalType: schema.UserPrincipal,
+				}).Return([]membership.Member{{PrincipalID: "user-1", PrincipalType: schema.UserPrincipal}}, nil)
+				us.EXPECT().GetByIDs(mock.AnythingOfType("context.backgroundCtx"), []string{"user-1"}).Return(testUsers, nil)
 			},
 			want: connect.NewResponse(&frontierv1beta1.ListProjectUsersResponse{
 				Users: []*frontierv1beta1.User{
@@ -691,7 +723,12 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
 				},
-				RolePairs: []*frontierv1beta1.ListProjectUsersResponse_RolePair{},
+				RolePairs: []*frontierv1beta1.ListProjectUsersResponse_RolePair{
+					{
+						UserId: "user-1",
+						Roles:  []*frontierv1beta1.Role{},
+					},
+				},
 			}),
 			err: nil,
 		},
@@ -699,10 +736,16 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockProjectSrv := new(mocks.ProjectService)
+			mockUserSrv := new(mocks.UserService)
+			mockMembershipSrv := new(mocks.MembershipService)
 			if tt.setup != nil {
-				tt.setup(mockProjectSrv)
+				tt.setup(mockProjectSrv, mockUserSrv, mockMembershipSrv)
 			}
-			mockDep := ConnectHandler{projectService: mockProjectSrv}
+			mockDep := ConnectHandler{
+				projectService:    mockProjectSrv,
+				userService:       mockUserSrv,
+				membershipService: mockMembershipSrv,
+			}
 			resp, err := mockDep.ListProjectUsers(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
