@@ -110,7 +110,7 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody frontierv1beta1.ProjectRequestBody
+			var reqBody frontierv1beta1.UpdateProjectRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}

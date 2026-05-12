@@ -382,6 +382,21 @@ func TestHandler_GetProject(t *testing.T) {
 }
 
 func TestHandler_UpdateProject(t *testing.T) {
+	// Handler no longer forwards Organization to the service — UpdateProject
+	// cannot mutate a project's parent org.
+	updateInput := project.Project{
+		ID:       testProjectMap[testProjectID].ID,
+		Name:     testProjectMap[testProjectID].Name,
+		Metadata: testProjectMap[testProjectID].Metadata,
+	}
+	updateBody := &frontierv1beta1.UpdateProjectRequestBody{
+		Name: testProjectMap[testProjectID].Name,
+		Metadata: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"email": structpb.NewStringValue(testProjectMap[testProjectID].Metadata["email"].(string)),
+			},
+		},
+	}
 	tests := []struct {
 		name    string
 		setup   func(ps *mocks.ProjectService)
@@ -392,39 +407,23 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, errors.New("test error"))
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), updateInput).Return(project.Project{}, errors.New("test error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
-				Id: testProjectID,
-				Body: &frontierv1beta1.ProjectRequestBody{
-					Name:  testProjectMap[testProjectID].Name,
-					OrgId: testProjectMap[testProjectID].Organization.ID,
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"email": structpb.NewStringValue(testProjectMap[testProjectID].Metadata["email"].(string)),
-						},
-					},
-				},
+				Id:   testProjectID,
+				Body: updateBody,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
 		{
-			name: "should return bad request error if org id is not uuid",
+			name: "should translate organization.ErrInvalidUUID to invalid argument",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, organization.ErrInvalidUUID)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), updateInput).Return(project.Project{}, organization.ErrInvalidUUID)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
-				Id: testProjectID,
-				Body: &frontierv1beta1.ProjectRequestBody{
-					Name:  testProjectMap[testProjectID].Name,
-					OrgId: testProjectMap[testProjectID].Organization.ID,
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"email": structpb.NewStringValue(testProjectMap[testProjectID].Metadata["email"].(string)),
-						},
-					},
-				},
+				Id:   testProjectID,
+				Body: updateBody,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
@@ -432,19 +431,11 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if project not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), updateInput).Return(project.Project{}, project.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
-				Id: testProjectID,
-				Body: &frontierv1beta1.ProjectRequestBody{
-					Name:  testProjectMap[testProjectID].Name,
-					OrgId: testProjectMap[testProjectID].Organization.ID,
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"email": structpb.NewStringValue(testProjectMap[testProjectID].Metadata["email"].(string)),
-						},
-					},
-				},
+				Id:   testProjectID,
+				Body: updateBody,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
@@ -452,19 +443,11 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return conflict error if project service return err conflict",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrConflict)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), updateInput).Return(project.Project{}, project.ErrConflict)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
-				Id: testProjectID,
-				Body: &frontierv1beta1.ProjectRequestBody{
-					Name:  testProjectMap[testProjectID].Name,
-					OrgId: testProjectMap[testProjectID].Organization.ID,
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"email": structpb.NewStringValue(testProjectMap[testProjectID].Metadata["email"].(string)),
-						},
-					},
-				},
+				Id:   testProjectID,
+				Body: updateBody,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest),
@@ -472,19 +455,11 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return success if project service return nil error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(testProjectMap[testProjectID], nil)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), updateInput).Return(testProjectMap[testProjectID], nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
-				Id: testProjectID,
-				Body: &frontierv1beta1.ProjectRequestBody{
-					Name:  testProjectMap[testProjectID].Name,
-					OrgId: testProjectMap[testProjectID].Organization.ID,
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"email": structpb.NewStringValue(testProjectMap[testProjectID].Metadata["email"].(string)),
-						},
-					},
-				},
+				Id:   testProjectID,
+				Body: updateBody,
 			}),
 			want: connect.NewResponse(&frontierv1beta1.UpdateProjectResponse{
 				Project: &frontierv1beta1.Project{
