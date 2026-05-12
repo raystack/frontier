@@ -43,6 +43,10 @@ const (
 	ProjectMemberRoleChangedEvent Event = "project.member_role_changed"
 	ProjectMemberRemovedEvent     Event = "project.member_removed"
 
+	// Group Member Events
+	GroupMemberAddedEvent       Event = "group.member_added"
+	GroupMemberRoleChangedEvent Event = "group.member_role_changed"
+
 	// KYC Events
 	KYCVerifiedEvent   Event = "kyc.verified"
 	KYCUnverifiedEvent Event = "kyc.unverified"

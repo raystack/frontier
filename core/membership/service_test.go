@@ -1217,3 +1217,382 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 		})
 	}
 }
+
+func TestService_AddGroupMember(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	groupID := uuid.New().String()
+	userID := uuid.New().String()
+	ownerRoleID := uuid.New().String()
+	memberRoleID := uuid.New().String()
+
+	enabledUser := user.User{ID: userID, Title: "test-user", Email: "test@acme.dev", State: user.Enabled}
+	grp := group.Group{ID: groupID, OrganizationID: orgID, Title: "Test Group"}
+
+	groupMemberRelation := func(name string) relation.Relation {
+		return relation.Relation{
+			Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
+			RelationName: name,
+		}
+	}
+
+	tests := []struct {
+		name           string
+		setup          func(*mocks.PolicyService, *mocks.RelationService, *mocks.RoleService, *mocks.GroupService, *mocks.UserService, *mocks.AuditRecordRepository)
+		principalType  string
+		roleID         string
+		wantErr        error
+		wantErrContain string
+	}{
+		{
+			name: "should return error if group does not exist",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, grpSvc *mocks.GroupService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
+			},
+			roleID:  memberRoleID,
+			wantErr: group.ErrNotExist,
+		},
+		{
+			name: "should return error if principal type is unsupported",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, grpSvc *mocks.GroupService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+			},
+			principalType: schema.ServiceUserPrincipal,
+			roleID:        memberRoleID,
+			wantErr:       membership.ErrInvalidPrincipalType,
+		},
+		{
+			name: "should return error if user is disabled",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(user.User{ID: userID, State: user.Disabled}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: user.ErrDisabled,
+		},
+		{
+			name: "should return error if role is not valid for group scope",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: membership.ErrInvalidGroupRole,
+		},
+		{
+			name: "should return error if user is not a member of the org",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: membership.ErrNotOrgMember,
+		},
+		{
+			name: "should return ErrAlreadyMember if principal has existing group policy",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "g-p1"}}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: membership.ErrAlreadyMember,
+		},
+		{
+			name: "should succeed adding a member with member role",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: memberRoleID, ResourceID: groupID, ResourceType: schema.GroupNamespace,
+					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return(policy.Policy{ID: "new-p"}, nil)
+				relSvc.EXPECT().Create(ctx, groupMemberRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: nil,
+		},
+		{
+			name: "should succeed adding a member with owner role",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{ID: "new-p"}, nil)
+				relSvc.EXPECT().Create(ctx, groupMemberRelation(schema.OwnerRelationName)).Return(relation.Relation{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			roleID:  ownerRoleID,
+			wantErr: nil,
+		},
+		{
+			name: "should cleanup policy if relation creation fails",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{ID: "created-p"}, nil)
+				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, errors.New("spicedb unavailable"))
+				policySvc.EXPECT().Delete(ctx, "created-p").Return(nil)
+			},
+			roleID:         memberRoleID,
+			wantErrContain: "spicedb unavailable",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicySvc := mocks.NewPolicyService(t)
+			mockRelSvc := mocks.NewRelationService(t)
+			mockRoleSvc := mocks.NewRoleService(t)
+			mockGrpSvc := mocks.NewGroupService(t)
+			mockUserSvc := mocks.NewUserService(t)
+			mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+			if tt.setup != nil {
+				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockGrpSvc, mockUserSvc, mockAuditRepo)
+			}
+
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
+
+			principalType := tt.principalType
+			if principalType == "" {
+				principalType = schema.UserPrincipal
+			}
+			err := svc.AddGroupMember(ctx, groupID, userID, principalType, tt.roleID)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else if tt.wantErrContain != "" {
+				assert.ErrorContains(t, err, tt.wantErrContain)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestService_SetGroupMemberRole(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	groupID := uuid.New().String()
+	userID := uuid.New().String()
+	ownerRoleID := uuid.New().String()
+	memberRoleID := uuid.New().String()
+
+	enabledUser := user.User{ID: userID, Title: "test-user", Email: "test@acme.dev", State: user.Enabled}
+	grp := group.Group{ID: groupID, OrganizationID: orgID, Title: "Test Group"}
+
+	groupMemberRelation := func(name string) relation.Relation {
+		return relation.Relation{
+			Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
+			RelationName: name,
+		}
+	}
+
+	tests := []struct {
+		name           string
+		setup          func(*mocks.PolicyService, *mocks.RelationService, *mocks.RoleService, *mocks.GroupService, *mocks.UserService, *mocks.AuditRecordRepository)
+		principalType  string
+		roleID         string
+		wantErr        error
+		wantErrContain string
+	}{
+		{
+			name: "should return error if user is not a group member",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: membership.ErrNotMember,
+		},
+		{
+			name: "should skip write when role is unchanged",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: memberRoleID}}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: nil,
+		},
+		{
+			name: "should return error if demoting last owner",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: membership.ErrLastGroupOwnerRole,
+		},
+		{
+			name: "should succeed demoting owner to member with multiple owners (relation flips owner->member)",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: memberRoleID, ResourceID: groupID, ResourceType: schema.GroupNamespace,
+					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return(policy.Policy{ID: "new-p"}, nil)
+				relSvc.EXPECT().Delete(ctx, groupMemberRelation(schema.OwnerRelationName)).Return(nil)
+				relSvc.EXPECT().Delete(ctx, groupMemberRelation(schema.MemberRelationName)).Return(relation.ErrNotExist)
+				relSvc.EXPECT().Create(ctx, groupMemberRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: nil,
+		},
+		{
+			name: "should succeed promoting member to owner (relation flips member->owner)",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: memberRoleID}}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{ID: "new-p"}, nil)
+				relSvc.EXPECT().Delete(ctx, groupMemberRelation(schema.OwnerRelationName)).Return(relation.ErrNotExist)
+				relSvc.EXPECT().Delete(ctx, groupMemberRelation(schema.MemberRelationName)).Return(nil)
+				relSvc.EXPECT().Create(ctx, groupMemberRelation(schema.OwnerRelationName)).Return(relation.Relation{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			roleID:  ownerRoleID,
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicySvc := mocks.NewPolicyService(t)
+			mockRelSvc := mocks.NewRelationService(t)
+			mockRoleSvc := mocks.NewRoleService(t)
+			mockGrpSvc := mocks.NewGroupService(t)
+			mockUserSvc := mocks.NewUserService(t)
+			mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+			if tt.setup != nil {
+				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockGrpSvc, mockUserSvc, mockAuditRepo)
+			}
+
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
+
+			principalType := tt.principalType
+			if principalType == "" {
+				principalType = schema.UserPrincipal
+			}
+			err := svc.SetGroupMemberRole(ctx, groupID, userID, principalType, tt.roleID)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else if tt.wantErrContain != "" {
+				assert.ErrorContains(t, err, tt.wantErrContain)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestService_OnGroupCreated(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	groupID := uuid.New().String()
+	creatorID := uuid.New().String()
+	ownerRoleID := uuid.New().String()
+
+	enabledUser := user.User{ID: creatorID, Title: "creator", Email: "creator@acme.dev", State: user.Enabled}
+	grp := group.Group{ID: groupID, OrganizationID: orgID, Title: "Test Group"}
+
+	groupOrgRelation := relation.Relation{
+		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+		RelationName: schema.OrganizationRelationName,
+	}
+	orgGroupMemberRelation := relation.Relation{
+		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+		Subject: relation.Subject{
+			ID:              groupID,
+			Namespace:       schema.GroupNamespace,
+			SubRelationName: schema.MemberRelationName,
+		},
+		RelationName: schema.MemberRelationName,
+	}
+	creatorOwnerRelation := relation.Relation{
+		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{ID: creatorID, Namespace: schema.UserPrincipal},
+		RelationName: schema.OwnerRelationName,
+	}
+
+	t.Run("should link group<->org and add creator as owner", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockGrpSvc := mocks.NewGroupService(t)
+		mockUserSvc := mocks.NewUserService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, nil)
+		mockRelSvc.EXPECT().Create(ctx, orgGroupMemberRelation).Return(relation.Relation{}, nil)
+
+		mockGrpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+		mockUserSvc.EXPECT().GetByID(ctx, creatorID).Return(enabledUser, nil)
+		mockRoleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole, Scopes: []string{schema.GroupNamespace}}, nil)
+		mockUserSvc.EXPECT().GetByID(ctx, creatorID).Return(enabledUser, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: creatorID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: creatorID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{ID: "new-p"}, nil)
+		mockRelSvc.EXPECT().Create(ctx, creatorOwnerRelation).Return(relation.Relation{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
+
+		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should return error if hierarchy relation creation fails", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+
+		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, errors.New("spicedb unavailable"))
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
+		assert.ErrorContains(t, err, "link group to org")
+	})
+}
