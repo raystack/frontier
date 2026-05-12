@@ -1,6 +1,6 @@
 import { List, Text, Flex } from "@raystack/apsara";
+import { CoinIcon, CoinColoredIcon } from "@raystack/apsara/icons";
 import styles from "./side-panel.module.css";
-import { MixIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import { OrganizationContext } from "../contexts/organization-context";
@@ -52,7 +52,7 @@ export const TokensDetailsSection = () => {
             <Skeleton />
           ) : (
             <Flex gap={3}>
-              <MixIcon />
+              <CoinColoredIcon />
               <Text>{tokenBalance}</Text>
             </Flex>
           )}
@@ -67,7 +67,7 @@ export const TokensDetailsSection = () => {
             <Skeleton />
           ) : (
             <Flex gap={3}>
-              <MixIcon style={{ color: "var(--rs-color-foreground-base-tertiary)" }} />
+              <CoinIcon style={{ color: "var(--rs-color-foreground-base-tertiary)" }} />
               <Text>{tokensUsed}</Text>
             </Flex>
           )}
