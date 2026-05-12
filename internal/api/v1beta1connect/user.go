@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
@@ -34,14 +35,21 @@ func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Requ
 	errorLogger := NewErrorLogger()
 	var users []*frontierv1beta1.User
 
-	usersList, err := h.userService.List(ctx, user.Filter{
-		Limit:   request.Msg.GetPageSize(),
-		Page:    request.Msg.GetPageNum(),
-		Keyword: request.Msg.GetKeyword(),
-		OrgID:   request.Msg.GetOrgId(),
-		GroupID: request.Msg.GetGroupId(),
-		State:   user.State(request.Msg.GetState()),
-	})
+	var usersList []user.User
+	var err error
+	switch {
+	case request.Msg.GetOrgId() != "":
+		usersList, err = h.listUsersByResource(ctx, request.Msg.GetOrgId(), schema.OrganizationNamespace)
+	case request.Msg.GetGroupId() != "":
+		usersList, err = h.listUsersByResource(ctx, request.Msg.GetGroupId(), schema.GroupNamespace)
+	default:
+		usersList, err = h.userService.List(ctx, user.Filter{
+			Limit:   request.Msg.GetPageSize(),
+			Page:    request.Msg.GetPageNum(),
+			Keyword: request.Msg.GetKeyword(),
+			State:   user.State(request.Msg.GetState()),
+		})
+	}
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListAllUsers", err,
 			"org_id", request.Msg.GetOrgId(),
@@ -572,14 +580,21 @@ func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 
 	var users []*frontierv1beta1.User
-	usersList, err := h.userService.List(ctx, user.Filter{
-		Limit:   request.Msg.GetPageSize(),
-		Page:    request.Msg.GetPageNum(),
-		Keyword: request.Msg.GetKeyword(),
-		OrgID:   request.Msg.GetOrgId(),
-		GroupID: request.Msg.GetGroupId(),
-		State:   user.State(request.Msg.GetState()),
-	})
+	var usersList []user.User
+	var err error
+	switch {
+	case request.Msg.GetOrgId() != "":
+		usersList, err = h.listUsersByResource(ctx, request.Msg.GetOrgId(), schema.OrganizationNamespace)
+	case request.Msg.GetGroupId() != "":
+		usersList, err = h.listUsersByResource(ctx, request.Msg.GetGroupId(), schema.GroupNamespace)
+	default:
+		usersList, err = h.userService.List(ctx, user.Filter{
+			Limit:   request.Msg.GetPageSize(),
+			Page:    request.Msg.GetPageNum(),
+			Keyword: request.Msg.GetKeyword(),
+			State:   user.State(request.Msg.GetState()),
+		})
+	}
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListUsers", err,
 			"org_id", request.Msg.GetOrgId(),
@@ -601,6 +616,18 @@ func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request
 		Count: int32(len(users)),
 		Users: users,
 	}), nil
+}
+
+// listUsersByResource returns users that have at least one policy on the given resource.
+func (h *ConnectHandler) listUsersByResource(ctx context.Context, resourceID, resourceType string) ([]user.User, error) {
+	members, err := h.membershipService.ListPrincipalsByResource(ctx, resourceID, resourceType, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+	})
+	if err != nil {
+		return nil, err
+	}
+	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
+	return h.userService.GetByIDs(ctx, userIDs)
 }
 
 func isValidEmail(str string) bool {

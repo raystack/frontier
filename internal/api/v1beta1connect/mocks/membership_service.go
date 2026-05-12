@@ -5,6 +5,7 @@ package mocks
 import (
 	context "context"
 
+	membership "github.com/raystack/frontier/core/membership"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -67,6 +68,67 @@ func (_c *MembershipService_AddOrganizationMember_Call) Return(_a0 error) *Membe
 }
 
 func (_c *MembershipService_AddOrganizationMember_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_AddOrganizationMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPrincipalsByResource provides a mock function with given fields: ctx, resourceID, resourceType, filter
+func (_m *MembershipService) ListPrincipalsByResource(ctx context.Context, resourceID string, resourceType string, filter membership.MemberFilter) ([]membership.Member, error) {
+	ret := _m.Called(ctx, resourceID, resourceType, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPrincipalsByResource")
+	}
+
+	var r0 []membership.Member
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, membership.MemberFilter) ([]membership.Member, error)); ok {
+		return rf(ctx, resourceID, resourceType, filter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, membership.MemberFilter) []membership.Member); ok {
+		r0 = rf(ctx, resourceID, resourceType, filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]membership.Member)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, membership.MemberFilter) error); ok {
+		r1 = rf(ctx, resourceID, resourceType, filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MembershipService_ListPrincipalsByResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPrincipalsByResource'
+type MembershipService_ListPrincipalsByResource_Call struct {
+	*mock.Call
+}
+
+// ListPrincipalsByResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resourceID string
+//   - resourceType string
+//   - filter membership.MemberFilter
+func (_e *MembershipService_Expecter) ListPrincipalsByResource(ctx interface{}, resourceID interface{}, resourceType interface{}, filter interface{}) *MembershipService_ListPrincipalsByResource_Call {
+	return &MembershipService_ListPrincipalsByResource_Call{Call: _e.mock.On("ListPrincipalsByResource", ctx, resourceID, resourceType, filter)}
+}
+
+func (_c *MembershipService_ListPrincipalsByResource_Call) Run(run func(ctx context.Context, resourceID string, resourceType string, filter membership.MemberFilter)) *MembershipService_ListPrincipalsByResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(membership.MemberFilter))
+	})
+	return _c
+}
+
+func (_c *MembershipService_ListPrincipalsByResource_Call) Return(_a0 []membership.Member, _a1 error) *MembershipService_ListPrincipalsByResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MembershipService_ListPrincipalsByResource_Call) RunAndReturn(run func(context.Context, string, string, membership.MemberFilter) ([]membership.Member, error)) *MembershipService_ListPrincipalsByResource_Call {
 	_c.Call.Return(run)
 	return _c
 }

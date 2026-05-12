@@ -15,8 +15,10 @@ import (
 	"log/slog"
 
 	"github.com/raystack/frontier/billing/plan"
-
+	"github.com/raystack/frontier/core/membership"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stripe/stripe-go/v79/webhook"
 	"golang.org/x/sync/singleflight"
 
@@ -54,7 +56,15 @@ type PlanService interface {
 }
 
 type UserService interface {
-	ListByOrg(ctx context.Context, orgID string, roleFilter string) ([]user.User, error)
+	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
+}
+
+type MembershipService interface {
+	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
+}
+
+type RoleService interface {
+	Get(ctx context.Context, idOrName string) (role.Role, error)
 }
 
 type CreditService interface {
@@ -66,15 +76,17 @@ type InvoiceService interface {
 }
 
 type Service struct {
-	billingConf     billing.Config
-	checkoutService CheckoutService
-	customerService CustomerService
-	orgService      OrganizationService
-	planService     PlanService
-	userService     UserService
-	subsService     SubscriptionService
-	creditService   CreditService
-	invoiceService  InvoiceService
+	billingConf       billing.Config
+	checkoutService   CheckoutService
+	customerService   CustomerService
+	orgService        OrganizationService
+	planService       PlanService
+	userService       UserService
+	membershipService MembershipService
+	roleService       RoleService
+	subsService       SubscriptionService
+	creditService     CreditService
+	invoiceService    InvoiceService
 
 	sf singleflight.Group
 }
@@ -82,18 +94,21 @@ type Service struct {
 func NewService(billingConf billing.Config, organizationService OrganizationService,
 	checkoutService CheckoutService, customerService CustomerService,
 	planService PlanService, userService UserService,
+	membershipService MembershipService, roleService RoleService,
 	subsService SubscriptionService, creditService CreditService,
 	invoiceService InvoiceService) *Service {
 	return &Service{
-		billingConf:     billingConf,
-		orgService:      organizationService,
-		checkoutService: checkoutService,
-		customerService: customerService,
-		planService:     planService,
-		userService:     userService,
-		subsService:     subsService,
-		creditService:   creditService,
-		invoiceService:  invoiceService,
+		billingConf:       billingConf,
+		orgService:        organizationService,
+		checkoutService:   checkoutService,
+		customerService:   customerService,
+		planService:       planService,
+		userService:       userService,
+		membershipService: membershipService,
+		roleService:       roleService,
+		subsService:       subsService,
+		creditService:     creditService,
+		invoiceService:    invoiceService,
 
 		sf: singleflight.Group{},
 	}
@@ -117,13 +132,9 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get organization: %w", err)
 		}
-		users, err := p.userService.ListByOrg(ctx, org.ID, organization.AdminRole)
+		emailID, err := p.firstOrgAdminEmail(ctx, org.ID)
 		if err != nil {
-			return fmt.Errorf("failed to list users: %w", err)
-		}
-		emailID := ""
-		if len(users) > 0 {
-			emailID = users[0].Email
+			return fmt.Errorf("failed to list org admins: %w", err)
 		}
 		customr, err := p.customerService.Create(ctx, customer.Customer{
 			OrgID:    org.ID,
@@ -183,6 +194,33 @@ func getCustomerName(org organization.Organization) string {
 		return org.Title
 	}
 	return org.Name
+}
+
+// firstOrgAdminEmail returns the email of any org admin (org owner role),
+// or an empty string if there are none.
+func (p *Service) firstOrgAdminEmail(ctx context.Context, orgID string) (string, error) {
+	ownerRole, err := p.roleService.Get(ctx, organization.AdminRole)
+	if err != nil {
+		return "", fmt.Errorf("get owner role: %w", err)
+	}
+	members, err := p.membershipService.ListPrincipalsByResource(ctx, orgID, schema.OrganizationNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+		RoleIDs:       []string{ownerRole.ID},
+	})
+	if err != nil {
+		return "", err
+	}
+	if len(members) == 0 {
+		return "", nil
+	}
+	users, err := p.userService.GetByIDs(ctx, []string{members[0].PrincipalID})
+	if err != nil {
+		return "", err
+	}
+	if len(users) == 0 {
+		return "", nil
+	}
+	return users[0].Email, nil
 }
 
 func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEvent) error {
