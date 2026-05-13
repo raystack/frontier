@@ -1077,10 +1077,12 @@ func (s *Service) AddGroupMember(ctx context.Context, groupID, principalID, prin
 	return nil
 }
 
-// SetGroupMemberRole upserts a principal's role in a group: adds the principal
-// as a member if they don't already have a group policy, or changes their role
-// if they do. New adds require the principal to be a member of the group's
-// parent organization. Demoting the last owner returns ErrLastGroupOwnerRole.
+// SetGroupMemberRole upserts the role assignment for a principal in a group:
+// if the principal has no existing group policy, they are added with the
+// requested role; otherwise their existing role is replaced with the
+// requested role. New adds require the principal to be a member of the
+// group's parent organization. Demoting the last owner returns
+// ErrLastGroupOwnerRole.
 func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error {
 	grp, err := s.groupService.Get(ctx, groupID)
 	if err != nil {
