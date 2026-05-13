@@ -46,6 +46,7 @@ type OrgCreateSchema = z.infer<typeof orgCreateSchema>;
 const otherTypePrefix = "Other - ";
 
 export type CreateOrganizationPanelProps = {
+  open?: boolean;
   onClose: () => void;
   organizationTypes?: string[];
   appUrl?: string;
@@ -54,6 +55,7 @@ export type CreateOrganizationPanelProps = {
 };
 
 export function CreateOrganizationPanel({
+  open = false,
   onClose,
   organizationTypes = [],
   appUrl = "",
@@ -127,7 +129,7 @@ export function CreateOrganizationPanel({
   const showOtherTypeField = watch("type", "other") === "other";
 
   return (
-    <Drawer open>
+    <Drawer open={open}>
       <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-org-panel"

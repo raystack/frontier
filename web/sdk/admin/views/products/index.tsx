@@ -83,13 +83,12 @@ export default function ProductsView({
             emptyState={noDataChildren}
             classNames={{ root: styles.tableRoot }}
           />
-          {product && (
-            <ProductDetails
-              product={product}
-              onClose={onCloseDetail ?? (() => {})}
-              onNavigateToPrices={onNavigateToPrices ?? (() => {})}
-            />
-          )}
+          <ProductDetails
+            product={product ?? undefined}
+            open={!!product}
+            onClose={onCloseDetail ?? (() => {})}
+            onNavigateToPrices={onNavigateToPrices ?? (() => {})}
+          />
         </Flex>
       </DataTable>
     </>

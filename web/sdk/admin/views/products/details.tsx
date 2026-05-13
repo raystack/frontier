@@ -4,20 +4,26 @@ import styles from "./products.module.css";
 import { SheetHeader } from "../../components/SheetHeader";
 
 type ProductDetailsProps = {
-  product: Product;
+  product?: Product;
+  open?: boolean;
   onClose: () => void;
   onNavigateToPrices: (productId: string) => void;
 };
 
 export default function ProductDetails({
   product,
+  open = false,
   onClose,
   onNavigateToPrices,
 }: ProductDetailsProps) {
   return (
-    <Drawer open>
+    <Drawer open={open}>
       <Drawer.Content showCloseButton={false} className={styles.sheetContent}>
-        <SheetHeader title="Product Details" onClick={onClose} />
+        <SheetHeader
+          title="Product Details"
+          onClick={onClose}
+          data-test-id="frontier-admin-product-details-header"
+        />
         <Flex className={styles.sheetContentBody} direction="column" gap={9}>
           <Text size="regular">{product?.title}</Text>
           <Flex direction="column" gap={9}>

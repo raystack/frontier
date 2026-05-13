@@ -30,10 +30,11 @@ const NewWebookSchema = z.object({
 export type NewWebhook = z.infer<typeof NewWebookSchema>;
 
 export type CreateWebhooksProps = {
+  open?: boolean;
   onClose?: () => void;
 };
 
-export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksProps = {}) {
+export default function CreateWebhooks({ open = false, onClose: onCloseProp }: CreateWebhooksProps = {}) {
   const { invalidateWebhooksList } = useWebhookQueries();
 
   const onOpenChange = useCallback(() => {
@@ -73,7 +74,7 @@ export default function CreateWebhooks({ onClose: onCloseProp }: CreateWebhooksP
   };
 
   return (
-    <Drawer open={true}>
+    <Drawer open={open}>
       <Drawer.Content
         side="right"
         // @ts-ignore

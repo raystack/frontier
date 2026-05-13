@@ -185,18 +185,17 @@ export const OrganizationListView = ({
   }
   return (
     <>
-      {showCreatePanel ? (
-        <CreateOrganizationPanel
-          onClose={closeCreateOrgPanel}
-          organizationTypes={organizationTypes}
-          appUrl={appUrl}
-          countries={countries}
-          onSuccess={(id) => {
-            closeCreateOrgPanel();
-            onNavigateToOrg?.(id);
-          }}
-        />
-      ) : null}
+      <CreateOrganizationPanel
+        open={showCreatePanel}
+        onClose={closeCreateOrgPanel}
+        organizationTypes={organizationTypes}
+        appUrl={appUrl}
+        countries={countries}
+        onSuccess={(id) => {
+          closeCreateOrgPanel();
+          onNavigateToOrg?.(id);
+        }}
+      />
       <PageTitle title={t.organization({ plural: true, case: "capital" })} appName={appName} />
       <DataTable
         query={tableQuery}

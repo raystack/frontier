@@ -30,11 +30,12 @@ const UpdateWebhookSchema = z.object({
 export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;
 
 export type UpdateWebhooksProps = {
+  open?: boolean;
   webhookId?: string;
   onClose?: () => void;
 };
 
-export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCloseProp }: UpdateWebhooksProps = {}) {
+export default function UpdateWebhooks({ open = false, webhookId: webhookIdProp, onClose: onCloseProp }: UpdateWebhooksProps = {}) {
   const webhookId = webhookIdProp ?? "";
 
   const {
@@ -100,7 +101,7 @@ export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCl
   }, [webhook, methods.reset]);
 
   return (
-    <Drawer open={true}>
+    <Drawer open={open}>
       <Drawer.Content
         side="right"
         // @ts-ignore
