@@ -1142,12 +1142,20 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 
 // OnGroupCreated wires up SpiceDB relations for a newly-created group:
 // links the group to its parent organization (both directions) and adds the
-// creator as owner via AddGroupMember.
+// creator as owner via AddGroupMember. If the owner add fails, hierarchy
+// relations are best-effort rolled back to avoid an unowned, half-linked group.
 func (s *Service) OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error {
 	if err := s.linkGroupToOrg(ctx, groupID, orgID); err != nil {
 		return err
 	}
 	if err := s.AddGroupMember(ctx, groupID, creatorID, creatorType, schema.GroupOwnerRole); err != nil {
+		if cleanupErr := s.unlinkGroupFromOrg(ctx, groupID, orgID); cleanupErr != nil {
+			s.log.WarnContext(ctx, "group hierarchy cleanup failed after owner add failure",
+				"group_id", groupID,
+				"org_id", orgID,
+				"error", cleanupErr,
+			)
+		}
 		return err
 	}
 	return nil
@@ -1156,12 +1164,16 @@ func (s *Service) OnGroupCreated(ctx context.Context, groupID, orgID, creatorID,
 // linkGroupToOrg creates the two hierarchy relations between a group and its org:
 //   - group#org@organization      (identity link from group to org)
 //   - organization#member@group#member (lets org#member traverse to group members)
+//
+// If the second relation fails, the first is best-effort rolled back so we
+// don't leave a one-way link.
 func (s *Service) linkGroupToOrg(ctx context.Context, groupID, orgID string) error {
-	if _, err := s.relationService.Create(ctx, relation.Relation{
+	groupOrg := relation.Relation{
 		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
 		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
 		RelationName: schema.OrganizationRelationName,
-	}); err != nil {
+	}
+	if _, err := s.relationService.Create(ctx, groupOrg); err != nil {
 		return fmt.Errorf("link group to org: %w", err)
 	}
 
@@ -1174,9 +1186,42 @@ func (s *Service) linkGroupToOrg(ctx context.Context, groupID, orgID string) err
 		},
 		RelationName: schema.MemberRelationName,
 	}); err != nil {
+		if delErr := s.relationService.Delete(ctx, groupOrg); delErr != nil && !errors.Is(delErr, relation.ErrNotExist) {
+			s.log.WarnContext(ctx, "group->org rollback failed after org member relation failure",
+				"group_id", groupID,
+				"org_id", orgID,
+				"error", delErr,
+			)
+		}
 		return fmt.Errorf("add group as org member: %w", err)
 	}
 
+	return nil
+}
+
+// unlinkGroupFromOrg removes both hierarchy relations between a group and its
+// org. Used as best-effort cleanup when group-create wiring fails partway.
+// relation.ErrNotExist is ignored; any other error is returned.
+func (s *Service) unlinkGroupFromOrg(ctx context.Context, groupID, orgID string) error {
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+		RelationName: schema.OrganizationRelationName,
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
+
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+		Subject: relation.Subject{
+			ID:              groupID,
+			Namespace:       schema.GroupNamespace,
+			SubRelationName: schema.MemberRelationName,
+		},
+		RelationName: schema.MemberRelationName,
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
 	return nil
 }
 

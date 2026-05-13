@@ -1796,9 +1796,16 @@ func TestConnectHandler_SetGroupMemberRole(t *testing.T) {
 			name: "should return invalid argument if principal type is unsupported",
 			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(membership.ErrInvalidPrincipalType)
+				// handler must forward the unsupported principal_type to the service unchanged
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.ServiceUserPrincipal, someRoleID).Return(membership.ErrInvalidPrincipalType)
 			},
-			request: baseRequest(),
+			request: connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+				OrgId:         testOrgID,
+				GroupId:       someGroupID,
+				PrincipalId:   somePrincipalID,
+				PrincipalType: schema.ServiceUserPrincipal,
+				RoleId:        someRoleID,
+			}),
 			wantErr: connect.NewError(connect.CodeInvalidArgument, membership.ErrInvalidPrincipalType),
 		},
 		{

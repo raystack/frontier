@@ -1595,4 +1595,47 @@ func TestService_OnGroupCreated(t *testing.T) {
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.ErrorContains(t, err, "link group to org")
 	})
+
+	t.Run("should rollback first hierarchy relation if second fails", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+
+		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, nil)
+		mockRelSvc.EXPECT().Create(ctx, orgGroupMemberRelation).Return(relation.Relation{}, errors.New("spicedb unavailable"))
+		// rollback: delete the first hierarchy relation
+		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
+		assert.ErrorContains(t, err, "add group as org member")
+	})
+
+	t.Run("should rollback both hierarchy relations if owner add fails", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockGrpSvc := mocks.NewGroupService(t)
+		mockUserSvc := mocks.NewUserService(t)
+
+		// linkGroupToOrg succeeds
+		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, nil)
+		mockRelSvc.EXPECT().Create(ctx, orgGroupMemberRelation).Return(relation.Relation{}, nil)
+
+		// AddGroupMember fails before policy creation (group fetch fails)
+		mockGrpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, errors.New("db down"))
+
+		// unused mocks: only here for completeness, won't be called
+		_ = mockRoleSvc
+		_ = mockUserSvc
+
+		// rollback: delete both hierarchy relations
+		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
+		mockRelSvc.EXPECT().Delete(ctx, orgGroupMemberRelation).Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
+		assert.ErrorContains(t, err, "db down")
+	})
 }
