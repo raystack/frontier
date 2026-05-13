@@ -38,11 +38,16 @@ type PolicyService interface {
 	GroupMemberCount(ctx context.Context, ids []string) ([]policy.MemberCount, error)
 }
 
+type MembershipService interface {
+	OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error
+}
+
 type Service struct {
-	repository      Repository
-	relationService RelationService
-	authnService    AuthnService
-	policyService   PolicyService
+	repository        Repository
+	relationService   RelationService
+	authnService      AuthnService
+	policyService     PolicyService
+	membershipService MembershipService
 }
 
 func NewService(repository Repository, relationService RelationService,
@@ -53,6 +58,12 @@ func NewService(repository Repository, relationService RelationService,
 		authnService:    authnService,
 		policyService:   policyService,
 	}
+}
+
+// SetMembershipService sets the membership dependency after construction to break
+// the circular init order between group and membership services.
+func (s *Service) SetMembershipService(ms MembershipService) {
+	s.membershipService = ms
 }
 
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
@@ -66,17 +77,7 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	// attach group to org
-	if err = s.addAsOrgMember(ctx, newGroup); err != nil {
-		return Group{}, err
-	}
-	// add relationship between group to org
-	if err = s.addOrgToGroup(ctx, newGroup); err != nil {
-		return Group{}, err
-	}
-
-	// attach current user to group as owner
-	if err = s.addOwner(ctx, newGroup.ID, principal); err != nil {
+	if err = s.membershipService.OnGroupCreated(ctx, newGroup.ID, newGroup.OrganizationID, principal.ID, principal.Type); err != nil {
 		return Group{}, err
 	}
 
@@ -190,36 +191,6 @@ func (s Service) AddMember(ctx context.Context, groupID string, principal authen
 	return nil
 }
 
-// addOwner adds a user as an owner of group by creating a policy of owner role and an owner relation
-func (s Service) addOwner(ctx context.Context, groupID string, principal authenticate.Principal) error {
-	pol := policy.Policy{
-		RoleID:        schema.GroupOwnerRole,
-		ResourceID:    groupID,
-		ResourceType:  schema.GroupNamespace,
-		PrincipalID:   principal.ID,
-		PrincipalType: principal.Type,
-	}
-	if _, err := s.policyService.Create(ctx, pol); err != nil {
-		return err
-	}
-	// then create a relation between group and user
-	rel := relation.Relation{
-		Object: relation.Object{
-			ID:        groupID,
-			Namespace: schema.GroupNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        principal.ID,
-			Namespace: principal.Type,
-		},
-		RelationName: schema.OwnerRelationName,
-	}
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
-	return nil
-}
-
 // add a policy to user as member of group
 func (s Service) addMemberPolicy(ctx context.Context, groupID string, principal authenticate.Principal) error {
 	pol := policy.Policy{
@@ -232,51 +203,6 @@ func (s Service) addMemberPolicy(ctx context.Context, groupID string, principal 
 	if _, err := s.policyService.Create(ctx, pol); err != nil {
 		return err
 	}
-	return nil
-}
-
-// addOrgToGroup creates an inverse relation that connects group to org
-func (s Service) addOrgToGroup(ctx context.Context, team Group) error {
-	rel := relation.Relation{
-		Object: relation.Object{
-			ID:        team.ID,
-			Namespace: schema.GroupNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        team.OrganizationID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		RelationName: schema.OrganizationRelationName,
-	}
-
-	_, err := s.relationService.Create(ctx, rel)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// addAsOrgMember connects group as a member to org
-func (s Service) addAsOrgMember(ctx context.Context, team Group) error {
-	rel := relation.Relation{
-		Object: relation.Object{
-			ID:        team.OrganizationID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			ID:              team.ID,
-			Namespace:       schema.GroupNamespace,
-			SubRelationName: schema.MemberRelationName,
-		},
-		RelationName: schema.MemberRelationName,
-	}
-
-	_, err := s.relationService.Create(ctx, rel)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
