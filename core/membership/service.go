@@ -375,23 +375,10 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 	// clean up SpiceDB relations
 	for _, g := range orgGroups {
 		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
-			s.log.Error("partial failure removing member: group relation cleanup failed, manual cleanup may be needed",
-				"org_id", orgID,
-				"group_id", g.ID,
-				"principal_id", principalID,
-				"principal_type", principalType,
-				"error", err,
-			)
 			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
 		}
 	}
 	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
-		s.log.Error("partial failure removing member: org relation cleanup failed, manual cleanup may be needed",
-			"org_id", orgID,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"error", err,
-		)
 		return fmt.Errorf("remove org relations: %w", err)
 	}
 
