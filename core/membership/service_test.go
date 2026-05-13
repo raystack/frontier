@@ -406,6 +406,22 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 			wantErr: membership.ErrLastOwnerRole,
 		},
 		{
+			name: "should return ErrLastOwnerRole when DB guard rejects concurrent demotion",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				// app-level check passes (sees 2 owners)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+				// DB-level guard rejects (concurrent request already deleted the other owner)
+				policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(policy.ErrLastRoleGuard)
+			},
+			roleID:  viewerRoleID,
+			wantErr: membership.ErrLastOwnerRole,
+		},
+		{
 			name: "should succeed demoting owner to viewer with multiple owners",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
@@ -414,8 +430,8 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
 				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}, {ID: "p2", RoleID: ownerRoleID}}, nil)
-				// replace policy
-				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				// replace policy with owner guard
+				policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(nil)
 				policySvc.EXPECT().Create(ctx, policy.Policy{
 					RoleID: viewerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
@@ -438,7 +454,7 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: viewerRoleID}}, nil)
 				// promoting to owner — min-owner constraint doesn't apply
 				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				// replace policy
+				// existing policy is viewer (non-owner), uses plain Delete
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				policySvc.EXPECT().Create(ctx, policy.Policy{
 					RoleID: ownerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
@@ -462,7 +478,7 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
 				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
-				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
 				// relation delete fails with a real error — logged, no rollback
 				relSvc.EXPECT().Delete(ctx, orgRelation(schema.OwnerRelationName)).Return(errors.New("spicedb connection error"))
@@ -478,6 +494,7 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: managerRoleID}}, nil)
 				roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				// existing policy is manager (non-owner), uses plain Delete
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
 				// both relation deletes return not-found — that's fine, should continue
@@ -546,7 +563,7 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
 		mockRoleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
 		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
-		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+		mockPolicySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(nil)
 		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
 		mockRelSvc.EXPECT().Delete(ctx, mock.Anything).Return(relation.ErrNotExist).Times(2)
 		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
@@ -752,10 +769,10 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "proj-p1").Return(errors.New("delete failed"))
 			},
-			wantErrContain: "delete project policy",
+			wantErrContain: "delete sub-resource policy",
 		},
 		{
-			name: "should return error if org relation removal fails without deleting org policies",
+			name: "should return error if org relation removal fails after org policies deleted",
 			setup: func(d testDeps) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
@@ -763,9 +780,11 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
 				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
-					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
+					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: viewerRoleID},
 				}, nil)
-				// org policy Delete should NOT be called — relations fail first, org policies are last
+				// org policy deleted first (viewer, plain Delete)
+				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				// then relation removal fails
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(errors.New("spicedb down"))
 			},
 			wantErrContain: "remove org relations",

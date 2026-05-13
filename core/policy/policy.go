@@ -13,6 +13,7 @@ type Repository interface {
 	Count(ctx context.Context, f Filter) (int64, error)
 	Upsert(ctx context.Context, pol Policy) (Policy, error)
 	Delete(ctx context.Context, id string) error
+	DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error
 	GroupMemberCount(ctx context.Context, IDs []string) ([]MemberCount, error)
 	ProjectMemberCount(ctx context.Context, IDs []string) ([]MemberCount, error)
 	OrgMemberCount(ctx context.Context, ID string) (MemberCount, error)
