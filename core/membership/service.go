@@ -1019,3 +1019,362 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 
 	return members, nil
 }
+
+// AddGroupMember adds a principal as a member of a group with an explicit role.
+// Returns ErrAlreadyMember if the principal already has a policy on this group.
+// The principal must be a member of the group's parent organization.
+func (s *Service) AddGroupMember(ctx context.Context, groupID, principalID, principalType, roleID string) error {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	principal, err := s.validateGroupPrincipal(ctx, principalID, principalType)
+	if err != nil {
+		return err
+	}
+
+	fetchedRole, err := s.validateGroupRole(ctx, roleID, grp.OrganizationID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.validateOrgMembership(ctx, grp.OrganizationID, principalID, principalType); err != nil {
+		return err
+	}
+
+	existing, err := s.policyService.List(ctx, policy.Filter{
+		GroupID:       groupID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+	if len(existing) > 0 {
+		return ErrAlreadyMember
+	}
+
+	createdPolicy, err := s.createPolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, fetchedRole.ID)
+	if err != nil {
+		return err
+	}
+
+	relationName := groupRoleToRelation(fetchedRole)
+	if err := s.createRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, relationName); err != nil {
+		if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
+			s.log.WarnContext(ctx, "orphaned policy: relation creation failed and policy cleanup also failed",
+				"policy_id", createdPolicy.ID,
+				"group_id", groupID,
+				"principal_id", principalID,
+				"policy_delete_error", deleteErr,
+			)
+		}
+		return err
+	}
+
+	s.auditGroupMemberAdded(ctx, grp, principal, fetchedRole.ID)
+	return nil
+}
+
+// SetGroupMemberRole changes an existing member's role in a group.
+// Returns ErrNotMember if the principal has no existing policy on the group.
+// Enforces the min-owner constraint: demoting the last owner returns ErrLastGroupOwnerRole.
+func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	principal, err := s.validateGroupPrincipal(ctx, principalID, principalType)
+	if err != nil {
+		return err
+	}
+
+	fetchedRole, err := s.validateGroupRole(ctx, roleID, grp.OrganizationID)
+	if err != nil {
+		return err
+	}
+	resolvedRoleID := fetchedRole.ID
+
+	existing, err := s.policyService.List(ctx, policy.Filter{
+		GroupID:       groupID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+	if len(existing) == 0 {
+		return ErrNotMember
+	}
+
+	// skip if the user already has exactly this role
+	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
+		return nil
+	}
+
+	if err := s.validateMinGroupOwnerConstraint(ctx, groupID, resolvedRoleID, existing); err != nil {
+		return err
+	}
+
+	if err := s.replacePolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, resolvedRoleID, existing); err != nil {
+		return err
+	}
+
+	newRelation := groupRoleToRelation(fetchedRole)
+	oldRelations := []string{schema.OwnerRelationName, schema.MemberRelationName}
+	if err := s.replaceRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, oldRelations, newRelation); err != nil {
+		s.log.ErrorContext(ctx, "membership state inconsistent: policy replaced but group relation update failed, needs manual fix",
+			"group_id", groupID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"new_role_id", resolvedRoleID,
+			"expected_relation", newRelation,
+			"error", err,
+		)
+		return err
+	}
+
+	s.auditGroupMemberRoleChanged(ctx, grp, principal, resolvedRoleID)
+	return nil
+}
+
+// OnGroupCreated wires up SpiceDB relations for a newly-created group:
+// links the group to its parent organization (both directions) and adds the
+// creator as owner via AddGroupMember. If the owner add fails, hierarchy
+// relations are best-effort rolled back to avoid an unowned, half-linked group.
+func (s *Service) OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error {
+	if err := s.linkGroupToOrg(ctx, groupID, orgID); err != nil {
+		return err
+	}
+	if err := s.AddGroupMember(ctx, groupID, creatorID, creatorType, schema.GroupOwnerRole); err != nil {
+		if cleanupErr := s.unlinkGroupFromOrg(ctx, groupID, orgID); cleanupErr != nil {
+			s.log.WarnContext(ctx, "group hierarchy cleanup failed after owner add failure",
+				"group_id", groupID,
+				"org_id", orgID,
+				"error", cleanupErr,
+			)
+		}
+		return err
+	}
+	return nil
+}
+
+// linkGroupToOrg creates the two hierarchy relations between a group and its org:
+//   - group#org@organization      (identity link from group to org)
+//   - organization#member@group#member (lets org#member traverse to group members)
+//
+// If the second relation fails, the first is best-effort rolled back so we
+// don't leave a one-way link.
+func (s *Service) linkGroupToOrg(ctx context.Context, groupID, orgID string) error {
+	groupOrg := relation.Relation{
+		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+		RelationName: schema.OrganizationRelationName,
+	}
+	if _, err := s.relationService.Create(ctx, groupOrg); err != nil {
+		return fmt.Errorf("link group to org: %w", err)
+	}
+
+	if _, err := s.relationService.Create(ctx, relation.Relation{
+		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+		Subject: relation.Subject{
+			ID:              groupID,
+			Namespace:       schema.GroupNamespace,
+			SubRelationName: schema.MemberRelationName,
+		},
+		RelationName: schema.MemberRelationName,
+	}); err != nil {
+		if delErr := s.relationService.Delete(ctx, groupOrg); delErr != nil && !errors.Is(delErr, relation.ErrNotExist) {
+			s.log.WarnContext(ctx, "group->org rollback failed after org member relation failure",
+				"group_id", groupID,
+				"org_id", orgID,
+				"error", delErr,
+			)
+		}
+		return fmt.Errorf("add group as org member: %w", err)
+	}
+
+	return nil
+}
+
+// unlinkGroupFromOrg removes both hierarchy relations between a group and its
+// org. Used as best-effort cleanup when group-create wiring fails partway.
+// relation.ErrNotExist is ignored; any other error is returned.
+func (s *Service) unlinkGroupFromOrg(ctx context.Context, groupID, orgID string) error {
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+		RelationName: schema.OrganizationRelationName,
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
+
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+		Subject: relation.Subject{
+			ID:              groupID,
+			Namespace:       schema.GroupNamespace,
+			SubRelationName: schema.MemberRelationName,
+		},
+		RelationName: schema.MemberRelationName,
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
+// validateGroupRole checks that the role is valid for group scope:
+//   - a platform-wide role scoped to groups, or
+//   - a custom role created for the group's parent organization.
+func (s *Service) validateGroupRole(ctx context.Context, roleID, orgID string) (role.Role, error) {
+	fetchedRole, err := s.roleService.Get(ctx, roleID)
+	if err != nil {
+		return role.Role{}, err
+	}
+	if !slices.Contains(fetchedRole.Scopes, schema.GroupNamespace) {
+		return role.Role{}, ErrInvalidGroupRole
+	}
+	if fetchedRole.OrgID == orgID {
+		return fetchedRole, nil
+	}
+	if utils.IsNullUUID(fetchedRole.OrgID) {
+		return fetchedRole, nil
+	}
+	return role.Role{}, ErrInvalidGroupRole
+}
+
+// validateGroupPrincipal fetches and validates the principal for group operations.
+// Currently only app/user is supported; the switch is structured so future principal
+// types (e.g. serviceuser) can be enabled here without touching call sites.
+func (s *Service) validateGroupPrincipal(ctx context.Context, principalID, principalType string) (principalInfo, error) {
+	switch principalType {
+	case schema.UserPrincipal:
+		usr, err := s.userService.GetByID(ctx, principalID)
+		if err != nil {
+			return principalInfo{}, err
+		}
+		if usr.State == user.Disabled {
+			return principalInfo{}, user.ErrDisabled
+		}
+		return principalInfo{
+			ID:    usr.ID,
+			Type:  schema.UserPrincipal,
+			Name:  usr.Title,
+			Email: usr.Email,
+		}, nil
+	default:
+		return principalInfo{}, ErrInvalidPrincipalType
+	}
+}
+
+// validateMinGroupOwnerConstraint ensures the group keeps at least one owner
+// after the role change. Mirrors the org-level constraint.
+func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, newRoleID string, existing []policy.Policy) error {
+	ownerRole, err := s.roleService.Get(ctx, schema.GroupOwnerRole)
+	if err != nil {
+		return fmt.Errorf("get group owner role: %w", err)
+	}
+
+	if newRoleID == ownerRole.ID {
+		return nil
+	}
+
+	isCurrentlyOwner := false
+	for _, p := range existing {
+		if p.RoleID == ownerRole.ID {
+			isCurrentlyOwner = true
+			break
+		}
+	}
+	if !isCurrentlyOwner {
+		return nil
+	}
+
+	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
+		GroupID: groupID,
+		RoleID:  ownerRole.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("list group owner policies: %w", err)
+	}
+	if len(ownerPolicies) <= 1 {
+		return ErrLastGroupOwnerRole
+	}
+	return nil
+}
+
+// groupRoleToRelation maps a group role to the matching SpiceDB relation name.
+func groupRoleToRelation(r role.Role) string {
+	if r.Name == schema.GroupOwnerRole {
+		return schema.OwnerRelationName
+	}
+	return schema.MemberRelationName
+}
+
+func (s *Service) auditGroupMemberAdded(ctx context.Context, grp group.Group, p principalInfo, roleID string) {
+	targetType, _ := principalTypeToAuditType(p.Type)
+	meta := map[string]any{"role_id": roleID}
+	if p.Email != "" {
+		meta["email"] = p.Email
+	}
+
+	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.GroupMemberAddedEvent,
+		Resource: auditrecord.Resource{
+			ID:   grp.ID,
+			Type: pkgAuditRecord.GroupType,
+			Name: grp.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:       p.ID,
+			Type:     targetType,
+			Name:     p.Name,
+			Metadata: meta,
+		},
+		OrgID:      grp.OrganizationID,
+		OccurredAt: time.Now(),
+	})
+
+	audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberCreatedEvent, audit.Target{
+		ID:   p.ID,
+		Type: p.Type,
+	}, map[string]string{
+		"role_id":  roleID,
+		"group_id": grp.ID,
+	})
+}
+
+func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Group, p principalInfo, roleID string) {
+	targetType, _ := principalTypeToAuditType(p.Type)
+	meta := map[string]any{"role_id": roleID}
+	if p.Email != "" {
+		meta["email"] = p.Email
+	}
+
+	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.GroupMemberRoleChangedEvent,
+		Resource: auditrecord.Resource{
+			ID:   grp.ID,
+			Type: pkgAuditRecord.GroupType,
+			Name: grp.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:       p.ID,
+			Type:     targetType,
+			Name:     p.Name,
+			Metadata: meta,
+		},
+		OrgID:      grp.OrganizationID,
+		OccurredAt: time.Now(),
+	})
+
+	audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRoleChangedEvent, audit.Target{
+		ID:   p.ID,
+		Type: p.Type,
+	}, map[string]string{
+		"role_id":  roleID,
+		"group_id": grp.ID,
+	})
+}

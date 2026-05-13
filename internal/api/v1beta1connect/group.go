@@ -462,6 +462,60 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 	return connect.NewResponse(&frontierv1beta1.RemoveGroupUserResponse{}), nil
 }
 
+func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetGroupMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetGroupMemberRoleResponse], error) {
+	errorLogger := NewErrorLogger()
+
+	orgID := request.Msg.GetOrgId()
+	groupID := request.Msg.GetGroupId()
+	principalID := request.Msg.GetPrincipalId()
+	principalType := request.Msg.GetPrincipalType()
+	roleID := request.Msg.GetRoleId()
+
+	if _, err := h.orgService.Get(ctx, orgID); err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		default:
+			errorLogger.LogServiceError(ctx, request, "SetGroupMemberRole.GetOrg", err,
+				"org_id", orgID)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	if err := h.membershipService.SetGroupMemberRole(ctx, groupID, principalID, principalType, roleID); err != nil {
+		errorLogger.LogServiceError(ctx, request, "SetGroupMemberRole", err,
+			"group_id", groupID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"role_id", roleID)
+
+		switch {
+		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrInvalidRoleID)
+		case errors.Is(err, membership.ErrInvalidPrincipalType), errors.Is(err, membership.ErrInvalidPrincipal):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, membership.ErrInvalidGroupRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidGroupRole)
+		case errors.Is(err, membership.ErrNotMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, membership.ErrLastGroupOwnerRole):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.SetGroupMemberRoleResponse{}), nil
+}
+
 func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Request[frontierv1beta1.EnableGroupRequest]) (*connect.Response[frontierv1beta1.EnableGroupResponse], error) {
 	errorLogger := NewErrorLogger()
 

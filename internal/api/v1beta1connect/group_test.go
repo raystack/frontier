@@ -1717,3 +1717,155 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_SetGroupMemberRole(t *testing.T) {
+	someGroupID := utils.NewString()
+	somePrincipalID := utils.NewString()
+	someRoleID := utils.NewString()
+
+	baseRequest := func() *connect.Request[frontierv1beta1.SetGroupMemberRoleRequest] {
+		return connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+			OrgId:         testOrgID,
+			GroupId:       someGroupID,
+			PrincipalId:   somePrincipalID,
+			PrincipalType: schema.UserPrincipal,
+			RoleId:        someRoleID,
+		})
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(ms *mocks.MembershipService, os *mocks.OrganizationService)
+		request *connect.Request[frontierv1beta1.SetGroupMemberRoleRequest]
+		want    *connect.Response[frontierv1beta1.SetGroupMemberRoleResponse]
+		wantErr error
+	}{
+		{
+			name: "should return not found if org does not exist",
+			setup: func(_ *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgNotFound),
+		},
+		{
+			name: "should return not found if org is disabled",
+			setup: func(_ *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+		},
+		{
+			name: "should return not found if group does not exist",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(group.ErrNotExist)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
+		},
+		{
+			name: "should return not found if user does not exist",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(user.ErrNotExist)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			name: "should return not found if role does not exist",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(role.ErrNotExist)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrInvalidRoleID),
+		},
+		{
+			name: "should return invalid argument if role is not valid for group scope",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(membership.ErrInvalidGroupRole)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrInvalidGroupRole),
+		},
+		{
+			name: "should return invalid argument if principal type is unsupported",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				// handler must forward the unsupported principal_type to the service unchanged
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.ServiceUserPrincipal, someRoleID).Return(membership.ErrInvalidPrincipalType)
+			},
+			request: connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+				OrgId:         testOrgID,
+				GroupId:       someGroupID,
+				PrincipalId:   somePrincipalID,
+				PrincipalType: schema.ServiceUserPrincipal,
+				RoleId:        someRoleID,
+			}),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, membership.ErrInvalidPrincipalType),
+		},
+		{
+			name: "should return failed precondition if principal is not a group member",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(membership.ErrNotMember)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotMember),
+		},
+		{
+			name: "should return failed precondition if demoting last group owner",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(membership.ErrLastGroupOwnerRole)
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole),
+		},
+		{
+			name: "should return internal error for unknown errors",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(errors.New("unknown"))
+			},
+			request: baseRequest(),
+			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+		},
+		{
+			name: "should return success on valid request",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(nil)
+			},
+			request: baseRequest(),
+			want:    connect.NewResponse(&frontierv1beta1.SetGroupMemberRoleResponse{}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockMembershipSvc := new(mocks.MembershipService)
+			mockOrgSvc := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockMembershipSvc, mockOrgSvc)
+			}
+			h := ConnectHandler{
+				membershipService: mockMembershipSvc,
+				orgService:        mockOrgSvc,
+			}
+			got, err := h.SetGroupMemberRole(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, got)
+			}
+		})
+	}
+}
