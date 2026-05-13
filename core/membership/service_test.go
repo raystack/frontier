@@ -1419,15 +1419,38 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 		wantErrContain string
 	}{
 		{
-			name: "should return error if user is not a group member",
+			name: "should add member on upsert when no existing group policy and user is in org",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				// org-membership check: user must be in org
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1"}}, nil)
+				// create policy + relation
+				policySvc.EXPECT().Create(ctx, policy.Policy{
+					RoleID: memberRoleID, ResourceID: groupID, ResourceType: schema.GroupNamespace,
+					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+				}).Return(policy.Policy{ID: "new-p"}, nil)
+				relSvc.EXPECT().Create(ctx, groupMemberRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			roleID:  memberRoleID,
+			wantErr: nil,
+		},
+		{
+			name: "should reject upsert-add if principal is not a member of the org",
 			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
 				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 			},
 			roleID:  memberRoleID,
-			wantErr: membership.ErrNotMember,
+			wantErr: membership.ErrNotOrgMember,
 		},
 		{
 			name: "should skip write when role is unchanged",

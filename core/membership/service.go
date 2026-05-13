@@ -1077,9 +1077,12 @@ func (s *Service) AddGroupMember(ctx context.Context, groupID, principalID, prin
 	return nil
 }
 
-// SetGroupMemberRole changes an existing member's role in a group.
-// Returns ErrNotMember if the principal has no existing policy on the group.
-// Enforces the min-owner constraint: demoting the last owner returns ErrLastGroupOwnerRole.
+// SetGroupMemberRole upserts the role assignment for a principal in a group:
+// if the principal has no existing group policy, they are added with the
+// requested role; otherwise their existing role is replaced with the
+// requested role. New adds require the principal to be a member of the
+// group's parent organization. Demoting the last owner returns
+// ErrLastGroupOwnerRole.
 func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error {
 	grp, err := s.groupService.Get(ctx, groupID)
 	if err != nil {
@@ -1105,11 +1108,32 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
+
+	// add path: principal has no existing group policy
 	if len(existing) == 0 {
-		return ErrNotMember
+		if err := s.validateOrgMembership(ctx, grp.OrganizationID, principalID, principalType); err != nil {
+			return err
+		}
+		createdPolicy, err := s.createPolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, resolvedRoleID)
+		if err != nil {
+			return err
+		}
+		if err := s.createRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, groupRoleToRelation(fetchedRole)); err != nil {
+			if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
+				s.log.WarnContext(ctx, "orphaned policy: relation creation failed and policy cleanup also failed",
+					"policy_id", createdPolicy.ID,
+					"group_id", groupID,
+					"principal_id", principalID,
+					"policy_delete_error", deleteErr,
+				)
+			}
+			return err
+		}
+		s.auditGroupMemberAdded(ctx, grp, principal, resolvedRoleID)
+		return nil
 	}
 
-	// skip if the user already has exactly this role
+	// change path: skip if the principal already has exactly this role
 	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
 		return nil
 	}
