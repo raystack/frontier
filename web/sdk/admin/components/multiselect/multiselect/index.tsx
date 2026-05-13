@@ -55,13 +55,14 @@ export function MultiSelect<T>({
                   <Command.Item
                     key={option.value as React.Key}
                     onClick={() => handleSelect(option.value)}
+                    data-test-id={`frontier-admin-multiselect-item-${option.value}`}
                   >
                     <Flex
                       justify="start"
                       gap={3}
                       style={{ padding: "4px 0px", cursor: "pointer" }}
                     >
-                      <Checkbox checked={isSelected} />
+                      <Checkbox checked={isSelected} style={{ pointerEvents: "none" }} />
                       <Flex align="center" gap={3}>
                         <span>{option.label}</span>
                       </Flex>
@@ -74,7 +75,7 @@ export function MultiSelect<T>({
           <>
             <Command.Separator />
             <Command.Group>
-              <Command.Item onClick={onClear}>
+              <Command.Item onClick={onClear} data-test-id="frontier-admin-multiselect-clear">
                 <Flex
                   justify="center"
                   style={{ padding: "4px 0px", cursor: "pointer" }}
