@@ -14,7 +14,6 @@ import { toastManager } from '@raystack/apsara-v1';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
-import { useFrontier } from '../../../contexts/FrontierContext';
 import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
@@ -88,7 +87,6 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
     }
   });
 
-  const { activeOrganization: organization } = useFrontier();
   const privacy = watch('privacy');
 
   const { mutateAsync: updateProject } = useMutation(
@@ -103,15 +101,14 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
   }, [payload.projectId, payload.title, reset]);
 
   async function onSubmit(data: FormData) {
-    if (!organization?.id || !payload.projectId) return;
+    if (!payload.projectId) return;
 
     try {
       await updateProject(
         create(UpdateProjectRequestSchema, {
           id: payload.projectId,
           body: {
-            title: data.title,
-            orgId: organization.id
+            title: data.title
           }
         })
       );

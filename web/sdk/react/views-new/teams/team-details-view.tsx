@@ -121,8 +121,7 @@ export function TeamDetailsView({
     FrontierServiceQueries.listGroupUsers,
     create(ListGroupUsersRequestSchema, {
       id: teamId || '',
-      orgId: organization?.id || '',
-      withRoles: true
+      orgId: organization?.id || ''
     }),
     { enabled: !!organization?.id && !!teamId }
   );

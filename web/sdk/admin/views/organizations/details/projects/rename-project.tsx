@@ -15,7 +15,6 @@ import { useTerminology } from "../../../../hooks/useTerminology";
 const projectRenameSchema = z.object({
   title: z.string(),
   name: z.string(),
-  orgId: z.string(),
 });
 
 type ProjectRenameSchema = z.infer<typeof projectRenameSchema>;
@@ -46,7 +45,6 @@ export function RenameProjectDialog({
     defaultValues: {
       title: project?.title,
       name: project?.name,
-      orgId: project?.organizationId,
     },
     resolver: zodResolver(projectRenameSchema),
   });
