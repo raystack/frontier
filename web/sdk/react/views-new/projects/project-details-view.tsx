@@ -125,8 +125,7 @@ export function ProjectDetailsView({
   } = useQuery(
     FrontierServiceQueries.listProjectUsers,
     create(ListProjectUsersRequestSchema, {
-      id: projectId || '',
-      withRoles: true
+      id: projectId || ''
     }),
     { enabled: !!organization?.id && !!projectId }
   );
@@ -153,8 +152,7 @@ export function ProjectDetailsView({
   } = useQuery(
     FrontierServiceQueries.listProjectGroups,
     create(ListProjectGroupsRequestSchema, {
-      id: projectId || '',
-      withRoles: true
+      id: projectId || ''
     }),
     { enabled: !!organization?.id && !!projectId }
   );
