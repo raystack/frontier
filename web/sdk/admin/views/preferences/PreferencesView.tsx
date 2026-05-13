@@ -1,4 +1,5 @@
 import { Flex, EmptyState } from "@raystack/apsara-v1";
+import type { ReactNode } from "react";
 import { createQueryOptions, useTransport } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
@@ -20,12 +21,15 @@ export type PreferencesViewProps = {
   /** Called when the detail panel is closed. Use to clear the selected preference. */
   onCloseDetail?: () => void;
   onSelectPreference?: (name: string) => void;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function PreferencesView({
   selectedPreferenceName,
   onCloseDetail,
   onSelectPreference,
+  icon,
 }: PreferencesViewProps = {}) {
   const transport = useTransport();
 
@@ -85,6 +89,7 @@ export default function PreferencesView({
         traits={traits}
         isLoading={isLoading}
         onSelectPreference={onSelectPreference}
+        icon={icon}
       />
     </Flex>
   );

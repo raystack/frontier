@@ -1,9 +1,10 @@
-import type { CSSProperties, PropsWithChildren } from "react";
+import type { CSSProperties, PropsWithChildren, ReactNode } from "react";
 import { Flex, Text } from "@raystack/apsara-v1";
 import styles from "./page-header.module.css";
 
 export type PageHeaderTypes = {
   title: string;
+  icon?: ReactNode;
   breadcrumb: { name: string; href?: string }[];
   // eslint-disable-next-line no-unused-vars -- callback param name is for type documentation
   onBreadcrumbClick?: (item: { name: string; href?: string }) => void;
@@ -13,6 +14,7 @@ export type PageHeaderTypes = {
 
 export function PageHeader({
   title,
+  icon,
   breadcrumb,
   onBreadcrumbClick,
   children,
@@ -25,11 +27,12 @@ export function PageHeader({
       align="center"
       justify="between"
       className={className}
-      style={{ padding: "16px 24px", ...style }}
+      style={{ padding: "16px 24px", minHeight: "var(--rs-space-12)", ...style }}
       {...props}
     >
       <Flex align="center" gap={5}>
-        <Flex align="center" gap={3} className={styles.breadcrumb}>
+        <Flex align="center" gap={2} className={styles.breadcrumb}>
+          {icon}
           <Text style={{ fontSize: "14px", fontWeight: "500" }}>{title}</Text>
           {breadcrumb.map((item) =>
             item.href && onBreadcrumbClick ? (

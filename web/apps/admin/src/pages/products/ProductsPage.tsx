@@ -1,5 +1,6 @@
 import { ProductsView } from "@raystack/frontier/admin";
 import { useParams, useNavigate } from "react-router-dom";
+import ProductsIcon from "~/assets/icons/products.svg?react";
 
 export function ProductsPage() {
   const { productId } = useParams();
@@ -11,6 +12,7 @@ export function ProductsPage() {
       onSelectProduct={(id) => navigate(`/products/${encodeURIComponent(id)}`)}
       onCloseDetail={() => navigate("/products")}
       onNavigateToPrices={(id) => navigate(`/products/${encodeURIComponent(id)}/prices`)}
+      icon={<ProductsIcon />}
     />
   );
 }

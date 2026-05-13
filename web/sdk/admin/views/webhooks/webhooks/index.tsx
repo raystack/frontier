@@ -1,5 +1,5 @@
 import { Flex, DataTable, EmptyState } from "@raystack/apsara-v1";
-import { useCallback } from "react";
+import { useCallback, type ReactNode } from "react";
 import { getColumns } from "./columns";
 import { WebhooksHeader } from "./header";
 import styles from "./webhooks.module.css";
@@ -21,6 +21,8 @@ export type WebhooksViewProps = {
   onOpenCreate?: () => void;
   /** When true, shows the delete option for webhooks. Defaults to `false`. */
   enableDelete?: boolean;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function WebhooksView({
@@ -30,6 +32,7 @@ export default function WebhooksView({
   onSelectWebhook,
   onOpenCreate,
   enableDelete = false,
+  icon,
 }: WebhooksViewProps = {}) {
   const {
     listWebhooks: {
@@ -80,7 +83,7 @@ export default function WebhooksView({
         mode="client"
       >
         <Flex direction="column" className={styles.tableWrapper}>
-          <WebhooksHeader onOpenCreate={onOpenCreate} />
+          <WebhooksHeader onOpenCreate={onOpenCreate} icon={icon} />
           <DataTable.Content
             classNames={{ root: styles.tableRoot, table: styles.table }}
           />

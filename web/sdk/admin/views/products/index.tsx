@@ -1,4 +1,5 @@
 import { EmptyState, Flex, DataTable } from "@raystack/apsara-v1";
+import type { ReactNode } from "react";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import type { Product } from "@raystack/proton/frontier";
@@ -21,6 +22,8 @@ export type ProductsViewProps = {
   onNavigateToPrices?: (productId: string) => void;
   /** App name displayed in the page title. */
   appName?: string;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function ProductsView({
@@ -29,6 +32,7 @@ export default function ProductsView({
   onCloseDetail,
   onNavigateToPrices,
   appName,
+  icon,
 }: ProductsViewProps = {}) {
   const {
     data: productsResponse,
@@ -78,7 +82,7 @@ export default function ProductsView({
         onRowClick={handleRowClick}
       >
         <Flex direction="column" className={styles.tableWrapper}>
-          <ProductsHeader />
+          <ProductsHeader icon={icon} />
           <DataTable.Content
             emptyState={noDataChildren}
             classNames={{ root: styles.tableRoot }}

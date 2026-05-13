@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
 import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, Flex, DataTable } from "@raystack/apsara-v1";
+import { Button, DataTable } from "@raystack/apsara-v1";
 import { PageHeader } from "../../../components/PageHeader";
 import styles from "./webhooks.module.css";
 
@@ -12,14 +13,16 @@ const pageHeader = {
 export type WebhooksHeaderProps = {
   header?: typeof pageHeader;
   onOpenCreate?: () => void;
+  icon?: ReactNode;
 };
 
-export const WebhooksHeader = ({ header = pageHeader, onOpenCreate }: WebhooksHeaderProps) => {
+export const WebhooksHeader = ({ header = pageHeader, onOpenCreate, icon }: WebhooksHeaderProps) => {
   const handleCreate = () => onOpenCreate?.();
 
   return (
     <PageHeader
       title={header.title}
+      icon={icon}
       breadcrumb={header.breadcrumb}
       className={styles.header}
     >

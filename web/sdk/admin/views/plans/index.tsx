@@ -1,4 +1,5 @@
 import { EmptyState, Flex, DataTable, Drawer } from "@raystack/apsara-v1";
+import type { ReactNode } from "react";
 import type { Plan } from "@raystack/proton/frontier";
 import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
@@ -25,6 +26,8 @@ export type PlansViewProps = {
   onSelectPlan?: (planId: string) => void;
   /** App name displayed in the page title. */
   appName?: string;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function PlansView({
@@ -32,6 +35,7 @@ export default function PlansView({
   onCloseDetail,
   onSelectPlan,
   appName,
+  icon,
 }: PlansViewProps = {}) {
   const {
     data: plansResponse,
@@ -70,7 +74,7 @@ export default function PlansView({
     >
       <Flex direction="column">
         <PageTitle title="Plans" appName={appName} />
-        <PlanHeader header={pageHeader} />
+        <PlanHeader header={pageHeader} icon={icon} />
         <DataTable.Content
           emptyState={noDataChildren}
           classNames={{ root: styles.tableRoot, table: styles.table }}
