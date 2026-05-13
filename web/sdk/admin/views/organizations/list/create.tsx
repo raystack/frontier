@@ -213,7 +213,6 @@ export function CreateOrganizationPanel({
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select an industry"
-                            className={styles["select-value"]}
                             id="org-type-select"
                           />
                         </Select.Trigger>
@@ -256,7 +255,6 @@ export function CreateOrganizationPanel({
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select a country"
-                            className={styles["select-value"]}
                             id="country-select"
                           />
                         </Select.Trigger>

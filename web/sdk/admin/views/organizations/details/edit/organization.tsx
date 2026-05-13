@@ -240,7 +240,6 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select an industry"
-                            className={styles["select-value"]}
                             id="org-type-select"
                           />
                         </Select.Trigger>
@@ -283,7 +282,6 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select a country"
-                            className={styles["select-value"]}
                             id="country-select"
                           />
                         </Select.Trigger>

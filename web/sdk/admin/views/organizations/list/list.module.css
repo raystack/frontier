@@ -80,10 +80,6 @@
   padding: var(--rs-space-5) var(--rs-space-7);
 }
 
-.select-value {
-  width: 100%;
-}
-
 .select-content {
   max-height: 400px;
 }
