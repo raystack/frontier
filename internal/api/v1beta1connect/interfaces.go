@@ -406,6 +406,9 @@ type MembershipService interface {
 	SetProjectMemberRole(ctx context.Context, projectID, principalID, principalType, roleID string) error
 	RemoveProjectMember(ctx context.Context, projectID, principalID, principalType string) error
 	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
+	AddGroupMember(ctx context.Context, groupID, principalID, principalType, roleID string) error
+	SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error
+	OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error
 }
 
 type UserPATService interface {

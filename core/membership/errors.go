@@ -13,4 +13,6 @@ var (
 	ErrNotOrgMember         = errors.New("principal is not a member of the organization")
 	ErrInvalidProjectRole   = errors.New("role is not valid for project scope")
 	ErrInvalidResourceType  = errors.New("unsupported resource type")
+	ErrInvalidGroupRole     = errors.New("role is not valid for group scope")
+	ErrLastGroupOwnerRole   = errors.New("cannot change role: this is the last owner of the group")
 )
