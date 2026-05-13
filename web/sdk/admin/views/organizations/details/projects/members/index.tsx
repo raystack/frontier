@@ -243,7 +243,7 @@ export const ProjectMembersDialog = ({
                 gap={5}
                 className={styles["table-content-wrapper"]}
               >
-                <Flex>
+                <Flex gap={4} align="center">
                   <DataTable.Search className={styles["table-search"]} />
                   <AddMembersDropdown
                     projectId={projectId}
