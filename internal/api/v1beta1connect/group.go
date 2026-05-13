@@ -504,8 +504,8 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		case errors.Is(err, membership.ErrInvalidGroupRole):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidGroupRole)
-		case errors.Is(err, membership.ErrNotMember):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, membership.ErrNotOrgMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotOrgMember)
 		case errors.Is(err, membership.ErrLastGroupOwnerRole):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole)
 		default:

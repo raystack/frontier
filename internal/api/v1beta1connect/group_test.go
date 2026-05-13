@@ -1809,13 +1809,13 @@ func TestConnectHandler_SetGroupMemberRole(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, membership.ErrInvalidPrincipalType),
 		},
 		{
-			name: "should return failed precondition if principal is not a group member",
+			name: "should return failed precondition if principal is not a member of the org",
 			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(membership.ErrNotMember)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(membership.ErrNotOrgMember)
 			},
 			request: baseRequest(),
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotMember),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotOrgMember),
 		},
 		{
 			name: "should return failed precondition if demoting last group owner",
