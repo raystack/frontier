@@ -45,7 +45,7 @@ export default function Settings() {
       <Sidebar defaultOpen>
         <Sidebar.Header>
           <Flex align="center" gap={3}>
-            <Text size={4} weight="medium" data-collapse-hidden>
+            <Text size="regular" weight="medium" data-collapse-hidden>
               Settings
             </Text>
           </Flex>
@@ -58,7 +58,7 @@ export default function Settings() {
               return (
                 <Sidebar.Item
                   key={item.path}
-                  as={<Link to={fullPath} />}
+                  render={<Link to={fullPath} />}
                   active={isActive}
                   data-test-id={`[settings-nav-${item.path}]`}
                 >

@@ -301,12 +301,12 @@ export default function Home() {
       >
         <Navbar>
           <Navbar.Start>
-            <Text size="large" weight="bold">
+            <Text size="large" weight="medium">
               {t.appName()}
             </Text>
           </Navbar.Start>
           <Navbar.End>
-            <Flex align="center" gap="small">
+            <Flex align="center" gap={3}>
               {showSearch ? (
                 <DataTable.Search
                   autoFocus
