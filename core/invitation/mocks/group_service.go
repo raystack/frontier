@@ -25,54 +25,6 @@ func (_m *GroupService) EXPECT() *GroupService_Expecter {
 	return &GroupService_Expecter{mock: &_m.Mock}
 }
 
-// AddMember provides a mock function with given fields: ctx, groupID, principal
-func (_m *GroupService) AddMember(ctx context.Context, groupID string, principal authenticate.Principal) error {
-	ret := _m.Called(ctx, groupID, principal)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddMember")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, authenticate.Principal) error); ok {
-		r0 = rf(ctx, groupID, principal)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GroupService_AddMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddMember'
-type GroupService_AddMember_Call struct {
-	*mock.Call
-}
-
-// AddMember is a helper method to define mock.On call
-//   - ctx context.Context
-//   - groupID string
-//   - principal authenticate.Principal
-func (_e *GroupService_Expecter) AddMember(ctx interface{}, groupID interface{}, principal interface{}) *GroupService_AddMember_Call {
-	return &GroupService_AddMember_Call{Call: _e.mock.On("AddMember", ctx, groupID, principal)}
-}
-
-func (_c *GroupService_AddMember_Call) Run(run func(ctx context.Context, groupID string, principal authenticate.Principal)) *GroupService_AddMember_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(authenticate.Principal))
-	})
-	return _c
-}
-
-func (_c *GroupService_AddMember_Call) Return(_a0 error) *GroupService_AddMember_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GroupService_AddMember_Call) RunAndReturn(run func(context.Context, string, authenticate.Principal) error) *GroupService_AddMember_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Get provides a mock function with given fields: ctx, id
 func (_m *GroupService) Get(ctx context.Context, id string) (group.Group, error) {
 	ret := _m.Called(ctx, id)

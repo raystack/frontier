@@ -303,7 +303,6 @@ type GroupService interface {
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
-	AddUsers(ctx context.Context, groupID string, userID []string) error
 	RemoveUsers(ctx context.Context, groupID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
@@ -406,7 +405,6 @@ type MembershipService interface {
 	SetProjectMemberRole(ctx context.Context, projectID, principalID, principalType, roleID string) error
 	RemoveProjectMember(ctx context.Context, projectID, principalID, principalType string) error
 	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
-	AddGroupMember(ctx context.Context, groupID, principalID, principalType, roleID string) error
 	SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error
 	OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error
 }

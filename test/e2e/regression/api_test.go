@@ -662,6 +662,16 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Require().NoError(err)
 		ctxForUser2 := testbench.ContextWithAuth(context.Background(), user2Cookie)
 
+		// add user2 to org before adding to group
+		addOrgMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUser2Resp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), addOrgMembersResp, err)
+
 		// add user to group
 		_, err = s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 			Id:      createGroupResp.Msg.GetGroup().GetId(),
@@ -834,6 +844,17 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
+
+		// add user to org before adding to group
+		addOrgMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: myOrg.GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), addOrgMembersResp, err)
+
 		addMemberResp, err := s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 			Id:      createGroupResp.Msg.GetGroup().GetId(),
 			OrgId:   createGroupResp.Msg.GetGroup().GetOrgId(),
@@ -967,6 +988,17 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
+
+		// add user to org before adding to group
+		addOrgMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: myOrg.GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), addOrgMembersResp, err)
+
 		addMemberResp, err := s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 			Id:      createGroupResp.Msg.GetGroup().GetId(),
 			OrgId:   createGroupResp.Msg.GetGroup().GetOrgId(),
@@ -1018,6 +1050,17 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
+
+		// add user to org before adding to group
+		addOrgMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: myOrg.GetId(),
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: createUserResp.Msg.GetUser().GetId(),
+				RoleId: s.orgViewerRole,
+			}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), addOrgMembersResp, err)
+
 		addMemberResp, err := s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 			Id:      createGroupResp.Msg.GetGroup().GetId(),
 			OrgId:   createGroupResp.Msg.GetGroup().GetOrgId(),

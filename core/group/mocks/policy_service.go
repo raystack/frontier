@@ -23,63 +23,6 @@ func (_m *PolicyService) EXPECT() *PolicyService_Expecter {
 	return &PolicyService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *PolicyService) Create(ctx context.Context, _a1 policy.Policy) (policy.Policy, error) {
-	ret := _m.Called(ctx, _a1)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Create")
-	}
-
-	var r0 policy.Policy
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) (policy.Policy, error)); ok {
-		return rf(ctx, _a1)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) policy.Policy); ok {
-		r0 = rf(ctx, _a1)
-	} else {
-		r0 = ret.Get(0).(policy.Policy)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, policy.Policy) error); ok {
-		r1 = rf(ctx, _a1)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// PolicyService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
-type PolicyService_Create_Call struct {
-	*mock.Call
-}
-
-// Create is a helper method to define mock.On call
-//   - ctx context.Context
-//   - _a1 policy.Policy
-func (_e *PolicyService_Expecter) Create(ctx interface{}, _a1 interface{}) *PolicyService_Create_Call {
-	return &PolicyService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
-}
-
-func (_c *PolicyService_Create_Call) Run(run func(ctx context.Context, _a1 policy.Policy)) *PolicyService_Create_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(policy.Policy))
-	})
-	return _c
-}
-
-func (_c *PolicyService_Create_Call) Return(_a0 policy.Policy, _a1 error) *PolicyService_Create_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *PolicyService_Create_Call) RunAndReturn(run func(context.Context, policy.Policy) (policy.Policy, error)) *PolicyService_Create_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Delete provides a mock function with given fields: ctx, id
 func (_m *PolicyService) Delete(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)

@@ -409,11 +409,34 @@ func (h *ConnectHandler) AddGroupUsers(ctx context.Context, request *connect.Req
 		}
 	}
 
-	if err := h.groupService.AddUsers(ctx, request.Msg.GetId(), request.Msg.GetUserIds()); err != nil {
-		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.AddUsers", err,
+	var joinedErr error
+	for _, userID := range request.Msg.GetUserIds() {
+		if err := h.membershipService.SetGroupMemberRole(ctx, request.Msg.GetId(), userID, schema.UserPrincipal, schema.GroupMemberRole); err != nil {
+			joinedErr = errors.Join(joinedErr, err)
+		}
+	}
+	if joinedErr != nil {
+		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.SetGroupMemberRole", joinedErr,
 			"group_id", request.Msg.GetId(),
 			"user_ids", request.Msg.GetUserIds())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+
+		// errors.Is walks the joined error tree; the first matching case wins.
+		// If multiple users failed with different errors, callers see the most
+		// specific code we recognize rather than a generic Internal.
+		switch {
+		case errors.Is(joinedErr, group.ErrNotExist), errors.Is(joinedErr, group.ErrInvalidID), errors.Is(joinedErr, group.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		case errors.Is(joinedErr, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(joinedErr, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, user.ErrDisabled)
+		case errors.Is(joinedErr, membership.ErrNotOrgMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotOrgMember)
+		case errors.Is(joinedErr, membership.ErrLastGroupOwnerRole):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
 	return connect.NewResponse(&frontierv1beta1.AddGroupUsersResponse{}), nil
 }

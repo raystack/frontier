@@ -1241,14 +1241,14 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 	someUserID := utils.NewString()
 	tests := []struct {
 		name    string
-		setup   func(gs *mocks.GroupService, os *mocks.OrganizationService)
+		setup   func(ms *mocks.MembershipService, os *mocks.OrganizationService)
 		request *connect.Request[frontierv1beta1.AddGroupUsersRequest]
 		want    *connect.Response[frontierv1beta1.AddGroupUsersResponse]
 		wantErr error
 	}{
 		{
 			name: "should return error if org does not exist",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(_ *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
@@ -1260,7 +1260,7 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 		},
 		{
 			name: "should return error if org is disabled",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(_ *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
@@ -1271,10 +1271,10 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
 		},
 		{
-			name: "should return internal server error if error in adding group users",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			name: "should return internal server error if SetGroupMemberRole fails for any user",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				gs.EXPECT().AddUsers(mock.Anything, someGroupID, []string{someUserID}).Return(errors.New("some error"))
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(errors.New("some error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 				Id:      someGroupID,
@@ -1285,10 +1285,10 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
 		{
-			name: "should return success if add group users and group service return nil error",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			name: "should return success if SetGroupMemberRole succeeds for each user",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				gs.EXPECT().AddUsers(mock.Anything, someGroupID, []string{someUserID}).Return(nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 				Id:      someGroupID,
@@ -1298,17 +1298,73 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 			want:    connect.NewResponse(&frontierv1beta1.AddGroupUsersResponse{}),
 			wantErr: nil,
 		},
+		{
+			name: "should return not found if group does not exist",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(group.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
+		},
+		{
+			name: "should return not found if user does not exist",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(user.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			name: "should return failed precondition if user is not a member of the org",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(membership.ErrNotOrgMember)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotOrgMember),
+		},
+		{
+			name: "should return failed precondition if demoting last group owner",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(membership.ErrLastGroupOwnerRole)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockGroupSvc := new(mocks.GroupService)
+			mockMembershipSvc := new(mocks.MembershipService)
 			mockOrgSvc := new(mocks.OrganizationService)
 			if tt.setup != nil {
-				tt.setup(mockGroupSvc, mockOrgSvc)
+				tt.setup(mockMembershipSvc, mockOrgSvc)
 			}
 			h := ConnectHandler{
-				groupService: mockGroupSvc,
-				orgService:   mockOrgSvc,
+				membershipService: mockMembershipSvc,
+				orgService:        mockOrgSvc,
 			}
 			got, err := h.AddGroupUsers(context.Background(), tt.request)
 			if tt.wantErr != nil {
