@@ -9,6 +9,8 @@ const events = [
   "app.group.created",
   "app.group.updated",
   "app.group.deleted",
+  "app.group.member.created",
+  "app.group.member.role_changed",
   "app.group.members.removed",
 
   "app.role.created",
