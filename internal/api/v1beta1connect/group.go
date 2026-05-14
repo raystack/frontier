@@ -409,8 +409,14 @@ func (h *ConnectHandler) AddGroupUsers(ctx context.Context, request *connect.Req
 		}
 	}
 
-	if err := h.groupService.AddUsers(ctx, request.Msg.GetId(), request.Msg.GetUserIds()); err != nil {
-		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.AddUsers", err,
+	var joinedErr error
+	for _, userID := range request.Msg.GetUserIds() {
+		if err := h.membershipService.AddGroupMember(ctx, request.Msg.GetId(), userID, schema.UserPrincipal, schema.GroupMemberRole); err != nil {
+			joinedErr = errors.Join(joinedErr, err)
+		}
+	}
+	if joinedErr != nil {
+		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.AddGroupMember", joinedErr,
 			"group_id", request.Msg.GetId(),
 			"user_ids", request.Msg.GetUserIds())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
