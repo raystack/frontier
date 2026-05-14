@@ -12,7 +12,7 @@ import {
     Select,
     Label
 } from '@raystack/apsara';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -22,8 +22,7 @@ import { handleSelectValueChange } from '~/react/utils';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
     FrontierServiceQueries,
-    CreatePolicyRequestSchema,
-    AddGroupUsersRequestSchema,
+    SetGroupMemberRoleRequestSchema,
     ListOrganizationUsersRequestSchema,
     ListGroupUsersRequestSchema,
     ListOrganizationRolesRequestSchema,
@@ -168,49 +167,26 @@ export const InviteTeamMemberDialog = ({
         }
     }, [rolesError]);
 
-    // Create policy using Connect RPC
-    const createPolicyMutation = useMutation(
-        FrontierServiceQueries.createPolicy,
-    );
-
-    const addGroupTeamPolicy = useCallback(
-        async (roleId: string, userId: string) => {
-            const role = roles.find(r => r.id === roleId);
-            if (role?.name && role.name !== PERMISSIONS.RoleGroupMember) {
-                const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
-                const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
-
-                const request = create(CreatePolicyRequestSchema, {
-                    body: {
-                        roleId: roleId,
-                        resource,
-                        principal
-                    }
-                });
-
-                await createPolicyMutation.mutateAsync(request);
-            }
-        },
-        [roles, teamId, createPolicyMutation]
-    );
-
-    // Add group users using Connect RPC
-    const addGroupUsersMutation = useMutation(
-        FrontierServiceQueries.addGroupUsers,
+    // Single upsert mutation: SetGroupMemberRole adds the user with the
+    // chosen role in one call, replacing the previous AddGroupUsers +
+    // CreatePolicy two-step workaround.
+    const setGroupMemberRoleMutation = useMutation(
+        FrontierServiceQueries.setGroupMemberRole,
     );
 
     async function onSubmit({ role, userId }: InviteSchemaType) {
         if (!userId || !role || !organization?.id) return;
 
-        const request = create(AddGroupUsersRequestSchema, {
-            id: teamId as string,
+        const request = create(SetGroupMemberRoleRequestSchema, {
+            groupId: teamId as string,
             orgId: organization.id,
-            userIds: [userId]
+            principalId: userId,
+            principalType: PERMISSIONS.UserPrincipal,
+            roleId: role
         });
 
         try {
-            await addGroupUsersMutation.mutateAsync(request);
-            await addGroupTeamPolicy(role, userId);
+            await setGroupMemberRoleMutation.mutateAsync(request);
             toast.success('member added');
             handleOpenChange(false);
         } catch (error) {
