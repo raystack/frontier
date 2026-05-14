@@ -11,6 +11,7 @@ import (
 
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/auditrecord"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
@@ -78,8 +79,20 @@ type Service struct {
 	groupService          GroupService
 	serviceuserService    ServiceuserService
 	auditRecordRepository AuditRecordRepository
+
+	// inheritance is the role-permission map extracted from base_schema.zed at
+	// bootstrap time. ListResourcesByPrincipal consults it to mirror today's
+	// SpiceDB project.get chain in Go without re-reading SpiceDB.
+	//
+	// Held as a pointer so the same value can be shared with bootstrap.Service
+	// (which writes through it during MigrateSchema). cmd/serve.go allocates
+	// one *schema.Inheritance and passes it to both services.
+	inheritance *schema.Inheritance
 }
 
+// NewService wires the membership service. The inheritance pointer must be
+// shared with bootstrap.Service so the schema-derived permission lists stay
+// in sync; pass nil only in tests that don't exercise ListResourcesByPrincipal.
 func NewService(
 	logger *slog.Logger,
 	policyService PolicyService,
@@ -91,7 +104,11 @@ func NewService(
 	groupService GroupService,
 	serviceuserService ServiceuserService,
 	auditRecordRepository AuditRecordRepository,
+	inheritance *schema.Inheritance,
 ) *Service {
+	if inheritance == nil {
+		panic("membership: inheritance pointer must be non-nil; share with bootstrap.NewBootstrapService via cmd/serve.go (tests not exercising ListResourcesByPrincipal can pass &schema.Inheritance{})")
+	}
 	return &Service{
 		log:                   logger,
 		policyService:         policyService,
@@ -103,6 +120,7 @@ func NewService(
 		groupService:          groupService,
 		serviceuserService:    serviceuserService,
 		auditRecordRepository: auditRecordRepository,
+		inheritance:           inheritance,
 	}
 }
 
@@ -1561,4 +1579,295 @@ func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, 
 	}, map[string]string{
 		"group_id": grp.ID,
 	})
+}
+
+// ResourceFilter narrows the results of ListResourcesByPrincipal.
+type ResourceFilter struct {
+	// OrgID restricts project/group results to one org. No-op for orgs.
+	OrgID string
+
+	// NonInherited suppresses org-inheritance expansion for projects (direct
+	// + group-expanded only). No-op for orgs and groups.
+	NonInherited bool
+}
+
+// ListResourcesByPrincipal returns the resource IDs of the given type on which
+// the principal has at least one policy. Reads Postgres policies — no SpiceDB.
+// With a PAT, runs the algorithm twice (user, then PAT-as-principal) and
+// intersects, so the PAT can narrow but never widen the user's visibility.
+func (s *Service) ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter ResourceFilter) ([]string, error) {
+	subjectID, subjectType := principal.ResolveSubject()
+	subjectResourceIDs, err := s.listResourcesForPrincipal(ctx, subjectID, subjectType, resourceType, filter)
+	if err != nil {
+		return nil, err
+	}
+	if principal.PAT == nil {
+		return subjectResourceIDs, nil
+	}
+
+	patResourceIDs, err := s.listResourcesForPrincipal(ctx, principal.PAT.ID, schema.PATPrincipal, resourceType, filter)
+	if err != nil {
+		return nil, err
+	}
+	return utils.Intersection(subjectResourceIDs, patResourceIDs), nil
+}
+
+// listResourcesForPrincipal is the per-principal core; no PAT awareness.
+func (s *Service) listResourcesForPrincipal(ctx context.Context, principalID, principalType, resourceType string, filter ResourceFilter) ([]string, error) {
+	switch resourceType {
+	case schema.OrganizationNamespace:
+		return s.listOrgsForPrincipal(ctx, principalID, principalType)
+	case schema.GroupNamespace:
+		return s.listGroupsForPrincipal(ctx, principalID, principalType, filter)
+	case schema.ProjectNamespace:
+		return s.listProjectsForPrincipal(ctx, principalID, principalType, filter)
+	default:
+		return nil, ErrInvalidResourceType
+	}
+}
+
+// listOrgsForPrincipal returns org IDs where the principal has any policy.
+// Not role-permission-gated; mirrors today's relation-based org.membership
+// check (member + owner).
+func (s *Service) listOrgsForPrincipal(ctx context.Context, principalID, principalType string) ([]string, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		ResourceType:  schema.OrganizationNamespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list org policies: %w", err)
+	}
+	ids := make([]string, 0, len(policies))
+	for _, pol := range policies {
+		ids = append(ids, pol.ResourceID)
+	}
+	return utils.Deduplicate(ids), nil
+}
+
+// listGroupsForPrincipal returns group IDs where the principal has any policy.
+// Not role-permission-gated; mirrors today's group.membership (member + owner).
+// No inheritance branch — group.membership has no org-> chain today.
+func (s *Service) listGroupsForPrincipal(ctx context.Context, principalID, principalType string, filter ResourceFilter) ([]string, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		ResourceType:  schema.GroupNamespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list group policies: %w", err)
+	}
+	ids := make([]string, 0, len(policies))
+	for _, pol := range policies {
+		ids = append(ids, pol.ResourceID)
+	}
+	ids = utils.Deduplicate(ids)
+
+	if filter.OrgID != "" && len(ids) > 0 {
+		ids, err = s.narrowGroupsByOrg(ctx, ids, filter.OrgID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ids, nil
+}
+
+// narrowGroupsByOrg keeps only group IDs whose org_id matches the given org.
+// Performed by re-issuing groupService.List({OrganizationID, GroupIDs: ids}).
+func (s *Service) narrowGroupsByOrg(ctx context.Context, ids []string, orgID string) ([]string, error) {
+	groups, err := s.groupService.List(ctx, group.Filter{
+		OrganizationID: orgID,
+		GroupIDs:       ids,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("narrow groups by org: %w", err)
+	}
+	out := make([]string, 0, len(groups))
+	for _, g := range groups {
+		out = append(out, g.ID)
+	}
+	return out, nil
+}
+
+// listProjectsForPrincipal unions three sources, dedups, then narrows by
+// filter.OrgID if set:
+//
+//  1. Direct project policies, gated by ProjectDirectVisibility.
+//  2. Group-expanded projects (also gated). Runs even with NonInherited=true,
+//     matching today's listNonInheritedProjectIDs.
+//  3. Org inheritance (skipped if NonInherited=true), gated by
+//     OrganizationToProjectInherit. Batched via project.Filter.OrgIDs.
+func (s *Service) listProjectsForPrincipal(ctx context.Context, principalID, principalType string, filter ResourceFilter) ([]string, error) {
+	directIDs, err := s.listDirectProjectIDs(ctx, principalID, principalType)
+	if err != nil {
+		return nil, err
+	}
+
+	groupExpandedIDs, err := s.listGroupExpandedProjectIDs(ctx, principalID, principalType)
+	if err != nil {
+		return nil, err
+	}
+
+	var inheritedIDs []string
+	if !filter.NonInherited {
+		inheritedIDs, err = s.listOrgInheritedProjectIDs(ctx, principalID, principalType)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	all := make([]string, 0, len(directIDs)+len(groupExpandedIDs)+len(inheritedIDs))
+	all = append(all, directIDs...)
+	all = append(all, groupExpandedIDs...)
+	all = append(all, inheritedIDs...)
+	ids := utils.Deduplicate(all)
+
+	if filter.OrgID != "" && len(ids) > 0 {
+		ids, err = s.narrowProjectsByOrg(ctx, ids, filter.OrgID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ids, nil
+}
+
+// listDirectProjectIDs returns project IDs from the principal's direct
+// project policies whose role grants any ProjectDirectVisibility permission.
+func (s *Service) listDirectProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		ResourceType:  schema.ProjectNamespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list direct project policies: %w", err)
+	}
+	return s.filterByRolePermissions(ctx, policies, s.inheritance.ProjectDirectVisibility)
+}
+
+// listGroupExpandedProjectIDs: principal → groups → project policies on those
+// groups → filtered by ProjectDirectVisibility.
+func (s *Service) listGroupExpandedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
+	// Use the per-principal helper (not ListResourcesByPrincipal) so the PAT
+	// pass doesn't trigger another PAT recursion on itself.
+	groupIDs, err := s.listResourcesForPrincipal(ctx, principalID, principalType, schema.GroupNamespace, ResourceFilter{NonInherited: true})
+	if err != nil {
+		return nil, fmt.Errorf("list principal groups for project expansion: %w", err)
+	}
+	if len(groupIDs) == 0 {
+		return nil, nil
+	}
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalType: schema.GroupPrincipal,
+		PrincipalIDs:  groupIDs,
+		ResourceType:  schema.ProjectNamespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list project policies for principal groups: %w", err)
+	}
+	return s.filterByRolePermissions(ctx, policies, s.inheritance.ProjectDirectVisibility)
+}
+
+// listOrgInheritedProjectIDs: principal's org policies → orgs whose role
+// grants OrganizationToProjectInherit → all projects in those orgs. Batched
+// via project.Filter.OrgIDs to avoid N+1 across multi-org users.
+func (s *Service) listOrgInheritedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		ResourceType:  schema.OrganizationNamespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list org policies for inheritance: %w", err)
+	}
+	inheritingOrgIDs, err := s.filterByRolePermissions(ctx, policies, s.inheritance.OrganizationToProjectInherit)
+	if err != nil {
+		return nil, err
+	}
+	if len(inheritingOrgIDs) == 0 {
+		return nil, nil
+	}
+	projects, err := s.projectService.List(ctx, project.Filter{OrgIDs: inheritingOrgIDs})
+	if err != nil {
+		return nil, fmt.Errorf("list inherited projects: %w", err)
+	}
+	ids := make([]string, 0, len(projects))
+	for _, p := range projects {
+		ids = append(ids, p.ID)
+	}
+	return ids, nil
+}
+
+// narrowProjectsByOrg keeps only IDs whose org_id matches orgID (single query).
+func (s *Service) narrowProjectsByOrg(ctx context.Context, ids []string, orgID string) ([]string, error) {
+	projects, err := s.projectService.List(ctx, project.Filter{
+		OrgID:      orgID,
+		ProjectIDs: ids,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("narrow projects by org: %w", err)
+	}
+	out := make([]string, 0, len(projects))
+	for _, p := range projects {
+		out = append(out, p.ID)
+	}
+	return out, nil
+}
+
+// filterByRolePermissions returns ResourceIDs from policies whose role grants
+// at least one of the given permissions. Roles are fetched in a single
+// batched roleService.List call — O(1) round-trips regardless of policy count.
+//
+// Note: ignores policy.GrantRelation. Today's permission lists already cover
+// both granted-> and pat_granted-> arrows for org.project_get, and project.get
+// / group.get have no pat_granted-> arrows. If the schema ever gains
+// pat_granted-> at project or group level, dispatch on GrantRelation here.
+func (s *Service) filterByRolePermissions(ctx context.Context, policies []policy.Policy, permissions []string) ([]string, error) {
+	if len(policies) == 0 || len(permissions) == 0 {
+		return nil, nil
+	}
+
+	wanted := make(map[string]struct{}, len(permissions))
+	for _, p := range permissions {
+		wanted[p] = struct{}{}
+	}
+
+	roleIDSet := make(map[string]struct{}, len(policies))
+	for _, pol := range policies {
+		if pol.RoleID == "" {
+			continue
+		}
+		roleIDSet[pol.RoleID] = struct{}{}
+	}
+	if len(roleIDSet) == 0 {
+		return nil, nil
+	}
+	roleIDs := make([]string, 0, len(roleIDSet))
+	for id := range roleIDSet {
+		roleIDs = append(roleIDs, id)
+	}
+
+	roles, err := s.roleService.List(ctx, role.Filter{IDs: roleIDs})
+	if err != nil {
+		return nil, fmt.Errorf("list roles for permission filter: %w", err)
+	}
+	rolePermits := make(map[string]bool, len(roles))
+	for _, r := range roles {
+		grants := false
+		for _, p := range r.Permissions {
+			if _, ok := wanted[p]; ok {
+				grants = true
+				break
+			}
+		}
+		rolePermits[r.ID] = grants
+	}
+
+	out := make([]string, 0, len(policies))
+	for _, pol := range policies {
+		if rolePermits[pol.RoleID] {
+			out = append(out, pol.ResourceID)
+		}
+	}
+	return utils.Deduplicate(out), nil
 }

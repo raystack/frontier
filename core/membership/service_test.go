@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/auditrecord"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/membership/mocks"
@@ -20,6 +21,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -259,7 +261,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -302,7 +304,7 @@ func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
 		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
 		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo)
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo, &schema.Inheritance{})
 		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.NoError(t, err)
 	})
@@ -314,7 +316,7 @@ func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: "other-org", State: string(serviceuser.Enabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, membership.ErrPrincipalNotInOrg)
 	})
@@ -326,7 +328,7 @@ func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, State: string(serviceuser.Disabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, serviceuser.ErrDisabled)
 	})
@@ -521,7 +523,7 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -569,7 +571,7 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
 		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo)
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo, &schema.Inheritance{})
 		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.NoError(t, err)
 	})
@@ -581,7 +583,7 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: "other-org", State: string(serviceuser.Enabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, membership.ErrPrincipalNotInOrg)
 	})
@@ -593,7 +595,7 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, State: string(serviceuser.Disabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, serviceuser.ErrDisabled)
 	})
@@ -806,7 +808,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				tt.setup(d)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo, &schema.Inheritance{})
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -947,7 +949,7 @@ func TestService_SetProjectMemberRole(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRoleSvc, mockPrjSvc, mockUserSvc, mockSuSvc, mockGrpSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mockPrjSvc, mockGrpSvc, mockSuSvc, mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mockPrjSvc, mockGrpSvc, mockSuSvc, mockAuditRepo, &schema.Inheritance{})
 			err := svc.SetProjectMemberRole(ctx, projectID, tt.principalID, tt.principalType, tt.roleID)
 
 			if tt.wantErr != nil {
@@ -1028,7 +1030,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockPrjSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mockPrjSvc, mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mockPrjSvc, mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
 			err := svc.RemoveProjectMember(ctx, projectID, tt.principalID, tt.principalType)
 
 			if tt.wantErr != nil {
@@ -1220,7 +1222,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRoleSvc)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 
 			got, err := svc.ListPrincipalsByResource(ctx, tt.resourceID, tt.resourceType, tt.filter)
 			if tt.wantErrIs != nil {
@@ -1394,7 +1396,7 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockGrpSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -1464,7 +1466,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 		mockRelSvc.EXPECT().Create(ctx, creatorOwnerRelation).Return(relation.Relation{}, nil)
 		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.NoError(t, err)
@@ -1476,7 +1478,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 
 		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, errors.New("spicedb unavailable"))
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.ErrorContains(t, err, "link group to org")
@@ -1491,7 +1493,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 		// rollback: delete the first hierarchy relation
 		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.ErrorContains(t, err, "add group as org member")
@@ -1519,7 +1521,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
 		mockRelSvc.EXPECT().Delete(ctx, orgGroupMemberRelation).Return(nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.ErrorContains(t, err, "db down")
@@ -1645,7 +1647,7 @@ func TestService_RemoveGroupMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockGrpSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -1783,4 +1785,532 @@ func TestService_OnGroupDeleted(t *testing.T) {
 
 		assert.ErrorIs(t, svc.OnGroupDeleted(ctx, groupID), group.ErrNotExist)
 	})
+}
+
+// TestService_ListResourcesByPrincipal exercises the policy-driven listing
+// path that replaces today's SpiceDB LookupResources-based ListByUser methods.
+// Table-driven, mirroring TestService_ListPrincipalsByResource above.
+//
+// The shared inheritance fixture mirrors the canonical lists extracted from
+// base_schema.zed at runtime; see internal/bootstrap/schema/inheritance.go.
+func TestService_ListResourcesByPrincipal(t *testing.T) {
+	ctx := context.Background()
+
+	// fixture IDs
+	userID := uuid.New().String()
+	suID := uuid.New().String()
+	patID := uuid.New().String()
+	orgA := uuid.New().String()
+	orgB := uuid.New().String()
+	project1, project2, project3 := uuid.New().String(), uuid.New().String(), uuid.New().String()
+	groupA := uuid.New().String()
+
+	roleOrgViewerID := uuid.New().String()
+	roleOrgManagerID := uuid.New().String()
+	roleOrgOwnerID := uuid.New().String()
+	roleOrgCustomID := uuid.New().String()
+	roleProjectViewerID := uuid.New().String()
+	roleProjectOwnerID := uuid.New().String()
+
+	// roles with permissions that mirror the canonical predefined roles.
+	orgViewerRole := role.Role{ID: roleOrgViewerID, Name: schema.RoleOrganizationViewer, Permissions: []string{"app_organization_get"}}
+	orgManagerRole := role.Role{ID: roleOrgManagerID, Name: schema.RoleOrganizationManager, Permissions: []string{
+		"app_organization_update", "app_organization_get", "app_project_get", "app_project_update",
+	}}
+	orgOwnerRole := role.Role{ID: roleOrgOwnerID, Name: schema.RoleOrganizationOwner, Permissions: []string{"app_organization_administer"}}
+	orgCustomRole := role.Role{ID: roleOrgCustomID, Name: "custom_app_project_admin", Permissions: []string{"app_project_administer"}}
+	projectViewerRole := role.Role{ID: roleProjectViewerID, Name: schema.RoleProjectViewer, Permissions: []string{"app_project_get"}}
+	projectOwnerRole := role.Role{ID: roleProjectOwnerID, Name: schema.RoleProjectOwner, Permissions: []string{"app_project_administer"}}
+
+	inheritance := &schema.Inheritance{
+		ProjectDirectVisibility:      []string{"app_project_administer", "app_project_get", "app_project_update"},
+		OrganizationToProjectInherit: []string{"app_organization_administer", "app_project_get", "app_project_administer"},
+	}
+
+	type mockSet struct {
+		policy  *mocks.PolicyService
+		role    *mocks.RoleService
+		project *mocks.ProjectService
+		group   *mocks.GroupService
+	}
+
+	tests := []struct {
+		name         string
+		principal    authenticate.Principal
+		resourceType string
+		filter       membership.ResourceFilter
+		setup        func(m *mockSet)
+		want         []string
+		wantErrIs    error
+	}{
+		{
+			name:         "rejects unsupported resource type",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: "app/unknown",
+			setup:        func(m *mockSet) {},
+			wantErrIs:    membership.ErrInvalidResourceType,
+		},
+		{
+			name:         "lists orgs from direct policies without role-permission filter",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.OrganizationNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgViewerID},
+					{ResourceID: orgB, RoleID: roleOrgManagerID},
+				}, nil)
+			},
+			want: []string{orgA, orgB},
+		},
+		{
+			name:         "deduplicates org IDs across multiple policies on the same org",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.OrganizationNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgViewerID},
+					{ResourceID: orgA, RoleID: roleOrgOwnerID},
+				}, nil)
+			},
+			want: []string{orgA},
+		},
+		{
+			name:         "stale-relation regression: returns empty when no policies, ignoring any SpiceDB state",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.OrganizationNamespace,
+			setup: func(m *mockSet) {
+				// Even if SpiceDB still had an org#owner@U tuple from a
+				// pre-demotion state, this method only consults policies.
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{}, nil)
+			},
+			want: []string{},
+		},
+		{
+			name:         "lists groups from direct policies, no inheritance",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.GroupNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: groupA, RoleID: uuid.New().String()},
+				}, nil)
+			},
+			want: []string{groupA},
+		},
+		{
+			name:         "project listing: direct policy gated by ProjectDirectVisibility, viewer role kept",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.ProjectNamespace,
+			filter:       membership.ResourceFilter{NonInherited: true},
+			setup: func(m *mockSet) {
+				// direct project policies
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: project1, RoleID: roleProjectViewerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 1 && f.IDs[0] == roleProjectViewerID
+				})).Return([]role.Role{projectViewerRole}, nil)
+				// group expansion: principal has no groups
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				// NonInherited=true → org-inheritance branch skipped
+			},
+			want: []string{project1},
+		},
+		{
+			name:         "project listing: owner role on org expands to all org projects via inheritance",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.ProjectNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgOwnerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 1 && f.IDs[0] == roleOrgOwnerID
+				})).Return([]role.Role{orgOwnerRole}, nil)
+				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
+					{ID: project1}, {ID: project2}, {ID: project3},
+				}, nil)
+			},
+			want: []string{project1, project2, project3},
+		},
+		{
+			name:         "project listing: manager role on org expands via app_project_get inheritance",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.ProjectNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgManagerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{orgManagerRole}, nil)
+				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
+					{ID: project1}, {ID: project2},
+				}, nil)
+			},
+			want: []string{project1, project2},
+		},
+		{
+			name:         "project listing: viewer role on org does NOT expand (no inheritance)",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.ProjectNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgViewerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{orgViewerRole}, nil)
+				// no projectService.List call expected — inheritingOrgIDs is empty
+			},
+			want: []string{},
+		},
+		{
+			name:         "project listing: custom org role with app_project_administer expands",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.ProjectNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgCustomID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{orgCustomRole}, nil)
+				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
+					{ID: project1},
+				}, nil)
+			},
+			want: []string{project1},
+		},
+		{
+			name:         "project listing: group expansion adds group-policied projects (even with NonInherited=true)",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.ProjectNamespace,
+			filter:       membership.ResourceFilter{NonInherited: true},
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+				// recursion to list groups for the user
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: groupA, RoleID: uuid.New().String()},
+				}, nil)
+				// then project policies on those groups
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalType: schema.GroupPrincipal,
+					PrincipalIDs:  []string{groupA},
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: project2, RoleID: roleProjectViewerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 1 && f.IDs[0] == roleProjectViewerID
+				})).Return([]role.Role{projectViewerRole}, nil)
+			},
+			want: []string{project2},
+		},
+		{
+			name:         "project listing: OrgID narrows the result set via projectService.List",
+			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			resourceType: schema.ProjectNamespace,
+			filter:       membership.ResourceFilter{OrgID: orgA, NonInherited: true},
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: project1, RoleID: roleProjectViewerID},
+					{ResourceID: project2, RoleID: roleProjectViewerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 1
+				})).Return([]role.Role{projectViewerRole}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				// narrowing: re-issue projectService.List with the OrgID filter,
+				// returning only project1 (project2 was filtered out by org_id).
+				m.project.EXPECT().List(ctx, mock.MatchedBy(func(f project.Filter) bool {
+					return f.OrgID == orgA && len(f.ProjectIDs) == 2
+				})).Return([]project.Project{{ID: project1}}, nil)
+			},
+			want: []string{project1},
+		},
+		{
+			name:         "serviceuser principal: org listing uses ServiceUserPrincipal type",
+			principal:    authenticate.Principal{ID: suID, Type: schema.ServiceUserPrincipal},
+			resourceType: schema.OrganizationNamespace,
+			setup: func(m *mockSet) {
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   suID,
+					PrincipalType: schema.ServiceUserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgViewerID},
+				}, nil)
+			},
+			want: []string{orgA},
+		},
+		{
+			name: "no-PAT path: Principal{Type: UserPrincipal, PAT: nil} skips the recursive PAT pass",
+			principal: authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+				PAT:  nil,
+			},
+			resourceType: schema.ProjectNamespace,
+			filter:       membership.ResourceFilter{NonInherited: true},
+			setup: func(m *mockSet) {
+				// only the user-pass queries fire; no second list under the PAT principal type
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: project1, RoleID: roleProjectViewerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{projectViewerRole}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+			},
+			want: []string{project1},
+		},
+		{
+			name: "PAT all-projects scope with ProjectOwner role resolves via org inheritance",
+			principal: authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+				PAT:  &pat.PAT{ID: patID, UserID: userID, OrgID: orgA},
+			},
+			resourceType: schema.ProjectNamespace,
+			setup: func(m *mockSet) {
+				// user pass — user is org owner, expands via inheritance
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgOwnerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 1 && f.IDs[0] == roleOrgOwnerID
+				})).Return([]role.Role{orgOwnerRole}, nil)
+				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
+					{ID: project1}, {ID: project2}, {ID: project3},
+				}, nil)
+				// PAT pass — all-projects scope is one pat_granted policy on the org
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   patID,
+					PrincipalType: schema.PATPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   patID,
+					PrincipalType: schema.PATPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   patID,
+					PrincipalType: schema.PATPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					// grant_relation here would be pat_granted in production;
+					// listing doesn't filter on it, so the value doesn't matter
+					// for behavior — only the role's permissions do.
+					{ResourceID: orgA, RoleID: roleProjectOwnerID},
+				}, nil)
+				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
+					return len(f.IDs) == 1 && f.IDs[0] == roleProjectOwnerID
+				})).Return([]role.Role{projectOwnerRole}, nil)
+				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
+					{ID: project1}, {ID: project2}, {ID: project3},
+				}, nil)
+			},
+			// PAT can see all of OrgA. User can also see all. Intersection = all.
+			want: []string{project1, project2, project3},
+		},
+		{
+			name: "PAT narrows: user is org viewer with direct P1, PAT scoped to P2 only → empty intersection",
+			principal: authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+				PAT:  &pat.PAT{ID: patID, UserID: userID, OrgID: orgA},
+			},
+			resourceType: schema.ProjectNamespace,
+			setup: func(m *mockSet) {
+				// user pass
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: project1, RoleID: roleProjectViewerID},
+				}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: orgA, RoleID: roleOrgViewerID},
+				}, nil)
+				// PAT pass
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   patID,
+					PrincipalType: schema.PATPrincipal,
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: project2, RoleID: roleProjectViewerID},
+				}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   patID,
+					PrincipalType: schema.PATPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{}, nil)
+				m.policy.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   patID,
+					PrincipalType: schema.PATPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return([]policy.Policy{}, nil)
+				// role lookups required: both passes hit filterByRolePermissions,
+				// without which the empty-intersection assertion would pass
+				// for the wrong reason.
+				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{projectViewerRole, orgViewerRole}, nil)
+			},
+			// user sees [P1], PAT sees [P2], intersection = []
+			want: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mp := mocks.NewPolicyService(t)
+			mr := mocks.NewRoleService(t)
+			mpr := mocks.NewProjectService(t)
+			mg := mocks.NewGroupService(t)
+
+			tt.setup(&mockSet{policy: mp, role: mr, project: mpr, group: mg})
+
+			svc := membership.NewService(
+				slog.New(slog.NewTextHandler(io.Discard, nil)),
+				mp,
+				mocks.NewRelationService(t),
+				mr,
+				mocks.NewOrgService(t),
+				mocks.NewUserService(t),
+				mpr,
+				mg,
+				mocks.NewServiceuserService(t),
+				mocks.NewAuditRecordRepository(t),
+				inheritance,
+			)
+
+			got, err := svc.ListResourcesByPrincipal(ctx, tt.principal, tt.resourceType, tt.filter)
+			if tt.wantErrIs != nil {
+				assert.ErrorIs(t, err, tt.wantErrIs)
+				return
+			}
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, tt.want, got)
+		})
+	}
 }
