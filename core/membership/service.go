@@ -1193,6 +1193,44 @@ func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, p
 	return nil
 }
 
+// RemoveAllGroupMembers tears down membership for a group that is being
+// destroyed: deletes every policy on the group and every owner/member
+// relation per principal. No min-owner check — the group itself is going
+// away, so the invariant doesn't apply. Errors are joined; partial failures
+// are logged so a retry can complete the cleanup.
+func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{GroupID: groupID})
+	if err != nil {
+		return fmt.Errorf("list group policies: %w", err)
+	}
+
+	// principals get one relation-cleanup pass each, even if they hold
+	// multiple policies on the group.
+	seen := make(map[string]struct{}, len(policies))
+	var errs error
+	for _, p := range policies {
+		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
+			continue
+		}
+		key := p.PrincipalType + "\x00" + p.PrincipalID
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		if relErr := s.removeRelations(ctx, groupID, schema.GroupNamespace, p.PrincipalID, p.PrincipalType); relErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
+		}
+	}
+	if errs != nil {
+		s.log.ErrorContext(ctx, "partial failure cleaning up group members during group deletion; retry may be required",
+			"group_id", groupID,
+			"error", errs,
+		)
+	}
+	return errs
+}
+
 // OnGroupCreated wires up SpiceDB relations for a newly-created group:
 // links the group to its parent organization (both directions) and adds the
 // creator as owner via SetGroupMemberRole. If the owner add fails, hierarchy

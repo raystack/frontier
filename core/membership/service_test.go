@@ -1663,3 +1663,65 @@ func TestService_RemoveGroupMember(t *testing.T) {
 		})
 	}
 }
+
+func TestService_RemoveAllGroupMembers(t *testing.T) {
+	ctx := context.Background()
+	groupID := uuid.New().String()
+	userA := uuid.New().String()
+	userB := uuid.New().String()
+
+	relFor := func(name, principalID string) relation.Relation {
+		return relation.Relation{
+			Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{ID: principalID, Namespace: schema.UserPrincipal},
+			RelationName: name,
+		}
+	}
+
+	t.Run("removes policies and per-principal relations, dedupes principals across policies", func(t *testing.T) {
+		policySvc := mocks.NewPolicyService(t)
+		relSvc := mocks.NewRelationService(t)
+
+		policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID}).Return([]policy.Policy{
+			{ID: "p1", PrincipalID: userA, PrincipalType: schema.UserPrincipal},
+			{ID: "p2", PrincipalID: userA, PrincipalType: schema.UserPrincipal},
+			{ID: "p3", PrincipalID: userB, PrincipalType: schema.UserPrincipal},
+		}, nil)
+		policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+		policySvc.EXPECT().Delete(ctx, "p2").Return(nil)
+		policySvc.EXPECT().Delete(ctx, "p3").Return(nil)
+		relSvc.EXPECT().Delete(ctx, relFor(schema.OwnerRelationName, userA)).Return(relation.ErrNotExist)
+		relSvc.EXPECT().Delete(ctx, relFor(schema.MemberRelationName, userA)).Return(nil)
+		relSvc.EXPECT().Delete(ctx, relFor(schema.OwnerRelationName, userB)).Return(nil)
+		relSvc.EXPECT().Delete(ctx, relFor(schema.MemberRelationName, userB)).Return(relation.ErrNotExist)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), policySvc, relSvc,
+			mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t),
+			mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t),
+			mocks.NewAuditRecordRepository(t))
+
+		assert.NoError(t, svc.RemoveAllGroupMembers(ctx, groupID))
+	})
+
+	t.Run("joins errors when a policy delete fails", func(t *testing.T) {
+		policySvc := mocks.NewPolicyService(t)
+		relSvc := mocks.NewRelationService(t)
+
+		policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID}).Return([]policy.Policy{
+			{ID: "p1", PrincipalID: userA, PrincipalType: schema.UserPrincipal},
+			{ID: "p2", PrincipalID: userB, PrincipalType: schema.UserPrincipal},
+		}, nil)
+		policySvc.EXPECT().Delete(ctx, "p1").Return(errors.New("db down"))
+		policySvc.EXPECT().Delete(ctx, "p2").Return(nil)
+		relSvc.EXPECT().Delete(ctx, relFor(schema.OwnerRelationName, userB)).Return(nil)
+		relSvc.EXPECT().Delete(ctx, relFor(schema.MemberRelationName, userB)).Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), policySvc, relSvc,
+			mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t),
+			mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t),
+			mocks.NewAuditRecordRepository(t))
+
+		err := svc.RemoveAllGroupMembers(ctx, groupID)
+		assert.ErrorContains(t, err, "db down")
+	})
+}

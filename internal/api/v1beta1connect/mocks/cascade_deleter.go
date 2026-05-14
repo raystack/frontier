@@ -21,6 +21,53 @@ func (_m *CascadeDeleter) EXPECT() *CascadeDeleter_Expecter {
 	return &CascadeDeleter_Expecter{mock: &_m.Mock}
 }
 
+// DeleteGroup provides a mock function with given fields: ctx, id
+func (_m *CascadeDeleter) DeleteGroup(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGroup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CascadeDeleter_DeleteGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteGroup'
+type CascadeDeleter_DeleteGroup_Call struct {
+	*mock.Call
+}
+
+// DeleteGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *CascadeDeleter_Expecter) DeleteGroup(ctx interface{}, id interface{}) *CascadeDeleter_DeleteGroup_Call {
+	return &CascadeDeleter_DeleteGroup_Call{Call: _e.mock.On("DeleteGroup", ctx, id)}
+}
+
+func (_c *CascadeDeleter_DeleteGroup_Call) Run(run func(ctx context.Context, id string)) *CascadeDeleter_DeleteGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CascadeDeleter_DeleteGroup_Call) Return(_a0 error) *CascadeDeleter_DeleteGroup_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CascadeDeleter_DeleteGroup_Call) RunAndReturn(run func(context.Context, string) error) *CascadeDeleter_DeleteGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteOrganization provides a mock function with given fields: ctx, id
 func (_m *CascadeDeleter) DeleteOrganization(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)

@@ -209,39 +209,26 @@ func (s Service) Disable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Disabled)
 }
 
-func (s Service) Delete(ctx context.Context, id string) error {
+// DeleteModel removes the group entity and its Object-side SpiceDB relations.
+// Membership cleanup (policies + member/owner relations) is the caller's
+// responsibility — see core/deleter.DeleteGroup for the orchestration that
+// pairs this with membership.RemoveAllGroupMembers.
+func (s Service) DeleteModel(ctx context.Context, id string) error {
 	group, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	// remove all users from group
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		GroupID: id,
-	})
-	if err != nil {
-		return err
-	}
-	userIDs := make([]string, 0)
-	for _, pol := range policies {
-		if pol.PrincipalType == schema.UserPrincipal || pol.PrincipalType == schema.ServiceUserPrincipal {
-			userIDs = append(userIDs, pol.PrincipalID)
-		}
-	}
-	if err := s.removeUsers(ctx, group, userIDs); err != nil {
-		return fmt.Errorf("failed to remove users: %w", err)
-	}
-
-	// delete pending relations
+	// delete Object-side relations on the group (org<->group hierarchy and
+	// any other tuples where this group is the object)
 	if err = s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.GroupPrincipal,
-	}}); err != nil {
+	}}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}
 
-	err = s.repository.Delete(ctx, id)
-	if err != nil {
+	if err := s.repository.Delete(ctx, id); err != nil {
 		return err
 	}
 

@@ -65,8 +65,12 @@ type ResourceService interface {
 
 type GroupService interface {
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
-	Delete(ctx context.Context, id string) error
+	DeleteModel(ctx context.Context, id string) error
 	RemoveUsers(ctx context.Context, groupID string, userIDs []string) error
+}
+
+type MembershipService interface {
+	RemoveAllGroupMembers(ctx context.Context, groupID string) error
 }
 
 type InvitationService interface {
@@ -102,6 +106,7 @@ type Service struct {
 	orgService         OrganizationService
 	resService         ResourceService
 	groupService       GroupService
+	membershipService  MembershipService
 	policyService      PolicyService
 	roleService        RoleService
 	invitationService  InvitationService
@@ -114,6 +119,7 @@ type Service struct {
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
 	resService ResourceService, groupService GroupService,
+	membershipService MembershipService,
 	policyService PolicyService, roleService RoleService,
 	invitationService InvitationService, userService UserService,
 	serviceUserService ServiceUserService,
@@ -124,6 +130,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		orgService:         orgService,
 		resService:         resService,
 		groupService:       groupService,
+		membershipService:  membershipService,
 		policyService:      policyService,
 		roleService:        roleService,
 		invitationService:  invitationService,
@@ -165,6 +172,16 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 	return d.projService.DeleteModel(ctx, id)
 }
 
+// DeleteGroup orchestrates teardown of a single group: clears every member's
+// policies and SpiceDB relations via membership, then deletes the group
+// entity itself (which clears the org<->group hierarchy relations).
+func (d Service) DeleteGroup(ctx context.Context, id string) error {
+	if err := d.membershipService.RemoveAllGroupMembers(ctx, id); err != nil {
+		return fmt.Errorf("remove group members: %w", err)
+	}
+	return d.groupService.DeleteModel(ctx, id)
+}
+
 func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	// check if delete is allowed
 	if err := d.canDelete(ctx, id); err != nil {
@@ -203,7 +220,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return err
 	}
 	for _, g := range groups {
-		if err = d.groupService.Delete(ctx, g.ID); err != nil {
+		if err = d.DeleteGroup(ctx, g.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Name, err)
 		}
 	}
