@@ -34,6 +34,7 @@ import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
+import { handleConnectError } from '../../../utils/error';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import {
@@ -224,13 +225,29 @@ export function TeamDetailsView({
           type: 'success'
         });
       } catch (error) {
-        toastManager.add({
-          title: 'Something went wrong',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Failed to update member role',
-          type: 'error'
+        handleConnectError(error, {
+          AlreadyExists: () =>
+            toastManager.add({
+              title: 'Member already exists in this team',
+              type: 'error'
+            }),
+          PermissionDenied: () =>
+            toastManager.add({
+              title: "You don't have permission to perform this action",
+              type: 'error'
+            }),
+          InvalidArgument: (e) =>
+            toastManager.add({
+              title: 'Invalid input',
+              description: e.message,
+              type: 'error'
+            }),
+          Default: (e) =>
+            toastManager.add({
+              title: 'Something went wrong',
+              description: e.message,
+              type: 'error'
+            })
         });
       }
     },

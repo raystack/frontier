@@ -22,6 +22,7 @@ import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { AuthTooltipMessage } from '../../../utils';
 import { PERMISSIONS, filterUsersfromUsers, getInitials } from '../../../../utils';
+import { handleConnectError } from '../../../../utils/error';
 import styles from '../team-details-view.module.css';
 
 interface AddMemberMenuProps {
@@ -89,10 +90,29 @@ export function AddMemberMenu({
         refetch();
       },
       onError: (err: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: err.message,
-          type: 'error'
+        handleConnectError(err, {
+          AlreadyExists: () =>
+            toastManager.add({
+              title: 'Member already exists in this team',
+              type: 'error'
+            }),
+          PermissionDenied: () =>
+            toastManager.add({
+              title: "You don't have permission to perform this action",
+              type: 'error'
+            }),
+          InvalidArgument: (e) =>
+            toastManager.add({
+              title: 'Invalid input',
+              description: e.message,
+              type: 'error'
+            }),
+          Default: (e) =>
+            toastManager.add({
+              title: 'Something went wrong',
+              description: e.message,
+              type: 'error'
+            })
         });
       }
     }
