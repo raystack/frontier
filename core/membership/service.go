@@ -1104,11 +1104,17 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 		return nil
 	}
 
-	if err := s.validateMinGroupOwnerConstraint(ctx, groupID, resolvedRoleID, existing); err != nil {
+	ownerRoleID, err := s.validateMinGroupOwnerConstraint(ctx, groupID, resolvedRoleID, existing)
+	if err != nil {
 		return err
 	}
 
-	if err := s.replacePolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, resolvedRoleID, existing, ""); err != nil {
+	if err := s.replacePolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, resolvedRoleID, existing, ownerRoleID); err != nil {
+		// replacePolicy returns ErrLastOwnerRole for any namespace; surface the
+		// group-specific variant for callers/error mappers.
+		if errors.Is(err, ErrLastOwnerRole) {
+			return ErrLastGroupOwnerRole
+		}
 		return err
 	}
 
@@ -1260,15 +1266,17 @@ func (s *Service) validateGroupPrincipal(ctx context.Context, principalID, princ
 }
 
 // validateMinGroupOwnerConstraint ensures the group keeps at least one owner
-// after the role change. Mirrors the org-level constraint.
-func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, newRoleID string, existing []policy.Policy) error {
+// after the role change. Returns the resolved group owner role ID so the
+// caller can hand it to replacePolicy as a min-role guard, closing the TOCTOU
+// race between this pre-check and the policy delete.
+func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, newRoleID string, existing []policy.Policy) (string, error) {
 	ownerRole, err := s.roleService.Get(ctx, schema.GroupOwnerRole)
 	if err != nil {
-		return fmt.Errorf("get group owner role: %w", err)
+		return "", fmt.Errorf("get group owner role: %w", err)
 	}
 
 	if newRoleID == ownerRole.ID {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	isCurrentlyOwner := false
@@ -1279,7 +1287,7 @@ func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, 
 		}
 	}
 	if !isCurrentlyOwner {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
@@ -1287,12 +1295,12 @@ func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, 
 		RoleID:  ownerRole.ID,
 	})
 	if err != nil {
-		return fmt.Errorf("list group owner policies: %w", err)
+		return "", fmt.Errorf("list group owner policies: %w", err)
 	}
 	if len(ownerPolicies) <= 1 {
-		return ErrLastGroupOwnerRole
+		return "", ErrLastGroupOwnerRole
 	}
-	return nil
+	return ownerRole.ID, nil
 }
 
 // groupRoleToRelation maps a group role to the matching SpiceDB relation name.

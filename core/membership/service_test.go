@@ -1331,7 +1331,8 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
 				roleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
-				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				// deleting an owner-role policy uses the atomic guard
+				policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(nil)
 				policySvc.EXPECT().Create(ctx, policy.Policy{
 					RoleID: memberRoleID, ResourceID: groupID, ResourceType: schema.GroupNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
@@ -1343,6 +1344,22 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 			},
 			roleID:  memberRoleID,
 			wantErr: nil,
+		},
+		{
+			name: "should surface ErrLastGroupOwnerRole when DeleteWithMinRoleGuard races (TOCTOU)",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, memberRoleID).Return(role.Role{ID: memberRoleID, Name: schema.GroupMemberRole, Scopes: []string{schema.GroupNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				roleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole}, nil)
+				// pre-check sees two owners
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+				// but a concurrent delete makes this the last owner; the DB guard catches it
+				policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(policy.ErrLastRoleGuard)
+			},
+			roleID:  memberRoleID,
+			wantErr: membership.ErrLastGroupOwnerRole,
 		},
 		{
 			name: "should succeed promoting member to owner (relation flips member->owner)",
