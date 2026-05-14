@@ -319,6 +319,7 @@ export function ProjectDetailsView({
   }, [onDeleteSuccess]);
 
   const projectTitle = project?.title || '';
+  const projectName = project?.name || '';
 
   return (
     <ViewContainer>
@@ -349,6 +350,7 @@ export function ProjectDetailsView({
         {!isLoading && (canUpdateProject || canDeleteProject) && (
           <ProjectActionsMenu
             projectId={projectId}
+            projectName={projectName}
             projectTitle={projectTitle}
             canUpdate={canUpdateProject}
             canDelete={canDeleteProject}
@@ -480,6 +482,7 @@ export function ProjectDetailsView({
 
 interface ProjectActionsMenuProps {
   projectId: string;
+  projectName: string;
   projectTitle: string;
   canUpdate: boolean;
   canDelete: boolean;
@@ -489,6 +492,7 @@ const projectActionsMenuHandle = Menu.createHandle();
 
 function ProjectActionsMenu({
   projectId,
+  projectName,
   projectTitle,
   canUpdate,
   canDelete
@@ -515,6 +519,7 @@ function ProjectActionsMenu({
               onClick={() =>
                 editProjectDialogHandle.openWithPayload({
                   projectId,
+                  name: projectName,
                   title: projectTitle
                 })
               }

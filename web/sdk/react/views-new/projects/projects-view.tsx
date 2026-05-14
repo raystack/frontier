@@ -229,6 +229,7 @@ export function ProjectsView({
                   onClick={() =>
                     editProjectDialogHandle.openWithPayload({
                       projectId: payload.projectId,
+                      name: payload.name,
                       title: payload.title
                     })
                   }

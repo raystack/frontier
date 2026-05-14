@@ -34,6 +34,7 @@ type FormData = yup.InferType<typeof editProjectSchema>;
 
 export interface EditProjectPayload {
   projectId: string;
+  name: string;
   title: string;
 }
 
@@ -108,6 +109,7 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
         create(UpdateProjectRequestSchema, {
           id: payload.projectId,
           body: {
+            name: payload.name,
             title: data.title
           }
         })
