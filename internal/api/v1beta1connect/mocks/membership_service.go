@@ -183,6 +183,55 @@ func (_c *MembershipService_OnGroupCreated_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// RemoveGroupMember provides a mock function with given fields: ctx, groupID, principalID, principalType
+func (_m *MembershipService) RemoveGroupMember(ctx context.Context, groupID string, principalID string, principalType string) error {
+	ret := _m.Called(ctx, groupID, principalID, principalType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveGroupMember")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, groupID, principalID, principalType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MembershipService_RemoveGroupMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveGroupMember'
+type MembershipService_RemoveGroupMember_Call struct {
+	*mock.Call
+}
+
+// RemoveGroupMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - principalID string
+//   - principalType string
+func (_e *MembershipService_Expecter) RemoveGroupMember(ctx interface{}, groupID interface{}, principalID interface{}, principalType interface{}) *MembershipService_RemoveGroupMember_Call {
+	return &MembershipService_RemoveGroupMember_Call{Call: _e.mock.On("RemoveGroupMember", ctx, groupID, principalID, principalType)}
+}
+
+func (_c *MembershipService_RemoveGroupMember_Call) Run(run func(ctx context.Context, groupID string, principalID string, principalType string)) *MembershipService_RemoveGroupMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_RemoveGroupMember_Call) Return(_a0 error) *MembershipService_RemoveGroupMember_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MembershipService_RemoveGroupMember_Call) RunAndReturn(run func(context.Context, string, string, string) error) *MembershipService_RemoveGroupMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveOrganizationMember provides a mock function with given fields: ctx, orgID, principalID, principalType
 func (_m *MembershipService) RemoveOrganizationMember(ctx context.Context, orgID string, principalID string, principalType string) error {
 	ret := _m.Called(ctx, orgID, principalID, principalType)

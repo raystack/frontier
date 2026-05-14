@@ -1525,3 +1525,141 @@ func TestService_OnGroupCreated(t *testing.T) {
 		assert.ErrorContains(t, err, "db down")
 	})
 }
+
+func TestService_RemoveGroupMember(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	groupID := uuid.New().String()
+	userID := uuid.New().String()
+	ownerRoleID := uuid.New().String()
+	memberRoleID := uuid.New().String()
+
+	enabledUser := user.User{ID: userID, Title: "test-user", Email: "test@acme.dev", State: user.Enabled}
+	grp := group.Group{ID: groupID, OrganizationID: orgID, Title: "Test Group"}
+
+	expectOwnerRoleLookup := func(roleSvc *mocks.RoleService) {
+		roleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole}, nil)
+	}
+
+	tests := []struct {
+		name           string
+		setup          func(*mocks.PolicyService, *mocks.RelationService, *mocks.RoleService, *mocks.GroupService, *mocks.UserService, *mocks.AuditRecordRepository)
+		principalType  string
+		wantErr        error
+		wantErrContain string
+	}{
+		{
+			name: "should return error if group does not exist",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, grpSvc *mocks.GroupService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
+			},
+			wantErr: group.ErrNotExist,
+		},
+		{
+			name: "should return error if principal type is unsupported",
+			setup: func(_ *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, grpSvc *mocks.GroupService, _ *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+			},
+			principalType: schema.ServiceUserPrincipal,
+			wantErr:       membership.ErrInvalidPrincipalType,
+		},
+		{
+			name: "should return ErrNotMember if principal has no group policy",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, _ *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+			},
+			wantErr: membership.ErrNotMember,
+		},
+		{
+			name: "should return ErrLastGroupOwnerRole when removing last owner (pre-check fires)",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				expectOwnerRoleLookup(roleSvc)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}}, nil)
+			},
+			wantErr: membership.ErrLastGroupOwnerRole,
+		},
+		{
+			name: "should surface ErrLastGroupOwnerRole when DeleteWithMinRoleGuard races (TOCTOU)",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				expectOwnerRoleLookup(roleSvc)
+				// pre-check sees two owners, but the DB guard catches the race
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+				policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(policy.ErrLastRoleGuard)
+			},
+			wantErr: membership.ErrLastGroupOwnerRole,
+		},
+		{
+			name: "should remove a member (non-owner) and delete both relations",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: memberRoleID}}, nil)
+				expectOwnerRoleLookup(roleSvc)
+				// member-role policy → plain Delete (no guard)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				obj := relation.Object{ID: groupID, Namespace: schema.GroupNamespace}
+				sub := relation.Subject{ID: userID, Namespace: schema.UserPrincipal}
+				relSvc.EXPECT().Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: schema.OwnerRelationName}).Return(relation.ErrNotExist)
+				relSvc.EXPECT().Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: schema.MemberRelationName}).Return(nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should remove an owner via atomic guard when more owners remain",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
+				expectOwnerRoleLookup(roleSvc)
+				policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+				policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "p1", ownerRoleID).Return(nil)
+				obj := relation.Object{ID: groupID, Namespace: schema.GroupNamespace}
+				sub := relation.Subject{ID: userID, Namespace: schema.UserPrincipal}
+				relSvc.EXPECT().Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: schema.OwnerRelationName}).Return(nil)
+				relSvc.EXPECT().Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicySvc := mocks.NewPolicyService(t)
+			mockRelSvc := mocks.NewRelationService(t)
+			mockRoleSvc := mocks.NewRoleService(t)
+			mockGrpSvc := mocks.NewGroupService(t)
+			mockUserSvc := mocks.NewUserService(t)
+			mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+			if tt.setup != nil {
+				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockGrpSvc, mockUserSvc, mockAuditRepo)
+			}
+
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
+
+			principalType := tt.principalType
+			if principalType == "" {
+				principalType = schema.UserPrincipal
+			}
+			err := svc.RemoveGroupMember(ctx, groupID, userID, principalType)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else if tt.wantErrContain != "" {
+				assert.ErrorContains(t, err, tt.wantErrContain)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

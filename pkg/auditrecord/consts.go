@@ -46,6 +46,7 @@ const (
 	// Group Member Events
 	GroupMemberAddedEvent       Event = "group.member_added"
 	GroupMemberRoleChangedEvent Event = "group.member_role_changed"
+	GroupMemberRemovedEvent     Event = "group.member_removed"
 
 	// KYC Events
 	KYCVerifiedEvent   Event = "kyc.verified"
