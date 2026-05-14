@@ -348,6 +348,7 @@ export function TeamDetailsView({
                 teamId={teamId}
                 canUpdateGroup={canUpdateGroup}
                 members={members}
+                roles={roles}
                 refetch={refetchMembers}
               />
             )}

@@ -32,7 +32,7 @@ import { getColumns } from './team-member-columns';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
     FrontierServiceQueries,
-    AddGroupUsersRequestSchema,
+    SetGroupMemberRoleRequestSchema,
     ListOrganizationUsersRequestSchema,
     type User,
     type Role
@@ -133,6 +133,7 @@ export const TeamMembers = ({
                                     canUpdateGroup={canUpdateGroup}
                                     refetchMembers={refetchMembers}
                                     members={members}
+                                    roles={roles}
                                     teamId={teamId}
                                     onInviteClick={onInviteClick}
                                 />
@@ -156,6 +157,7 @@ interface AddMemberDropdownProps {
     canUpdateGroup: boolean;
     refetchMembers: () => void;
     members: User[];
+    roles: Role[];
     teamId: string;
     onInviteClick?: () => void;
 }
@@ -164,6 +166,7 @@ const AddMemberDropdown = ({
     canUpdateGroup,
     refetchMembers,
     members,
+    roles,
     teamId,
     onInviteClick
 }: AddMemberDropdownProps) => {
@@ -217,9 +220,14 @@ const AddMemberDropdown = ({
         setQuery(e.target.value);
     }
 
-    // Add group user using Connect RPC
-    const addGroupUserMutation = useMutation(
-        FrontierServiceQueries.addGroupUsers,
+    const memberRoleId = useMemo(
+        () => roles.find(r => r.name === PERMISSIONS.RoleGroupMember)?.id ?? '',
+        [roles]
+    );
+
+    // Add group user as member using Connect RPC
+    const setGroupMemberRoleMutation = useMutation(
+        FrontierServiceQueries.setGroupMemberRole,
         {
             onSuccess: () => {
                 toast.success('member added');
@@ -237,17 +245,19 @@ const AddMemberDropdown = ({
 
     const addMember = useCallback(
         (userId: string) => {
-            if (!userId || !organization?.id) return;
+            if (!userId || !organization?.id || !memberRoleId) return;
 
-            const request = create(AddGroupUsersRequestSchema, {
-                id: teamId,
+            const request = create(SetGroupMemberRoleRequestSchema, {
+                groupId: teamId,
                 orgId: organization.id,
-                userIds: [userId]
+                principalId: userId,
+                principalType: PERMISSIONS.UserPrincipal,
+                roleId: memberRoleId
             });
 
-            addGroupUserMutation.mutate(request);
+            setGroupMemberRoleMutation.mutate(request);
         },
-        [organization?.id, teamId, addGroupUserMutation]
+        [organization?.id, teamId, memberRoleId, setGroupMemberRoleMutation]
     );
 
     return (
