@@ -15,6 +15,7 @@ import {
   RemoveGroupUserRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import { handleConnectError } from '../../../../utils/error';
 
 export interface RemoveMemberPayload {
   memberId: string;
@@ -88,11 +89,36 @@ function RemoveMemberForm({
       refetch();
       handle.close();
     } catch (error) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error ? error.message : 'Failed to remove member',
-        type: 'error'
+      handleConnectError(error, {
+        InvalidArgument: (e) =>
+          toastManager.add({
+            title: 'Cannot remove member',
+            description: e.message,
+            type: 'error'
+          }),
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: 'error'
+          }),
+        NotFound: (e) =>
+          toastManager.add({
+            title: 'Not found',
+            description: e.message,
+            type: 'error'
+          }),
+        FailedPrecondition: (e) =>
+          toastManager.add({
+            title: 'Cannot remove member',
+            description: e.message,
+            type: 'error'
+          }),
+        Default: (e) =>
+          toastManager.add({
+            title: 'Something went wrong',
+            description: e.message,
+            type: 'error'
+          })
       });
     } finally {
       setIsLoading(false);
