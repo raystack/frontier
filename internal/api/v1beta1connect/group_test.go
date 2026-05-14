@@ -1472,6 +1472,48 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount),
 		},
 		{
+			name: "should return failed precondition if user is disabled",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(user.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, user.ErrDisabled),
+		},
+		{
+			name: "should return invalid argument if principal type is unsupported",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(membership.ErrInvalidPrincipalType)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, membership.ErrInvalidPrincipalType),
+		},
+		{
+			name: "should return invalid argument if principal is invalid",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(membership.ErrInvalidPrincipal)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, membership.ErrInvalidPrincipal),
+		},
+		{
 			name: "should return internal error for unknown errors",
 			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
