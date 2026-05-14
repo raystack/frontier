@@ -1298,6 +1298,62 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 			want:    connect.NewResponse(&frontierv1beta1.AddGroupUsersResponse{}),
 			wantErr: nil,
 		},
+		{
+			name: "should return not found if group does not exist",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(group.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
+		},
+		{
+			name: "should return not found if user does not exist",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(user.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			name: "should return failed precondition if user is not a member of the org",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(membership.ErrNotOrgMember)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotOrgMember),
+		},
+		{
+			name: "should return failed precondition if demoting last group owner",
+			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(membership.ErrLastGroupOwnerRole)
+			},
+			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
+				Id:      someGroupID,
+				OrgId:   testOrgID,
+				UserIds: []string{someUserID},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
