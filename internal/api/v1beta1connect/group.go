@@ -411,12 +411,12 @@ func (h *ConnectHandler) AddGroupUsers(ctx context.Context, request *connect.Req
 
 	var joinedErr error
 	for _, userID := range request.Msg.GetUserIds() {
-		if err := h.membershipService.AddGroupMember(ctx, request.Msg.GetId(), userID, schema.UserPrincipal, schema.GroupMemberRole); err != nil {
+		if err := h.membershipService.SetGroupMemberRole(ctx, request.Msg.GetId(), userID, schema.UserPrincipal, schema.GroupMemberRole); err != nil {
 			joinedErr = errors.Join(joinedErr, err)
 		}
 	}
 	if joinedErr != nil {
-		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.AddGroupMember", joinedErr,
+		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.SetGroupMemberRole", joinedErr,
 			"group_id", request.Msg.GetId(),
 			"user_ids", request.Msg.GetUserIds())
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)

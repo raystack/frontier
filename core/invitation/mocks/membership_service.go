@@ -21,56 +21,6 @@ func (_m *MembershipService) EXPECT() *MembershipService_Expecter {
 	return &MembershipService_Expecter{mock: &_m.Mock}
 }
 
-// AddGroupMember provides a mock function with given fields: ctx, groupID, principalID, principalType, roleID
-func (_m *MembershipService) AddGroupMember(ctx context.Context, groupID string, principalID string, principalType string, roleID string) error {
-	ret := _m.Called(ctx, groupID, principalID, principalType, roleID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddGroupMember")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
-		r0 = rf(ctx, groupID, principalID, principalType, roleID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MembershipService_AddGroupMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddGroupMember'
-type MembershipService_AddGroupMember_Call struct {
-	*mock.Call
-}
-
-// AddGroupMember is a helper method to define mock.On call
-//   - ctx context.Context
-//   - groupID string
-//   - principalID string
-//   - principalType string
-//   - roleID string
-func (_e *MembershipService_Expecter) AddGroupMember(ctx interface{}, groupID interface{}, principalID interface{}, principalType interface{}, roleID interface{}) *MembershipService_AddGroupMember_Call {
-	return &MembershipService_AddGroupMember_Call{Call: _e.mock.On("AddGroupMember", ctx, groupID, principalID, principalType, roleID)}
-}
-
-func (_c *MembershipService_AddGroupMember_Call) Run(run func(ctx context.Context, groupID string, principalID string, principalType string, roleID string)) *MembershipService_AddGroupMember_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
-	})
-	return _c
-}
-
-func (_c *MembershipService_AddGroupMember_Call) Return(_a0 error) *MembershipService_AddGroupMember_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MembershipService_AddGroupMember_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_AddGroupMember_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // AddOrganizationMember provides a mock function with given fields: ctx, orgID, principalID, principalType, roleID
 func (_m *MembershipService) AddOrganizationMember(ctx context.Context, orgID string, principalID string, principalType string, roleID string) error {
 	ret := _m.Called(ctx, orgID, principalID, principalType, roleID)
@@ -117,6 +67,56 @@ func (_c *MembershipService_AddOrganizationMember_Call) Return(_a0 error) *Membe
 }
 
 func (_c *MembershipService_AddOrganizationMember_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_AddOrganizationMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetGroupMemberRole provides a mock function with given fields: ctx, groupID, principalID, principalType, roleID
+func (_m *MembershipService) SetGroupMemberRole(ctx context.Context, groupID string, principalID string, principalType string, roleID string) error {
+	ret := _m.Called(ctx, groupID, principalID, principalType, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetGroupMemberRole")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, groupID, principalID, principalType, roleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MembershipService_SetGroupMemberRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetGroupMemberRole'
+type MembershipService_SetGroupMemberRole_Call struct {
+	*mock.Call
+}
+
+// SetGroupMemberRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - principalID string
+//   - principalType string
+//   - roleID string
+func (_e *MembershipService_Expecter) SetGroupMemberRole(ctx interface{}, groupID interface{}, principalID interface{}, principalType interface{}, roleID interface{}) *MembershipService_SetGroupMemberRole_Call {
+	return &MembershipService_SetGroupMemberRole_Call{Call: _e.mock.On("SetGroupMemberRole", ctx, groupID, principalID, principalType, roleID)}
+}
+
+func (_c *MembershipService_SetGroupMemberRole_Call) Run(run func(ctx context.Context, groupID string, principalID string, principalType string, roleID string)) *MembershipService_SetGroupMemberRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_SetGroupMemberRole_Call) Return(_a0 error) *MembershipService_SetGroupMemberRole_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MembershipService_SetGroupMemberRole_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_SetGroupMemberRole_Call {
 	_c.Call.Return(run)
 	return _c
 }

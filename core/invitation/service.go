@@ -49,7 +49,7 @@ type OrganizationService interface {
 
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
-	AddGroupMember(ctx context.Context, groupID, principalID, principalType, roleID string) error
+	SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error
 }
 
 type GroupService interface {
@@ -339,7 +339,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 				}
 			}
 			if !alreadyGroupMember {
-				if err = s.membershipSvc.AddGroupMember(ctx, grp.ID, userOb.ID, schema.UserPrincipal, schema.GroupMemberRole); err != nil {
+				if err = s.membershipSvc.SetGroupMemberRole(ctx, grp.ID, userOb.ID, schema.UserPrincipal, schema.GroupMemberRole); err != nil {
 					return err
 				}
 			}

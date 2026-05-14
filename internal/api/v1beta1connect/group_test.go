@@ -1271,10 +1271,10 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
 		},
 		{
-			name: "should return internal server error if AddGroupMember fails for any user",
+			name: "should return internal server error if SetGroupMemberRole fails for any user",
 			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().AddGroupMember(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(errors.New("some error"))
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(errors.New("some error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 				Id:      someGroupID,
@@ -1285,10 +1285,10 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
 		},
 		{
-			name: "should return success if AddGroupMember succeeds for each user",
+			name: "should return success if SetGroupMemberRole succeeds for each user",
 			setup: func(ms *mocks.MembershipService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().AddGroupMember(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(nil)
+				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, someUserID, schema.UserPrincipal, schema.GroupMemberRole).Return(nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.AddGroupUsersRequest{
 				Id:      someGroupID,
