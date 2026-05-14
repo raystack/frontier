@@ -21,21 +21,13 @@ import {
 } from '@raystack/apsara-v1';
 import deleteIcon from '../../assets/delete.svg';
 import { toastManager } from '@raystack/apsara-v1';
-import {
-  useQuery,
-  useMutation,
-  createConnectQueryKey,
-  useTransport
-} from '@connectrpc/connect-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
   GetGroupRequestSchema,
   ListGroupUsersRequestSchema,
   ListRolesRequestSchema,
-  CreatePolicyRequestSchema,
-  DeletePolicyRequestSchema,
-  ListPoliciesRequestSchema,
+  SetGroupMemberRoleRequestSchema,
   type Role as ProtoRole
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
@@ -209,53 +201,21 @@ export function TeamDetailsView({
     [memberRoles, roles, canUpdateGroup]
   );
 
-  const queryClient = useQueryClient();
-  const transport = useTransport();
-
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
-  );
-  const { mutateAsync: createPolicy } = useMutation(
-    FrontierServiceQueries.createPolicy
+  const { mutateAsync: setGroupMemberRole } = useMutation(
+    FrontierServiceQueries.setGroupMemberRole
   );
 
   const updateMemberRole = useCallback(
     async (memberId: string, role: ProtoRole) => {
+      if (!organization?.id) return;
       try {
-        const principal = `${PERMISSIONS.UserNamespace}:${memberId}`;
-
-        const input = create(ListPoliciesRequestSchema, {
-          groupId: teamId,
-          userId: memberId
-        });
-
-        const policiesData = await queryClient.fetchQuery({
-          queryKey: createConnectQueryKey({
-            schema: FrontierServiceQueries.listPolicies,
-            transport,
-            input,
-            cardinality: 'finite'
-          })
-        });
-
-        const policies =
-          (policiesData as { policies?: { id?: string }[] })?.policies ?? [];
-
-        await Promise.all(
-          policies.map(p =>
-            deletePolicy(
-              create(DeletePolicyRequestSchema, { id: p.id || '' })
-            )
-          )
-        );
-
-        await createPolicy(
-          create(CreatePolicyRequestSchema, {
-            body: {
-              roleId: role.id as string,
-              resource: `app/group:${teamId}`,
-              principal
-            }
+        await setGroupMemberRole(
+          create(SetGroupMemberRoleRequestSchema, {
+            groupId: teamId,
+            orgId: organization.id,
+            principalId: memberId,
+            principalType: PERMISSIONS.UserPrincipal,
+            roleId: role.id as string
           })
         );
         refetchMembers();
@@ -274,7 +234,7 @@ export function TeamDetailsView({
         });
       }
     },
-    [queryClient, transport, deletePolicy, createPolicy, teamId, refetchMembers]
+    [setGroupMemberRole, teamId, organization?.id, refetchMembers]
   );
 
   const handleDeleteSuccess = useCallback(() => {
