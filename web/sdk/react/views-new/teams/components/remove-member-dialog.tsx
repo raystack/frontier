@@ -9,12 +9,10 @@ import {
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
-  RemoveGroupUserRequestSchema,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema
+  RemoveGroupUserRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 
@@ -70,21 +68,6 @@ function RemoveMemberForm({
   const [isLoading, setIsLoading] = useState(false);
   const { activeOrganization: organization } = useFrontier();
 
-  const { data: policiesData } = useQuery(
-    FrontierServiceQueries.listPolicies,
-    create(ListPoliciesRequestSchema, {
-      groupId: payload.teamId,
-      userId: payload.memberId
-    }),
-    { enabled: !!payload.teamId && !!payload.memberId }
-  );
-
-  const policies = policiesData?.policies ?? [];
-
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
-  );
-
   const { mutateAsync: removeGroupUser } = useMutation(
     FrontierServiceQueries.removeGroupUser
   );
@@ -93,12 +76,6 @@ function RemoveMemberForm({
     if (!organization?.id) return;
     setIsLoading(true);
     try {
-      await Promise.all(
-        policies.map(p =>
-          deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' }))
-        )
-      );
-
       await removeGroupUser(
         create(RemoveGroupUserRequestSchema, {
           id: payload.teamId,
