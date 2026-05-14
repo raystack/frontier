@@ -1136,6 +1136,63 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 	return nil
 }
 
+// RemoveGroupMember removes a principal from a group, cleaning up both their
+// group policies and the matching SpiceDB relations. Returns ErrNotMember if
+// the principal has no policies on this group; ErrLastGroupOwnerRole if they
+// are the sole remaining owner (enforced atomically via the policy guard).
+func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, principalType string) error {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	principal, err := s.validateGroupPrincipal(ctx, principalID, principalType)
+	if err != nil {
+		return err
+	}
+
+	existing, err := s.policyService.List(ctx, policy.Filter{
+		GroupID:       groupID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+	if len(existing) == 0 {
+		return ErrNotMember
+	}
+
+	// Pass empty newRoleID — removal, not role change. The function still
+	// returns the owner role ID for the atomic guard on the delete path.
+	ownerRoleID, err := s.validateMinGroupOwnerConstraint(ctx, groupID, "", existing)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range existing {
+		if err := s.deletePolicy(ctx, p, ownerRoleID); err != nil {
+			if errors.Is(err, policy.ErrLastRoleGuard) {
+				return ErrLastGroupOwnerRole
+			}
+			return fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+
+	if err := s.removeRelations(ctx, groupID, schema.GroupNamespace, principalID, principalType); err != nil {
+		s.log.ErrorContext(ctx, "membership state inconsistent: group policies removed but relation cleanup failed, needs manual fix",
+			"group_id", groupID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"error", err,
+		)
+		return err
+	}
+
+	s.auditGroupMemberRemoved(ctx, grp, principal)
+	return nil
+}
+
 // OnGroupCreated wires up SpiceDB relations for a newly-created group:
 // links the group to its parent organization (both directions) and adds the
 // creator as owner via SetGroupMemberRole. If the owner add fails, hierarchy
@@ -1373,6 +1430,38 @@ func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Gro
 		Type: p.Type,
 	}, map[string]string{
 		"role_id":  roleID,
+		"group_id": grp.ID,
+	})
+}
+
+func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, p principalInfo) {
+	targetType, _ := principalTypeToAuditType(p.Type)
+	meta := map[string]any{}
+	if p.Email != "" {
+		meta["email"] = p.Email
+	}
+
+	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.GroupMemberRemovedEvent,
+		Resource: auditrecord.Resource{
+			ID:   grp.ID,
+			Type: pkgAuditRecord.GroupType,
+			Name: grp.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:       p.ID,
+			Type:     targetType,
+			Name:     p.Name,
+			Metadata: meta,
+		},
+		OrgID:      grp.OrganizationID,
+		OccurredAt: time.Now(),
+	})
+
+	audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.Target{
+		ID:   p.ID,
+		Type: p.Type,
+	}, map[string]string{
 		"group_id": grp.ID,
 	})
 }

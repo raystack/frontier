@@ -406,6 +406,7 @@ type MembershipService interface {
 	RemoveProjectMember(ctx context.Context, projectID, principalID, principalType string) error
 	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
 	SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error
+	RemoveGroupMember(ctx context.Context, groupID, principalID, principalType string) error
 	OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error
 }
 

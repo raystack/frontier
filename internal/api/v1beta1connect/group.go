@@ -458,29 +458,27 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 		}
 	}
 
-	// before deleting the user, check if the user is the only owner of the group
-	ownerRole, err := h.roleService.Get(ctx, group.AdminRole)
-	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.roleService.Get", err,
-			"role", group.AdminRole)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-	owners, err := h.listGroupUsers(ctx, request.Msg.GetId(), ownerRole.ID)
-	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.listGroupUsers", err,
-			"group_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-	if len(owners) == 1 && owners[0].ID == request.Msg.GetUserId() {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount)
-	}
-
-	// delete the user
-	if err := h.groupService.RemoveUsers(ctx, request.Msg.GetId(), []string{request.Msg.GetUserId()}); err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.RemoveUsers", err,
+	if err := h.membershipService.RemoveGroupMember(ctx, request.Msg.GetId(), request.Msg.GetUserId(), schema.UserPrincipal); err != nil {
+		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.RemoveGroupMember", err,
 			"group_id", request.Msg.GetId(),
 			"user_id", request.Msg.GetUserId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+
+		switch {
+		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, user.ErrDisabled)
+		case errors.Is(err, membership.ErrInvalidPrincipalType), errors.Is(err, membership.ErrInvalidPrincipal):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, membership.ErrNotMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, membership.ErrLastGroupOwnerRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
 	return connect.NewResponse(&frontierv1beta1.RemoveGroupUserResponse{}), nil
 }

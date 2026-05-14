@@ -1381,27 +1381,17 @@ func TestConnectHandler_AddGroupUsers(t *testing.T) {
 
 func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 	randomID := utils.NewString()
-	adminRoleID := "admin-role-id"
-	expectAdminLookup := func(ms *mocks.MembershipService, us *mocks.UserService, users []user.User, err error) {
-		ms.EXPECT().ListPrincipalsByResource(mock.Anything, randomID, schema.GroupNamespace, membership.MemberFilter{
-			PrincipalType: schema.UserPrincipal,
-			RoleIDs:       []string{adminRoleID},
-		}).Return(membersFromUsers(users), err).Once()
-		if err == nil {
-			us.EXPECT().GetByIDs(mock.Anything, userIDsOf(users)).Return(users, nil).Once()
-		}
-	}
 
 	tests := []struct {
 		name    string
-		setup   func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService, rs *mocks.RoleService, ms *mocks.MembershipService)
+		setup   func(os *mocks.OrganizationService, ms *mocks.MembershipService)
 		request *connect.Request[frontierv1beta1.RemoveGroupUserRequest]
 		want    *connect.Response[frontierv1beta1.RemoveGroupUserResponse]
 		wantErr error
 	}{
 		{
 			name: "should return error if organization does not exist",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService, rs *mocks.RoleService, ms *mocks.MembershipService) {
+			setup: func(os *mocks.OrganizationService, _ *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
@@ -1414,7 +1404,7 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 		},
 		{
 			name: "should return error if organization is disabled",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService, rs *mocks.RoleService, ms *mocks.MembershipService) {
+			setup: func(os *mocks.OrganizationService, _ *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
@@ -1426,11 +1416,10 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
 		},
 		{
-			name: "should return error if user service fails when checking owners",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService, rs *mocks.RoleService, ms *mocks.MembershipService) {
+			name: "should return not found if group does not exist",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
-				rs.EXPECT().Get(mock.Anything, group.AdminRole).Return(role.Role{ID: adminRoleID}, nil).Once()
-				expectAdminLookup(ms, us, nil, errors.New("user service error"))
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(group.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
 				Id:     randomID,
@@ -1438,14 +1427,41 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 				UserId: randomID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
 		},
 		{
-			name: "should return error if user is the only admin",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService, rs *mocks.RoleService, ms *mocks.MembershipService) {
+			name: "should return not found if user does not exist",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
-				rs.EXPECT().Get(mock.Anything, group.AdminRole).Return(role.Role{ID: adminRoleID}, nil).Once()
-				expectAdminLookup(ms, us, []user.User{{ID: randomID}}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(user.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrUserNotExist),
+		},
+		{
+			name: "should return failed precondition if user is not a group member",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(membership.ErrNotMember)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrNotMember),
+		},
+		{
+			name: "should return invalid argument if user is the only owner",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(membership.ErrLastGroupOwnerRole)
 			},
 			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
 				Id:     randomID,
@@ -1456,12 +1472,52 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount),
 		},
 		{
-			name: "should return error if group service fails to remove user",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService, rs *mocks.RoleService, ms *mocks.MembershipService) {
+			name: "should return failed precondition if user is disabled",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
-				rs.EXPECT().Get(mock.Anything, group.AdminRole).Return(role.Role{ID: adminRoleID}, nil).Once()
-				expectAdminLookup(ms, us, []user.User{{ID: "other-admin"}, {ID: randomID}}, nil)
-				gs.EXPECT().RemoveUsers(mock.Anything, randomID, []string{randomID}).Return(errors.New("group service error"))
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(user.ErrDisabled)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, user.ErrDisabled),
+		},
+		{
+			name: "should return invalid argument if principal type is unsupported",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(membership.ErrInvalidPrincipalType)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, membership.ErrInvalidPrincipalType),
+		},
+		{
+			name: "should return invalid argument if principal is invalid",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(membership.ErrInvalidPrincipal)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				OrgId:  randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, membership.ErrInvalidPrincipal),
+		},
+		{
+			name: "should return internal error for unknown errors",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(errors.New("unknown"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
 				Id:     randomID,
@@ -1473,11 +1529,9 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 		},
 		{
 			name: "should remove user successfully",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService, rs *mocks.RoleService, ms *mocks.MembershipService) {
+			setup: func(os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				os.EXPECT().Get(mock.Anything, randomID).Return(organization.Organization{ID: randomID}, nil)
-				rs.EXPECT().Get(mock.Anything, group.AdminRole).Return(role.Role{ID: adminRoleID}, nil).Once()
-				expectAdminLookup(ms, us, []user.User{{ID: "other-admin"}, {ID: randomID}}, nil)
-				gs.EXPECT().RemoveUsers(mock.Anything, randomID, []string{randomID}).Return(nil)
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
 				Id:     randomID,
@@ -1491,19 +1545,13 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockGroupSvc := new(mocks.GroupService)
 			mockOrgSvc := new(mocks.OrganizationService)
-			mockUserSvc := new(mocks.UserService)
-			mockRoleSvc := new(mocks.RoleService)
 			mockMembershipSvc := new(mocks.MembershipService)
 			if tt.setup != nil {
-				tt.setup(mockGroupSvc, mockOrgSvc, mockUserSvc, mockRoleSvc, mockMembershipSvc)
+				tt.setup(mockOrgSvc, mockMembershipSvc)
 			}
 			h := ConnectHandler{
-				groupService:      mockGroupSvc,
 				orgService:        mockOrgSvc,
-				userService:       mockUserSvc,
-				roleService:       mockRoleSvc,
 				membershipService: mockMembershipSvc,
 			}
 			got, err := h.RemoveGroupUser(context.Background(), tt.request)
