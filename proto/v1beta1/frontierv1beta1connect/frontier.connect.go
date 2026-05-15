@@ -143,9 +143,6 @@ const (
 	// FrontierServiceListGroupUsersProcedure is the fully-qualified name of the FrontierService's
 	// ListGroupUsers RPC.
 	FrontierServiceListGroupUsersProcedure = "/raystack.frontier.v1beta1.FrontierService/ListGroupUsers"
-	// FrontierServiceAddGroupUsersProcedure is the fully-qualified name of the FrontierService's
-	// AddGroupUsers RPC.
-	FrontierServiceAddGroupUsersProcedure = "/raystack.frontier.v1beta1.FrontierService/AddGroupUsers"
 	// FrontierServiceRemoveGroupUserProcedure is the fully-qualified name of the FrontierService's
 	// RemoveGroupUser RPC.
 	FrontierServiceRemoveGroupUserProcedure = "/raystack.frontier.v1beta1.FrontierService/RemoveGroupUser"
@@ -617,7 +614,6 @@ type FrontierServiceClient interface {
 	GetGroup(context.Context, *connect.Request[v1beta1.GetGroupRequest]) (*connect.Response[v1beta1.GetGroupResponse], error)
 	UpdateGroup(context.Context, *connect.Request[v1beta1.UpdateGroupRequest]) (*connect.Response[v1beta1.UpdateGroupResponse], error)
 	ListGroupUsers(context.Context, *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error)
-	AddGroupUsers(context.Context, *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error)
 	RemoveGroupUser(context.Context, *connect.Request[v1beta1.RemoveGroupUserRequest]) (*connect.Response[v1beta1.RemoveGroupUserResponse], error)
 	SetGroupMemberRole(context.Context, *connect.Request[v1beta1.SetGroupMemberRoleRequest]) (*connect.Response[v1beta1.SetGroupMemberRoleResponse], error)
 	EnableGroup(context.Context, *connect.Request[v1beta1.EnableGroupRequest]) (*connect.Response[v1beta1.EnableGroupResponse], error)
@@ -1022,12 +1018,6 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceListGroupUsersProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("ListGroupUsers")),
-			connect.WithClientOptions(opts...),
-		),
-		addGroupUsers: connect.NewClient[v1beta1.AddGroupUsersRequest, v1beta1.AddGroupUsersResponse](
-			httpClient,
-			baseURL+FrontierServiceAddGroupUsersProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("AddGroupUsers")),
 			connect.WithClientOptions(opts...),
 		),
 		removeGroupUser: connect.NewClient[v1beta1.RemoveGroupUserRequest, v1beta1.RemoveGroupUserResponse](
@@ -1930,7 +1920,6 @@ type frontierServiceClient struct {
 	getGroup                       *connect.Client[v1beta1.GetGroupRequest, v1beta1.GetGroupResponse]
 	updateGroup                    *connect.Client[v1beta1.UpdateGroupRequest, v1beta1.UpdateGroupResponse]
 	listGroupUsers                 *connect.Client[v1beta1.ListGroupUsersRequest, v1beta1.ListGroupUsersResponse]
-	addGroupUsers                  *connect.Client[v1beta1.AddGroupUsersRequest, v1beta1.AddGroupUsersResponse]
 	removeGroupUser                *connect.Client[v1beta1.RemoveGroupUserRequest, v1beta1.RemoveGroupUserResponse]
 	setGroupMemberRole             *connect.Client[v1beta1.SetGroupMemberRoleRequest, v1beta1.SetGroupMemberRoleResponse]
 	enableGroup                    *connect.Client[v1beta1.EnableGroupRequest, v1beta1.EnableGroupResponse]
@@ -2265,11 +2254,6 @@ func (c *frontierServiceClient) UpdateGroup(ctx context.Context, req *connect.Re
 // ListGroupUsers calls raystack.frontier.v1beta1.FrontierService.ListGroupUsers.
 func (c *frontierServiceClient) ListGroupUsers(ctx context.Context, req *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error) {
 	return c.listGroupUsers.CallUnary(ctx, req)
-}
-
-// AddGroupUsers calls raystack.frontier.v1beta1.FrontierService.AddGroupUsers.
-func (c *frontierServiceClient) AddGroupUsers(ctx context.Context, req *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error) {
-	return c.addGroupUsers.CallUnary(ctx, req)
 }
 
 // RemoveGroupUser calls raystack.frontier.v1beta1.FrontierService.RemoveGroupUser.
@@ -3052,7 +3036,6 @@ type FrontierServiceHandler interface {
 	GetGroup(context.Context, *connect.Request[v1beta1.GetGroupRequest]) (*connect.Response[v1beta1.GetGroupResponse], error)
 	UpdateGroup(context.Context, *connect.Request[v1beta1.UpdateGroupRequest]) (*connect.Response[v1beta1.UpdateGroupResponse], error)
 	ListGroupUsers(context.Context, *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error)
-	AddGroupUsers(context.Context, *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error)
 	RemoveGroupUser(context.Context, *connect.Request[v1beta1.RemoveGroupUserRequest]) (*connect.Response[v1beta1.RemoveGroupUserResponse], error)
 	SetGroupMemberRole(context.Context, *connect.Request[v1beta1.SetGroupMemberRoleRequest]) (*connect.Response[v1beta1.SetGroupMemberRoleResponse], error)
 	EnableGroup(context.Context, *connect.Request[v1beta1.EnableGroupRequest]) (*connect.Response[v1beta1.EnableGroupResponse], error)
@@ -3453,12 +3436,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceListGroupUsersProcedure,
 		svc.ListGroupUsers,
 		connect.WithSchema(frontierServiceMethods.ByName("ListGroupUsers")),
-		connect.WithHandlerOptions(opts...),
-	)
-	frontierServiceAddGroupUsersHandler := connect.NewUnaryHandler(
-		FrontierServiceAddGroupUsersProcedure,
-		svc.AddGroupUsers,
-		connect.WithSchema(frontierServiceMethods.ByName("AddGroupUsers")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceRemoveGroupUserHandler := connect.NewUnaryHandler(
@@ -4395,8 +4372,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceUpdateGroupHandler.ServeHTTP(w, r)
 		case FrontierServiceListGroupUsersProcedure:
 			frontierServiceListGroupUsersHandler.ServeHTTP(w, r)
-		case FrontierServiceAddGroupUsersProcedure:
-			frontierServiceAddGroupUsersHandler.ServeHTTP(w, r)
 		case FrontierServiceRemoveGroupUserProcedure:
 			frontierServiceRemoveGroupUserHandler.ServeHTTP(w, r)
 		case FrontierServiceSetGroupMemberRoleProcedure:
@@ -4838,10 +4813,6 @@ func (UnimplementedFrontierServiceHandler) UpdateGroup(context.Context, *connect
 
 func (UnimplementedFrontierServiceHandler) ListGroupUsers(context.Context, *connect.Request[v1beta1.ListGroupUsersRequest]) (*connect.Response[v1beta1.ListGroupUsersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListGroupUsers is not implemented"))
-}
-
-func (UnimplementedFrontierServiceHandler) AddGroupUsers(context.Context, *connect.Request[v1beta1.AddGroupUsersRequest]) (*connect.Response[v1beta1.AddGroupUsersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.AddGroupUsers is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) RemoveGroupUser(context.Context, *connect.Request[v1beta1.RemoveGroupUserRequest]) (*connect.Response[v1beta1.RemoveGroupUserResponse], error) {
