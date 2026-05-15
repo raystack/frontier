@@ -1,4 +1,4 @@
-import { Flex, Image, Text } from "@raystack/apsara-v1";
+import { Flex, Image, Text } from "@raystack/apsara";
 
 type DialogHeaderProps = {
   title?: string;
@@ -10,7 +10,7 @@ export function DialogHeader({ title }: DialogHeaderProps) {
       align="center"
       style={{ padding: "16px 32px", width: "98%", height: "52px" }}
     >
-      <Text style={{ fontSize: "14px", fontWeight: "500" }}>{title}</Text>
+      <Text size="regular" weight="medium">{title}</Text>
       <Image alt="share-image" src="/share.svg" />
     </Flex>
   );

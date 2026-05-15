@@ -7,12 +7,12 @@ import {
   Sidebar,
   Text,
   useTheme,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { useMutation } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 
 import styles from "./sidebar.module.css";
-import { OrganizationIcon } from "@raystack/apsara-v1/icons";
+import { OrganizationIcon } from "@raystack/apsara/icons";
 import IAMIcon from "~/assets/icons/iam.svg?react";
 import UserIcon from "~/assets/icons/users.svg?react";
 import InvoicesIcon from "~/assets/icons/invoices.svg?react";

@@ -30,7 +30,7 @@ export function PageHeader({
     >
       <Flex align="center" gap={5}>
         <Flex align="center" gap={3} className={styles.breadcrumb}>
-          <Text style={{ fontSize: "14px", fontWeight: "500" }}>{title}</Text>
+          <Text size="regular" weight="medium">{title}</Text>
           {breadcrumb.map((item) =>
             item.href && onBreadcrumbClick ? (
               <span

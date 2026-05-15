@@ -1,4 +1,4 @@
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import type { RQLRequest, RQLFilter, RQLSort } from "@raystack/proton/frontier";
 import { RQLRequestSchema, RQLFilterSchema, RQLSortSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
