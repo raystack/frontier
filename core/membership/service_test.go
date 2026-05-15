@@ -1732,13 +1732,20 @@ func TestService_OnGroupDeleted(t *testing.T) {
 	groupID := uuid.New().String()
 	grp := group.Group{ID: groupID, OrganizationID: orgID, Title: "T"}
 
-	t.Run("removes members then unlinks group from org", func(t *testing.T) {
+	t.Run("removes members, group-as-principal policies, and unlinks from org", func(t *testing.T) {
 		policySvc := mocks.NewPolicyService(t)
 		relSvc := mocks.NewRelationService(t)
 		grpSvc := mocks.NewGroupService(t)
 
 		grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+		// RemoveAllGroupMembers — no member policies
 		policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID}).Return([]policy.Policy{}, nil)
+		// removeGroupAsPrincipalPolicies — one policy granting this group access elsewhere
+		policySvc.EXPECT().List(ctx, policy.Filter{
+			PrincipalType: schema.GroupPrincipal,
+			PrincipalID:   groupID,
+		}).Return([]policy.Policy{{ID: "principal-p1"}}, nil)
+		policySvc.EXPECT().Delete(ctx, "principal-p1").Return(nil)
 
 		// unlinkGroupFromOrg: both hierarchy relations
 		relSvc.EXPECT().Delete(ctx, relation.Relation{

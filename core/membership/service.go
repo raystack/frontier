@@ -1231,10 +1231,12 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 	return errs
 }
 
-// OnGroupDeleted tears down all SpiceDB state created in OnGroupCreated:
-// per-principal policies and member/owner relations, plus the two
-// org<->group hierarchy relations. The group entity itself is left for the
-// caller (group.Service.DeleteModel) to remove.
+// OnGroupDeleted tears down all SpiceDB state created during the group's
+// lifetime: per-member policies and owner/member relations, policies where
+// the group itself is the principal on other resources (e.g. group granted
+// a role on a project), and the two org<->group hierarchy relations. The
+// group entity itself is left for the caller (group.Service.DeleteModel)
+// to remove.
 //
 // Errors are joined; partial failures are logged so a retry can complete
 // the cleanup.
@@ -1248,8 +1250,33 @@ func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
 	if err := s.RemoveAllGroupMembers(ctx, groupID); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("remove group members: %w", err))
 	}
+	if err := s.removeGroupAsPrincipalPolicies(ctx, groupID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("remove group-as-principal policies: %w", err))
+	}
 	if err := s.unlinkGroupFromOrg(ctx, groupID, grp.OrganizationID); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("unlink group from org: %w", err))
+	}
+	return errs
+}
+
+// removeGroupAsPrincipalPolicies deletes every policy where the given group
+// is the principal — e.g. policies created by `CreatePolicy(principal=group:X,
+// resource=project:Y, role=viewer)` that grant the group access to other
+// resources. policyService.Delete is expected to also remove the matching
+// rolebinding relation in SpiceDB.
+func (s *Service) removeGroupAsPrincipalPolicies(ctx context.Context, groupID string) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalType: schema.GroupPrincipal,
+		PrincipalID:   groupID,
+	})
+	if err != nil {
+		return fmt.Errorf("list group-as-principal policies: %w", err)
+	}
+	var errs error
+	for _, p := range policies {
+		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
+		}
 	}
 	return errs
 }
