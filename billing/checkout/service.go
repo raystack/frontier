@@ -487,8 +487,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 // templatizeUrls replaces the checkout id placeholder in the urls with the actual checkout id
 func (s *Service) templatizeUrls(ch Checkout, checkoutID string) Checkout {
-	ch.SuccessUrl = strings.Replace(ch.SuccessUrl, "{{.CheckoutID}}", checkoutID, -1)
-	ch.CancelUrl = strings.Replace(ch.CancelUrl, "{{.CheckoutID}}", checkoutID, -1)
+	ch.SuccessUrl = strings.ReplaceAll(ch.SuccessUrl, "{{.CheckoutID}}", checkoutID)
+	ch.CancelUrl = strings.ReplaceAll(ch.CancelUrl, "{{.CheckoutID}}", checkoutID)
 	return ch
 }
 
