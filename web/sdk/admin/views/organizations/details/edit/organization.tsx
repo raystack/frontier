@@ -160,7 +160,7 @@ export function EditOrganizationPanel({ open = false, onClose }: { open?: boolea
   const showOtherTypeField = watch("type", "other") === "other";
 
   return (
-    <Drawer open={open}>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-org-panel"

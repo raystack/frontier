@@ -17,7 +17,7 @@ export default function ProductDetails({
   onNavigateToPrices,
 }: ProductDetailsProps) {
   return (
-    <Drawer open={open}>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content showCloseButton={false} className={styles.sheetContent}>
         <SheetHeader
           title="Product Details"

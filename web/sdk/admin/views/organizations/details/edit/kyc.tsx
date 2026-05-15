@@ -105,7 +105,7 @@ export function EditKYCPanel({ open = false, onClose }: EditKYCPanelProps) {
   }
 
   return (
-    <Drawer open={open}>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-kyc-panel"

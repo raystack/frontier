@@ -101,7 +101,7 @@ export default function UpdateWebhooks({ open = false, webhookId: webhookIdProp,
   }, [webhook, methods.reset]);
 
   return (
-    <Drawer open={open}>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content
         side="right"
         // @ts-ignore

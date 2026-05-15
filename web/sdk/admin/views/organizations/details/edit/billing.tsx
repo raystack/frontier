@@ -175,7 +175,7 @@ export function EditBillingPanel({ open = false, onClose }: EditBillingPanelProp
   const isPrepaid = tokenPaymentType === "prepaid";
 
   return (
-    <Drawer open={open}>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-billing-panel"

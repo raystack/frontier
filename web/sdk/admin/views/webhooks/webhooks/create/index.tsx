@@ -74,7 +74,7 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
   };
 
   return (
-    <Drawer open={open}>
+    <Drawer open={open} onOpenChange={(open) => !open && onCloseProp?.()}>
       <Drawer.Content
         side="right"
         // @ts-ignore
