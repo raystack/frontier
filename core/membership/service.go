@@ -1204,24 +1204,33 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 		return fmt.Errorf("list group policies: %w", err)
 	}
 
-	// principals get one relation-cleanup pass each, even if they hold
-	// multiple policies on the group.
-	seen := make(map[string]struct{}, len(policies))
+	// First pass: delete every policy. Track which principals had any
+	// delete failure so we don't strip their SpiceDB relations while a
+	// surviving policy still references them.
+	principals := make(map[string]policy.Policy, len(policies))
+	failed := make(map[string]struct{}, len(policies))
 	var errs error
 	for _, p := range policies {
-		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
-			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
-			continue
-		}
 		key := p.PrincipalType + "\x00" + p.PrincipalID
-		if _, ok := seen[key]; ok {
+		principals[key] = p
+		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
+			failed[key] = struct{}{}
+			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
+		}
+	}
+
+	// Second pass: clean up direct relations only for principals whose
+	// policies were all deleted successfully. The rest get retried on the
+	// next attempt once their lingering policies are removed.
+	for key, p := range principals {
+		if _, hadFailure := failed[key]; hadFailure {
 			continue
 		}
-		seen[key] = struct{}{}
 		if relErr := s.removeRelations(ctx, groupID, schema.GroupNamespace, p.PrincipalID, p.PrincipalType); relErr != nil {
 			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
 		}
 	}
+
 	if errs != nil {
 		s.log.ErrorContext(ctx, "partial failure cleaning up group members during group deletion; retry may be required",
 			"group_id", groupID,

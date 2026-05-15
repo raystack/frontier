@@ -223,7 +223,7 @@ func (s Service) DeleteModel(ctx context.Context, id string) error {
 	// any other tuples where this group is the object)
 	if err = s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
-		Namespace: schema.GroupPrincipal,
+		Namespace: schema.GroupNamespace,
 	}}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}
