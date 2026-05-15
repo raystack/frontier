@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/internal/bootstrap"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/auditrecord"
 
 	"github.com/doug-martin/goqu/v9"
@@ -221,6 +223,56 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 		transformedUsers = append(transformedUsers, transformedUser)
 	}
 	return transformedUsers, nil
+}
+
+// ListMissingOrgPolicy returns service users whose owning org has no matching
+// Postgres policy row (set-difference). Drives the backfill in
+// bootstrap.MigrateServiceUserOrgPolicies; returns zero rows on a clean cluster.
+func (s ServiceUserRepository) ListMissingOrgPolicy(ctx context.Context) ([]bootstrap.ServiceUserCandidate, error) {
+	policiesSubquery := dialect.From(goqu.T(TABLE_POLICIES).As("p")).
+		Select(goqu.L("1")).
+		Where(
+			goqu.I("p.principal_id").Eq(goqu.I("su.id")),
+			goqu.I("p.principal_type").Eq(schema.ServiceUserPrincipal),
+			goqu.I("p.resource_id").Eq(goqu.I("su.org_id")),
+			goqu.I("p.resource_type").Eq(schema.OrganizationNamespace),
+		)
+
+	query, params, err := dialect.From(goqu.T(TABLE_SERVICEUSER).As("su")).
+		Select(
+			goqu.I("su.id").As("serviceuser_id"),
+			goqu.I("su.org_id").As("org_id"),
+		).
+		Where(
+			goqu.I("su.org_id").IsNotNull(),
+			goqu.L("NOT EXISTS ?", policiesSubquery),
+		).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	type row struct {
+		ServiceUserID string `db:"serviceuser_id"`
+		OrgID         string `db:"org_id"`
+	}
+	var rows []row
+	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "ListMissingOrgPolicy", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	candidates := make([]bootstrap.ServiceUserCandidate, 0, len(rows))
+	for _, r := range rows {
+		candidates = append(candidates, bootstrap.ServiceUserCandidate{
+			ServiceUserID: r.ServiceUserID,
+			OrgID:         r.OrgID,
+		})
+	}
+	return candidates, nil
 }
 
 func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
