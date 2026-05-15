@@ -3,19 +3,14 @@ import type { ReactNode } from "react";
 import type { Plan } from "@raystack/proton/frontier";
 import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
-import { PlanHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import styles from "./plans.module.css";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTitle } from "../../components/PageTitle";
 import { SheetHeader } from "../../components/SheetHeader";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import PlanDetails from "./details";
-
-const pageHeader = {
-  title: "Plans",
-  breadcrumb: [],
-};
 
 export type PlansViewProps = {
   /** When set, opens the detail sheet for this plan. */
@@ -74,7 +69,14 @@ export default function PlansView({
     >
       <Flex direction="column">
         <PageTitle title="Plans" appName={appName} />
-        <PlanHeader header={pageHeader} icon={icon} />
+        <PageHeader
+          title="Plans"
+          icon={icon}
+          breadcrumb={[]}
+          className={styles.header}
+        >
+          <DataTable.Search size="small" placeholder="Search plans..." />
+        </PageHeader>
         <DataTable.Content
           emptyState={noDataChildren}
           classNames={{ root: styles.tableRoot, table: styles.table }}
