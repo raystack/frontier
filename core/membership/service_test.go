@@ -1725,3 +1725,55 @@ func TestService_RemoveAllGroupMembers(t *testing.T) {
 		assert.ErrorContains(t, err, "db down")
 	})
 }
+
+func TestService_OnGroupDeleted(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	groupID := uuid.New().String()
+	grp := group.Group{ID: groupID, OrganizationID: orgID, Title: "T"}
+
+	t.Run("removes members then unlinks group from org", func(t *testing.T) {
+		policySvc := mocks.NewPolicyService(t)
+		relSvc := mocks.NewRelationService(t)
+		grpSvc := mocks.NewGroupService(t)
+
+		grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+		policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID}).Return([]policy.Policy{}, nil)
+
+		// unlinkGroupFromOrg: both hierarchy relations
+		relSvc.EXPECT().Delete(ctx, relation.Relation{
+			Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+			RelationName: schema.OrganizationRelationName,
+		}).Return(nil)
+		relSvc.EXPECT().Delete(ctx, relation.Relation{
+			Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
+			Subject: relation.Subject{
+				ID:              groupID,
+				Namespace:       schema.GroupNamespace,
+				SubRelationName: schema.MemberRelationName,
+			},
+			RelationName: schema.MemberRelationName,
+		}).Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), policySvc, relSvc,
+			mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t),
+			mocks.NewProjectService(t), grpSvc, mocks.NewServiceuserService(t),
+			mocks.NewAuditRecordRepository(t))
+
+		assert.NoError(t, svc.OnGroupDeleted(ctx, groupID))
+	})
+
+	t.Run("returns error if group not found", func(t *testing.T) {
+		grpSvc := mocks.NewGroupService(t)
+		grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
+			mocks.NewPolicyService(t), mocks.NewRelationService(t),
+			mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t),
+			mocks.NewProjectService(t), grpSvc, mocks.NewServiceuserService(t),
+			mocks.NewAuditRecordRepository(t))
+
+		assert.ErrorIs(t, svc.OnGroupDeleted(ctx, groupID), group.ErrNotExist)
+	})
+}

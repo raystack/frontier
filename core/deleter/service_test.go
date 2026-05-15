@@ -135,10 +135,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]resource.Resource{}, nil)
 		projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
-		// groups (DeleteGroup: RemoveAllGroupMembers then DeleteModel)
+		// groups (DeleteGroup: OnGroupDeleted then DeleteModel)
 		grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
 			Return([]group.Group{{ID: "grp-1", Name: "g1"}}, nil)
-		mbrSvc.EXPECT().RemoveAllGroupMembers(mock.Anything, "grp-1").Return(nil)
+		mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-1").Return(nil)
 		grpSvc.EXPECT().DeleteModel(mock.Anything, "grp-1").Return(nil)
 
 		// service users

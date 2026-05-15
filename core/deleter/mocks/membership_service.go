@@ -21,12 +21,12 @@ func (_m *MembershipService) EXPECT() *MembershipService_Expecter {
 	return &MembershipService_Expecter{mock: &_m.Mock}
 }
 
-// RemoveAllGroupMembers provides a mock function with given fields: ctx, groupID
-func (_m *MembershipService) RemoveAllGroupMembers(ctx context.Context, groupID string) error {
+// OnGroupDeleted provides a mock function with given fields: ctx, groupID
+func (_m *MembershipService) OnGroupDeleted(ctx context.Context, groupID string) error {
 	ret := _m.Called(ctx, groupID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for RemoveAllGroupMembers")
+		panic("no return value specified for OnGroupDeleted")
 	}
 
 	var r0 error
@@ -39,31 +39,31 @@ func (_m *MembershipService) RemoveAllGroupMembers(ctx context.Context, groupID 
 	return r0
 }
 
-// MembershipService_RemoveAllGroupMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllGroupMembers'
-type MembershipService_RemoveAllGroupMembers_Call struct {
+// MembershipService_OnGroupDeleted_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnGroupDeleted'
+type MembershipService_OnGroupDeleted_Call struct {
 	*mock.Call
 }
 
-// RemoveAllGroupMembers is a helper method to define mock.On call
+// OnGroupDeleted is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID string
-func (_e *MembershipService_Expecter) RemoveAllGroupMembers(ctx interface{}, groupID interface{}) *MembershipService_RemoveAllGroupMembers_Call {
-	return &MembershipService_RemoveAllGroupMembers_Call{Call: _e.mock.On("RemoveAllGroupMembers", ctx, groupID)}
+func (_e *MembershipService_Expecter) OnGroupDeleted(ctx interface{}, groupID interface{}) *MembershipService_OnGroupDeleted_Call {
+	return &MembershipService_OnGroupDeleted_Call{Call: _e.mock.On("OnGroupDeleted", ctx, groupID)}
 }
 
-func (_c *MembershipService_RemoveAllGroupMembers_Call) Run(run func(ctx context.Context, groupID string)) *MembershipService_RemoveAllGroupMembers_Call {
+func (_c *MembershipService_OnGroupDeleted_Call) Run(run func(ctx context.Context, groupID string)) *MembershipService_OnGroupDeleted_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *MembershipService_RemoveAllGroupMembers_Call) Return(_a0 error) *MembershipService_RemoveAllGroupMembers_Call {
+func (_c *MembershipService_OnGroupDeleted_Call) Return(_a0 error) *MembershipService_OnGroupDeleted_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MembershipService_RemoveAllGroupMembers_Call) RunAndReturn(run func(context.Context, string) error) *MembershipService_RemoveAllGroupMembers_Call {
+func (_c *MembershipService_OnGroupDeleted_Call) RunAndReturn(run func(context.Context, string) error) *MembershipService_OnGroupDeleted_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -70,7 +70,7 @@ type GroupService interface {
 }
 
 type MembershipService interface {
-	RemoveAllGroupMembers(ctx context.Context, groupID string) error
+	OnGroupDeleted(ctx context.Context, groupID string) error
 }
 
 type InvitationService interface {
@@ -173,11 +173,11 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 }
 
 // DeleteGroup orchestrates teardown of a single group: clears every member's
-// policies and SpiceDB relations via membership, then deletes the group
-// entity itself (which clears the org<->group hierarchy relations).
+// policies and relations plus the org<->group hierarchy relations via
+// membership, then deletes the group entity itself.
 func (d Service) DeleteGroup(ctx context.Context, id string) error {
-	if err := d.membershipService.RemoveAllGroupMembers(ctx, id); err != nil {
-		return fmt.Errorf("remove group members: %w", err)
+	if err := d.membershipService.OnGroupDeleted(ctx, id); err != nil {
+		return fmt.Errorf("clean up group membership: %w", err)
 	}
 	return d.groupService.DeleteModel(ctx, id)
 }

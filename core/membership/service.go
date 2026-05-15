@@ -1231,6 +1231,29 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 	return errs
 }
 
+// OnGroupDeleted tears down all SpiceDB state created in OnGroupCreated:
+// per-principal policies and member/owner relations, plus the two
+// org<->group hierarchy relations. The group entity itself is left for the
+// caller (group.Service.DeleteModel) to remove.
+//
+// Errors are joined; partial failures are logged so a retry can complete
+// the cleanup.
+func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	var errs error
+	if err := s.RemoveAllGroupMembers(ctx, groupID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("remove group members: %w", err))
+	}
+	if err := s.unlinkGroupFromOrg(ctx, groupID, grp.OrganizationID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("unlink group from org: %w", err))
+	}
+	return errs
+}
+
 // OnGroupCreated wires up SpiceDB relations for a newly-created group:
 // links the group to its parent organization (both directions) and adds the
 // creator as owner via SetGroupMemberRole. If the owner add fails, hierarchy
