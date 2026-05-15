@@ -62,7 +62,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
 			"strategy", request.Msg.GetStrategyName(),
 			"email", request.Msg.GetEmail())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	// set location header for redirect to start auth?
@@ -80,14 +80,14 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		if err = userCredentils.UnmarshalJSON(response.StateConfig["options"].([]byte)); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
 				"strategy", authenticate.PassKeyAuthMethod.String())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		typeValue, ok := response.Flow.Metadata["passkey_type"].(string)
 		if !ok {
 			err = fmt.Errorf("passkey_type metadata is not a string")
 			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
 				"strategy", authenticate.PassKeyAuthMethod.String())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		stringValue := &structpb.Value{
 			Kind: &structpb.Value_StringValue{
@@ -128,7 +128,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
 			"strategy", request.Msg.GetStrategyName(),
 			"state", request.Msg.GetState())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	// Extract session metadata from request headers
@@ -139,7 +139,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
 			"user_id", response.User.ID)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	// create response and set headers
 	resp := connect.NewResponse(&frontierv1beta1.AuthCallbackResponse{})
@@ -186,7 +186,7 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
 			"grant_type", request.Msg.GetGrantType())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	if principal.Type == schema.ServiceUserPrincipal {
@@ -196,7 +196,7 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 			errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
 				"org_id", orgId,
 				"service_user_id", principal.ServiceUser.ID)
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
@@ -205,7 +205,7 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
 			"principal_id", principal.ID,
 			"principal_type", principal.Type)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	resp := connect.NewResponse(&frontierv1beta1.AuthTokenResponse{
@@ -276,7 +276,7 @@ func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Reques
 		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "AuthLogout", err,
 				"session_id", sessionID.String())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
@@ -309,7 +309,7 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 			errors.Is(err, patErrors.ErrDisabled):
 			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
-			return principal, connect.NewError(connect.CodeInternal, err)
+			return principal, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	return principal, nil

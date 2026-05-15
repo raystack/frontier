@@ -115,7 +115,7 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context, request connect.AnyReq
 			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
 				"user_id", currentUser.ID,
 				"permission", schema.PlatformSudoPermission)
-			return connect.NewError(connect.CodeInternal, err)
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		} else if ok {
 			return nil
 		}
@@ -124,7 +124,7 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context, request connect.AnyReq
 			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
 				"service_user_id", currentUser.ID,
 				"permission", schema.PlatformSudoPermission)
-			return connect.NewError(connect.CodeInternal, err)
+			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		} else if ok {
 			return nil
 		}

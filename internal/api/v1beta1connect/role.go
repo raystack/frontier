@@ -239,7 +239,7 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "CreateOrganizationRole.GetOrganization", err,
 			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	metaDataMap[orgNameMetadataKey] = org.Title
 
@@ -341,7 +341,7 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateOrganizationRole.GetOrganization", err,
 			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	metaDataMap[orgNameMetadataKey] = org.Title
 

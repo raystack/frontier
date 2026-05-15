@@ -41,14 +41,14 @@ func (h *ConnectHandler) GetOrganization(ctx context.Context, request *connect.R
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetOrganization.GetRaw", err,
 				"org_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	orgPB, err := transformOrgToPB(fetchedOrg)
 	if err != nil {
 		errorLogger.LogTransformError(ctx, request, "GetOrganization", fetchedOrg.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetOrganizationResponse{

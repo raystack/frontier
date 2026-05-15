@@ -104,14 +104,14 @@ func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Re
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetServiceUser", err,
 				"service_user_id", serviceUserID)
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)
 	if err != nil {
 		errorLogger.LogTransformError(ctx, request, "GetServiceUser", svUser.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	return connect.NewResponse(&frontierv1beta1.GetServiceUserResponse{
 		Serviceuser: svUserPb,
