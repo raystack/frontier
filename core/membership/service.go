@@ -1265,6 +1265,14 @@ func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
 	if err := s.unlinkGroupFromOrg(ctx, groupID, grp.OrganizationID); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("unlink group from org: %w", err))
 	}
+	// Defensive sweep: wildcard-delete any tuple where the group is the Object
+	// that didn't get cleaned above (e.g. legacy direct relations created
+	// without a matching policy).
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		errs = errors.Join(errs, fmt.Errorf("sweep group object-side relations: %w", err))
+	}
 	return errs
 }
 

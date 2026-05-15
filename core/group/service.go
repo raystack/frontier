@@ -209,22 +209,13 @@ func (s Service) Disable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Disabled)
 }
 
-// DeleteModel removes the group entity and its Object-side SpiceDB relations.
-// Membership cleanup (policies + member/owner relations) is the caller's
+// DeleteModel removes the group entity from storage and emits the audit
+// event. All SpiceDB policy and relation cleanup is the caller's
 // responsibility — see core/deleter.DeleteGroup for the orchestration that
-// pairs this with membership.RemoveAllGroupMembers.
+// pairs this with membership.OnGroupDeleted.
 func (s Service) DeleteModel(ctx context.Context, id string) error {
 	group, err := s.repository.GetByID(ctx, id)
 	if err != nil {
-		return err
-	}
-
-	// delete Object-side relations on the group (org<->group hierarchy and
-	// any other tuples where this group is the object)
-	if err = s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
-		ID:        id,
-		Namespace: schema.GroupNamespace,
-	}}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}
 

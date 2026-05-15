@@ -1762,6 +1762,10 @@ func TestService_OnGroupDeleted(t *testing.T) {
 			},
 			RelationName: schema.MemberRelationName,
 		}).Return(nil)
+		// defensive sweep: wildcard delete of any remaining Object-side tuples
+		relSvc.EXPECT().Delete(ctx, relation.Relation{
+			Object: relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		}).Return(nil)
 
 		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), policySvc, relSvc,
 			mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t),
