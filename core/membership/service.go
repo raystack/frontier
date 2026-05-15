@@ -1193,6 +1193,103 @@ func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, p
 	return nil
 }
 
+// RemoveAllGroupMembers tears down membership for a group that is being
+// destroyed: deletes every policy on the group and every owner/member
+// relation per principal. No min-owner check — the group itself is going
+// away, so the invariant doesn't apply. Errors are joined; partial failures
+// are logged so a retry can complete the cleanup.
+func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{GroupID: groupID})
+	if err != nil {
+		return fmt.Errorf("list group policies: %w", err)
+	}
+
+	// First pass: delete every policy. Track which principals had any
+	// delete failure so we don't strip their SpiceDB relations while a
+	// surviving policy still references them.
+	principals := make(map[string]policy.Policy, len(policies))
+	failed := make(map[string]struct{}, len(policies))
+	var errs error
+	for _, p := range policies {
+		key := p.PrincipalType + "\x00" + p.PrincipalID
+		principals[key] = p
+		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
+			failed[key] = struct{}{}
+			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
+		}
+	}
+
+	// Second pass: clean up direct relations only for principals whose
+	// policies were all deleted successfully. The rest get retried on the
+	// next attempt once their lingering policies are removed.
+	for key, p := range principals {
+		if _, hadFailure := failed[key]; hadFailure {
+			continue
+		}
+		if relErr := s.removeRelations(ctx, groupID, schema.GroupNamespace, p.PrincipalID, p.PrincipalType); relErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
+		}
+	}
+
+	if errs != nil {
+		s.log.ErrorContext(ctx, "partial failure cleaning up group members during group deletion; retry may be required",
+			"group_id", groupID,
+			"error", errs,
+		)
+	}
+	return errs
+}
+
+// OnGroupDeleted tears down all SpiceDB state created during the group's
+// lifetime: per-member policies and owner/member relations, policies where
+// the group itself is the principal on other resources (e.g. group granted
+// a role on a project), and the two org<->group hierarchy relations. The
+// group entity itself is left for the caller (group.Service.DeleteModel)
+// to remove.
+//
+// Errors are joined; partial failures are logged so a retry can complete
+// the cleanup.
+func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	var errs error
+	if err := s.RemoveAllGroupMembers(ctx, groupID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("remove group members: %w", err))
+	}
+	if err := s.removeGroupAsPrincipalPolicies(ctx, groupID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("remove group-as-principal policies: %w", err))
+	}
+	if err := s.unlinkGroupFromOrg(ctx, groupID, grp.OrganizationID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("unlink group from org: %w", err))
+	}
+	return errs
+}
+
+// removeGroupAsPrincipalPolicies deletes every policy where the given group
+// is the principal — e.g. policies created by `CreatePolicy(principal=group:X,
+// resource=project:Y, role=viewer)` that grant the group access to other
+// resources. policyService.Delete is expected to also remove the matching
+// rolebinding relation in SpiceDB.
+func (s *Service) removeGroupAsPrincipalPolicies(ctx context.Context, groupID string) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalType: schema.GroupPrincipal,
+		PrincipalID:   groupID,
+	})
+	if err != nil {
+		return fmt.Errorf("list group-as-principal policies: %w", err)
+	}
+	var errs error
+	for _, p := range policies {
+		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
+		}
+	}
+	return errs
+}
+
 // OnGroupCreated wires up SpiceDB relations for a newly-created group:
 // links the group to its parent organization (both directions) and adds the
 // creator as owner via SetGroupMemberRole. If the owner add fails, hierarchy

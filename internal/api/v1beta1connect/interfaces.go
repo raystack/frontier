@@ -306,7 +306,6 @@ type GroupService interface {
 	RemoveUsers(ctx context.Context, groupID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	Delete(ctx context.Context, id string) error
 }
 
 type EventService interface {
@@ -388,6 +387,7 @@ type NamespaceService interface {
 type CascadeDeleter interface {
 	DeleteProject(ctx context.Context, id string) error
 	DeleteOrganization(ctx context.Context, id string) error
+	DeleteGroup(ctx context.Context, id string) error
 	RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error
 	DeleteUser(ctx context.Context, userID string) error
 }

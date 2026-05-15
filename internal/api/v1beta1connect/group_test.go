@@ -1598,14 +1598,14 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 	randomID := utils.NewString()
 	tests := []struct {
 		name    string
-		setup   func(gs *mocks.GroupService, os *mocks.OrganizationService)
+		setup   func(ds *mocks.CascadeDeleter, os *mocks.OrganizationService)
 		request *connect.Request[frontierv1beta1.DeleteGroupRequest]
 		want    *connect.Response[frontierv1beta1.DeleteGroupResponse]
 		wantErr error
 	}{
 		{
 			name: "should return error if organization does not exist",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(_ *mocks.CascadeDeleter, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{
@@ -1617,7 +1617,7 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 		},
 		{
 			name: "should return error if organization is disabled",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(_ *mocks.CascadeDeleter, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{
@@ -1629,9 +1629,9 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 		},
 		{
 			name: "should return error if group does not exist",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(ds *mocks.CascadeDeleter, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{ID: testOrgID}, nil)
-				gs.EXPECT().Delete(mock.Anything, randomID).Return(group.ErrNotExist)
+				ds.EXPECT().DeleteGroup(mock.Anything, randomID).Return(group.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{
 				Id:    randomID,
@@ -1642,9 +1642,9 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 		},
 		{
 			name: "should delete group successfully",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(ds *mocks.CascadeDeleter, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{ID: testOrgID}, nil)
-				gs.EXPECT().Delete(mock.Anything, randomID).Return(nil)
+				ds.EXPECT().DeleteGroup(mock.Anything, randomID).Return(nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{
 				Id:    randomID,
@@ -1657,14 +1657,14 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockGroupSvc := new(mocks.GroupService)
+			mockDeleterSvc := new(mocks.CascadeDeleter)
 			mockOrgSvc := new(mocks.OrganizationService)
 			if tt.setup != nil {
-				tt.setup(mockGroupSvc, mockOrgSvc)
+				tt.setup(mockDeleterSvc, mockOrgSvc)
 			}
 			h := ConnectHandler{
-				groupService: mockGroupSvc,
-				orgService:   mockOrgSvc,
+				deleterService: mockDeleterSvc,
+				orgService:     mockOrgSvc,
 			}
 			got, err := h.DeleteGroup(context.Background(), tt.request)
 			if tt.wantErr != nil {

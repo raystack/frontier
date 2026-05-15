@@ -562,12 +562,12 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
-	if err := h.groupService.Delete(ctx, request.Msg.GetId()); err != nil {
+	if err := h.deleterService.DeleteGroup(ctx, request.Msg.GetId()); err != nil {
 		switch {
 		case errors.Is(err, group.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "DeleteGroup.Delete", err,
+			errorLogger.LogServiceError(ctx, request, "DeleteGroup.DeleteGroup", err,
 				"group_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}

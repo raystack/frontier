@@ -574,7 +574,7 @@ func buildAPIDependencies(
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
-		groupService, policyService, roleService, invitationService, userService, serviceUserService,
+		groupService, membershipService, policyService, roleService, invitationService, userService, serviceUserService,
 		customerService, subscriptionService, invoiceService,
 	)
 
