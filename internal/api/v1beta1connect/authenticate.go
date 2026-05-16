@@ -296,6 +296,7 @@ func (h *ConnectHandler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, e
 }
 
 func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error) {
+	errorLogger := NewErrorLogger()
 	principal, err := h.authnService.GetPrincipal(ctx, via...)
 	if err != nil {
 		switch {
@@ -309,7 +310,6 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 			errors.Is(err, patErrors.ErrDisabled):
 			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
-			errorLogger := NewErrorLogger()
 			errorLogger.LogUnexpectedError(ctx, nil, "GetLoggedInPrincipal", err)
 			return principal, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
