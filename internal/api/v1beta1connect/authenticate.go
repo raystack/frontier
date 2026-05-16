@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"log/slog"
 	"strings"
 	"time"
 
@@ -310,7 +309,8 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 			errors.Is(err, patErrors.ErrDisabled):
 			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
-			slog.ErrorContext(ctx, "unexpected error in GetLoggedInPrincipal", "error", err)
+			errorLogger := NewErrorLogger()
+			errorLogger.LogUnexpectedError(ctx, nil, "GetLoggedInPrincipal", err)
 			return principal, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
