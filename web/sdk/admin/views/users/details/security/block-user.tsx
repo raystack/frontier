@@ -1,5 +1,5 @@
 import { ComponentProps, useCallback, useState } from "react";
-import { Button, Dialog, toastManager } from "@raystack/apsara-v1";
+import { AlertDialog, Button, toastManager } from "@raystack/apsara-v1";
 import { useUser } from "../user-context";
 import { getUserName } from "../../util";
 import {
@@ -119,8 +119,8 @@ export const BlockUserDialog = () => {
       };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-      <Dialog.Trigger
+    <AlertDialog open={isDialogOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Trigger
         render={
           <Button
             color={config.btnColor}
@@ -134,13 +134,13 @@ export const BlockUserDialog = () => {
           </Button>
         }
       />
-      <Dialog.Content width={400} aria-label={config.dialogTitle}>
-        <Dialog.Body>
-          <Dialog.Title>{config.dialogTitle}</Dialog.Title>
-          <Dialog.Description>{config.dialogDescription}</Dialog.Description>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close
+      <AlertDialog.Content width={400} aria-label={config.dialogTitle}>
+        <AlertDialog.Body>
+          <AlertDialog.Title>{config.dialogTitle}</AlertDialog.Title>
+          <AlertDialog.Description>{config.dialogDescription}</AlertDialog.Description>
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
             render={
               <Button
                 color="neutral"
@@ -158,8 +158,8 @@ export const BlockUserDialog = () => {
             onClick={config.onClick}>
             {config.dialogConfirmText}
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

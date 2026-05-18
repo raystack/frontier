@@ -8,7 +8,7 @@ import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
@@ -57,16 +57,16 @@ export const RemoveMember = ({
   }
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <Dialog.Content
+    <AlertDialog open onOpenChange={onClose}>
+      <AlertDialog.Content
         width={400}
         overlay={{ className: styles["action-dialog-overlay"] }}
         className={styles["action-dialog-content"]}
       >
-        <Dialog.Header>
-          <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
-        </Dialog.Header>
-        <Dialog.Body>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Remove {t.member({ case: "capital" })}</AlertDialog.Title>
+        </AlertDialog.Header>
+        <AlertDialog.Body>
           <Flex direction="column" gap={7}>
             <Text variant="secondary">
               Removing this {t.member({ case: "lower" })} will revoke all their access to the {t.project({ case: "lower" })}.
@@ -77,9 +77,9 @@ export const RemoveMember = ({
               Are you sure you want to remove this {t.member({ case: "lower" })}?
             </Text>
           </Flex>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
             render={
               <Button
                 type="button"
@@ -101,8 +101,8 @@ export const RemoveMember = ({
           >
             Remove
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

@@ -9,7 +9,7 @@ import {
   Input,
   toastManager,
 } from "@raystack/apsara-v1";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
@@ -42,7 +42,7 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
     return (
       <Input
         value={value}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+        onValueChange={onChange}
         data-test-id="admin-preference-value-input"
       />
     );

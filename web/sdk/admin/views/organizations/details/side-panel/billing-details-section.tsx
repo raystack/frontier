@@ -1,10 +1,9 @@
-import { CopyButton, Flex, Link, List, Text } from "@raystack/apsara-v1";
+import { Amount, CopyButton, Flex, Link, List, Text } from "@raystack/apsara-v1";
 import styles from "./side-panel.module.css";
 import { convertBillingAddressToString } from "../../../../utils/helper";
 import Skeleton from "react-loading-skeleton";
 import { useContext, useEffect } from "react";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Amount } from "@raystack/apsara-v1";
 import { OrganizationContext } from "../contexts/organization-context";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, GetUpcomingInvoiceRequestSchema } from "@raystack/proton/frontier";

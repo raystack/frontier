@@ -1,4 +1,4 @@
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import { useContext, useState } from "react";
 import { OrganizationStatus } from "../types";
 import { OrganizationContext } from "../contexts/organization-context";
@@ -125,8 +125,8 @@ const BlockOrganizationDialog = () => {
         };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-      <Dialog.Trigger
+    <AlertDialog open={isDialogOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Trigger
         render={
           <Button
             color={componentConfig.btnColor}
@@ -137,15 +137,15 @@ const BlockOrganizationDialog = () => {
           </Button>
         }
       />
-      <Dialog.Content width={400} aria-label="Block Organization">
-        <Dialog.Body>
-          <Dialog.Title>{componentConfig.dialogTitle}</Dialog.Title>
-          <Dialog.Description>
+      <AlertDialog.Content width={400} aria-label="Block Organization">
+        <AlertDialog.Body>
+          <AlertDialog.Title>{componentConfig.dialogTitle}</AlertDialog.Title>
+          <AlertDialog.Description>
             {componentConfig.dialogDescription}
-          </Dialog.Description>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close
+          </AlertDialog.Description>
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
             render={
               <Button
                 color="neutral"
@@ -165,9 +165,9 @@ const BlockOrganizationDialog = () => {
           >
             {componentConfig.dialogConfirmText}
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };
 

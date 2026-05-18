@@ -1,5 +1,5 @@
 import React, { Component, ReactNode } from "react";
-import { EmptyState } from "@raystack/apsara-v1";
+import { EmptyState } from "@raystack/apsara";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 interface Props {

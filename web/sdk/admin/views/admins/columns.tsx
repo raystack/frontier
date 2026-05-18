@@ -1,4 +1,4 @@
-import { Text, type DataTableColumnDef } from "@raystack/apsara-v1";
+import { Button, type DataTableColumnDef } from "@raystack/apsara-v1";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
 import { TerminologyEntity } from "../../hooks/useTerminology";
 
@@ -45,12 +45,13 @@ export const getColumns: (options?: {
       cell: (info) => {
         const org_id = info.getValue() as string;
         return org_id ? (
-          <Text
-            style={{ cursor: "pointer" }}
+          <Button
+            variant="text"
             onClick={() => onNavigateToOrg?.(org_id)}
+            data-test-id="frontier-admin-navigate-to-org-btn"
           >
             {org_id}
-          </Text>
+          </Button>
         ) : (
           "-"
         );

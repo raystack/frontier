@@ -6,7 +6,7 @@ import {
   Label,
   Text,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { useCallback } from "react";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,

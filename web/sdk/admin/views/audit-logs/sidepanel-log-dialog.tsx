@@ -19,7 +19,7 @@ export default function SidePanelLogDialog(props: Partial<AuditRecord>) {
       />
       <Dialog.Content
         width={600}
-        aria-label="Basic Dialog">
+        aria-label="Log entry">
         <Dialog.Header>
           <Dialog.Title>Log entry</Dialog.Title>
         </Dialog.Header>

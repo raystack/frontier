@@ -1,6 +1,6 @@
 import {
+  AlertDialog,
   Button,
-  Dialog,
   Flex,
   IconButton,
   Text,
@@ -68,23 +68,23 @@ const DeleteDomainDialog = ({
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-      <Dialog.Trigger
+    <AlertDialog open={isDialogOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Trigger
         render={
           <IconButton size={3} data-test-id="delete-domain-button">
             <TrashIcon />
           </IconButton>
         }
       />
-      <Dialog.Content width={400}>
-        <Dialog.Body>
-          <Dialog.Title>Delete email domain</Dialog.Title>
-          <Dialog.Description>
+      <AlertDialog.Content width={400}>
+        <AlertDialog.Body>
+          <AlertDialog.Title>Delete email domain</AlertDialog.Title>
+          <AlertDialog.Description>
             Are you sure you want to delete this email domain?
-          </Dialog.Description>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close
+          </AlertDialog.Description>
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
             render={
               <Button
                 color="neutral"
@@ -104,9 +104,9 @@ const DeleteDomainDialog = ({
           >
             Delete
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };
 
