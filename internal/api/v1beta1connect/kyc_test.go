@@ -86,7 +86,7 @@ func TestSetOrganizationKyc(t *testing.T) {
 			}),
 			mockError:     errors.New("internal error"),
 			expectError:   true,
-			expectedError: connect.NewError(connect.CodeInternal, errors.New("internal error")),
+			expectedError: connect.NewError(connect.CodeInternal, errors.New("internal server error")),
 		},
 	}
 
@@ -241,7 +241,7 @@ func TestListOrganizationsKyc(t *testing.T) {
 			mockService:   mocks.NewKycService(t),
 			mockResponse:  nil,
 			mockError:     errors.New("internal error"),
-			expectError:   connect.NewError(connect.CodeInternal, errors.New("internal error")),
+			expectError:   connect.NewError(connect.CodeInternal, errors.New("internal server error")),
 			expectNilResp: true,
 		},
 	}
