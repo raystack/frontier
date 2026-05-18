@@ -1,13 +1,12 @@
 package checkout
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
-	"text/template"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -216,10 +215,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	}
 
 	checkoutID := uuid.New().String()
-	ch, err = s.templatizeUrls(ch, checkoutID)
-	if err != nil {
-		return Checkout{}, err
-	}
+	ch = s.templatizeUrls(ch, checkoutID)
 
 	currentPrincipal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
@@ -489,34 +485,11 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	return Checkout{}, fmt.Errorf("invalid checkout request")
 }
 
-// templatizeUrls replaces the checkout id in the urls with the actual checkout id
-func (s *Service) templatizeUrls(ch Checkout, checkoutID string) (Checkout, error) {
-	tpl := template.New("success")
-	t, err := tpl.Parse(ch.SuccessUrl)
-	if err != nil {
-		return Checkout{}, fmt.Errorf("failed to parse success url: %w", err)
-	}
-	var tplBuffer bytes.Buffer
-	if err = t.Execute(&tplBuffer, map[string]string{
-		"CheckoutID": checkoutID,
-	}); err != nil {
-		return Checkout{}, fmt.Errorf("failed to parse success url: %w", err)
-	}
-	ch.SuccessUrl = tplBuffer.String()
-
-	tpl = template.New("cancel")
-	t, err = tpl.Parse(ch.CancelUrl)
-	if err != nil {
-		return Checkout{}, fmt.Errorf("failed to parse cancel url: %w", err)
-	}
-	tplBuffer.Reset()
-	if err = t.Execute(&tplBuffer, map[string]string{
-		"CheckoutID": checkoutID,
-	}); err != nil {
-		return Checkout{}, fmt.Errorf("failed to parse cancel url: %w", err)
-	}
-	ch.CancelUrl = tplBuffer.String()
-	return ch, nil
+// templatizeUrls replaces the checkout id placeholder in the urls with the actual checkout id
+func (s *Service) templatizeUrls(ch Checkout, checkoutID string) Checkout {
+	ch.SuccessUrl = strings.ReplaceAll(ch.SuccessUrl, "{{.CheckoutID}}", checkoutID)
+	ch.CancelUrl = strings.ReplaceAll(ch.CancelUrl, "{{.CheckoutID}}", checkoutID)
+	return ch
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (Checkout, error) {
@@ -781,10 +754,7 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 	}
 
 	checkoutID := uuid.New().String()
-	ch, err = s.templatizeUrls(ch, checkoutID)
-	if err != nil {
-		return Checkout{}, err
-	}
+	ch = s.templatizeUrls(ch, checkoutID)
 
 	// create payment method setup checkout link
 	stripeCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
