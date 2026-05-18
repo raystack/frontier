@@ -89,6 +89,18 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	return s.repository.Delete(ctx, id)
 }
 
+func (s Service) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error {
+	if err := s.repository.DeleteWithMinRoleGuard(ctx, id, guardRoleID); err != nil {
+		return err
+	}
+	return s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        id,
+			Namespace: schema.RoleBindingNamespace,
+		},
+	})
+}
+
 // AssignRole Note: ideally this should be in a single transaction
 // read more about how user defined roles work in spicedb https://authzed.com/blog/user-defined-roles
 func (s Service) AssignRole(ctx context.Context, pol Policy) error {

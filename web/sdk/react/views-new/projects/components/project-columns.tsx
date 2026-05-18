@@ -13,6 +13,7 @@ import { MembersCell } from './members-cell';
 
 export interface ProjectMenuPayload {
   projectId: string;
+  name: string;
   title: string;
   canUpdate: boolean;
   canDelete: boolean;
@@ -88,6 +89,7 @@ export const getColumns = ({
               handle={menuHandle}
               payload={{
                 projectId: project.id || '',
+                name: project.name || '',
                 title: project.title || '',
                 canUpdate,
                 canDelete

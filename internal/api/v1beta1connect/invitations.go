@@ -22,7 +22,7 @@ func (h *ConnectHandler) ListOrganizationInvitations(ctx context.Context, reques
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -143,7 +143,7 @@ func (h *ConnectHandler) CreateOrganizationInvitation(ctx context.Context, reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -203,7 +203,7 @@ func (h *ConnectHandler) GetOrganizationInvitation(ctx context.Context, request 
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -255,7 +255,7 @@ func (h *ConnectHandler) AcceptOrganizationInvitation(ctx context.Context, reque
 		case errors.Is(err, user.ErrDisabled):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		case errors.Is(err, membership.ErrInvalidOrgRole):
@@ -280,7 +280,7 @@ func (h *ConnectHandler) DeleteOrganizationInvitation(ctx context.Context, reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:

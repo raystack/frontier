@@ -41,14 +41,14 @@ func (h *ConnectHandler) GetOrganization(ctx context.Context, request *connect.R
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetOrganization.GetRaw", err,
 				"org_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
 	orgPB, err := transformOrgToPB(fetchedOrg)
 	if err != nil {
 		errorLogger.LogTransformError(ctx, request, "GetOrganization", fetchedOrg.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetOrganizationResponse{
@@ -285,7 +285,7 @@ func (h *ConnectHandler) ListOrganizationProjects(ctx context.Context, request *
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -327,7 +327,7 @@ func (h *ConnectHandler) ListOrganizationAdmins(ctx context.Context, request *co
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -384,7 +384,7 @@ func (h *ConnectHandler) ListOrganizationUsers(ctx context.Context, request *con
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -463,7 +463,7 @@ func (h *ConnectHandler) RemoveOrganizationMember(ctx context.Context, request *
 	if err := h.membershipService.RemoveOrganizationMember(ctx, orgID, principalID, principalType); err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		case errors.Is(err, membership.ErrInvalidPrincipalType):
@@ -499,7 +499,7 @@ func (h *ConnectHandler) SetOrganizationMemberRole(ctx context.Context, request 
 
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		case errors.Is(err, user.ErrNotExist):
@@ -611,7 +611,7 @@ func (h *ConnectHandler) ListOrganizationServiceUsers(ctx context.Context, reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:

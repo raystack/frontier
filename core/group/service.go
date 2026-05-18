@@ -20,9 +20,7 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error)
-	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
@@ -32,7 +30,6 @@ type AuthnService interface {
 }
 
 type PolicyService interface {
-	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
 	GroupMemberCount(ctx context.Context, ids []string) ([]policy.MemberCount, error)
@@ -166,46 +163,6 @@ func (s Service) intersectPATScope(ctx context.Context, principal authenticate.P
 	return utils.Intersection(resourceIDs, patIDs), nil
 }
 
-// AddMember adds a subject(user) to group as member
-func (s Service) AddMember(ctx context.Context, groupID string, principal authenticate.Principal) error {
-	// first create a policy for the user as member of the group
-	if err := s.addMemberPolicy(ctx, groupID, principal); err != nil {
-		return err
-	}
-
-	// then create a relation between group and user as member
-	rel := relation.Relation{
-		Object: relation.Object{
-			ID:        groupID,
-			Namespace: schema.GroupNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        principal.ID,
-			Namespace: principal.Type,
-		},
-		RelationName: schema.MemberRelationName,
-	}
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
-	return nil
-}
-
-// add a policy to user as member of group
-func (s Service) addMemberPolicy(ctx context.Context, groupID string, principal authenticate.Principal) error {
-	pol := policy.Policy{
-		RoleID:        schema.GroupMemberRole,
-		ResourceID:    groupID,
-		ResourceType:  schema.GroupNamespace,
-		PrincipalID:   principal.ID,
-		PrincipalType: principal.Type,
-	}
-	if _, err := s.policyService.Create(ctx, pol); err != nil {
-		return err
-	}
-	return nil
-}
-
 // ListByOrganization will be useful for nested groups but we don't do that at the moment
 // so it will not be directly used
 func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, error) {
@@ -234,19 +191,6 @@ func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, er
 	return s.repository.GetByIDs(ctx, groupIDs, Filter{})
 }
 
-func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string) error {
-	var err error
-	for _, userID := range userIDs {
-		if currentErr := s.AddMember(ctx, groupID, authenticate.Principal{
-			ID:   userID,
-			Type: schema.UserPrincipal,
-		}); currentErr != nil {
-			err = errors.Join(err, currentErr)
-		}
-	}
-	return err
-}
-
 // RemoveUsers removes users from a group as members
 func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
 	group, err := s.repository.GetByID(ctx, groupID)
@@ -265,39 +209,17 @@ func (s Service) Disable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Disabled)
 }
 
-func (s Service) Delete(ctx context.Context, id string) error {
+// DeleteModel removes the group entity from storage and emits the audit
+// event. All SpiceDB policy and relation cleanup is the caller's
+// responsibility — see core/deleter.DeleteGroup for the orchestration that
+// pairs this with membership.OnGroupDeleted.
+func (s Service) DeleteModel(ctx context.Context, id string) error {
 	group, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	// remove all users from group
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		GroupID: id,
-	})
-	if err != nil {
-		return err
-	}
-	userIDs := make([]string, 0)
-	for _, pol := range policies {
-		if pol.PrincipalType == schema.UserPrincipal || pol.PrincipalType == schema.ServiceUserPrincipal {
-			userIDs = append(userIDs, pol.PrincipalID)
-		}
-	}
-	if err := s.removeUsers(ctx, group, userIDs); err != nil {
-		return fmt.Errorf("failed to remove users: %w", err)
-	}
-
-	// delete pending relations
-	if err = s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
-		ID:        id,
-		Namespace: schema.GroupPrincipal,
-	}}); err != nil {
-		return err
-	}
-
-	err = s.repository.Delete(ctx, id)
-	if err != nil {
+	if err := s.repository.Delete(ctx, id); err != nil {
 		return err
 	}
 

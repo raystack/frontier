@@ -33,7 +33,7 @@ func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connec
 				"org_id", request.Msg.GetOrgId(),
 				"status", request.Msg.GetStatus(),
 				"link", request.Msg.GetLink())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
@@ -63,7 +63,7 @@ func (h *ConnectHandler) GetOrganizationKyc(ctx context.Context, request *connec
 		default:
 			errorLogger.LogServiceError(ctx, request, "GetOrganizationKyc.GetKyc", err,
 				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.GetOrganizationKycResponse{OrganizationKyc: transformOrgKycToPB(orgKyc)}), nil
@@ -79,7 +79,7 @@ func (h *ConnectHandler) ListOrganizationsKyc(ctx context.Context, request *conn
 			return nil, connect.NewError(connect.CodeNotFound, kyc.ErrNotExist)
 		default:
 			errorLogger.LogServiceError(ctx, request, "ListOrganizationsKyc.ListKycs", err)
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	resp := make([]*frontierv1beta1.OrganizationKyc, len(orgKycs))

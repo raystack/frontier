@@ -8,4 +8,5 @@ var (
 	ErrInvalidID     = errors.New("policy id is invalid")
 	ErrConflict      = errors.New("policy already exist")
 	ErrInvalidDetail = errors.New("invalid policy detail")
+	ErrLastRoleGuard = errors.New("cannot delete: this is the last policy with the guarded role for this resource")
 )
