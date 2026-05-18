@@ -261,7 +261,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -304,7 +304,7 @@ func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
 		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
 		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo, &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo)
 		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.NoError(t, err)
 	})
@@ -316,7 +316,7 @@ func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: "other-org", State: string(serviceuser.Enabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
 		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, membership.ErrPrincipalNotInOrg)
 	})
@@ -328,7 +328,7 @@ func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, State: string(serviceuser.Disabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
 		err := svc.AddOrganizationMember(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, serviceuser.ErrDisabled)
 	})
@@ -523,7 +523,7 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mockUserSvc, mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -571,7 +571,7 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
 		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo, &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo)
 		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.NoError(t, err)
 	})
@@ -583,7 +583,7 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: "other-org", State: string(serviceuser.Enabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
 		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, membership.ErrPrincipalNotInOrg)
 	})
@@ -595,7 +595,7 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 		mockSuSvc.EXPECT().Get(ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID, State: string(serviceuser.Disabled)}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
 		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, serviceuser.ErrDisabled)
 	})
@@ -808,7 +808,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				tt.setup(d)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo, &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -949,7 +949,7 @@ func TestService_SetProjectMemberRole(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRoleSvc, mockPrjSvc, mockUserSvc, mockSuSvc, mockGrpSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mockPrjSvc, mockGrpSvc, mockSuSvc, mockAuditRepo, &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mockPrjSvc, mockGrpSvc, mockSuSvc, mockAuditRepo)
 			err := svc.SetProjectMemberRole(ctx, projectID, tt.principalID, tt.principalType, tt.roleID)
 
 			if tt.wantErr != nil {
@@ -1030,7 +1030,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockPrjSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mockPrjSvc, mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mockPrjSvc, mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
 			err := svc.RemoveProjectMember(ctx, projectID, tt.principalID, tt.principalType)
 
 			if tt.wantErr != nil {
@@ -1222,7 +1222,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRoleSvc)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
 
 			got, err := svc.ListPrincipalsByResource(ctx, tt.resourceID, tt.resourceType, tt.filter)
 			if tt.wantErrIs != nil {
@@ -1396,7 +1396,7 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockGrpSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -1466,7 +1466,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 		mockRelSvc.EXPECT().Create(ctx, creatorOwnerRelation).Return(relation.Relation{}, nil)
 		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.NoError(t, err)
@@ -1478,7 +1478,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 
 		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, errors.New("spicedb unavailable"))
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.ErrorContains(t, err, "link group to org")
@@ -1493,7 +1493,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 		// rollback: delete the first hierarchy relation
 		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.ErrorContains(t, err, "add group as org member")
@@ -1521,7 +1521,7 @@ func TestService_OnGroupCreated(t *testing.T) {
 		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
 		mockRelSvc.EXPECT().Delete(ctx, orgGroupMemberRelation).Return(nil)
 
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t), &schema.Inheritance{})
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
 
 		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
 		assert.ErrorContains(t, err, "db down")
@@ -1647,7 +1647,7 @@ func TestService_RemoveGroupMember(t *testing.T) {
 				tt.setup(mockPolicySvc, mockRelSvc, mockRoleSvc, mockGrpSvc, mockUserSvc, mockAuditRepo)
 			}
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo, &schema.Inheritance{})
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mockAuditRepo)
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -1791,8 +1791,9 @@ func TestService_OnGroupDeleted(t *testing.T) {
 // path that replaces today's SpiceDB LookupResources-based ListByUser methods.
 // Table-driven, mirroring TestService_ListPrincipalsByResource above.
 //
-// The shared inheritance fixture mirrors the canonical lists extracted from
-// base_schema.zed at runtime; see internal/bootstrap/schema/inheritance.go.
+// Org-inheritance gating is keyed off schema.OrganizationProjectInheritPerms (the
+// hardcoded constant whose schema-parity is enforced by inheritance_test.go).
+// Direct project / group-expanded policies are not role-permission-gated.
 func TestService_ListResourcesByPrincipal(t *testing.T) {
 	ctx := context.Background()
 
@@ -1821,11 +1822,6 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 	orgCustomRole := role.Role{ID: roleOrgCustomID, Name: "custom_app_project_admin", Permissions: []string{"app_project_administer"}}
 	projectViewerRole := role.Role{ID: roleProjectViewerID, Name: schema.RoleProjectViewer, Permissions: []string{"app_project_get"}}
 	projectOwnerRole := role.Role{ID: roleProjectOwnerID, Name: schema.RoleProjectOwner, Permissions: []string{"app_project_administer"}}
-
-	inheritance := &schema.Inheritance{
-		ProjectDirectVisibility:      []string{"app_project_administer", "app_project_get", "app_project_update"},
-		OrganizationToProjectInherit: []string{"app_organization_administer", "app_project_get", "app_project_administer"},
-	}
 
 	type mockSet struct {
 		policy  *mocks.PolicyService
@@ -2301,7 +2297,6 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 				mg,
 				mocks.NewServiceuserService(t),
 				mocks.NewAuditRecordRepository(t),
-				inheritance,
 			)
 
 			got, err := svc.ListResourcesByPrincipal(ctx, tt.principal, tt.resourceType, tt.filter)

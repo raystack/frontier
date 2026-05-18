@@ -80,7 +80,6 @@ import (
 
 	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/internal/bootstrap"
-	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/core/deleter"
 
@@ -441,12 +440,7 @@ func buildAPIDependencies(
 	projectService := project.NewService(projectRepository, relationService, userService, policyService,
 		authnService, serviceUserService, groupService, roleService)
 
-	// inheritance is populated in-place by bootstrap.Service.MigrateSchema below.
-	// Sharing the pointer with membership.Service keeps the two views in sync
-	// without setter injection or a second pass.
-	inheritance := &schema.Inheritance{}
-
-	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, serviceUserService, auditRecordRepository, inheritance)
+	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, serviceUserService, auditRecordRepository)
 	// Setter injection: org/group → membership is circular (membership needs them
 	// for validation; they need membership for Create). Break the cycle post-init.
 	organizationService.SetMembershipService(membershipService)
@@ -577,7 +571,6 @@ func buildAPIDependencies(
 		cfg.App.PAT.DeniedPermissionsSet(),
 		planService,
 		planBlobRepository,
-		inheritance,
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,

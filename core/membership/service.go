@@ -79,20 +79,8 @@ type Service struct {
 	groupService          GroupService
 	serviceuserService    ServiceuserService
 	auditRecordRepository AuditRecordRepository
-
-	// inheritance is the role-permission map extracted from base_schema.zed at
-	// bootstrap time. ListResourcesByPrincipal consults it to mirror today's
-	// SpiceDB project.get chain in Go without re-reading SpiceDB.
-	//
-	// Held as a pointer so the same value can be shared with bootstrap.Service
-	// (which writes through it during MigrateSchema). cmd/serve.go allocates
-	// one *schema.Inheritance and passes it to both services.
-	inheritance *schema.Inheritance
 }
 
-// NewService wires the membership service. The inheritance pointer must be
-// shared with bootstrap.Service so the schema-derived permission lists stay
-// in sync; pass nil only in tests that don't exercise ListResourcesByPrincipal.
 func NewService(
 	logger *slog.Logger,
 	policyService PolicyService,
@@ -104,11 +92,7 @@ func NewService(
 	groupService GroupService,
 	serviceuserService ServiceuserService,
 	auditRecordRepository AuditRecordRepository,
-	inheritance *schema.Inheritance,
 ) *Service {
-	if inheritance == nil {
-		panic("membership: inheritance pointer must be non-nil; share with bootstrap.NewBootstrapService via cmd/serve.go (tests not exercising ListResourcesByPrincipal can pass &schema.Inheritance{})")
-	}
 	return &Service{
 		log:                   logger,
 		policyService:         policyService,
@@ -120,7 +104,6 @@ func NewService(
 		groupService:          groupService,
 		serviceuserService:    serviceuserService,
 		auditRecordRepository: auditRecordRepository,
-		inheritance:           inheritance,
 	}
 }
 
@@ -1692,11 +1675,13 @@ func (s *Service) narrowGroupsByOrg(ctx context.Context, ids []string, orgID str
 // listProjectsForPrincipal unions three sources, dedups, then narrows by
 // filter.OrgID if set:
 //
-//  1. Direct project policies, gated by ProjectDirectVisibility.
-//  2. Group-expanded projects (also gated). Runs even with NonInherited=true,
-//     matching today's listNonInheritedProjectIDs.
-//  3. Org inheritance (skipped if NonInherited=true), gated by
-//     OrganizationToProjectInherit. Batched via project.Filter.OrgIDs.
+//  1. Direct project policies — gated by schema.ProjectDirectVisibilityPerms.
+//  2. Group-expanded projects — same gate as direct. Runs even with
+//     NonInherited=true, matching today's listNonInheritedProjectIDs.
+//  3. Org inheritance (skipped if NonInherited=true) — gated by
+//     schema.OrganizationProjectInheritPerms so only org roles that actually grant
+//     project visibility (Owner, Manager, etc.) expand. Batched via
+//     project.Filter.OrgIDs to avoid N+1 across multi-org users.
 func (s *Service) listProjectsForPrincipal(ctx context.Context, principalID, principalType string, filter ResourceFilter) ([]string, error) {
 	directIDs, err := s.listDirectProjectIDs(ctx, principalID, principalType)
 	if err != nil {
@@ -1732,7 +1717,8 @@ func (s *Service) listProjectsForPrincipal(ctx context.Context, principalID, pri
 }
 
 // listDirectProjectIDs returns project IDs from the principal's direct
-// project policies whose role grants any ProjectDirectVisibility permission.
+// project policies whose role grants any schema.ProjectDirectVisibilityPerms.
+// Mirrors today's LookupResources(project, ..., project.get) gating.
 func (s *Service) listDirectProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   principalID,
@@ -1742,11 +1728,12 @@ func (s *Service) listDirectProjectIDs(ctx context.Context, principalID, princip
 	if err != nil {
 		return nil, fmt.Errorf("list direct project policies: %w", err)
 	}
-	return s.filterByRolePermissions(ctx, policies, s.inheritance.ProjectDirectVisibility)
+	return s.filterByRolePermissions(ctx, policies, schema.ProjectDirectVisibilityPerms)
 }
 
 // listGroupExpandedProjectIDs: principal → groups → project policies on those
-// groups → filtered by ProjectDirectVisibility.
+// groups → gated by schema.ProjectDirectVisibilityPerms (same rule as direct
+// project policies).
 func (s *Service) listGroupExpandedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	// Use the per-principal helper (not ListResourcesByPrincipal) so the PAT
 	// pass doesn't trigger another PAT recursion on itself.
@@ -1765,12 +1752,14 @@ func (s *Service) listGroupExpandedProjectIDs(ctx context.Context, principalID, 
 	if err != nil {
 		return nil, fmt.Errorf("list project policies for principal groups: %w", err)
 	}
-	return s.filterByRolePermissions(ctx, policies, s.inheritance.ProjectDirectVisibility)
+	return s.filterByRolePermissions(ctx, policies, schema.ProjectDirectVisibilityPerms)
 }
 
 // listOrgInheritedProjectIDs: principal's org policies → orgs whose role
-// grants OrganizationToProjectInherit → all projects in those orgs. Batched
-// via project.Filter.OrgIDs to avoid N+1 across multi-org users.
+// grants schema.OrganizationProjectInheritPerms → all projects in those orgs. Batched
+// via project.Filter.OrgIDs to avoid N+1 across multi-org users. Unlike
+// direct/group, org policies need the role-permission gate: not every org
+// role implies project visibility (Org Viewer doesn't; Org Owner does).
 func (s *Service) listOrgInheritedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   principalID,
@@ -1780,7 +1769,7 @@ func (s *Service) listOrgInheritedProjectIDs(ctx context.Context, principalID, p
 	if err != nil {
 		return nil, fmt.Errorf("list org policies for inheritance: %w", err)
 	}
-	inheritingOrgIDs, err := s.filterByRolePermissions(ctx, policies, s.inheritance.OrganizationToProjectInherit)
+	inheritingOrgIDs, err := s.filterByRolePermissions(ctx, policies, schema.OrganizationProjectInheritPerms)
 	if err != nil {
 		return nil, err
 	}
@@ -1819,9 +1808,9 @@ func (s *Service) narrowProjectsByOrg(ctx context.Context, ids []string, orgID s
 // batched roleService.List call — O(1) round-trips regardless of policy count.
 //
 // Note: ignores policy.GrantRelation. Today's permission lists already cover
-// both granted-> and pat_granted-> arrows for org.project_get, and project.get
-// / group.get have no pat_granted-> arrows. If the schema ever gains
-// pat_granted-> at project or group level, dispatch on GrantRelation here.
+// both granted-> and pat_granted-> arrows for org.project_get; project.get
+// has no pat_granted-> arrows. If the schema ever gains pat_granted-> at
+// project or group level, dispatch on GrantRelation here.
 func (s *Service) filterByRolePermissions(ctx context.Context, policies []policy.Policy, permissions []string) ([]string, error) {
 	if len(policies) == 0 || len(permissions) == 0 {
 		return nil, nil

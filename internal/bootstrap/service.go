@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/billing/plan"
 
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
-	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
 
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/permission"
@@ -106,18 +105,8 @@ type Service struct {
 
 	planService   PlanService
 	planLocalRepo BillingPlanRepository
-
-	// inheritance is populated by MigrateSchema; the same pointer is shared
-	// with membership.Service via cmd/serve.go. Pointer (not value) so the
-	// value-receiver populateInheritance can mutate through it. Written once
-	// during startup, read-only afterward — concurrent reads from request
-	// handlers are safe without a lock.
-	inheritance *schema.Inheritance
 }
 
-// NewBootstrapService wires the bootstrap service. The inheritance pointer is
-// shared with membership.Service so MigrateSchema can write through it and
-// membership sees the result at call time — no setter, no second pass.
 func NewBootstrapService(
 	logger *slog.Logger,
 	config AdminConfig,
@@ -133,11 +122,7 @@ func NewBootstrapService(
 	patDeniedPerms map[string]struct{},
 	planService PlanService,
 	planLocalRepo BillingPlanRepository,
-	inheritance *schema.Inheritance,
 ) *Service {
-	if inheritance == nil {
-		panic("bootstrap: inheritance pointer must be non-nil; share with membership.NewService via cmd/serve.go")
-	}
 	return &Service{
 		logger:            logger,
 		adminConfig:       config,
@@ -153,7 +138,6 @@ func NewBootstrapService(
 		policyService:     policyService,
 		serviceuserRepo:   serviceuserRepo,
 		patDeniedPerms:    patDeniedPerms,
-		inheritance:       inheritance,
 	}
 }
 
@@ -229,36 +213,11 @@ func (s Service) applySchema(ctx context.Context, customServiceDefinition *schem
 		return fmt.Errorf("migrateServiceDefinitionToDB : %w", err)
 	}
 
-	// derive the inheritance map before mutating SpiceDB: if extraction fails
-	// (e.g. unsupported rewrite shape), fail before any persistent change.
-	if err = s.populateInheritance(authzedSchemaSource); err != nil {
-		return fmt.Errorf("populateInheritance: %w", err)
-	}
-
 	// apply azSchema to engine
 	if err = s.authzEngine.WriteSchema(ctx, authzedSchemaSource); err != nil {
 		return fmt.Errorf("%w: %s", schema.ErrMigration, err.Error())
 	}
 
-	return nil
-}
-
-// populateInheritance recompiles the finalized schema and extracts the
-// role-permission lists membership listing needs. Recompile (not reuse) so the
-// input matches what SpiceDB itself ingests.
-func (s Service) populateInheritance(authzedSchemaSource string) error {
-	compiled, err := compiler.Compile(compiler.InputSchema{
-		Source:       "effective_schema.zed",
-		SchemaString: authzedSchemaSource,
-	}, compiler.ObjectTypePrefix("frontier"))
-	if err != nil {
-		return fmt.Errorf("compile finalized schema: %w", err)
-	}
-	inh, err := schema.ExtractInheritance(compiled)
-	if err != nil {
-		return fmt.Errorf("extract inheritance: %w", err)
-	}
-	*s.inheritance = inh
 	return nil
 }
 
