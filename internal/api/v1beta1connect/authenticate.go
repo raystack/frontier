@@ -21,9 +21,7 @@ import (
 	"github.com/raystack/frontier/pkg/server/consts"
 	sessionutils "github.com/raystack/frontier/pkg/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -44,7 +42,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		return resp, nil
 	} else if err != nil && !errors.Is(err, frontiersession.ErrNoSession) {
 		errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err)
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	if (request.Msg.GetStrategyName() == authenticate.MailLinkAuthMethod.String() || request.Msg.GetStrategyName() == authenticate.MailOTPAuthMethod.String()) && !isValidEmail(request.Msg.GetEmail()) {
