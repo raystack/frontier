@@ -116,8 +116,13 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 				assert.Error(t, err)
 				if tt.expectedErr != nil {
 					connectErr := err.(*connect.Error)
-					assert.Equal(t, connect.CodeInternal, connectErr.Code())
-					assert.Equal(t, "internal server error", connectErr.Message())
+					if tt.expectedErr == organization.ErrDisabled {
+						assert.Equal(t, connect.CodeFailedPrecondition, connectErr.Code())
+						assert.Contains(t, connectErr.Message(), "org is disabled")
+					} else {
+						assert.Equal(t, connect.CodeInternal, connectErr.Code())
+						assert.Equal(t, "internal server error", connectErr.Message())
+					}
 				}
 				assert.Nil(t, resp)
 			} else {
