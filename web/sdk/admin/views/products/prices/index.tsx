@@ -2,10 +2,11 @@ import type { ReactNode } from "react";
 import { Flex, EmptyState, DataTable } from "@raystack/apsara-v1";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, type Product } from "@raystack/proton/frontier";
-import { ProductsHeader } from "../header";
+import { PageHeader } from "../../../components/PageHeader";
 import { getColumns } from "./columns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { PageTitle } from "../../../components/PageTitle";
+import styles from "../products.module.css";
 
 export type ProductPricesViewProps = {
   /** The product ID whose prices are displayed. */
@@ -74,7 +75,14 @@ export default function ProductPricesView({
           defaultSort={{ name: "createdAt", order: "desc" }}
         >
           <Flex direction="column" width="full">
-            <ProductsHeader header={pageHeader} onBreadcrumbClick={onBreadcrumbClick} />
+            <PageHeader
+              title={pageHeader.title}
+              breadcrumb={pageHeader.breadcrumb}
+              onBreadcrumbClick={onBreadcrumbClick}
+              className={styles.header}
+            >
+              <DataTable.Search placeholder="Search products..." size="small" />
+            </PageHeader>
             <DataTable.Content emptyState={noDataChildren} />
           </Flex>
         </DataTable>

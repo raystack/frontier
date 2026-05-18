@@ -5,7 +5,7 @@ import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import type { Product } from "@raystack/proton/frontier";
 import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
-import { ProductsHeader } from "./header";
+import { PageHeader } from "../../components/PageHeader";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import styles from "./products.module.css";
 import { PageTitle } from "../../components/PageTitle";
@@ -82,7 +82,14 @@ export default function ProductsView({
         onRowClick={handleRowClick}
       >
         <Flex direction="column" className={styles.tableWrapper}>
-          <ProductsHeader icon={icon} />
+          <PageHeader
+            title="Products"
+            icon={icon}
+            breadcrumb={[]}
+            className={styles.header}
+          >
+            <DataTable.Search placeholder="Search products..." size="small" />
+          </PageHeader>
           <DataTable.Content
             emptyState={noDataChildren}
             classNames={{ root: styles.tableRoot }}
