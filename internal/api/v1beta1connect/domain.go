@@ -20,7 +20,7 @@ func (h *ConnectHandler) CreateOrganizationDomain(ctx context.Context, request *
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -57,7 +57,7 @@ func (h *ConnectHandler) DeleteOrganizationDomain(ctx context.Context, request *
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -89,7 +89,7 @@ func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *con
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -135,7 +135,7 @@ func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.
 		case errors.Is(err, user.ErrDisabled):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		case errors.Is(err, membership.ErrInvalidOrgRole):
@@ -160,7 +160,7 @@ func (h *ConnectHandler) VerifyOrganizationDomain(ctx context.Context, request *
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
@@ -197,7 +197,7 @@ func (h *ConnectHandler) ListOrganizationDomains(ctx context.Context, request *c
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
