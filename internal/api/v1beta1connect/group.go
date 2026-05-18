@@ -55,7 +55,7 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -145,7 +145,7 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -208,7 +208,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -275,7 +275,7 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -331,7 +331,7 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -399,7 +399,7 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -446,7 +446,7 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 	if _, err := h.orgService.Get(ctx, orgID); err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -495,7 +495,7 @@ func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -524,7 +524,7 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -553,7 +553,7 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:

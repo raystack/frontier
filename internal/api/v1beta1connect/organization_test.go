@@ -563,7 +563,7 @@ func TestHandler_ListOrganizationProjects(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return internal error if org service return some error",
@@ -751,7 +751,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return internal error if org service return some error",
@@ -871,7 +871,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return internal error if membership service returns an error",
@@ -989,7 +989,7 @@ func TestHandler_RemoveOrganizationMember(t *testing.T) {
 				PrincipalType: schema.UserPrincipal,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return failed precondition if not a member",
@@ -1190,7 +1190,7 @@ func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return internal error if service user service returns error",
@@ -1294,7 +1294,7 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 				RoleId: "9f256f86-31a3-11ec-8d3d-0242ac130005",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found error if user does not exist",

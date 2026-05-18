@@ -191,9 +191,12 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		orgId := principal.ServiceUser.OrgID
 		_, err := h.orgService.Get(ctx, orgId)
 		if err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
+			errorLogger.LogServiceError(ctx, request, "AuthToken.orgService.Get", err,
 				"org_id", orgId,
 				"service_user_id", principal.ServiceUser.ID)
+			if errors.Is(err, organization.ErrDisabled) {
+				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
+			}
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

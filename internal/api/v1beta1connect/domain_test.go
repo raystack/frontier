@@ -91,7 +91,7 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 				Domain: "raystack.org",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found error if org does not exist",
@@ -203,7 +203,7 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found error if org does not exist",
@@ -306,7 +306,7 @@ func TestHandler_GetOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found error if org does not exist",
@@ -397,7 +397,7 @@ func TestHandler_JoinOrganization(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found error if org does not exist",
@@ -497,7 +497,7 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found error if org does not exist",
@@ -587,7 +587,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found error if org does not exist",

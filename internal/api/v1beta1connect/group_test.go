@@ -272,7 +272,7 @@ func TestConnectHandler_CreateGroup(t *testing.T) {
 			}),
 			want:        nil,
 			wantErr:     true,
-			wantErrCode: connect.CodeNotFound,
+			wantErrCode: connect.CodeFailedPrecondition,
 			wantErrMsg:  ErrOrgDisabled,
 		},
 		{
@@ -488,7 +488,7 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 			}),
 			want:        nil,
 			wantErr:     true,
-			wantErrCode: connect.CodeNotFound,
+			wantErrCode: connect.CodeFailedPrecondition,
 			wantErrMsg:  ErrOrgDisabled,
 		},
 		{
@@ -664,7 +664,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 			}),
 			want:        nil,
 			wantErr:     true,
-			wantErrCode: connect.CodeNotFound,
+			wantErrCode: connect.CodeFailedPrecondition,
 			wantErrMsg:  ErrOrgDisabled,
 		},
 		{
@@ -930,7 +930,7 @@ func TestConnectHandler_ListOrganizationGroups(t *testing.T) {
 			}),
 			want:        nil,
 			wantErr:     true,
-			wantErrCode: connect.CodeNotFound,
+			wantErrCode: connect.CodeFailedPrecondition,
 			wantErrMsg:  ErrOrgDisabled,
 		},
 		{
@@ -1046,7 +1046,7 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return internal server error if error in listing group users",
@@ -1270,7 +1270,7 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 				UserId: randomID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found if group does not exist",
@@ -1455,7 +1455,7 @@ func TestConnectHandler_EnableGroup(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return error if group does not exist",
@@ -1540,7 +1540,7 @@ func TestConnectHandler_DisableGroup(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return error if group does not exist",
@@ -1625,7 +1625,7 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return error if group does not exist",
@@ -1715,7 +1715,7 @@ func TestConnectHandler_SetGroupMemberRole(t *testing.T) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: baseRequest(),
-			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
 			name: "should return not found if group does not exist",
