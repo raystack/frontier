@@ -1436,7 +1436,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		listExistingUsers, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			OrgId: existingOrg.Msg.GetOrganization().GetId(),
 		}))
 		s.Assert().NoError(err)
@@ -1451,7 +1451,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
-		listNewUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		listNewUsers, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			OrgId: existingOrg.Msg.GetOrganization().GetId(),
 		}))
 		s.Assert().NoError(err)
@@ -1467,7 +1467,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		listExistingUsers, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			Keyword: createUserResp.Msg.GetUser().GetEmail(),
 		}))
 		s.Assert().NoError(err)
