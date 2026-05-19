@@ -106,7 +106,7 @@ export const RevokeSessionDialog = ({
             </Flex>
           </AlertDialog.Body>
 
-          <AlertDialog.Footer >
+          <AlertDialog.Footer>
             <Button
               variant="outline"
               color="neutral"
