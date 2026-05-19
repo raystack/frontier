@@ -19,9 +19,7 @@ export interface TransformOptions {
 /**
  * Converts a filter value to the appropriate RQLFilter value format
  */
-function convertFilterValue(
-  value: string | number | boolean | null | undefined,
-): RQLFilter["value"] {
+function convertFilterValue(value: unknown): RQLFilter["value"] {
   switch (typeof value) {
     case "boolean":
       return { case: "boolValue", value };
@@ -30,7 +28,7 @@ function convertFilterValue(
     case "string":
       return { case: "stringValue", value };
     default:
-      return { case: "stringValue", value: value ?? "" };
+      return { case: "stringValue", value: value == null ? "" : String(value) };
   }
 }
 

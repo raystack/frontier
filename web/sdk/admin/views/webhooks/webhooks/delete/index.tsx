@@ -1,5 +1,4 @@
-import { Button, Dialog, Flex, Text } from "@raystack/apsara";
-import { toast } from "sonner";
+import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import type { useMutation } from "@connectrpc/connect-query";
 
 interface DeleteWebhookDialogProps {
@@ -20,11 +19,11 @@ export function DeleteWebhookDialog({
   const handleDelete = async () => {
     try {
       await deleteWebhookMutation.mutateAsync({ id: webhookId });
-      toast.success("Webhook deleted");
+      toastManager.add({ title: "Webhook deleted", type: "success" });
       onOpenChange(false);
     } catch (err) {
       console.error("Failed to delete webhook:", err);
-      toast.error("Failed to delete webhook");
+      toastManager.add({ title: "Failed to delete webhook", type: "error" });
     }
   };
 
@@ -33,9 +32,9 @@ export function DeleteWebhookDialog({
       <Dialog.Content
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
-        <Flex direction="column" gap="large" style={{ padding: "24px" }}>
-          <Flex direction="column" gap="medium">
-            <Text size={5} weight={500}>
+        <Flex direction="column" gap={9} style={{ padding: "24px" }}>
+          <Flex direction="column" gap={5}>
+            <Text size="large" weight="medium">
               Delete Webhook
             </Text>
             <Text>

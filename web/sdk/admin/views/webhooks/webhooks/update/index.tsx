@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { Button, Flex, Sheet } from "@raystack/apsara";
+import { Button, Flex, Drawer, toastManager } from "@raystack/apsara-v1";
 import { SheetHeader } from "../../../../components/SheetHeader";
 import { SheetFooter } from "../../../../components/SheetFooter";
 import * as z from "zod";
@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "../../../../components/CustomField";
 import events from "../../../../utils/webhook-events";
-import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
@@ -31,11 +30,12 @@ const UpdateWebhookSchema = z.object({
 export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;
 
 export type UpdateWebhooksProps = {
+  open?: boolean;
   webhookId?: string;
   onClose?: () => void;
 };
 
-export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCloseProp }: UpdateWebhooksProps = {}) {
+export default function UpdateWebhooks({ open = false, webhookId: webhookIdProp, onClose: onCloseProp }: UpdateWebhooksProps = {}) {
   const webhookId = webhookIdProp ?? "";
 
   const {
@@ -79,13 +79,13 @@ export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCl
       });
 
       if (resp?.webhook) {
-        toast.success("Webhook updated");
+        toastManager.add({ title: "Webhook updated", type: "success" });
         await invalidateWebhooksList();
         onClose();
       }
     } catch (err) {
       console.error("Failed to update webhook:", err);
-      toast.error("Something went wrong");
+      toastManager.add({ title: "Something went wrong", type: "error" });
     }
   };
 
@@ -101,8 +101,8 @@ export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCl
   }, [webhook, methods.reset]);
 
   return (
-    <Sheet open={true}>
-      <Sheet.Content
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
+      <Drawer.Content
         side="right"
         // @ts-ignore
         style={{
@@ -110,7 +110,7 @@ export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCl
           padding: 0,
           boxShadow: "var(--rs-shadow-soft)",
         }}
-        close={false}
+        showCloseButton={false}
       >
         <FormProvider {...methods}>
           <Form onSubmit={methods.handleSubmit(onSubmit)}>
@@ -176,8 +176,8 @@ export default function UpdateWebhooks({ webhookId: webhookIdProp, onClose: onCl
             </SheetFooter>
           </Form>
         </FormProvider>
-      </Sheet.Content>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer>
   );
 }
 

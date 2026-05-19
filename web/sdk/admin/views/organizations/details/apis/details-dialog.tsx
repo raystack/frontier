@@ -1,4 +1,4 @@
-import { Dialog, Flex, Skeleton, Tabs, Text, toast } from "@raystack/apsara";
+import { Dialog, Flex, Skeleton, Tabs, Text, toastManager } from "@raystack/apsara-v1";
 import styles from "./apis.module.css";
 import { useCallback, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
@@ -63,14 +63,18 @@ export const ServiceUserDetailsDialog = ({
 
   useEffect(() => {
     if (projectError) {
-      toast.error("Something went wrong", {
+      toastManager.add({
+        title: "Something went wrong",
         description: "Unable to fetch projects",
+        type: "error",
       });
       console.error("Unable to fetch projects:", projectError);
     }
     if (tokenError) {
-      toast.error("Something went wrong", {
+      toastManager.add({
+        title: "Something went wrong",
         description: "Unable to fetch tokens",
+        type: "error",
       });
       console.error("Unable to fetch tokens:", tokenError);
     }
@@ -90,23 +94,22 @@ export const ServiceUserDetailsDialog = ({
       <Dialog.Content className={styles["details-dialog"]}>
         <Dialog.Header>
           <Dialog.Title>{title}</Dialog.Title>
-          <Dialog.CloseButton />
         </Dialog.Header>
         <Dialog.Body className={styles["dialog-body"]}>
           <Tabs defaultValue="keys" className={styles["tab-root"]}>
             <Tabs.List>
-              <Tabs.Trigger value="keys">
+              <Tabs.Tab value="keys">
                 API keys{" "}
                 {!isTokenLoading && tokens.length > 0
                   ? `(${tokens.length})`
                   : ""}
-              </Tabs.Trigger>
-              <Tabs.Trigger value="projects">
+              </Tabs.Tab>
+              <Tabs.Tab value="projects">
                 {t.project({ plural: true, case: "capital" })}{" "}
                 {!isProjectLoading && projects.length > 0
                   ? `(${projects.length})`
                   : ""}
-              </Tabs.Trigger>
+              </Tabs.Tab>
             </Tabs.List>
             <Tabs.Content value="keys" className={styles["tab-content"]}>
               {isTokenLoading ? (

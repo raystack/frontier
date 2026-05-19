@@ -1,5 +1,5 @@
 import { ComponentProps, useCallback, useState } from "react";
-import { Button, Dialog, toast } from "@raystack/apsara";
+import { AlertDialog, Button, toastManager } from "@raystack/apsara-v1";
 import { useUser } from "../user-context";
 import { getUserName } from "../../util";
 import {
@@ -61,7 +61,7 @@ export const BlockUserDialog = () => {
     FrontierServiceQueries.disableUser,
     {
       onSuccess: () => {
-        toast.success(`${t.user({ case: "capital" })} blocked successfully`);
+        toastManager.add({ title: `${t.user({ case: "capital" })} blocked successfully`, type: "success" });
         optimisticUpdateState("disabled");
         reset?.();
         onOpenChange(false);
@@ -72,7 +72,7 @@ export const BlockUserDialog = () => {
     FrontierServiceQueries.enableUser,
     {
       onSuccess: () => {
-        toast.success(`${t.user({ case: "capital" })} unblocked successfully`);
+        toastManager.add({ title: `${t.user({ case: "capital" })} unblocked successfully`, type: "success" });
         optimisticUpdateState("enabled");
         reset?.();
         onOpenChange(false);
@@ -91,9 +91,9 @@ export const BlockUserDialog = () => {
       await action({ id: user?.id || "" });
     } catch (error) {
       handleConnectError(error, {
-        PermissionDenied: () => toast.error("You don't have permission to perform this action"),
-        NotFound: (err) => toast.error('Not found', { description: err.message }),
-        Default: (err) => toast.error(errorMessage, { description: err.message }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: "error" }),
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: "error" }),
+        Default: (err) => toastManager.add({ title: errorMessage, description: err.message, type: "error" }),
       });
     }
   };
@@ -119,33 +119,37 @@ export const BlockUserDialog = () => {
       };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-      <Dialog.Trigger asChild>
-        <Button
-          color={config.btnColor}
-          size="normal"
-          style={{
-            alignSelf: "flex-end",
-          }}
-          width={70}
-          data-test-id="admin-security-block-user">
-          {config.btnText}
-        </Button>
-      </Dialog.Trigger>
-      <Dialog.Content width={400} ariaLabel={config.dialogTitle}>
-        <Dialog.Body>
-          <Dialog.Title>{config.dialogTitle}</Dialog.Title>
-          <Dialog.Description>{config.dialogDescription}</Dialog.Description>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close asChild>
-            <Button
-              color="neutral"
-              variant="outline"
-              data-test-id="admin-security-block-user-cancel">
-              Cancel
-            </Button>
-          </Dialog.Close>
+    <AlertDialog open={isDialogOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Trigger
+        render={
+          <Button
+            color={config.btnColor}
+            size="normal"
+            style={{
+              alignSelf: "flex-end",
+            }}
+            width={70}
+            data-test-id="admin-security-block-user">
+            {config.btnText}
+          </Button>
+        }
+      />
+      <AlertDialog.Content width={400} aria-label={config.dialogTitle}>
+        <AlertDialog.Body>
+          <AlertDialog.Title>{config.dialogTitle}</AlertDialog.Title>
+          <AlertDialog.Description>{config.dialogDescription}</AlertDialog.Description>
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
+            render={
+              <Button
+                color="neutral"
+                variant="outline"
+                data-test-id="admin-security-block-user-cancel">
+                Cancel
+              </Button>
+            }
+          />
           <Button
             color={config.btnColor}
             data-test-id="admin-security-block-user-submit"
@@ -154,8 +158,8 @@ export const BlockUserDialog = () => {
             onClick={config.onClick}>
             {config.dialogConfirmText}
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

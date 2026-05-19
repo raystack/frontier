@@ -1,4 +1,4 @@
-import { Flex, Skeleton } from "@raystack/apsara";
+import { Flex, Skeleton } from "@raystack/apsara-v1";
 import styles from "./sessions.module.css";
 
 export const SessionSkeleton = ({ count = 3 }: { count?: number }) => {

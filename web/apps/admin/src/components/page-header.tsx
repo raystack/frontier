@@ -25,9 +25,9 @@ export default function PageHeader({
       style={{ padding: "16px 24px", ...style }}
       {...props}
     >
-      <Flex align="center" gap="medium">
-        <Flex align="center" gap="small" className={styles.breadcrumb}>
-          <Text style={{ fontSize: "14px", fontWeight: "500" }}>{title}</Text>
+      <Flex align="center" gap={5}>
+        <Flex align="center" gap={3} className={styles.breadcrumb}>
+          <Text size="regular" weight="medium">{title}</Text>
           {breadcrumb.map((item) => (
             <Link
               key={item.name}
@@ -35,13 +35,13 @@ export default function PageHeader({
               style={{ display: "flex", flexDirection: "row", gap: "8px" }}
             >
               <Flex align="center">
-                <Text size={1}>{item.name}</Text>
+                <Text size="mini">{item.name}</Text>
               </Flex>
             </Link>
           ))}
         </Flex>
       </Flex>
-      <Flex gap="small">{children}</Flex>
+      <Flex gap={3}>{children}</Flex>
     </Flex>
   );
 }

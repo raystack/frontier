@@ -5,7 +5,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
+import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import { ConnectError } from "@connectrpc/connect";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
@@ -40,13 +40,13 @@ export const RemoveMember = ({
       if (onRemove) {
         onRemove(user);
       }
-      toast.success(`${t.member({ case: "capital" })} removed successfully`);
+      toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
       const message =
         error instanceof ConnectError
           ? error.message
           : "Unknown error";
-      toast.error(`Failed to remove ${t.member({ case: "lower" })}: ${message}`);
+      toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}: ${message}`, type: "error" });
       console.error(error);
     }
   }
@@ -71,16 +71,18 @@ export const RemoveMember = ({
           </Flex>
         </Dialog.Body>
         <Dialog.Footer>
-          <Dialog.Close asChild>
-            <Button
-              type="button"
-              variant="outline"
-              color="neutral"
-              data-test-id="remove-member-cancel-button"
-            >
-              Cancel
-            </Button>
-          </Dialog.Close>
+          <Dialog.Close
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                color="neutral"
+                data-test-id="remove-member-cancel-button"
+              >
+                Cancel
+              </Button>
+            }
+          />
           <Button
             type="submit"
             data-test-id="remove-member-submit-button"

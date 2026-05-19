@@ -1,7 +1,7 @@
 "use client";
 
 import { Flex, Image } from "@raystack/apsara";
-import { MagicLinkVerify } from "@raystack/frontier/react";
+import { MagicLinkVerifyView } from "@raystack/frontier/client";
 import IAMIcon from "~/assets/icons/iam.svg?react";
 import { AppContext } from "~/contexts/App";
 import { useContext } from "react";
@@ -15,7 +15,7 @@ export default function MagicLink() {
       justify="center"
       style={{ height: "100vh", textAlign: "center" }}
     >
-      <MagicLinkVerify
+      <MagicLinkVerifyView
         logo={
           config?.logo ? (
             <Image

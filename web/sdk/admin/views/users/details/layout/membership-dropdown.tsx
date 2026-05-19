@@ -1,4 +1,4 @@
-import { Text, DropdownMenu, Skeleton } from "@raystack/apsara";
+import { Text, Menu, Skeleton } from "@raystack/apsara-v1";
 import styles from "./side-panel.module.css";
 import { useMemo, useState } from "react";
 import {
@@ -117,26 +117,26 @@ export const MembershipDropdown = ({
           onSubmit={onSuspend}
         />
       )}
-      <DropdownMenu>
-        <DropdownMenu.Trigger className={styles["dropdown-menu-trigger"]}>
-          <Text className={styles["text-overflow"]} as="p">
+      <Menu>
+        <Menu.Trigger className={styles["dropdown-menu-trigger"]}>
+          <Text className={styles["text-overflow"]} render={<p />}>
             {data?.roleTitles?.join(", ") ?? "-"}
           </Text>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Item
+        </Menu.Trigger>
+        <Menu.Content>
+          <Menu.Item
             onClick={toggleAssignRoleDialog}
             data-test-id="admin-user-details-assign-role">
             Assign role...
-          </DropdownMenu.Item>
+          </Menu.Item>
           {/* TODO: Removed for now */}
-          {/* <DropdownMenu.Item
+          {/* <Menu.Item
             onClick={toggleSuspendDialog}
             data-test-id="admin-user-details-suspend-user">
             Suspend...
-          </DropdownMenu.Item> */}
-        </DropdownMenu.Content>
-      </DropdownMenu>
+          </Menu.Item> */}
+        </Menu.Content>
+      </Menu>
     </>
   );
 };

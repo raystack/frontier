@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
-import { OrganizationIcon } from "@raystack/apsara/icons";
+import { DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara-v1";
+import { OrganizationIcon } from "@raystack/apsara-v1/icons";
 import { useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
@@ -23,7 +23,7 @@ import {
 } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useDebouncedState } from "@raystack/apsara/hooks";
+import { useDebouncedState } from "@raystack/apsara-v1/hooks";
 import { useTerminology } from "../../../hooks/useTerminology";
 
 const NoOrganizations = () => {
@@ -185,18 +185,17 @@ export const OrganizationListView = ({
   }
   return (
     <>
-      {showCreatePanel ? (
-        <CreateOrganizationPanel
-          onClose={closeCreateOrgPanel}
-          organizationTypes={organizationTypes}
-          appUrl={appUrl}
-          countries={countries}
-          onSuccess={(id) => {
-            closeCreateOrgPanel();
-            onNavigateToOrg?.(id);
-          }}
-        />
-      ) : null}
+      <CreateOrganizationPanel
+        open={showCreatePanel}
+        onClose={closeCreateOrgPanel}
+        organizationTypes={organizationTypes}
+        appUrl={appUrl}
+        countries={countries}
+        onSuccess={(id) => {
+          closeCreateOrgPanel();
+          onNavigateToOrg?.(id);
+        }}
+      />
       <PageTitle title={t.organization({ plural: true, case: "capital" })} appName={appName} />
       <DataTable
         query={tableQuery}

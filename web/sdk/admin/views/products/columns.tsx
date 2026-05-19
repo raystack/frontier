@@ -1,4 +1,4 @@
-import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara";
+import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara-v1";
 import type { Product } from "@raystack/proton/frontier";
 import { timestampToDate, TimeStamp } from "../../utils/connect-timestamp";
 
@@ -64,7 +64,7 @@ export const getColumns = (
           );
 
         return (
-          <Flex direction="column" gap="extra-small">
+          <Flex direction="column" gap={2}>
             <Flex>{row?.original?.title}</Flex>
             <Flex>{priceComp}</Flex>
           </Flex>

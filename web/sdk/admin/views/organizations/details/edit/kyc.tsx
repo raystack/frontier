@@ -1,16 +1,17 @@
 import { Cross1Icon } from "@radix-ui/react-icons";
 import {
   Button,
+  Field,
   Flex,
   IconButton,
-  InputField,
+  Input,
   Label,
-  Sheet,
+  Drawer,
   SidePanel,
   Switch,
   Text,
-  toast,
-} from "@raystack/apsara";
+  toastManager,
+} from "@raystack/apsara-v1";
 import styles from "./edit.module.css";
 import { z } from "zod";
 import { useContext } from "react";
@@ -23,6 +24,7 @@ import { AdminServiceQueries, FrontierServiceQueries, SetOrganizationKycRequestS
 import { create } from "@bufbuild/protobuf";
 
 interface EditKYCPanelProps {
+  open?: boolean;
   onClose: () => void;
 }
 
@@ -43,7 +45,7 @@ const kycUpdateSchema = z
 
 type KYCUpdateSchema = z.infer<typeof kycUpdateSchema>;
 
-export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
+export function EditKYCPanel({ open = false, onClose }: EditKYCPanelProps) {
   const { organization, kycDetails, updateKYCDetails } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -80,11 +82,11 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
           cardinality: "finite",
         })
       });
-      toast.success("KYC details updated successfully");
+      toastManager.add({ title: "KYC details updated successfully", type: "success" });
       onClose();
     },
     onError: (error) => {
-      toast.error(`Failed to update KYC details: ${error.message}`);
+      toastManager.add({ title: `Failed to update KYC details: ${error.message}`, type: "error" });
       console.error("Unable to update KYC details:", error);
     },
   });
@@ -103,8 +105,8 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
   }
 
   return (
-    <Sheet open>
-      <Sheet.Content className={styles["drawer-content"]}>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
+      <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-kyc-panel"
           className={styles["side-panel"]}
@@ -159,13 +161,9 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
                 control={control}
                 render={({ field }) => {
                   return (
-                    <>
-                      <InputField
-                        label="Document Link"
-                        {...field}
-                        error={errors.link?.message}
-                      />
-                    </>
+                    <Field label="Document Link" error={errors.link?.message}>
+                      <Input {...field} />
+                    </Field>
                   );
                 }}
               />
@@ -190,7 +188,7 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
             </Flex>
           </form>
         </SidePanel>
-      </Sheet.Content>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer>
   );
 }

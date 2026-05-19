@@ -1,4 +1,3 @@
-// import { MagicLinkVerify } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";

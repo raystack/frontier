@@ -5,7 +5,7 @@ import {
   Flex,
   getAvatarColor,
   Text,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import type {
   SearchOrganizationsResponse_OrganizationResult,
   Plan,

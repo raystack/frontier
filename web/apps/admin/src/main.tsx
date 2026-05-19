@@ -1,4 +1,4 @@
-import { ThemeProvider, ToastContainer } from "@raystack/apsara";
+import { ThemeProvider, Toast } from "@raystack/apsara";
 import { SkeletonTheme } from "react-loading-skeleton";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -20,10 +20,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             baseColor="var(--rs-color-background-base-primary-hover)"
           >
             <ConnectProvider>
-              <AppContextProvider>
-                <Routes />
-              </AppContextProvider>
-              <ToastContainer richColors />
+              <Toast.Provider>
+                <AppContextProvider>
+                  <Routes />
+                </AppContextProvider>
+              </Toast.Provider>
             </ConnectProvider>
           </SkeletonTheme>
         </ThemeProvider>

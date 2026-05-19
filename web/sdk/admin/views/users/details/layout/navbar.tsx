@@ -5,8 +5,8 @@ import {
   Flex,
   IconButton,
   getAvatarColor,
-} from "@raystack/apsara";
-import { SidebarIcon } from "@raystack/apsara/icons";
+} from "@raystack/apsara-v1";
+import { SidebarIcon } from "@raystack/apsara-v1/icons";
 import UserIcon from "../../../../assets/icons/UsersIcon";
 import styles from "./navbar.module.css";
 import { getUserName } from "../../util";
@@ -33,7 +33,7 @@ export const UserDetailsNavbar = ({
 
   return (
     <nav className={styles.navbar}>
-      <Flex gap="medium" align="center">
+      <Flex gap={5} align="center">
         <Breadcrumb size="small">
           <Breadcrumb.Item
             href={`/${paths.users}`}
@@ -56,7 +56,7 @@ export const UserDetailsNavbar = ({
             {getUserName(user)}
           </Breadcrumb.Item>
         </Breadcrumb>
-        <Flex gap="small">
+        <Flex gap={3}>
           {links.map((link, index) => {
             const isActive = currentPath.startsWith(link.path);
             return (
@@ -65,7 +65,8 @@ export const UserDetailsNavbar = ({
                 data-state={isActive ? "active" : undefined}
                 variant="filled"
                 className={styles["nav-chip"]}
-                onClick={() => onNavigate?.(link.path)}>
+                onClick={() => onNavigate?.(link.path)}
+                data-test-id={`admin-nav-link-${link.name}`}>
                 {link.name}
               </Chip>
             );

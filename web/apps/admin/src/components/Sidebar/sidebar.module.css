@@ -6,6 +6,10 @@
   width: 220px !important;
 }
 
+.sidebar .sidebar-main {
+  gap: var(--rs-space-1);
+}
+
 .sidebar-group {
   margin-top: var(--rs-space-5);
 }

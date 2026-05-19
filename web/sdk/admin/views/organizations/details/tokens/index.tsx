@@ -1,7 +1,7 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
 import styles from "./tokens.module.css";
-import { CoinIcon } from "@raystack/apsara/icons";
+import { CoinIcon } from "@raystack/apsara-v1/icons";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";

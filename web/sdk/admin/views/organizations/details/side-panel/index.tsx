@@ -1,4 +1,4 @@
-import { Avatar, getAvatarColor, SidePanel } from "@raystack/apsara";
+import { Avatar, getAvatarColor, SidePanel } from "@raystack/apsara-v1";
 import { OrganizationDetailsSection } from "./org-details-section";
 import { KYCDetailsSection } from "./kyc-section";
 import { PlanDetailsSection } from "./plan-details-section";
@@ -23,7 +23,7 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
   const t = useTerminology();
   const avatarColor = getAvatarColor(organization?.id || "");
   return (
-    <SidePanel data-test-id="admin-sidepanel">
+    <SidePanel data-test-id="admin-sidepanel" style={{ height: "100%" }}>
       <SidePanel.Header
         title={organization?.title || t.organization({ case: "capital" })}
         icon={

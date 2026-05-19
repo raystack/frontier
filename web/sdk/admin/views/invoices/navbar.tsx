@@ -1,4 +1,4 @@
-import { DataTable, Flex, IconButton, Text } from "@raystack/apsara";
+import { DataTable, Flex, IconButton, Text } from "@raystack/apsara-v1";
 import styles from "./invoices.module.css";
 import { InvoicesIcon } from "../../assets/icons/InvoicesIcon";
 import { FocusEvent, useState } from "react";
@@ -21,7 +21,7 @@ export const InvoicesNavabar = ({ searchQuery }: { searchQuery: string }) => {
     <nav className={styles.navbar}>
       <Flex gap={2}>
         <InvoicesIcon />
-        <Text size={2} weight={500}>
+        <Text size="small" weight="medium">
           Invoices
         </Text>
       </Flex>

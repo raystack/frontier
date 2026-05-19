@@ -1,4 +1,4 @@
-import { DataTable, Flex, Text, IconButton, Spinner } from "@raystack/apsara";
+import { DataTable, Flex, Text, IconButton, Spinner } from "@raystack/apsara-v1";
 import { CpuChipIcon } from "../../assets/icons/CpuChipIcon";
 import styles from "./audit-logs.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
@@ -47,7 +47,7 @@ const Navbar = ({ searchQuery, onExportCsv }: NavbarProps) => {
     <nav className={styles.navbar}>
       <Flex gap={2}>
         <CpuChipIcon />
-        <Text size={2} weight={500}>
+        <Text size="small" weight="medium">
           Audit Logs
         </Text>
       </Flex>

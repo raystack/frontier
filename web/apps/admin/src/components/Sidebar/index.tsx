@@ -2,7 +2,7 @@ import type React from "react";
 import { useContext } from "react";
 import {
   Avatar,
-  DropdownMenu,
+  Menu,
   Flex,
   Sidebar,
   Text,
@@ -144,7 +144,7 @@ export default function IAMSidebar() {
           {BRAND_NAME}
         </Text>
       </Sidebar.Header>
-      <Sidebar.Main>
+      <Sidebar.Main className={styles["sidebar-main"]}>
         {navigationItems.map(nav => {
           return nav?.subItems?.length ? (
             <Sidebar.Group
@@ -157,7 +157,7 @@ export default function IAMSidebar() {
                   key={subItem.name}
                   active={isActive(subItem.to)}
                   data-test-id={`admin-sidebar-navigation-cell-${subItem.name}`}
-                  as={<Link to={subItem?.to ?? ""} />}>
+                  render={<Link to={subItem?.to ?? ""} />}>
                   {subItem.name}
                 </Sidebar.Item>
               ))}
@@ -168,7 +168,7 @@ export default function IAMSidebar() {
               key={nav.name}
               active={isActive(nav.to)}
               data-test-id={`admin-sidebar-navigation-cell-${nav.name}`}
-              as={<Link to={nav?.to ?? ""} />}>
+              render={<Link to={nav?.to ?? ""} />}>
               {nav.name}
             </Sidebar.Item>
           );
@@ -207,28 +207,30 @@ function UserDropdown() {
       : { icon: <SunIcon />, label: "Light" };
 
   return (
-    <DropdownMenu placement="top">
-      <DropdownMenu.Trigger asChild>
-        <Sidebar.Item
-          leadingIcon={
-            <Avatar src={user?.avatar} fallback={userInital} size={3} />
-          }
-          data-test-id="frontier-sdk-sidebar-logout">
-          {user?.email}
-        </Sidebar.Item>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
-        <DropdownMenu.Item
+    <Menu>
+      <Menu.Trigger
+        render={
+          <Sidebar.Item
+            leadingIcon={
+              <Avatar src={user?.avatar} fallback={userInital} size={3} />
+            }
+            data-test-id="frontier-sdk-sidebar-logout">
+            {user?.email}
+          </Sidebar.Item>
+        }
+      />
+      <Menu.Content side="top">
+        <Menu.Item
           onClick={toggleTheme}
           data-test-id="admin-toggle-theme">
           {themeData.icon} {themeData.label}
-        </DropdownMenu.Item>
-        <DropdownMenu.Item
+        </Menu.Item>
+        <Menu.Item
           onClick={() => logoutMutation.mutate({})}
           data-test-id="admin-logout-btn">
           Logout
-        </DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+        </Menu.Item>
+      </Menu.Content>
+    </Menu>
   );
 }

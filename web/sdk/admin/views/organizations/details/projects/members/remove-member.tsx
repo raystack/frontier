@@ -8,7 +8,7 @@ import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
@@ -47,9 +47,9 @@ export const RemoveMember = ({
         onRemove(user);
       }
 
-      toast.success(`${t.member({ case: "capital" })} removed successfully`);
+      toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      toast.error(`Failed to remove ${t.member({ case: "lower" })}`);
+      toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}`, type: "error" });
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -57,17 +57,16 @@ export const RemoveMember = ({
   }
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <Dialog.Content
+    <AlertDialog open onOpenChange={onClose}>
+      <AlertDialog.Content
         width={400}
-        overlayClassName={styles["action-dialog-overlay"]}
+        overlay={{ className: styles["action-dialog-overlay"] }}
         className={styles["action-dialog-content"]}
       >
-        <Dialog.Header>
-          <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
-          <Dialog.CloseButton data-test-id="remove-member-close-button" />
-        </Dialog.Header>
-        <Dialog.Body>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Remove {t.member({ case: "capital" })}</AlertDialog.Title>
+        </AlertDialog.Header>
+        <AlertDialog.Body>
           <Flex direction="column" gap={7}>
             <Text variant="secondary">
               Removing this {t.member({ case: "lower" })} will revoke all their access to the {t.project({ case: "lower" })}.
@@ -78,18 +77,20 @@ export const RemoveMember = ({
               Are you sure you want to remove this {t.member({ case: "lower" })}?
             </Text>
           </Flex>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close asChild>
-            <Button
-              type="button"
-              variant="outline"
-              color="neutral"
-              data-test-id="remove-member-cancel-button"
-            >
-              Cancel
-            </Button>
-          </Dialog.Close>
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                color="neutral"
+                data-test-id="remove-member-cancel-button"
+              >
+                Cancel
+              </Button>
+            }
+          />
           <Button
             type="submit"
             data-test-id="remove-member-submit-button"
@@ -100,8 +101,8 @@ export const RemoveMember = ({
           >
             Remove
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

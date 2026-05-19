@@ -1,11 +1,11 @@
 import {
   Avatar,
   Button,
-  DropdownMenu,
+  Menu,
   Flex,
   getAvatarColor,
   Text,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import type React from "react";
 import Skeleton from "react-loading-skeleton";
 import styles from "./members.module.css";
@@ -20,9 +20,9 @@ function Loader() {
   return (
     <>
       {[...new Array(5)].map((_, i) => (
-        <DropdownMenu.Item key={i}>
+        <Menu.Item key={i}>
           <Skeleton containerClassName={styles.flex1} />
-        </DropdownMenu.Item>
+        </Menu.Item>
       ))}
     </>
   );
@@ -46,16 +46,17 @@ export function AddMembersDropdown({
   }
 
   return (
-    <DropdownMenu
+    <Menu
       autocomplete
-      placement="bottom-end"
-      onSearch={setSearchQuery}
+      onInputValueChange={setSearchQuery}
       autocompleteMode="manual"
     >
-      <DropdownMenu.Trigger asChild>
-        <Button data-test-id="add-project-member-btn">Add member</Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content
+      <Menu.Trigger
+        render={<Button data-test-id="add-project-member-btn">Add member</Button>}
+      />
+      <Menu.Content
+        side="bottom"
+        align="end"
         className={styles["add-member-dropdown"]}
         //  @ts-ignore
         portal={false}
@@ -65,7 +66,7 @@ export function AddMembersDropdown({
         ) : (
           <>
             {eligibleMembers?.slice(0, 7).map((user) => (
-              <DropdownMenu.Item
+              <Menu.Item
                 key={user.id}
                 onClick={onAddMember(user?.id || "")}
                 data-test-id={`admin-add-member-${user.id}`}
@@ -82,11 +83,11 @@ export function AddMembersDropdown({
                 <Text className={styles["add-member-dropdown-member-name"]}>
                   {user.title || user.email}
                 </Text>
-              </DropdownMenu.Item>
+              </Menu.Item>
             ))}
           </>
         )}
-      </DropdownMenu.Content>
-    </DropdownMenu>
+      </Menu.Content>
+    </Menu>
   );
 }

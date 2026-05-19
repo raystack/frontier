@@ -1,4 +1,4 @@
-import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara";
+import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara-v1";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import styles from "./side-panel.module.css";
 import { UserState, USER_STATES } from "../../util";
@@ -16,8 +16,11 @@ export const SidePanelDetails = () => {
         <List.Value>
           <Flex gap={3} style={{ width: "100%" }}>
             <CopyButton text={user?.id || ""} data-test-id="copy-button" />
-            <Tooltip message={user?.id || ""}>
-              <Text className={styles["text-overflow"]}>{user?.id}</Text>
+            <Tooltip>
+              <Tooltip.Trigger
+                render={<Text className={styles["text-overflow"]}>{user?.id}</Text>}
+              />
+              <Tooltip.Content>{user?.id || ""}</Tooltip.Content>
             </Tooltip>
           </Flex>
         </List.Value>

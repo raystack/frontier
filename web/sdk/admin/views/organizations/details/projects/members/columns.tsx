@@ -5,12 +5,12 @@ import type {
 import styles from "./members.module.css";
 import {
   Avatar,
-  DropdownMenu,
+  Menu,
   Flex,
   getAvatarColor,
   Text,
-} from "@raystack/apsara";
-import type { DataTableColumnDef } from "@raystack/apsara";
+} from "@raystack/apsara-v1";
+import type { DataTableColumnDef } from "@raystack/apsara-v1";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 interface getColumnsOptions {
@@ -87,29 +87,29 @@ export const getColumns = ({
       },
       cell: ({ row }) => {
         return (
-          <DropdownMenu placement="bottom-end">
-            <DropdownMenu.Trigger asChild>
-              <DotsHorizontalIcon />
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content
+          <Menu>
+            <Menu.Trigger render={<DotsHorizontalIcon />} />
+            <Menu.Content
+              side="bottom"
+              align="end"
               className={styles["table-action-dropdown"]}
               //  @ts-ignore
               portal={false}
             >
-              <DropdownMenu.Item
+              <Menu.Item
                 onClick={() => handleAssignRoleAction(row.original)}
                 data-test-id="admin-assign-role-action"
               >
                 Assign role...
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
+              </Menu.Item>
+              <Menu.Item
                 onClick={() => handleRemoveAction(row.original)}
                 data-test-id="admin-remove-user-action"
               >
                 Remove user...
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu>
+              </Menu.Item>
+            </Menu.Content>
+          </Menu>
         );
       },
     },

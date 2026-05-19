@@ -4,7 +4,7 @@ import {
   Flex,
   type DataTableQuery,
   type DataTableSort,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import { PageTitle } from "../../../../components/PageTitle";
 import styles from "./projects.module.css";
 import { useContext, useEffect, useMemo, useState } from "react";
