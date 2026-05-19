@@ -300,11 +300,10 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NotNil(err)
 
 		// check user relations
-		listUsersAfterDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		_, err = s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
 		}))
-		s.Assert().NoError(err)
-		s.Assert().Equal(0, len(listUsersAfterDelete.Msg.GetUsers()))
+		s.Assert().NotNil(err)
 	})
 	s.Run("4. removing a user from org should remove its access to all org resources", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
