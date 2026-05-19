@@ -57,6 +57,7 @@ export function TeamsView({
 
   const {
     isFetching: isTeamsLoading,
+    isFetched: isTeamsFetched,
     teams,
     userAccessOnTeam,
     refetch,
@@ -120,6 +121,8 @@ export function TeamsView({
   }, []);
 
   const isLoading = !organization?.id || isPermissionsFetching || isTeamsLoading;
+  const showInitialSkeleton = isLoading && !isTeamsFetched;
+  const filterValue = showOrgTeams ? 'all-teams' : 'my-teams';
 
   const columns = useMemo(
     () =>
@@ -151,7 +154,7 @@ export function TeamsView({
         <Flex direction="column" gap={7}>
           <Flex justify="between" gap={3}>
             <Flex gap={3} align="center">
-              {isLoading ? (
+              {showInitialSkeleton ? (
                 <Skeleton height="34px" width="360px" />
               ) : (
                 <>
@@ -159,11 +162,13 @@ export function TeamsView({
                     placeholder="Search by title"
                     size="large"
                     width={360}
+                    disabled={isLoading}
                   />
                   {canListOrgGroups && (
                     <Select
-                      defaultValue={teamsFilterOptions[0].value}
+                      value={filterValue}
                       onValueChange={onFilterChange}
+                      disabled={isLoading}
                     >
                       <Select.Trigger className={styles.teamsFilter}>
                         <Select.Value />
@@ -180,7 +185,7 @@ export function TeamsView({
                 </>
               )}
             </Flex>
-            {isLoading ? (
+            {showInitialSkeleton ? (
               <Skeleton height="34px" width="120px" />
             ) : (
               <Tooltip>

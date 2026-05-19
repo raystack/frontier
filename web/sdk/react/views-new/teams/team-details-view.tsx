@@ -20,6 +20,7 @@ import {
   Image
 } from '@raystack/apsara-v1';
 import deleteIcon from '../../assets/delete.svg';
+import userMinusIcon from '../../assets/user-minus.svg';
 import { toastManager } from '@raystack/apsara-v1';
 import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
@@ -340,7 +341,8 @@ export function TeamDetailsView({
             }
             classNames={{
               root: styles.tableRoot,
-              table: styles.table
+              table: styles.table,
+              row: styles.tableRow
             }}
           />
         </Flex>
@@ -367,7 +369,7 @@ export function TeamDetailsView({
               <Menu.Item
                 leadingIcon={
                   <Image
-                    src={deleteIcon as unknown as string}
+                    src={userMinusIcon as unknown as string}
                     alt="Remove"
                     width={16}
                     height={16}

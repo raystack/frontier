@@ -12,6 +12,10 @@
   table-layout: fixed;
 }
 
+.tableRow > td {
+  padding: var(--rs-space-3);
+}
+
 .menuContent {
   min-width: 160px;
 }

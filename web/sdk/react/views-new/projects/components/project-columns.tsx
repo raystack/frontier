@@ -1,6 +1,6 @@
 'use client';
 
-import { DotsVerticalIcon, Pencil1Icon, TrashIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Flex,
   Text,
@@ -10,6 +10,7 @@ import {
 } from '@raystack/apsara-v1';
 import type { Project } from '@raystack/proton/frontier';
 import { MembersCell } from './members-cell';
+import styles from './project-columns.module.css';
 
 export interface ProjectMenuPayload {
   projectId: string;
@@ -84,7 +85,7 @@ export const getColumns = ({
         if (!canUpdate && !canDelete) return null;
 
         return (
-          <Flex align="center" justify="center">
+          <Flex align="center" justify="center" className={styles.actionsCell}>
             <Menu.Trigger
               handle={menuHandle}
               payload={{
@@ -96,13 +97,13 @@ export const getColumns = ({
               }}
               render={
                 <IconButton
-                  size={3}
+                  size={2}
                   aria-label="Project actions"
                   data-test-id="project-actions-btn"
                 />
               }
             >
-              <DotsVerticalIcon />
+              <DotsHorizontalIcon />
             </Menu.Trigger>
           </Flex>
         );
