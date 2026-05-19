@@ -1813,11 +1813,6 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 	roleProjectViewerID := uuid.New().String()
 	roleProjectOwnerID := uuid.New().String()
 
-	// The full role.Role fixtures aren't needed anymore — the role-permission
-	// gate now happens at the policy filter (policy.Filter.RolePermissions),
-	// so the mocked policyService.List returns are already gated. We just
-	// need the role IDs to attach to mock policies.
-
 	type mockSet struct {
 		policy  *mocks.PolicyService
 		role    *mocks.RoleService
