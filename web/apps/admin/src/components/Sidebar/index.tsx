@@ -144,7 +144,7 @@ export default function IAMSidebar() {
           {BRAND_NAME}
         </Text>
       </Sidebar.Header>
-      <Sidebar.Main>
+      <Sidebar.Main className={styles["sidebar-main"]}>
         {navigationItems.map(nav => {
           return nav?.subItems?.length ? (
             <Sidebar.Group

@@ -6,7 +6,7 @@
   width: 220px !important;
 }
 
-.sidebar :global(.sidebar-module_main__qDvo4) {
+.sidebar-main {
   gap: var(--rs-space-1);
 }
 
