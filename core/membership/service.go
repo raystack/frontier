@@ -1609,9 +1609,9 @@ func (s *Service) listResourcesForPrincipal(ctx context.Context, principalID, pr
 	}
 }
 
-// listOrgsForPrincipal returns org IDs where the principal has any policy.
-// Not role-permission-gated; mirrors today's relation-based org.membership
-// check (member + owner).
+// listOrgsForPrincipal returns every org the principal has a policy on.
+// Any policy is enough — we don't look at what the role grants. (Project
+// listing does check role permissions; orgs and groups don't.)
 func (s *Service) listOrgsForPrincipal(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   principalID,
@@ -1628,9 +1628,8 @@ func (s *Service) listOrgsForPrincipal(ctx context.Context, principalID, princip
 	return utils.Deduplicate(ids), nil
 }
 
-// listGroupsForPrincipal returns group IDs where the principal has any policy.
-// Not role-permission-gated; mirrors today's group.membership (member + owner).
-// No inheritance branch — group.membership has no org-> chain today.
+// listGroupsForPrincipal returns every group the principal has a policy on.
+// Same rule as orgs — any policy is enough, role permissions aren't checked.
 func (s *Service) listGroupsForPrincipal(ctx context.Context, principalID, principalType string, filter ResourceFilter) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   principalID,
@@ -1716,9 +1715,10 @@ func (s *Service) listProjectsForPrincipal(ctx context.Context, principalID, pri
 	return ids, nil
 }
 
-// listDirectProjectIDs returns project IDs from the principal's direct
-// project policies whose role grants any schema.ProjectDirectVisibilityPerms.
-// Mirrors today's LookupResources(project, ..., project.get) gating.
+// listDirectProjectIDs returns projects the principal has a direct policy on,
+// kept only if the role grants at least one permission in
+// schema.ProjectDirectVisibilityPerms. This is the project-listing analog of
+// what SpiceDB does today for the "get" check on a project.
 func (s *Service) listDirectProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   principalID,
@@ -1755,11 +1755,13 @@ func (s *Service) listGroupExpandedProjectIDs(ctx context.Context, principalID, 
 	return s.filterByRolePermissions(ctx, policies, schema.ProjectDirectVisibilityPerms)
 }
 
-// listOrgInheritedProjectIDs: principal's org policies → orgs whose role
-// grants schema.OrganizationProjectInheritPerms → all projects in those orgs. Batched
-// via project.Filter.OrgIDs to avoid N+1 across multi-org users. Unlike
-// direct/group, org policies need the role-permission gate: not every org
-// role implies project visibility (Org Viewer doesn't; Org Owner does).
+// listOrgInheritedProjectIDs finds projects a principal can see by virtue of
+// holding a strong-enough role on the project's org (e.g. Org Owner sees all
+// projects in their org; Org Viewer doesn't). Steps:
+//   - get the principal's policies on orgs
+//   - keep only the orgs whose role grants something in
+//     schema.OrganizationProjectInheritPerms
+//   - fetch all projects in those orgs in a single batched query
 func (s *Service) listOrgInheritedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   principalID,
@@ -1803,14 +1805,14 @@ func (s *Service) narrowProjectsByOrg(ctx context.Context, ids []string, orgID s
 	return out, nil
 }
 
-// filterByRolePermissions returns ResourceIDs from policies whose role grants
-// at least one of the given permissions. Roles are fetched in a single
-// batched roleService.List call — O(1) round-trips regardless of policy count.
+// filterByRolePermissions returns resource IDs from policies whose role grants
+// at least one of the given permissions. Roles are loaded once in a single
+// batched call, not one lookup per policy.
 //
-// Note: ignores policy.GrantRelation. Today's permission lists already cover
-// both granted-> and pat_granted-> arrows for org.project_get; project.get
-// has no pat_granted-> arrows. If the schema ever gains pat_granted-> at
-// project or group level, dispatch on GrantRelation here.
+// We don't look at how the policy was granted (direct vs. PAT) — the
+// permission lists already account for both kinds today. If the schema ever
+// makes the two paths grant different sets of permissions, this needs to
+// branch on grant_relation.
 func (s *Service) filterByRolePermissions(ctx context.Context, policies []policy.Policy, permissions []string) ([]string, error) {
 	if len(policies) == 0 || len(permissions) == 0 {
 		return nil, nil
