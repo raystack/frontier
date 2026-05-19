@@ -12,6 +12,7 @@ interface useOrganizationProjectsProps {
 
 export interface UseOrganizationProjectsReturn {
   isFetching: boolean;
+  isFetched: boolean;
   projects: Project[];
   userAccessOnProject: Record<string, string[]>;
   refetch: () => void;
@@ -25,33 +26,35 @@ export const useOrganizationProjects = ({
   const { activeOrganization: organization } = useFrontier();
 
   // Query for organization projects (all projects)
-  const { 
-    data: orgProjectsData, 
-    isLoading: isOrgProjectsLoading, 
+  const {
+    data: orgProjectsData,
+    isLoading: isOrgProjectsLoading,
+    isFetched: isOrgProjectsFetched,
     error: orgProjectsError,
-    refetch: refetchOrgProjects 
+    refetch: refetchOrgProjects
   } = useQuery(
     FrontierServiceQueries.listOrganizationProjects,
-    create(ListOrganizationProjectsRequestSchema, { 
+    create(ListOrganizationProjectsRequestSchema, {
       id: organization?.id || '',
-      withMemberCount 
+      withMemberCount
     }),
     { enabled: !!organization?.id && allProjects }
   );
 
   // Query for current user projects
-  const { 
-    data: userProjectsData, 
-    isLoading: isUserProjectsLoading, 
+  const {
+    data: userProjectsData,
+    isLoading: isUserProjectsLoading,
+    isFetched: isUserProjectsFetched,
     error: userProjectsError,
-    refetch: refetchUserProjects 
+    refetch: refetchUserProjects
   } = useQuery(
     FrontierServiceQueries.listProjectsByCurrentUser,
-    create(ListProjectsByCurrentUserRequestSchema, { 
+    create(ListProjectsByCurrentUserRequestSchema, {
       orgId: organization?.id || '',
       withPermissions: ['update', 'delete'],
       nonInherited: true,
-      withMemberCount 
+      withMemberCount
     }),
     { enabled: !!organization?.id && !allProjects }
   );
@@ -89,6 +92,7 @@ export const useOrganizationProjects = ({
 
   return {
     isFetching: isLoading,
+    isFetched: isUserProjectsFetched || isOrgProjectsFetched,
     projects: projects,
     userAccessOnProject,
     refetch: refetch,

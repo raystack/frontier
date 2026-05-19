@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import qs from 'query-string';
-import { Flex, Dialog, EmptyState, toastManager } from '@raystack/apsara-v1';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Flex, Dialog, EmptyState, Image, toastManager } from '@raystack/apsara-v1';
+import exclamationTriangleIcon from '../../assets/exclamation-triangle.svg';
 import {
   CreateCheckoutRequestSchema,
   ListInvoicesRequestSchema,
@@ -162,7 +162,15 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
 
       {hasNoAccess ? (
         <EmptyState
-          icon={<ExclamationTriangleIcon />}
+          variant="empty2"
+          icon={
+            <Image
+              src={exclamationTriangleIcon as unknown as string}
+              alt=""
+              width={40}
+              height={40}
+            />
+          }
           heading="Restricted Access"
           subHeading="Admin access required, please reach out to your admin to view billing."
         />
