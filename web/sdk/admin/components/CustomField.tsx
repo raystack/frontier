@@ -10,7 +10,6 @@ import React, { CSSProperties } from "react";
 
 import { Control, Controller, UseFormRegister } from "react-hook-form";
 import { capitalizeFirstLetter } from "../utils/helper";
-import { MultiSelect } from "./multiselect/multiselect";
 import Skeleton from "react-loading-skeleton";
 
 type CustomFieldNameProps = {
@@ -115,14 +114,34 @@ export const CustomFieldName = ({
                     );
                   }
                   case "multiselect": {
-                    const { onChange, value, ...rest } = field;
+                    const { ref, onChange, value, ...rest } = field;
+                    const selectedValues: string[] =
+                      value || props?.defaultValue || [];
                     return (
-                      <MultiSelect<string>
+                      <Select
+                        multiple
                         {...rest}
-                        options={options}
-                        onSelect={onChange}
-                        selected={value || props?.defaultValue || []}
-                      />
+                        value={selectedValues}
+                        onValueChange={(v: string[]) => onChange(v)}
+                      >
+                        <Select.Trigger
+                          ref={ref}
+                          style={{ height: "26px", width: "100%" }}
+                        >
+                          <Select.Value placeholder={`Select ${inputTitle}`}>
+                            {`${selectedValues.length} selected`}
+                          </Select.Value>
+                        </Select.Trigger>
+                        <Select.Content style={{ width: "320px" }}>
+                          <Select.Group>
+                            {options.map((opt) => (
+                              <Select.Item key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </Select.Item>
+                            ))}
+                          </Select.Group>
+                        </Select.Content>
+                      </Select>
                     );
                   }
                   case "switch": {
