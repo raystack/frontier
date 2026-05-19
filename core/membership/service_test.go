@@ -1787,13 +1787,8 @@ func TestService_OnGroupDeleted(t *testing.T) {
 	})
 }
 
-// TestService_ListResourcesByPrincipal exercises the policy-driven listing
-// path that replaces today's SpiceDB LookupResources-based ListByUser methods.
-// Table-driven, mirroring TestService_ListPrincipalsByResource above.
-//
-// Org-inheritance gating is keyed off schema.OrganizationProjectInheritPerms (the
-// hardcoded constant whose schema-parity is enforced by inheritance_test.go).
-// Direct project / group-expanded policies are not role-permission-gated.
+// TestService_ListResourcesByPrincipal covers each resource type, role-based
+// visibility filtering, group expansion, OrgID narrowing, and PAT intersection.
 func TestService_ListResourcesByPrincipal(t *testing.T) {
 	ctx := context.Background()
 

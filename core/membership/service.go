@@ -1676,9 +1676,9 @@ func (s *Service) narrowGroupsByOrg(ctx context.Context, ids []string, orgID str
 //
 //  1. Direct project policies — gated by schema.ProjectDirectVisibilityPerms.
 //  2. Group-expanded projects — same gate as direct. Runs even with
-//     NonInherited=true, matching today's listNonInheritedProjectIDs.
+//     NonInherited=true; a user can be a project member via group.
 //  3. Org inheritance (skipped if NonInherited=true) — gated by
-//     schema.OrganizationProjectInheritPerms so only org roles that actually grant
+//     schema.OrganizationProjectInheritPerms so only org roles that grant
 //     project visibility (Owner, Manager, etc.) expand. Batched via
 //     project.Filter.OrgIDs to avoid N+1 across multi-org users.
 func (s *Service) listProjectsForPrincipal(ctx context.Context, principalID, principalType string, filter ResourceFilter) ([]string, error) {
@@ -1717,8 +1717,7 @@ func (s *Service) listProjectsForPrincipal(ctx context.Context, principalID, pri
 
 // listDirectProjectIDs returns projects the principal has a direct policy on,
 // kept only if the role grants any of the permissions that imply project
-// visibility. This is the project-listing analog of what SpiceDB does today
-// for the "get" check on a project.
+// visibility.
 func (s *Service) listDirectProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:     principalID,
