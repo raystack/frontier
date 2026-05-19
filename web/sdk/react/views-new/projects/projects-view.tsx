@@ -4,7 +4,8 @@ import { useEffect, useMemo } from 'react';
 import {
   ArchiveIcon,
   ExclamationTriangleIcon,
-  Pencil1Icon
+  Pencil1Icon,
+  PlusIcon
 } from '@radix-ui/react-icons';
 import {
   Button,
@@ -31,6 +32,7 @@ import { getColumns, type ProjectMenuPayload } from './components/project-column
 import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
 import { DeleteProjectDialog, type DeleteProjectPayload } from './components/delete-project-dialog';
+import { AddMemberMenuContent } from './components/add-member-menu';
 import styles from './projects-view.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
 
@@ -237,6 +239,23 @@ export function ProjectsView({
                 >
                   Edit
                 </Menu.Item>
+              )}
+              {payload?.canUpdate && (
+                <Menu.Submenu autocomplete>
+                  <Menu.SubmenuTrigger
+                    leadingIcon={<PlusIcon />}
+                    data-test-id="add-project-member-dropdown-item"
+                  >
+                    Add a member
+                  </Menu.SubmenuTrigger>
+                  <AddMemberMenuContent
+                    projectId={payload.projectId}
+                    canUpdateProject={payload.canUpdate}
+                    members={[]}
+                    refetch={refetch}
+                    asSubmenu
+                  />
+                </Menu.Submenu>
               )}
               {payload?.canDelete && (
                 <Menu.Item

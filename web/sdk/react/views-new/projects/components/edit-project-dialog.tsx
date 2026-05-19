@@ -4,11 +4,9 @@ import { useEffect } from 'react';
 import {
   Button,
   Flex,
-  Text,
   Dialog,
   Field,
-  Input,
-  Radio
+  Input
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import * as yup from 'yup';
@@ -20,13 +18,11 @@ import {
   UpdateProjectRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import styles from './edit-project-dialog.module.css';
 import { handleConnectError } from '~/utils/error';
 
 const editProjectSchema = yup
   .object({
-    title: yup.string().required('Project name is required'),
-    privacy: yup.string().oneOf(['private', 'public']).required()
+    title: yup.string().required('Project name is required')
   })
   .required();
 
@@ -76,19 +72,14 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
   const {
     reset,
     handleSubmit,
-    setValue,
-    watch,
     formState: { errors, isSubmitting, isDirty },
     register
   } = useForm({
     resolver: yupResolver(editProjectSchema),
     defaultValues: {
-      title: payload.title,
-      privacy: 'private' as const
+      title: payload.title
     }
   });
-
-  const privacy = watch('privacy');
 
   const { mutateAsync: updateProject } = useMutation(
     FrontierServiceQueries.updateProject
@@ -96,8 +87,7 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
 
   useEffect(() => {
     reset({
-      title: payload.title,
-      privacy: 'private'
+      title: payload.title
     });
   }, [payload.projectId, payload.title, reset]);
 
@@ -145,34 +135,6 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
               placeholder="Enter project name"
             />
           </Field>
-          <Flex direction="column" gap={4}>
-            <Text size="mini" weight="medium" variant="secondary">
-              Project privacy
-            </Text>
-            <Radio.Group
-              value={privacy}
-              onValueChange={(val: string) =>
-                setValue('privacy', val as 'private' | 'public', {
-                  shouldDirty: true
-                })
-              }
-            >
-              <div className={styles.radioOptions}>
-                <Flex gap={3}>
-                  <Radio value="private" />
-                  <Text size="small" variant="secondary">
-                    Private
-                  </Text>
-                </Flex>
-                <Flex gap={3}>
-                  <Radio value="public" />
-                  <Text size="small" variant="secondary">
-                    Public
-                  </Text>
-                </Flex>
-              </div>
-            </Radio.Group>
-          </Flex>
         </Flex>
       </Dialog.Body>
       <Dialog.Footer>

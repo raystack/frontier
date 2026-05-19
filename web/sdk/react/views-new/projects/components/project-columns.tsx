@@ -43,19 +43,6 @@ export const getColumns = ({
       }
     },
     {
-      header: 'Privacy',
-      accessorKey: 'metadata',
-      enableSorting: false,
-
-      cell: () => {
-        return (
-          <Text size="regular">
-            Private
-          </Text>
-        );
-      }
-    },
-    {
       header: 'Members',
       accessorKey: 'membersCount',
       enableSorting: false,
