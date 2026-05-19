@@ -97,6 +97,25 @@ var (
 //go:embed base_schema.zed
 var BaseSchemaZed string
 
+// ProjectDirectVisibilityPerms — role permissions that make a project visible
+// when held on a direct project or group policy. Mirrors the granted-> arrows
+// of app/project.get in base_schema.zed.
+var ProjectDirectVisibilityPerms = []string{
+	"app_project_administer",
+	"app_project_get",
+	"app_project_update",
+}
+
+// OrganizationProjectInheritPerms — role permissions that, on an org-level
+// policy, grant the principal visibility into every project in that org.
+// Mirrors the granted-> and pat_granted-> arrows of
+// app/organization.project_get in base_schema.zed.
+var OrganizationProjectInheritPerms = []string{
+	"app_organization_administer",
+	"app_project_get",
+	"app_project_administer",
+}
+
 var (
 	ErrMigration    = errors.New("error in migrating authz schema")
 	ErrBadNamespace = errors.New("bad namespace, format should namespace:uuid")
