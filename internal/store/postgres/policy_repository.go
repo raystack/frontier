@@ -363,6 +363,84 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// DeleteWithMinRoleGuard atomically deletes a policy only if at least one other
+// policy with the same guarded role remains for the resource. Uses SELECT FOR UPDATE
+// to serialize concurrent deletions under READ COMMITTED isolation, preventing the
+// TOCTOU race where two concurrent requests both pass a count check then both delete.
+// Resource ID and type are derived from the existing policy, not from caller input.
+func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error {
+	existingPolicy, err := r.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_POLICIES, "DeleteWithMinRoleGuard", func(ctx context.Context) error {
+			query := `WITH locked AS (
+				SELECT id FROM ` + TABLE_POLICIES + `
+				WHERE resource_id = $2
+				AND resource_type = $3
+				AND role_id = $4
+				ORDER BY id
+				FOR UPDATE
+			)
+			DELETE FROM ` + TABLE_POLICIES + ` WHERE id = $1 AND (
+				(SELECT role_id FROM ` + TABLE_POLICIES + ` WHERE id = $1) != $4
+				OR (SELECT COUNT(*) FROM locked WHERE id != $1) > 0
+			)`
+			result, err := tx.ExecContext(ctx, query,
+				id,
+				existingPolicy.ResourceID,
+				existingPolicy.ResourceType,
+				guardRoleID,
+			)
+			if err != nil {
+				return err
+			}
+			rowsAffected, err := result.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if rowsAffected == 0 {
+				var existingID string
+				err := tx.QueryRowContext(ctx,
+					`SELECT id FROM `+TABLE_POLICIES+` WHERE id = $1`, id,
+				).Scan(&existingID)
+				if errors.Is(err, sql.ErrNoRows) {
+					return sql.ErrNoRows
+				}
+				if err != nil {
+					return err
+				}
+				return policy.ErrLastRoleGuard
+			}
+
+			policyDB := Policy{
+				ID:            existingPolicy.ID,
+				RoleID:        existingPolicy.RoleID,
+				ResourceID:    existingPolicy.ResourceID,
+				ResourceType:  existingPolicy.ResourceType,
+				PrincipalID:   existingPolicy.PrincipalID,
+				PrincipalType: existingPolicy.PrincipalType,
+			}
+			auditRecord := r.buildPolicyAuditRecord(ctx, tx, auditrecord.PolicyDeletedEvent, policyDB, time.Now(), nil)
+			return InsertAuditRecordInTx(ctx, tx, auditRecord)
+		})
+	}); err != nil {
+		if errors.Is(err, policy.ErrLastRoleGuard) {
+			return err
+		}
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return policy.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
 func (r PolicyRepository) GroupMemberCount(ctx context.Context, groupIDs []string) ([]policy.MemberCount, error) {
 	if len(groupIDs) == 0 {
 		return nil, policy.ErrInvalidID

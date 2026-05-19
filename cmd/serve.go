@@ -217,6 +217,15 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
+	// Backfill legacy SU org policies. Non-fatal: this runs over unbounded
+	// customer data and a single stuck row shouldn't brick the server.
+	if err := deps.BootstrapService.MigrateServiceUserOrgPolicies(ctx); err != nil {
+		logger.Warn("serviceuser org policy backfill had partial failures, continuing",
+			"err", err)
+	} else {
+		logger.Info("backfilled serviceuser org policies")
+	}
+
 	// session service initialization and cleanup
 	if err := deps.SessionService.InitSessions(ctx); err != nil {
 		logger.Warn("sessions initialization failed", "err", err)
@@ -548,6 +557,7 @@ func buildAPIDependencies(
 
 	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
 	bootstrapService := bootstrap.NewBootstrapService(
+		logger,
 		cfg.App.Admin,
 		resourceSchemaRepository,
 		namespaceService,
@@ -556,13 +566,15 @@ func buildAPIDependencies(
 		userService,
 		authzSchemaRepository,
 		relationService,
+		policyService,
+		svUserRepo,
 		cfg.App.PAT.DeniedPermissionsSet(),
 		planService,
 		planBlobRepository,
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
-		groupService, policyService, roleService, invitationService, userService, serviceUserService,
+		groupService, membershipService, policyService, roleService, invitationService, userService, serviceUserService,
 		customerService, subscriptionService, invoiceService,
 	)
 

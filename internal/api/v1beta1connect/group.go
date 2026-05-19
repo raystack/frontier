@@ -55,7 +55,7 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -145,7 +145,7 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -208,7 +208,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -275,7 +275,7 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -331,7 +331,7 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -392,32 +392,6 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 	}), nil
 }
 
-func (h *ConnectHandler) AddGroupUsers(ctx context.Context, request *connect.Request[frontierv1beta1.AddGroupUsersRequest]) (*connect.Response[frontierv1beta1.AddGroupUsersResponse], error) {
-	errorLogger := NewErrorLogger()
-
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			errorLogger.LogServiceError(ctx, request, "AddGroupUsers.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-	}
-
-	if err := h.groupService.AddUsers(ctx, request.Msg.GetId(), request.Msg.GetUserIds()); err != nil {
-		errorLogger.LogServiceError(ctx, request, "AddGroupUsers.AddUsers", err,
-			"group_id", request.Msg.GetId(),
-			"user_ids", request.Msg.GetUserIds())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-	return connect.NewResponse(&frontierv1beta1.AddGroupUsersResponse{}), nil
-}
-
 func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveGroupUserRequest]) (*connect.Response[frontierv1beta1.RemoveGroupUserResponse], error) {
 	errorLogger := NewErrorLogger()
 
@@ -425,7 +399,7 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -435,29 +409,27 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 		}
 	}
 
-	// before deleting the user, check if the user is the only owner of the group
-	ownerRole, err := h.roleService.Get(ctx, group.AdminRole)
-	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.roleService.Get", err,
-			"role", group.AdminRole)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-	owners, err := h.listGroupUsers(ctx, request.Msg.GetId(), ownerRole.ID)
-	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.listGroupUsers", err,
-			"group_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-	if len(owners) == 1 && owners[0].ID == request.Msg.GetUserId() {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount)
-	}
-
-	// delete the user
-	if err := h.groupService.RemoveUsers(ctx, request.Msg.GetId(), []string{request.Msg.GetUserId()}); err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.RemoveUsers", err,
+	if err := h.membershipService.RemoveGroupMember(ctx, request.Msg.GetId(), request.Msg.GetUserId(), schema.UserPrincipal); err != nil {
+		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.RemoveGroupMember", err,
 			"group_id", request.Msg.GetId(),
 			"user_id", request.Msg.GetUserId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+
+		switch {
+		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		case errors.Is(err, user.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+		case errors.Is(err, user.ErrDisabled):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, user.ErrDisabled)
+		case errors.Is(err, membership.ErrInvalidPrincipalType), errors.Is(err, membership.ErrInvalidPrincipal):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, membership.ErrNotMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, membership.ErrLastGroupOwnerRole):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
 	return connect.NewResponse(&frontierv1beta1.RemoveGroupUserResponse{}), nil
 }
@@ -474,7 +446,7 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 	if _, err := h.orgService.Get(ctx, orgID); err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -504,8 +476,8 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		case errors.Is(err, membership.ErrInvalidGroupRole):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidGroupRole)
-		case errors.Is(err, membership.ErrNotMember):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotMember)
+		case errors.Is(err, membership.ErrNotOrgMember):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrNotOrgMember)
 		case errors.Is(err, membership.ErrLastGroupOwnerRole):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole)
 		default:
@@ -523,7 +495,7 @@ func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -552,7 +524,7 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -581,7 +553,7 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgDisabled)
+			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
@@ -590,12 +562,12 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
-	if err := h.groupService.Delete(ctx, request.Msg.GetId()); err != nil {
+	if err := h.deleterService.DeleteGroup(ctx, request.Msg.GetId()); err != nil {
 		switch {
 		case errors.Is(err, group.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "DeleteGroup.Delete", err,
+			errorLogger.LogServiceError(ctx, request, "DeleteGroup.DeleteGroup", err,
 				"group_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}

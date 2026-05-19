@@ -14,19 +14,22 @@ import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
   ListOrganizationUsersRequestSchema,
-  AddGroupUsersRequestSchema,
+  SetGroupMemberRoleRequestSchema,
+  type Role as ProtoRole,
   type User
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { AuthTooltipMessage } from '../../../utils';
-import { filterUsersfromUsers, getInitials } from '../../../../utils';
+import { PERMISSIONS, filterUsersfromUsers, getInitials } from '../../../../utils';
+import { handleConnectError } from '../../../../utils/error';
 import styles from '../team-details-view.module.css';
 
 interface AddMemberMenuProps {
   teamId: string;
   canUpdateGroup: boolean;
   members: User[];
+  roles: ProtoRole[];
   refetch: () => void;
 }
 
@@ -34,6 +37,7 @@ export function AddMemberMenu({
   teamId,
   canUpdateGroup,
   members,
+  roles,
   refetch
 }: AddMemberMenuProps) {
   const { activeOrganization: organization } = useFrontier();
@@ -70,8 +74,13 @@ export function AddMemberMenu({
     [orgUsers, members]
   );
 
-  const { mutate: addGroupUsers } = useMutation(
-    FrontierServiceQueries.addGroupUsers,
+  const memberRoleId = useMemo(
+    () => roles.find(r => r.name === PERMISSIONS.RoleGroupMember)?.id ?? '',
+    [roles]
+  );
+
+  const { mutate: setGroupMemberRole } = useMutation(
+    FrontierServiceQueries.setGroupMemberRole,
     {
       onSuccess: () => {
         toastManager.add({
@@ -81,10 +90,29 @@ export function AddMemberMenu({
         refetch();
       },
       onError: (err: Error) => {
-        toastManager.add({
-          title: 'Something went wrong',
-          description: err.message,
-          type: 'error'
+        handleConnectError(err, {
+          AlreadyExists: () =>
+            toastManager.add({
+              title: 'Member already exists in this team',
+              type: 'error'
+            }),
+          PermissionDenied: () =>
+            toastManager.add({
+              title: "You don't have permission to perform this action",
+              type: 'error'
+            }),
+          InvalidArgument: (e) =>
+            toastManager.add({
+              title: 'Invalid input',
+              description: e.message,
+              type: 'error'
+            }),
+          Default: (e) =>
+            toastManager.add({
+              title: 'Something went wrong',
+              description: e.message,
+              type: 'error'
+            })
         });
       }
     }
@@ -92,16 +120,18 @@ export function AddMemberMenu({
 
   const addMember = useCallback(
     (userId: string) => {
-      if (!userId || !organization?.id || !teamId) return;
-      addGroupUsers(
-        create(AddGroupUsersRequestSchema, {
-          id: teamId,
+      if (!userId || !organization?.id || !teamId || !memberRoleId) return;
+      setGroupMemberRole(
+        create(SetGroupMemberRoleRequestSchema, {
+          groupId: teamId,
           orgId: organization.id,
-          userIds: [userId]
+          principalId: userId,
+          principalType: PERMISSIONS.UserPrincipal,
+          roleId: memberRoleId
         })
       );
     },
-    [addGroupUsers, organization?.id, teamId]
+    [setGroupMemberRole, organization?.id, teamId, memberRoleId]
   );
 
   if (!canUpdateGroup) {

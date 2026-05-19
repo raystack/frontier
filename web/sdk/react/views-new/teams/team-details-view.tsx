@@ -21,27 +21,20 @@ import {
 } from '@raystack/apsara-v1';
 import deleteIcon from '../../assets/delete.svg';
 import { toastManager } from '@raystack/apsara-v1';
-import {
-  useQuery,
-  useMutation,
-  createConnectQueryKey,
-  useTransport
-} from '@connectrpc/connect-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
   GetGroupRequestSchema,
   ListGroupUsersRequestSchema,
   ListRolesRequestSchema,
-  CreatePolicyRequestSchema,
-  DeletePolicyRequestSchema,
-  ListPoliciesRequestSchema,
+  SetGroupMemberRoleRequestSchema,
   type Role as ProtoRole
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
+import { handleConnectError } from '../../../utils/error';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import {
@@ -121,8 +114,7 @@ export function TeamDetailsView({
     FrontierServiceQueries.listGroupUsers,
     create(ListGroupUsersRequestSchema, {
       id: teamId || '',
-      orgId: organization?.id || '',
-      withRoles: true
+      orgId: organization?.id || ''
     }),
     { enabled: !!organization?.id && !!teamId }
   );
@@ -210,53 +202,21 @@ export function TeamDetailsView({
     [memberRoles, roles, canUpdateGroup]
   );
 
-  const queryClient = useQueryClient();
-  const transport = useTransport();
-
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
-  );
-  const { mutateAsync: createPolicy } = useMutation(
-    FrontierServiceQueries.createPolicy
+  const { mutateAsync: setGroupMemberRole } = useMutation(
+    FrontierServiceQueries.setGroupMemberRole
   );
 
   const updateMemberRole = useCallback(
     async (memberId: string, role: ProtoRole) => {
+      if (!organization?.id) return;
       try {
-        const principal = `${PERMISSIONS.UserNamespace}:${memberId}`;
-
-        const input = create(ListPoliciesRequestSchema, {
-          groupId: teamId,
-          userId: memberId
-        });
-
-        const policiesData = await queryClient.fetchQuery({
-          queryKey: createConnectQueryKey({
-            schema: FrontierServiceQueries.listPolicies,
-            transport,
-            input,
-            cardinality: 'finite'
-          })
-        });
-
-        const policies =
-          (policiesData as { policies?: { id?: string }[] })?.policies ?? [];
-
-        await Promise.all(
-          policies.map(p =>
-            deletePolicy(
-              create(DeletePolicyRequestSchema, { id: p.id || '' })
-            )
-          )
-        );
-
-        await createPolicy(
-          create(CreatePolicyRequestSchema, {
-            body: {
-              roleId: role.id as string,
-              resource: `app/group:${teamId}`,
-              principal
-            }
+        await setGroupMemberRole(
+          create(SetGroupMemberRoleRequestSchema, {
+            groupId: teamId,
+            orgId: organization.id,
+            principalId: memberId,
+            principalType: PERMISSIONS.UserPrincipal,
+            roleId: role.id as string
           })
         );
         refetchMembers();
@@ -265,17 +225,33 @@ export function TeamDetailsView({
           type: 'success'
         });
       } catch (error) {
-        toastManager.add({
-          title: 'Something went wrong',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Failed to update member role',
-          type: 'error'
+        handleConnectError(error, {
+          AlreadyExists: () =>
+            toastManager.add({
+              title: 'Member already exists in this team',
+              type: 'error'
+            }),
+          PermissionDenied: () =>
+            toastManager.add({
+              title: "You don't have permission to perform this action",
+              type: 'error'
+            }),
+          InvalidArgument: (e) =>
+            toastManager.add({
+              title: 'Invalid input',
+              description: e.message,
+              type: 'error'
+            }),
+          Default: (e) =>
+            toastManager.add({
+              title: 'Something went wrong',
+              description: e.message,
+              type: 'error'
+            })
         });
       }
     },
-    [queryClient, transport, deletePolicy, createPolicy, teamId, refetchMembers]
+    [setGroupMemberRole, teamId, organization?.id, refetchMembers]
   );
 
   const handleDeleteSuccess = useCallback(() => {
@@ -349,6 +325,7 @@ export function TeamDetailsView({
                 teamId={teamId}
                 canUpdateGroup={canUpdateGroup}
                 members={members}
+                roles={roles}
                 refetch={refetchMembers}
               />
             )}

@@ -9,14 +9,13 @@ import {
 } from '@raystack/apsara-v1';
 import { toastManager } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
-  RemoveGroupUserRequestSchema,
-  ListPoliciesRequestSchema,
-  DeletePolicyRequestSchema
+  RemoveGroupUserRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import { handleConnectError } from '../../../../utils/error';
 
 export interface RemoveMemberPayload {
   memberId: string;
@@ -70,21 +69,6 @@ function RemoveMemberForm({
   const [isLoading, setIsLoading] = useState(false);
   const { activeOrganization: organization } = useFrontier();
 
-  const { data: policiesData } = useQuery(
-    FrontierServiceQueries.listPolicies,
-    create(ListPoliciesRequestSchema, {
-      groupId: payload.teamId,
-      userId: payload.memberId
-    }),
-    { enabled: !!payload.teamId && !!payload.memberId }
-  );
-
-  const policies = policiesData?.policies ?? [];
-
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
-  );
-
   const { mutateAsync: removeGroupUser } = useMutation(
     FrontierServiceQueries.removeGroupUser
   );
@@ -93,12 +77,6 @@ function RemoveMemberForm({
     if (!organization?.id) return;
     setIsLoading(true);
     try {
-      await Promise.all(
-        policies.map(p =>
-          deletePolicy(create(DeletePolicyRequestSchema, { id: p.id || '' }))
-        )
-      );
-
       await removeGroupUser(
         create(RemoveGroupUserRequestSchema, {
           id: payload.teamId,
@@ -111,11 +89,36 @@ function RemoveMemberForm({
       refetch();
       handle.close();
     } catch (error) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description:
-          error instanceof Error ? error.message : 'Failed to remove member',
-        type: 'error'
+      handleConnectError(error, {
+        InvalidArgument: (e) =>
+          toastManager.add({
+            title: 'Cannot remove member',
+            description: e.message,
+            type: 'error'
+          }),
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: 'error'
+          }),
+        NotFound: (e) =>
+          toastManager.add({
+            title: 'Not found',
+            description: e.message,
+            type: 'error'
+          }),
+        FailedPrecondition: (e) =>
+          toastManager.add({
+            title: 'Cannot remove member',
+            description: e.message,
+            type: 'error'
+          }),
+        Default: (e) =>
+          toastManager.add({
+            title: 'Something went wrong',
+            description: e.message,
+            type: 'error'
+          })
       });
     } finally {
       setIsLoading(false);

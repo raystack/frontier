@@ -28,6 +28,7 @@ type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
+	DeleteWithMinRoleGuard(ctx context.Context, id string, guardRoleID string) error
 }
 
 type RelationService interface {
@@ -218,11 +219,12 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return nil
 	}
 
-	if err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing); err != nil {
+	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing)
+	if err != nil {
 		return err
 	}
 
-	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing); err != nil {
+	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing, ownerRoleID); err != nil {
 		return err
 	}
 
@@ -272,11 +274,31 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return ErrNotMember
 	}
 
-	if err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies); err != nil {
+	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
+	if err != nil {
 		return err
 	}
 
-	// pre-compute org project and group ID sets for O(1) lookups
+	if err := s.cascadeRemovePrincipal(ctx, org, principalID, principalType, ownerRoleID); err != nil {
+		return err
+	}
+
+	s.auditOrgMemberRemoved(ctx, org, principalID, targetAuditType)
+	audit.GetAuditor(ctx, org.ID).Log(audit.OrgMemberDeletedEvent, audit.Target{
+		ID:   principalID,
+		Type: principalType,
+	})
+
+	return nil
+}
+
+// cascadeRemovePrincipal deletes all policies and SpiceDB relations for a principal
+// being removed from an organization, including cascaded project/group sub-resources.
+// Owner-role org policies are deleted with the atomic guard first; if the guard rejects
+// (last owner), the method returns ErrLastOwnerRole before any other mutation.
+func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.Organization, principalID, principalType, ownerRoleID string) error {
+	orgID := org.ID
+
 	orgProjects, err := s.projectService.List(ctx, project.Filter{OrgID: orgID})
 	if err != nil {
 		return fmt.Errorf("list org projects: %w", err)
@@ -295,7 +317,6 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		orgGroupIDSet[g.ID] = struct{}{}
 	}
 
-	// list all policies for the principal across all resources
 	allPolicies, err := s.policyService.List(ctx, policy.Filter{
 		PrincipalID:   principalID,
 		PrincipalType: principalType,
@@ -304,28 +325,40 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return fmt.Errorf("list all principal policies: %w", err)
 	}
 
-	// delete sub-resource policies first (projects, groups), then relations,
-	// then org policies last — so a retry after partial failure won't hit ErrNotMember
-	var orgPolicyIDs []string
-	var errs error
+	// classify policies by scope
+	var orgPolicies, subResourcePolicies []policy.Policy
 	for _, pol := range allPolicies {
 		switch pol.ResourceType {
 		case schema.OrganizationNamespace:
 			if pol.ResourceID == orgID {
-				orgPolicyIDs = append(orgPolicyIDs, pol.ID)
+				orgPolicies = append(orgPolicies, pol)
 			}
 		case schema.ProjectNamespace:
 			if _, ok := orgProjectIDSet[pol.ResourceID]; ok {
-				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
-					errs = errors.Join(errs, fmt.Errorf("delete project policy %s: %w", pol.ID, err))
-				}
+				subResourcePolicies = append(subResourcePolicies, pol)
 			}
 		case schema.GroupNamespace:
 			if _, ok := orgGroupIDSet[pol.ResourceID]; ok {
-				if err := s.policyService.Delete(ctx, pol.ID); err != nil {
-					errs = errors.Join(errs, fmt.Errorf("delete group policy %s: %w", pol.ID, err))
-				}
+				subResourcePolicies = append(subResourcePolicies, pol)
 			}
+		}
+	}
+
+	// guarded owner delete first — returns early if this is the last owner
+	for _, pol := range orgPolicies {
+		if err := s.deletePolicy(ctx, pol, ownerRoleID); err != nil {
+			if errors.Is(err, policy.ErrLastRoleGuard) {
+				return ErrLastOwnerRole
+			}
+			return fmt.Errorf("delete org policy %s: %w", pol.ID, err)
+		}
+	}
+
+	// guard passed — delete sub-resource policies
+	var errs error
+	for _, pol := range subResourcePolicies {
+		if err := s.policyService.Delete(ctx, pol.ID); err != nil {
+			errs = errors.Join(errs, fmt.Errorf("delete sub-resource policy %s: %w", pol.ID, err))
 		}
 	}
 	if errs != nil {
@@ -338,7 +371,7 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return errs
 	}
 
-	// remove relations at group level
+	// clean up SpiceDB relations
 	for _, g := range orgGroups {
 		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
 			s.log.Error("partial failure removing member: group relation cleanup failed, manual cleanup may be needed",
@@ -351,8 +384,6 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
 		}
 	}
-
-	// remove relations at org level
 	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
 		s.log.Error("partial failure removing member: org relation cleanup failed, manual cleanup may be needed",
 			"org_id", orgID,
@@ -363,7 +394,7 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return fmt.Errorf("remove org relations: %w", err)
 	}
 
-	// remove identity link for service users (serviceuser#org@organization)
+	// remove identity link for service users
 	if principalType == schema.ServiceUserPrincipal {
 		err := s.relationService.Delete(ctx, relation.Relation{
 			Object:       relation.Object{ID: principalID, Namespace: schema.ServiceUserPrincipal},
@@ -374,26 +405,6 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 			return fmt.Errorf("remove serviceuser identity link: %w", err)
 		}
 	}
-
-	// delete org-level policies last
-	for _, policyID := range orgPolicyIDs {
-		if err := s.policyService.Delete(ctx, policyID); err != nil {
-			s.log.Error("partial failure removing member: org policy deletion failed, manual cleanup may be needed",
-				"org_id", orgID,
-				"policy_id", policyID,
-				"principal_id", principalID,
-				"principal_type", principalType,
-				"error", err,
-			)
-			return fmt.Errorf("delete org policy %s: %w", policyID, err)
-		}
-	}
-
-	s.auditOrgMemberRemoved(ctx, org, principalID, targetAuditType)
-	audit.GetAuditor(ctx, org.ID).Log(audit.OrgMemberDeletedEvent, audit.Target{
-		ID:   principalID,
-		Type: principalType,
-	})
 
 	return nil
 }
@@ -412,15 +423,16 @@ func (s *Service) removeRelations(ctx context.Context, resourceID, resourceType,
 }
 
 // validateMinOwnerConstraint ensures the org always has at least one owner after a role change.
-func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existing []policy.Policy) error {
+// Returns the resolved owner role ID for reuse by callers.
+func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existing []policy.Policy) (string, error) {
 	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
 	if err != nil {
-		return fmt.Errorf("get owner role: %w", err)
+		return "", fmt.Errorf("get owner role: %w", err)
 	}
 
 	// no constraint if promoting to owner
 	if newRoleID == ownerRole.ID {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	// no constraint if user is not currently an owner
@@ -432,7 +444,7 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 		}
 	}
 	if !isCurrentlyOwner {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	// user is owner, being demoted — make sure at least one other owner remains
@@ -441,19 +453,23 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 		RoleID: ownerRole.ID,
 	})
 	if err != nil {
-		return fmt.Errorf("list owner policies: %w", err)
+		return "", fmt.Errorf("list owner policies: %w", err)
 	}
 	if len(ownerPolicies) <= 1 {
-		return ErrLastOwnerRole
+		return "", ErrLastOwnerRole
 	}
-	return nil
+	return ownerRole.ID, nil
 }
 
 // replacePolicy deletes the given existing policies and creates a new one with the new role.
-func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy) error {
+// When ownerRoleID is non-empty, owner-role policies are deleted atomically via
+// DeleteWithMinRoleGuard to prevent the last-owner TOCTOU race.
+func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string, existing []policy.Policy, ownerRoleID string) error {
 	for _, p := range existing {
-		err := s.policyService.Delete(ctx, p.ID)
-		if err != nil {
+		if err := s.deletePolicy(ctx, p, ownerRoleID); err != nil {
+			if errors.Is(err, policy.ErrLastRoleGuard) {
+				return ErrLastOwnerRole
+			}
 			return fmt.Errorf("delete policy %s: %w", p.ID, err)
 		}
 	}
@@ -471,6 +487,13 @@ func (s *Service) replacePolicy(ctx context.Context, resourceID, resourceType, p
 		return err
 	}
 	return nil
+}
+
+func (s *Service) deletePolicy(ctx context.Context, pol policy.Policy, ownerRoleID string) error {
+	if ownerRoleID != "" && pol.RoleID == ownerRoleID {
+		return s.policyService.DeleteWithMinRoleGuard(ctx, pol.ID, ownerRoleID)
+	}
+	return s.policyService.Delete(ctx, pol.ID)
 }
 
 // replaceRelation deletes the given old relations for the principal on the resource,
@@ -743,7 +766,7 @@ func (s *Service) SetProjectMemberRole(ctx context.Context, projectID, principal
 		return nil
 	}
 
-	if err := s.replacePolicy(ctx, projectID, schema.ProjectNamespace, principalID, principalType, resolvedRoleID, existing); err != nil {
+	if err := s.replacePolicy(ctx, projectID, schema.ProjectNamespace, principalID, principalType, resolvedRoleID, existing, ""); err != nil {
 		return err
 	}
 
@@ -1020,66 +1043,12 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	return members, nil
 }
 
-// AddGroupMember adds a principal as a member of a group with an explicit role.
-// Returns ErrAlreadyMember if the principal already has a policy on this group.
-// The principal must be a member of the group's parent organization.
-func (s *Service) AddGroupMember(ctx context.Context, groupID, principalID, principalType, roleID string) error {
-	grp, err := s.groupService.Get(ctx, groupID)
-	if err != nil {
-		return err
-	}
-
-	principal, err := s.validateGroupPrincipal(ctx, principalID, principalType)
-	if err != nil {
-		return err
-	}
-
-	fetchedRole, err := s.validateGroupRole(ctx, roleID, grp.OrganizationID)
-	if err != nil {
-		return err
-	}
-
-	if err := s.validateOrgMembership(ctx, grp.OrganizationID, principalID, principalType); err != nil {
-		return err
-	}
-
-	existing, err := s.policyService.List(ctx, policy.Filter{
-		GroupID:       groupID,
-		PrincipalID:   principalID,
-		PrincipalType: principalType,
-	})
-	if err != nil {
-		return fmt.Errorf("list existing policies: %w", err)
-	}
-	if len(existing) > 0 {
-		return ErrAlreadyMember
-	}
-
-	createdPolicy, err := s.createPolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, fetchedRole.ID)
-	if err != nil {
-		return err
-	}
-
-	relationName := groupRoleToRelation(fetchedRole)
-	if err := s.createRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, relationName); err != nil {
-		if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
-			s.log.WarnContext(ctx, "orphaned policy: relation creation failed and policy cleanup also failed",
-				"policy_id", createdPolicy.ID,
-				"group_id", groupID,
-				"principal_id", principalID,
-				"policy_delete_error", deleteErr,
-			)
-		}
-		return err
-	}
-
-	s.auditGroupMemberAdded(ctx, grp, principal, fetchedRole.ID)
-	return nil
-}
-
-// SetGroupMemberRole changes an existing member's role in a group.
-// Returns ErrNotMember if the principal has no existing policy on the group.
-// Enforces the min-owner constraint: demoting the last owner returns ErrLastGroupOwnerRole.
+// SetGroupMemberRole upserts the role assignment for a principal in a group:
+// if the principal has no existing group policy, they are added with the
+// requested role; otherwise their existing role is replaced with the
+// requested role. New adds require the principal to be a member of the
+// group's parent organization. Demoting the last owner returns
+// ErrLastGroupOwnerRole.
 func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error {
 	grp, err := s.groupService.Get(ctx, groupID)
 	if err != nil {
@@ -1105,20 +1074,47 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
+
+	// add path: principal has no existing group policy
 	if len(existing) == 0 {
-		return ErrNotMember
+		if err := s.validateOrgMembership(ctx, grp.OrganizationID, principalID, principalType); err != nil {
+			return err
+		}
+		createdPolicy, err := s.createPolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, resolvedRoleID)
+		if err != nil {
+			return err
+		}
+		if err := s.createRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, groupRoleToRelation(fetchedRole)); err != nil {
+			if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
+				s.log.WarnContext(ctx, "orphaned policy: relation creation failed and policy cleanup also failed",
+					"policy_id", createdPolicy.ID,
+					"group_id", groupID,
+					"principal_id", principalID,
+					"policy_delete_error", deleteErr,
+				)
+			}
+			return err
+		}
+		s.auditGroupMemberAdded(ctx, grp, principal, resolvedRoleID)
+		return nil
 	}
 
-	// skip if the user already has exactly this role
+	// change path: skip if the principal already has exactly this role
 	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
 		return nil
 	}
 
-	if err := s.validateMinGroupOwnerConstraint(ctx, groupID, resolvedRoleID, existing); err != nil {
+	ownerRoleID, err := s.validateMinGroupOwnerConstraint(ctx, groupID, resolvedRoleID, existing)
+	if err != nil {
 		return err
 	}
 
-	if err := s.replacePolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, resolvedRoleID, existing); err != nil {
+	if err := s.replacePolicy(ctx, groupID, schema.GroupNamespace, principalID, principalType, resolvedRoleID, existing, ownerRoleID); err != nil {
+		// replacePolicy returns ErrLastOwnerRole for any namespace; surface the
+		// group-specific variant for callers/error mappers.
+		if errors.Is(err, ErrLastOwnerRole) {
+			return ErrLastGroupOwnerRole
+		}
 		return err
 	}
 
@@ -1140,15 +1136,169 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 	return nil
 }
 
+// RemoveGroupMember removes a principal from a group, cleaning up both their
+// group policies and the matching SpiceDB relations. Returns ErrNotMember if
+// the principal has no policies on this group; ErrLastGroupOwnerRole if they
+// are the sole remaining owner (enforced atomically via the policy guard).
+func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, principalType string) error {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	principal, err := s.validateGroupPrincipal(ctx, principalID, principalType)
+	if err != nil {
+		return err
+	}
+
+	existing, err := s.policyService.List(ctx, policy.Filter{
+		GroupID:       groupID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+	if len(existing) == 0 {
+		return ErrNotMember
+	}
+
+	// Pass empty newRoleID — removal, not role change. The function still
+	// returns the owner role ID for the atomic guard on the delete path.
+	ownerRoleID, err := s.validateMinGroupOwnerConstraint(ctx, groupID, "", existing)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range existing {
+		if err := s.deletePolicy(ctx, p, ownerRoleID); err != nil {
+			if errors.Is(err, policy.ErrLastRoleGuard) {
+				return ErrLastGroupOwnerRole
+			}
+			return fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+
+	if err := s.removeRelations(ctx, groupID, schema.GroupNamespace, principalID, principalType); err != nil {
+		s.log.ErrorContext(ctx, "membership state inconsistent: group policies removed but relation cleanup failed, needs manual fix",
+			"group_id", groupID,
+			"principal_id", principalID,
+			"principal_type", principalType,
+			"error", err,
+		)
+		return err
+	}
+
+	s.auditGroupMemberRemoved(ctx, grp, principal)
+	return nil
+}
+
+// RemoveAllGroupMembers tears down membership for a group that is being
+// destroyed: deletes every policy on the group and every owner/member
+// relation per principal. No min-owner check — the group itself is going
+// away, so the invariant doesn't apply. Errors are joined; partial failures
+// are logged so a retry can complete the cleanup.
+func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{GroupID: groupID})
+	if err != nil {
+		return fmt.Errorf("list group policies: %w", err)
+	}
+
+	// First pass: delete every policy. Track which principals had any
+	// delete failure so we don't strip their SpiceDB relations while a
+	// surviving policy still references them.
+	principals := make(map[string]policy.Policy, len(policies))
+	failed := make(map[string]struct{}, len(policies))
+	var errs error
+	for _, p := range policies {
+		key := p.PrincipalType + "\x00" + p.PrincipalID
+		principals[key] = p
+		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
+			failed[key] = struct{}{}
+			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
+		}
+	}
+
+	// Second pass: clean up direct relations only for principals whose
+	// policies were all deleted successfully. The rest get retried on the
+	// next attempt once their lingering policies are removed.
+	for key, p := range principals {
+		if _, hadFailure := failed[key]; hadFailure {
+			continue
+		}
+		if relErr := s.removeRelations(ctx, groupID, schema.GroupNamespace, p.PrincipalID, p.PrincipalType); relErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
+		}
+	}
+
+	if errs != nil {
+		s.log.ErrorContext(ctx, "partial failure cleaning up group members during group deletion; retry may be required",
+			"group_id", groupID,
+			"error", errs,
+		)
+	}
+	return errs
+}
+
+// OnGroupDeleted tears down all SpiceDB state created during the group's
+// lifetime: per-member policies and owner/member relations, policies where
+// the group itself is the principal on other resources (e.g. group granted
+// a role on a project), and the two org<->group hierarchy relations. The
+// group entity itself is left for the caller (group.Service.DeleteModel)
+// to remove.
+//
+// Errors are joined; partial failures are logged so a retry can complete
+// the cleanup.
+func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	var errs error
+	if err := s.RemoveAllGroupMembers(ctx, groupID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("remove group members: %w", err))
+	}
+	if err := s.removeGroupAsPrincipalPolicies(ctx, groupID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("remove group-as-principal policies: %w", err))
+	}
+	if err := s.unlinkGroupFromOrg(ctx, groupID, grp.OrganizationID); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("unlink group from org: %w", err))
+	}
+	return errs
+}
+
+// removeGroupAsPrincipalPolicies deletes every policy where the given group
+// is the principal — e.g. policies created by `CreatePolicy(principal=group:X,
+// resource=project:Y, role=viewer)` that grant the group access to other
+// resources. policyService.Delete is expected to also remove the matching
+// rolebinding relation in SpiceDB.
+func (s *Service) removeGroupAsPrincipalPolicies(ctx context.Context, groupID string) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalType: schema.GroupPrincipal,
+		PrincipalID:   groupID,
+	})
+	if err != nil {
+		return fmt.Errorf("list group-as-principal policies: %w", err)
+	}
+	var errs error
+	for _, p := range policies {
+		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
+		}
+	}
+	return errs
+}
+
 // OnGroupCreated wires up SpiceDB relations for a newly-created group:
 // links the group to its parent organization (both directions) and adds the
-// creator as owner via AddGroupMember. If the owner add fails, hierarchy
+// creator as owner via SetGroupMemberRole. If the owner add fails, hierarchy
 // relations are best-effort rolled back to avoid an unowned, half-linked group.
 func (s *Service) OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error {
 	if err := s.linkGroupToOrg(ctx, groupID, orgID); err != nil {
 		return err
 	}
-	if err := s.AddGroupMember(ctx, groupID, creatorID, creatorType, schema.GroupOwnerRole); err != nil {
+	if err := s.SetGroupMemberRole(ctx, groupID, creatorID, creatorType, schema.GroupOwnerRole); err != nil {
 		if cleanupErr := s.unlinkGroupFromOrg(ctx, groupID, orgID); cleanupErr != nil {
 			s.log.WarnContext(ctx, "group hierarchy cleanup failed after owner add failure",
 				"group_id", groupID,
@@ -1270,15 +1420,17 @@ func (s *Service) validateGroupPrincipal(ctx context.Context, principalID, princ
 }
 
 // validateMinGroupOwnerConstraint ensures the group keeps at least one owner
-// after the role change. Mirrors the org-level constraint.
-func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, newRoleID string, existing []policy.Policy) error {
+// after the role change. Returns the resolved group owner role ID so the
+// caller can hand it to replacePolicy as a min-role guard, closing the TOCTOU
+// race between this pre-check and the policy delete.
+func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, newRoleID string, existing []policy.Policy) (string, error) {
 	ownerRole, err := s.roleService.Get(ctx, schema.GroupOwnerRole)
 	if err != nil {
-		return fmt.Errorf("get group owner role: %w", err)
+		return "", fmt.Errorf("get group owner role: %w", err)
 	}
 
 	if newRoleID == ownerRole.ID {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	isCurrentlyOwner := false
@@ -1289,7 +1441,7 @@ func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, 
 		}
 	}
 	if !isCurrentlyOwner {
-		return nil
+		return ownerRole.ID, nil
 	}
 
 	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
@@ -1297,12 +1449,12 @@ func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, 
 		RoleID:  ownerRole.ID,
 	})
 	if err != nil {
-		return fmt.Errorf("list group owner policies: %w", err)
+		return "", fmt.Errorf("list group owner policies: %w", err)
 	}
 	if len(ownerPolicies) <= 1 {
-		return ErrLastGroupOwnerRole
+		return "", ErrLastGroupOwnerRole
 	}
-	return nil
+	return ownerRole.ID, nil
 }
 
 // groupRoleToRelation maps a group role to the matching SpiceDB relation name.
@@ -1375,6 +1527,38 @@ func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Gro
 		Type: p.Type,
 	}, map[string]string{
 		"role_id":  roleID,
+		"group_id": grp.ID,
+	})
+}
+
+func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, p principalInfo) {
+	targetType, _ := principalTypeToAuditType(p.Type)
+	meta := map[string]any{}
+	if p.Email != "" {
+		meta["email"] = p.Email
+	}
+
+	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+		Event: pkgAuditRecord.GroupMemberRemovedEvent,
+		Resource: auditrecord.Resource{
+			ID:   grp.ID,
+			Type: pkgAuditRecord.GroupType,
+			Name: grp.Title,
+		},
+		Target: &auditrecord.Target{
+			ID:       p.ID,
+			Type:     targetType,
+			Name:     p.Name,
+			Metadata: meta,
+		},
+		OrgID:      grp.OrganizationID,
+		OccurredAt: time.Now(),
+	})
+
+	audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.Target{
+		ID:   p.ID,
+		Type: p.Type,
+	}, map[string]string{
 		"group_id": grp.ID,
 	})
 }

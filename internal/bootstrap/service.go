@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -61,6 +63,25 @@ type PlanService interface {
 	UpsertPlans(ctx context.Context, planFile plan.File) error
 }
 
+// PolicyService is policy.Service narrowed to what backfill needs. Goes through
+// Create so the SpiceDB rolebinding tuples land alongside the row.
+type PolicyService interface {
+	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
+}
+
+// ServiceUserCandidate is a service user missing its owning-org policy row.
+type ServiceUserCandidate struct {
+	ServiceUserID string
+	OrgID         string
+}
+
+// ServiceUserBackfiller exposes the set-difference query. Narrow on purpose —
+// bootstrap shouldn't be able to mutate service users.
+type ServiceUserBackfiller interface {
+	ListMissingOrgPolicy(ctx context.Context) ([]ServiceUserCandidate, error)
+}
+
 // AdminConfig is platform administration configuration
 type AdminConfig struct {
 	// Users are a list of email-ids/uuids which needs to be promoted as superusers
@@ -69,6 +90,7 @@ type AdminConfig struct {
 }
 
 type Service struct {
+	logger            *slog.Logger
 	adminConfig       AdminConfig
 	schemaConfig      FileService
 	namespaceService  NamespaceService
@@ -77,6 +99,8 @@ type Service struct {
 	authzEngine       AuthzEngine
 	userService       UserService
 	relationService   RelationService
+	policyService     PolicyService
+	serviceuserRepo   ServiceUserBackfiller
 	patDeniedPerms    map[string]struct{}
 
 	planService   PlanService
@@ -84,6 +108,7 @@ type Service struct {
 }
 
 func NewBootstrapService(
+	logger *slog.Logger,
 	config AdminConfig,
 	schemaConfig FileService,
 	namespaceService NamespaceService,
@@ -92,11 +117,14 @@ func NewBootstrapService(
 	userService UserService,
 	authzEngine AuthzEngine,
 	relationService RelationService,
+	policyService PolicyService,
+	serviceuserRepo ServiceUserBackfiller,
 	patDeniedPerms map[string]struct{},
 	planService PlanService,
 	planLocalRepo BillingPlanRepository,
 ) *Service {
 	return &Service{
+		logger:            logger,
 		adminConfig:       config,
 		schemaConfig:      schemaConfig,
 		namespaceService:  namespaceService,
@@ -107,6 +135,8 @@ func NewBootstrapService(
 		planService:       planService,
 		planLocalRepo:     planLocalRepo,
 		relationService:   relationService,
+		policyService:     policyService,
+		serviceuserRepo:   serviceuserRepo,
 		patDeniedPerms:    patDeniedPerms,
 	}
 }
@@ -262,6 +292,51 @@ func (s Service) createRole(ctx context.Context, orgID string, defRole schema.Ro
 		return fmt.Errorf("can't migrate role: %w: %s", schema.ErrMigration, err.Error())
 	}
 	return nil
+}
+
+// MigrateServiceUserOrgPolicies backfills the org policy for service users that
+// have only a SpiceDB member relation (legacy creation flow). Idempotent: on a
+// clean cluster the candidate query returns zero rows and this is a no-op.
+// Per-row failures are joined into the return value and also logged; the call
+// site decides whether to abort or warn-and-continue.
+func (s Service) MigrateServiceUserOrgPolicies(ctx context.Context) error {
+	candidates, err := s.serviceuserRepo.ListMissingOrgPolicy(ctx)
+	if err != nil {
+		return fmt.Errorf("list candidates: %w", err)
+	}
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	viewerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationViewer)
+	if err != nil {
+		return fmt.Errorf("get viewer role: %w", err)
+	}
+
+	var errs error
+	for _, c := range candidates {
+		_, createErr := s.policyService.Create(ctx, policy.Policy{
+			RoleID:        viewerRole.ID,
+			ResourceID:    c.OrgID,
+			ResourceType:  schema.OrganizationNamespace,
+			PrincipalID:   c.ServiceUserID,
+			PrincipalType: schema.ServiceUserPrincipal,
+		})
+		if createErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("backfill SU %s on org %s: %w", c.ServiceUserID, c.OrgID, createErr))
+			s.logger.WarnContext(ctx, "backfill failed for service user, continuing",
+				"serviceuser_id", c.ServiceUserID,
+				"org_id", c.OrgID,
+				"error", createErr,
+			)
+			continue
+		}
+		s.logger.InfoContext(ctx, "backfilled SU org policy",
+			"serviceuser_id", c.ServiceUserID,
+			"org_id", c.OrgID,
+		)
+	}
+	return errs
 }
 
 // migratePATRelations ensures app/pat:* wildcard tuples are in sync with the current

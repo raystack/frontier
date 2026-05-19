@@ -21,9 +21,7 @@ import (
 	"github.com/raystack/frontier/pkg/server/consts"
 	sessionutils "github.com/raystack/frontier/pkg/session"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -44,7 +42,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		return resp, nil
 	} else if err != nil && !errors.Is(err, frontiersession.ErrNoSession) {
 		errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err)
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	if (request.Msg.GetStrategyName() == authenticate.MailLinkAuthMethod.String() || request.Msg.GetStrategyName() == authenticate.MailOTPAuthMethod.String()) && !isValidEmail(request.Msg.GetEmail()) {
@@ -62,7 +60,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
 			"strategy", request.Msg.GetStrategyName(),
 			"email", request.Msg.GetEmail())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	// set location header for redirect to start auth?
@@ -80,14 +78,14 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		if err = userCredentils.UnmarshalJSON(response.StateConfig["options"].([]byte)); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
 				"strategy", authenticate.PassKeyAuthMethod.String())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		typeValue, ok := response.Flow.Metadata["passkey_type"].(string)
 		if !ok {
 			err = fmt.Errorf("passkey_type metadata is not a string")
 			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
 				"strategy", authenticate.PassKeyAuthMethod.String())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		stringValue := &structpb.Value{
 			Kind: &structpb.Value_StringValue{
@@ -128,7 +126,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
 			"strategy", request.Msg.GetStrategyName(),
 			"state", request.Msg.GetState())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	// Extract session metadata from request headers
@@ -139,7 +137,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
 			"user_id", response.User.ID)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	// create response and set headers
 	resp := connect.NewResponse(&frontierv1beta1.AuthCallbackResponse{})
@@ -186,17 +184,20 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
 			"grant_type", request.Msg.GetGrantType())
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	if principal.Type == schema.ServiceUserPrincipal {
 		orgId := principal.ServiceUser.OrgID
 		_, err := h.orgService.Get(ctx, orgId)
 		if err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
+			errorLogger.LogServiceError(ctx, request, "AuthToken.orgService.Get", err,
 				"org_id", orgId,
 				"service_user_id", principal.ServiceUser.ID)
-			return nil, connect.NewError(connect.CodeInternal, err)
+			if errors.Is(err, organization.ErrDisabled) {
+				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
+			}
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
@@ -205,7 +206,7 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
 			"principal_id", principal.ID,
 			"principal_type", principal.Type)
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
 	resp := connect.NewResponse(&frontierv1beta1.AuthTokenResponse{
@@ -276,7 +277,7 @@ func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Reques
 		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "AuthLogout", err,
 				"session_id", sessionID.String())
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 
@@ -296,6 +297,7 @@ func (h *ConnectHandler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, e
 }
 
 func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error) {
+	errorLogger := NewErrorLogger()
 	principal, err := h.authnService.GetPrincipal(ctx, via...)
 	if err != nil {
 		switch {
@@ -309,7 +311,8 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 			errors.Is(err, patErrors.ErrDisabled):
 			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
-			return principal, connect.NewError(connect.CodeInternal, err)
+			errorLogger.LogUnexpectedError(ctx, nil, "GetLoggedInPrincipal", err)
+			return principal, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}
 	return principal, nil
