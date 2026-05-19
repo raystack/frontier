@@ -106,13 +106,12 @@ export default function WebhooksView({
           />
         </Flex>
       </DataTable>
-      {createOpen && <CreateWebhooks onClose={onCloseDetail} />}
-      {selectedWebhookId && (
-        <UpdateWebhooks
-          webhookId={selectedWebhookId}
-          onClose={onCloseDetail}
-        />
-      )}
+      <CreateWebhooks open={createOpen} onClose={onCloseDetail} />
+      <UpdateWebhooks
+        open={!!selectedWebhookId}
+        webhookId={selectedWebhookId}
+        onClose={onCloseDetail}
+      />
     </>
   );
 }

@@ -24,6 +24,7 @@ import { AdminServiceQueries, FrontierServiceQueries, SetOrganizationKycRequestS
 import { create } from "@bufbuild/protobuf";
 
 interface EditKYCPanelProps {
+  open?: boolean;
   onClose: () => void;
 }
 
@@ -44,7 +45,7 @@ const kycUpdateSchema = z
 
 type KYCUpdateSchema = z.infer<typeof kycUpdateSchema>;
 
-export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
+export function EditKYCPanel({ open = false, onClose }: EditKYCPanelProps) {
   const { organization, kycDetails, updateKYCDetails } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -104,7 +105,7 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
   }
 
   return (
-    <Drawer open>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-kyc-panel"

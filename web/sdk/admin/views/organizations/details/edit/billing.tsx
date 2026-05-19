@@ -26,6 +26,7 @@ import {
 import { create } from "@bufbuild/protobuf";
 
 interface EditBillingPanelProps {
+  open?: boolean;
   onClose: () => void;
 }
 
@@ -70,7 +71,7 @@ const billingDetailsUpdateSchema = z
 
 type BillingDetailsForm = z.infer<typeof billingDetailsUpdateSchema>;
 
-export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
+export function EditBillingPanel({ open = false, onClose }: EditBillingPanelProps) {
   const { 
     billingAccount,
     billingAccountDetails,
@@ -174,7 +175,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
   const isPrepaid = tokenPaymentType === "prepaid";
 
   return (
-    <Drawer open>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-billing-panel"

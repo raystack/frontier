@@ -78,7 +78,7 @@ function getDefaultValue(organization: Organization, industries: string[]) {
   };
 }
 
-export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
+export function EditOrganizationPanel({ open = false, onClose }: { open?: boolean; onClose: () => void }) {
   const t = useTerminology();
   const { organization, appUrl, countries: countriesFromContext = [], organizationTypes: industries = [] } = useContext(OrganizationContext);
   const [countries, setCountries] = useState<string[]>(countriesFromContext);
@@ -160,7 +160,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
   const showOtherTypeField = watch("type", "other") === "other";
 
   return (
-    <Drawer open>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-org-panel"

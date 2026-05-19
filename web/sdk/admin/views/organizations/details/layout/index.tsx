@@ -97,14 +97,10 @@ export const OrganizationDetailsLayout = ({
         >
           {children}
         </Flex>
-        {showKYCPanel ? <EditKYCPanel onClose={closeKYCPanel} /> : null}
+        <EditKYCPanel open={showKYCPanel} onClose={closeKYCPanel} />
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
-        {showEditOrgPanel ? (
-          <EditOrganizationPanel onClose={closeEditOrgPanel} />
-        ) : null}
-        {showEditBillingPanel ? (
-          <EditBillingPanel onClose={closeEditBillingPanel} />
-        ) : null}
+        <EditOrganizationPanel open={showEditOrgPanel} onClose={closeEditOrgPanel} />
+        <EditBillingPanel open={showEditBillingPanel} onClose={closeEditBillingPanel} />
       </Flex>
     </Flex>
   ) : (
