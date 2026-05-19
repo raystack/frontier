@@ -6,7 +6,7 @@
   width: 220px !important;
 }
 
-.sidebar-main {
+.sidebar .sidebar-main {
   gap: var(--rs-space-1);
 }
 
