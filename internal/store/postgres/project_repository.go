@@ -161,6 +161,11 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 			"org_id": flt.OrgID,
 		})
 	}
+	if len(flt.OrgIDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"org_id": goqu.Op{"in": flt.OrgIDs},
+		})
+	}
 	if len(flt.ProjectIDs) > 0 {
 		stmt = stmt.Where(goqu.Ex{
 			"id": goqu.Op{"in": flt.ProjectIDs},
