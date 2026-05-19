@@ -1,4 +1,5 @@
 import { EmptyState, DataTable, Flex } from "@raystack/apsara-v1";
+import type { ReactNode } from "react";
 import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
 import { PageHeader } from "../../components/PageHeader";
 import { getColumns } from "./columns";
@@ -15,6 +16,7 @@ export type PreferencesListProps = {
   traits: PreferenceTrait[];
   isLoading: boolean;
   onSelectPreference?: (name: string) => void;
+  icon?: ReactNode;
 };
 
 export default function PreferencesList({
@@ -22,6 +24,7 @@ export default function PreferencesList({
   traits,
   isLoading,
   onSelectPreference,
+  icon,
 }: PreferencesListProps) {
   const columns = getColumns({
     traits,
@@ -40,6 +43,7 @@ export default function PreferencesList({
       <Flex direction="column" className={styles.tableWrapper}>
         <PageHeader
           title={pageHeader.title}
+          icon={icon}
           breadcrumb={pageHeader.breadcrumb}
           className={styles.header}
         />

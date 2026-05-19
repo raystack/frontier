@@ -1,10 +1,10 @@
-import { Flex, DataTable, EmptyState } from "@raystack/apsara-v1";
-import { useCallback } from "react";
+import { Button, Flex, DataTable, EmptyState } from "@raystack/apsara-v1";
+import { useCallback, type ReactNode } from "react";
 import { getColumns } from "./columns";
-import { WebhooksHeader } from "./header";
 import styles from "./webhooks.module.css";
 import { useWebhookQueries } from "./hooks/useWebhookQueries";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { ExclamationTriangleIcon, PlusIcon } from "@radix-ui/react-icons";
+import { PageHeader } from "../../../components/PageHeader";
 import CreateWebhooks from "./create";
 import UpdateWebhooks from "./update";
 
@@ -21,6 +21,8 @@ export type WebhooksViewProps = {
   onOpenCreate?: () => void;
   /** When true, shows the delete option for webhooks. Defaults to `false`. */
   enableDelete?: boolean;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function WebhooksView({
@@ -30,6 +32,7 @@ export default function WebhooksView({
   onSelectWebhook,
   onOpenCreate,
   enableDelete = false,
+  icon,
 }: WebhooksViewProps = {}) {
   const {
     listWebhooks: {
@@ -80,7 +83,24 @@ export default function WebhooksView({
         mode="client"
       >
         <Flex direction="column" className={styles.tableWrapper}>
-          <WebhooksHeader onOpenCreate={onOpenCreate} />
+          <PageHeader
+            title="Webhooks"
+            icon={icon}
+            breadcrumb={[]}
+            className={styles.header}
+          >
+            <DataTable.Search placeholder="Search webhooks..." size="small" />
+            <Button
+              size="small"
+              variant="text"
+              color="neutral"
+              leadingIcon={<PlusIcon />}
+              data-test-id="admin-create-webhook-btn"
+              onClick={() => onOpenCreate?.()}
+            >
+              New Webhook
+            </Button>
+          </PageHeader>
           <DataTable.Content
             classNames={{ root: styles.tableRoot, table: styles.table }}
           />

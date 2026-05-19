@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { useMatch, useParams, useNavigate } from "react-router-dom";
 import { WebhooksView } from "@raystack/frontier/admin";
 import { AppContext } from "~/contexts/App";
+import WebhooksIcon from "~/assets/icons/webhooks.svg?react";
 
 export function WebhooksPage() {
   const { config } = useContext(AppContext);
@@ -19,6 +20,7 @@ export function WebhooksPage() {
       onSelectWebhook={(id: string) => navigate(`/webhooks/${encodeURIComponent(id)}`)}
       onOpenCreate={() => navigate("/webhooks/create")}
       enableDelete={enableDelete}
+      icon={<WebhooksIcon />}
     />
   );
 }

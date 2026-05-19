@@ -1,10 +1,11 @@
 import { EmptyState, Flex, DataTable } from "@raystack/apsara-v1";
+import type { ReactNode } from "react";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import type { Product } from "@raystack/proton/frontier";
 import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
-import { ProductsHeader } from "./header";
+import { PageHeader } from "../../components/PageHeader";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import styles from "./products.module.css";
 import { PageTitle } from "../../components/PageTitle";
@@ -21,6 +22,8 @@ export type ProductsViewProps = {
   onNavigateToPrices?: (productId: string) => void;
   /** App name displayed in the page title. */
   appName?: string;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function ProductsView({
@@ -29,6 +32,7 @@ export default function ProductsView({
   onCloseDetail,
   onNavigateToPrices,
   appName,
+  icon,
 }: ProductsViewProps = {}) {
   const {
     data: productsResponse,
@@ -78,7 +82,14 @@ export default function ProductsView({
         onRowClick={handleRowClick}
       >
         <Flex direction="column" className={styles.tableWrapper}>
-          <ProductsHeader />
+          <PageHeader
+            title="Products"
+            icon={icon}
+            breadcrumb={[]}
+            className={styles.header}
+          >
+            <DataTable.Search placeholder="Search products..." size="small" />
+          </PageHeader>
           <DataTable.Content
             emptyState={noDataChildren}
             classNames={{ root: styles.tableRoot }}

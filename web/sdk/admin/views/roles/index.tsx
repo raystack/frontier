@@ -1,10 +1,10 @@
 import { EmptyState, Flex, DataTable, Drawer } from "@raystack/apsara-v1";
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 
 import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
-import { RolesHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTitle } from "../../components/PageTitle";
 import styles from "./roles.module.css";
 import { SheetHeader } from "../../components/SheetHeader";
@@ -22,6 +22,8 @@ export type RolesViewProps = {
   onCloseDetail?: () => void;
   /** App name displayed in the page title. */
   appName?: string;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function RolesView({
@@ -29,6 +31,7 @@ export default function RolesView({
   onSelectRole,
   onCloseDetail,
   appName,
+  icon,
 }: RolesViewProps = {}) {
   const [internalRoleId, setInternalRoleId] = useState<string | undefined>();
 
@@ -82,7 +85,14 @@ export default function RolesView({
       isLoading={isLoading}>
       <Flex direction="column">
         <PageTitle title="Roles" appName={appName} />
-        <RolesHeader />
+        <PageHeader
+          title="Roles"
+          icon={icon}
+          breadcrumb={[]}
+          className={styles.header}
+        >
+          <DataTable.Search size="small" placeholder="Search roles..." />
+        </PageHeader>
         <DataTable.Content
           emptyState={noDataChildren}
           classNames={{
