@@ -1716,24 +1716,24 @@ func (s *Service) listProjectsForPrincipal(ctx context.Context, principalID, pri
 }
 
 // listDirectProjectIDs returns projects the principal has a direct policy on,
-// kept only if the role grants at least one permission in
-// schema.ProjectDirectVisibilityPerms. This is the project-listing analog of
-// what SpiceDB does today for the "get" check on a project.
+// kept only if the role grants any of the permissions that imply project
+// visibility. This is the project-listing analog of what SpiceDB does today
+// for the "get" check on a project.
 func (s *Service) listDirectProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
-		PrincipalID:   principalID,
-		PrincipalType: principalType,
-		ResourceType:  schema.ProjectNamespace,
+		PrincipalID:     principalID,
+		PrincipalType:   principalType,
+		ResourceType:    schema.ProjectNamespace,
+		RolePermissions: schema.ProjectDirectVisibilityPerms,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list direct project policies: %w", err)
 	}
-	return s.filterByRolePermissions(ctx, policies, schema.ProjectDirectVisibilityPerms)
+	return policyResourceIDs(policies), nil
 }
 
-// listGroupExpandedProjectIDs: principal → groups → project policies on those
-// groups → gated by schema.ProjectDirectVisibilityPerms (same rule as direct
-// project policies).
+// listGroupExpandedProjectIDs walks: principal → groups → project policies on
+// those groups → kept only if the role grants project visibility.
 func (s *Service) listGroupExpandedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	// Use the per-principal helper (not ListResourcesByPrincipal) so the PAT
 	// pass doesn't trigger another PAT recursion on itself.
@@ -1745,36 +1745,34 @@ func (s *Service) listGroupExpandedProjectIDs(ctx context.Context, principalID, 
 		return nil, nil
 	}
 	policies, err := s.policyService.List(ctx, policy.Filter{
-		PrincipalType: schema.GroupPrincipal,
-		PrincipalIDs:  groupIDs,
-		ResourceType:  schema.ProjectNamespace,
+		PrincipalType:   schema.GroupPrincipal,
+		PrincipalIDs:    groupIDs,
+		ResourceType:    schema.ProjectNamespace,
+		RolePermissions: schema.ProjectDirectVisibilityPerms,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list project policies for principal groups: %w", err)
 	}
-	return s.filterByRolePermissions(ctx, policies, schema.ProjectDirectVisibilityPerms)
+	return policyResourceIDs(policies), nil
 }
 
 // listOrgInheritedProjectIDs finds projects a principal can see by virtue of
 // holding a strong-enough role on the project's org (e.g. Org Owner sees all
 // projects in their org; Org Viewer doesn't). Steps:
-//   - get the principal's policies on orgs
-//   - keep only the orgs whose role grants something in
-//     schema.OrganizationProjectInheritPerms
+//   - get the principal's policies on orgs, kept only if the role grants any
+//     permission that implies org→all-projects inheritance
 //   - fetch all projects in those orgs in a single batched query
 func (s *Service) listOrgInheritedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
 	policies, err := s.policyService.List(ctx, policy.Filter{
-		PrincipalID:   principalID,
-		PrincipalType: principalType,
-		ResourceType:  schema.OrganizationNamespace,
+		PrincipalID:     principalID,
+		PrincipalType:   principalType,
+		ResourceType:    schema.OrganizationNamespace,
+		RolePermissions: schema.OrganizationProjectInheritPerms,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list org policies for inheritance: %w", err)
 	}
-	inheritingOrgIDs, err := s.filterByRolePermissions(ctx, policies, schema.OrganizationProjectInheritPerms)
-	if err != nil {
-		return nil, err
-	}
+	inheritingOrgIDs := policyResourceIDs(policies)
 	if len(inheritingOrgIDs) == 0 {
 		return nil, nil
 	}
@@ -1787,6 +1785,15 @@ func (s *Service) listOrgInheritedProjectIDs(ctx context.Context, principalID, p
 		ids = append(ids, p.ID)
 	}
 	return ids, nil
+}
+
+// policyResourceIDs plucks the deduped resource IDs from a policy slice.
+func policyResourceIDs(policies []policy.Policy) []string {
+	ids := make([]string, 0, len(policies))
+	for _, pol := range policies {
+		ids = append(ids, pol.ResourceID)
+	}
+	return utils.Deduplicate(ids)
 }
 
 // narrowProjectsByOrg keeps only IDs whose org_id matches orgID (single query).
@@ -1803,62 +1810,4 @@ func (s *Service) narrowProjectsByOrg(ctx context.Context, ids []string, orgID s
 		out = append(out, p.ID)
 	}
 	return out, nil
-}
-
-// filterByRolePermissions returns resource IDs from policies whose role grants
-// at least one of the given permissions. Roles are loaded once in a single
-// batched call, not one lookup per policy.
-//
-// We don't look at how the policy was granted (direct vs. PAT) — the
-// permission lists already account for both kinds today. If the schema ever
-// makes the two paths grant different sets of permissions, this needs to
-// branch on grant_relation.
-func (s *Service) filterByRolePermissions(ctx context.Context, policies []policy.Policy, permissions []string) ([]string, error) {
-	if len(policies) == 0 || len(permissions) == 0 {
-		return nil, nil
-	}
-
-	wanted := make(map[string]struct{}, len(permissions))
-	for _, p := range permissions {
-		wanted[p] = struct{}{}
-	}
-
-	roleIDSet := make(map[string]struct{}, len(policies))
-	for _, pol := range policies {
-		if pol.RoleID == "" {
-			continue
-		}
-		roleIDSet[pol.RoleID] = struct{}{}
-	}
-	if len(roleIDSet) == 0 {
-		return nil, nil
-	}
-	roleIDs := make([]string, 0, len(roleIDSet))
-	for id := range roleIDSet {
-		roleIDs = append(roleIDs, id)
-	}
-
-	roles, err := s.roleService.List(ctx, role.Filter{IDs: roleIDs})
-	if err != nil {
-		return nil, fmt.Errorf("list roles for permission filter: %w", err)
-	}
-	rolePermits := make(map[string]bool, len(roles))
-	for _, r := range roles {
-		grants := false
-		for _, p := range r.Permissions {
-			if _, ok := wanted[p]; ok {
-				grants = true
-				break
-			}
-		}
-		rolePermits[r.ID] = grants
-	}
-
-	out := make([]string, 0, len(policies))
-	for _, pol := range policies {
-		if rolePermits[pol.RoleID] {
-			out = append(out, pol.ResourceID)
-		}
-	}
-	return utils.Deduplicate(out), nil
 }

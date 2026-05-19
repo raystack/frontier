@@ -1813,15 +1813,10 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 	roleProjectViewerID := uuid.New().String()
 	roleProjectOwnerID := uuid.New().String()
 
-	// roles with permissions that mirror the canonical predefined roles.
-	orgViewerRole := role.Role{ID: roleOrgViewerID, Name: schema.RoleOrganizationViewer, Permissions: []string{"app_organization_get"}}
-	orgManagerRole := role.Role{ID: roleOrgManagerID, Name: schema.RoleOrganizationManager, Permissions: []string{
-		"app_organization_update", "app_organization_get", "app_project_get", "app_project_update",
-	}}
-	orgOwnerRole := role.Role{ID: roleOrgOwnerID, Name: schema.RoleOrganizationOwner, Permissions: []string{"app_organization_administer"}}
-	orgCustomRole := role.Role{ID: roleOrgCustomID, Name: "custom_app_project_admin", Permissions: []string{"app_project_administer"}}
-	projectViewerRole := role.Role{ID: roleProjectViewerID, Name: schema.RoleProjectViewer, Permissions: []string{"app_project_get"}}
-	projectOwnerRole := role.Role{ID: roleProjectOwnerID, Name: schema.RoleProjectOwner, Permissions: []string{"app_project_administer"}}
+	// The full role.Role fixtures aren't needed anymore — the role-permission
+	// gate now happens at the policy filter (policy.Filter.RolePermissions),
+	// so the mocked policyService.List returns are already gated. We just
+	// need the role IDs to attach to mock policies.
 
 	type mockSet struct {
 		policy  *mocks.PolicyService
@@ -1909,22 +1904,20 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			want: []string{groupA},
 		},
 		{
-			name:         "project listing: direct policy gated by ProjectDirectVisibility, viewer role kept",
+			name:         "project listing: direct policy with role granting project visibility is returned",
 			principal:    authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
 			resourceType: schema.ProjectNamespace,
 			filter:       membership.ResourceFilter{NonInherited: true},
 			setup: func(m *mockSet) {
-				// direct project policies
+				// direct project policies — gated by RolePermissions at policy.Filter
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: project1, RoleID: roleProjectViewerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
-					return len(f.IDs) == 1 && f.IDs[0] == roleProjectViewerID
-				})).Return([]role.Role{projectViewerRole}, nil)
 				// group expansion: principal has no groups
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
@@ -1941,9 +1934,10 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			resourceType: schema.ProjectNamespace,
 			setup: func(m *mockSet) {
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
@@ -1951,15 +1945,13 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: orgA, RoleID: roleOrgOwnerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
-					return len(f.IDs) == 1 && f.IDs[0] == roleOrgOwnerID
-				})).Return([]role.Role{orgOwnerRole}, nil)
 				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
 					{ID: project1}, {ID: project2}, {ID: project3},
 				}, nil)
@@ -1972,9 +1964,10 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			resourceType: schema.ProjectNamespace,
 			setup: func(m *mockSet) {
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
@@ -1982,13 +1975,13 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: orgA, RoleID: roleOrgManagerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{orgManagerRole}, nil)
 				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
 					{ID: project1}, {ID: project2},
 				}, nil)
@@ -2001,24 +1994,25 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			resourceType: schema.ProjectNamespace,
 			setup: func(m *mockSet) {
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
 					PrincipalType: schema.UserPrincipal,
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
+				// SQL filter excludes the viewer's policy (role doesn't grant
+				// any OrganizationProjectInheritPerms) — empty result, no
+				// follow-up projectService.List call.
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{
-					{ResourceID: orgA, RoleID: roleOrgViewerID},
-				}, nil)
-				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{orgViewerRole}, nil)
-				// no projectService.List call expected — inheritingOrgIDs is empty
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
+				}).Return([]policy.Policy{}, nil)
 			},
 			want: []string{},
 		},
@@ -2028,9 +2022,10 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			resourceType: schema.ProjectNamespace,
 			setup: func(m *mockSet) {
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
@@ -2038,13 +2033,13 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: orgA, RoleID: roleOrgCustomID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{orgCustomRole}, nil)
 				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
 					{ID: project1},
 				}, nil)
@@ -2058,11 +2053,13 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			filter:       membership.ResourceFilter{NonInherited: true},
 			setup: func(m *mockSet) {
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{}, nil)
-				// recursion to list groups for the user
+				// recursion to list groups for the user (no RolePermissions —
+				// group listing isn't role-permission-gated)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
 					PrincipalType: schema.UserPrincipal,
@@ -2070,17 +2067,15 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 				}).Return([]policy.Policy{
 					{ResourceID: groupA, RoleID: uuid.New().String()},
 				}, nil)
-				// then project policies on those groups
+				// then project policies on those groups, also gated
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalType: schema.GroupPrincipal,
-					PrincipalIDs:  []string{groupA},
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalType:   schema.GroupPrincipal,
+					PrincipalIDs:    []string{groupA},
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: project2, RoleID: roleProjectViewerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
-					return len(f.IDs) == 1 && f.IDs[0] == roleProjectViewerID
-				})).Return([]role.Role{projectViewerRole}, nil)
 			},
 			want: []string{project2},
 		},
@@ -2091,16 +2086,14 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			filter:       membership.ResourceFilter{OrgID: orgA, NonInherited: true},
 			setup: func(m *mockSet) {
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: project1, RoleID: roleProjectViewerID},
 					{ResourceID: project2, RoleID: roleProjectViewerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
-					return len(f.IDs) == 1
-				})).Return([]role.Role{projectViewerRole}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
 					PrincipalType: schema.UserPrincipal,
@@ -2141,13 +2134,13 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			setup: func(m *mockSet) {
 				// only the user-pass queries fire; no second list under the PAT principal type
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: project1, RoleID: roleProjectViewerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{projectViewerRole}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
 					PrincipalType: schema.UserPrincipal,
@@ -2167,9 +2160,10 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			setup: func(m *mockSet) {
 				// user pass — user is org owner, expands via inheritance
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   userID,
@@ -2177,23 +2171,22 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: orgA, RoleID: roleOrgOwnerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
-					return len(f.IDs) == 1 && f.IDs[0] == roleOrgOwnerID
-				})).Return([]role.Role{orgOwnerRole}, nil)
 				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
 					{ID: project1}, {ID: project2}, {ID: project3},
 				}, nil)
 				// PAT pass — all-projects scope is one pat_granted policy on the org
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   patID,
-					PrincipalType: schema.PATPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     patID,
+					PrincipalType:   schema.PATPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
 					PrincipalID:   patID,
@@ -2201,18 +2194,16 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   patID,
-					PrincipalType: schema.PATPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:     patID,
+					PrincipalType:   schema.PATPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
 				}).Return([]policy.Policy{
 					// grant_relation here would be pat_granted in production;
 					// listing doesn't filter on it, so the value doesn't matter
 					// for behavior — only the role's permissions do.
 					{ResourceID: orgA, RoleID: roleProjectOwnerID},
 				}, nil)
-				m.role.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
-					return len(f.IDs) == 1 && f.IDs[0] == roleProjectOwnerID
-				})).Return([]role.Role{projectOwnerRole}, nil)
 				m.project.EXPECT().List(ctx, project.Filter{OrgIDs: []string{orgA}}).Return([]project.Project{
 					{ID: project1}, {ID: project2}, {ID: project3},
 				}, nil)
@@ -2229,11 +2220,13 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 			},
 			resourceType: schema.ProjectNamespace,
 			setup: func(m *mockSet) {
-				// user pass
+				// user pass — viewer role on org doesn't pass the inheritance
+				// gate, so the org-inheritance query returns []
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: project1, RoleID: roleProjectViewerID},
 				}, nil)
@@ -2243,17 +2236,17 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   userID,
-					PrincipalType: schema.UserPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
-				}).Return([]policy.Policy{
-					{ResourceID: orgA, RoleID: roleOrgViewerID},
-				}, nil)
+					PrincipalID:     userID,
+					PrincipalType:   schema.UserPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
+				}).Return([]policy.Policy{}, nil)
 				// PAT pass
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   patID,
-					PrincipalType: schema.PATPrincipal,
-					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:     patID,
+					PrincipalType:   schema.PATPrincipal,
+					ResourceType:    schema.ProjectNamespace,
+					RolePermissions: schema.ProjectDirectVisibilityPerms,
 				}).Return([]policy.Policy{
 					{ResourceID: project2, RoleID: roleProjectViewerID},
 				}, nil)
@@ -2263,14 +2256,11 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 					ResourceType:  schema.GroupNamespace,
 				}).Return([]policy.Policy{}, nil)
 				m.policy.EXPECT().List(ctx, policy.Filter{
-					PrincipalID:   patID,
-					PrincipalType: schema.PATPrincipal,
-					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:     patID,
+					PrincipalType:   schema.PATPrincipal,
+					ResourceType:    schema.OrganizationNamespace,
+					RolePermissions: schema.OrganizationProjectInheritPerms,
 				}).Return([]policy.Policy{}, nil)
-				// role lookups required: both passes hit filterByRolePermissions,
-				// without which the empty-intersection assertion would pass
-				// for the wrong reason.
-				m.role.EXPECT().List(ctx, mock.Anything).Return([]role.Role{projectViewerRole, orgViewerRole}, nil)
 			},
 			// user sees [P1], PAT sees [P2], intersection = []
 			want: []string{},

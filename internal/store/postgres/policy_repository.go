@@ -11,6 +11,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -125,6 +126,20 @@ func applyListFilter(stmt *goqu.SelectDataset, flt policy.Filter) *goqu.SelectDa
 		stmt = stmt.Where(goqu.Ex{
 			"role_id": flt.RoleIDs,
 		})
+	}
+	if len(flt.RolePermissions) > 0 {
+		// Join the roles table to keep only policies whose role grants at
+		// least one of the listed permission names.
+		stmt = stmt.
+			Join(
+				goqu.T(TABLE_ROLES).As("r"),
+				goqu.On(goqu.I("r.id").Eq(goqu.I("p.role_id"))),
+			).
+			Where(goqu.Func(
+				"jsonb_exists_any",
+				goqu.I("r.permissions"),
+				pq.Array(flt.RolePermissions),
+			))
 	}
 	return stmt
 }
