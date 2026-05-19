@@ -1,4 +1,4 @@
-import { SidebarIcon, OrganizationIcon } from "@raystack/apsara/icons";
+import { SidebarIcon, OrganizationIcon } from "@raystack/apsara-v1/icons";
 
 import {
   Flex,
@@ -6,13 +6,13 @@ import {
   Breadcrumb,
   Avatar,
   IconButton,
-  DropdownMenu,
+  Menu,
   Chip,
   Spinner,
   getAvatarColor,
-  toast,
+  toastManager,
   Search
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 
 import styles from "./layout.module.css";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
@@ -35,7 +35,7 @@ interface navConfig {
 
 const DropdownItem = ({ item }: { item: navConfig }) => {
   return (
-    <DropdownMenu.Item
+    <Menu.Item
       disabled={item.disabled}
       onClick={item?.onClick}
       className={styles["navbar-action-menu-item"]}
@@ -43,7 +43,7 @@ const DropdownItem = ({ item }: { item: navConfig }) => {
     >
       <Text>{item.label}</Text>
       {item.isLoading ? <Spinner size={2} /> : null}
-    </DropdownMenu.Item>
+    </Menu.Item>
   );
 };
 
@@ -90,7 +90,7 @@ const NavbarActionMenu = ({
       setIsMembersDownloading(true);
       await onExportMembers();
     } catch (error) {
-      toast.error("Failed to export members");
+      toastManager.add({ title: "Failed to export members", type: "error" });
       console.error(error);
     } finally {
       setIsMembersDownloading(false);
@@ -104,7 +104,7 @@ const NavbarActionMenu = ({
       setIsProjectsDownloading(true);
       await onExportProjects();
     } catch (error) {
-      toast.error("Failed to export projects");
+      toastManager.add({ title: "Failed to export projects", type: "error" });
       console.error(error);
     } finally {
       setIsProjectsDownloading(false);
@@ -118,7 +118,7 @@ const NavbarActionMenu = ({
       setIsTokensDownloading(true);
       await onExportTokens();
     } catch (error) {
-      toast.error("Failed to export tokens");
+      toastManager.add({ title: "Failed to export tokens", type: "error" });
       console.error(error);
     } finally {
       setIsTokensDownloading(false);
@@ -186,36 +186,36 @@ const NavbarActionMenu = ({
       {isAddTokensDialogOpen ? (
         <AddTokensDialog onOpenChange={setIsAddTokensDialogOpen} />
       ) : null}
-      <DropdownMenu>
-        <DropdownMenu.Trigger asChild>
-          <IconButton size={2} data-test-id="admin-nav-action-menu-button">
-            <DotsHorizontalIcon />
-          </IconButton>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content className={styles["navbar-action-menu-content"]}>
+      <Menu>
+        <Menu.Trigger
+          render={
+            <IconButton size={2} data-test-id="admin-nav-action-menu-button">
+              <DotsHorizontalIcon />
+            </IconButton>
+          }
+        />
+        <Menu.Content className={styles["navbar-action-menu-content"]}>
           {items.map((item) =>
             item?.subItems ? (
-              <DropdownMenu key={item.label}>
-                <DropdownMenu.TriggerItem>
+              <Menu.Submenu key={item.label}>
+                <Menu.SubmenuTrigger>
                   {item.label}
-                </DropdownMenu.TriggerItem>
-                <DropdownMenu.Content>
-                  <DropdownMenu>
-                    {item.subItems.map((subItem) => (
-                      <DropdownItem
-                        item={subItem}
-                        key={`${item.label}---${subItem.label}`}
-                      />
-                    ))}
-                  </DropdownMenu>
-                </DropdownMenu.Content>
-              </DropdownMenu>
+                </Menu.SubmenuTrigger>
+                <Menu.SubmenuContent>
+                  {item.subItems.map((subItem) => (
+                    <DropdownItem
+                      item={subItem}
+                      key={`${item.label}---${subItem.label}`}
+                    />
+                  ))}
+                </Menu.SubmenuContent>
+              </Menu.Submenu>
             ) : (
               <DropdownItem item={item} key={item.label} />
             ),
           )}
-        </DropdownMenu.Content>
-      </DropdownMenu>
+        </Menu.Content>
+      </Menu>
     </>
   );
 };
@@ -253,10 +253,11 @@ const NavLinks = ({
         return (
           <Chip
             key={link.path + i}
-            data-state={isActive ? "active" : ""}
+            data-state={isActive ? "active" : undefined}
             variant={"filled"}
             className={styles["nav-chip"]}
             onClick={() => onNavigate(link.path)}
+            data-test-id={`admin-nav-link-${link.name}`}
           >
             {link.name}
           </Chip>

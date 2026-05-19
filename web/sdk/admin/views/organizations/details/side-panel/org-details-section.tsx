@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara";
+import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara-v1";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
 import { useContext } from "react";
@@ -41,10 +41,15 @@ export const OrganizationDetailsSection = ({
               text={organization.id || ""}
               data-test-id="copy-button"
             />
-            <Tooltip message={organization.id}>
-              <Text className={styles["org-details-section-org-id"]}>
-                {organization.id}
-              </Text>
+            <Tooltip>
+              <Tooltip.Trigger
+                render={
+                  <Text className={styles["org-details-section-org-id"]}>
+                    {organization.id}
+                  </Text>
+                }
+              />
+              <Tooltip.Content>{organization.id}</Tooltip.Content>
             </Tooltip>
           </Flex>
         </List.Value>

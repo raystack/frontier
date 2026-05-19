@@ -1,4 +1,4 @@
-import { Button, Dialog, Flex, InputField, toast } from "@raystack/apsara";
+import { Button, Dialog, Field, Flex, Input, toastManager } from "@raystack/apsara-v1";
 import {
   FrontierServiceQueries,
   UpdateProjectRequestSchema,
@@ -64,7 +64,7 @@ export function RenameProjectDialog({
       const newProject = resp.project;
 
       if (newProject) {
-        toast.success(`${t.project({ case: "capital" })} renamed successfully`);
+        toastManager.add({ title: `${t.project({ case: "capital" })} renamed successfully`, type: "success" });
         onRename({
           ...project,
           title: newProject.title,
@@ -72,7 +72,7 @@ export function RenameProjectDialog({
         });
       }
     } catch (error) {
-      toast.error(`Failed to rename ${t.project({ case: "lower" })}`);
+      toastManager.add({ title: `Failed to rename ${t.project({ case: "lower" })}`, type: "error" });
       console.error(error);
     }
   };
@@ -87,7 +87,6 @@ export function RenameProjectDialog({
         <form onSubmit={handleSubmit(submit)}>
           <Dialog.Header>
             <Dialog.Title>Rename {t.project({ case: "capital" })}</Dialog.Title>
-            <Dialog.CloseButton data-test-id="rename-project-close-button" />
           </Dialog.Header>
           <Dialog.Body>
             <Flex direction="column" gap={5}>
@@ -95,27 +94,30 @@ export function RenameProjectDialog({
                 name="title"
                 control={control}
                 render={({ field }) => (
-                  <InputField
-                    {...field}
-                    label={`${t.project({ case: "capital" })} name`}
-                    placeholder={`${t.project({ case: "capital" })} name`}
-                    data-test-id="rename-project-title-input"
-                  />
+                  <Field label={`${t.project({ case: "capital" })} name`}>
+                    <Input
+                      {...field}
+                      placeholder={`${t.project({ case: "capital" })} name`}
+                      data-test-id="rename-project-title-input"
+                    />
+                  </Field>
                 )}
               />
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>
-            <Dialog.Close asChild>
-              <Button
-                type="button"
-                variant="outline"
-                color="neutral"
-                data-test-id="rename-project-cancel-button"
-              >
-                Cancel
-              </Button>
-            </Dialog.Close>
+            <Dialog.Close
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  color="neutral"
+                  data-test-id="rename-project-cancel-button"
+                >
+                  Cancel
+                </Button>
+              }
+            />
             <Button
               type="submit"
               data-test-id="rename-project-update-button"

@@ -1,20 +1,16 @@
-import { EmptyState, Flex, DataTable, Sheet } from "@raystack/apsara";
+import { EmptyState, Flex, DataTable, Drawer } from "@raystack/apsara-v1";
+import type { ReactNode } from "react";
 import type { Plan } from "@raystack/proton/frontier";
 import { reduceByKey } from "../../utils/helper";
 import { getColumns } from "./columns";
-import { PlanHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import styles from "./plans.module.css";
+import { PageHeader } from "../../components/PageHeader";
 import { PageTitle } from "../../components/PageTitle";
 import { SheetHeader } from "../../components/SheetHeader";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import PlanDetails from "./details";
-
-const pageHeader = {
-  title: "Plans",
-  breadcrumb: [],
-};
 
 export type PlansViewProps = {
   /** When set, opens the detail sheet for this plan. */
@@ -25,6 +21,8 @@ export type PlansViewProps = {
   onSelectPlan?: (planId: string) => void;
   /** App name displayed in the page title. */
   appName?: string;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
 export default function PlansView({
@@ -32,6 +30,7 @@ export default function PlansView({
   onCloseDetail,
   onSelectPlan,
   appName,
+  icon,
 }: PlansViewProps = {}) {
   const {
     data: plansResponse,
@@ -70,22 +69,29 @@ export default function PlansView({
     >
       <Flex direction="column">
         <PageTitle title="Plans" appName={appName} />
-        <PlanHeader header={pageHeader} />
+        <PageHeader
+          title="Plans"
+          icon={icon}
+          breadcrumb={[]}
+          className={styles.header}
+        >
+          <DataTable.Search size="small" placeholder="Search plans..." />
+        </PageHeader>
         <DataTable.Content
           emptyState={noDataChildren}
           classNames={{ root: styles.tableRoot, table: styles.table }}
         />
       </Flex>
-      <Sheet open={selectedPlanId !== undefined}>
-        <Sheet.Content className={styles.sheetContent}>
+      <Drawer open={selectedPlanId !== undefined}>
+        <Drawer.Content showCloseButton={false} className={styles.sheetContent}>
           <SheetHeader title="Plan Details" onClick={onCloseDetail ?? (() => {})} />
           <Flex className={styles.sheetContentBody}>
             <PlanDetails
               plan={selectedPlanId ? planMapById[selectedPlanId] ?? null : null}
             />
           </Flex>
-        </Sheet.Content>
-      </Sheet>
+        </Drawer.Content>
+      </Drawer>
     </DataTable>
   );
 }

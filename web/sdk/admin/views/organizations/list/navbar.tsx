@@ -6,8 +6,8 @@ import {
   Separator,
   IconButton,
   Spinner,
-} from "@raystack/apsara";
-import { OrganizationIcon } from "@raystack/apsara/icons";
+} from "@raystack/apsara-v1";
+import { OrganizationIcon } from "@raystack/apsara-v1/icons";
 import styles from "./list.module.css";
 import {
   DownloadIcon,
@@ -59,7 +59,7 @@ export const OrganizationsNavabar = ({
     <nav className={styles.navbar}>
       <Flex gap={2}>
         <OrganizationIcon />
-        <Text size={2} weight={500}>
+        <Text size="small" weight="medium">
           {t.organization({ plural: true, case: "capital" })}
         </Text>
       </Flex>

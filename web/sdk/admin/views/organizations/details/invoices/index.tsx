@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
 import styles from "./invoices.module.css";
 import { FileTextIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useMemo, useState } from "react";

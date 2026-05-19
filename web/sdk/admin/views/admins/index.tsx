@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
+import type { ReactNode } from "react";
 import { getColumns } from "./columns";
 import styles from "./admins.module.css";
 import { useQuery } from "@connectrpc/connect-query";
@@ -24,9 +25,11 @@ const NoAdmins = () => {
 
 export type AdminsViewProps = {
   onNavigateToOrg?: (orgId: string) => void;
+  /** Icon rendered in the page header next to the title. */
+  icon?: ReactNode;
 };
 
-export default function AdminsView({ onNavigateToOrg }: AdminsViewProps = {}) {
+export default function AdminsView({ onNavigateToOrg, icon }: AdminsViewProps = {}) {
   const t = useTerminology();
   const {
     data: platformUsersData,
@@ -68,6 +71,7 @@ export default function AdminsView({ onNavigateToOrg }: AdminsViewProps = {}) {
       <Flex direction="column" className={styles.tableWrapper}>
         <PageHeader
           title={pageHeader.title}
+          icon={icon}
           breadcrumb={pageHeader.breadcrumb}
           className={styles.header}
         />

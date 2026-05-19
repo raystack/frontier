@@ -4,9 +4,9 @@ import {
   Avatar,
   Flex,
   Text,
-  DropdownMenu,
-} from "@raystack/apsara";
-import type { DataTableColumnDef } from "@raystack/apsara";
+  Menu,
+} from "@raystack/apsara-v1";
+import type { DataTableColumnDef } from "@raystack/apsara-v1";
 import type {
   SearchOrganizationProjectsResponse_OrganizationProject,
   User,
@@ -30,15 +30,15 @@ import { useTerminology, TerminologyEntity } from "../../../../hooks/useTerminol
 const DropdownLoader = () => {
   return (
     <>
-      <DropdownMenu.Item>
+      <Menu.Item>
         <Skeleton containerClassName={styles["flex1"]} />
-      </DropdownMenu.Item>
-      <DropdownMenu.Item>
+      </Menu.Item>
+      <Menu.Item>
         <Skeleton containerClassName={styles["flex1"]} />
-      </DropdownMenu.Item>
-      <DropdownMenu.Item>
+      </Menu.Item>
+      <Menu.Item>
         <Skeleton containerClassName={styles["flex1"]} />
-      </DropdownMenu.Item>
+      </Menu.Item>
     </>
   );
 };
@@ -60,21 +60,21 @@ function AddMemberDropdown({
 }: AddMemberDropdownProps) {
   const t = useTerminology();
   return (
-    <DropdownMenu
+    <Menu.Submenu
       autocomplete
       autocompleteMode="manual"
-      onSearch={setSearchQuery}
+      onInputValueChange={setSearchQuery}
     >
-      <DropdownMenu.TriggerItem data-test-id="add-members">
+      <Menu.SubmenuTrigger data-test-id="add-members">
         Add {t.member({ case: "lower" })}
-      </DropdownMenu.TriggerItem>
-      <DropdownMenu.Content>
+      </Menu.SubmenuTrigger>
+      <Menu.SubmenuContent>
         {isLoading ? (
           <DropdownLoader />
         ) : (
           <>
             {eligibleMembers?.slice(0, 5).map((user) => (
-              <DropdownMenu.Item
+              <Menu.Item
                 key={user.id}
                 onClick={onAddMember(user?.id || "")}
                 data-test-id={`admin-add-member-${user.id}`}
@@ -88,12 +88,12 @@ function AddMemberDropdown({
                 }
               >
                 <Text>{user.title || user.email}</Text>
-              </DropdownMenu.Item>
+              </Menu.Item>
             ))}
           </>
         )}
-      </DropdownMenu.Content>
-    </DropdownMenu>
+      </Menu.SubmenuContent>
+    </Menu.Submenu>
   );
 }
 
@@ -136,12 +136,12 @@ function ProjectActionsContent({
         isLoading={isLoading}
         setSearchQuery={setSearchQuery}
       />
-      <DropdownMenu.Item
+      <Menu.Item
         onClick={handleRenameOptionClick}
         data-test-id="rename-project"
       >
         Rename {t.project({ case: "lower" })}...
-      </DropdownMenu.Item>
+      </Menu.Item>
     </>
   );
 }
@@ -184,24 +184,23 @@ function ProjectActions({
           onRename={handleProjectUpdate}
         />
       ) : null}
-      <DropdownMenu open={open} onOpenChange={handleOpen}>
-        <DropdownMenu.Trigger asChild>
-          <DotsHorizontalIcon
-            onClick={preventClickBubbling}
-            data-test-id="admin-project-actions"
-          />
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content
-          className={styles["table-action-dropdown"]}
-          unmountOnHide={true}
-        >
+      <Menu open={open} onOpenChange={handleOpen}>
+        <Menu.Trigger
+          render={
+            <DotsHorizontalIcon
+              onClick={preventClickBubbling}
+              data-test-id="admin-project-actions"
+            />
+          }
+        />
+        <Menu.Content className={styles["table-action-dropdown"]}>
           <ProjectActionsContent
             project={project}
             handleProjectUpdate={handleProjectUpdate}
             handleRenameOptionOpen={handleRenameOptionOpen}
           />
-        </DropdownMenu.Content>
-      </DropdownMenu>
+        </Menu.Content>
+      </Menu>
     </>
   );
 }

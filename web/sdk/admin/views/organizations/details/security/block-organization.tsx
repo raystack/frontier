@@ -1,4 +1,4 @@
-import { Button, Dialog, Flex, Text, toast } from "@raystack/apsara";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara-v1";
 import { useContext, useState } from "react";
 import { OrganizationStatus } from "../types";
 import { OrganizationContext } from "../contexts/organization-context";
@@ -40,11 +40,13 @@ const BlockOrganizationDialog = () => {
           }),
         });
         setIsDialogOpen(false);
-        toast.success(`${t.organization({ case: "capital" })} blocked`);
+        toastManager.add({ title: `${t.organization({ case: "capital" })} blocked`, type: "success" });
       },
       onError: (error) => {
-        toast.error("Something went wrong", {
+        toastManager.add({
+          title: "Something went wrong",
           description: error.message,
+          type: "error",
         });
         console.error("Failed to block organization:", error);
       },
@@ -64,11 +66,13 @@ const BlockOrganizationDialog = () => {
           }),
         });
         setIsDialogOpen(false);
-        toast.success(`${t.organization({ case: "capital" })} unblocked`);
+        toastManager.add({ title: `${t.organization({ case: "capital" })} unblocked`, type: "success" });
       },
       onError: (error) => {
-        toast.error("Something went wrong", {
+        toastManager.add({
+          title: "Something went wrong",
           description: error.message,
+          type: "error",
         });
         console.error("Failed to unblock organization:", error);
       },
@@ -121,33 +125,37 @@ const BlockOrganizationDialog = () => {
         };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-      <Dialog.Trigger asChild>
-        <Button
-          color={componentConfig.btnColor}
-          size="small"
-          data-test-id="block-orgnanization-button"
-        >
-          {componentConfig.btnText}
-        </Button>
-      </Dialog.Trigger>
-      <Dialog.Content width={400} ariaLabel="Block Organization">
-        <Dialog.Body>
-          <Dialog.Title>{componentConfig.dialogTitle}</Dialog.Title>
-          <Dialog.Description>
+    <AlertDialog open={isDialogOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Trigger
+        render={
+          <Button
+            color={componentConfig.btnColor}
+            size="small"
+            data-test-id="block-orgnanization-button"
+          >
+            {componentConfig.btnText}
+          </Button>
+        }
+      />
+      <AlertDialog.Content width={400} aria-label="Block Organization">
+        <AlertDialog.Body>
+          <AlertDialog.Title>{componentConfig.dialogTitle}</AlertDialog.Title>
+          <AlertDialog.Description>
             {componentConfig.dialogDescription}
-          </Dialog.Description>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close asChild>
-            <Button
-              color="neutral"
-              variant="outline"
-              data-test-id="block-organization-cancel-button"
-            >
-              {componentConfig.dialogCancelText}
-            </Button>
-          </Dialog.Close>
+          </AlertDialog.Description>
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
+            render={
+              <Button
+                color="neutral"
+                variant="outline"
+                data-test-id="block-organization-cancel-button"
+              >
+                {componentConfig.dialogCancelText}
+              </Button>
+            }
+          />
           <Button
             color={componentConfig.btnColor}
             data-test-id="block-organization-submit-button"
@@ -157,9 +165,9 @@ const BlockOrganizationDialog = () => {
           >
             {componentConfig.dialogConfirmText}
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };
 
@@ -167,8 +175,8 @@ export const BlockOrganizationSection = () => {
   return (
     <Flex gap={5} justify="between">
       <Flex direction="column" gap={3}>
-        <Text size={5}>Block organization</Text>
-        <Text size={3} variant="secondary">
+        <Text size="large">Block organization</Text>
+        <Text size="small" variant="secondary">
           Restrict access to safeguard platform integrity and prevent
           unauthorized activities.
         </Text>

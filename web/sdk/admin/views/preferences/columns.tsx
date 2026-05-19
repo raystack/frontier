@@ -1,4 +1,4 @@
-import { Text, type DataTableColumnDef } from "@raystack/apsara";
+import { Text, type DataTableColumnDef } from "@raystack/apsara-v1";
 import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
 import styles from "./preferences.module.css";
 

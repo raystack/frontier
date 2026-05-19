@@ -4,8 +4,8 @@ import {
   type DataTableSort,
   EmptyState,
   Flex,
-} from "@raystack/apsara";
-import { useDebouncedState } from "@raystack/apsara/hooks";
+} from "@raystack/apsara-v1";
+import { useDebouncedState } from "@raystack/apsara-v1/hooks";
 import { useCallback, useMemo, useState } from "react";
 import Navbar from "./navbar";
 import styles from "./audit-logs.module.css";

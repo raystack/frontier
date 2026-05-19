@@ -5,7 +5,7 @@ import {
   Separator,
   IconButton,
   Spinner,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import styles from "./list.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import UserIcon from "../../../assets/icons/UsersIcon";
@@ -48,7 +48,7 @@ const Navbar = ({ searchQuery, onExportUsers }: NavbarProps) => {
     <nav className={styles.navbar}>
       <Flex gap={2}>
         <UserIcon />
-        <Text size={2} weight={500}>
+        <Text size="small" weight="medium">
           Users
         </Text>
       </Flex>

@@ -1,10 +1,10 @@
 import {
   Button,
-  toast,
+  toastManager,
   Dialog,
   Flex,
   Text
-} from '@raystack/apsara';
+} from '@raystack/apsara-v1';
 import styles from './sessions.module.css';
 
 interface RevokeSessionFinalConfirmProps {
@@ -25,8 +25,10 @@ export const RevokeSessionFinalConfirm = ({
       onConfirm();
       onOpenChange(false);
     } catch (error: any) {
-      toast.error('Failed to revoke session', {
-        description: error.message || 'Something went wrong'
+      toastManager.add({
+        title: 'Failed to revoke session',
+        description: error.message || 'Something went wrong',
+        type: "error",
       });
     }
   };

@@ -1,4 +1,4 @@
-import { Flex, Separator, Text } from "@raystack/apsara";
+import { Flex, Separator, Text } from "@raystack/apsara-v1";
 import { PageTitle } from "../../../../components/PageTitle";
 import { useUser } from "../user-context";
 import { BlockUserDialog } from "./block-user";

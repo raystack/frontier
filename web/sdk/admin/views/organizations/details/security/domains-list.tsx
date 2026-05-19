@@ -1,11 +1,11 @@
 import {
+  AlertDialog,
   Button,
-  Dialog,
   Flex,
   IconButton,
   Text,
-  toast,
-} from "@raystack/apsara";
+  toastManager,
+} from "@raystack/apsara-v1";
 import styles from "./security.module.css";
 import { CheckCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";
@@ -41,11 +41,13 @@ const DeleteDomainDialog = ({
           }),
         });
         setIsDialogOpen(false);
-        toast.success("Domain deleted");
+        toastManager.add({ title: "Domain deleted", type: "success" });
       },
       onError: (error) => {
-        toast.error("Something went wrong", {
+        toastManager.add({
+          title: "Something went wrong",
           description: error.message,
+          type: "error",
         });
         console.error("Unable to delete domain:", error);
       },
@@ -66,29 +68,33 @@ const DeleteDomainDialog = ({
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-      <Dialog.Trigger asChild>
-        <IconButton size={3} data-test-id="delete-domain-button">
-          <TrashIcon />
-        </IconButton>
-      </Dialog.Trigger>
-      <Dialog.Content width={400}>
-        <Dialog.Body>
-          <Dialog.Title>Delete email domain</Dialog.Title>
-          <Dialog.Description>
+    <AlertDialog open={isDialogOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Trigger
+        render={
+          <IconButton size={3} data-test-id="delete-domain-button">
+            <TrashIcon />
+          </IconButton>
+        }
+      />
+      <AlertDialog.Content width={400}>
+        <AlertDialog.Body>
+          <AlertDialog.Title>Delete email domain</AlertDialog.Title>
+          <AlertDialog.Description>
             Are you sure you want to delete this email domain?
-          </Dialog.Description>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close asChild>
-            <Button
-              color="neutral"
-              variant="outline"
-              data-test-id="delete-domain-cancel-button"
-            >
-              Cancel
-            </Button>
-          </Dialog.Close>
+          </AlertDialog.Description>
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
+            render={
+              <Button
+                color="neutral"
+                variant="outline"
+                data-test-id="delete-domain-cancel-button"
+              >
+                Cancel
+              </Button>
+            }
+          />
           <Button
             color={"danger"}
             data-test-id="delete-domain-submit-button"
@@ -98,9 +104,9 @@ const DeleteDomainDialog = ({
           >
             Delete
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };
 
@@ -112,7 +118,7 @@ const DomainItem = ({ domain }: DomainItemProps) => {
   return (
     <Flex className={styles["domains-list-item"]} justify="between">
       <Flex gap={3}>
-        <Text size={3}>{domain?.name}</Text>
+        <Text size="small">{domain?.name}</Text>
         {domain.state === "verified" ? (
           <CheckCircledIcon
             color={"var(--rs-color-foreground-success-primary)"}

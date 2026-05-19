@@ -1,7 +1,7 @@
 import { NULL_DATE } from "../../../../utils/constants";
 import styles from "./invoices.module.css";
 import dayjs from "dayjs";
-import { DataTableColumnDef, Link, Amount } from "@raystack/apsara";
+import { DataTableColumnDef, Link, Amount } from "@raystack/apsara-v1";
 import type {
   SearchOrganizationInvoicesResponse_OrganizationInvoice,
 } from "@raystack/proton/frontier";

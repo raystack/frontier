@@ -5,8 +5,8 @@ import {
   Separator,
   Text,
   Tooltip,
-  toast,
-} from "@raystack/apsara";
+  toastManager,
+} from "@raystack/apsara-v1";
 
 import styles from './security.module.css';
 import { PlusIcon } from '@radix-ui/react-icons';
@@ -27,23 +27,28 @@ const AddDomainSection = () => {
   return (
     <Flex gap={5} justify="between">
       <Flex direction="column" gap={3}>
-        <Text size={5}>Allowed email domains</Text>
-        <Text size={3} variant="secondary">
+        <Text size="large">Allowed email domains</Text>
+        <Text size="small" variant="secondary">
           Anyone with an email address at these domains is allowed to sign up
           for this workspace.
         </Text>
       </Flex>
-      <Tooltip message="Coming soon">
-        <Button
-          variant="outline"
-          color="neutral"
-          leadingIcon={<PlusIcon />}
-          size="small"
-          data-test-id="add-domain-button"
-          disabled={true}
-        >
-          Add domain
-        </Button>
+      <Tooltip>
+        <Tooltip.Trigger
+          render={
+            <Button
+              variant="outline"
+              color="neutral"
+              leadingIcon={<PlusIcon />}
+              size="small"
+              data-test-id="add-domain-button"
+              disabled={true}
+            >
+              Add domain
+            </Button>
+          }
+        />
+        <Tooltip.Content>Coming soon</Tooltip.Content>
       </Tooltip>
     </Flex>
   );
@@ -65,8 +70,10 @@ export const OrganizationSecurity = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error("Something went wrong", {
+      toastManager.add({
+        title: "Something went wrong",
         description: "Unable to fetch domains",
+        type: "error",
       });
       console.error("Unable to fetch domains:", error);
     }

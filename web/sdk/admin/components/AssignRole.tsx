@@ -5,8 +5,8 @@ import {
   Flex,
   Label,
   Text,
-  toast,
-} from "@raystack/apsara";
+  toastManager,
+} from "@raystack/apsara-v1";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
   Role,
@@ -83,9 +83,12 @@ export const AssignRole = ({
         onRoleUpdate();
       }
 
-      toast.success("Role assigned successfully");
+      toastManager.add({
+        title: "Role assigned successfully",
+        type: "success",
+      });
     } catch (error) {
-      toast.error("Failed to assign role");
+      toastManager.add({ title: "Failed to assign role", type: "error" });
       console.error(error);
     }
   };
@@ -95,7 +98,6 @@ export const AssignRole = ({
       <Dialog.Content width={400}>
         <Dialog.Header>
           <Dialog.Title>Assign Role</Dialog.Title>
-          <Dialog.CloseButton data-test-id="assign-role-close-button" />
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Dialog.Body>
@@ -131,16 +133,18 @@ export const AssignRole = ({
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>
-            <Dialog.Close asChild>
-              <Button
-                type="button"
-                variant="outline"
-                color="neutral"
-                data-test-id="assign-role-cancel-button"
-              >
-                Cancel
-              </Button>
-            </Dialog.Close>
+            <Dialog.Close
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  color="neutral"
+                  data-test-id="assign-role-cancel-button"
+                >
+                  Cancel
+                </Button>
+              }
+            />
             <Button
               type="submit"
               disabled={!isDirty}

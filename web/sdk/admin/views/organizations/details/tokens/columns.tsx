@@ -8,7 +8,7 @@ import {
   getAvatarColor,
   Text,
   Tooltip,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import type {
   SearchOrganizationTokensResponse_OrganizationToken,
 } from "@raystack/proton/frontier";
@@ -70,8 +70,11 @@ export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
         const text = (getValue() as string) ?? "";
         if (!text) return text;
         return (
-          <Tooltip message={text} delayDuration={500}>
-            <span className={styles["truncate-text"]}>{text}</span>
+          <Tooltip>
+            <Tooltip.Trigger
+              render={<span className={styles["truncate-text"]}>{text}</span>}
+            />
+            <Tooltip.Content>{text}</Tooltip.Content>
           </Tooltip>
         );
       },

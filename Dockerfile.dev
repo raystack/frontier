@@ -6,6 +6,7 @@ WORKDIR /app
 
 COPY Makefile .
 COPY web ./web
+ENV CI=true
 RUN make admin-app
 
 # Build the Go binary

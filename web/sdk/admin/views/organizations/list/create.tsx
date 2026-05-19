@@ -3,15 +3,16 @@ import styles from "./list.module.css";
 import { useTerminology } from "../../../hooks/useTerminology";
 import {
   Button,
+  Field,
   Flex,
   IconButton,
-  InputField,
+  Input,
   Select,
-  Sheet,
+  Drawer,
   SidePanel,
   Text,
   Label,
-} from "@raystack/apsara";
+} from "@raystack/apsara-v1";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { AvatarUpload } from "../../../../react/components/avatar-upload";
 import { z } from "zod";
@@ -45,6 +46,7 @@ type OrgCreateSchema = z.infer<typeof orgCreateSchema>;
 const otherTypePrefix = "Other - ";
 
 export type CreateOrganizationPanelProps = {
+  open?: boolean;
   onClose: () => void;
   organizationTypes?: string[];
   appUrl?: string;
@@ -53,6 +55,7 @@ export type CreateOrganizationPanelProps = {
 };
 
 export function CreateOrganizationPanel({
+  open = false,
   onClose,
   organizationTypes = [],
   appUrl = "",
@@ -126,8 +129,8 @@ export function CreateOrganizationPanel({
   const showOtherTypeField = watch("type", "other") === "other";
 
   return (
-    <Sheet open>
-      <Sheet.Content className={styles["drawer-content"]}>
+    <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
+      <Drawer.Content showCloseButton={false} className={styles["drawer-content"]}>
         <SidePanel
           data-test-id="edit-org-panel"
           className={styles["side-panel"]}
@@ -161,7 +164,7 @@ export function CreateOrganizationPanel({
                     <>
                       <Flex
                         align="center"
-                        gap="medium"
+                        gap={5}
                         style={{ width: "100%" }}
                       >
                         <AvatarUpload {...field} data-test-id="avatar-upload" />
@@ -171,25 +174,28 @@ export function CreateOrganizationPanel({
                   );
                 }}
               />
-              <InputField {...register("title")} label={`${t.organization({ case: "capital" })} title`} />
-              <InputField
-                {...register("orgOwnerEmail")}
+              <Field label={`${t.organization({ case: "capital" })} title`}>
+                <Input {...register("title")} />
+              </Field>
+              <Field
                 label={`${t.organization({ case: "capital" })} owner`}
                 error={errors.orgOwnerEmail?.message}
-              />
-              <InputField
-                {...register("name")}
-                prefix={appUrl}
+              >
+                <Input {...register("orgOwnerEmail")} />
+              </Field>
+              <Field
                 label={`${t.organization({ case: "capital" })} URL`}
-                helperText={`This will be your ${t.organization({ case: "lower" })} unique web address`}
+                description={`This will be your ${t.organization({ case: "lower" })} unique web address`}
                 error={errors.name?.message}
-              />
-              <InputField
-                {...register("size")}
-                type="number"
+              >
+                <Input {...register("name")} prefix={appUrl} />
+              </Field>
+              <Field
                 label={`${t.organization({ case: "capital" })} size`}
                 error={errors.size?.message}
-              />
+              >
+                <Input {...register("size")} type="number" />
+              </Field>
               <Controller
                 name="type"
                 control={control}
@@ -209,7 +215,6 @@ export function CreateOrganizationPanel({
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select an industry"
-                            className={styles["select-value"]}
                             id="org-type-select"
                           />
                         </Select.Trigger>
@@ -227,11 +232,12 @@ export function CreateOrganizationPanel({
                 }}
               />
               {showOtherTypeField ? (
-                <InputField
+                <Field
                   label={`${t.organization({ case: "capital" })} industry (other)`}
-                  {...register("otherType")}
                   error={errors.otherType?.message}
-                />
+                >
+                  <Input {...register("otherType")} />
+                </Field>
               ) : null}
               <Controller
                 name="country"
@@ -251,7 +257,6 @@ export function CreateOrganizationPanel({
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select a country"
-                            className={styles["select-value"]}
                             id="country-select"
                           />
                         </Select.Trigger>
@@ -288,7 +293,7 @@ export function CreateOrganizationPanel({
             </Flex>
           </form>
         </SidePanel>
-      </Sheet.Content>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer>
   );
 }
