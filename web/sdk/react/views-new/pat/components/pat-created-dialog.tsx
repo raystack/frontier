@@ -35,7 +35,7 @@ export function PATCreatedDialog({ handle, onClose }: PATCreatedDialogProps) {
           ? 'Your personal access token has been regenerated successfully. Please copy and store it securely.'
           : 'Successfully added a new personal access token. Please copy the token.';
         return (
-          <Dialog.Content width={400}>
+          <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Success</Dialog.Title>
             </Dialog.Header>

@@ -11,10 +11,8 @@ import {
 } from '@raystack/proton/frontier';
 import type { Role, Policy } from '@raystack/proton/frontier';
 import {
+  AlertDialog,
   Button,
-  Text,
-  Dialog,
-  Flex,
   toastManager
 } from '@raystack/apsara-v1';
 import { handleConnectError } from '~/utils/error';
@@ -22,7 +20,7 @@ import { handleConnectError } from '~/utils/error';
 export type UpdateRolePayload = { memberId: string; role: Role };
 
 export interface UpdateRoleDialogProps {
-  handle: ReturnType<typeof Dialog.createHandle<UpdateRolePayload>>;
+  handle: ReturnType<typeof AlertDialog.createHandle<UpdateRolePayload>>;
   organizationId: string;
   refetch: () => void;
 }
@@ -35,7 +33,7 @@ export function UpdateRoleDialog({ handle, organizationId, refetch }: UpdateRole
   };
 
   return (
-    <Dialog handle={handle} onOpenChange={handleOpenChange}>
+    <AlertDialog handle={handle} onOpenChange={handleOpenChange}>
       {({ payload: rawPayload }) => {
         const payload = rawPayload as UpdateRolePayload | undefined;
         return payload ? (
@@ -46,7 +44,7 @@ export function UpdateRoleDialog({ handle, organizationId, refetch }: UpdateRole
           />
         ) : null;
       }}
-    </Dialog>
+    </AlertDialog>
   );
 }
 
@@ -129,42 +127,36 @@ function UpdateRoleContent({
   };
 
   return (
-    <Dialog.Content width={400} showCloseButton={false}>
-      <Dialog.Body>
-        <Flex direction="column" gap={3}>
-          <Text size="large" weight="medium">
-            Update role
-          </Text>
-          <Text size="small" variant="secondary">
-            This will grant additional permissions to the user based on the new
-            role.
-          </Text>
-        </Flex>
-      </Dialog.Body>
-      <Dialog.Footer>
-        <Flex justify="end" gap={5}>
-          <Button
-            variant="outline"
-            color="neutral"
-            onClick={onClose}
-            disabled={isLoading}
-            data-test-id="frontier-sdk-cancel-update-role-dialog"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="solid"
-            color="accent"
-            onClick={handleUpdate}
-            disabled={isLoading}
-            loading={isLoading}
-            loaderText="Updating..."
-            data-test-id="frontier-sdk-confirm-update-role-dialog"
-          >
-            Update
-          </Button>
-        </Flex>
-      </Dialog.Footer>
-    </Dialog.Content>
+    <AlertDialog.Content>
+      <AlertDialog.Header>
+        <AlertDialog.Title>Update role</AlertDialog.Title>
+        <AlertDialog.Description>
+          This will grant additional permissions to the user based on the new
+          role.
+        </AlertDialog.Description>
+      </AlertDialog.Header>
+      <AlertDialog.Footer>
+        <Button
+          variant="outline"
+          color="neutral"
+          onClick={onClose}
+          disabled={isLoading}
+          data-test-id="frontier-sdk-cancel-update-role-dialog"
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="solid"
+          color="accent"
+          onClick={handleUpdate}
+          disabled={isLoading}
+          loading={isLoading}
+          loaderText="Updating..."
+          data-test-id="frontier-sdk-confirm-update-role-dialog"
+        >
+          Update
+        </Button>
+      </AlertDialog.Footer>
+    </AlertDialog.Content>
   );
 }

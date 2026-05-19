@@ -8,7 +8,6 @@ import {
   DeleteCurrentUserPATRequestSchema
 } from '@raystack/proton/frontier';
 import { AlertDialog, Button, toastManager } from '@raystack/apsara-v1';
-import styles from './revoke-pat-dialog.module.css';
 import { handleConnectError } from '~/utils/error';
 
 export interface RevokePATDialogProps {
@@ -49,16 +48,16 @@ export function RevokePATDialog({ handle, onRevoked }: RevokePATDialogProps) {
   return (
     <AlertDialog handle={handle}>
       {({ payload: patId }) => (
-        <AlertDialog.Content width={400} showCloseButton={false}>
-          <AlertDialog.Body className={styles.body}>
+        <AlertDialog.Content>
+          <AlertDialog.Header>
             <AlertDialog.Title>Revoke</AlertDialog.Title>
             <AlertDialog.Description>
               This action cannot be undone. Revoking this token will
               permanently remove access for any users using it. You&apos;ll
               need to generate a new token if access is required again.
             </AlertDialog.Description>
-          </AlertDialog.Body>
-          <AlertDialog.Footer justify="end" gap={5}>
+          </AlertDialog.Header>
+          <AlertDialog.Footer>
             <Button
               variant="outline"
               color="neutral"

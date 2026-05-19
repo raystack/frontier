@@ -40,7 +40,7 @@ export function RemoveMemberDialog({
       {({ payload }) => {
         const p = payload as RemoveMemberPayload | undefined;
         return (
-          <AlertDialog.Content width={400}>
+          <AlertDialog.Content>
             {p ? (
               <RemoveMemberForm
                 payload={p}

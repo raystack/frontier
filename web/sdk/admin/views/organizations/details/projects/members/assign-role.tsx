@@ -92,7 +92,6 @@ export const AssignRole = ({
   return (
     <Dialog open onOpenChange={onClose}>
       <Dialog.Content
-        width={400}
         overlay={{ className: styles["action-dialog-overlay"] }}
         className={styles["action-dialog-content"]}
       >

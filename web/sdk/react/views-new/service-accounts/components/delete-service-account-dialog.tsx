@@ -10,14 +10,12 @@ import {
 } from '@raystack/proton/frontier';
 import {
   Button,
-  Text,
   AlertDialog,
   Flex,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useQueryClient } from '@tanstack/react-query';
-import styles from './delete-service-account-dialog.module.css';
 
 export type DeleteServiceAccountPayload = { serviceAccountId: string };
 
@@ -77,40 +75,38 @@ export function DeleteServiceAccountDialog({ handle, refetch }: DeleteServiceAcc
       {({ payload: rawPayload }) => {
         const payload = rawPayload as DeleteServiceAccountPayload | undefined;
         return (
-          <AlertDialog.Content width={400} showCloseButton={false}>
-            <AlertDialog.Body className={styles.body}>
+          <AlertDialog.Content>
+            <AlertDialog.Header>
               <AlertDialog.Title>Delete Service Account</AlertDialog.Title>
-              <Text size="small" variant="secondary">
+              <AlertDialog.Description>
                 This action is irreversible and may result in the deletion of all
                 keys associated with this account. Are you sure you want to
                 proceed?
-              </Text>
-            </AlertDialog.Body>
+              </AlertDialog.Description>
+            </AlertDialog.Header>
             <AlertDialog.Footer>
-              <Flex justify="end" gap={5}>
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  onClick={() => handle.close()}
-                  data-test-id="frontier-sdk-delete-service-account-cancel-btn"
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="solid"
-                  color="danger"
-                  onClick={() =>
-                    payload && handleDelete(payload.serviceAccountId)
-                  }
-                  data-test-id="frontier-sdk-delete-service-account-confirm-btn"
-                  disabled={isLoading}
-                  loading={isLoading}
-                  loaderText="Deleting..."
-                >
-                  Delete
-                </Button>
-              </Flex>
+              <Button
+                variant="outline"
+                color="neutral"
+                onClick={() => handle.close()}
+                data-test-id="frontier-sdk-delete-service-account-cancel-btn"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                color="danger"
+                onClick={() =>
+                  payload && handleDelete(payload.serviceAccountId)
+                }
+                data-test-id="frontier-sdk-delete-service-account-confirm-btn"
+                disabled={isLoading}
+                loading={isLoading}
+                loaderText="Deleting..."
+              >
+                Delete
+              </Button>
             </AlertDialog.Footer>
           </AlertDialog.Content>
         );

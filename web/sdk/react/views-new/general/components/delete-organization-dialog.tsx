@@ -9,18 +9,17 @@ import {
   DeleteOrganizationRequestSchema
 } from '@raystack/proton/frontier';
 import {
+  AlertDialog,
   Button,
   Checkbox,
-  Text,
-  Flex,
-  Dialog,
   Field,
+  Flex,
   Input,
+  Text,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
-import styles from './delete-organization-dialog.module.css';
 import { handleConnectError } from '~/utils/error';
 
 const deleteOrgSchema = yup
@@ -91,16 +90,14 @@ export const DeleteOrganizationDialog = ({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content width={432}>
-        <Dialog.Header>
-          <Dialog.Title>
-            Verify {orgLabel} deletion
-          </Dialog.Title>
-        </Dialog.Header>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialog.Content width={480}>
         <form onSubmit={handleSubmit(onDeleteSubmit)}>
-          <Dialog.Body>
-            <Flex direction="column" gap={5}>
+          <AlertDialog.Header>
+            <AlertDialog.Title>Delete {orgLabel}</AlertDialog.Title>
+          </AlertDialog.Header>
+          <AlertDialog.Body>
+            <Flex direction="column" gap={6}>
               <Text size="small" variant="secondary">
                 This action can not be undone. This will permanently
                 delete all the projects and resources in {organization?.title}.
@@ -130,22 +127,35 @@ export const DeleteOrganizationDialog = ({
                   {orgLabel} data will be deleted and want to proceed.
                 </Text>
               </Flex>
-              <Button
-                variant="solid"
-                color="danger"
-                type="submit"
-                disabled={!deleteTitle || !isAcknowledged}
-                className={styles.deleteButton}
-                data-test-id="frontier-sdk-delete-organization-btn"
-                loading={isSubmitting}
-                loaderText="Deleting..."
-              >
-                Delete this {orgLabelLower}
-              </Button>
             </Flex>
-          </Dialog.Body>
+          </AlertDialog.Body>
+          <AlertDialog.Footer>
+            <AlertDialog.Close
+              render={
+                <Button
+                  variant="outline"
+                  color="neutral"
+                  disabled={isSubmitting}
+                  data-test-id="frontier-sdk-delete-organization-cancel-btn"
+                >
+                  Cancel
+                </Button>
+              }
+            />
+            <Button
+              variant="solid"
+              color="danger"
+              type="submit"
+              disabled={!deleteTitle || !isAcknowledged}
+              data-test-id="frontier-sdk-delete-organization-btn"
+              loading={isSubmitting}
+              loaderText="Deleting..."
+            >
+              Delete
+            </Button>
+          </AlertDialog.Footer>
         </form>
-      </Dialog.Content>
-    </Dialog>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

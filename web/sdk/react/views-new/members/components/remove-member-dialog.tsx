@@ -92,7 +92,7 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
       {({ payload: rawPayload }) => {
         const payload = rawPayload as RemoveMemberPayload | undefined;
         return (
-          <Dialog.Content width={400}>
+          <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Remove member?</Dialog.Title>
             </Dialog.Header>

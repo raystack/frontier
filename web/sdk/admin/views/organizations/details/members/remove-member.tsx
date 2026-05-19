@@ -53,7 +53,7 @@ export const RemoveMember = ({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
           <Dialog.CloseButton data-test-id="remove-member-close-button" />

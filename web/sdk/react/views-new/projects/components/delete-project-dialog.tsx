@@ -63,7 +63,7 @@ export function DeleteProjectDialog({ handle, refetch }: DeleteProjectDialogProp
       {({ payload: rawPayload }) => {
         const payload = rawPayload as DeleteProjectPayload | undefined;
         return (
-          <AlertDialog.Content width={400}>
+          <AlertDialog.Content>
             <AlertDialog.Header>
               <AlertDialog.Title>Delete Project</AlertDialog.Title>
             </AlertDialog.Header>

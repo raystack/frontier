@@ -148,7 +148,7 @@ export const AssignRole = ({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>Assign Role</Dialog.Title>
           <Dialog.CloseButton data-test-id="assign-role-close-button" />

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
 import {
+  AlertDialog,
   Button,
   Tooltip,
   Skeleton,
@@ -31,7 +32,7 @@ import styles from './members-view.module.css';
 const memberMenuHandle = Menu.createHandle<MemberMenuPayload>();
 const inviteDialogHandle = Dialog.createHandle();
 const removeMemberDialogHandle = Dialog.createHandle<RemoveMemberPayload>();
-const updateRoleDialogHandle = Dialog.createHandle<UpdateRolePayload>();
+const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
 export interface MembersViewProps {
   showTeamField?: boolean;

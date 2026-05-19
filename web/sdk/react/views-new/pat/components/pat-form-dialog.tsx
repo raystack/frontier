@@ -338,7 +338,7 @@ export function PATFormDialog({
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
             <Dialog.Title>

@@ -141,7 +141,7 @@ function DeleteDomainContent({
   const domainName = watch('domain', '');
 
   return (
-    <AlertDialog.Content width={400}>
+    <AlertDialog.Content>
       <AlertDialog.Header>
         <AlertDialog.Title>Delete Domain</AlertDialog.Title>
       </AlertDialog.Header>
