@@ -9,14 +9,12 @@ import {
 } from '@raystack/proton/frontier';
 import {
   Button,
-  Text,
   AlertDialog,
   Flex,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useTerminology } from '~/react/hooks/useTerminology';
-import styles from './revoke-token-dialog.module.css';
 
 export type RevokeTokenPayload = { tokenId: string };
 
@@ -69,38 +67,36 @@ export function RevokeTokenDialog({
       {({ payload: rawPayload }) => {
         const payload = rawPayload as RevokeTokenPayload | undefined;
         return (
-          <AlertDialog.Content width={400} showCloseButton={false}>
-            <AlertDialog.Body className={styles.body}>
+          <AlertDialog.Content>
+            <AlertDialog.Header>
               <AlertDialog.Title>Revoke API Key</AlertDialog.Title>
-              <Text size="small" variant="secondary">
+              <AlertDialog.Description>
                 This is an irreversible action doing this might lead to
                 discontinuation of access to the {t.appName()} features. Do you
                 wish to proceed?
-              </Text>
-            </AlertDialog.Body>
+              </AlertDialog.Description>
+            </AlertDialog.Header>
             <AlertDialog.Footer>
-              <Flex justify="end" gap={5}>
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  onClick={() => handle.close()}
-                  disabled={isLoading}
-                  data-test-id="frontier-sdk-revoke-token-cancel-btn"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="solid"
-                  color="danger"
-                  onClick={() => payload && handleRevoke(payload.tokenId)}
-                  disabled={isLoading}
-                  loading={isLoading}
-                  loaderText="Revoking..."
-                  data-test-id="frontier-sdk-revoke-token-confirm-btn"
-                >
-                  Revoke
-                </Button>
-              </Flex>
+              <Button
+                variant="outline"
+                color="neutral"
+                onClick={() => handle.close()}
+                disabled={isLoading}
+                data-test-id="frontier-sdk-revoke-token-cancel-btn"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                color="danger"
+                onClick={() => payload && handleRevoke(payload.tokenId)}
+                disabled={isLoading}
+                loading={isLoading}
+                loaderText="Revoking..."
+                data-test-id="frontier-sdk-revoke-token-confirm-btn"
+              >
+                Revoke
+              </Button>
             </AlertDialog.Footer>
           </AlertDialog.Content>
         );

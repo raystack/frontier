@@ -1,6 +1,6 @@
 'use client';
 
-import { DotsVerticalIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Flex,
   Text,
@@ -12,6 +12,7 @@ import {
 } from '@raystack/apsara-v1';
 import type { User, Role } from '@raystack/proton/frontier';
 import { getInitials } from '~/utils';
+import styles from './member-columns.module.css';
 
 export interface MemberMenuPayload {
   memberId: string;
@@ -42,7 +43,7 @@ export function getColumns({
         const fallback = getInitials(member.title || member.email);
         const color = getAvatarColor(member.id || '');
         return (
-          <Flex align="center" gap={3}>
+          <Flex align="center" gap={4}>
             <Avatar
               src={member.avatar}
               fallback={fallback}
@@ -101,7 +102,7 @@ export function getColumns({
         const excludedRoles = roles.filter(r => !currentRoleIds.has(r.id));
 
         return (
-          <Flex align="center" justify="center">
+          <Flex align="center" justify="center" className={styles.actionsCell}>
             <Menu.Trigger
               handle={menuHandle}
               payload={{
@@ -110,13 +111,13 @@ export function getColumns({
               }}
               render={
                 <IconButton
-                  size={3}
+                  size={2}
                   aria-label="Member actions"
                   data-test-id="frontier-sdk-team-member-actions-btn"
                 />
               }
             >
-              <DotsVerticalIcon />
+              <DotsHorizontalIcon />
             </Menu.Trigger>
           </Flex>
         );

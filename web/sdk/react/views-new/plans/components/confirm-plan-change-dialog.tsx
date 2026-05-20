@@ -199,7 +199,7 @@ function ConfirmPlanChangeContent({
     : `effective from ${cycleSwitchDate}`;
 
   return (
-    <Dialog.Content width={400}>
+    <Dialog.Content>
       <Dialog.Header>
         <Dialog.Title>
           {isLoading ? (

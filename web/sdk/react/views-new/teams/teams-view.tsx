@@ -16,6 +16,7 @@ import {
   Select
 } from '@raystack/apsara-v1';
 import deleteIcon from '../../assets/delete.svg';
+import usersIcon from '../../assets/users.svg';
 import { toastManager } from '@raystack/apsara-v1';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useOrganizationTeams } from '../../hooks/useOrganizationTeams';
@@ -57,6 +58,7 @@ export function TeamsView({
 
   const {
     isFetching: isTeamsLoading,
+    isFetched: isTeamsFetched,
     teams,
     userAccessOnTeam,
     refetch,
@@ -120,6 +122,9 @@ export function TeamsView({
   }, []);
 
   const isLoading = !organization?.id || isPermissionsFetching || isTeamsLoading;
+  const showInitialSkeleton = isLoading && !isTeamsFetched;
+  const filterValue = showOrgTeams ? 'all-teams' : 'my-teams';
+  const hasNoTeams = !isLoading && (teams?.length ?? 0) === 0;
 
   const columns = useMemo(
     () =>
@@ -129,6 +134,52 @@ export function TeamsView({
       }),
     [userAccessOnTeam]
   );
+
+  if (hasNoTeams) {
+    return (
+      <ViewContainer>
+        <ViewHeader
+          title={title}
+          description={
+            description ??
+            `Manage teams in this ${t.organization({ case: 'lower' })}`
+          }
+        />
+        <EmptyState
+          variant="empty2"
+          classNames={{
+            icon: styles.emptyStateIcon
+          }}
+          icon={
+            <Image
+              src={usersIcon as unknown as string}
+              alt=""
+              width={40}
+              height={40}
+            />
+          }
+          heading={t.team()}
+          subHeading="A team is a group of users working together within an organization. Teams enable structured collaboration, role-based access, and shared management of projects and resources."
+          secondaryAction={
+            canCreateGroup ? (
+              <Button
+                variant="solid"
+                color="accent"
+                size="small"
+                onClick={() => addTeamDialogHandle.open(null)}
+                data-test-id="frontier-sdk-add-team-empty-state-button"
+              >
+                Create new {t.team({ case: 'lower' })}
+              </Button>
+            ) : null
+          }
+        />
+        {canCreateGroup && (
+          <AddTeamDialog handle={addTeamDialogHandle} refetch={refetch} />
+        )}
+      </ViewContainer>
+    );
+  }
 
   return (
     <ViewContainer>
@@ -151,7 +202,7 @@ export function TeamsView({
         <Flex direction="column" gap={7}>
           <Flex justify="between" gap={3}>
             <Flex gap={3} align="center">
-              {isLoading ? (
+              {showInitialSkeleton ? (
                 <Skeleton height="34px" width="360px" />
               ) : (
                 <>
@@ -159,11 +210,13 @@ export function TeamsView({
                     placeholder="Search by title"
                     size="large"
                     width={360}
+                    disabled={isLoading}
                   />
                   {canListOrgGroups && (
                     <Select
-                      defaultValue={teamsFilterOptions[0].value}
+                      value={filterValue}
                       onValueChange={onFilterChange}
+                      disabled={isLoading}
                     >
                       <Select.Trigger className={styles.teamsFilter}>
                         <Select.Value />
@@ -180,7 +233,7 @@ export function TeamsView({
                 </>
               )}
             </Flex>
-            {isLoading ? (
+            {showInitialSkeleton ? (
               <Skeleton height="34px" width="120px" />
             ) : (
               <Tooltip>

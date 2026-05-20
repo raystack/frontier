@@ -141,11 +141,11 @@ function DeleteDomainContent({
   const domainName = watch('domain', '');
 
   return (
-    <AlertDialog.Content width={400}>
-      <AlertDialog.Header>
-        <AlertDialog.Title>Delete Domain</AlertDialog.Title>
-      </AlertDialog.Header>
+    <AlertDialog.Content>
       <form onSubmit={handleSubmit(onSubmit)}>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Delete Domain</AlertDialog.Title>
+        </AlertDialog.Header>
         <AlertDialog.Body>
           <Flex direction="column" gap={5}>
             {isDomainLoading ? (
@@ -188,23 +188,21 @@ function DeleteDomainContent({
           </Flex>
         </AlertDialog.Body>
         <AlertDialog.Footer>
-          <Flex justify="end">
-            {isDomainLoading ? (
-              <Skeleton height={32} width={120} />
-            ) : (
-              <Button
-                variant="solid"
-                color="danger"
-                type="submit"
-                disabled={!domainName || !isAcknowledged}
-                loading={isPending}
-                loaderText="Deleting..."
-                data-test-id="frontier-sdk-delete-domain-btn"
-              >
-                Delete this domain
-              </Button>
-            )}
-          </Flex>
+          {isDomainLoading ? (
+            <Skeleton height={32} width={120} />
+          ) : (
+            <Button
+              variant="solid"
+              color="danger"
+              type="submit"
+              disabled={!domainName || !isAcknowledged}
+              loading={isPending}
+              loaderText="Deleting..."
+              data-test-id="frontier-sdk-delete-domain-btn"
+            >
+              Delete this domain
+            </Button>
+          )}
         </AlertDialog.Footer>
       </form>
     </AlertDialog.Content>

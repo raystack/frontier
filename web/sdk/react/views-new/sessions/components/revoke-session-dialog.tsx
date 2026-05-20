@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
-import { Button, Dialog, Flex, Skeleton, Text } from '@raystack/apsara-v1';
+import { AlertDialog, Button, Flex, Skeleton, Text } from '@raystack/apsara-v1';
 import { useSessions } from '~/react/hooks/useSessionsV1';
 import { RevokeSessionConfirmDialog } from './revoke-session-confirm-dialog';
 import styles from './revoke-session-dialog.module.css';
@@ -72,21 +72,21 @@ export const RevokeSessionDialog = ({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <Dialog.Content width={400}>
-          <Dialog.Header>
+      <AlertDialog open={open} onOpenChange={onOpenChange}>
+        <AlertDialog.Content>
+          <AlertDialog.Header>
             {sessionData ? (
-              <Dialog.Title>
+              <AlertDialog.Title>
                 {sessionData.browser} on {sessionData.operatingSystem}
-              </Dialog.Title>
+              </AlertDialog.Title>
             ) : (
               <Skeleton height="24px" width="180px" />
             )}
-          </Dialog.Header>
+          </AlertDialog.Header>
 
-          <Dialog.Body>
+          <AlertDialog.Body>
             <Flex direction="column" >
-              {detailRows.map(({ label, value }, index) => (
+              {detailRows.map(({ label, value }) => (
                 <Flex
                   key={label}
                   gap={7}
@@ -104,9 +104,9 @@ export const RevokeSessionDialog = ({
                 </Flex>
               ))}
             </Flex>
-          </Dialog.Body>
+          </AlertDialog.Body>
 
-          <Dialog.Footer justify="end" gap={5}>
+          <AlertDialog.Footer>
             <Button
               variant="outline"
               color="neutral"
@@ -123,9 +123,9 @@ export const RevokeSessionDialog = ({
             >
               {sessionData?.isCurrent ? 'Log out' : 'Revoke'}
             </Button>
-          </Dialog.Footer>
-        </Dialog.Content>
-      </Dialog>
+          </AlertDialog.Footer>
+        </AlertDialog.Content>
+      </AlertDialog>
 
       <RevokeSessionConfirmDialog
         open={isConfirmOpen}

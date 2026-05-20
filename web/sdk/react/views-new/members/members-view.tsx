@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ExclamationTriangleIcon, TrashIcon, UpdateIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
 import {
+  AlertDialog,
   Button,
   Tooltip,
   Skeleton,
@@ -11,8 +12,10 @@ import {
   EmptyState,
   DataTable,
   Dialog,
+  Image,
   Menu
 } from '@raystack/apsara-v1';
+import deleteIcon from '../../assets/delete.svg';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useOrganizationMembers } from '../../hooks/useOrganizationMembers';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -28,8 +31,8 @@ import styles from './members-view.module.css';
 
 const memberMenuHandle = Menu.createHandle<MemberMenuPayload>();
 const inviteDialogHandle = Dialog.createHandle();
-const removeMemberDialogHandle = Dialog.createHandle<RemoveMemberPayload>();
-const updateRoleDialogHandle = Dialog.createHandle<UpdateRolePayload>();
+const removeMemberDialogHandle = AlertDialog.createHandle<RemoveMemberPayload>();
+const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
 export interface MembersViewProps {
   showTeamField?: boolean;
@@ -189,7 +192,8 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
             }
             classNames={{
               root: styles.tableRoot,
-              table: styles.table
+              table: styles.table,
+              row: styles.tableRow
             }}
           />
         </Flex>
@@ -218,7 +222,14 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
                 ))}
               {payload?.canRemove && (
                 <Menu.Item
-                  leadingIcon={<TrashIcon />}
+                  leadingIcon={
+                    <Image
+                      src={deleteIcon as unknown as string}
+                      alt="Remove"
+                      width={16}
+                      height={16}
+                    />
+                  }
                   onClick={() =>
                     removeMemberDialogHandle.openWithPayload({
                       memberId: payload.memberId,
@@ -226,6 +237,9 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
                     })
                   }
                   data-test-id="remove-member-dropdown-item"
+                  style={{
+                    color: 'var(--rs-color-foreground-danger-primary)'
+                  }}
                 >
                   Remove
                 </Menu.Item>

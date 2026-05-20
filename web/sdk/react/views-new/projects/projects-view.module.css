@@ -9,3 +9,15 @@
 .menuContent {
   min-width: 6;
 }
+
+.projectsFilter {
+  width: auto;
+  min-width: 140px;
+  box-shadow: none;
+}
+
+.emptyStateIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

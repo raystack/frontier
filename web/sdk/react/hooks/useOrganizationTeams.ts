@@ -16,6 +16,7 @@ export const useOrganizationTeams = ({
   withMemberCount = false
 }: useOrganizationTeamsProps): {
   isFetching: boolean;
+  isFetched: boolean;
   teams: Group[];
   userAccessOnTeam: Record<string, string[]>;
   refetch: () => void;
@@ -27,14 +28,14 @@ export const useOrganizationTeams = ({
   const { activeOrganization: organization } = useFrontier();
 
   // Organization teams query
-  const { data: orgTeamsData, isLoading: isOrgTeamsLoading, error: orgTeamsError, refetch: refetchOrgTeams } = useQuery(
+  const { data: orgTeamsData, isLoading: isOrgTeamsLoading, isFetched: isOrgTeamsFetched, error: orgTeamsError, refetch: refetchOrgTeams } = useQuery(
     FrontierServiceQueries.listOrganizationGroups,
     create(ListOrganizationGroupsRequestSchema, { orgId: organization?.id || '', withMemberCount }),
     { enabled: !!organization?.id && showOrgTeams }
   );
 
-  // User teams query  
-  const { data: userTeamsData, isLoading: isUserTeamsLoading, error: userTeamsError, refetch: refetchUserTeams } = useQuery(
+  // User teams query
+  const { data: userTeamsData, isLoading: isUserTeamsLoading, isFetched: isUserTeamsFetched, error: userTeamsError, refetch: refetchUserTeams } = useQuery(
     FrontierServiceQueries.listCurrentUserGroups,
     create(ListCurrentUserGroupsRequestSchema, { orgId: organization?.id || '', withPermissions, withMemberCount }),
     { enabled: !!organization?.id && !showOrgTeams }
@@ -75,6 +76,7 @@ export const useOrganizationTeams = ({
 
   return {
     isFetching: isTeamsLoading,
+    isFetched: isUserTeamsFetched || isOrgTeamsFetched,
     teams: teams,
     userAccessOnTeam,
     refetch,

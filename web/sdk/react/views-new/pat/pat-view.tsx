@@ -9,8 +9,10 @@ import {
   Dialog,
   EmptyState,
   Flex,
+  Image,
   Skeleton
 } from '@raystack/apsara-v1';
+import keyIcon from '../../assets/key.svg';
 import type { DataTableQuery, DataTableSort } from '@raystack/apsara-v1';
 import { useDebouncedState } from '@raystack/apsara-v1/hooks';
 import { useInfiniteQuery } from '@connectrpc/connect-query';
@@ -166,13 +168,25 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
         </Flex>
       ) : hasNoPats ? (
         <EmptyState
-          icon={<LockClosedIcon />}
+          variant="empty2"
+          classNames={{
+            icon: styles.emptyStateIcon
+          }}
+          icon={
+            <Image
+              src={keyIcon as unknown as string}
+              alt=""
+              width={40}
+              height={40}
+            />
+          }
           heading="No Personal Access Token Found"
           subHeading={`Create a new to use the Keys of ${t.appName()} platform`}
           primaryAction={
             <Button
-              variant="outline"
-              color="neutral"
+              variant="solid"
+              color="accent"
+              size="small"
               onClick={() => createPATDialogHandle.open(null)}
               data-test-id="frontier-sdk-add-pat-btn"
             >

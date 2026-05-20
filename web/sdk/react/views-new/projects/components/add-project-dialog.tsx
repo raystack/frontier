@@ -89,7 +89,7 @@ export function AddProjectDialog({ handle, refetch }: AddProjectDialogProps) {
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>Add Project</Dialog.Title>
         </Dialog.Header>
