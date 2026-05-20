@@ -11,7 +11,6 @@ import {
 import {
   AlertDialog,
   Button,
-  Flex,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';

@@ -2,14 +2,12 @@
 
 import { useState } from 'react';
 import { create } from '@bufbuild/protobuf';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
-  DeletePolicyRequestSchema,
-  CreatePolicyRequestSchema,
-  ListPoliciesRequestSchema
+  SetOrganizationMemberRoleRequestSchema
 } from '@raystack/proton/frontier';
-import type { Role, Policy } from '@raystack/proton/frontier';
+import type { Role } from '@raystack/proton/frontier';
 import {
   AlertDialog,
   Button,
@@ -56,59 +54,19 @@ function UpdateRoleContent({
 }) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: policiesData } = useQuery(
-    FrontierServiceQueries.listPolicies,
-    create(ListPoliciesRequestSchema, {
-      orgId: organizationId,
-      userId: payload.memberId
-    }),
-    { enabled: !!payload.memberId && !!payload.role }
-  );
-
-  const { mutateAsync: deletePolicy } = useMutation(
-    FrontierServiceQueries.deletePolicy
-  );
-
-  const { mutateAsync: createPolicy } = useMutation(
-    FrontierServiceQueries.createPolicy
+  const { mutateAsync: setMemberRole } = useMutation(
+    FrontierServiceQueries.setOrganizationMemberRole
   );
 
   const handleUpdate = async () => {
     setIsLoading(true);
     try {
-      const resource = `app/organization:${organizationId}`;
-      const principal = `app/user:${payload.memberId}`;
-      const policies = policiesData?.policies || [];
-
-      const deleteResults = await Promise.allSettled(
-        policies.map((p: Policy) => {
-          const req = create(DeletePolicyRequestSchema, {
-            id: p.id as string
-          });
-          return deletePolicy(req);
-        })
-      );
-
-      const deleteErrors = deleteResults
-        .filter(
-          (result): result is PromiseRejectedResult =>
-            result.status === 'rejected'
-        )
-        .map(result => result.reason);
-
-      if (deleteErrors.length > 0) {
-        console.warn('Some policy deletions failed:', deleteErrors);
-      }
-
-      const createReq = create(CreatePolicyRequestSchema, {
-        body: {
-          roleId: payload.role.id as string,
-          title: payload.role.name as string,
-          resource,
-          principal
-        }
+      const req = create(SetOrganizationMemberRoleRequestSchema, {
+        orgId: organizationId,
+        userId: payload.memberId,
+        roleId: payload.role.id as string
       });
-      await createPolicy(createReq);
+      await setMemberRole(req);
 
       toastManager.add({ title: 'Member role updated', type: 'success' });
       refetch();
