@@ -174,7 +174,15 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if prefs[preference.PlatformDisableUsersListing] == "true" {
 			return ErrNotAvailable
 		}
-		return nil
+
+		pbreq := req.(*connect.Request[frontierv1beta1.ListUsersRequest])
+		if pbreq.Msg.GetOrgId() != "" {
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+		}
+		if pbreq.Msg.GetGroupId() != "" {
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.Msg.GetGroupId()}, schema.GetPermission, req)
+		}
+		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateUser": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		if err := handler.IsSuperUser(ctx, req); err == nil {
@@ -323,7 +331,19 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if prefs[preference.PlatformDisableOrgsListing] == "true" {
 			return ErrNotAvailable
 		}
-		return nil
+
+		pbreq := req.(*connect.Request[frontierv1beta1.ListOrganizationsRequest])
+		if pbreq.Msg.GetUserId() != "" {
+			principal, err := handler.GetLoggedInPrincipal(ctx)
+			if err != nil {
+				return err
+			}
+			if pbreq.Msg.GetUserId() == principal.ID {
+				// can self introspect
+				return nil
+			}
+		}
+		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganization": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.GetOrganizationRequest])
@@ -616,7 +636,23 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetPolicy": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		return nil
+		pbreq := req.(*connect.Request[frontierv1beta1.GetPolicyRequest])
+		policyResp, err := handler.GetPolicy(ctx, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: pbreq.Msg.GetId()}))
+		if err != nil {
+			return err
+		}
+		ns, id, err := schema.SplitNamespaceAndResourceID(policyResp.Msg.GetPolicy().GetResource())
+		if err != nil {
+			return err
+		}
+
+		switch ns {
+		case schema.OrganizationNamespace, schema.ProjectNamespace:
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, schema.PolicyManagePermission, req)
+		case schema.GroupNamespace:
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, group.AdminPermission, req)
+		}
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, schema.DeletePermission, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdatePolicy": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return ErrNotAvailable

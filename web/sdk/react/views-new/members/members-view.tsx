@@ -31,7 +31,7 @@ import styles from './members-view.module.css';
 
 const memberMenuHandle = Menu.createHandle<MemberMenuPayload>();
 const inviteDialogHandle = Dialog.createHandle();
-const removeMemberDialogHandle = Dialog.createHandle<RemoveMemberPayload>();
+const removeMemberDialogHandle = AlertDialog.createHandle<RemoveMemberPayload>();
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
 export interface MembersViewProps {

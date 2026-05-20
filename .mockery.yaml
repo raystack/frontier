@@ -91,3 +91,7 @@ packages:
     config:
       dir: "core/deleter/mocks"
       all: true
+  github.com/raystack/frontier/core/serviceuser:
+    config:
+      dir: "core/serviceuser/mocks"
+      all: true

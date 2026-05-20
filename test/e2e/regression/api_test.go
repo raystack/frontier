@@ -300,11 +300,10 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NotNil(err)
 
 		// check user relations
-		listUsersAfterDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		_, err = s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
 		}))
-		s.Assert().NoError(err)
-		s.Assert().Equal(0, len(listUsersAfterDelete.Msg.GetUsers()))
+		s.Assert().NotNil(err)
 	})
 	s.Run("4. removing a user from org should remove its access to all org resources", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
@@ -1436,7 +1435,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		listExistingUsers, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			OrgId: existingOrg.Msg.GetOrganization().GetId(),
 		}))
 		s.Assert().NoError(err)
@@ -1451,7 +1450,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 
-		listNewUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		listNewUsers, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			OrgId: existingOrg.Msg.GetOrganization().GetId(),
 		}))
 		s.Assert().NoError(err)
@@ -1467,7 +1466,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
+		listExistingUsers, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListUsersRequest{
 			Keyword: createUserResp.Msg.GetUser().GetEmail(),
 		}))
 		s.Assert().NoError(err)
