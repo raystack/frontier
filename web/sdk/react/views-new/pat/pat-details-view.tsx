@@ -1,7 +1,11 @@
 'use client';
 
 import { ReactNode, useCallback, useEffect, useMemo } from 'react';
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import {
+  DotsHorizontalIcon,
+  Pencil1Icon,
+  UpdateIcon
+} from '@radix-ui/react-icons';
 import {
   AlertDialog,
   Breadcrumb,
@@ -9,11 +13,13 @@ import {
   Dialog,
   Flex,
   IconButton,
+  Image,
   Menu,
   Skeleton,
   Text,
   toastManager
 } from '@raystack/apsara-v1';
+import deleteIcon from '../../assets/delete.svg';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -262,12 +268,14 @@ export function PATDetailsView({
           </Menu.Trigger>
           <Menu.Content align="start" className={styles.menuContent}>
             <Menu.Item
+              leadingIcon={<Pencil1Icon />}
               onClick={() => updatePATDialogHandle.open(null)}
               data-test-id="frontier-sdk-pat-update-menu-btn"
             >
               Update
             </Menu.Item>
             <Menu.Item
+              leadingIcon={<UpdateIcon />}
               onClick={() =>
                 regenerateDialogHandle.openWithPayload({
                   patId,
@@ -279,6 +287,14 @@ export function PATDetailsView({
               Regenerate
             </Menu.Item>
             <Menu.Item
+              leadingIcon={
+                <Image
+                  src={deleteIcon as unknown as string}
+                  alt="Revoke"
+                  width={16}
+                  height={16}
+                />
+              }
               onClick={() => revokePATDialogHandle.openWithPayload(patId)}
               style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
               data-test-id="frontier-sdk-pat-revoke-menu-btn"
