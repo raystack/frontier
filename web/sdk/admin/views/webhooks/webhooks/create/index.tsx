@@ -97,7 +97,7 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
                 name="url"
                 register={methods.register}
                 control={methods.control}
-                variant="textarea"
+                variant="input"
                 style={{ width: "100%" }}
               />
               <CustomFieldName
