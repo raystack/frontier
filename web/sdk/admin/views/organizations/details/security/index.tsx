@@ -33,7 +33,7 @@ const AddDomainSection = () => {
         </Text>
       </Flex>
       <Tooltip>
-        <Tooltip.Trigger render={<Flex />}>
+        <Tooltip.Trigger render={<Flex style={{ alignSelf: "center" }} />}>
           <Button
             variant="outline"
             color="neutral"
