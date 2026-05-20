@@ -132,6 +132,7 @@ const BlockOrganizationDialog = () => {
             color={componentConfig.btnColor}
             size="small"
             data-test-id="block-orgnanization-button"
+            style={{ alignSelf: "center" }}
           >
             {componentConfig.btnText}
           </Button>
