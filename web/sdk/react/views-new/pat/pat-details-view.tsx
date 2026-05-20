@@ -20,7 +20,7 @@ import {
   FrontierServiceQueries,
   GetCurrentUserPATRequestSchema,
   ListRolesForPATRequestSchema,
-  ListOrganizationProjectsRequestSchema
+  ListProjectsByCurrentUserRequestSchema
 } from '@raystack/proton/frontier';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -129,11 +129,10 @@ export function PATDetailsView({
   );
 
   const { data: projectsData, isLoading: isProjectsLoading } = useQuery(
-    FrontierServiceQueries.listOrganizationProjects,
-    create(ListOrganizationProjectsRequestSchema, {
-      id: orgId,
-      state: '',
-      withMemberCount: false
+    FrontierServiceQueries.listProjectsByCurrentUser,
+    create(ListProjectsByCurrentUserRequestSchema, {
+      orgId,
+      nonInherited: false
     }),
     { enabled: Boolean(orgId) }
   );
