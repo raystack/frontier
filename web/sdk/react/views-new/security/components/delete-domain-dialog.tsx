@@ -142,10 +142,10 @@ function DeleteDomainContent({
 
   return (
     <AlertDialog.Content>
-      <AlertDialog.Header>
-        <AlertDialog.Title>Delete Domain</AlertDialog.Title>
-      </AlertDialog.Header>
       <form onSubmit={handleSubmit(onSubmit)}>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Delete Domain</AlertDialog.Title>
+        </AlertDialog.Header>
         <AlertDialog.Body>
           <Flex direction="column" gap={5}>
             {isDomainLoading ? (
