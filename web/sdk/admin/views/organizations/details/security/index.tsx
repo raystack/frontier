@@ -1,7 +1,6 @@
 import {
   Button,
   Flex,
-  IconButton,
   Separator,
   Text,
   Tooltip,
@@ -34,21 +33,20 @@ const AddDomainSection = () => {
         </Text>
       </Flex>
       <Tooltip>
-        <Tooltip.Trigger
-          render={
-            <Button
-              variant="outline"
-              color="neutral"
-              leadingIcon={<PlusIcon />}
-              size="small"
-              data-test-id="add-domain-button"
-              disabled={true}
-            >
-              Add domain
-            </Button>
-          }
-        />
-        <Tooltip.Content>Coming soon</Tooltip.Content>
+        {/* Flex is wrapper element to enable tooltip as button doesn't allow pointer-events while disabled */}
+        <Tooltip.Trigger render={<Flex style={{ alignSelf: "center" }} />}>
+          <Button
+            variant="outline"
+            color="neutral"
+            leadingIcon={<PlusIcon />}
+            size="small"
+            data-test-id="add-domain-button"
+            disabled={true}
+          >
+            Add domain
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content side="bottom">Coming soon</Tooltip.Content>
       </Tooltip>
     </Flex>
   );
