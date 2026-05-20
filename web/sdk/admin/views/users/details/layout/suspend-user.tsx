@@ -30,7 +30,7 @@ export const SuspendUser = ({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <Dialog.Body>
           <Flex direction="column" gap={3}>
             <Dialog.Title>Suspend {t.user({ case: "capital" })}</Dialog.Title>

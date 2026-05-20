@@ -80,7 +80,6 @@ export function RenameProjectDialog({
   return (
     <Dialog open onOpenChange={onClose}>
       <Dialog.Content
-        width={400}
         onClick={preventClickPropagation}
         data-test-id="rename-project-dialog"
       >

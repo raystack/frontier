@@ -98,7 +98,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             <Dialog.Header>

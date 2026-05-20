@@ -115,7 +115,7 @@ function VerifyDomainContent({
   }
 
   return (
-    <Dialog.Content width={400}>
+    <Dialog.Content>
       <Dialog.Header>
         <Dialog.Title>Verify domain</Dialog.Title>
       </Dialog.Header>

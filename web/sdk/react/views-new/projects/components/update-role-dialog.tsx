@@ -5,7 +5,7 @@ import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
-  SetOrganizationMemberRoleRequestSchema
+  SetProjectMemberRoleRequestSchema
 } from '@raystack/proton/frontier';
 import type { Role } from '@raystack/proton/frontier';
 import {
@@ -13,17 +13,26 @@ import {
   Button,
   toastManager
 } from '@raystack/apsara-v1';
+import { PERMISSIONS } from '../../../../utils';
 import { handleConnectError } from '~/utils/error';
 
-export type UpdateRolePayload = { memberId: string; role: Role };
+export type UpdateRolePayload = {
+  memberId: string;
+  isTeam: boolean;
+  role: Role;
+};
 
 export interface UpdateRoleDialogProps {
   handle: ReturnType<typeof AlertDialog.createHandle<UpdateRolePayload>>;
-  organizationId: string;
+  projectId: string;
   refetch: () => void;
 }
 
-export function UpdateRoleDialog({ handle, organizationId, refetch }: UpdateRoleDialogProps) {
+export function UpdateRoleDialog({
+  handle,
+  projectId,
+  refetch
+}: UpdateRoleDialogProps) {
   return (
     <AlertDialog handle={handle}>
       {({ payload: rawPayload }) => {
@@ -31,7 +40,7 @@ export function UpdateRoleDialog({ handle, organizationId, refetch }: UpdateRole
         return payload ? (
           <UpdateRoleContent
             payload={payload}
-            organizationId={organizationId}
+            projectId={projectId}
             onClose={() => handle.close()}
             refetch={refetch}
           />
@@ -43,30 +52,34 @@ export function UpdateRoleDialog({ handle, organizationId, refetch }: UpdateRole
 
 function UpdateRoleContent({
   payload,
-  organizationId,
+  projectId,
   onClose,
   refetch
 }: {
   payload: UpdateRolePayload;
-  organizationId: string;
+  projectId: string;
   onClose: () => void;
   refetch: () => void;
 }) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { mutateAsync: setMemberRole } = useMutation(
-    FrontierServiceQueries.setOrganizationMemberRole
+  const { mutateAsync: setProjectMemberRole } = useMutation(
+    FrontierServiceQueries.setProjectMemberRole
   );
 
   const handleUpdate = async () => {
     setIsLoading(true);
     try {
-      const req = create(SetOrganizationMemberRoleRequestSchema, {
-        orgId: organizationId,
-        userId: payload.memberId,
-        roleId: payload.role.id as string
-      });
-      await setMemberRole(req);
+      await setProjectMemberRole(
+        create(SetProjectMemberRoleRequestSchema, {
+          projectId,
+          principalId: payload.memberId,
+          principalType: payload.isTeam
+            ? PERMISSIONS.GroupNamespace
+            : PERMISSIONS.UserNamespace,
+          roleId: payload.role.id as string
+        })
+      );
 
       toastManager.add({ title: 'Member role updated', type: 'success' });
       refetch();
@@ -87,7 +100,7 @@ function UpdateRoleContent({
       <AlertDialog.Header>
         <AlertDialog.Title>Update role</AlertDialog.Title>
         <AlertDialog.Description>
-          This will grant additional permissions to the user based on the new
+          This will grant additional permissions to the member based on the new
           role.
         </AlertDialog.Description>
       </AlertDialog.Header>

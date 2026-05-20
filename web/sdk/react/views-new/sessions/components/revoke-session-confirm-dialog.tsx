@@ -21,16 +21,16 @@ export const RevokeSessionConfirmDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialog.Content width={400} showCloseButton={false}>
-        <AlertDialog.Body>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
           <AlertDialog.Title>
             {isCurrentSession ? 'Log out' : 'Revoke'}
           </AlertDialog.Title>
           <AlertDialog.Description>
             Are you sure you want to {isCurrentSession ? 'log out' : 'revoke'} of this session? This action cannot be undone.
           </AlertDialog.Description>
-        </AlertDialog.Body>
-        <AlertDialog.Footer justify="end" gap={5}>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
           <Button
             variant="outline"
             color="neutral"

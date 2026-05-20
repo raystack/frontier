@@ -90,7 +90,7 @@ export function AddTeamDialog({ handle, refetch }: AddTeamDialogProps) {
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>Add Team</Dialog.Title>
         </Dialog.Header>

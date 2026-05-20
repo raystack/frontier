@@ -214,7 +214,7 @@ function ConfirmCycleSwitchContent({
   }
 
   return (
-    <Dialog.Content width={400}>
+    <Dialog.Content>
       <Dialog.Header>
         <Dialog.Title>Switch billing cycle</Dialog.Title>
       </Dialog.Header>

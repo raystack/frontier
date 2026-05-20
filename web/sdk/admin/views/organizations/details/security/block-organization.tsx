@@ -138,13 +138,13 @@ const BlockOrganizationDialog = () => {
           </Button>
         }
       />
-      <AlertDialog.Content width={400} aria-label="Block Organization">
-        <AlertDialog.Body>
+      <AlertDialog.Content aria-label="Block Organization">
+        <AlertDialog.Header>
           <AlertDialog.Title>{componentConfig.dialogTitle}</AlertDialog.Title>
           <AlertDialog.Description>
             {componentConfig.dialogDescription}
           </AlertDialog.Description>
-        </AlertDialog.Body>
+        </AlertDialog.Header>
         <AlertDialog.Footer>
           <AlertDialog.Close
             render={

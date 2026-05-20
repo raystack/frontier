@@ -240,7 +240,7 @@ export function AddServiceAccountDialog({
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
             <Dialog.Title>New Service Account</Dialog.Title>

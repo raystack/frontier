@@ -96,7 +96,7 @@ function CropDialog({ open, onOpenChange, imgSrc, onSave }: CropDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content width={600}>
+      <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>Crop your photo</Dialog.Title>
         </Dialog.Header>

@@ -145,12 +145,15 @@ export function ProjectsView({
         <ViewHeader title={title} description={description ?? `Manage projects for this ${t.organization({ case: 'lower' })}`} />
         <EmptyState
           variant="empty2"
+          classNames={{
+            icon: styles.emptyStateIcon
+          }}
           icon={
             <Image
               src={inboxStackIcon as unknown as string}
               alt=""
-              width="100%"
-              height="100%"
+              width={40}
+              height={40}
             />
           }
           heading={t.project()}

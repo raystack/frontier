@@ -9,10 +9,8 @@ import {
   RemoveOrganizationMemberRequestSchema
 } from '@raystack/proton/frontier';
 import {
+  AlertDialog,
   Button,
-  Text,
-  Dialog,
-  Flex,
   toastManager
 } from '@raystack/apsara-v1';
 import { useFrontier } from '../../../contexts/FrontierContext';
@@ -22,7 +20,7 @@ import { handleConnectError } from '~/utils/error';
 export type RemoveMemberPayload = { memberId: string; invited: string };
 
 export interface RemoveMemberDialogProps {
-  handle: ReturnType<typeof Dialog.createHandle<RemoveMemberPayload>>;
+  handle: ReturnType<typeof AlertDialog.createHandle<RemoveMemberPayload>>;
   refetch: () => void;
 }
 
@@ -32,17 +30,12 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
   const [isLoading, setIsLoading] = useState(false);
   const t = useTerminology();
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      refetch();
-    }
-  };
-
   const { mutateAsync: deleteInvitation } = useMutation(
     FrontierServiceQueries.deleteOrganizationInvitation,
     {
       onSuccess: () => {
         handle.close();
+        refetch();
         toastManager.add({ title: 'Invitation deleted', type: 'success' });
       }
     }
@@ -53,6 +46,7 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
     {
       onSuccess: () => {
         handle.close();
+        refetch();
         toastManager.add({ title: 'User removed', type: 'success' });
       }
     }
@@ -75,6 +69,7 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
         });
         await removeMember(req);
       }
+      handle.close();
     } catch (error) {
       handleConnectError(error, {
         NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
@@ -88,49 +83,45 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
   };
 
   return (
-    <Dialog handle={handle} onOpenChange={handleOpenChange}>
+    <AlertDialog handle={handle}>
       {({ payload: rawPayload }) => {
         const payload = rawPayload as RemoveMemberPayload | undefined;
         return (
-          <Dialog.Content width={400}>
-            <Dialog.Header>
-              <Dialog.Title>Remove member?</Dialog.Title>
-            </Dialog.Header>
-            <Dialog.Body>
-              <Text size="regular" variant="secondary">
+          <AlertDialog.Content>
+            <AlertDialog.Header>
+              <AlertDialog.Title>Remove member</AlertDialog.Title>
+              <AlertDialog.Description>
                 Are you sure you want to remove this member from the{' '}
                 {t.organization({ case: 'lower' })}?
-              </Text>
-            </Dialog.Body>
-            <Dialog.Footer>
-              <Flex justify="end" gap={5}>
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  onClick={() => handle.close()}
-                  data-test-id="cancel-remove-member-dialog"
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="solid"
-                  color="danger"
-                  onClick={() =>
-                    payload && deleteMember(payload.memberId, payload.invited)
-                  }
-                  data-test-id="confirm-remove-member-dialog"
-                  disabled={isLoading}
-                  loading={isLoading}
-                  loaderText="Removing..."
-                >
-                  Remove
-                </Button>
-              </Flex>
-            </Dialog.Footer>
-          </Dialog.Content>
+              </AlertDialog.Description>
+            </AlertDialog.Header>
+            <AlertDialog.Footer>
+              <Button
+                variant="outline"
+                color="neutral"
+                onClick={() => handle.close()}
+                data-test-id="cancel-remove-member-dialog"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                color="danger"
+                onClick={() =>
+                  payload && deleteMember(payload.memberId, payload.invited)
+                }
+                data-test-id="confirm-remove-member-dialog"
+                disabled={isLoading}
+                loading={isLoading}
+                loaderText="Removing..."
+              >
+                Remove
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Content>
         );
       }}
-    </Dialog>
+    </AlertDialog>
   );
 }

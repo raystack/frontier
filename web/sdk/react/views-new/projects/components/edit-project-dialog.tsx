@@ -47,7 +47,7 @@ export function EditProjectDialog({ handle, refetch }: EditProjectDialogProps) {
       {({ payload }) => {
         const p = payload as EditProjectPayload | undefined;
         return (
-          <Dialog.Content width={400}>
+          <Dialog.Content>
             {p ? (
               <EditProjectForm
                 payload={p}

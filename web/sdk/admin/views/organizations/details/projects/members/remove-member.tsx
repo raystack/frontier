@@ -59,7 +59,6 @@ export const RemoveMember = ({
   return (
     <AlertDialog open onOpenChange={onClose}>
       <AlertDialog.Content
-        width={400}
         overlay={{ className: styles["action-dialog-overlay"] }}
         className={styles["action-dialog-content"]}
       >

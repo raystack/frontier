@@ -61,7 +61,7 @@ export function DeleteTeamDialog({ handle, refetch }: DeleteTeamDialogProps) {
       {({ payload: rawPayload }) => {
         const payload = rawPayload as DeleteTeamPayload | undefined;
         return (
-          <AlertDialog.Content width={400}>
+          <AlertDialog.Content>
             <AlertDialog.Header>
               <AlertDialog.Title>Delete Team</AlertDialog.Title>
             </AlertDialog.Header>
@@ -73,30 +73,28 @@ export function DeleteTeamDialog({ handle, refetch }: DeleteTeamDialogProps) {
               </Text>
             </AlertDialog.Body>
             <AlertDialog.Footer>
-              <Flex gap={5} justify="end">
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  onClick={() => handle.close()}
-                  disabled={isPending}
-                  data-test-id="frontier-sdk-cancel-delete-team-btn"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="solid"
-                  color="danger"
-                  onClick={() =>
-                    payload && handleDelete(payload.teamId)
-                  }
-                  disabled={isPending}
-                  loading={isPending}
-                  loaderText="Deleting..."
-                  data-test-id="frontier-sdk-delete-team-btn"
-                >
-                  Delete Now
-                </Button>
-              </Flex>
+              <Button
+                variant="outline"
+                color="neutral"
+                onClick={() => handle.close()}
+                disabled={isPending}
+                data-test-id="frontier-sdk-cancel-delete-team-btn"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                color="danger"
+                onClick={() =>
+                  payload && handleDelete(payload.teamId)
+                }
+                disabled={isPending}
+                loading={isPending}
+                loaderText="Deleting..."
+                data-test-id="frontier-sdk-delete-team-btn"
+              >
+                Delete Now
+              </Button>
             </AlertDialog.Footer>
           </AlertDialog.Content>
         );

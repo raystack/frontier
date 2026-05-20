@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
   Button,
-  Flex,
   Text,
   AlertDialog
 } from '@raystack/apsara-v1';
@@ -63,7 +62,7 @@ export function DeleteProjectDialog({ handle, refetch }: DeleteProjectDialogProp
       {({ payload: rawPayload }) => {
         const payload = rawPayload as DeleteProjectPayload | undefined;
         return (
-          <AlertDialog.Content width={400}>
+          <AlertDialog.Content>
             <AlertDialog.Header>
               <AlertDialog.Title>Delete Project</AlertDialog.Title>
             </AlertDialog.Header>
@@ -75,30 +74,28 @@ export function DeleteProjectDialog({ handle, refetch }: DeleteProjectDialogProp
               </Text>
             </AlertDialog.Body>
             <AlertDialog.Footer>
-              <Flex gap={5} justify="end">
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  onClick={() => handle.close()}
-                  disabled={isLoading}
-                  data-test-id="frontier-sdk-cancel-delete-project-btn"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="solid"
-                  color="danger"
-                  onClick={() =>
-                    payload && handleDelete(payload.projectId)
-                  }
-                  disabled={isLoading}
-                  loading={isLoading}
-                  loaderText="Deleting..."
-                  data-test-id="frontier-sdk-delete-project-btn"
-                >
-                  Delete Now
-                </Button>
-              </Flex>
+              <Button
+                variant="outline"
+                color="neutral"
+                onClick={() => handle.close()}
+                disabled={isLoading}
+                data-test-id="frontier-sdk-cancel-delete-project-btn"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                color="danger"
+                onClick={() =>
+                  payload && handleDelete(payload.projectId)
+                }
+                disabled={isLoading}
+                loading={isLoading}
+                loaderText="Deleting..."
+                data-test-id="frontier-sdk-delete-project-btn"
+              >
+                Delete Now
+              </Button>
             </AlertDialog.Footer>
           </AlertDialog.Content>
         );
