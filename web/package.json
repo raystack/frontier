@@ -19,7 +19,7 @@
     "@turbo/gen": "^1.10.14",
     "prettier": "^2.8.8",
     "process": "^0.11.10",
-    "turbo": "2.0.6"
+    "turbo": "2.9.14"
   },
   "packageManager": "pnpm@10.19.0",
   "dependencies": {
