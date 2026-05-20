@@ -15,7 +15,7 @@ import {
   UpdateCurrentUserPATRequestSchema,
   CheckCurrentUserPATTitleRequestSchema,
   ListRolesForPATRequestSchema,
-  ListOrganizationProjectsRequestSchema
+  ListProjectsByCurrentUserRequestSchema
 } from '@raystack/proton/frontier';
 import type { PAT } from '@raystack/proton/frontier';
 import {
@@ -145,11 +145,10 @@ export function PATFormDialog({
   };
 
   const { data: projectsData, isLoading: isProjectsLoading } = useQuery(
-    FrontierServiceQueries.listOrganizationProjects,
-    create(ListOrganizationProjectsRequestSchema, {
-      id: orgId,
-      state: '',
-      withMemberCount: false
+    FrontierServiceQueries.listProjectsByCurrentUser,
+    create(ListProjectsByCurrentUserRequestSchema, {
+      orgId,
+      nonInherited: false
     }),
     { enabled: Boolean(orgId) }
   );
@@ -542,51 +541,51 @@ export function PATFormDialog({
                           const remaining =
                             selectedIds.length - visible.length;
                           return (
-                          <Select
-                            multiple
-                            value={field.value}
-                            onValueChange={(val: string[]) => {
-                              field.onChange(val);
-                              clearErrors('projectIds');
-                            }}
-                          >
-                            <Select.Trigger>
-                              <Select.Value placeholder="Select projects">
-                                {selectedIds.length === 0 ? null : (
-                                  <Flex gap={2} align="center">
-                                    {visible.map(id => (
-                                      <Chip
-                                        key={id}
-                                        className={styles.projectChip}
-                                      >
-                                        <span
-                                          className={
-                                            styles.projectChipLabel
-                                          }
+                            <Select
+                              multiple
+                              value={field.value}
+                              onValueChange={(val: string[]) => {
+                                field.onChange(val);
+                                clearErrors('projectIds');
+                              }}
+                            >
+                              <Select.Trigger>
+                                <Select.Value placeholder="Select projects">
+                                  {selectedIds.length === 0 ? null : (
+                                    <Flex gap={2} align="center">
+                                      {visible.map(id => (
+                                        <Chip
+                                          key={id}
+                                          className={styles.projectChip}
                                         >
-                                          {projects.find(p => p.id === id)
-                                            ?.title || id}
-                                        </span>
-                                      </Chip>
-                                    ))}
-                                    {remaining > 0 && (
-                                      <Chip>{`+${remaining}`}</Chip>
-                                    )}
-                                  </Flex>
-                                )}
-                              </Select.Value>
-                            </Select.Trigger>
-                            <Select.Content>
-                              {projects.map(project => (
-                                <Select.Item
-                                  value={project.id}
-                                  key={project.id}
-                                >
-                                  {project.title}
-                                </Select.Item>
-                              ))}
-                            </Select.Content>
-                          </Select>
+                                          <span
+                                            className={
+                                              styles.projectChipLabel
+                                            }
+                                          >
+                                            {projects.find(p => p.id === id)
+                                              ?.title || id}
+                                          </span>
+                                        </Chip>
+                                      ))}
+                                      {remaining > 0 && (
+                                        <Chip>{`+${remaining}`}</Chip>
+                                      )}
+                                    </Flex>
+                                  )}
+                                </Select.Value>
+                              </Select.Trigger>
+                              <Select.Content>
+                                {projects.map(project => (
+                                  <Select.Item
+                                    value={project.id}
+                                    key={project.id}
+                                  >
+                                    {project.title}
+                                  </Select.Item>
+                                ))}
+                              </Select.Content>
+                            </Select>
                           );
                         }}
                       />

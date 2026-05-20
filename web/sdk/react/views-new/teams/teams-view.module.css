@@ -11,3 +11,9 @@
   min-width: 120px;
   box-shadow: none;
 }
+
+.emptyStateIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

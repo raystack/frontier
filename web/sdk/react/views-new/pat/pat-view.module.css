@@ -22,3 +22,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.emptyStateIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

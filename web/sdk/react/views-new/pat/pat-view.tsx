@@ -169,6 +169,9 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
       ) : hasNoPats ? (
         <EmptyState
           variant="empty2"
+          classNames={{
+            icon: styles.emptyStateIcon
+          }}
           icon={
             <Image
               src={keyIcon as unknown as string}

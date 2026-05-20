@@ -147,12 +147,15 @@ export function TeamsView({
         />
         <EmptyState
           variant="empty2"
+          classNames={{
+            icon: styles.emptyStateIcon
+          }}
           icon={
             <Image
               src={usersIcon as unknown as string}
               alt=""
-              width="100%"
-              height="100%"
+              width={40}
+              height={40}
             />
           }
           heading={t.team()}
