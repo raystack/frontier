@@ -76,13 +76,13 @@ const DeleteDomainDialog = ({
           </IconButton>
         }
       />
-      <AlertDialog.Content width={400}>
-        <AlertDialog.Body>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
           <AlertDialog.Title>Delete email domain</AlertDialog.Title>
           <AlertDialog.Description>
             Are you sure you want to delete this email domain?
           </AlertDialog.Description>
-        </AlertDialog.Body>
+        </AlertDialog.Header>
         <AlertDialog.Footer>
           <AlertDialog.Close
             render={

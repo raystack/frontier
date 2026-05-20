@@ -47,7 +47,7 @@ export function EditTeamDialog({ handle, refetch }: EditTeamDialogProps) {
       {({ payload }) => {
         const p = payload as EditTeamPayload | undefined;
         return (
-          <Dialog.Content width={400}>
+          <Dialog.Content>
             {p ? (
               <EditTeamForm
                 payload={p}

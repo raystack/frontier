@@ -134,11 +134,11 @@ export const BlockUserDialog = () => {
           </Button>
         }
       />
-      <AlertDialog.Content width={400} aria-label={config.dialogTitle}>
-        <AlertDialog.Body>
+      <AlertDialog.Content aria-label={config.dialogTitle}>
+        <AlertDialog.Header>
           <AlertDialog.Title>{config.dialogTitle}</AlertDialog.Title>
           <AlertDialog.Description>{config.dialogDescription}</AlertDialog.Description>
-        </AlertDialog.Body>
+        </AlertDialog.Header>
         <AlertDialog.Footer>
           <AlertDialog.Close
             render={

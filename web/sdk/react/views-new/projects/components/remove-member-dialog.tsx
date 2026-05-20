@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
   Button,
-  Flex,
   Text,
   AlertDialog
 } from '@raystack/apsara-v1';
@@ -45,7 +44,7 @@ export function RemoveMemberDialog({
       {({ payload }) => {
         const p = payload as RemoveMemberPayload | undefined;
         return (
-          <AlertDialog.Content width={400}>
+          <AlertDialog.Content>
             {p ? (
               <RemoveMemberForm
                 payload={p}
@@ -113,28 +112,26 @@ function RemoveMemberForm({
         </Text>
       </AlertDialog.Body>
       <AlertDialog.Footer>
-        <Flex gap={5} justify="end">
-          <Button
-            variant="outline"
-            color="neutral"
-            onClick={() => handle.close()}
-            disabled={isLoading}
-            data-test-id="frontier-sdk-cancel-remove-member-btn"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="solid"
-            color="danger"
-            onClick={handleRemove}
-            disabled={isLoading}
-            loading={isLoading}
-            loaderText="Removing..."
-            data-test-id="frontier-sdk-remove-member-btn"
-          >
-            Remove
-          </Button>
-        </Flex>
+        <Button
+          variant="outline"
+          color="neutral"
+          onClick={() => handle.close()}
+          disabled={isLoading}
+          data-test-id="frontier-sdk-cancel-remove-member-btn"
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="solid"
+          color="danger"
+          onClick={handleRemove}
+          disabled={isLoading}
+          loading={isLoading}
+          loaderText="Removing..."
+          data-test-id="frontier-sdk-remove-member-btn"
+        >
+          Remove
+        </Button>
       </AlertDialog.Footer>
     </>
   );

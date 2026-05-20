@@ -107,7 +107,7 @@ export function AddDomainDialog({
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
-      <Dialog.Content width={400}>
+      <Dialog.Content>
           <Dialog.Header>
             <Dialog.Title>Add domain</Dialog.Title>
           </Dialog.Header>

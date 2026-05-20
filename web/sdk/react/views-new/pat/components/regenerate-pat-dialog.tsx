@@ -102,7 +102,7 @@ export function RegeneratePATDialog({
           expiryValue || payload?.currentExpiryValue || '';
         const patId = payload?.patId;
         return (
-          <Dialog.Content width={400}>
+          <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Regenerate Expiry date</Dialog.Title>
             </Dialog.Header>
