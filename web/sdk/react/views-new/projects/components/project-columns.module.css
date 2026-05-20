@@ -1,0 +1,7 @@
+.actionsCell {
+  visibility: hidden;
+}
+
+tr:hover .actionsCell {
+  visibility: visible;
+}

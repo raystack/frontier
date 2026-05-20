@@ -1,6 +1,6 @@
 'use client';
 
-import { DotsVerticalIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Flex,
   Text,
@@ -9,6 +9,7 @@ import {
   DataTableColumnDef
 } from '@raystack/apsara-v1';
 import type { Group } from '@raystack/proton/frontier';
+import styles from './team-columns.module.css';
 
 export interface TeamMenuPayload {
   teamId: string;
@@ -64,7 +65,7 @@ export function getColumns({
         if (!canUpdate && !canDelete) return null;
 
         return (
-          <Flex align="center" justify="center">
+          <Flex align="center" justify="center" className={styles.actionsCell}>
             <Menu.Trigger
               handle={menuHandle}
               payload={{
@@ -76,13 +77,13 @@ export function getColumns({
               }}
               render={
                 <IconButton
-                  size={3}
+                  size={2}
                   aria-label="Team actions"
                   data-test-id="frontier-sdk-team-actions-btn"
                 />
               }
             >
-              <DotsVerticalIcon />
+              <DotsHorizontalIcon />
             </Menu.Trigger>
           </Flex>
         );

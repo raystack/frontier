@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ArchiveIcon,
   ExclamationTriangleIcon,
-  Pencil1Icon
+  Pencil1Icon,
+  PlusIcon
 } from '@radix-ui/react-icons';
 import {
   Button,
@@ -16,9 +16,11 @@ import {
   Dialog,
   AlertDialog,
   Image,
-  Menu
+  Menu,
+  Select
 } from '@raystack/apsara-v1';
 import deleteIcon from '../../assets/delete.svg';
+import inboxStackIcon from '../../assets/inbox-stack.svg';
 import { toastManager } from '@raystack/apsara-v1';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useOrganizationProjects } from '../../hooks/useOrganizationProjects';
@@ -31,8 +33,14 @@ import { getColumns, type ProjectMenuPayload } from './components/project-column
 import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
 import { DeleteProjectDialog, type DeleteProjectPayload } from './components/delete-project-dialog';
+import { AddMemberMenuContent } from './components/add-member-menu';
 import styles from './projects-view.module.css';
 import { useTerminology } from '~/react/hooks/useTerminology';
+
+const projectsFilterOptions = [
+  { value: 'my-projects', label: 'My Projects' },
+  { value: 'all-projects', label: 'All Projects' }
+];
 
 const projectMenuHandle = Menu.createHandle<ProjectMenuPayload>();
 const addProjectDialogHandle = Dialog.createHandle();
@@ -50,13 +58,17 @@ export function ProjectsView({
   description,
   onProjectClick
 }: ProjectsViewProps) {
+  const [showOrgProjects, setShowOrgProjects] = useState(false);
+
   const {
     isFetching: isProjectsLoading,
+    isFetched: isProjectsFetched,
     projects,
     userAccessOnProject,
     refetch,
     error: projectsError
   } = useOrganizationProjects({
+    allProjects: showOrgProjects,
     withMemberCount: true
   });
 
@@ -83,14 +95,22 @@ export function ProjectsView({
     !!organization?.id
   );
 
-  const { canCreateProject } = useMemo(() => {
+  const { canCreateProject, canListOrgProjects } = useMemo(() => {
     return {
       canCreateProject: shouldShowComponent(
         permissions,
         `${PERMISSIONS.ProjectCreatePermission}::${resource}`
+      ),
+      canListOrgProjects: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
       )
     };
   }, [permissions, resource]);
+
+  const onFilterChange = useCallback((value: string) => {
+    setShowOrgProjects(value === 'all-projects');
+  }, []);
 
   useEffect(() => {
     if (projectsError) {
@@ -106,6 +126,9 @@ export function ProjectsView({
   }, [projectsError]);
 
   const isLoading = !organization?.id || isPermissionsFetching || isProjectsLoading;
+  const showInitialSkeleton = isLoading && !isProjectsFetched;
+  const filterValue = showOrgProjects ? 'all-projects' : 'my-projects';
+  const hasNoProjects = !isLoading && (projects?.length ?? 0) === 0;
 
   const columns = useMemo(
     () =>
@@ -116,39 +139,39 @@ export function ProjectsView({
     [userAccessOnProject]
   );
 
-  if (!isLoading && (projects?.length ?? 0) === 0) {
+  if (hasNoProjects) {
     return (
       <ViewContainer>
         <ViewHeader title={title} description={description ?? `Manage projects for this ${t.organization({ case: 'lower' })}`} />
         <EmptyState
           variant="empty2"
-          icon={<ArchiveIcon />}
+          icon={
+            <Image
+              src={inboxStackIcon as unknown as string}
+              alt=""
+              width="100%"
+              height="100%"
+            />
+          }
           heading={t.project()}
           subHeading="A project is a structured initiative undertaken to achieve a specific outcome. It operates within a defined scope, objectives, and resources, following a process of planning, execution, monitoring, and completion."
           secondaryAction={
-            <Tooltip>
-              <Tooltip.Trigger
-                disabled={canCreateProject}
-                render={<span />}
+            canCreateProject ? (
+              <Button
+                variant="solid"
+                color="accent"
+                size="small"
+                onClick={() => addProjectDialogHandle.open(null)}
+                data-test-id="frontier-sdk-add-project-empty-state-button"
               >
-                <Button
-                  variant="solid"
-                  color="accent"
-                  size="small"
-                  onClick={() => addProjectDialogHandle.open(null)}
-                  disabled={!canCreateProject}
-                  data-test-id="frontier-sdk-add-project-empty-state-button"
-                >
-                  Create new {t.project({ case: 'lower' })}
-                </Button>
-              </Tooltip.Trigger>
-              {!canCreateProject && (
-                <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
-              )}
-            </Tooltip>
+                Create new {t.project({ case: 'lower' })}
+              </Button>
+            ) : null
           }
         />
-        <AddProjectDialog handle={addProjectDialogHandle} refetch={refetch} />
+        {canCreateProject && (
+          <AddProjectDialog handle={addProjectDialogHandle} refetch={refetch} />
+        )}
       </ViewContainer>
     );
   }
@@ -168,17 +191,38 @@ export function ProjectsView({
         <Flex direction="column" gap={7}>
           <Flex justify="between" gap={3}>
             <Flex gap={3} align="center">
-              {isLoading ? (
+              {showInitialSkeleton ? (
                 <Skeleton height="34px" width="360px" />
               ) : (
-                <DataTable.Search
-                  placeholder="Search by name"
-                  size="large"
-                  width={360}
-                />
+                <>
+                  <DataTable.Search
+                    placeholder="Search by name"
+                    size="large"
+                    width={360}
+                    disabled={isLoading}
+                  />
+                  {canListOrgProjects && (
+                    <Select
+                      value={filterValue}
+                      onValueChange={onFilterChange}
+                      disabled={isLoading}
+                    >
+                      <Select.Trigger className={styles.projectsFilter}>
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Content>
+                        {projectsFilterOptions.map(opt => (
+                          <Select.Item value={opt.value} key={opt.value}>
+                            {opt.label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select>
+                  )}
+                </>
               )}
             </Flex>
-            {isLoading ? (
+            {showInitialSkeleton ? (
               <Skeleton height="34px" width="120px" />
             ) : (
               <Tooltip>
@@ -237,6 +281,23 @@ export function ProjectsView({
                 >
                   Edit
                 </Menu.Item>
+              )}
+              {payload?.canUpdate && (
+                <Menu.Submenu autocomplete>
+                  <Menu.SubmenuTrigger
+                    leadingIcon={<PlusIcon />}
+                    data-test-id="add-project-member-dropdown-item"
+                  >
+                    Add a member
+                  </Menu.SubmenuTrigger>
+                  <AddMemberMenuContent
+                    projectId={payload.projectId}
+                    canUpdateProject={payload.canUpdate}
+                    members={[]}
+                    refetch={refetch}
+                    asSubmenu
+                  />
+                </Menu.Submenu>
               )}
               {payload?.canDelete && (
                 <Menu.Item

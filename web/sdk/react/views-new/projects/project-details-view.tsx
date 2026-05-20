@@ -414,7 +414,8 @@ export function ProjectDetailsView({
             }
             classNames={{
               root: styles.tableRoot,
-              table: styles.table
+              table: styles.table,
+              row: styles.tableRow
             }}
           />
         </Flex>

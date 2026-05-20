@@ -1,6 +1,6 @@
 'use client';
 
-import { DotsVerticalIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Flex,
   Text,
@@ -81,14 +81,14 @@ export const getColumns = ({
             }}
             render={
               <IconButton
-                size={3}
+                size={2}
                 aria-label="Service account actions"
                 data-test-id="frontier-sdk-service-account-actions-btn"
                 className={styles.actionButton}
               />
             }
           >
-            <DotsVerticalIcon />
+            <DotsHorizontalIcon />
           </Menu.Trigger>
         </Flex>
       );

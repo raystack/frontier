@@ -151,6 +151,7 @@ export function PlansView() {
       <ViewContainer>
         <ViewHeader title="Plans" description="View and manage your subscription plan." />
         <EmptyState
+          variant="empty2"
           icon={<ExclamationTriangleIcon />}
           heading="No Plans Available"
           subHeading="No plans available at this moment. Please try again later."
