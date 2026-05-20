@@ -16,6 +16,7 @@ import {
 } from '@raystack/apsara-v1';
 import deleteIcon from '~/react/assets/delete.svg';
 import keyIcon from '~/react/assets/key.svg';
+import exclamationTriangleIcon from '~/react/assets/exclamation-triangle.svg';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -146,19 +147,36 @@ export function ServiceAccountsView({
 
       {hasNoAccess ? (
         <EmptyState
-          icon={<ExclamationTriangleIcon />}
+          variant="empty2"
+          icon={
+            <Image
+              src={exclamationTriangleIcon as unknown as string}
+              alt=""
+              width={40}
+              height={40}
+            />
+          }
           heading="Restricted Access"
           subHeading="Admin access required, please reach out to your admin incase you want to generate a key."
         />
       ) : hasNoServiceAccounts ? (
         <EmptyState
-          icon={<ExclamationTriangleIcon />}
+          variant="empty2"
+          icon={
+            <Image
+              src={keyIcon as unknown as string}
+              alt=""
+              width={40}
+              height={40}
+            />
+          }
           heading="No Service Account Found"
           subHeading={`Create a new account to use the APIs of ${t.appName()} platform`}
           primaryAction={
             <Button
-              variant="outline"
-              color="neutral"
+              variant="solid"
+              color="accent"
+              size="small"
               onClick={() => addDialogHandle.open(null)}
               data-test-id="frontier-sdk-new-service-account-btn"
             >

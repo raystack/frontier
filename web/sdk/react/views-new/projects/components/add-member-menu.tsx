@@ -39,12 +39,21 @@ interface AddMemberMenuProps {
   refetch: () => void;
 }
 
-export function AddMemberMenu({
+interface AddMemberMenuContentProps {
+  projectId: string;
+  canUpdateProject: boolean;
+  members: User[];
+  refetch: () => void;
+  asSubmenu?: boolean;
+}
+
+export function AddMemberMenuContent({
   projectId,
   canUpdateProject,
   members,
-  refetch
-}: AddMemberMenuProps) {
+  refetch,
+  asSubmenu = false
+}: AddMemberMenuContentProps) {
   const [showTeam, setShowTeam] = useState(false);
 
   const { activeOrganization: organization } = useFrontier();
@@ -92,7 +101,10 @@ export function AddMemberMenu({
   );
 
   const viewerRole = useMemo(
-    () => (rolesData?.roles as Role[] ?? []).find((r: Role) => r.name === PERMISSIONS.RoleProjectViewer),
+    () =>
+      (rolesData?.roles as Role[] ?? []).find(
+        (r: Role) => r.name === PERMISSIONS.RoleProjectViewer
+      ),
     [rolesData]
   );
 
@@ -152,6 +164,99 @@ export function AddMemberMenu({
 
   const isLoading = showTeam ? isTeamsLoading : isOrgUsersLoading;
 
+  const ContentComponent = asSubmenu ? Menu.SubmenuContent : Menu.Content;
+
+  return (
+    <ContentComponent
+      align={asSubmenu ? 'start' : 'end'}
+      className={styles.addMemberContent}
+      searchPlaceholder={showTeam ? 'Search teams...' : 'Search...'}
+    >
+      <div className={styles.addMemberMenuList}>
+        {isLoading
+          ? <Flex gap={1} direction="column">
+            {
+              Array.from({ length: 6 }, (_, i) => (
+                <Skeleton key={i} height="30px" width="100%" />
+              ))
+            }
+          </Flex>
+          : showTeam
+            ? teams.map(team => (
+              <Menu.Item
+                key={team.id}
+                value={team.title || team.name || ''}
+                className={styles.addMemberMenuItem}
+                leadingIcon={
+                  <Avatar
+                    fallback={getInitials(team.title || team.name || '')}
+                    size={1}
+                  />
+                }
+                onClick={() => addTeam(team.id || '')}
+                data-test-id={`frontier-sdk-add-team-to-project-item-${team.id}`}
+              >
+                <span className={styles.addMemberMenuItemText}>{team.title || team.name}</span>
+              </Menu.Item>
+            ))
+            : invitableUsers.map(user => (
+              <Menu.Item
+                key={user.id}
+                value={user.title || user.email || ''}
+                className={styles.addMemberMenuItem}
+                leadingIcon={
+                  <Avatar
+                    src={user.avatar}
+                    fallback={getInitials(
+                      user.title || user.email || ''
+                    )}
+                    size={1}
+                  />
+                }
+                onClick={() => addMember(user.id || '')}
+                data-test-id={`frontier-sdk-add-user-to-project-item-${user.id}`}
+              >
+                <span className={styles.addMemberMenuItemText}>{user.title || user.email}</span>
+              </Menu.Item>
+            ))}
+
+        {!isLoading &&
+          (showTeam ? !teams.length : !invitableUsers.length) && (
+            <Menu.EmptyState className={styles.addMemberEmptyState}>
+              {showTeam ? 'No teams found' : 'No users found'}
+            </Menu.EmptyState>
+          )}
+      </div>
+      <Flex direction="column" align="center" className={styles.addMemberFooter}>
+        <Separator className={styles.addMemberSeparator} />
+        <Button
+          width="100%"
+          variant="text"
+          color="neutral"
+          className={styles.addMemberToggleBtn}
+          leadingIcon={
+            showTeam ? (
+              <PlusIcon />
+            ) : (
+              <CardStackPlusIcon />
+            )
+          }
+          onClick={toggleShowTeam}
+          data-test-id="frontier-sdk-add-project-member-toggle"
+        >
+          {showTeam ? 'Add project member' : 'Add team to project'}
+        </Button>
+      </Flex>
+    </ContentComponent>
+  );
+}
+
+export function AddMemberMenu({
+  projectId,
+  canUpdateProject,
+  members,
+  refetch
+}: AddMemberMenuProps) {
   if (!canUpdateProject) {
     return (
       <Tooltip>
@@ -183,87 +288,12 @@ export function AddMemberMenu({
       >
         Add a member
       </Menu.Trigger>
-      <Menu.Content
-        align="end"
-        className={styles.addMemberContent}
-        searchPlaceholder={showTeam ? 'Search teams...' : 'Search...'}
-      >
-        <div className={styles.addMemberMenuList}>
-          {isLoading
-            ? <Flex gap={1} direction="column">
-              {
-                Array.from({ length: 6 }, (_, i) => (
-                  <Skeleton key={i} height="30px" width="100%" />
-                ))
-              }
-            </Flex>
-            : showTeam
-              ? teams.map(team => (
-                <Menu.Item
-                  key={team.id}
-                  value={team.title || team.name || ''}
-                  className={styles.addMemberMenuItem}
-                  leadingIcon={
-                    <Avatar
-                      fallback={getInitials(team.title || team.name || '')}
-                      size={1}
-                    />
-                  }
-                  onClick={() => addTeam(team.id || '')}
-                  data-test-id={`frontier-sdk-add-team-to-project-item-${team.id}`}
-                >
-                  <span className={styles.addMemberMenuItemText}>{team.title || team.name}</span>
-                </Menu.Item>
-              ))
-              : invitableUsers.map(user => (
-                <Menu.Item
-                  key={user.id}
-                  value={user.title || user.email || ''}
-                  className={styles.addMemberMenuItem}
-                  leadingIcon={
-                    <Avatar
-                      src={user.avatar}
-                      fallback={getInitials(
-                        user.title || user.email || ''
-                      )}
-                      size={1}
-                    />
-                  }
-                  onClick={() => addMember(user.id || '')}
-                  data-test-id={`frontier-sdk-add-user-to-project-item-${user.id}`}
-                >
-                  <span className={styles.addMemberMenuItemText}>{user.title || user.email}</span>
-                </Menu.Item>
-              ))}
-
-          {!isLoading &&
-            (showTeam ? !teams.length : !invitableUsers.length) && (
-              <Menu.EmptyState className={styles.addMemberEmptyState}>
-                {showTeam ? 'No teams found' : 'No users found'}
-              </Menu.EmptyState>
-            )}
-        </div>
-        <Flex direction="column" align="center" className={styles.addMemberFooter}>
-          <Separator className={styles.addMemberSeparator} />
-          <Button
-            width="100%"
-            variant="text"
-            color="neutral"
-            className={styles.addMemberToggleBtn}
-            leadingIcon={
-              showTeam ? (
-                <PlusIcon />
-              ) : (
-                <CardStackPlusIcon />
-              )
-            }
-            onClick={toggleShowTeam}
-            data-test-id="frontier-sdk-add-project-member-toggle"
-          >
-            {showTeam ? 'Add project member' : 'Add team to project'}
-          </Button>
-        </Flex>
-      </Menu.Content>
+      <AddMemberMenuContent
+        projectId={projectId}
+        canUpdateProject={canUpdateProject}
+        members={members}
+        refetch={refetch}
+      />
     </Menu>
   );
 }

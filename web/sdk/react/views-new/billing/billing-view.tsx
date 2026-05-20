@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import qs from 'query-string';
 import { Flex, Dialog, EmptyState, toastManager } from '@raystack/apsara-v1';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import {
   CreateCheckoutRequestSchema,
   ListInvoicesRequestSchema,
@@ -28,6 +27,7 @@ import {
   ConfirmCycleSwitchDialog,
   type ConfirmCycleSwitchPayload
 } from './components/confirm-cycle-switch-dialog';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 const cycleSwitchDialogHandle =
   Dialog.createHandle<ConfirmCycleSwitchPayload>();
@@ -162,6 +162,7 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
 
       {hasNoAccess ? (
         <EmptyState
+          variant="empty2"
           icon={<ExclamationTriangleIcon />}
           heading="Restricted Access"
           subHeading="Admin access required, please reach out to your admin to view billing."

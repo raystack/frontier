@@ -1,6 +1,6 @@
 'use client';
 
-import { DotsVerticalIcon, TrashIcon, UpdateIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Flex,
   Text,
@@ -13,6 +13,7 @@ import {
 import type { User, Group, Role } from '@raystack/proton/frontier';
 import { getInitials } from '~/utils';
 import teamIcon from '~/react/assets/users.svg';
+import styles from './member-columns.module.css';
 
 export type MemberRow = (Group & { isTeam: true }) | (User & { isTeam?: false });
 
@@ -52,7 +53,7 @@ export function getColumns({
         const label = member.isTeam ? member.title : member.title;
         const subLabel = member.isTeam ? member.name : member.email;
         return (
-          <Flex align="center" gap={3}>
+          <Flex align="center" gap={4}>
             <Avatar
               src={member.isTeam ? teamIcon as unknown as string : member.avatar}
               fallback={fallback}
@@ -113,7 +114,7 @@ export function getColumns({
         const excludedRoles = roles.filter(r => !currentRoleIds.has(r.id));
 
         return (
-          <Flex align="center" justify="center">
+          <Flex align="center" justify="center" className={styles.actionsCell}>
             <Menu.Trigger
               handle={menuHandle}
               payload={{
@@ -123,13 +124,13 @@ export function getColumns({
               }}
               render={
                 <IconButton
-                  size={3}
+                  size={2}
                   aria-label="Member actions"
                   data-test-id="frontier-sdk-member-actions-btn"
                 />
               }
             >
-              <DotsVerticalIcon />
+              <DotsHorizontalIcon />
             </Menu.Trigger>
           </Flex>
         );
