@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/raystack/frontier/pkg/utils"
@@ -78,12 +79,7 @@ func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        id,
-			Namespace: schema.RoleBindingNamespace,
-		},
-	}); err != nil {
+	if err := s.deleteRoleBindingRelations(ctx, id); err != nil {
 		return err
 	}
 	return s.repository.Delete(ctx, id)
@@ -93,12 +89,31 @@ func (s Service) DeleteWithMinRoleGuard(ctx context.Context, id string, guardRol
 	if err := s.repository.DeleteWithMinRoleGuard(ctx, id, guardRoleID); err != nil {
 		return err
 	}
-	return s.relationService.Delete(ctx, relation.Relation{
+	return s.deleteRoleBindingRelations(ctx, id)
+}
+
+// deleteRoleBindingRelations removes all SpiceDB tuples written by AssignRole:
+// the rolebinding-as-Object tuples (role_bearer, role) and the resource-grant
+// tuple where the rolebinding is the Subject. The Subject-side delete tolerates
+// ErrNotExist because resource-delete sweeps may have already removed it.
+func (s Service) deleteRoleBindingRelations(ctx context.Context, id string) error {
+	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        id,
 			Namespace: schema.RoleBindingNamespace,
 		},
-	})
+	}); err != nil {
+		return err
+	}
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Subject: relation.Subject{
+			ID:        id,
+			Namespace: schema.RoleBindingNamespace,
+		},
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
+	return nil
 }
 
 // AssignRole Note: ideally this should be in a single transaction

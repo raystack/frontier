@@ -1,0 +1,115 @@
+package serviceuser_test
+
+import (
+	"context"
+	"errors"
+	"io"
+	"log/slog"
+	"testing"
+
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/core/serviceuser/mocks"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+)
+
+func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService) {
+	t.Helper()
+	repo := mocks.NewRepository(t)
+	credRepo := mocks.NewCredentialRepository(t)
+	relSvc := mocks.NewRelationService(t)
+	memSvc := mocks.NewMembershipService(t)
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	svc := serviceuser.NewService(logger, repo, credRepo, relSvc)
+	svc.SetMembershipService(memSvc)
+	return svc, repo, credRepo, relSvc, memSvc
+}
+
+func TestService_Delete(t *testing.T) {
+	ctx := context.Background()
+	const suID = "su-id"
+	const orgID = "org-id"
+
+	subjectFilter := relation.Relation{
+		Subject: relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+	}
+	objectFilter := relation.Relation{
+		Object: relation.Object{ID: suID, Namespace: schema.ServiceUserPrincipal},
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(*mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService)
+		wantErr bool
+	}{
+		{
+			name: "sweeps SU as subject and as object",
+			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
+				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
+				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
+				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				rel.On("Delete", ctx, subjectFilter).Return(nil)
+				rel.On("Delete", ctx, objectFilter).Return(nil)
+				repo.On("Delete", ctx, suID).Return(nil)
+			},
+		},
+		{
+			name: "membership failure is swallowed and both sweeps still run",
+			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
+				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
+				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
+				// covers the path where membership returns early without reaching its
+				// cascade cleanup (e.g. SU has no remaining org policies)
+				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(errors.New("not a member"))
+				rel.On("Delete", ctx, subjectFilter).Return(nil)
+				rel.On("Delete", ctx, objectFilter).Return(nil)
+				repo.On("Delete", ctx, suID).Return(nil)
+			},
+		},
+		{
+			name: "tolerates ErrNotExist from Object-side sweep",
+			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
+				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
+				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
+				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				rel.On("Delete", ctx, subjectFilter).Return(nil)
+				rel.On("Delete", ctx, objectFilter).Return(relation.ErrNotExist)
+				repo.On("Delete", ctx, suID).Return(nil)
+			},
+		},
+		{
+			name: "Object-side non-ErrNotExist failure blocks repo delete",
+			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
+				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
+				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
+				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				rel.On("Delete", ctx, subjectFilter).Return(nil)
+				rel.On("Delete", ctx, objectFilter).Return(errors.New("spicedb unavailable"))
+				// repo.Delete must NOT be called
+			},
+			wantErr: true,
+		},
+		{
+			name: "Subject-side failure short-circuits before Object sweep",
+			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
+				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
+				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
+				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				rel.On("Delete", ctx, subjectFilter).Return(errors.New("spicedb unavailable"))
+				// Object-side Delete and repo.Delete must NOT be called
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc, repo, cred, rel, mem := newTestService(t)
+			tt.setup(repo, cred, rel, mem)
+
+			err := svc.Delete(ctx, suID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
