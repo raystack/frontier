@@ -33,6 +33,7 @@ const AddDomainSection = () => {
         </Text>
       </Flex>
       <Tooltip>
+        {/* Flex is wrapper element to enable tooltip as button doesn't allow pointer-events while disabled */}
         <Tooltip.Trigger render={<Flex style={{ alignSelf: "center" }} />}>
           <Button
             variant="outline"
