@@ -97,30 +97,28 @@ export function RemoveMemberDialog({ handle, refetch }: RemoveMemberDialogProps)
               </AlertDialog.Description>
             </AlertDialog.Header>
             <AlertDialog.Footer>
-              <Flex justify="end" gap={5}>
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  onClick={() => handle.close()}
-                  data-test-id="cancel-remove-member-dialog"
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="solid"
-                  color="danger"
-                  onClick={() =>
-                    payload && deleteMember(payload.memberId, payload.invited)
-                  }
-                  data-test-id="confirm-remove-member-dialog"
-                  disabled={isLoading}
-                  loading={isLoading}
-                  loaderText="Removing..."
-                >
-                  Remove
-                </Button>
-              </Flex>
+              <Button
+                variant="outline"
+                color="neutral"
+                onClick={() => handle.close()}
+                data-test-id="cancel-remove-member-dialog"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                color="danger"
+                onClick={() =>
+                  payload && deleteMember(payload.memberId, payload.invited)
+                }
+                data-test-id="confirm-remove-member-dialog"
+                disabled={isLoading}
+                loading={isLoading}
+                loaderText="Removing..."
+              >
+                Remove
+              </Button>
             </AlertDialog.Footer>
           </AlertDialog.Content>
         );
