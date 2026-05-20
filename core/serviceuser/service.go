@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -169,7 +170,9 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		)
 	}
 
-	// delete remaining SpiceDB relations (platform relations, identity link, etc.)
+	// SU may appear as Subject (e.g. platform sudo) or as Object (e.g. the
+	// serviceuser#org identity link). Sweep both sides so deletion is symmetric
+	// with creation regardless of whether the membership cascade ran above.
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Subject: relation.Subject{
 			ID:        id,
@@ -178,6 +181,15 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        id,
+			Namespace: schema.ServiceUserPrincipal,
+		},
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
+
 	return s.repo.Delete(ctx, id)
 }
 

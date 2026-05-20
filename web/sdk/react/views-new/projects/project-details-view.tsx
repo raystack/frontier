@@ -22,17 +22,13 @@ import {
 } from '@raystack/apsara-v1';
 import deleteIcon from '../../assets/delete.svg';
 import { toastManager } from '@raystack/apsara-v1';
-import {
-  useQuery,
-  useMutation
-} from '@connectrpc/connect-query';
+import { useQuery } from '@connectrpc/connect-query';
 import {
   FrontierServiceQueries,
   ListProjectGroupsRequestSchema,
   ListProjectUsersRequestSchema,
   GetProjectRequestSchema,
   ListRolesRequestSchema,
-  SetProjectMemberRoleRequestSchema,
   type Role as ProtoRole
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
@@ -54,13 +50,16 @@ import {
   type RemoveMemberPayload
 } from './components/remove-member-dialog';
 import {
+  UpdateRoleDialog,
+  type UpdateRolePayload
+} from './components/update-role-dialog';
+import {
   getColumns,
   type MemberRow,
   type MemberMenuPayload
 } from './components/member-columns';
 import { AddMemberMenu } from './components/add-member-menu';
 import styles from './project-details-view.module.css';
-import { handleConnectError } from '~/utils/error';
 
 interface ProjectGroupRolePair {
   groupId?: string;
@@ -78,6 +77,7 @@ const deleteProjectDialogHandle =
   AlertDialog.createHandle<DeleteProjectPayload>();
 const removeMemberDialogHandle =
   AlertDialog.createHandle<RemoveMemberPayload>();
+const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
 export interface ProjectDetailsViewProps {
   projectId: string;
@@ -283,37 +283,6 @@ export function ProjectDetailsView({
     ]
   );
 
-  const { mutateAsync: setProjectMemberRole } = useMutation(
-    FrontierServiceQueries.setProjectMemberRole
-  );
-
-  const updateMemberRole = useCallback(
-    async (memberId: string, isTeam: boolean, role: ProtoRole) => {
-      try {
-        await setProjectMemberRole(
-          create(SetProjectMemberRoleRequestSchema, {
-            projectId,
-            principalId: memberId,
-            principalType: isTeam ? PERMISSIONS.GroupNamespace : PERMISSIONS.UserNamespace,
-            roleId: role.id as string
-          })
-        );
-        refetchMembers();
-        toastManager.add({
-          title: 'Member role updated',
-          type: 'success'
-        });
-      } catch (error) {
-        handleConnectError(error, {
-          PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-          NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
-          Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
-        });
-      }
-    },
-    [setProjectMemberRole, projectId, refetchMembers]
-  );
-
   const handleDeleteSuccess = useCallback(() => {
     onDeleteSuccess?.();
   }, [onDeleteSuccess]);
@@ -359,7 +328,7 @@ export function ProjectDetailsView({
       </ViewHeader>
 
       <DataTable
-        data={filteredMembers}
+        data={isLoading ? [] : filteredMembers}
         columns={columns}
         isLoading={isLoading}
         defaultSort={{ name: 'title', order: 'asc' }}
@@ -432,11 +401,11 @@ export function ProjectDetailsView({
                   leadingIcon={<UpdateIcon />}
                   onClick={() =>
                     payload &&
-                    updateMemberRole(
-                      payload.memberId,
-                      payload.isTeam,
+                    updateRoleDialogHandle.openWithPayload({
+                      memberId: payload.memberId,
+                      isTeam: payload.isTeam,
                       role
-                    )
+                    })
                   }
                   data-test-id="frontier-sdk-update-member-role-btn"
                 >
@@ -475,6 +444,11 @@ export function ProjectDetailsView({
       />
       <RemoveMemberDialog
         handle={removeMemberDialogHandle}
+        refetch={refetchMembers}
+      />
+      <UpdateRoleDialog
+        handle={updateRoleDialogHandle}
+        projectId={projectId}
         refetch={refetchMembers}
       />
     </ViewContainer>

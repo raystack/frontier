@@ -30,7 +30,7 @@ func TestService_Delete(t *testing.T) {
 		setup   func() *policy.Service
 	}{
 		{
-			name:    "delete policy from relation before repository",
+			name:    "delete both rolebinding-as-object and rolebinding-as-subject tuples before repository",
 			id:      "test-id",
 			wantErr: false,
 			setup: func() *policy.Service {
@@ -41,6 +41,34 @@ func TestService_Delete(t *testing.T) {
 						Namespace: schema.RoleBindingNamespace,
 					},
 				}).Return(nil)
+				relationService.On("Delete", ctx, relation.Relation{
+					Subject: relation.Subject{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(nil)
+				repo.On("Delete", ctx, "test-id").Return(nil)
+				return policy.NewService(repo, relationService, roleService)
+			},
+		},
+		{
+			name:    "tolerate ErrNotExist on resource-grant tuple delete",
+			id:      "test-id",
+			wantErr: false,
+			setup: func() *policy.Service {
+				repo, roleService, relationService := mockService(t)
+				relationService.On("Delete", ctx, relation.Relation{
+					Object: relation.Object{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(nil)
+				relationService.On("Delete", ctx, relation.Relation{
+					Subject: relation.Subject{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(relation.ErrNotExist)
 				repo.On("Delete", ctx, "test-id").Return(nil)
 				return policy.NewService(repo, relationService, roleService)
 			},
@@ -60,12 +88,110 @@ func TestService_Delete(t *testing.T) {
 				return policy.NewService(repo, relationService, roleService)
 			},
 		},
+		{
+			name:    "resource-grant tuple delete failure (non-ErrNotExist) blocks repository delete",
+			id:      "test-id",
+			wantErr: true,
+			setup: func() *policy.Service {
+				repo, roleService, relationService := mockService(t)
+				relationService.On("Delete", ctx, relation.Relation{
+					Object: relation.Object{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(nil)
+				relationService.On("Delete", ctx, relation.Relation{
+					Subject: relation.Subject{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(errors.New("spicedb unavailable"))
+				return policy.NewService(repo, relationService, roleService)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := tt.setup()
 			if err := s.Delete(ctx, tt.id); (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestService_DeleteWithMinRoleGuard(t *testing.T) {
+	ctx := context.Background()
+	tests := []struct {
+		name    string
+		id      string
+		guardID string
+		wantErr bool
+		setup   func() *policy.Service
+	}{
+		{
+			name:    "delete both rolebinding-as-object and rolebinding-as-subject tuples after repository",
+			id:      "test-id",
+			guardID: "guard-role-id",
+			wantErr: false,
+			setup: func() *policy.Service {
+				repo, roleService, relationService := mockService(t)
+				repo.On("DeleteWithMinRoleGuard", ctx, "test-id", "guard-role-id").Return(nil)
+				relationService.On("Delete", ctx, relation.Relation{
+					Object: relation.Object{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(nil)
+				relationService.On("Delete", ctx, relation.Relation{
+					Subject: relation.Subject{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(nil)
+				return policy.NewService(repo, relationService, roleService)
+			},
+		},
+		{
+			name:    "tolerate ErrNotExist on resource-grant tuple delete",
+			id:      "test-id",
+			guardID: "guard-role-id",
+			wantErr: false,
+			setup: func() *policy.Service {
+				repo, roleService, relationService := mockService(t)
+				repo.On("DeleteWithMinRoleGuard", ctx, "test-id", "guard-role-id").Return(nil)
+				relationService.On("Delete", ctx, relation.Relation{
+					Object: relation.Object{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(nil)
+				relationService.On("Delete", ctx, relation.Relation{
+					Subject: relation.Subject{
+						ID:        "test-id",
+						Namespace: schema.RoleBindingNamespace,
+					},
+				}).Return(relation.ErrNotExist)
+				return policy.NewService(repo, relationService, roleService)
+			},
+		},
+		{
+			name:    "repository guard failure skips relation deletes",
+			id:      "test-id",
+			guardID: "guard-role-id",
+			wantErr: true,
+			setup: func() *policy.Service {
+				repo, roleService, relationService := mockService(t)
+				repo.On("DeleteWithMinRoleGuard", ctx, "test-id", "guard-role-id").Return(errors.New("guard violated"))
+				return policy.NewService(repo, relationService, roleService)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			if err := s.DeleteWithMinRoleGuard(ctx, tt.id, tt.guardID); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteWithMinRoleGuard() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
