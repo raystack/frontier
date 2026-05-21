@@ -25,6 +25,56 @@ func (_m *MembershipService) EXPECT() *MembershipService_Expecter {
 	return &MembershipService_Expecter{mock: &_m.Mock}
 }
 
+// AddOrganizationMember provides a mock function with given fields: ctx, orgID, principalID, principalType, roleID
+func (_m *MembershipService) AddOrganizationMember(ctx context.Context, orgID string, principalID string, principalType string, roleID string) error {
+	ret := _m.Called(ctx, orgID, principalID, principalType, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddOrganizationMember")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, orgID, principalID, principalType, roleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MembershipService_AddOrganizationMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddOrganizationMember'
+type MembershipService_AddOrganizationMember_Call struct {
+	*mock.Call
+}
+
+// AddOrganizationMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - principalID string
+//   - principalType string
+//   - roleID string
+func (_e *MembershipService_Expecter) AddOrganizationMember(ctx interface{}, orgID interface{}, principalID interface{}, principalType interface{}, roleID interface{}) *MembershipService_AddOrganizationMember_Call {
+	return &MembershipService_AddOrganizationMember_Call{Call: _e.mock.On("AddOrganizationMember", ctx, orgID, principalID, principalType, roleID)}
+}
+
+func (_c *MembershipService_AddOrganizationMember_Call) Run(run func(ctx context.Context, orgID string, principalID string, principalType string, roleID string)) *MembershipService_AddOrganizationMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_AddOrganizationMember_Call) Return(_a0 error) *MembershipService_AddOrganizationMember_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MembershipService_AddOrganizationMember_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_AddOrganizationMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListResourcesByPrincipal provides a mock function with given fields: ctx, principal, resourceType, filter
 func (_m *MembershipService) ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error) {
 	ret := _m.Called(ctx, principal, resourceType, filter)
@@ -82,53 +132,6 @@ func (_c *MembershipService_ListResourcesByPrincipal_Call) Return(_a0 []string, 
 }
 
 func (_c *MembershipService_ListResourcesByPrincipal_Call) RunAndReturn(run func(context.Context, authenticate.Principal, string, membership.ResourceFilter) ([]string, error)) *MembershipService_ListResourcesByPrincipal_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// OnGroupDeleted provides a mock function with given fields: ctx, groupID
-func (_m *MembershipService) OnGroupDeleted(ctx context.Context, groupID string) error {
-	ret := _m.Called(ctx, groupID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for OnGroupDeleted")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, groupID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MembershipService_OnGroupDeleted_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnGroupDeleted'
-type MembershipService_OnGroupDeleted_Call struct {
-	*mock.Call
-}
-
-// OnGroupDeleted is a helper method to define mock.On call
-//   - ctx context.Context
-//   - groupID string
-func (_e *MembershipService_Expecter) OnGroupDeleted(ctx interface{}, groupID interface{}) *MembershipService_OnGroupDeleted_Call {
-	return &MembershipService_OnGroupDeleted_Call{Call: _e.mock.On("OnGroupDeleted", ctx, groupID)}
-}
-
-func (_c *MembershipService_OnGroupDeleted_Call) Run(run func(ctx context.Context, groupID string)) *MembershipService_OnGroupDeleted_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MembershipService_OnGroupDeleted_Call) Return(_a0 error) *MembershipService_OnGroupDeleted_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MembershipService_OnGroupDeleted_Call) RunAndReturn(run func(context.Context, string) error) *MembershipService_OnGroupDeleted_Call {
 	_c.Call.Return(run)
 	return _c
 }

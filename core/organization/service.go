@@ -40,7 +40,6 @@ type Repository interface {
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
-	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -75,6 +74,7 @@ type RoleService interface {
 
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	ListOrgsByPrincipal(ctx context.Context, principal authenticate.Principal) ([]string, error)
 }
 
 type Service struct {
@@ -246,13 +246,25 @@ func (s Service) AttachToPlatform(ctx context.Context, orgID string) error {
 }
 
 func (s Service) List(ctx context.Context, f Filter) ([]Organization, error) {
-	if f.UserID != "" {
-		return s.ListByUser(ctx, authenticate.Principal{
-			ID:   f.UserID,
-			Type: schema.UserPrincipal,
-		}, f)
+	if metrics.ServiceOprLatency != nil {
+		defer metrics.ServiceOprLatency("organization", "List")()
 	}
-
+	if f.Principal != nil {
+		if s.membershipService == nil {
+			return nil, fmt.Errorf("organization: membership service not wired")
+		}
+		orgIDs, err := s.membershipService.ListOrgsByPrincipal(ctx, *f.Principal)
+		if err != nil {
+			return nil, err
+		}
+		if len(f.IDs) > 0 {
+			orgIDs = utils.Intersection(orgIDs, f.IDs)
+		}
+		if len(orgIDs) == 0 {
+			return []Organization{}, nil
+		}
+		f.IDs = orgIDs
+	}
 	// state gets filtered in db
 	return s.repository.List(ctx, f)
 }
@@ -262,40 +274,6 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 		return s.repository.UpdateByID(ctx, org)
 	}
 	return s.repository.UpdateByName(ctx, org)
-}
-
-func (s Service) ListByUser(ctx context.Context, principal authenticate.Principal, filter Filter) ([]Organization, error) {
-	if metrics.ServiceOprLatency != nil {
-		promCollect := metrics.ServiceOprLatency("organization", "ListByUser")
-		defer promCollect()
-	}
-
-	subjectID, subjectType := principal.ResolveSubject()
-	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
-		Object: relation.Object{
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        subjectID,
-			Namespace: subjectType,
-		},
-		RelationName: schema.MembershipPermission,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if principal.PAT != nil {
-		subjectIDs = utils.Intersection(subjectIDs, []string{principal.PAT.OrgID})
-	}
-
-	if len(subjectIDs) == 0 {
-		// no organizations
-		return []Organization{}, nil
-	}
-
-	filter.IDs = subjectIDs
-	return s.repository.List(ctx, filter)
 }
 
 // RemoveUsers removes users from an organization as members

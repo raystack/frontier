@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 	"time"
 
@@ -28,11 +29,11 @@ type UserService interface {
 
 type OrgService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
-	ListByUser(ctx context.Context, principal authenticate.Principal, filter organization.Filter) ([]organization.Organization, error)
 }
 
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
 }
 
 type Service struct {
@@ -185,25 +186,17 @@ func (s Service) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]
 		return nil, err
 	}
 
-	userOrgs, err := s.orgService.ListByUser(ctx, authenticate.Principal{
+	memberOrgIDs, err := s.membershipService.ListResourcesByPrincipal(ctx, authenticate.Principal{
 		ID:   currUser.ID,
 		Type: schema.UserPrincipal,
-	}, organization.Filter{})
+	}, schema.OrganizationNamespace, membership.ResourceFilter{})
 	if err != nil {
 		return nil, err
 	}
 
 	var orgIDs []string
-	var alreadyMember bool
 	for _, domain := range domains {
-		alreadyMember = false
-		for _, org := range userOrgs {
-			if org.ID == domain.OrgID {
-				alreadyMember = true
-				break
-			}
-		}
-		if !alreadyMember {
+		if !slices.Contains(memberOrgIDs, domain.OrgID) {
 			orgIDs = append(orgIDs, domain.OrgID)
 		}
 	}

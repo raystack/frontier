@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
@@ -57,70 +58,54 @@ func (h *ConnectHandler) GetOrganization(ctx context.Context, request *connect.R
 }
 
 func (h *ConnectHandler) ListOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationsRequest]) (*connect.Response[frontierv1beta1.ListOrganizationsResponse], error) {
-	errorLogger := NewErrorLogger()
-
-	var orgs []*frontierv1beta1.Organization
-	paginate := pagination.NewPagination(request.Msg.GetPageNum(), request.Msg.GetPageSize())
-
-	orgList, err := h.orgService.List(ctx, organization.Filter{
-		State:      organization.State(request.Msg.GetState()),
-		UserID:     request.Msg.GetUserId(),
-		Pagination: paginate,
-	})
+	orgs, _, err := h.searchOrgs(ctx, request, request.Msg.GetUserId(), request.Msg.GetState(), request.Msg.GetPageNum(), request.Msg.GetPageSize(), "ListOrganizations")
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListOrganizations.List", err,
-			"state", request.Msg.GetState(),
-			"user_id", request.Msg.GetUserId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, err
 	}
-
-	for _, v := range orgList {
-		orgPB, err := transformOrgToPB(v)
-		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListOrganizations", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-
-		orgs = append(orgs, orgPB)
-	}
-
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationsResponse{
 		Organizations: orgs,
 	}), nil
 }
 
 func (h *ConnectHandler) ListAllOrganizations(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllOrganizationsRequest]) (*connect.Response[frontierv1beta1.ListAllOrganizationsResponse], error) {
-	errorLogger := NewErrorLogger()
-
-	var orgs []*frontierv1beta1.Organization
-	paginate := pagination.NewPagination(request.Msg.GetPageNum(), request.Msg.GetPageSize())
-
-	orgList, err := h.orgService.List(ctx, organization.Filter{
-		State:      organization.State(request.Msg.GetState()),
-		UserID:     request.Msg.GetUserId(),
-		Pagination: paginate,
-	})
+	orgs, count, err := h.searchOrgs(ctx, request, request.Msg.GetUserId(), request.Msg.GetState(), request.Msg.GetPageNum(), request.Msg.GetPageSize(), "ListAllOrganizations")
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListAllOrganizations.List", err,
-			"state", request.Msg.GetState(),
-			"user_id", request.Msg.GetUserId())
 		return nil, err
 	}
+	return connect.NewResponse(&frontierv1beta1.ListAllOrganizationsResponse{
+		Organizations: orgs,
+		Count:         count,
+	}), nil
+}
 
+func (h *ConnectHandler) searchOrgs(ctx context.Context, req connect.AnyRequest, userID, stateStr string, pageNum, pageSize int32, rpcName string) ([]*frontierv1beta1.Organization, int32, error) {
+	errorLogger := NewErrorLogger()
+	paginate := pagination.NewPagination(pageNum, pageSize)
+	filter := organization.Filter{
+		State:      organization.State(stateStr),
+		Pagination: paginate,
+	}
+	if userID != "" {
+		filter.Principal = &authenticate.Principal{ID: userID, Type: schema.UserPrincipal}
+	}
+
+	orgList, err := h.orgService.List(ctx, filter)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, req, rpcName+".List", err,
+			"state", stateStr, "user_id", userID)
+		return nil, 0, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+
+	orgs := make([]*frontierv1beta1.Organization, 0, len(orgList))
 	for _, v := range orgList {
 		orgPB, err := transformOrgToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListAllOrganizations", v.ID, err)
-			return nil, err
+			errorLogger.LogTransformError(ctx, req, rpcName, v.ID, err)
+			return nil, 0, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
-
 		orgs = append(orgs, orgPB)
 	}
-
-	return connect.NewResponse(&frontierv1beta1.ListAllOrganizationsResponse{
-		Organizations: orgs,
-		Count:         paginate.Count,
-	}), nil
+	return orgs, paginate.Count, nil
 }
 
 func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.CreateOrganizationRequest]) (*connect.Response[frontierv1beta1.CreateOrganizationResponse], error) {

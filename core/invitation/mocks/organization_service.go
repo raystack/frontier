@@ -5,8 +5,6 @@ package mocks
 import (
 	context "context"
 
-	authenticate "github.com/raystack/frontier/core/authenticate"
-
 	mock "github.com/stretchr/testify/mock"
 
 	organization "github.com/raystack/frontier/core/organization"
@@ -78,66 +76,6 @@ func (_c *OrganizationService_Get_Call) Return(_a0 organization.Organization, _a
 }
 
 func (_c *OrganizationService_Get_Call) RunAndReturn(run func(context.Context, string) (organization.Organization, error)) *OrganizationService_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ListByUser provides a mock function with given fields: ctx, p, f
-func (_m *OrganizationService) ListByUser(ctx context.Context, p authenticate.Principal, f organization.Filter) ([]organization.Organization, error) {
-	ret := _m.Called(ctx, p, f)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListByUser")
-	}
-
-	var r0 []organization.Organization
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, organization.Filter) ([]organization.Organization, error)); ok {
-		return rf(ctx, p, f)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, organization.Filter) []organization.Organization); ok {
-		r0 = rf(ctx, p, f)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]organization.Organization)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, authenticate.Principal, organization.Filter) error); ok {
-		r1 = rf(ctx, p, f)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// OrganizationService_ListByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByUser'
-type OrganizationService_ListByUser_Call struct {
-	*mock.Call
-}
-
-// ListByUser is a helper method to define mock.On call
-//   - ctx context.Context
-//   - p authenticate.Principal
-//   - f organization.Filter
-func (_e *OrganizationService_Expecter) ListByUser(ctx interface{}, p interface{}, f interface{}) *OrganizationService_ListByUser_Call {
-	return &OrganizationService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, p, f)}
-}
-
-func (_c *OrganizationService_ListByUser_Call) Run(run func(ctx context.Context, p authenticate.Principal, f organization.Filter)) *OrganizationService_ListByUser_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(authenticate.Principal), args[2].(organization.Filter))
-	})
-	return _c
-}
-
-func (_c *OrganizationService_ListByUser_Call) Return(_a0 []organization.Organization, _a1 error) *OrganizationService_ListByUser_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *OrganizationService_ListByUser_Call) RunAndReturn(run func(context.Context, authenticate.Principal, organization.Filter) ([]organization.Organization, error)) *OrganizationService_ListByUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

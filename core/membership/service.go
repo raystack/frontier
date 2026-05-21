@@ -1561,6 +1561,13 @@ type ResourceFilter struct {
 	NonInherited bool
 }
 
+// ListOrgsByPrincipal lets the organization package consume this without
+// importing membership — that direction would be a cycle since membership
+// already imports organization.
+func (s *Service) ListOrgsByPrincipal(ctx context.Context, principal authenticate.Principal) ([]string, error) {
+	return s.ListResourcesByPrincipal(ctx, principal, schema.OrganizationNamespace, ResourceFilter{})
+}
+
 // ListResourcesByPrincipal returns the resource IDs of the given type on which
 // the principal has at least one policy. Reads Postgres policies — no SpiceDB.
 // With a PAT, runs the algorithm twice (user, then PAT-as-principal) and

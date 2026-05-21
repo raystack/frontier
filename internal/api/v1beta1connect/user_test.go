@@ -1191,6 +1191,9 @@ func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
 func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 	userID := uuid.New().String()
 
+	userPrincipal := authenticate.Principal{ID: userID, Type: schema.UserPrincipal}
+	principalFilter := organization.Filter{Principal: &userPrincipal}
+
 	tests := []struct {
 		title string
 		setup func(*mocks.OrganizationService, *mocks.UserService, *mocks.DomainService)
@@ -1201,18 +1204,16 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 		{
 			title: "should list user organizations successfully",
 			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
-				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
-					ID:   userID,
-					Type: schema.UserPrincipal,
-				}, organization.Filter{}).Return([]organization.Organization{
-					{
-						ID:       "org-1",
-						Name:     "test-org-1",
-						Title:    "Test Organization 1",
-						State:    organization.Enabled,
-						Metadata: metadata.Metadata{},
-					},
-				}, nil)
+				os.EXPECT().List(mock.Anything, principalFilter).
+					Return([]organization.Organization{
+						{
+							ID:       "org-1",
+							Name:     "test-org-1",
+							Title:    "Test Organization 1",
+							State:    organization.Enabled,
+							Metadata: metadata.Metadata{},
+						},
+					}, nil)
 
 				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{
 					ID:    userID,
@@ -1254,10 +1255,8 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 		{
 			title: "should return empty list when user has no organizations",
 			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
-				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
-					ID:   userID,
-					Type: schema.UserPrincipal,
-				}, organization.Filter{}).Return([]organization.Organization{}, nil)
+				os.EXPECT().List(mock.Anything, principalFilter).
+					Return(nil, nil)
 
 				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{
 					ID:    userID,
@@ -1279,10 +1278,8 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 		{
 			title: "should return not found error for invalid user ID",
 			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
-				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
-					ID:   userID,
-					Type: schema.UserPrincipal,
-				}, organization.Filter{}).Return([]organization.Organization{}, nil)
+				os.EXPECT().List(mock.Anything, principalFilter).
+					Return(nil, nil)
 
 				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{}, user.ErrNotExist)
 			},
@@ -1295,10 +1292,8 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 		{
 			title: "should return internal error for service failure",
 			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
-				os.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
-					ID:   userID,
-					Type: schema.UserPrincipal,
-				}, organization.Filter{}).Return(nil, errors.New("database error"))
+				os.EXPECT().List(mock.Anything, principalFilter).
+					Return(nil, errors.New("database error"))
 			},
 			req: &frontierv1beta1.ListOrganizationsByUserRequest{
 				Id: userID,
@@ -1359,6 +1354,17 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 }
 
 func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
+	userPrincipal := authenticate.Principal{
+		ID:   "user-1",
+		Type: "app/user",
+		User: &user.User{ID: "user-1", Email: "test@example.com"},
+	}
+	suPrincipal := authenticate.Principal{
+		ID:          "serviceuser-1",
+		Type:        schema.ServiceUserPrincipal,
+		ServiceUser: &serviceuser.ServiceUser{ID: "serviceuser-1", OrgID: "org-1"},
+	}
+
 	tests := []struct {
 		title string
 		setup func(*mocks.OrganizationService, *mocks.AuthnService, *mocks.DomainService)
@@ -1369,22 +1375,18 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 		{
 			title: "should list current user organizations successfully",
 			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
-				mockPrincipal := authenticate.Principal{
-					ID:   "user-1",
-					Type: "app/user",
-					User: &user.User{ID: "user-1", Email: "test@example.com"},
-				}
-				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+				as.EXPECT().GetPrincipal(mock.Anything).Return(userPrincipal, nil)
 
-				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return([]organization.Organization{
-					{
-						ID:       "org-1",
-						Name:     "test-org-1",
-						Title:    "Test Organization 1",
-						State:    organization.Enabled,
-						Metadata: metadata.Metadata{},
-					},
-				}, nil)
+				os.EXPECT().List(mock.Anything, organization.Filter{Principal: &userPrincipal}).
+					Return([]organization.Organization{
+						{
+							ID:       "org-1",
+							Name:     "test-org-1",
+							Title:    "Test Organization 1",
+							State:    organization.Enabled,
+							Metadata: metadata.Metadata{},
+						},
+					}, nil)
 
 				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{"org-2"}, nil)
 
@@ -1418,14 +1420,10 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 		{
 			title: "should return empty list when current user has no organizations",
 			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
-				mockPrincipal := authenticate.Principal{
-					ID:   "user-1",
-					Type: "app/user",
-					User: &user.User{ID: "user-1", Email: "test@example.com"},
-				}
-				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+				as.EXPECT().GetPrincipal(mock.Anything).Return(userPrincipal, nil)
 
-				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return([]organization.Organization{}, nil)
+				os.EXPECT().List(mock.Anything, organization.Filter{Principal: &userPrincipal}).
+					Return(nil, nil)
 
 				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{}, nil)
 			},
@@ -1439,23 +1437,18 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 		{
 			title: "should handle service user without accessing user email",
 			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
-				mockPrincipal := authenticate.Principal{
-					ID:          "serviceuser-1",
-					Type:        schema.ServiceUserPrincipal,
-					ServiceUser: &serviceuser.ServiceUser{ID: "serviceuser-1", OrgID: "org-1"},
-					User:        nil, // Service users don't have a User object
-				}
-				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+				as.EXPECT().GetPrincipal(mock.Anything).Return(suPrincipal, nil)
 
-				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return([]organization.Organization{
-					{
-						ID:       "org-1",
-						Name:     "service-org",
-						Title:    "Service Organization",
-						State:    organization.Enabled,
-						Metadata: metadata.Metadata{},
-					},
-				}, nil)
+				os.EXPECT().List(mock.Anything, organization.Filter{Principal: &suPrincipal}).
+					Return([]organization.Organization{
+						{
+							ID:       "org-1",
+							Name:     "service-org",
+							Title:    "Service Organization",
+							State:    organization.Enabled,
+							Metadata: metadata.Metadata{},
+						},
+					}, nil)
 				// No domain service call expected since service users can't join by domain
 			},
 			req: &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
@@ -1481,16 +1474,12 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 			err:  connect.CodeUnauthenticated,
 		},
 		{
-			title: "should return internal error for organization service failure",
+			title: "should return internal error for service failure",
 			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
-				mockPrincipal := authenticate.Principal{
-					ID:   "user-1",
-					Type: "app/user",
-					User: &user.User{ID: "user-1", Email: "test@example.com"},
-				}
-				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
+				as.EXPECT().GetPrincipal(mock.Anything).Return(userPrincipal, nil)
 
-				os.EXPECT().ListByUser(mock.Anything, mockPrincipal, organization.Filter{}).Return(nil, errors.New("database error"))
+				os.EXPECT().List(mock.Anything, organization.Filter{Principal: &userPrincipal}).
+					Return(nil, errors.New("database error"))
 			},
 			req:  &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
 			want: nil,

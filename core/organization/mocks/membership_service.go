@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	authenticate "github.com/raystack/frontier/core/authenticate"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -67,6 +69,65 @@ func (_c *MembershipService_AddOrganizationMember_Call) Return(_a0 error) *Membe
 }
 
 func (_c *MembershipService_AddOrganizationMember_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_AddOrganizationMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListOrgsByPrincipal provides a mock function with given fields: ctx, principal
+func (_m *MembershipService) ListOrgsByPrincipal(ctx context.Context, principal authenticate.Principal) ([]string, error) {
+	ret := _m.Called(ctx, principal)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOrgsByPrincipal")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal) ([]string, error)); ok {
+		return rf(ctx, principal)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal) []string); ok {
+		r0 = rf(ctx, principal)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, authenticate.Principal) error); ok {
+		r1 = rf(ctx, principal)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MembershipService_ListOrgsByPrincipal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrgsByPrincipal'
+type MembershipService_ListOrgsByPrincipal_Call struct {
+	*mock.Call
+}
+
+// ListOrgsByPrincipal is a helper method to define mock.On call
+//   - ctx context.Context
+//   - principal authenticate.Principal
+func (_e *MembershipService_Expecter) ListOrgsByPrincipal(ctx interface{}, principal interface{}) *MembershipService_ListOrgsByPrincipal_Call {
+	return &MembershipService_ListOrgsByPrincipal_Call{Call: _e.mock.On("ListOrgsByPrincipal", ctx, principal)}
+}
+
+func (_c *MembershipService_ListOrgsByPrincipal_Call) Run(run func(ctx context.Context, principal authenticate.Principal)) *MembershipService_ListOrgsByPrincipal_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(authenticate.Principal))
+	})
+	return _c
+}
+
+func (_c *MembershipService_ListOrgsByPrincipal_Call) Return(_a0 []string, _a1 error) *MembershipService_ListOrgsByPrincipal_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MembershipService_ListOrgsByPrincipal_Call) RunAndReturn(run func(context.Context, authenticate.Principal) ([]string, error)) *MembershipService_ListOrgsByPrincipal_Call {
 	_c.Call.Return(run)
 	return _c
 }
