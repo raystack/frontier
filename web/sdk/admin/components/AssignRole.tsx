@@ -1,9 +1,9 @@
 import {
   Button,
-  Checkbox,
   Dialog,
   Flex,
   Label,
+  Radio,
   Text,
   toastManager,
 } from "@raystack/apsara-v1";
@@ -62,13 +62,6 @@ export const AssignRole = ({
 
   const selectedRoleId = watch("roleId");
 
-  function onCheckedChange(value: boolean | string, roleId?: string) {
-    if (!roleId) return;
-    if (value) {
-      setValue("roleId", roleId, { shouldDirty: true });
-    }
-  }
-
   const onSubmit = async (data: FormData) => {
     try {
       await setMemberRole(
@@ -106,20 +99,21 @@ export const AssignRole = ({
                 Taking this action may result in changes in the role which might
                 lead to changes in access of the user.
               </Text>
-              <div role="group" aria-labelledby="roles-group">
+              <Radio.Group
+                value={selectedRoleId}
+                onValueChange={(value) =>
+                  setValue("roleId", value as string, { shouldDirty: true })
+                }
+              >
                 <Flex direction="column" gap={4}>
                   {roles.map((role) => {
                     const htmlId = `role-${role.id}`;
-                    const checked = selectedRoleId === role.id;
                     return (
                       <Flex gap={3} key={role.id}>
-                        <Checkbox
+                        <Radio
                           id={htmlId}
-                          data-test-id={`role-checkbox-${role.id}`}
-                          checked={checked}
-                          onCheckedChange={(value) =>
-                            onCheckedChange(value, role.id)
-                          }
+                          value={role.id || ""}
+                          data-test-id={`role-radio-${role.id}`}
                         />
                         <Label htmlFor={htmlId}>{role.title}</Label>
                       </Flex>
@@ -129,7 +123,7 @@ export const AssignRole = ({
                     <Text variant="danger">{errors.roleId.message}</Text>
                   )}
                 </Flex>
-              </div>
+              </Radio.Group>
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>
