@@ -194,7 +194,7 @@ export function CreateOrganizationPanel({
                 label={`${t.organization({ case: "capital" })} size`}
                 error={errors.size?.message}
               >
-                <Input {...register("size")} type="number" />
+                <Input {...register("size")} type="number" min={0} />
               </Field>
               <Controller
                 name="type"
