@@ -130,7 +130,7 @@ export default function UpdateWebhooks({ open = false, webhookId: webhookIdProp,
                 defaultValue={webhook?.url}
                 register={methods.register}
                 control={methods.control}
-                variant="textarea"
+                variant="input"
                 style={{ width: "100%" }}
                 isLoading={isWebhookLoading}
               />
