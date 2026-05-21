@@ -5,7 +5,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@radix-ui/react-form";
-import { Flex, Select, Switch, Text, Input } from "@raystack/apsara-v1";
+import { Flex, Select, Switch, Text, TextArea, Input } from "@raystack/apsara-v1";
 import React, { CSSProperties } from "react";
 
 import { Control, Controller, UseFormRegister } from "react-hook-form";
@@ -77,14 +77,14 @@ export const CustomFieldName = ({
                 switch (variant) {
                   case "textarea": {
                     return (
-                      <textarea
+                      <TextArea
                         {...field}
                         defaultValue={props?.defaultValue}
                         placeholder={
                           placeholder ||
                           `Enter your ${title?.toLowerCase() || name}`
                         }
-                        style={style}
+                        style={{ ...style, resize: "vertical" }}
                       />
                     );
                   }
