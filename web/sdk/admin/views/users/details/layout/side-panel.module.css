@@ -1,6 +1,6 @@
 .side-panel {
   transform: all 0.3s ease-in-out;
-  padding-bottom: 80px;
+  padding-bottom: var(--rs-space-15);
 }
 
 .side-panel-label {
