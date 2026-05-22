@@ -16,6 +16,7 @@ import {
   SetOrganizationMemberRoleRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { ConnectError } from "@connectrpc/connect";
 import { useMutation } from "@connectrpc/connect-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,7 +82,11 @@ export const AssignRole = ({
         type: "success",
       });
     } catch (error) {
-      toastManager.add({ title: "Failed to assign role", type: "error" });
+      toastManager.add({
+        title: "Failed to assign role",
+        description: error instanceof ConnectError ? error.rawMessage : undefined,
+        type: "error",
+      });
       console.error(error);
     }
   };
