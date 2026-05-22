@@ -406,7 +406,9 @@ func TestService_ListByUser(t *testing.T) {
 					},
 				}, nil)
 
-				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{}, nil)
+				groupService.EXPECT().List(ctx, group.Filter{
+					Principal: &authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				}).Return([]group.Group{}, nil)
 
 				repo.EXPECT().List(ctx, project.Filter{
 					ProjectIDs:   []string{"project-id"},
@@ -464,7 +466,9 @@ func TestService_ListByUser(t *testing.T) {
 					},
 				}, nil)
 
-				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{
+				groupService.EXPECT().List(ctx, group.Filter{
+					Principal: &authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				}).Return([]group.Group{
 					{
 						ID: "group-id",
 					},
@@ -613,7 +617,9 @@ func TestService_ListByUser(t *testing.T) {
 				}, nil)
 
 				// Group lookup uses user-only principal (no double PAT filtering)
-				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{}, nil)
+				groupService.EXPECT().List(ctx, group.Filter{
+					Principal: &authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				}).Return([]group.Group{}, nil)
 
 				// PAT scope intersection
 				relationService.EXPECT().LookupResources(ctx, relation.Relation{
@@ -638,6 +644,80 @@ func TestService_ListByUser(t *testing.T) {
 						Organization: organization.Organization{
 							ID: "org-id",
 						},
+					},
+				}, nil)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+			},
+		},
+		{
+			name: "PAT principal with non-inherited surfaces group-mediated projects intersected with PAT scope",
+			args: args{
+				principal: authenticate.Principal{
+					ID:   "pat-456",
+					Type: schema.PATPrincipal,
+					PAT:  &pat.PAT{ID: "pat-456", UserID: "user-id", OrgID: "org-1"},
+				},
+				flt: project.Filter{
+					NonInherited: true,
+				},
+			},
+			want: []project.Project{
+				{
+					ID:           "project-via-group",
+					Name:         "group-project",
+					Organization: organization.Organization{ID: "org-1"},
+				},
+			},
+			wantErr: false,
+			setup: func() *project.Service {
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
+				// User has no direct project policies; everything comes via group
+				policyService.EXPECT().List(ctx, policy.Filter{
+					PrincipalType: schema.UserPrincipal,
+					PrincipalID:   "user-id",
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{}, nil)
+
+				// User is a member of a group (PAT resolved to user before this call)
+				groupService.EXPECT().List(ctx, group.Filter{
+					Principal: &authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				}).Return([]group.Group{{ID: "group-id"}}, nil)
+
+				// That group has policy on a project
+				policyService.EXPECT().List(ctx, policy.Filter{
+					PrincipalType: schema.GroupPrincipal,
+					PrincipalIDs:  []string{"group-id"},
+					ResourceType:  schema.ProjectNamespace,
+				}).Return([]policy.Policy{
+					{
+						ResourceID:    "project-via-group",
+						ResourceType:  schema.ProjectNamespace,
+						PrincipalID:   "group-id",
+						PrincipalType: schema.GroupPrincipal,
+					},
+				}, nil)
+
+				// PAT scope grants the same project
+				relationService.EXPECT().LookupResources(ctx, relation.Relation{
+					Object: relation.Object{
+						Namespace: schema.ProjectNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        "pat-456",
+						Namespace: schema.PATPrincipal,
+					},
+					RelationName: schema.GetPermission,
+				}).Return([]string{"project-via-group"}, nil)
+
+				repo.EXPECT().List(ctx, project.Filter{
+					ProjectIDs:   []string{"project-via-group"},
+					NonInherited: true,
+				}).Return([]project.Project{
+					{
+						ID:           "project-via-group",
+						Name:         "group-project",
+						Organization: organization.Organization{ID: "org-1"},
 					},
 				}, nil)
 				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)

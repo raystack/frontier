@@ -2289,3 +2289,107 @@ func TestService_ListResourcesByPrincipal(t *testing.T) {
 		})
 	}
 }
+
+func TestService_ListGroupsByPrincipal(t *testing.T) {
+	ctx := context.Background()
+
+	userID := uuid.New().String()
+	patID := uuid.New().String()
+	orgA := uuid.New().String()
+	groupA := uuid.New().String()
+	groupB := uuid.New().String()
+	roleGroupMemberID := uuid.New().String()
+
+	tests := []struct {
+		name      string
+		principal authenticate.Principal
+		orgID     string
+		setup     func(p *mocks.PolicyService, g *mocks.GroupService)
+		want      []string
+	}{
+		{
+			name:      "user principal — reads user's group policies",
+			principal: authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			setup: func(p *mocks.PolicyService, _ *mocks.GroupService) {
+				p.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: groupA, RoleID: roleGroupMemberID},
+					{ResourceID: groupB, RoleID: roleGroupMemberID},
+				}, nil)
+			},
+			want: []string{groupA, groupB},
+		},
+		{
+			name: "PAT principal — resolves to underlying user, no PAT-side query",
+			principal: authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+				PAT:  &pat.PAT{ID: patID, UserID: userID, OrgID: orgA},
+			},
+			setup: func(p *mocks.PolicyService, _ *mocks.GroupService) {
+				// only the user-side lookup; no policy.List for PrincipalType=PAT
+				p.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: groupA, RoleID: roleGroupMemberID},
+				}, nil)
+			},
+			want: []string{groupA},
+		},
+		{
+			name: "PAT principal + orgID — narrows result via groupService",
+			principal: authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+				PAT:  &pat.PAT{ID: patID, UserID: userID, OrgID: orgA},
+			},
+			orgID: orgA,
+			setup: func(p *mocks.PolicyService, g *mocks.GroupService) {
+				p.EXPECT().List(ctx, policy.Filter{
+					PrincipalID:   userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceType:  schema.GroupNamespace,
+				}).Return([]policy.Policy{
+					{ResourceID: groupA, RoleID: roleGroupMemberID},
+					{ResourceID: groupB, RoleID: roleGroupMemberID},
+				}, nil)
+				g.EXPECT().List(ctx, group.Filter{
+					OrganizationID: orgA,
+					GroupIDs:       []string{groupA, groupB},
+				}).Return([]group.Group{{ID: groupA}}, nil)
+			},
+			want: []string{groupA},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mp := mocks.NewPolicyService(t)
+			mg := mocks.NewGroupService(t)
+
+			tt.setup(mp, mg)
+
+			svc := membership.NewService(
+				slog.New(slog.NewTextHandler(io.Discard, nil)),
+				mp,
+				mocks.NewRelationService(t),
+				mocks.NewRoleService(t),
+				mocks.NewOrgService(t),
+				mocks.NewUserService(t),
+				mocks.NewProjectService(t),
+				mg,
+				mocks.NewServiceuserService(t),
+				mocks.NewAuditRecordRepository(t),
+			)
+
+			got, err := svc.ListGroupsByPrincipal(ctx, tt.principal, tt.orgID)
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, tt.want, got)
+		})
+	}
+}

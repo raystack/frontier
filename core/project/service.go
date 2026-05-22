@@ -57,7 +57,7 @@ type AuthnService interface {
 type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
 	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
-	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
+	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 }
 
 type Service struct {
@@ -200,8 +200,8 @@ func (s Service) listNonInheritedProjectIDs(ctx context.Context, principalID, pr
 	}
 
 	// projects added via group memberships
-	groups, err := s.groupService.ListByUser(ctx,
-		authenticate.Principal{ID: principalID, Type: principalType}, group.Filter{})
+	principal := authenticate.Principal{ID: principalID, Type: principalType}
+	groups, err := s.groupService.List(ctx, group.Filter{Principal: &principal})
 	if err != nil {
 		return nil, err
 	}

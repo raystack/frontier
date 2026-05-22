@@ -464,11 +464,13 @@ func (h *ConnectHandler) ListUserGroups(ctx context.Context, request *connect.Re
 	errorLogger := NewErrorLogger()
 	var groups []*frontierv1beta1.Group
 
-	groupsList, err := h.groupService.ListByUser(ctx, authenticate.Principal{
-		ID: request.Msg.GetId(), Type: schema.UserPrincipal,
-	}, group.Filter{OrganizationID: request.Msg.GetOrgId()})
+	principal := authenticate.Principal{ID: request.Msg.GetId(), Type: schema.UserPrincipal}
+	groupsList, err := h.groupService.List(ctx, group.Filter{
+		Principal:      &principal,
+		OrganizationID: request.Msg.GetOrgId(),
+	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListUserGroups.ListByUser", err,
+		errorLogger.LogServiceError(ctx, request, "ListUserGroups.List", err,
 			"user_id", request.Msg.GetId(),
 			"org_id", request.Msg.GetOrgId())
 
@@ -508,14 +510,13 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 	var groupsPb []*frontierv1beta1.Group
 	var accessPairsPb []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair
 
-	groupsList, err := h.groupService.ListByUser(ctx, principal,
-		group.Filter{
-			OrganizationID:  request.Msg.GetOrgId(),
-			WithMemberCount: request.Msg.GetWithMemberCount(),
-		},
-	)
+	groupsList, err := h.groupService.List(ctx, group.Filter{
+		Principal:       &principal,
+		OrganizationID:  request.Msg.GetOrgId(),
+		WithMemberCount: request.Msg.GetWithMemberCount(),
+	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListCurrentUserGroups.ListByUser", err,
+		errorLogger.LogServiceError(ctx, request, "ListCurrentUserGroups.List", err,
 			"principal_id", principal.ID,
 			"principal_type", principal.Type,
 			"org_id", request.Msg.GetOrgId())

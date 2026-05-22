@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	authenticate "github.com/raystack/frontier/core/authenticate"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -19,6 +21,66 @@ type MembershipService_Expecter struct {
 
 func (_m *MembershipService) EXPECT() *MembershipService_Expecter {
 	return &MembershipService_Expecter{mock: &_m.Mock}
+}
+
+// ListGroupsByPrincipal provides a mock function with given fields: ctx, principal, orgID
+func (_m *MembershipService) ListGroupsByPrincipal(ctx context.Context, principal authenticate.Principal, orgID string) ([]string, error) {
+	ret := _m.Called(ctx, principal, orgID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListGroupsByPrincipal")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, string) ([]string, error)); ok {
+		return rf(ctx, principal, orgID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, string) []string); ok {
+		r0 = rf(ctx, principal, orgID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, authenticate.Principal, string) error); ok {
+		r1 = rf(ctx, principal, orgID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MembershipService_ListGroupsByPrincipal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroupsByPrincipal'
+type MembershipService_ListGroupsByPrincipal_Call struct {
+	*mock.Call
+}
+
+// ListGroupsByPrincipal is a helper method to define mock.On call
+//   - ctx context.Context
+//   - principal authenticate.Principal
+//   - orgID string
+func (_e *MembershipService_Expecter) ListGroupsByPrincipal(ctx interface{}, principal interface{}, orgID interface{}) *MembershipService_ListGroupsByPrincipal_Call {
+	return &MembershipService_ListGroupsByPrincipal_Call{Call: _e.mock.On("ListGroupsByPrincipal", ctx, principal, orgID)}
+}
+
+func (_c *MembershipService_ListGroupsByPrincipal_Call) Run(run func(ctx context.Context, principal authenticate.Principal, orgID string)) *MembershipService_ListGroupsByPrincipal_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(authenticate.Principal), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_ListGroupsByPrincipal_Call) Return(_a0 []string, _a1 error) *MembershipService_ListGroupsByPrincipal_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MembershipService_ListGroupsByPrincipal_Call) RunAndReturn(run func(context.Context, authenticate.Principal, string) ([]string, error)) *MembershipService_ListGroupsByPrincipal_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // OnGroupCreated provides a mock function with given fields: ctx, groupID, orgID, creatorID, creatorType

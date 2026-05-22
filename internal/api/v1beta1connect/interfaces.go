@@ -301,7 +301,6 @@ type GroupService interface {
 	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
-	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
 	RemoveUsers(ctx context.Context, groupID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error

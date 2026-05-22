@@ -12,7 +12,6 @@ import (
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/group/mocks"
 	"github.com/raystack/frontier/core/policy"
-	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	pat "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -251,106 +250,105 @@ func TestService_Update(t *testing.T) {
 	})
 }
 
-func TestService_ListByUser(t *testing.T) {
+func TestService_List_PrincipalFilter(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("should resolve PAT to user and intersect with PAT group scope", func(t *testing.T) {
+	t.Run("user principal — narrows GroupIDs via membership shim", func(t *testing.T) {
 		mockRepo := mocks.NewRepository(t)
 		mockRelationSvc := mocks.NewRelationService(t)
 		mockAuthnSvc := mocks.NewAuthnService(t)
 		mockPolicySvc := mocks.NewPolicyService(t)
+		mockMembershipSvc := mocks.NewMembershipService(t)
 
 		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		svc.SetMembershipService(mockMembershipSvc)
 
-		// LookupResources for user's group memberships
-		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
-			Object:       relation.Object{Namespace: schema.GroupNamespace},
-			Subject:      relation.Subject{Namespace: schema.UserPrincipal, ID: "user-123"},
-			RelationName: schema.MembershipPermission,
-		}).Return([]string{"group-1", "group-2", "group-3"}, nil).Once()
-
-		// LookupResources for PAT's group scope
-		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
-			Object:       relation.Object{Namespace: schema.GroupNamespace},
-			Subject:      relation.Subject{ID: "pat-456", Namespace: schema.PATPrincipal},
-			RelationName: schema.GetPermission,
-		}).Return([]string{"group-1", "group-3"}, nil).Once()
-
-		// Repo should be called with intersection
+		principal := authenticate.Principal{ID: "user-123", Type: schema.UserPrincipal}
+		mockMembershipSvc.EXPECT().ListGroupsByPrincipal(ctx, principal, "").
+			Return([]string{"group-1", "group-2"}, nil).Once()
 		mockRepo.On("List", ctx, group.Filter{
-			GroupIDs: []string{"group-1", "group-3"},
-		}).Return([]group.Group{
-			{ID: "group-1", Name: "group-one"},
-			{ID: "group-3", Name: "group-three"},
-		}, nil).Once()
-
-		result, err := svc.ListByUser(ctx, authenticate.Principal{
-			ID:   "pat-456",
-			Type: schema.PATPrincipal,
-			PAT:  &pat.PAT{ID: "pat-456", UserID: "user-123", OrgID: "org-1"},
-		}, group.Filter{})
-
-		assert.NoError(t, err)
-		assert.Len(t, result, 2)
-	})
-
-	t.Run("should return nil when PAT has no group scope overlap", func(t *testing.T) {
-		mockRepo := mocks.NewRepository(t)
-		mockRelationSvc := mocks.NewRelationService(t)
-		mockAuthnSvc := mocks.NewAuthnService(t)
-		mockPolicySvc := mocks.NewPolicyService(t)
-
-		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
-
-		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
-			Object:       relation.Object{Namespace: schema.GroupNamespace},
-			Subject:      relation.Subject{Namespace: schema.UserPrincipal, ID: "user-123"},
-			RelationName: schema.MembershipPermission,
-		}).Return([]string{"group-1"}, nil).Once()
-
-		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
-			Object:       relation.Object{Namespace: schema.GroupNamespace},
-			Subject:      relation.Subject{ID: "pat-456", Namespace: schema.PATPrincipal},
-			RelationName: schema.GetPermission,
-		}).Return([]string{"group-2"}, nil).Once()
-
-		result, err := svc.ListByUser(ctx, authenticate.Principal{
-			ID:   "pat-456",
-			Type: schema.PATPrincipal,
-			PAT:  &pat.PAT{ID: "pat-456", UserID: "user-123", OrgID: "org-1"},
-		}, group.Filter{})
-
-		assert.NoError(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("should pass through for regular user principal", func(t *testing.T) {
-		mockRepo := mocks.NewRepository(t)
-		mockRelationSvc := mocks.NewRelationService(t)
-		mockAuthnSvc := mocks.NewAuthnService(t)
-		mockPolicySvc := mocks.NewPolicyService(t)
-
-		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
-
-		mockRelationSvc.On("LookupResources", ctx, relation.Relation{
-			Object:       relation.Object{Namespace: schema.GroupNamespace},
-			Subject:      relation.Subject{Namespace: schema.UserPrincipal, ID: "user-123"},
-			RelationName: schema.MembershipPermission,
-		}).Return([]string{"group-1", "group-2"}, nil).Once()
-
-		mockRepo.On("List", ctx, group.Filter{
-			GroupIDs: []string{"group-1", "group-2"},
+			Principal: &principal,
+			GroupIDs:  []string{"group-1", "group-2"},
 		}).Return([]group.Group{
 			{ID: "group-1", Name: "group-one"},
 			{ID: "group-2", Name: "group-two"},
 		}, nil).Once()
 
-		result, err := svc.ListByUser(ctx, authenticate.Principal{
-			ID:   "user-123",
-			Type: schema.UserPrincipal,
-		}, group.Filter{})
-
+		result, err := svc.List(ctx, group.Filter{Principal: &principal})
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
+	})
+
+	t.Run("Principal + OrganizationID — forwards orgID to shim and repo", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockMembershipSvc := mocks.NewMembershipService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		svc.SetMembershipService(mockMembershipSvc)
+
+		principal := authenticate.Principal{ID: "user-123", Type: schema.UserPrincipal}
+		mockMembershipSvc.EXPECT().ListGroupsByPrincipal(ctx, principal, "org-1").
+			Return([]string{"group-1"}, nil).Once()
+		mockRepo.On("List", ctx, group.Filter{
+			Principal:      &principal,
+			OrganizationID: "org-1",
+			GroupIDs:       []string{"group-1"},
+		}).Return([]group.Group{{ID: "group-1", Name: "group-one"}}, nil).Once()
+
+		result, err := svc.List(ctx, group.Filter{Principal: &principal, OrganizationID: "org-1"})
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+	})
+
+	t.Run("PAT principal — shim handles PAT scoping, service stays oblivious", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockMembershipSvc := mocks.NewMembershipService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		svc.SetMembershipService(mockMembershipSvc)
+
+		principal := authenticate.Principal{
+			ID:   "pat-456",
+			Type: schema.PATPrincipal,
+			PAT:  &pat.PAT{ID: "pat-456", UserID: "user-123", OrgID: "org-1"},
+		}
+		mockMembershipSvc.EXPECT().ListGroupsByPrincipal(ctx, principal, "").
+			Return([]string{"group-1", "group-3"}, nil).Once()
+		mockRepo.On("List", ctx, group.Filter{
+			Principal: &principal,
+			GroupIDs:  []string{"group-1", "group-3"},
+		}).Return([]group.Group{
+			{ID: "group-1", Name: "group-one"},
+			{ID: "group-3", Name: "group-three"},
+		}, nil).Once()
+
+		result, err := svc.List(ctx, group.Filter{Principal: &principal})
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
+	})
+
+	t.Run("empty membership result — short-circuits to empty slice", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockMembershipSvc := mocks.NewMembershipService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		svc.SetMembershipService(mockMembershipSvc)
+
+		principal := authenticate.Principal{ID: "user-123", Type: schema.UserPrincipal}
+		mockMembershipSvc.EXPECT().ListGroupsByPrincipal(ctx, principal, "").
+			Return(nil, nil).Once()
+
+		result, err := svc.List(ctx, group.Filter{Principal: &principal})
+		assert.NoError(t, err)
+		assert.Empty(t, result)
 	})
 }
