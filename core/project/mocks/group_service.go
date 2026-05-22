@@ -5,10 +5,7 @@ package mocks
 import (
 	context "context"
 
-	authenticate "github.com/raystack/frontier/core/authenticate"
-
 	group "github.com/raystack/frontier/core/group"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -141,29 +138,29 @@ func (_c *GroupService_GetByIDs_Call) RunAndReturn(run func(context.Context, []s
 	return _c
 }
 
-// ListByUser provides a mock function with given fields: ctx, principal, flt
-func (_m *GroupService) ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error) {
-	ret := _m.Called(ctx, principal, flt)
+// List provides a mock function with given fields: ctx, flt
+func (_m *GroupService) List(ctx context.Context, flt group.Filter) ([]group.Group, error) {
+	ret := _m.Called(ctx, flt)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListByUser")
+		panic("no return value specified for List")
 	}
 
 	var r0 []group.Group
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, group.Filter) ([]group.Group, error)); ok {
-		return rf(ctx, principal, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, group.Filter) ([]group.Group, error)); ok {
+		return rf(ctx, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, group.Filter) []group.Group); ok {
-		r0 = rf(ctx, principal, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, group.Filter) []group.Group); ok {
+		r0 = rf(ctx, flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]group.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, authenticate.Principal, group.Filter) error); ok {
-		r1 = rf(ctx, principal, flt)
+	if rf, ok := ret.Get(1).(func(context.Context, group.Filter) error); ok {
+		r1 = rf(ctx, flt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -171,32 +168,31 @@ func (_m *GroupService) ListByUser(ctx context.Context, principal authenticate.P
 	return r0, r1
 }
 
-// GroupService_ListByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByUser'
-type GroupService_ListByUser_Call struct {
+// GroupService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type GroupService_List_Call struct {
 	*mock.Call
 }
 
-// ListByUser is a helper method to define mock.On call
+// List is a helper method to define mock.On call
 //   - ctx context.Context
-//   - principal authenticate.Principal
 //   - flt group.Filter
-func (_e *GroupService_Expecter) ListByUser(ctx interface{}, principal interface{}, flt interface{}) *GroupService_ListByUser_Call {
-	return &GroupService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, principal, flt)}
+func (_e *GroupService_Expecter) List(ctx interface{}, flt interface{}) *GroupService_List_Call {
+	return &GroupService_List_Call{Call: _e.mock.On("List", ctx, flt)}
 }
 
-func (_c *GroupService_ListByUser_Call) Run(run func(ctx context.Context, principal authenticate.Principal, flt group.Filter)) *GroupService_ListByUser_Call {
+func (_c *GroupService_List_Call) Run(run func(ctx context.Context, flt group.Filter)) *GroupService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(authenticate.Principal), args[2].(group.Filter))
+		run(args[0].(context.Context), args[1].(group.Filter))
 	})
 	return _c
 }
 
-func (_c *GroupService_ListByUser_Call) Return(_a0 []group.Group, _a1 error) *GroupService_ListByUser_Call {
+func (_c *GroupService_List_Call) Return(_a0 []group.Group, _a1 error) *GroupService_List_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *GroupService_ListByUser_Call) RunAndReturn(run func(context.Context, authenticate.Principal, group.Filter) ([]group.Group, error)) *GroupService_ListByUser_Call {
+func (_c *GroupService_List_Call) RunAndReturn(run func(context.Context, group.Filter) ([]group.Group, error)) *GroupService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

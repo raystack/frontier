@@ -406,7 +406,9 @@ func TestService_ListByUser(t *testing.T) {
 					},
 				}, nil)
 
-				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{}, nil)
+				groupService.EXPECT().List(ctx, group.Filter{
+					Principal: &authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				}).Return([]group.Group{}, nil)
 
 				repo.EXPECT().List(ctx, project.Filter{
 					ProjectIDs:   []string{"project-id"},
@@ -464,7 +466,9 @@ func TestService_ListByUser(t *testing.T) {
 					},
 				}, nil)
 
-				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{
+				groupService.EXPECT().List(ctx, group.Filter{
+					Principal: &authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				}).Return([]group.Group{
 					{
 						ID: "group-id",
 					},
@@ -613,7 +617,9 @@ func TestService_ListByUser(t *testing.T) {
 				}, nil)
 
 				// Group lookup uses user-only principal (no double PAT filtering)
-				groupService.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}, group.Filter{}).Return([]group.Group{}, nil)
+				groupService.EXPECT().List(ctx, group.Filter{
+					Principal: &authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal},
+				}).Return([]group.Group{}, nil)
 
 				// PAT scope intersection
 				relationService.EXPECT().LookupResources(ctx, relation.Relation{

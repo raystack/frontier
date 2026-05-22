@@ -1568,6 +1568,13 @@ func (s *Service) ListOrgsByPrincipal(ctx context.Context, principal authenticat
 	return s.ListResourcesByPrincipal(ctx, principal, schema.OrganizationNamespace, ResourceFilter{})
 }
 
+// ListGroupsByPrincipal lets the group package consume this without
+// importing membership — that direction would be a cycle since membership
+// already imports group. orgID narrows results to one org (empty = all orgs).
+func (s *Service) ListGroupsByPrincipal(ctx context.Context, principal authenticate.Principal, orgID string) ([]string, error) {
+	return s.ListResourcesByPrincipal(ctx, principal, schema.GroupNamespace, ResourceFilter{OrgID: orgID})
+}
+
 // ListResourcesByPrincipal returns the resource IDs of the given type on which
 // the principal has at least one policy. Reads Postgres policies — no SpiceDB.
 // With a PAT, runs the algorithm twice (user, then PAT-as-principal) and

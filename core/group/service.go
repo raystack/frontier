@@ -21,7 +21,6 @@ import (
 
 type RelationService interface {
 	ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error)
-	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -37,6 +36,7 @@ type PolicyService interface {
 
 type MembershipService interface {
 	OnGroupCreated(ctx context.Context, groupID, orgID, creatorID, creatorType string) error
+	ListGroupsByPrincipal(ctx context.Context, principal authenticate.Principal, orgID string) ([]string, error)
 }
 
 type Service struct {
@@ -90,6 +90,23 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Group, error) {
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
+	if flt.Principal != nil {
+		if s.membershipService == nil {
+			return nil, fmt.Errorf("group: membership service not wired")
+		}
+		ids, err := s.membershipService.ListGroupsByPrincipal(ctx, *flt.Principal, flt.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+		if len(flt.GroupIDs) > 0 {
+			ids = utils.Intersection(ids, flt.GroupIDs)
+		}
+		if len(ids) == 0 {
+			return []Group{}, nil
+		}
+		flt.GroupIDs = ids
+	}
+
 	if flt.OrganizationID == "" && len(flt.GroupIDs) == 0 && !flt.SU {
 		return nil, ErrInvalidID
 	}
@@ -122,45 +139,6 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 		return s.repository.UpdateByID(ctx, grp)
 	}
 	return Group{}, ErrInvalidID
-}
-
-func (s Service) ListByUser(ctx context.Context, principal authenticate.Principal, flt Filter) ([]Group, error) {
-	subjectID, subjectType := principal.ResolveSubject()
-	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
-		Object:       relation.Object{Namespace: schema.GroupNamespace},
-		Subject:      relation.Subject{Namespace: subjectType, ID: subjectID},
-		RelationName: schema.MembershipPermission,
-	})
-	if err != nil {
-		return nil, err
-	}
-	subjectIDs, err = s.intersectPATScope(ctx, principal, schema.GroupNamespace, subjectIDs)
-	if err != nil {
-		return nil, err
-	}
-	if len(subjectIDs) == 0 {
-		// no groups
-		return nil, nil
-	}
-	flt.GroupIDs = subjectIDs
-	return s.List(ctx, flt)
-}
-
-// intersectPATScope narrows resource IDs to only those the PAT is scoped to.
-func (s Service) intersectPATScope(ctx context.Context, principal authenticate.Principal,
-	namespace string, resourceIDs []string) ([]string, error) {
-	if principal.PAT == nil || len(resourceIDs) == 0 {
-		return resourceIDs, nil
-	}
-	patIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
-		Object:       relation.Object{Namespace: namespace},
-		Subject:      relation.Subject{ID: principal.PAT.ID, Namespace: schema.PATPrincipal},
-		RelationName: schema.GetPermission,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return utils.Intersection(resourceIDs, patIDs), nil
 }
 
 // ListByOrganization will be useful for nested groups but we don't do that at the moment

@@ -54,7 +54,7 @@ type MembershipService interface {
 
 type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
-	ListByUser(ctx context.Context, principal authenticate.Principal, flt group.Filter) ([]group.Group, error)
+	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 }
 
 type RelationService interface {
@@ -319,9 +319,8 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if the invitation has a group membership
 	if len(invite.GroupIDs) > 0 {
-		userGroups, err := s.groupSvc.ListByUser(ctx, authenticate.Principal{
-			ID: userOb.ID, Type: schema.UserPrincipal,
-		}, group.Filter{})
+		principal := authenticate.Principal{ID: userOb.ID, Type: schema.UserPrincipal}
+		userGroups, err := s.groupSvc.List(ctx, group.Filter{Principal: &principal})
 		if err != nil {
 			return err
 		}

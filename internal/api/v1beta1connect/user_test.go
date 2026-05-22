@@ -914,7 +914,10 @@ func TestConnectHandler_ListUserGroups(t *testing.T) {
 		{
 			title: "should list user groups successfully",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: userID, Type: "app/user"}, group.Filter{OrganizationID: orgID}).Return([]group.Group{
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					Principal:      &authenticate.Principal{ID: userID, Type: "app/user"},
+					OrganizationID: orgID,
+				}).Return([]group.Group{
 					{
 						ID:             "group-1",
 						Name:           "test-group-1",
@@ -966,7 +969,10 @@ func TestConnectHandler_ListUserGroups(t *testing.T) {
 		{
 			title: "should return empty list when user has no groups",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: userID, Type: "app/user"}, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					Principal:      &authenticate.Principal{ID: userID, Type: "app/user"},
+					OrganizationID: orgID,
+				}).Return([]group.Group{}, nil)
 			},
 			req: &frontierv1beta1.ListUserGroupsRequest{
 				Id:    userID,
@@ -980,7 +986,10 @@ func TestConnectHandler_ListUserGroups(t *testing.T) {
 		{
 			title: "should return not found error for invalid user ID",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "invalid-id", Type: "app/user"}, group.Filter{OrganizationID: orgID}).Return(nil, group.ErrInvalidID)
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					Principal:      &authenticate.Principal{ID: "invalid-id", Type: "app/user"},
+					OrganizationID: orgID,
+				}).Return(nil, group.ErrInvalidID)
 			},
 			req: &frontierv1beta1.ListUserGroupsRequest{
 				Id:    "invalid-id",
@@ -992,7 +1001,10 @@ func TestConnectHandler_ListUserGroups(t *testing.T) {
 		{
 			title: "should return internal error for service failure",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: userID, Type: "app/user"}, group.Filter{OrganizationID: orgID}).Return(nil, errors.New("database error"))
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					Principal:      &authenticate.Principal{ID: userID, Type: "app/user"},
+					OrganizationID: orgID,
+				}).Return(nil, errors.New("database error"))
 			},
 			req: &frontierv1beta1.ListUserGroupsRequest{
 				Id:    userID,
@@ -1061,7 +1073,10 @@ func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
 				}
 				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
 
-				gs.EXPECT().ListByUser(mock.Anything, mockPrincipal, group.Filter{OrganizationID: orgID}).Return([]group.Group{
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					Principal:      &mockPrincipal,
+					OrganizationID: orgID,
+				}).Return([]group.Group{
 					{
 						ID:             "group-1",
 						Name:           "test-group-1",
@@ -1102,7 +1117,10 @@ func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
 					User: &user.User{ID: "user-1", Email: "test@example.com"},
 				}
 				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
-				gs.EXPECT().ListByUser(mock.Anything, mockPrincipal, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					Principal:      &mockPrincipal,
+					OrganizationID: orgID,
+				}).Return([]group.Group{}, nil)
 			},
 			req: &frontierv1beta1.ListCurrentUserGroupsRequest{
 				OrgId: orgID,
@@ -1133,7 +1151,10 @@ func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
 					User: &user.User{ID: "user-1", Email: "test@example.com"},
 				}
 				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
-				gs.EXPECT().ListByUser(mock.Anything, mockPrincipal, group.Filter{OrganizationID: orgID}).Return(nil, errors.New("database error"))
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					Principal:      &mockPrincipal,
+					OrganizationID: orgID,
+				}).Return(nil, errors.New("database error"))
 			},
 			req: &frontierv1beta1.ListCurrentUserGroupsRequest{
 				OrgId: orgID,
