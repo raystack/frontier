@@ -6,6 +6,10 @@ export const getColumns: () => DataTableColumnDef<Role, unknown>[] = () => {
     {
       accessorKey: "id",
       header: "ID",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       filterVariant: "text",
       cell: ({ getValue }) => getValue(),
     },

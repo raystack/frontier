@@ -7,6 +7,7 @@ import {
   timestampToDate,
 } from "../../utils/connect-timestamp";
 import { TerminologyEntity } from "../../hooks/useTerminology";
+import styles from "./invoices.module.css";
 
 interface GetColumnsOptions {
   t: {
@@ -22,6 +23,10 @@ export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
     {
       accessorKey: "createdAt",
       header: "Billed on",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       filterType: "date",
       enableColumnFilter: true,
       cell: ({ getValue }) => {
@@ -68,7 +73,7 @@ export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
       cell: ({ row, getValue }) => {
         const link = getValue() as string;
         return link ? (
-          <Link href={link} external={true}>
+          <Link href={link} external={true} data-test-id="frontier-admin-invoice-link">
             Link
           </Link>
         ) : (

@@ -2,6 +2,10 @@
     width: 100%;
 }
 
+.first-column {
+    padding-left: var(--rs-space-7);
+}
+
 .valueColumn {
     max-width: 500px;
     text-wrap: wrap;

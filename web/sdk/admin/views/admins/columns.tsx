@@ -1,6 +1,7 @@
 import { Button, type DataTableColumnDef } from "@raystack/apsara-v1";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
 import { TerminologyEntity } from "../../hooks/useTerminology";
+import styles from "./admins.module.css";
 
 export const getColumns: (options?: {
   onNavigateToOrg?: (orgId: string) => void;
@@ -15,6 +16,10 @@ export const getColumns: (options?: {
     {
       header: "Title",
       accessorKey: "title",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       filterVariant: "text",
       cell: (info) => info.getValue() || "-",
     },

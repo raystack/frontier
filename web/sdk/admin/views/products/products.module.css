@@ -15,6 +15,11 @@
     border-bottom: 1px solid var(--rs-color-border-base-primary);
 }
 
+.first-column {
+    width: var(--rs-space-13);
+    padding-left: var(--rs-space-5);
+}
+
 .sheetContent {
     width: 400px;
     padding: 0;

@@ -2,6 +2,7 @@ import type { Price as PriceType } from "@raystack/proton/frontier";
 import { Amount } from "@raystack/apsara-v1";
 import type { DataTableColumnDef } from "@raystack/apsara-v1";
 import { timestampToDate, TimeStamp } from "../../../utils/connect-timestamp";
+import styles from "./prices.module.css";
 
 export const getColumns = (
   prices: PriceType[]
@@ -10,6 +11,10 @@ export const getColumns = (
     {
       header: "Id",
       accessorKey: "id",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },

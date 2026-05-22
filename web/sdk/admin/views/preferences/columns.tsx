@@ -19,6 +19,10 @@ export const getColumns: (
     {
       header: "Title",
       accessorKey: "title",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       filterVariant: "text",
       cell: (info) => info.getValue(),
       footer: (props) => props.column.id,

@@ -30,6 +30,10 @@ export const getColumns: (
     {
       header: "Description",
       accessorKey: "description",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       filterVariant: "text",
       cell: (info) => info.getValue() || "-",
     },
