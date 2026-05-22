@@ -470,7 +470,7 @@ func (h *ConnectHandler) ListUserGroups(ctx context.Context, request *connect.Re
 		OrganizationID: request.Msg.GetOrgId(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListUserGroups.ListByUser", err,
+		errorLogger.LogServiceError(ctx, request, "ListUserGroups.List", err,
 			"user_id", request.Msg.GetId(),
 			"org_id", request.Msg.GetOrgId())
 
@@ -516,7 +516,7 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 		WithMemberCount: request.Msg.GetWithMemberCount(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListCurrentUserGroups.ListByUser", err,
+		errorLogger.LogServiceError(ctx, request, "ListCurrentUserGroups.List", err,
 			"principal_id", principal.ID,
 			"principal_type", principal.Type,
 			"org_id", request.Msg.GetOrgId())
