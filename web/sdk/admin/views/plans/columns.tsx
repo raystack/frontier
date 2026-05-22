@@ -1,6 +1,7 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara-v1";
 import type { Plan } from "@raystack/proton/frontier";
 import { timestampToDate, type TimeStamp } from "../../utils/connect-timestamp";
+import styles from "./plans.module.css";
 
 export const getColumns: (options?: {
   onSelectPlan?: (planId: string) => void;
@@ -12,6 +13,10 @@ export const getColumns: (options?: {
     {
       header: "ID",
       accessorKey: "id",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       filterVariant: "text",
       cell: ({ getValue }) => {
         const id = getValue() as string;
@@ -19,6 +24,7 @@ export const getColumns: (options?: {
           <Text
             style={{ cursor: "pointer" }}
             onClick={() => onSelectPlan?.(id)}
+            data-test-id="frontier-admin-plan-link"
           >
             {id}
           </Text>

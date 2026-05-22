@@ -1,12 +1,17 @@
 .tableRoot {
     width: 100%;
 }
+
 .tableWrapper {
     width: 100%;
 }
 
 .table {
     table-layout: fixed;
+}
+
+.first-column {
+    padding-left: var(--rs-space-7);
 }
 
 .actionColumn {
@@ -29,6 +34,6 @@
 }
 
 .deleteMenuItem {
-    padding: 12px;
+    padding: var(--rs-space-4);
     color: var(--rs-color-foreground-danger-primary);
 }

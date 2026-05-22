@@ -31,8 +31,7 @@
   z-index: 2;
 }
 
-.table th:first-child,
-.table td:first-child {
+.first-column {
   padding-left: var(--rs-space-7);
   max-width: 200px;
 }

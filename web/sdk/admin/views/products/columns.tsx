@@ -1,6 +1,7 @@
 import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara-v1";
 import type { Product } from "@raystack/proton/frontier";
 import { timestampToDate, TimeStamp } from "../../utils/connect-timestamp";
+import styles from "./products.module.css";
 
 export const getColumns = (
   onNavigateToPrices?: (productId: string) => void
@@ -9,6 +10,10 @@ export const getColumns = (
     {
       accessorKey: "id",
       header: "",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       cell: (info) => {
         return (
               <Image

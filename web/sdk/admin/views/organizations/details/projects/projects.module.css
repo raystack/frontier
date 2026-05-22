@@ -32,8 +32,7 @@
 }
 
 .table-action-column {
-    width: 32px;
-    padding: 0;
+    width: var(--rs-space-12);
 }
 
 .flex1 {
