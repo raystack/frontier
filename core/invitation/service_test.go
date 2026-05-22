@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/invitation/mocks"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/errors"
@@ -55,14 +56,6 @@ func TestService_Create(t *testing.T) {
 				orgService.EXPECT().Get(mock.Anything, "org-id").Return(organization.Organization{
 					ID: "org-id",
 				}, nil)
-				orgService.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
-					ID:   "user-id",
-					Type: schema.UserPrincipal,
-				}, organization.Filter{}).Return([]organization.Organization{
-					{
-						ID: "org-id",
-					},
-				}, nil)
 
 				userService.EXPECT().GetByID(context.Background(), "test@example.com").Return(user.User{
 					ID:    "user-id",
@@ -70,6 +63,10 @@ func TestService_Create(t *testing.T) {
 				}, nil)
 
 				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, authenticate.Principal{
+					ID:   "user-id",
+					Type: schema.UserPrincipal,
+				}, schema.OrganizationNamespace, membership.ResourceFilter{}).Return([]string{"org-id"}, nil)
 				return invitation.NewService(dialer, repo, orgService, groupService,
 					userService, relationService, prefService, auditRecordRepo, membershipSvc)
 			},

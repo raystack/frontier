@@ -728,15 +728,10 @@ func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *c
 	errorLogger := NewErrorLogger()
 	userID := request.Msg.GetId()
 
-	orgFilter := organization.Filter{}
-	if request.Msg.GetState() != "" {
-		orgFilter.State = organization.State(request.Msg.GetState())
-	}
-
-	orgList, err := h.orgService.ListByUser(ctx, authenticate.Principal{
-		ID:   userID,
-		Type: schema.UserPrincipal,
-	}, orgFilter)
+	orgList, err := h.orgService.List(ctx, organization.Filter{
+		Principal: &authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+		State:     organization.State(request.Msg.GetState()),
+	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByUser", err,
 			"user_id", userID)
@@ -808,12 +803,10 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 		return nil, err
 	}
 
-	orgFilter := organization.Filter{}
-	if request.Msg.GetState() != "" {
-		orgFilter.State = organization.State(request.Msg.GetState())
-	}
-
-	orgList, err := h.orgService.ListByUser(ctx, principal, orgFilter)
+	orgList, err := h.orgService.List(ctx, organization.Filter{
+		Principal: &principal,
+		State:     organization.State(request.Msg.GetState()),
+	})
 	if err != nil {
 		errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
 			"principal_id", principal.ID,

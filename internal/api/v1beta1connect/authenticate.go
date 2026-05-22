@@ -224,17 +224,18 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 	customClaims := map[string]string{}
 
 	if h.authConfig.Token.Claims.AddOrgIDsClaim {
-		// get orgs a user belongs to
-		orgs, err := h.orgService.ListByUser(ctx, principal, organization.Filter{})
+		orgs, err := h.orgService.List(ctx, organization.Filter{
+			Principal: &principal,
+			State:     organization.Enabled,
+		})
 		if err != nil {
 			return nil, err
 		}
-
-		var orgIds []string
+		orgIDs := make([]string, 0, len(orgs))
 		for _, o := range orgs {
-			orgIds = append(orgIds, o.ID)
+			orgIDs = append(orgIDs, o.ID)
 		}
-		customClaims[token.OrgIDsClaimKey] = strings.Join(orgIds, ",")
+		customClaims[token.OrgIDsClaimKey] = strings.Join(orgIDs, ",")
 	}
 
 	// add session ID as claims for upstream

@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -259,7 +260,7 @@ func TestDeleteUser(t *testing.T) {
 	t.Run("removes user from all orgs then deletes", func(t *testing.T) {
 		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
-		orgSvc.EXPECT().ListByUser(mock.Anything, mock.Anything, mock.Anything).
+		mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
 			Return(nil, nil)
 		usrSvc.EXPECT().Delete(mock.Anything, "user-1").Return(nil)
 

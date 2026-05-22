@@ -127,65 +127,6 @@ func (_c *RelationService_Delete_Call) RunAndReturn(run func(context.Context, re
 	return _c
 }
 
-// LookupResources provides a mock function with given fields: ctx, rel
-func (_m *RelationService) LookupResources(ctx context.Context, rel relation.Relation) ([]string, error) {
-	ret := _m.Called(ctx, rel)
-
-	if len(ret) == 0 {
-		panic("no return value specified for LookupResources")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) ([]string, error)); ok {
-		return rf(ctx, rel)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) []string); ok {
-		r0 = rf(ctx, rel)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, relation.Relation) error); ok {
-		r1 = rf(ctx, rel)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// RelationService_LookupResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LookupResources'
-type RelationService_LookupResources_Call struct {
-	*mock.Call
-}
-
-// LookupResources is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rel relation.Relation
-func (_e *RelationService_Expecter) LookupResources(ctx interface{}, rel interface{}) *RelationService_LookupResources_Call {
-	return &RelationService_LookupResources_Call{Call: _e.mock.On("LookupResources", ctx, rel)}
-}
-
-func (_c *RelationService_LookupResources_Call) Run(run func(ctx context.Context, rel relation.Relation)) *RelationService_LookupResources_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(relation.Relation))
-	})
-	return _c
-}
-
-func (_c *RelationService_LookupResources_Call) Return(_a0 []string, _a1 error) *RelationService_LookupResources_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RelationService_LookupResources_Call) RunAndReturn(run func(context.Context, relation.Relation) ([]string, error)) *RelationService_LookupResources_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewRelationService creates a new instance of RelationService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRelationService(t interface {

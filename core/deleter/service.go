@@ -20,6 +20,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/membership"
 
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/role"
@@ -44,7 +45,6 @@ type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
 	DeleteModel(ctx context.Context, id string) error
 	RemoveUsers(ctx context.Context, orgID string, userIDs []string) error
-	ListByUser(ctx context.Context, principal authenticate.Principal, f organization.Filter) ([]organization.Organization, error)
 }
 
 type RoleService interface {
@@ -71,6 +71,7 @@ type GroupService interface {
 
 type MembershipService interface {
 	OnGroupDeleted(ctx context.Context, groupID string) error
+	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
 }
 
 type InvitationService interface {
@@ -378,17 +379,19 @@ func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs [
 	return d.orgService.RemoveUsers(ctx, orgID, userIDs)
 }
 
+// DeleteUser visits every org the user has a policy on (disabled orgs too),
+// otherwise userService.Delete would leave orphan policy rows behind.
 func (d Service) DeleteUser(ctx context.Context, userID string) error {
-	userOrgs, err := d.orgService.ListByUser(ctx, authenticate.Principal{
+	orgIDs, err := d.membershipService.ListResourcesByPrincipal(ctx, authenticate.Principal{
 		ID:   userID,
 		Type: schema.UserPrincipal,
-	}, organization.Filter{})
+	}, schema.OrganizationNamespace, membership.ResourceFilter{})
 	if err != nil {
 		return err
 	}
-	for _, org := range userOrgs {
-		if err = d.RemoveUsersFromOrg(ctx, org.ID, []string{userID}); err != nil {
-			return fmt.Errorf("failed to delete user from org[%s]: %w", org.Name, err)
+	for _, orgID := range orgIDs {
+		if err = d.RemoveUsersFromOrg(ctx, orgID, []string{userID}); err != nil {
+			return fmt.Errorf("failed to delete user from org[%s]: %w", orgID, err)
 		}
 	}
 	return d.userService.Delete(ctx, userID)

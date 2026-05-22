@@ -375,23 +375,10 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 	// clean up SpiceDB relations
 	for _, g := range orgGroups {
 		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
-			s.log.Error("partial failure removing member: group relation cleanup failed, manual cleanup may be needed",
-				"org_id", orgID,
-				"group_id", g.ID,
-				"principal_id", principalID,
-				"principal_type", principalType,
-				"error", err,
-			)
 			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
 		}
 	}
 	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
-		s.log.Error("partial failure removing member: org relation cleanup failed, manual cleanup may be needed",
-			"org_id", orgID,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"error", err,
-		)
 		return fmt.Errorf("remove org relations: %w", err)
 	}
 
@@ -1572,6 +1559,13 @@ type ResourceFilter struct {
 	// NonInherited suppresses org-inheritance expansion for projects (direct
 	// + group-expanded only). No-op for orgs and groups.
 	NonInherited bool
+}
+
+// ListOrgsByPrincipal lets the organization package consume this without
+// importing membership — that direction would be a cycle since membership
+// already imports organization.
+func (s *Service) ListOrgsByPrincipal(ctx context.Context, principal authenticate.Principal) ([]string, error) {
+	return s.ListResourcesByPrincipal(ctx, principal, schema.OrganizationNamespace, ResourceFilter{})
 }
 
 // ListResourcesByPrincipal returns the resource IDs of the given type on which

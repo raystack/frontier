@@ -44,12 +44,12 @@ type UserService interface {
 
 type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
-	ListByUser(ctx context.Context, p authenticate.Principal, f organization.Filter) ([]organization.Organization, error)
 }
 
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
 	SetGroupMemberRole(ctx context.Context, groupID, principalID, principalType, roleID string) error
+	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
 }
 
 type GroupService interface {
@@ -270,15 +270,15 @@ func (s Service) isUserOrgMember(ctx context.Context, orgID, userID string) (use
 		return userOb, false, err
 	}
 
-	orgs, err := s.orgSvc.ListByUser(ctx, authenticate.Principal{
+	orgIDs, err := s.membershipSvc.ListResourcesByPrincipal(ctx, authenticate.Principal{
 		ID:   userOb.ID,
 		Type: schema.UserPrincipal,
-	}, organization.Filter{})
+	}, schema.OrganizationNamespace, membership.ResourceFilter{})
 	if err != nil {
 		return userOb, false, err
 	}
-	for _, org := range orgs {
-		if org.ID == orgID {
+	for _, id := range orgIDs {
+		if id == orgID {
 			return userOb, true, nil
 		}
 	}
