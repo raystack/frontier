@@ -1568,11 +1568,11 @@ func (s *Service) ListOrgsByPrincipal(ctx context.Context, principal authenticat
 	return s.ListResourcesByPrincipal(ctx, principal, schema.OrganizationNamespace, ResourceFilter{})
 }
 
-// ListGroupsByPrincipal lets the group package consume this without
-// importing membership — that direction would be a cycle since membership
-// already imports group. orgID narrows results to one org (empty = all orgs).
+// ListGroupsByPrincipal Shim for the group package (group → membership would cycle). PATs scope
+// orgs and projects, not groups, so a PAT sees exactly its user's groups — resolve the PAT.
 func (s *Service) ListGroupsByPrincipal(ctx context.Context, principal authenticate.Principal, orgID string) ([]string, error) {
-	return s.ListResourcesByPrincipal(ctx, principal, schema.GroupNamespace, ResourceFilter{OrgID: orgID})
+	subjectID, subjectType := principal.ResolveSubject()
+	return s.listResourcesForPrincipal(ctx, subjectID, subjectType, schema.GroupNamespace, ResourceFilter{OrgID: orgID})
 }
 
 // ListResourcesByPrincipal returns the resource IDs of the given type on which
