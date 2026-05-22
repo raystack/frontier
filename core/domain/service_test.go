@@ -19,7 +19,7 @@ func TestService_ListJoinableOrgsByDomain(t *testing.T) {
 	email := "alice@example.com"
 	userID := "user-1"
 
-	newService := func() (*domain.Service, *mocks.Repository, *mocks.UserService, *mocks.MembershipService) {
+	newService := func(t *testing.T) (*domain.Service, *mocks.Repository, *mocks.UserService, *mocks.MembershipService) {
 		repo := mocks.NewRepository(t)
 		userSvc := mocks.NewUserService(t)
 		orgSvc := mocks.NewOrgService(t)
@@ -29,7 +29,7 @@ func TestService_ListJoinableOrgsByDomain(t *testing.T) {
 	}
 
 	t.Run("returns verified-domain orgs the user is not a member of", func(t *testing.T) {
-		svc, repo, userSvc, memberSvc := newService()
+		svc, repo, userSvc, memberSvc := newService(t)
 
 		repo.EXPECT().List(ctx, domain.Filter{Name: "example.com", State: domain.Verified}).
 			Return([]domain.Domain{
@@ -52,7 +52,7 @@ func TestService_ListJoinableOrgsByDomain(t *testing.T) {
 	t.Run("excludes disabled-org policy-holder from joinable list", func(t *testing.T) {
 		// A stale policy on a disabled org still counts as membership —
 		// otherwise we'd offer the disabled org as joinable.
-		svc, repo, userSvc, memberSvc := newService()
+		svc, repo, userSvc, memberSvc := newService(t)
 
 		repo.EXPECT().List(ctx, domain.Filter{Name: "example.com", State: domain.Verified}).
 			Return([]domain.Domain{{OrgID: "org-disabled"}}, nil)
@@ -69,7 +69,7 @@ func TestService_ListJoinableOrgsByDomain(t *testing.T) {
 	})
 
 	t.Run("returns all verified-domain orgs when user has no memberships", func(t *testing.T) {
-		svc, repo, userSvc, memberSvc := newService()
+		svc, repo, userSvc, memberSvc := newService(t)
 
 		repo.EXPECT().List(ctx, domain.Filter{Name: "example.com", State: domain.Verified}).
 			Return([]domain.Domain{{OrgID: "org-1"}, {OrgID: "org-2"}}, nil)
