@@ -20,6 +20,7 @@ func TestService_ListJoinableOrgsByDomain(t *testing.T) {
 	userID := "user-1"
 
 	newService := func(t *testing.T) (*domain.Service, *mocks.Repository, *mocks.UserService, *mocks.MembershipService) {
+		t.Helper()
 		repo := mocks.NewRepository(t)
 		userSvc := mocks.NewUserService(t)
 		orgSvc := mocks.NewOrgService(t)
