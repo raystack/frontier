@@ -342,7 +342,6 @@ type ProjectService interface {
 	Get(ctx context.Context, idOrName string) (project.Project, error)
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
 	List(ctx context.Context, f project.Filter) ([]project.Project, error)
-	ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error

@@ -90,7 +90,7 @@ func TestService_Search(t *testing.T) {
 		}
 
 		repo.EXPECT().Search(mock.Anything, orgID, query).Return(repoResult, nil)
-		projSvc.EXPECT().ListByUser(mock.Anything, mock.Anything, mock.Anything).
+		projSvc.EXPECT().List(mock.Anything, mock.Anything).
 			Return([]project.Project{{ID: "proj-1"}, {ID: "proj-2"}}, nil).Maybe()
 
 		svc := orgpats.NewService(repo, projSvc)
@@ -127,7 +127,7 @@ func TestService_Search(t *testing.T) {
 		}
 
 		repo.EXPECT().Search(mock.Anything, orgID, query).Return(repoResult, nil)
-		// ProjectService.ListByUser should NOT be called
+		// ProjectService.List should NOT be called
 		svc := orgpats.NewService(repo, projSvc)
 		result, err := svc.Search(ctx, orgID, query)
 		assert.NoError(t, err)

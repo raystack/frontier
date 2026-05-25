@@ -1575,6 +1575,12 @@ func (s *Service) ListGroupsByPrincipal(ctx context.Context, principal authentic
 	return s.listResourcesForPrincipal(ctx, subjectID, subjectType, schema.GroupNamespace, ResourceFilter{OrgID: orgID})
 }
 
+// ListProjectsByPrincipal Shim for the project package (project → membership
+// would cycle). Delegates to ListResourcesByPrincipal so PAT scope is intersected.
+func (s *Service) ListProjectsByPrincipal(ctx context.Context, principal authenticate.Principal, orgID string, nonInherited bool) ([]string, error) {
+	return s.ListResourcesByPrincipal(ctx, principal, schema.ProjectNamespace, ResourceFilter{OrgID: orgID, NonInherited: nonInherited})
+}
+
 // ListResourcesByPrincipal returns the resource IDs of the given type on which
 // the principal has at least one policy. Reads Postgres policies — no SpiceDB.
 // With a PAT, runs the algorithm twice (user, then PAT-as-principal) and

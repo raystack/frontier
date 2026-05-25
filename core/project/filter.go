@@ -1,6 +1,9 @@
 package project
 
-import "github.com/raystack/frontier/pkg/pagination"
+import (
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/pkg/pagination"
+)
 
 type Filter struct {
 	OrgID           string
@@ -17,4 +20,10 @@ type Filter struct {
 	// are set, projects must satisfy both (intersection) — typically yields
 	// no rows unless OrgID is one of OrgIDs.
 	OrgIDs []string
+
+	// Principal narrows results to projects on which the principal has a
+	// policy (direct, via group membership, or org-inheritance unless
+	// NonInherited is set). When combined with ProjectIDs the two are
+	// intersected. Resolved by membership.Service.
+	Principal *authenticate.Principal
 }

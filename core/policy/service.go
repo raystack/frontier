@@ -42,11 +42,28 @@ func (s Service) Get(ctx context.Context, id string) (Policy, error) {
 }
 
 func (s Service) List(ctx context.Context, f Filter) ([]Policy, error) {
+	if err := validateFilter(f); err != nil {
+		return nil, err
+	}
 	return s.repository.List(ctx, f)
 }
 
 func (s Service) Count(ctx context.Context, f Filter) (int64, error) {
+	if err := validateFilter(f); err != nil {
+		return 0, err
+	}
 	return s.repository.Count(ctx, f)
+}
+
+// validateFilter rejects principal-narrowed queries that name a PrincipalType
+// without the matching ID. The repo's WHERE-builder silently drops empty
+// PrincipalID, so the query degrades to "all policies of this type" and
+// returns every row across every principal.
+func validateFilter(f Filter) error {
+	if f.PrincipalType != "" && f.PrincipalID == "" && len(f.PrincipalIDs) == 0 {
+		return ErrInvalidFilter
+	}
+	return nil
 }
 
 func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {

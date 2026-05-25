@@ -2393,3 +2393,124 @@ func TestService_ListGroupsByPrincipal(t *testing.T) {
 		})
 	}
 }
+
+func TestService_ListProjectsByPrincipal(t *testing.T) {
+	ctx := context.Background()
+
+	userID := uuid.New().String()
+	patID := uuid.New().String()
+	orgA := uuid.New().String()
+	projDirect := uuid.New().String()
+	projPATScope := uuid.New().String()
+
+	t.Run("user principal with NonInherited=true skips org-inheritance branch", func(t *testing.T) {
+		mp := mocks.NewPolicyService(t)
+		// Direct project policies fetch.
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:     userID,
+			PrincipalType:   schema.UserPrincipal,
+			ResourceType:    schema.ProjectNamespace,
+			RolePermissions: schema.ProjectDirectVisibilityPerms,
+		}).Return([]policy.Policy{{ResourceID: projDirect}}, nil)
+		// Group expansion: principal has no groups (NonInherited=true on inner call).
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:   userID,
+			PrincipalType: schema.UserPrincipal,
+			ResourceType:  schema.GroupNamespace,
+		}).Return([]policy.Policy{}, nil)
+		// NO org-inheritance fetch must happen — that's the NonInherited contract.
+
+		svc := membership.NewService(
+			slog.New(slog.NewTextHandler(io.Discard, nil)),
+			mp,
+			mocks.NewRelationService(t),
+			mocks.NewRoleService(t),
+			mocks.NewOrgService(t),
+			mocks.NewUserService(t),
+			mocks.NewProjectService(t),
+			mocks.NewGroupService(t),
+			mocks.NewServiceuserService(t),
+			mocks.NewAuditRecordRepository(t),
+		)
+
+		got, err := svc.ListProjectsByPrincipal(
+			ctx,
+			authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+			"",
+			true,
+		)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []string{projDirect}, got)
+	})
+
+	t.Run("PAT principal — runs both user-side and PAT-side queries and intersects (unlike groups)", func(t *testing.T) {
+		mp := mocks.NewPolicyService(t)
+		// User-side: direct project policies + (no groups) + org-inheritance branch.
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:     userID,
+			PrincipalType:   schema.UserPrincipal,
+			ResourceType:    schema.ProjectNamespace,
+			RolePermissions: schema.ProjectDirectVisibilityPerms,
+		}).Return([]policy.Policy{
+			{ResourceID: projDirect},
+			{ResourceID: projPATScope},
+		}, nil)
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:   userID,
+			PrincipalType: schema.UserPrincipal,
+			ResourceType:  schema.GroupNamespace,
+		}).Return([]policy.Policy{}, nil)
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:     userID,
+			PrincipalType:   schema.UserPrincipal,
+			ResourceType:    schema.OrganizationNamespace,
+			RolePermissions: schema.OrganizationProjectInheritPerms,
+		}).Return([]policy.Policy{}, nil)
+
+		// PAT-side: same fanout under PAT principal type — PAT only scopes projPATScope.
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:     patID,
+			PrincipalType:   schema.PATPrincipal,
+			ResourceType:    schema.ProjectNamespace,
+			RolePermissions: schema.ProjectDirectVisibilityPerms,
+		}).Return([]policy.Policy{{ResourceID: projPATScope}}, nil)
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:   patID,
+			PrincipalType: schema.PATPrincipal,
+			ResourceType:  schema.GroupNamespace,
+		}).Return([]policy.Policy{}, nil)
+		mp.EXPECT().List(ctx, policy.Filter{
+			PrincipalID:     patID,
+			PrincipalType:   schema.PATPrincipal,
+			ResourceType:    schema.OrganizationNamespace,
+			RolePermissions: schema.OrganizationProjectInheritPerms,
+		}).Return([]policy.Policy{}, nil)
+
+		svc := membership.NewService(
+			slog.New(slog.NewTextHandler(io.Discard, nil)),
+			mp,
+			mocks.NewRelationService(t),
+			mocks.NewRoleService(t),
+			mocks.NewOrgService(t),
+			mocks.NewUserService(t),
+			mocks.NewProjectService(t),
+			mocks.NewGroupService(t),
+			mocks.NewServiceuserService(t),
+			mocks.NewAuditRecordRepository(t),
+		)
+
+		got, err := svc.ListProjectsByPrincipal(
+			ctx,
+			authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+				PAT:  &pat.PAT{ID: patID, UserID: userID, OrgID: orgA},
+			},
+			"",
+			false,
+		)
+		assert.NoError(t, err)
+		// PAT narrows: user sees [direct, patScope]; PAT sees [patScope]; intersect → [patScope].
+		assert.ElementsMatch(t, []string{projPATScope}, got)
+	})
+}

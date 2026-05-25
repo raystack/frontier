@@ -441,11 +441,13 @@ func buildAPIDependencies(
 		authnService, serviceUserService, groupService, roleService)
 
 	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, serviceUserService, auditRecordRepository)
-	// Setter injection: org/group → membership is circular (membership needs them
-	// for validation; they need membership for Create). Break the cycle post-init.
+	// Setter injection: org/group/project → membership is circular (membership
+	// needs them for validation; they need membership for resource-by-principal
+	// listing). Break the cycle post-init.
 	organizationService.SetMembershipService(membershipService)
 	serviceUserService.SetMembershipService(membershipService)
 	groupService.SetMembershipService(membershipService)
+	projectService.SetMembershipService(membershipService)
 
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)

@@ -5,8 +5,6 @@ package mocks
 import (
 	context "context"
 
-	authenticate "github.com/raystack/frontier/core/authenticate"
-
 	mock "github.com/stretchr/testify/mock"
 
 	project "github.com/raystack/frontier/core/project"
@@ -25,29 +23,29 @@ func (_m *ProjectService) EXPECT() *ProjectService_Expecter {
 	return &ProjectService_Expecter{mock: &_m.Mock}
 }
 
-// ListByUser provides a mock function with given fields: ctx, principal, flt
-func (_m *ProjectService) ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error) {
-	ret := _m.Called(ctx, principal, flt)
+// List provides a mock function with given fields: ctx, flt
+func (_m *ProjectService) List(ctx context.Context, flt project.Filter) ([]project.Project, error) {
+	ret := _m.Called(ctx, flt)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListByUser")
+		panic("no return value specified for List")
 	}
 
 	var r0 []project.Project
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, project.Filter) ([]project.Project, error)); ok {
-		return rf(ctx, principal, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, project.Filter) ([]project.Project, error)); ok {
+		return rf(ctx, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, authenticate.Principal, project.Filter) []project.Project); ok {
-		r0 = rf(ctx, principal, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, project.Filter) []project.Project); ok {
+		r0 = rf(ctx, flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]project.Project)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, authenticate.Principal, project.Filter) error); ok {
-		r1 = rf(ctx, principal, flt)
+	if rf, ok := ret.Get(1).(func(context.Context, project.Filter) error); ok {
+		r1 = rf(ctx, flt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -55,32 +53,31 @@ func (_m *ProjectService) ListByUser(ctx context.Context, principal authenticate
 	return r0, r1
 }
 
-// ProjectService_ListByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByUser'
-type ProjectService_ListByUser_Call struct {
+// ProjectService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type ProjectService_List_Call struct {
 	*mock.Call
 }
 
-// ListByUser is a helper method to define mock.On call
+// List is a helper method to define mock.On call
 //   - ctx context.Context
-//   - principal authenticate.Principal
 //   - flt project.Filter
-func (_e *ProjectService_Expecter) ListByUser(ctx interface{}, principal interface{}, flt interface{}) *ProjectService_ListByUser_Call {
-	return &ProjectService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, principal, flt)}
+func (_e *ProjectService_Expecter) List(ctx interface{}, flt interface{}) *ProjectService_List_Call {
+	return &ProjectService_List_Call{Call: _e.mock.On("List", ctx, flt)}
 }
 
-func (_c *ProjectService_ListByUser_Call) Run(run func(ctx context.Context, principal authenticate.Principal, flt project.Filter)) *ProjectService_ListByUser_Call {
+func (_c *ProjectService_List_Call) Run(run func(ctx context.Context, flt project.Filter)) *ProjectService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(authenticate.Principal), args[2].(project.Filter))
+		run(args[0].(context.Context), args[1].(project.Filter))
 	})
 	return _c
 }
 
-func (_c *ProjectService_ListByUser_Call) Return(_a0 []project.Project, _a1 error) *ProjectService_ListByUser_Call {
+func (_c *ProjectService_List_Call) Return(_a0 []project.Project, _a1 error) *ProjectService_List_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ProjectService_ListByUser_Call) RunAndReturn(run func(context.Context, authenticate.Principal, project.Filter) ([]project.Project, error)) *ProjectService_ListByUser_Call {
+func (_c *ProjectService_List_Call) RunAndReturn(run func(context.Context, project.Filter) ([]project.Project, error)) *ProjectService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
