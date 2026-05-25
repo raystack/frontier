@@ -646,7 +646,9 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 	projSvc := mocks.NewProjectService(t)
-	projSvc.On("List", mock.Anything, mock.Anything).Return([]project.Project{
+	projSvc.On("List", mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
+		return f.OrgID == "org-1" && f.Principal != nil && f.Principal.ID == "user-1" && f.Principal.Type == schema.UserPrincipal
+	})).Return([]project.Project{
 		{ID: "proj-a"}, {ID: "proj-b"},
 	}, nil).Maybe()
 
@@ -1170,7 +1172,9 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 			projSvc := mocks.NewProjectService(t)
-			projSvc.On("List", mock.Anything, mock.Anything).Return([]project.Project{
+			projSvc.On("List", mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
+				return f.OrgID == "org-1" && f.Principal != nil && f.Principal.ID == "user-1" && f.Principal.Type == schema.UserPrincipal
+			})).Return([]project.Project{
 				{ID: "proj-1"}, {ID: "proj-2"}, {ID: "proj-3"}, {ID: "proj-a"}, {ID: "proj-b"},
 			}, nil).Maybe()
 
@@ -2559,7 +2563,9 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 			{ID: "role-1", Name: "proj_viewer", Scopes: []string{schema.ProjectNamespace}, Permissions: []string{"app_project_get"}},
 		}, nil)
 		projSvc := mocks.NewProjectService(t)
-		projSvc.On("List", mock.Anything, mock.Anything).Return([]project.Project{
+		projSvc.On("List", mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
+			return f.OrgID == "org-1" && f.Principal != nil && f.Principal.ID == "user-1" && f.Principal.Type == schema.UserPrincipal
+		})).Return([]project.Project{
 			{ID: "proj-in-org"},
 		}, nil)
 
@@ -2597,7 +2603,9 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 		policySvc.On("Create", mock.Anything, mock.Anything).Return(policy.Policy{}, nil).Maybe()
 		policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 		projSvc := mocks.NewProjectService(t)
-		projSvc.On("List", mock.Anything, mock.Anything).Return([]project.Project{
+		projSvc.On("List", mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
+			return f.OrgID == "org-1" && f.Principal != nil && f.Principal.ID == "user-1" && f.Principal.Type == schema.UserPrincipal
+		})).Return([]project.Project{
 			{ID: "proj-in-org"},
 		}, nil)
 		auditRepo := mocks.NewAuditRecordRepository(t)

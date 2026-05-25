@@ -90,17 +90,15 @@ func TestService_Search(t *testing.T) {
 		}
 
 		repo.EXPECT().Search(mock.Anything, orgID, query).Return(repoResult, nil)
-		projSvc.EXPECT().List(mock.Anything, mock.Anything).
-			Return([]project.Project{{ID: "proj-1"}, {ID: "proj-2"}}, nil).Maybe()
+		projSvc.EXPECT().List(mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
+			return f.OrgID == orgID && f.Principal != nil && f.Principal.ID == "user-1" && f.Principal.Type == schema.UserPrincipal
+		})).Return([]project.Project{{ID: "proj-1"}, {ID: "proj-2"}}, nil).Once()
 
 		svc := orgpats.NewService(repo, projSvc)
 		result, err := svc.Search(ctx, orgID, query)
 		assert.NoError(t, err)
 		assert.Len(t, result.PATs, 1)
-		// After resolution, the all-projects scope should have project IDs
-		if len(result.PATs[0].Scopes[0].ResourceIDs) > 0 {
-			assert.Contains(t, result.PATs[0].Scopes[0].ResourceIDs, "proj-1")
-		}
+		assert.ElementsMatch(t, []string{"proj-1", "proj-2"}, result.PATs[0].Scopes[0].ResourceIDs)
 	})
 
 	t.Run("skips resolution when no all-projects scopes", func(t *testing.T) {

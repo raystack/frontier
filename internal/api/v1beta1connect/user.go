@@ -865,9 +865,11 @@ func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connec
 	errorLogger := NewErrorLogger()
 	userID := request.Msg.GetId()
 
-	projList, err := h.projectService.List(ctx, project.Filter{
-		Principal: &authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
-	})
+	filter := project.Filter{}
+	if userID != "" {
+		filter.Principal = &authenticate.Principal{ID: userID, Type: schema.UserPrincipal}
+	}
+	projList, err := h.projectService.List(ctx, filter)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectsByUser.List", err,
 			"user_id", userID)

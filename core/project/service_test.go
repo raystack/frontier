@@ -309,6 +309,26 @@ func TestService_List_WithPrincipal(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:   "errors when Principal has empty ID",
+			filter: project.Filter{Principal: &authenticate.Principal{Type: schema.UserPrincipal}},
+			setup: func(t *testing.T) *project.Service {
+				t.Helper()
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+			},
+			wantErr: true,
+		},
+		{
+			name:   "errors when Principal has empty Type",
+			filter: project.Filter{Principal: &authenticate.Principal{ID: "user-id"}},
+			setup: func(t *testing.T) *project.Service {
+				t.Helper()
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+			},
+			wantErr: true,
+		},
+		{
 			name:   "returns projects from the membership shim",
 			filter: project.Filter{Principal: &userPrincipal},
 			want: []project.Project{

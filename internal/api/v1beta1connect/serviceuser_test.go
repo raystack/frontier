@@ -1387,6 +1387,22 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 			errCode: connect.Code(0),
 		},
 		{
+			name: "should forward org_id to project.Filter when set",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
+				Id:    "1",
+				OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+			}),
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				projSvc.EXPECT().List(mock.Anything, project.Filter{
+					Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal},
+					OrgID:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+				}).Return([]project.Project{}, nil)
+			},
+			want:    connect.NewResponse(&frontierv1beta1.ListServiceUserProjectsResponse{}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
 			name: "should return project list with access pairs if withPermission is passed",
 			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
 				Id:              "1",

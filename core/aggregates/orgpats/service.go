@@ -80,8 +80,9 @@ func (s *Service) Search(ctx context.Context, orgID string, query *rql.Query) (O
 	return result, nil
 }
 
-// resolveAllProjectsScope populates ResourceIDs for all-projects scopes by calling SpiceDB.
-// Groups PATs by user_id to minimize SpiceDB calls.
+// resolveAllProjectsScope populates ResourceIDs for all-projects scopes by
+// listing projects the underlying user can see via membership. Groups PATs by
+// user_id to minimize project-service calls.
 func (s *Service) resolveAllProjectsScope(ctx context.Context, orgID string, pats []AggregatedPAT) error {
 	// Collect users that have all-projects scopes
 	type allProjectsRef struct {
