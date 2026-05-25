@@ -156,7 +156,7 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
     <ViewContainer>
       <ViewHeader
         title="Personal access token"
-        description={`Create a personal access token to enable secure access to ${t.appName()} resources via PAT token`}
+        description={`Manage personal access tokens to securely access ${t.appName()} resources and APIs.`}
       />
 
       {isInitialLoading ? (
@@ -181,7 +181,7 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
             />
           }
           heading="No Personal Access Token Found"
-          subHeading={`Create a new to use the Keys of ${t.appName()} platform`}
+          subHeading={`Create a personal access token to securely access ${t.appName()} resources and APIs.`}
           primaryAction={
             <Button
               variant="solid"

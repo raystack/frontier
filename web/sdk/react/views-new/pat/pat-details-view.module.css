@@ -11,7 +11,7 @@
 .detailRow {
   display: flex;
   gap: var(--rs-space-3);
-  align-items: flex-start;
+  align-items: baseline;
 }
 
 .menuContent {

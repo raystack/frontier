@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback, MouseEvent } from 'react';
+import { useMemo, useCallback } from 'react';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Breadcrumb,
@@ -132,11 +132,7 @@ export function ServiceAccountDetailsView({
         breadcrumb={
           <Breadcrumb size="small">
             <Breadcrumb.Item
-              href="#"
-              onClick={(e: MouseEvent) => {
-                e.preventDefault();
-                handleNavigateToServiceAccounts();
-              }}
+              onClick={() => handleNavigateToServiceAccounts()}
             >
               {serviceAccountsLabel}
             </Breadcrumb.Item>

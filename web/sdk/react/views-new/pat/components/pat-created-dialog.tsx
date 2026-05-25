@@ -1,6 +1,6 @@
 'use client';
 
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import {
   Button,
   Callout,
@@ -56,8 +56,8 @@ export function PATCreatedDialog({ handle, onClose }: PATCreatedDialogProps) {
                   }
                   data-test-id="frontier-sdk-pat-token-input"
                 />
-                <Callout type="alert" icon={<InfoCircledIcon />} width="100%">
-                  Warning : Make sure you copy the above token now. This token
+                <Callout type="attention" icon={<ExclamationTriangleIcon />} width="100%">
+                  Warning: Make sure you copy the above token now. This token
                   will only be shown once. Store it securely.
                 </Callout>
               </Flex>
