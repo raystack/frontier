@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback, MouseEvent } from 'react';
+import { useMemo, useCallback } from 'react';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   Breadcrumb,
