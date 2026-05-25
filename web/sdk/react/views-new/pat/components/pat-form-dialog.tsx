@@ -516,15 +516,10 @@ export function PATFormDialog({
                               All
                             </Text>
                           </Flex>
-                          <Flex
-                            gap={3}
-                            align="center"
-                            style={isOrgAdmin ? { cursor: 'default' } : undefined}
-                          >
+                          <Flex gap={3} align="center">
                             <Radio
                               value="selective"
                               disabled={isOrgAdmin}
-                              style={isOrgAdmin ? { cursor: 'default' } : undefined}
                             />
                             <Text size="small" variant="secondary">
                               Selective projects
