@@ -39,7 +39,8 @@ export function getColumns({
       enableSorting: false,
       cell: ({ row }) => {
         const pat = row.original;
-        if (!pat.usedAt || isNullTimestamp(pat.usedAt)) return null;
+        if (!pat.usedAt || isNullTimestamp(pat.usedAt))
+          return <Text size="regular">--</Text>;
         const date = timestampToDayjs(pat.usedAt);
         return date ? <Text size="regular">{date.fromNow()}</Text> : null;
       }
