@@ -30,6 +30,8 @@ import Tokens from './tokens';
 import Plans from './plans';
 import APIKeys from './api-keys';
 import ServiceUserPage from './api-keys/service-user';
+import WorkspacePats from './pat';
+import { PatPage } from './pat/pat';
 import { SessionsPage } from './sessions';
 export interface CustomScreen {
   name: string;
@@ -247,6 +249,17 @@ const sessionsRoute = createRoute({
   component: SessionsPage
 });
 
+const patsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/pats',
+  component: WorkspacePats
+});
+
+const patPageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/pats/$patId',
+  component: PatPage
+});
 
 interface getRootTreeOptions {
   customScreens?: CustomScreen[];
@@ -274,6 +287,8 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     tokensRoute,
     apiKeysRoute,
     serviceAccountRoute,
+    patsRoute,
+    patPageRoute,
     ...customScreens.map(cc =>
       createRoute({
         path: cc.path,
