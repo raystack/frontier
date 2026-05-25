@@ -80,11 +80,6 @@ export const getOrganizationNavItems = (
       name: 'API',
       to: '/api-keys',
       show: options?.showAPIKeys
-    },
-    {
-      name: 'Personal Access Tokens',
-      to: '/pats',
-      show: true
     }
   ];
   const customRoutes = getCustomRoutes(options?.customRoutes);
