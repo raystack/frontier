@@ -864,12 +864,13 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectsByUserRequest]) (*connect.Response[frontierv1beta1.ListProjectsByUserResponse], error) {
 	errorLogger := NewErrorLogger()
 	userID := request.Msg.GetId()
-
-	filter := project.Filter{}
-	if userID != "" {
-		filter.Principal = &authenticate.Principal{ID: userID, Type: schema.UserPrincipal}
+	if userID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
-	projList, err := h.projectService.List(ctx, filter)
+
+	projList, err := h.projectService.List(ctx, project.Filter{
+		Principal: &authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectsByUser.List", err,
 			"user_id", userID)

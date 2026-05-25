@@ -463,12 +463,14 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 	orgID := request.Msg.GetOrgId()
-
-	filter := project.Filter{OrgID: orgID}
-	if serviceUserID != "" {
-		filter.Principal = &authenticate.Principal{ID: serviceUserID, Type: schema.ServiceUserPrincipal}
+	if serviceUserID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
-	projList, err := h.projectService.List(ctx, filter)
+
+	projList, err := h.projectService.List(ctx, project.Filter{
+		Principal: &authenticate.Principal{ID: serviceUserID, Type: schema.ServiceUserPrincipal},
+		OrgID:     orgID,
+	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListServiceUserProjects", err,
 			"service_user_id", serviceUserID,

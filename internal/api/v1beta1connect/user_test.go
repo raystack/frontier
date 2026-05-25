@@ -1651,6 +1651,15 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 			want: nil,
 			err:  connect.CodeInternal,
 		},
+		{
+			title: "should return invalid argument when id is empty",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				// projectService.List must NOT be called.
+			},
+			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: ""},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
+		},
 	}
 
 	for _, tt := range tests {

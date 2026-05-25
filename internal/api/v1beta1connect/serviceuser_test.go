@@ -1387,6 +1387,18 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 			errCode: connect.Code(0),
 		},
 		{
+			name: "should return invalid argument when id is empty",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
+				Id: "",
+			}),
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				// projectService.List must NOT be called.
+			},
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
 			name: "should forward org_id to project.Filter when set",
 			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
 				Id:    "1",
