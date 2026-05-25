@@ -297,11 +297,8 @@ export function ProjectDetailsView({
         breadcrumb={
           <Breadcrumb size="small">
             <Breadcrumb.Item
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                onNavigateToProjects?.();
-              }}
+              style={{ cursor: 'pointer' }}
+              onClick={() => onNavigateToProjects?.()}
             >
               {projectsLabel}
             </Breadcrumb.Item>

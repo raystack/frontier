@@ -269,11 +269,8 @@ export function TeamDetailsView({
         breadcrumb={
           <Breadcrumb size="small">
             <Breadcrumb.Item
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                onNavigateToTeams?.();
-              }}
+              style={{ cursor: 'pointer' }}
+              onClick={() => onNavigateToTeams?.()}
             >
               {teamsLabel}
             </Breadcrumb.Item>
