@@ -159,6 +159,10 @@ func (s Service) Get(ctx context.Context, idOrName string) (Organization, error)
 	return orgResp, nil
 }
 
+func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Organization, error) {
+	return s.repository.GetByIDs(ctx, ids)
+}
+
 // GetRaw returns an organization(both enabled and disabled) by id or name
 func (s Service) GetRaw(ctx context.Context, idOrName string) (Organization, error) {
 	if utils.IsValidUUID(idOrName) {
