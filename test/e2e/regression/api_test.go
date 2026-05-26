@@ -747,6 +747,77 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 	})
 }
 
+func (s *APIRegressionTestSuite) TestProjectAPI_StaleRelationRegression() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	s.Run("org owner demoted to viewer no longer sees inherited projects", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "stale relation regression org",
+				Name:  "stale-rel-org",
+			},
+		}))
+		s.Require().NoError(err)
+		orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "stale-rel-proj",
+				Title: "stale relation regression project",
+				OrgId: orgID,
+			},
+		}))
+		s.Require().NoError(err)
+		projectID := createProjResp.Msg.GetProject().GetId()
+
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Title: "stale rel user",
+				Email: "stale-rel-user@raystack.org",
+				Name:  "stale_rel_user",
+			},
+		}))
+		s.Require().NoError(err)
+		userID := createUserResp.Msg.GetUser().GetId()
+
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{{
+				UserId: userID,
+				RoleId: s.orgOwnerRole,
+			}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
+
+		userCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
+		s.Require().NoError(err)
+		ctxUserAuth := testbench.ContextWithAuth(context.Background(), userCookie)
+
+		listAsOwnerResp, err := s.testBench.Client.ListProjectsByCurrentUser(ctxUserAuth, connect.NewRequest(&frontierv1beta1.ListProjectsByCurrentUserRequest{
+			OrgId: orgID,
+		}))
+		s.Require().NoError(err)
+		s.Assert().True(slices.ContainsFunc(listAsOwnerResp.Msg.GetProjects(), func(p *frontierv1beta1.Project) bool {
+			return p.GetId() == projectID
+		}), "org owner should see inherited project before demotion")
+
+		_, err = s.testBench.Client.SetOrganizationMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+			OrgId:  orgID,
+			UserId: userID,
+			RoleId: s.orgViewerRole,
+		}))
+		s.Require().NoError(err)
+
+		listAsViewerResp, err := s.testBench.Client.ListProjectsByCurrentUser(ctxUserAuth, connect.NewRequest(&frontierv1beta1.ListProjectsByCurrentUserRequest{
+			OrgId: orgID,
+		}))
+		s.Require().NoError(err)
+		s.Assert().False(slices.ContainsFunc(listAsViewerResp.Msg.GetProjects(), func(p *frontierv1beta1.Project) bool {
+			return p.GetId() == projectID
+		}), "demoted viewer must not inherit project visibility")
+	})
+}
+
 func (s *APIRegressionTestSuite) TestGroupAPI() {
 	var newGroup *frontierv1beta1.Group
 	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)

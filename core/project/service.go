@@ -24,7 +24,6 @@ import (
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
-	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -56,19 +55,22 @@ type AuthnService interface {
 
 type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
-	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
-	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
+}
+
+type MembershipService interface {
+	ListProjectsByPrincipal(ctx context.Context, principal authenticate.Principal, orgID string, nonInherited bool) ([]string, error)
 }
 
 type Service struct {
-	repository      Repository
-	relationService RelationService
-	userService     UserService
-	suserService    ServiceuserService
-	policyService   PolicyService
-	authnService    AuthnService
-	groupService    GroupService
-	roleService     RoleService
+	repository        Repository
+	relationService   RelationService
+	userService       UserService
+	suserService      ServiceuserService
+	policyService     PolicyService
+	authnService      AuthnService
+	groupService      GroupService
+	roleService       RoleService
+	membershipService MembershipService
 }
 
 func NewService(repository Repository, relationService RelationService, userService UserService,
@@ -84,6 +86,12 @@ func NewService(repository Repository, relationService RelationService, userServ
 		groupService:    groupService,
 		roleService:     roleService,
 	}
+}
+
+// SetMembershipService sets the membership dependency after construction to
+// break the circular init order between project and membership services.
+func (s *Service) SetMembershipService(ms MembershipService) {
+	s.membershipService = ms
 }
 
 func (s Service) Get(ctx context.Context, idOrName string) (Project, error) {
@@ -124,6 +132,26 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 }
 
 func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
+	if f.Principal != nil {
+		if f.Principal.ID == "" || f.Principal.Type == "" {
+			return nil, fmt.Errorf("project: invalid principal filter")
+		}
+		if s.membershipService == nil {
+			return nil, fmt.Errorf("project: membership service not wired")
+		}
+		ids, err := s.membershipService.ListProjectsByPrincipal(ctx, *f.Principal, f.OrgID, f.NonInherited)
+		if err != nil {
+			return nil, err
+		}
+		if len(f.ProjectIDs) > 0 {
+			ids = utils.Intersection(ids, f.ProjectIDs)
+		}
+		if len(ids) == 0 {
+			return []Project{}, nil
+		}
+		f.ProjectIDs = ids
+	}
+
 	projects, err := s.repository.List(ctx, f)
 	if err != nil {
 		return nil, err
@@ -148,95 +176,6 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 	}
 
 	return projects, nil
-}
-
-func (s Service) ListByUser(ctx context.Context, principal authenticate.Principal,
-	flt Filter) ([]Project, error) {
-	subjectID, subjectType := principal.ResolveSubject()
-
-	var projIDs []string
-	var err error
-	if flt.NonInherited {
-		// direct added users
-		projIDs, err = s.listNonInheritedProjectIDs(ctx, subjectID, subjectType)
-	} else {
-		projIDs, err = s.relationService.LookupResources(ctx, relation.Relation{
-			Object:       relation.Object{Namespace: schema.ProjectNamespace},
-			Subject:      relation.Subject{Namespace: subjectType, ID: subjectID},
-			RelationName: MemberPermission,
-		})
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	projIDs = utils.Deduplicate(projIDs)
-	projIDs, err = s.intersectPATScope(ctx, principal, schema.ProjectNamespace, projIDs)
-	if err != nil {
-		return nil, err
-	}
-	if len(projIDs) == 0 {
-		return []Project{}, nil
-	}
-
-	flt.ProjectIDs = projIDs
-	return s.List(ctx, flt)
-}
-
-// listNonInheritedProjectIDs returns project IDs where the principal has direct
-// role assignments (not inherited through org), including via group memberships.
-func (s Service) listNonInheritedProjectIDs(ctx context.Context, principalID, principalType string) ([]string, error) {
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		PrincipalType: principalType,
-		PrincipalID:   principalID,
-		ResourceType:  schema.ProjectNamespace,
-	})
-	if err != nil {
-		return nil, err
-	}
-	var projIDs []string
-	for _, pol := range policies {
-		projIDs = append(projIDs, pol.ResourceID)
-	}
-
-	// projects added via group memberships
-	principal := authenticate.Principal{ID: principalID, Type: principalType}
-	groups, err := s.groupService.List(ctx, group.Filter{Principal: &principal})
-	if err != nil {
-		return nil, err
-	}
-	groupIDs := utils.Map(groups, func(g group.Group) string { return g.ID })
-	if len(groupIDs) > 0 {
-		policies, err = s.policyService.List(ctx, policy.Filter{
-			PrincipalType: schema.GroupPrincipal,
-			PrincipalIDs:  groupIDs,
-			ResourceType:  schema.ProjectNamespace,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, pol := range policies {
-			projIDs = append(projIDs, pol.ResourceID)
-		}
-	}
-	return projIDs, nil
-}
-
-// intersectPATScope narrows resource IDs to only those the PAT is scoped to.
-func (s Service) intersectPATScope(ctx context.Context, principal authenticate.Principal,
-	namespace string, resourceIDs []string) ([]string, error) {
-	if principal.PAT == nil || len(resourceIDs) == 0 {
-		return resourceIDs, nil
-	}
-	patIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
-		Object:       relation.Object{Namespace: namespace},
-		Subject:      relation.Subject{ID: principal.PAT.ID, Namespace: schema.PATPrincipal},
-		RelationName: schema.GetPermission,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return utils.Intersection(resourceIDs, patIDs), nil
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {

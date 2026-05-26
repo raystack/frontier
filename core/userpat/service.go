@@ -50,7 +50,7 @@ type PolicyService interface {
 }
 
 type ProjectService interface {
-	ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error)
+	List(ctx context.Context, flt project.Filter) ([]project.Project, error)
 }
 
 type AuditRecordRepository interface {
@@ -503,7 +503,7 @@ func (s *Service) validateProjectAccess(ctx context.Context, userID, orgID strin
 		ID:   userID,
 		Type: schema.UserPrincipal,
 	}
-	userProjects, err := s.projectService.ListByUser(ctx, principal, project.Filter{OrgID: orgID})
+	userProjects, err := s.projectService.List(ctx, project.Filter{Principal: &principal, OrgID: orgID})
 	if err != nil {
 		return fmt.Errorf("listing user projects: %w", err)
 	}

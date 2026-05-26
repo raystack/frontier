@@ -17,7 +17,7 @@ type Repository interface {
 }
 
 type ProjectService interface {
-	ListByUser(ctx context.Context, principal authenticate.Principal, flt project.Filter) ([]project.Project, error)
+	List(ctx context.Context, flt project.Filter) ([]project.Project, error)
 }
 
 type Service struct {
@@ -80,8 +80,9 @@ func (s *Service) Search(ctx context.Context, orgID string, query *rql.Query) (O
 	return result, nil
 }
 
-// resolveAllProjectsScope populates ResourceIDs for all-projects scopes by calling SpiceDB.
-// Groups PATs by user_id to minimize SpiceDB calls.
+// resolveAllProjectsScope populates ResourceIDs for all-projects scopes by
+// listing projects the underlying user can see via membership. Groups PATs by
+// user_id to minimize project-service calls.
 func (s *Service) resolveAllProjectsScope(ctx context.Context, orgID string, pats []AggregatedPAT) error {
 	// Collect users that have all-projects scopes
 	type allProjectsRef struct {
@@ -108,7 +109,7 @@ func (s *Service) resolveAllProjectsScope(ctx context.Context, orgID string, pat
 			ID:   userID,
 			Type: schema.UserPrincipal,
 		}
-		projects, err := s.projectService.ListByUser(ctx, principal, project.Filter{OrgID: orgID})
+		projects, err := s.projectService.List(ctx, project.Filter{Principal: &principal, OrgID: orgID})
 		if err != nil {
 			return err
 		}

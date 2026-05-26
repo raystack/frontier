@@ -1338,7 +1338,7 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 				Id: "1",
 			}),
 			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
-				projSvc.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}, project.Filter{}).Return(nil, errors.New("test error"))
+				projSvc.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}}).Return(nil, errors.New("test error"))
 			},
 			want:    nil,
 			wantErr: ErrInternalServerError,
@@ -1354,7 +1354,7 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 				for _, projectID := range testProjectIDList {
 					projects = append(projects, testProjectMap[projectID])
 				}
-				projSvc.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}, project.Filter{}).Return(projects, nil)
+				projSvc.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}}).Return(projects, nil)
 			},
 			want: connect.NewResponse(&frontierv1beta1.ListServiceUserProjectsResponse{
 				Projects: []*frontierv1beta1.Project{{
@@ -1387,6 +1387,34 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 			errCode: connect.Code(0),
 		},
 		{
+			name: "should return invalid argument when id is empty",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
+				Id: "",
+			}),
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				// projectService.List must NOT be called.
+			},
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should forward org_id to project.Filter when set",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
+				Id:    "1",
+				OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+			}),
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				projSvc.EXPECT().List(mock.Anything, project.Filter{
+					Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal},
+					OrgID:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+				}).Return([]project.Project{}, nil)
+			},
+			want:    connect.NewResponse(&frontierv1beta1.ListServiceUserProjectsResponse{}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
 			name: "should return project list with access pairs if withPermission is passed",
 			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
 				Id:              "1",
@@ -1399,7 +1427,7 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 				}
 
 				ctx := mock.Anything
-				projSvc.EXPECT().ListByUser(ctx, authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}, project.Filter{}).Return(projects, nil)
+				projSvc.EXPECT().List(ctx, project.Filter{Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}}).Return(projects, nil)
 
 				permSvc.EXPECT().Get(ctx, "app/project:get").Return(
 					permission.Permission{

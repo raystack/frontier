@@ -1569,7 +1569,7 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 		{
 			title: "should list user projects successfully",
 			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
-				ps.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "user-1", Type: schema.UserPrincipal}, project.Filter{}).Return([]project.Project{
+				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "user-1", Type: schema.UserPrincipal}}).Return([]project.Project{
 					{
 						ID:    "project-1",
 						Name:  "test-project-1",
@@ -1616,7 +1616,7 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 		{
 			title: "should return empty list when user has no projects",
 			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
-				ps.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "user-1", Type: schema.UserPrincipal}, project.Filter{}).Return([]project.Project{}, nil)
+				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "user-1", Type: schema.UserPrincipal}}).Return([]project.Project{}, nil)
 			},
 			req: &frontierv1beta1.ListProjectsByUserRequest{Id: "user-1"},
 			want: &frontierv1beta1.ListProjectsByUserResponse{
@@ -1627,7 +1627,7 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 		{
 			title: "should return not found error when user does not exist",
 			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
-				ps.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "non-existent-user", Type: schema.UserPrincipal}, project.Filter{}).Return(nil, user.ErrNotExist)
+				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "non-existent-user", Type: schema.UserPrincipal}}).Return(nil, user.ErrNotExist)
 			},
 			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "non-existent-user"},
 			want: nil,
@@ -1636,7 +1636,7 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 		{
 			title: "should return bad request error for invalid user ID",
 			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
-				ps.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "invalid-id", Type: schema.UserPrincipal}, project.Filter{}).Return(nil, user.ErrInvalidUUID)
+				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "invalid-id", Type: schema.UserPrincipal}}).Return(nil, user.ErrInvalidUUID)
 			},
 			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "invalid-id"},
 			want: nil,
@@ -1645,11 +1645,20 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 		{
 			title: "should return internal error for project service failure",
 			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
-				ps.EXPECT().ListByUser(mock.Anything, authenticate.Principal{ID: "user-1", Type: schema.UserPrincipal}, project.Filter{}).Return(nil, errors.New("database error"))
+				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "user-1", Type: schema.UserPrincipal}}).Return(nil, errors.New("database error"))
 			},
 			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "user-1"},
 			want: nil,
 			err:  connect.CodeInternal,
+		},
+		{
+			title: "should return invalid argument when id is empty",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				// projectService.List must NOT be called.
+			},
+			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: ""},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
 		},
 	}
 
@@ -1712,7 +1721,10 @@ func TestConnectHandler_ListProjectsByCurrentUser(t *testing.T) {
 				}
 				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
 
-				ps.EXPECT().ListByUser(mock.Anything, mockPrincipal, mock.MatchedBy(func(filter project.Filter) bool {
+				ps.EXPECT().List(mock.Anything, mock.MatchedBy(func(filter project.Filter) bool {
+					if filter.Principal == nil || *filter.Principal != mockPrincipal {
+						return false
+					}
 					return filter.OrgID == ""
 				})).Return([]project.Project{
 					{
@@ -1769,7 +1781,10 @@ func TestConnectHandler_ListProjectsByCurrentUser(t *testing.T) {
 				}
 				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
 
-				ps.EXPECT().ListByUser(mock.Anything, mockPrincipal, mock.MatchedBy(func(filter project.Filter) bool {
+				ps.EXPECT().List(mock.Anything, mock.MatchedBy(func(filter project.Filter) bool {
+					if filter.Principal == nil || *filter.Principal != mockPrincipal {
+						return false
+					}
 					return filter.OrgID == "org-1"
 				})).Return([]project.Project{
 					{
@@ -1809,7 +1824,10 @@ func TestConnectHandler_ListProjectsByCurrentUser(t *testing.T) {
 				}
 				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
 
-				ps.EXPECT().ListByUser(mock.Anything, mockPrincipal, mock.MatchedBy(func(filter project.Filter) bool {
+				ps.EXPECT().List(mock.Anything, mock.MatchedBy(func(filter project.Filter) bool {
+					if filter.Principal == nil || *filter.Principal != mockPrincipal {
+						return false
+					}
 					return filter.OrgID == ""
 				})).Return([]project.Project{}, nil)
 			},
@@ -1839,7 +1857,10 @@ func TestConnectHandler_ListProjectsByCurrentUser(t *testing.T) {
 				}
 				as.EXPECT().GetPrincipal(mock.Anything).Return(mockPrincipal, nil)
 
-				ps.EXPECT().ListByUser(mock.Anything, mockPrincipal, mock.MatchedBy(func(filter project.Filter) bool {
+				ps.EXPECT().List(mock.Anything, mock.MatchedBy(func(filter project.Filter) bool {
+					if filter.Principal == nil || *filter.Principal != mockPrincipal {
+						return false
+					}
 					return filter.OrgID == ""
 				})).Return(nil, errors.New("database error"))
 			},

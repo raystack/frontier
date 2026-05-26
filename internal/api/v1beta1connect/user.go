@@ -864,12 +864,15 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectsByUserRequest]) (*connect.Response[frontierv1beta1.ListProjectsByUserResponse], error) {
 	errorLogger := NewErrorLogger()
 	userID := request.Msg.GetId()
+	if userID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
 
-	projList, err := h.projectService.ListByUser(ctx, authenticate.Principal{
-		ID: userID, Type: schema.UserPrincipal,
-	}, project.Filter{})
+	projList, err := h.projectService.List(ctx, project.Filter{
+		Principal: &authenticate.Principal{ID: userID, Type: schema.UserPrincipal},
+	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectsByUser.ListByUser", err,
+		errorLogger.LogServiceError(ctx, request, "ListProjectsByUser.List", err,
 			"user_id", userID)
 
 		switch {
@@ -908,7 +911,8 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 	}
 
 	paginate := pagination.NewPagination(request.Msg.GetPageNum(), request.Msg.GetPageSize())
-	projList, err := h.projectService.ListByUser(ctx, principal, project.Filter{
+	projList, err := h.projectService.List(ctx, project.Filter{
+		Principal:       &principal,
 		OrgID:           request.Msg.GetOrgId(),
 		NonInherited:    request.Msg.GetNonInherited(),
 		WithMemberCount: request.Msg.GetWithMemberCount(),
