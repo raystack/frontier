@@ -269,6 +269,7 @@ export function TeamDetailsView({
         breadcrumb={
           <Breadcrumb size="small">
             <Breadcrumb.Item
+              style={{ cursor: 'pointer' }}
               onClick={() => onNavigateToTeams?.()}
             >
               {teamsLabel}
