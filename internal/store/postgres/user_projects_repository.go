@@ -128,9 +128,6 @@ func (r UserProjectsRepository) prepareDataQuery(userID string, orgID string, rq
 }
 
 func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goqu.SelectDataset {
-	// TODO(fix): Direct user→project policies only — no org→project inheritance and no
-	// group expansion. Diverges from project.Service.List(Filter{Principal})
-	// which applies both paths.
 	subquery := dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_SUB_PROJECT)).
 		Select(goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ID)).
 		Join(

@@ -167,7 +167,6 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 		})
 	}
 	if len(flt.ProjectIDs) > 0 {
-		// TODO(fix): cap IDs (~5000) to stay under Postgres' parameter limit.
 		stmt = stmt.Where(goqu.Ex{
 			"id": goqu.Op{"in": flt.ProjectIDs},
 		})
