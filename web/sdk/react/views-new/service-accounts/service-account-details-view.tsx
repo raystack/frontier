@@ -132,6 +132,7 @@ export function ServiceAccountDetailsView({
         breadcrumb={
           <Breadcrumb size="small">
             <Breadcrumb.Item
+              style={{ cursor: 'pointer' }}
               onClick={() => handleNavigateToServiceAccounts()}
             >
               {serviceAccountsLabel}
