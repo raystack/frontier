@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
+import { ConnectError } from "@connectrpc/connect";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { AdminServiceQueries, CreatePreferencesRequestSchema, ListPreferencesResponse } from "@raystack/proton/frontier";
 import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
@@ -186,7 +187,11 @@ export default function PreferenceDetails({
       toastManager.add({ title: "preference updated", type: "success" });
     } catch (err) {
       console.error("ConnectRPC Error:", err);
-      toastManager.add({ title: "something went wrong", type: "error" });
+      toastManager.add({
+        title: "something went wrong",
+        description: err instanceof ConnectError ? err.rawMessage : undefined,
+        type: "error",
+      });
     }
   }, [name, value, createPreferences]);
 

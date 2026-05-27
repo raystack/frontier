@@ -5,6 +5,7 @@ import {
   type SearchProjectUsersResponse_ProjectUser,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
+import { ConnectError } from "@connectrpc/connect";
 import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
@@ -49,7 +50,11 @@ export const RemoveMember = ({
 
       toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}`, type: "error" });
+      toastManager.add({
+        title: `Failed to remove ${t.member({ case: "lower" })}`,
+        description: error instanceof ConnectError ? error.rawMessage : undefined,
+        type: "error",
+      });
       console.error(error);
     } finally {
       setIsSubmitting(false);

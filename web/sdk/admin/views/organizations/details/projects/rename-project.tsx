@@ -9,6 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import React from "react";
+import { ConnectError } from "@connectrpc/connect";
 import { useMutation } from "@connectrpc/connect-query";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
@@ -72,7 +73,11 @@ export function RenameProjectDialog({
         });
       }
     } catch (error) {
-      toastManager.add({ title: `Failed to rename ${t.project({ case: "lower" })}`, type: "error" });
+      toastManager.add({
+        title: `Failed to rename ${t.project({ case: "lower" })}`,
+        description: error instanceof ConnectError ? error.rawMessage : undefined,
+        type: "error",
+      });
       console.error(error);
     }
   };

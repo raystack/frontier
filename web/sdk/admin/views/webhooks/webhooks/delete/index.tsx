@@ -1,4 +1,5 @@
 import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { ConnectError } from "@connectrpc/connect";
 import type { useMutation } from "@connectrpc/connect-query";
 
 interface DeleteWebhookDialogProps {
@@ -23,7 +24,11 @@ export function DeleteWebhookDialog({
       onOpenChange(false);
     } catch (err) {
       console.error("Failed to delete webhook:", err);
-      toastManager.add({ title: "Failed to delete webhook", type: "error" });
+      toastManager.add({
+        title: "Failed to delete webhook",
+        description: err instanceof ConnectError ? err.rawMessage : undefined,
+        type: "error",
+      });
     }
   };
 

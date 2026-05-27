@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "../../../../components/CustomField";
 import events from "../../../../utils/webhook-events";
+import { ConnectError } from "@connectrpc/connect";
 import { useMutation } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
@@ -69,7 +70,11 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
       }
     } catch (err) {
       console.error("Failed to create webhook:", err);
-      toastManager.add({ title: "Something went wrong", type: "error" });
+      toastManager.add({
+        title: "Something went wrong",
+        description: err instanceof ConnectError ? err.rawMessage : undefined,
+        type: "error",
+      });
     }
   };
 
