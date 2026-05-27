@@ -235,7 +235,6 @@ export function PATDetailsView({
         breadcrumb={
           <Breadcrumb size="small">
             <Breadcrumb.Item
-              style={{ cursor: 'pointer' }}
               onClick={() => onNavigateToPats?.()}
             >
               Personal access token
