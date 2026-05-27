@@ -112,6 +112,9 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 }
 
 func (s Service) Get(ctx context.Context, id string) (ServiceUser, error) {
+	if !utils.IsValidUUID(id) {
+		return ServiceUser{}, ErrInvalidID
+	}
 	return s.repo.GetByID(ctx, id)
 }
 

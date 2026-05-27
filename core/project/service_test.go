@@ -288,14 +288,15 @@ func TestService_List(t *testing.T) {
 
 func TestService_List_WithPrincipal(t *testing.T) {
 	ctx := context.Background()
-	userPrincipal := authenticate.Principal{ID: "user-id", Type: schema.UserPrincipal}
+	userPrincipal := authenticate.Principal{ID: "68f86fec-eb87-49f0-9be0-8d99b00a4a9c", Type: schema.UserPrincipal}
 
 	tests := []struct {
-		name    string
-		setup   func(*testing.T) *project.Service
-		filter  project.Filter
-		want    []project.Project
-		wantErr bool
+		name      string
+		setup     func(*testing.T) *project.Service
+		filter    project.Filter
+		want      []project.Project
+		wantErr   bool
+		wantErrIs error
 	}{
 		{
 			name:   "errors when membership service is not wired",
@@ -309,24 +310,37 @@ func TestService_List_WithPrincipal(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:   "errors when Principal has empty ID",
+			name:   "returns ErrInvalidUUID when Principal has empty ID",
 			filter: project.Filter{Principal: &authenticate.Principal{Type: schema.UserPrincipal}},
 			setup: func(t *testing.T) *project.Service {
 				t.Helper()
 				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
 				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
-			wantErr: true,
+			wantErr:   true,
+			wantErrIs: project.ErrInvalidUUID,
 		},
 		{
-			name:   "errors when Principal has empty Type",
-			filter: project.Filter{Principal: &authenticate.Principal{ID: "user-id"}},
+			name:   "returns ErrInvalidUUID when Principal ID is not a valid UUID",
+			filter: project.Filter{Principal: &authenticate.Principal{ID: "not-a-uuid", Type: schema.UserPrincipal}},
 			setup: func(t *testing.T) *project.Service {
 				t.Helper()
 				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
 				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
 			},
-			wantErr: true,
+			wantErr:   true,
+			wantErrIs: project.ErrInvalidUUID,
+		},
+		{
+			name:   "returns ErrInvalidPrincipalType when Principal has empty Type",
+			filter: project.Filter{Principal: &authenticate.Principal{ID: "68f86fec-eb87-49f0-9be0-8d99b00a4a9c"}},
+			setup: func(t *testing.T) *project.Service {
+				t.Helper()
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+			},
+			wantErr:   true,
+			wantErrIs: project.ErrInvalidPrincipalType,
 		},
 		{
 			name:   "returns projects from the membership shim",
@@ -461,6 +475,9 @@ func TestService_List_WithPrincipal(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+				t.Errorf("List() error = %v, want errors.Is(%v)", err, tt.wantErrIs)
 			}
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf("List() mismatch (-want +got):\n%s", diff)

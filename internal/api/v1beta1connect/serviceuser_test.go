@@ -1296,6 +1296,56 @@ func TestHandler_DeleteServiceUserToken(t *testing.T) {
 	}
 }
 
+func TestHandler_GetServiceUser(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(*mocks.ServiceUserService)
+		request *connect.Request[frontierv1beta1.GetServiceUserRequest]
+		errCode connect.Code
+		wantErr error
+	}{
+		{
+			name: "maps ErrInvalidID to InvalidArgument",
+			setup: func(svc *mocks.ServiceUserService) {
+				svc.EXPECT().Get(mock.Anything, "not-a-uuid").Return(serviceuser.ServiceUser{}, serviceuser.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetServiceUserRequest{Id: "not-a-uuid"}),
+			errCode: connect.CodeInvalidArgument,
+			wantErr: ErrBadRequest,
+		},
+		{
+			name: "maps ErrNotExist to NotFound",
+			setup: func(svc *mocks.ServiceUserService) {
+				svc.EXPECT().Get(mock.Anything, testServiceUserID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetServiceUserRequest{Id: testServiceUserID}),
+			errCode: connect.CodeNotFound,
+			wantErr: ErrServiceUserNotFound,
+		},
+		{
+			name: "maps unexpected error to Internal",
+			setup: func(svc *mocks.ServiceUserService) {
+				svc.EXPECT().Get(mock.Anything, testServiceUserID).Return(serviceuser.ServiceUser{}, errors.New("boom"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.GetServiceUserRequest{Id: testServiceUserID}),
+			errCode: connect.CodeInternal,
+			wantErr: ErrInternalServerError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := &mocks.ServiceUserService{}
+			tt.setup(svc)
+			h := &ConnectHandler{serviceUserService: svc}
+			resp, err := h.GetServiceUser(context.Background(), tt.request)
+			assert.Nil(t, resp)
+			assert.Error(t, err)
+			assert.Equal(t, tt.errCode, connect.CodeOf(err))
+			assert.Contains(t, err.Error(), tt.wantErr.Error())
+		})
+	}
+}
+
 func TestHandler_ListServiceUserProjects(t *testing.T) {
 	testProjectMap := map[string]project.Project{
 		"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
@@ -1393,6 +1443,20 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 			}),
 			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
 				// projectService.List must NOT be called.
+			},
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
+			name: "should return invalid argument when project service returns ErrInvalidUUID",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
+				Id: "not-a-uuid",
+			}),
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				projSvc.EXPECT().List(mock.Anything, project.Filter{
+					Principal: &authenticate.Principal{ID: "not-a-uuid", Type: schema.ServiceUserPrincipal},
+				}).Return(nil, project.ErrInvalidUUID)
 			},
 			want:    nil,
 			wantErr: ErrBadRequest,
@@ -1512,6 +1576,110 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 						ProjectId:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
 						Permissions: []string{"get"},
 					},
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
+			name: "emits one access pair per project when multiple permissions succeed",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
+				Id:              "1",
+				WithPermissions: []string{"update", "delete"},
+			}),
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				var projects []project.Project
+				for _, projectID := range testProjectIDList {
+					projects = append(projects, testProjectMap[projectID])
+				}
+				projSvc.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}}).Return(projects, nil)
+
+				permSvc.EXPECT().Get(mock.Anything, "app/project:update").Return(
+					permission.Permission{Name: "update", NamespaceID: "app/project"}, nil)
+				permSvc.EXPECT().Get(mock.Anything, "app/project:delete").Return(
+					permission.Permission{Name: "delete", NamespaceID: "app/project"}, nil)
+
+				resourceSvc.EXPECT().BatchCheck(mock.Anything, []resource.Check{
+					{Object: relation.Object{ID: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Namespace: "app/project"}, Permission: "update"},
+					{Object: relation.Object{ID: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Namespace: "app/project"}, Permission: "delete"},
+					{Object: relation.Object{ID: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Namespace: "app/project"}, Permission: "update"},
+					{Object: relation.Object{ID: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Namespace: "app/project"}, Permission: "delete"},
+				}).Return([]relation.CheckPair{
+					{Relation: relation.Relation{Object: relation.Object{ID: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Namespace: "app/project"}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Namespace: "app/project"}, RelationName: "delete"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Namespace: "app/project"}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Namespace: "app/project"}, RelationName: "delete"}, Status: true},
+				}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.ListServiceUserProjectsResponse{
+				Projects: []*frontierv1beta1.Project{{
+					Id:        "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+					Name:      "prj-1",
+					Metadata:  &structpb.Struct{Fields: map[string]*structpb.Value{"email": structpb.NewStringValue("org1@org1.com")}},
+					OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				}, {
+					Id:        "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+					Name:      "prj-2",
+					Metadata:  &structpb.Struct{Fields: map[string]*structpb.Value{"email": structpb.NewStringValue("org1@org2.com")}},
+					OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				}},
+				AccessPairs: []*frontierv1beta1.ListServiceUserProjectsResponse_AccessPair{
+					{ProjectId: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Permissions: []string{"update", "delete"}},
+					{ProjectId: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Permissions: []string{"update", "delete"}},
+				},
+			}),
+			wantErr: nil,
+			errCode: connect.Code(0),
+		},
+		{
+			name: "drops unknown permissions from withPermissions",
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserProjectsRequest{
+				Id:              "1",
+				WithPermissions: []string{"get", "bogus"},
+			}),
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				var projects []project.Project
+				for _, projectID := range testProjectIDList {
+					projects = append(projects, testProjectMap[projectID])
+				}
+				projSvc.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}}).Return(projects, nil)
+
+				permSvc.EXPECT().Get(mock.Anything, "app/project:get").Return(
+					permission.Permission{Name: "get", NamespaceID: "app/project"}, nil)
+				permSvc.EXPECT().Get(mock.Anything, "app/project:bogus").Return(
+					permission.Permission{}, permission.ErrNotExist)
+
+				resourceSvc.EXPECT().BatchCheck(mock.Anything, []resource.Check{
+					{Object: relation.Object{ID: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Namespace: "app/project"}, Permission: "get"},
+					{Object: relation.Object{ID: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Namespace: "app/project"}, Permission: "get"},
+				}).Return([]relation.CheckPair{
+					{Relation: relation.Relation{Object: relation.Object{ID: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Namespace: "app/project"}, RelationName: "get"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Namespace: "app/project"}, RelationName: "get"}, Status: true},
+				}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.ListServiceUserProjectsResponse{
+				Projects: []*frontierv1beta1.Project{{
+					Id:        "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+					Name:      "prj-1",
+					Metadata:  &structpb.Struct{Fields: map[string]*structpb.Value{"email": structpb.NewStringValue("org1@org1.com")}},
+					OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				}, {
+					Id:        "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+					Name:      "prj-2",
+					Metadata:  &structpb.Struct{Fields: map[string]*structpb.Value{"email": structpb.NewStringValue("org1@org2.com")}},
+					OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				}},
+				AccessPairs: []*frontierv1beta1.ListServiceUserProjectsResponse_AccessPair{
+					{ProjectId: "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", Permissions: []string{"get"}},
+					{ProjectId: "c7772c63-fca4-4c7c-bf93-c8f85115de4b", Permissions: []string{"get"}},
 				},
 			}),
 			wantErr: nil,
