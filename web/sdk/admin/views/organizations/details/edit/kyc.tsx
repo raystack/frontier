@@ -86,7 +86,7 @@ export function EditKYCPanel({ open = false, onClose }: EditKYCPanelProps) {
       onClose();
     },
     onError: (error) => {
-      toastManager.add({ title: `Failed to update KYC details: ${error.message}`, type: "error" });
+      toastManager.add({ title: "Failed to update KYC details", description: error.rawMessage, type: "error" });
       console.error("Unable to update KYC details:", error);
     },
   });

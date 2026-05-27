@@ -98,11 +98,11 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
       handleConnectError(error, {
         AlreadyExists: () => toastManager.add({ title: 'Invitation already exists', type: "error" }),
         InvalidArgument: err =>
-          toastManager.add({ title: 'Invalid input', description: err.message, type: "error" }),
+          toastManager.add({ title: 'Invalid input', description: err.rawMessage, type: "error" }),
         PermissionDenied: () =>
           toastManager.add({ title: "You don't have permission to perform this action", type: "error" }),
         Default: err =>
-          toastManager.add({ title: 'Something went wrong', description: err.message, type: "error" })
+          toastManager.add({ title: 'Something went wrong', description: err.rawMessage, type: "error" })
       });
     }
   };

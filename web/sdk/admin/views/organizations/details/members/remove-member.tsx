@@ -42,11 +42,11 @@ export const RemoveMember = ({
       }
       toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      const message =
-        error instanceof ConnectError
-          ? error.message
-          : "Unknown error";
-      toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}: ${message}`, type: "error" });
+      toastManager.add({
+        title: `Failed to remove ${t.member({ case: "lower" })}`,
+        description: error instanceof ConnectError ? error.rawMessage : undefined,
+        type: "error",
+      });
       console.error(error);
     }
   }

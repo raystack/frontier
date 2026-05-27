@@ -5,6 +5,7 @@ import {
   Flex,
   Text
 } from '@raystack/apsara-v1';
+import { ConnectError } from '@connectrpc/connect';
 import styles from './sessions.module.css';
 
 interface RevokeSessionFinalConfirmProps {
@@ -27,7 +28,9 @@ export const RevokeSessionFinalConfirm = ({
     } catch (error: any) {
       toastManager.add({
         title: 'Failed to revoke session',
-        description: error.message || 'Something went wrong',
+        description:
+          (error instanceof ConnectError ? error.rawMessage : error?.message) ||
+          'Something went wrong',
         type: "error",
       });
     }
