@@ -222,8 +222,8 @@ importers:
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.71.2(react@19.2.4))
       '@raystack/apsara-v1':
-        specifier: npm:@raystack/apsara@1.0.0-rc.8
-        version: '@raystack/apsara@1.0.0-rc.8(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)'
+        specifier: npm:@raystack/apsara@1.0.0-rc.9
+        version: '@raystack/apsara@1.0.0-rc.9(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)'
       '@raystack/proton':
         specifier: 0.1.0-859ba765e6cfd44736ddcf42664b742fe7fd916e
         version: 0.1.0-859ba765e6cfd44736ddcf42664b742fe7fd916e(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2251,6 +2251,17 @@ packages:
       '@types/react':
         optional: true
 
+  '@raystack/apsara@1.0.0-rc.9':
+    resolution: {integrity: sha512-RucfY0H0eoVmP594gYWltvmqUicqNPpiH2VPL4EWWhXIsj69NuZXu3i2lvUK7pvgGpRJmkzIg6AdiEhwdxj0pQ==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      '@types/react': ^19
+      react: ^19
+      react-dom: ^19
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   '@raystack/proton@0.1.0-859ba765e6cfd44736ddcf42664b742fe7fd916e':
     resolution: {integrity: sha512-82QvGoJjcp5zGt/QIkdSJEn2iX8vn/g2H4jm8O3QH3YIZuZp0bXFXo+ddD5S49tSUtWiegi7qWJargHgBceLPg==}
     peerDependencies:
@@ -3657,6 +3668,10 @@ packages:
     resolution: {integrity: sha512-QTaY0XjjhTQOdguARF0lGKm5/mEq9PD9/VhZZegHDIBq2tQwgNpHc3dneD4mGo2iJs+fTKv5Bp0fZ+BRuY3Z0g==}
     engines: {node: '>= 0.1.90'}
 
+  culori@4.0.2:
+    resolution: {integrity: sha512-1+BhOB8ahCn4O0cep0Sh2l9KCOfOdY+BXJnKMHFFzDEouSr/el18QwXEMRlOj9UY5nCeA8UN3a/82rUWRBeyBw==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
   damerau-levenshtein@1.0.8:
     resolution: {integrity: sha512-sdQSFB7+llfUcQHUQO3+B8ERRj0Oa4w9POWMI/puGtuf7gFywGmkaLCElnudfTiKZV+NvHqL0ifzdrI8Ro7ESA==}
 
@@ -3691,6 +3706,9 @@ packages:
 
   dayjs@1.11.19:
     resolution: {integrity: sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==}
+
+  dayjs@1.11.21:
+    resolution: {integrity: sha512-98IT+HOahAisibz/yjKbzuOBwYcjJ7BCLPzARyHiyEBmRz4fatF+KPJszEHXsGYjUG234aH/cOjW1wwTbKUZlA==}
 
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -9571,6 +9589,28 @@ snapshots:
       - '@date-fns/tz'
       - date-fns
 
+  '@raystack/apsara@1.0.0-rc.9(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@base-ui/react': 1.4.1(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@base-ui/utils': 0.2.8(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-icons': 1.3.2(react@19.2.4)
+      '@tanstack/match-sorter-utils': 8.19.4
+      '@tanstack/react-table': 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tanstack/react-virtual': 3.13.19(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tanstack/table-core': 8.21.3
+      class-variance-authority: 0.7.1
+      culori: 4.0.2
+      dayjs: 1.11.21
+      prism-react-renderer: 2.4.1(react@19.2.4)
+      react: 19.2.4
+      react-day-picker: 9.14.0(react@19.2.4)
+      react-dom: 19.2.4(react@19.2.4)
+    optionalDependencies:
+      '@types/react': 19.2.14
+    transitivePeerDependencies:
+      - '@date-fns/tz'
+      - date-fns
+
   '@raystack/proton@0.1.0-859ba765e6cfd44736ddcf42664b742fe7fd916e(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@bufbuild/protobuf': 2.11.0
@@ -11002,6 +11042,8 @@ snapshots:
       csv-stringify: 5.6.5
       stream-transform: 2.1.3
 
+  culori@4.0.2: {}
+
   damerau-levenshtein@1.0.8: {}
 
   data-uri-to-buffer@4.0.1: {}
@@ -11033,6 +11075,8 @@ snapshots:
   date-fns@4.1.0: {}
 
   dayjs@1.11.19: {}
+
+  dayjs@1.11.21: {}
 
   debug@3.2.7:
     dependencies:

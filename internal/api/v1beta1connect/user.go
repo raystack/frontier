@@ -3,12 +3,11 @@ package v1beta1connect
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/mail"
 	"strings"
 
 	"connectrpc.com/connect"
-
-	"log/slog"
 
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/audit"
@@ -765,29 +764,12 @@ func (h *ConnectHandler) ListOrganizationsByUser(ctx context.Context, request *c
 		}
 	}
 
-	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, userData.Email)
+	joinableOrgs, err := h.joinableOrgsForEmail(
+		ctx, userData.Email, errorLogger, request, "ListOrganizationsByUser",
+		"user_id", userID,
+	)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByUser", err,
-			"user_id", userID,
-			"user_email", userData.Email)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-	}
-
-	var joinableOrgs []*frontierv1beta1.Organization
-	for _, joinableOrg := range joinableOrgIDs {
-		org, err := h.orgService.Get(ctx, joinableOrg)
-		if err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByUser", err,
-				"user_id", userID,
-				"joinable_org_id", joinableOrg)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-		orgPB, err := transformOrgToPB(org)
-		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListOrganizationsByUser", org.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-		joinableOrgs = append(joinableOrgs, orgPB)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationsByUserResponse{
@@ -828,30 +810,13 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 	var joinableOrgs []*frontierv1beta1.Organization
 	// Only regular users can join organizations by domain, service users cannot
 	if principal.Type == schema.UserPrincipal && principal.User != nil {
-		joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
+		joinableOrgs, err = h.joinableOrgsForEmail(
+			ctx, principal.User.Email, errorLogger, request, "ListOrganizationsByCurrentUser",
+			"principal_id", principal.ID,
+			"principal_type", principal.Type,
+		)
 		if err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-				"principal_id", principal.ID,
-				"principal_type", principal.Type,
-				"user_email", principal.User.Email)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-		}
-
-		for _, joinableOrg := range joinableOrgIDs {
-			org, err := h.orgService.Get(ctx, joinableOrg)
-			if err != nil {
-				errorLogger.LogUnexpectedError(ctx, request, "ListOrganizationsByCurrentUser", err,
-					"principal_id", principal.ID,
-					"principal_type", principal.Type,
-					"joinable_org_id", joinableOrg)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-			}
-			orgPB, err := transformOrgToPB(org)
-			if err != nil {
-				errorLogger.LogTransformError(ctx, request, "ListOrganizationsByCurrentUser", org.ID, err)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
-			}
-			joinableOrgs = append(joinableOrgs, orgPB)
 		}
 	}
 
@@ -859,6 +824,44 @@ func (h *ConnectHandler) ListOrganizationsByCurrentUser(ctx context.Context, req
 		Organizations:     orgs,
 		JoinableViaDomain: joinableOrgs,
 	}), nil
+}
+
+// joinableOrgsForEmail returns the organizations a user with this email can join via a verified domain.
+func (h *ConnectHandler) joinableOrgsForEmail(
+	ctx context.Context,
+	email string,
+	errorLogger *ErrorLogger,
+	request connect.AnyRequest,
+	operation string,
+	extraCtx ...any,
+) ([]*frontierv1beta1.Organization, error) {
+	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, email)
+	if err != nil {
+		args := append([]any{"user_email", email}, extraCtx...)
+		errorLogger.LogUnexpectedError(ctx, request, operation, err, args...)
+		return nil, err
+	}
+	if len(joinableOrgIDs) == 0 {
+		return nil, nil
+	}
+
+	orgs, err := h.orgService.GetByIDs(ctx, joinableOrgIDs)
+	if err != nil {
+		args := append([]any{"joinable_org_ids", joinableOrgIDs}, extraCtx...)
+		errorLogger.LogUnexpectedError(ctx, request, operation, err, args...)
+		return nil, err
+	}
+
+	pbOrgs := make([]*frontierv1beta1.Organization, 0, len(orgs))
+	for _, org := range orgs {
+		orgPB, err := transformOrgToPB(org)
+		if err != nil {
+			errorLogger.LogTransformError(ctx, request, operation, org.ID, err)
+			return nil, err
+		}
+		pbOrgs = append(pbOrgs, orgPB)
+	}
+	return pbOrgs, nil
 }
 
 func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectsByUserRequest]) (*connect.Response[frontierv1beta1.ListProjectsByUserResponse], error) {

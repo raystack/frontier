@@ -1244,12 +1244,14 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 
 				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{"org-2"}, nil)
 
-				os.EXPECT().Get(mock.Anything, "org-2").Return(organization.Organization{
-					ID:       "org-2",
-					Name:     "joinable-org",
-					Title:    "Joinable Organization",
-					State:    organization.Enabled,
-					Metadata: metadata.Metadata{},
+				os.EXPECT().GetByIDs(mock.Anything, []string{"org-2"}).Return([]organization.Organization{
+					{
+						ID:       "org-2",
+						Name:     "joinable-org",
+						Title:    "Joinable Organization",
+						State:    organization.Enabled,
+						Metadata: metadata.Metadata{},
+					},
 				}, nil)
 			},
 			req: &frontierv1beta1.ListOrganizationsByUserRequest{
@@ -1295,6 +1297,64 @@ func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 				JoinableViaDomain: []*frontierv1beta1.Organization{},
 			},
 			err: connect.Code(0),
+		},
+		{
+			title: "should batch-fetch multiple joinable orgs in a single call",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
+				os.EXPECT().List(mock.Anything, principalFilter).
+					Return(nil, nil)
+
+				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{
+					ID:    userID,
+					Email: "test@example.com",
+					Name:  "Test User",
+				}, nil)
+
+				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").
+					Return([]string{"org-a", "org-b", "org-c"}, nil)
+
+				os.EXPECT().GetByIDs(mock.Anything, []string{"org-a", "org-b", "org-c"}).
+					Return([]organization.Organization{
+						{ID: "org-a", Name: "alpha", Title: "Alpha", State: organization.Enabled, Metadata: metadata.Metadata{}},
+						{ID: "org-b", Name: "bravo", Title: "Bravo", State: organization.Enabled, Metadata: metadata.Metadata{}},
+						{ID: "org-c", Name: "charlie", Title: "Charlie", State: organization.Enabled, Metadata: metadata.Metadata{}},
+					}, nil)
+			},
+			req: &frontierv1beta1.ListOrganizationsByUserRequest{
+				Id: userID,
+			},
+			want: &frontierv1beta1.ListOrganizationsByUserResponse{
+				Organizations: []*frontierv1beta1.Organization{},
+				JoinableViaDomain: []*frontierv1beta1.Organization{
+					{Id: "org-a", Name: "alpha", Title: "Alpha"},
+					{Id: "org-b", Name: "bravo", Title: "Bravo"},
+					{Id: "org-c", Name: "charlie", Title: "Charlie"},
+				},
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should return internal error when joinable org batch fetch fails",
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.DomainService) {
+				os.EXPECT().List(mock.Anything, principalFilter).
+					Return(nil, nil)
+
+				us.EXPECT().GetByID(mock.Anything, userID).Return(user.User{
+					ID:    userID,
+					Email: "test@example.com",
+				}, nil)
+
+				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").
+					Return([]string{"org-2"}, nil)
+
+				os.EXPECT().GetByIDs(mock.Anything, []string{"org-2"}).
+					Return(nil, errors.New("database error"))
+			},
+			req: &frontierv1beta1.ListOrganizationsByUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeInternal,
 		},
 		{
 			title: "should return not found error for invalid user ID",
@@ -1411,12 +1471,14 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 
 				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").Return([]string{"org-2"}, nil)
 
-				os.EXPECT().Get(mock.Anything, "org-2").Return(organization.Organization{
-					ID:       "org-2",
-					Name:     "joinable-org",
-					Title:    "Joinable Organization",
-					State:    organization.Enabled,
-					Metadata: metadata.Metadata{},
+				os.EXPECT().GetByIDs(mock.Anything, []string{"org-2"}).Return([]organization.Organization{
+					{
+						ID:       "org-2",
+						Name:     "joinable-org",
+						Title:    "Joinable Organization",
+						State:    organization.Enabled,
+						Metadata: metadata.Metadata{},
+					},
 				}, nil)
 			},
 			req: &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
@@ -1482,6 +1544,35 @@ func TestConnectHandler_ListOrganizationsByCurrentUser(t *testing.T) {
 					},
 				},
 				JoinableViaDomain: []*frontierv1beta1.Organization{}, // Empty for service users
+			},
+			err: connect.Code(0),
+		},
+		{
+			title: "should batch-fetch multiple joinable orgs in a single call",
+			setup: func(os *mocks.OrganizationService, as *mocks.AuthnService, ds *mocks.DomainService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(userPrincipal, nil)
+
+				os.EXPECT().List(mock.Anything, organization.Filter{Principal: &userPrincipal}).
+					Return(nil, nil)
+
+				ds.EXPECT().ListJoinableOrgsByDomain(mock.Anything, "test@example.com").
+					Return([]string{"org-a", "org-b", "org-c"}, nil)
+
+				os.EXPECT().GetByIDs(mock.Anything, []string{"org-a", "org-b", "org-c"}).
+					Return([]organization.Organization{
+						{ID: "org-a", Name: "alpha", Title: "Alpha", State: organization.Enabled, Metadata: metadata.Metadata{}},
+						{ID: "org-b", Name: "bravo", Title: "Bravo", State: organization.Enabled, Metadata: metadata.Metadata{}},
+						{ID: "org-c", Name: "charlie", Title: "Charlie", State: organization.Enabled, Metadata: metadata.Metadata{}},
+					}, nil)
+			},
+			req: &frontierv1beta1.ListOrganizationsByCurrentUserRequest{},
+			want: &frontierv1beta1.ListOrganizationsByCurrentUserResponse{
+				Organizations: []*frontierv1beta1.Organization{},
+				JoinableViaDomain: []*frontierv1beta1.Organization{
+					{Id: "org-a", Name: "alpha", Title: "Alpha"},
+					{Id: "org-b", Name: "bravo", Title: "Bravo"},
+					{Id: "org-c", Name: "charlie", Title: "Charlie"},
+				},
 			},
 			err: connect.Code(0),
 		},

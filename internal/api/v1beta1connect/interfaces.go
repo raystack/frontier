@@ -120,6 +120,7 @@ type ProductService interface {
 type OrganizationService interface {
 	Get(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	GetRaw(ctx context.Context, idOrSlug string) (organization.Organization, error)
+	GetByIDs(ctx context.Context, ids []string) ([]organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
 	AdminCreate(ctx context.Context, org organization.Organization, ownerEmail string) (organization.Organization, error)
 	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
