@@ -1,4 +1,5 @@
 import {
+  Button,
   EmptyState,
   Text,
   Flex,
@@ -6,6 +7,7 @@ import {
   DataTableSort
 } from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { FilterIcon } from '@raystack/apsara/icons';
 import type { BillingTransaction } from '~/src';
 import { getColumns } from './columns';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -40,6 +42,18 @@ export function TransactionsTable({
         <Text size="small" weight="medium">
           Token transactions
         </Text>
+        <DataTable.Filters
+          trigger={
+            <Button
+              variant="outline"
+              color="neutral"
+              size="small"
+              leadingIcon={<FilterIcon />}
+            >
+              Filter
+            </Button>
+          }
+        />
         <DataTable.Content
           emptyState={noDataChildren}
           classNames={{ header: tokenStyles.txnTableHeader }}

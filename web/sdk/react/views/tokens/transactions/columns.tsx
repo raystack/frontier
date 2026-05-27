@@ -19,12 +19,17 @@ import dayjs from 'dayjs';
 interface getColumnsOptions {
   dateFormat: string;
 }
-const TxnEventSourceMap = {
+const TxnEventSourceMap: Record<string, string> = {
   'system.starter': 'Starter tokens',
   'system.buy': 'Recharge',
   'system.awarded': 'Complimentary tokens',
-  'system.revert': 'Refund'
+  'system.revert': 'Refund',
+  'system.overdraft': 'Overdraft'
 };
+
+const eventFilterOptions = Object.entries(TxnEventSourceMap).map(
+  ([value, label]) => ({ value, label })
+);
 
 export const getColumns = ({
   dateFormat
@@ -32,6 +37,8 @@ export const getColumns = ({
   {
     header: 'Date',
     accessorKey: 'createdAt',
+    enableColumnFilter: true,
+    filterType: 'date',
     cell: ({ getValue }) => {
       const value = getValue() as TimeStamp;
       const date = isNullTimestamp(value)
@@ -59,6 +66,9 @@ export const getColumns = ({
   {
     header: 'Event',
     accessorKey: 'source',
+    enableColumnFilter: true,
+    filterType: 'multiselect',
+    filterOptions: eventFilterOptions,
     classNames: {
       cell: tokenStyles.txnTableEventColumn
     },
