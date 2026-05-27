@@ -40,7 +40,7 @@ export function getColumns({
       cell: ({ row }) => {
         const pat = row.original;
         if (!pat.usedAt || isNullTimestamp(pat.usedAt))
-          return <Text size="regular">--</Text>;
+          return <Text size="regular">NA</Text>;
         const date = timestampToDayjs(pat.usedAt);
         return date ? <Text size="regular">{date.fromNow()}</Text> : null;
       }
