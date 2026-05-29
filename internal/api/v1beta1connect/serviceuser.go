@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
-	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
@@ -99,7 +98,9 @@ func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Re
 			"service_user_id", serviceUserID)
 
 		switch {
-		case err == serviceuser.ErrNotExist:
+		case errors.Is(err, serviceuser.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, serviceuser.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "GetServiceUser", err,
@@ -475,7 +476,17 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 		errorLogger.LogServiceError(ctx, request, "ListServiceUserProjects", err,
 			"service_user_id", serviceUserID,
 			"org_id", orgID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+
+		switch {
+		case errors.Is(err, project.ErrInvalidUUID),
+			errors.Is(err, project.ErrInvalidPrincipalType):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			errorLogger.LogUnexpectedError(ctx, request, "ListServiceUserProjects", err,
+				"service_user_id", serviceUserID,
+				"org_id", orgID)
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
 	}
 
 	var projects []*frontierv1beta1.Project
@@ -501,20 +512,19 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 				"with_permissions", request.Msg.GetWithPermissions())
 			return nil, err
 		}
-		for _, successCheck := range successCheckPairs {
-			resID := successCheck.Relation.Object.ID
-
-			// find all permission checks on same resource
-			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
-				return pair.Relation.Object.ID == resID
-			})
-			// fetch permissions
-			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
-				return pair.Relation.RelationName
-			})
+		permsByProject := map[string][]string{}
+		projectOrder := make([]string, 0, len(projList))
+		for _, p := range successCheckPairs {
+			resID := p.Relation.Object.ID
+			if _, seen := permsByProject[resID]; !seen {
+				projectOrder = append(projectOrder, resID)
+			}
+			permsByProject[resID] = append(permsByProject[resID], p.Relation.RelationName)
+		}
+		for _, resID := range projectOrder {
 			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListServiceUserProjectsResponse_AccessPair{
 				ProjectId:   resID,
-				Permissions: permissions,
+				Permissions: permsByProject[resID],
 			})
 		}
 	}

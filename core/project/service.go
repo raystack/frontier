@@ -133,8 +133,11 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 
 func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 	if f.Principal != nil {
-		if f.Principal.ID == "" || f.Principal.Type == "" {
-			return nil, fmt.Errorf("project: invalid principal filter")
+		if !utils.IsValidUUID(f.Principal.ID) {
+			return nil, ErrInvalidUUID
+		}
+		if f.Principal.Type == "" {
+			return nil, ErrInvalidPrincipalType
 		}
 		if s.membershipService == nil {
 			return nil, fmt.Errorf("project: membership service not wired")

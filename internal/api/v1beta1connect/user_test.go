@@ -10,7 +10,10 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
@@ -1209,6 +1212,110 @@ func TestConnectHandler_ListCurrentUserGroups(t *testing.T) {
 	}
 }
 
+func TestConnectHandler_ListCurrentUserGroups_AccessPairs(t *testing.T) {
+	const (
+		groupA = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
+		groupB = "c7772c63-fca4-4c7c-bf93-c8f85115de4b"
+	)
+	principal := authenticate.Principal{
+		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
+		Type: schema.UserPrincipal,
+		User: &user.User{ID: "9f256f86-31a3-11ec-8d3d-0242ac130003"},
+	}
+
+	resolvedPermission := func(name string) permission.Permission {
+		return permission.Permission{Name: name, NamespaceID: schema.GroupNamespace}
+	}
+
+	tests := []struct {
+		title           string
+		withPermissions []string
+		setup           func(*mocks.PermissionService, *mocks.ResourceService)
+		wantAccessPairs []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair
+	}{
+		{
+			title:           "emits one access pair per group when multiple permissions succeed",
+			withPermissions: []string{"update", "delete"},
+			setup: func(perm *mocks.PermissionService, res *mocks.ResourceService) {
+				perm.EXPECT().Get(mock.Anything, "app/group:update").Return(resolvedPermission("update"), nil)
+				perm.EXPECT().Get(mock.Anything, "app/group:delete").Return(resolvedPermission("delete"), nil)
+				res.EXPECT().BatchCheck(mock.Anything, []resource.Check{
+					{Object: relation.Object{ID: groupA, Namespace: schema.GroupNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: groupA, Namespace: schema.GroupNamespace}, Permission: "delete"},
+					{Object: relation.Object{ID: groupB, Namespace: schema.GroupNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: groupB, Namespace: schema.GroupNamespace}, Permission: "delete"},
+				}).Return([]relation.CheckPair{
+					{Relation: relation.Relation{Object: relation.Object{ID: groupA, Namespace: schema.GroupNamespace}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: groupA, Namespace: schema.GroupNamespace}, RelationName: "delete"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: groupB, Namespace: schema.GroupNamespace}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: groupB, Namespace: schema.GroupNamespace}, RelationName: "delete"}, Status: true},
+				}, nil)
+			},
+			wantAccessPairs: []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair{
+				{GroupId: groupA, Permissions: []string{"update", "delete"}},
+				{GroupId: groupB, Permissions: []string{"update", "delete"}},
+			},
+		},
+		{
+			title:           "drops unknown permissions and returns access pairs only for the known ones",
+			withPermissions: []string{"update", "bogus"},
+			setup: func(perm *mocks.PermissionService, res *mocks.ResourceService) {
+				perm.EXPECT().Get(mock.Anything, "app/group:update").Return(resolvedPermission("update"), nil)
+				perm.EXPECT().Get(mock.Anything, "app/group:bogus").Return(permission.Permission{}, permission.ErrNotExist)
+				res.EXPECT().BatchCheck(mock.Anything, []resource.Check{
+					{Object: relation.Object{ID: groupA, Namespace: schema.GroupNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: groupB, Namespace: schema.GroupNamespace}, Permission: "update"},
+				}).Return([]relation.CheckPair{
+					{Relation: relation.Relation{Object: relation.Object{ID: groupA, Namespace: schema.GroupNamespace}, RelationName: "update"}, Status: true},
+				}, nil)
+			},
+			wantAccessPairs: []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair{
+				{GroupId: groupA, Permissions: []string{"update"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockGroupSrv := new(mocks.GroupService)
+			mockAuthnSrv := new(mocks.AuthnService)
+			mockPermissionSrv := new(mocks.PermissionService)
+			mockResourceSrv := new(mocks.ResourceService)
+
+			mockAuthnSrv.EXPECT().GetPrincipal(mock.Anything).Return(principal, nil)
+			mockGroupSrv.EXPECT().List(mock.Anything, mock.MatchedBy(func(f group.Filter) bool {
+				return f.Principal != nil && *f.Principal == principal
+			})).Return([]group.Group{
+				{ID: groupA, OrganizationID: "org-1"},
+				{ID: groupB, OrganizationID: "org-1"},
+			}, nil)
+			if tt.setup != nil {
+				tt.setup(mockPermissionSrv, mockResourceSrv)
+			}
+
+			handler := &ConnectHandler{
+				groupService:      mockGroupSrv,
+				authnService:      mockAuthnSrv,
+				permissionService: mockPermissionSrv,
+				resourceService:   mockResourceSrv,
+			}
+
+			req := connect.NewRequest(&frontierv1beta1.ListCurrentUserGroupsRequest{
+				WithPermissions: tt.withPermissions,
+			})
+			resp, err := handler.ListCurrentUserGroups(context.Background(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, tt.wantAccessPairs, resp.Msg.GetAccessPairs())
+
+			mockGroupSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+			mockPermissionSrv.AssertExpectations(t)
+			mockResourceSrv.AssertExpectations(t)
+		})
+	}
+}
+
 func TestConnectHandler_ListOrganizationsByUser(t *testing.T) {
 	userID := uuid.New().String()
 
@@ -1725,11 +1832,20 @@ func TestConnectHandler_ListProjectsByUser(t *testing.T) {
 			err:  connect.CodeNotFound,
 		},
 		{
-			title: "should return bad request error for invalid user ID",
+			title: "should return bad request error when project service returns ErrInvalidUUID",
 			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
-				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "invalid-id", Type: schema.UserPrincipal}}).Return(nil, user.ErrInvalidUUID)
+				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "invalid-id", Type: schema.UserPrincipal}}).Return(nil, project.ErrInvalidUUID)
 			},
 			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "invalid-id"},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
+		},
+		{
+			title: "should return bad request error when project service returns ErrInvalidPrincipalType",
+			setup: func(ps *mocks.ProjectService, as *mocks.AuthnService) {
+				ps.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "user-1", Type: schema.UserPrincipal}}).Return(nil, project.ErrInvalidPrincipalType)
+			},
+			req:  &frontierv1beta1.ListProjectsByUserRequest{Id: "user-1"},
 			want: nil,
 			err:  connect.CodeInvalidArgument,
 		},
@@ -2001,6 +2117,150 @@ func TestConnectHandler_ListProjectsByCurrentUser(t *testing.T) {
 
 			mockProjectSrv.AssertExpectations(t)
 			mockAuthnSrv.AssertExpectations(t)
+			mockResourceSrv.AssertExpectations(t)
+		})
+	}
+}
+
+func TestConnectHandler_ListProjectsByCurrentUser_AccessPairs(t *testing.T) {
+	const (
+		projA = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
+		projB = "c7772c63-fca4-4c7c-bf93-c8f85115de4b"
+	)
+	principal := authenticate.Principal{
+		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
+		Type: schema.UserPrincipal,
+		User: &user.User{ID: "9f256f86-31a3-11ec-8d3d-0242ac130003"},
+	}
+
+	resolvedPermission := func(name string) permission.Permission {
+		return permission.Permission{Name: name, NamespaceID: schema.ProjectNamespace}
+	}
+
+	tests := []struct {
+		title           string
+		withPermissions []string
+		setup           func(*mocks.PermissionService, *mocks.ResourceService)
+		wantAccessPairs []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair
+		wantErr         connect.Code
+	}{
+		{
+			title:           "emits one access pair per project when multiple permissions succeed",
+			withPermissions: []string{"update", "delete"},
+			setup: func(perm *mocks.PermissionService, res *mocks.ResourceService) {
+				perm.EXPECT().Get(mock.Anything, "app/project:update").Return(resolvedPermission("update"), nil)
+				perm.EXPECT().Get(mock.Anything, "app/project:delete").Return(resolvedPermission("delete"), nil)
+				res.EXPECT().BatchCheck(mock.Anything, []resource.Check{
+					{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, Permission: "delete"},
+					{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, Permission: "delete"},
+				}).Return([]relation.CheckPair{
+					{Relation: relation.Relation{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, RelationName: "delete"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, RelationName: "delete"}, Status: true},
+				}, nil)
+			},
+			wantAccessPairs: []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{
+				{ProjectId: projA, Permissions: []string{"update", "delete"}},
+				{ProjectId: projB, Permissions: []string{"update", "delete"}},
+			},
+		},
+		{
+			title:           "drops unknown permissions and returns access pairs only for the known ones",
+			withPermissions: []string{"update", "bogus"},
+			setup: func(perm *mocks.PermissionService, res *mocks.ResourceService) {
+				perm.EXPECT().Get(mock.Anything, "app/project:update").Return(resolvedPermission("update"), nil)
+				perm.EXPECT().Get(mock.Anything, "app/project:bogus").Return(permission.Permission{}, permission.ErrNotExist)
+				res.EXPECT().BatchCheck(mock.Anything, []resource.Check{
+					{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, Permission: "update"},
+				}).Return([]relation.CheckPair{
+					{Relation: relation.Relation{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, RelationName: "update"}, Status: true},
+				}, nil)
+			},
+			wantAccessPairs: []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{
+				{ProjectId: projA, Permissions: []string{"update"}},
+			},
+		},
+		{
+			title:           "returns empty access pairs when every requested permission is unknown",
+			withPermissions: []string{"bogus1", "bogus2"},
+			setup: func(perm *mocks.PermissionService, res *mocks.ResourceService) {
+				perm.EXPECT().Get(mock.Anything, "app/project:bogus1").Return(permission.Permission{}, permission.ErrNotExist)
+				perm.EXPECT().Get(mock.Anything, "app/project:bogus2").Return(permission.Permission{}, permission.ErrNotExist)
+				// resourceService.BatchCheck must NOT be called.
+			},
+			wantAccessPairs: nil,
+		},
+		{
+			title:           "deduplicates repeated permission inputs",
+			withPermissions: []string{"update", "update", "delete"},
+			setup: func(perm *mocks.PermissionService, res *mocks.ResourceService) {
+				perm.EXPECT().Get(mock.Anything, "app/project:update").Return(resolvedPermission("update"), nil).Times(2)
+				perm.EXPECT().Get(mock.Anything, "app/project:delete").Return(resolvedPermission("delete"), nil)
+				// Each (project, permission) appears exactly once even though "update" was requested twice.
+				res.EXPECT().BatchCheck(mock.Anything, []resource.Check{
+					{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, Permission: "delete"},
+					{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, Permission: "update"},
+					{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, Permission: "delete"},
+				}).Return([]relation.CheckPair{
+					{Relation: relation.Relation{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: projA, Namespace: schema.ProjectNamespace}, RelationName: "delete"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, RelationName: "update"}, Status: true},
+					{Relation: relation.Relation{Object: relation.Object{ID: projB, Namespace: schema.ProjectNamespace}, RelationName: "delete"}, Status: true},
+				}, nil)
+			},
+			wantAccessPairs: []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{
+				{ProjectId: projA, Permissions: []string{"update", "delete"}},
+				{ProjectId: projB, Permissions: []string{"update", "delete"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			mockProjectSrv := new(mocks.ProjectService)
+			mockAuthnSrv := new(mocks.AuthnService)
+			mockPermissionSrv := new(mocks.PermissionService)
+			mockResourceSrv := new(mocks.ResourceService)
+
+			mockAuthnSrv.EXPECT().GetPrincipal(mock.Anything).Return(principal, nil)
+			mockProjectSrv.EXPECT().List(mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
+				return f.Principal != nil && *f.Principal == principal
+			})).Return([]project.Project{
+				{ID: projA, Organization: organization.Organization{ID: "org-1"}},
+				{ID: projB, Organization: organization.Organization{ID: "org-1"}},
+			}, nil)
+			if tt.setup != nil {
+				tt.setup(mockPermissionSrv, mockResourceSrv)
+			}
+
+			handler := &ConnectHandler{
+				projectService:    mockProjectSrv,
+				authnService:      mockAuthnSrv,
+				permissionService: mockPermissionSrv,
+				resourceService:   mockResourceSrv,
+			}
+
+			req := connect.NewRequest(&frontierv1beta1.ListProjectsByCurrentUserRequest{
+				WithPermissions: tt.withPermissions,
+			})
+			resp, err := handler.ListProjectsByCurrentUser(context.Background(), req)
+			if tt.wantErr != connect.Code(0) {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.wantErr, connect.CodeOf(err))
+				return
+			}
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, tt.wantAccessPairs, resp.Msg.GetAccessPairs())
+
+			mockProjectSrv.AssertExpectations(t)
+			mockAuthnSrv.AssertExpectations(t)
+			mockPermissionSrv.AssertExpectations(t)
 			mockResourceSrv.AssertExpectations(t)
 		})
 	}
