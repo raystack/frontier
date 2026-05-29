@@ -167,22 +167,14 @@ func (r OrgTokensRepository) addFilter(query *goqu.SelectDataset, filter rql.Fil
 	case "like", "notlike":
 		value := "%" + filter.Value.(string) + "%"
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: value}}), nil
-	case "in":
+	case "in", "notin":
 		values := make([]string, 0)
 		for _, v := range strings.Split(filter.Value.(string), ",") {
 			if trimmed := strings.TrimSpace(v); trimmed != "" {
 				values = append(values, trimmed)
 			}
 		}
-		return query.Where(goqu.Cast(goqu.I(field), "TEXT").In(values)), nil
-	case "notin":
-		values := make([]string, 0)
-		for _, v := range strings.Split(filter.Value.(string), ",") {
-			if trimmed := strings.TrimSpace(v); trimmed != "" {
-				values = append(values, trimmed)
-			}
-		}
-		return query.Where(goqu.Cast(goqu.I(field), "TEXT").NotIn(values)), nil
+		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: values}}), nil
 	default:
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}}), nil
 	}
