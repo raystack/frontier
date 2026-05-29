@@ -68,6 +68,34 @@ func TestService_Create(t *testing.T) {
 		assert.Equal(t, strings.Contains(err.Error(), authenticate.ErrInvalidID.Error()), true)
 	})
 
+	t.Run("PAT creator resolves to underlying user before OnGroupCreated", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockMembershipSvc := mocks.NewMembershipService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		svc.SetMembershipService(mockMembershipSvc)
+
+		userID := uuid.New().String()
+		patID := uuid.New().String()
+		mockAuthnSvc.On("GetPrincipal", mock.Anything).Return(authenticate.Principal{
+			ID:   patID,
+			Type: schema.PATPrincipal,
+			PAT:  &pat.PAT{ID: patID, UserID: userID},
+		}, nil)
+
+		groupParam := group.Group{Name: "g", OrganizationID: uuid.New().String()}
+		groupInRepo := groupParam
+		groupInRepo.ID = uuid.New().String()
+		mockRepo.On("Create", mock.Anything, groupParam).Return(groupInRepo, nil)
+		mockMembershipSvc.EXPECT().OnGroupCreated(mock.Anything, groupInRepo.ID, groupInRepo.OrganizationID, userID, schema.UserPrincipal).Return(nil)
+
+		_, err := svc.Create(context.Background(), groupParam)
+		assert.NoError(t, err)
+	})
+
 	t.Run("should propagate error from membership.OnGroupCreated", func(t *testing.T) {
 		mockRepo := mocks.NewRepository(t)
 		mockAuthnSvc := mocks.NewAuthnService(t)
