@@ -96,7 +96,7 @@ func TestService_Create(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should propagate error from membership.OnGroupCreated", func(t *testing.T) {
+	t.Run("OnGroupCreated failure rolls back the Postgres group row", func(t *testing.T) {
 		mockRepo := mocks.NewRepository(t)
 		mockAuthnSvc := mocks.NewAuthnService(t)
 		mockRelationSvc := mocks.NewRelationService(t)
@@ -118,9 +118,40 @@ func TestService_Create(t *testing.T) {
 		groupInRepo.ID = uuid.New().String()
 		mockRepo.On("Create", mock.Anything, groupParam).Return(groupInRepo, nil)
 		mockMembershipSvc.EXPECT().OnGroupCreated(mock.Anything, groupInRepo.ID, groupInRepo.OrganizationID, mockUserID, schema.UserPrincipal).Return(errors.New("spicedb down"))
+		mockRepo.On("Delete", mock.Anything, groupInRepo.ID).Return(nil).Once()
 
 		_, err := svc.Create(context.Background(), groupParam)
 		assert.ErrorContains(t, err, "spicedb down")
+	})
+
+	t.Run("rollback failure surfaces both errors", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockAuthnSvc := mocks.NewAuthnService(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockMembershipSvc := mocks.NewMembershipService(t)
+
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		svc.SetMembershipService(mockMembershipSvc)
+
+		mockUserID := uuid.New().String()
+		mockAuthnSvc.On("GetPrincipal", mock.Anything).Return(authenticate.Principal{
+			ID:   mockUserID,
+			Type: schema.UserPrincipal,
+			User: &user.User{ID: mockUserID},
+		}, nil)
+
+		groupParam := group.Group{Name: "g", OrganizationID: uuid.New().String()}
+		groupInRepo := groupParam
+		groupInRepo.ID = uuid.New().String()
+		mockRepo.On("Create", mock.Anything, groupParam).Return(groupInRepo, nil)
+		mockMembershipSvc.EXPECT().OnGroupCreated(mock.Anything, groupInRepo.ID, groupInRepo.OrganizationID, mockUserID, schema.UserPrincipal).Return(errors.New("spicedb down"))
+		mockRepo.On("Delete", mock.Anything, groupInRepo.ID).Return(errors.New("pg gone")).Once()
+
+		_, err := svc.Create(context.Background(), groupParam)
+		assert.ErrorContains(t, err, "spicedb down")
+		assert.ErrorContains(t, err, "rollback group create")
+		assert.ErrorContains(t, err, "pg gone")
 	})
 }
 
