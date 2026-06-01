@@ -44,24 +44,6 @@ export const RemoveMember = ({
     } catch (error) {
       console.error(error);
       handleConnectError(error, {
-        NotFound: (err) =>
-          toastManager.add({
-            title: "Not found",
-            description: err.rawMessage,
-            type: "error",
-          }),
-        FailedPrecondition: (err) =>
-          toastManager.add({
-            title: `Cannot remove ${t.member({ case: "lower" })}`,
-            description: err.rawMessage,
-            type: "error",
-          }),
-        InvalidArgument: (err) =>
-          toastManager.add({
-            title: "Invalid input",
-            description: err.rawMessage,
-            type: "error",
-          }),
         PermissionDenied: () =>
           toastManager.add({
             title: "You don't have permission to perform this action",

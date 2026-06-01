@@ -52,12 +52,6 @@ export const RemoveMember = ({
     } catch (error) {
       console.error(error);
       handleConnectError(error, {
-        NotFound: (err) =>
-          toastManager.add({
-            title: "Not found",
-            description: err.rawMessage,
-            type: "error",
-          }),
         PermissionDenied: () =>
           toastManager.add({
             title: "You don't have permission to perform this action",

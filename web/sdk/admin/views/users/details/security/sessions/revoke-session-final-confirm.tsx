@@ -27,12 +27,6 @@ export const RevokeSessionFinalConfirm = ({
       onOpenChange(false);
     } catch (error) {
       handleConnectError(error, {
-        InvalidArgument: (err) =>
-          toastManager.add({
-            title: 'Invalid input',
-            description: err.rawMessage,
-            type: 'error',
-          }),
         PermissionDenied: () =>
           toastManager.add({
             title: "You don't have permission to perform this action",

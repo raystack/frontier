@@ -80,18 +80,6 @@ export function RenameProjectDialog({
             title: `${t.project({ case: "capital" })} with this name already exists`,
             type: "error",
           }),
-        InvalidArgument: (err) =>
-          toastManager.add({
-            title: "Invalid input",
-            description: err.rawMessage,
-            type: "error",
-          }),
-        NotFound: (err) =>
-          toastManager.add({
-            title: "Not found",
-            description: err.rawMessage,
-            type: "error",
-          }),
         PermissionDenied: () =>
           toastManager.add({
             title: "You don't have permission to perform this action",

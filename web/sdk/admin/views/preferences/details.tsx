@@ -188,12 +188,6 @@ export default function PreferenceDetails({
     } catch (err) {
       console.error(err);
       handleConnectError(err, {
-        InvalidArgument: (e) =>
-          toastManager.add({
-            title: "Invalid input",
-            description: e.rawMessage,
-            type: "error",
-          }),
         PermissionDenied: () =>
           toastManager.add({
             title: "You don't have permission to perform this action",
