@@ -84,7 +84,7 @@ export const AssignRole = ({
     } catch (error) {
       toastManager.add({
         title: "Failed to assign role",
-        description: error instanceof ConnectError ? error.rawMessage : undefined,
+        description: error instanceof ConnectError ? error.message : undefined,
         type: "error",
       });
       console.error(error);
