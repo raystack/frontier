@@ -158,7 +158,6 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
 
   return (
     <ViewContainer>
-      <ViewHeader title="Billing" description={description} />
 
       {hasNoAccess ? (
         <EmptyState
@@ -169,6 +168,7 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
         />
       ) : (
         <>
+          <ViewHeader title="Billing" description={description} />
           <Flex direction="column" gap={7}>
             <PaymentIssue
               isLoading={isLoading}

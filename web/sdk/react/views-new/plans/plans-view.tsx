@@ -149,7 +149,6 @@ export function PlansView() {
   if (plans.length === 0) {
     return (
       <ViewContainer>
-        <ViewHeader title="Plans" description="View and manage your subscription plan." />
         <EmptyState
           variant="empty2"
           icon={<ExclamationTriangleIcon />}
