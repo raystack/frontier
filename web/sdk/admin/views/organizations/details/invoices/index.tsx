@@ -96,7 +96,7 @@ export function OrganizationInvoicesView() {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-    isError,
+    isError
   } = useInfiniteQuery(
     FrontierServiceQueries.searchOrganizationInvoices,
     { id: organizationId, query: query },
@@ -115,7 +115,6 @@ export function OrganizationInvoicesView() {
       retryDelay: 1000,
     },
   );
-
   const data =
     infiniteData?.pages?.flatMap(page => page.organizationInvoices) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;
