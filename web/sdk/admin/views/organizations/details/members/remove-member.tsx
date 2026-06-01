@@ -44,7 +44,7 @@ export const RemoveMember = ({
     } catch (error) {
       const message =
         error instanceof ConnectError
-          ? error.message
+          ? error.rawMessage || error.message
           : "Unknown error";
       toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}: ${message}`, type: "error" });
       console.error(error);

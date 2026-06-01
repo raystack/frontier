@@ -5,6 +5,7 @@ import {
   Flex,
   Text,
   Menu,
+  IconButton,
 } from "@raystack/apsara-v1";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
@@ -26,6 +27,7 @@ const MemberStates = {
 
 interface getColumnsOptions {
   roles: Role[];
+  memberCount: number;
   handleAssignRoleAction: (
     user: SearchOrganizationUsersResponse_OrganizationUser,
   ) => void;
@@ -36,6 +38,7 @@ interface getColumnsOptions {
 
 export const getColumns = ({
   roles = [],
+  memberCount,
   handleAssignRoleAction,
   handleRemoveMemberAction,
 }: getColumnsOptions): DataTableColumnDef<
@@ -136,9 +139,17 @@ export const getColumns = ({
         cell: styles["table-action-column"],
       },
       cell: ({ row }) => {
+        // The last remaining member of an organization cannot be removed.
+        const canRemoveMember = memberCount > 1;
         return (
           <Menu>
-            <Menu.Trigger render={<DotsHorizontalIcon />} />
+            <Menu.Trigger
+              render={
+                <IconButton size={3} data-test-id="admin-members-action-menu">
+                  <DotsHorizontalIcon />
+                </IconButton>
+              }
+            />
             <Menu.Content className={styles["table-action-dropdown"]}>
               <Menu.Item
                 onClick={() => handleAssignRoleAction(row.original)}
@@ -146,12 +157,14 @@ export const getColumns = ({
               >
                 Assign role...
               </Menu.Item>
-              <Menu.Item
-                onClick={() => handleRemoveMemberAction(row.original)}
-                data-test-id="admin-remove-member-action"
-              >
-                Remove...
-              </Menu.Item>
+              {canRemoveMember && (
+                <Menu.Item
+                  onClick={() => handleRemoveMemberAction(row.original)}
+                  data-test-id="admin-remove-member-action"
+                >
+                  Remove...
+                </Menu.Item>
+              )}
             </Menu.Content>
           </Menu>
         );

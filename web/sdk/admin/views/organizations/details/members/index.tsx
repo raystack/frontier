@@ -124,6 +124,8 @@ export function OrganizationMembersView() {
   );
 
   const data = infiniteData?.pages?.flatMap(page => page.orgUsers) || [];
+  const memberCount =
+    infiniteData?.pages?.[0]?.pagination?.totalCount ?? data.length;
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
@@ -166,6 +168,7 @@ export function OrganizationMembersView() {
 
   const columns = getColumns({
     roles,
+    memberCount,
     handleAssignRoleAction: openAssignRoleDialog,
     handleRemoveMemberAction: openRemoveMemberDialog,
   });
