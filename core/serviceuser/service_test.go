@@ -113,3 +113,53 @@ func TestService_Delete(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Get(t *testing.T) {
+	ctx := context.Background()
+	const validID = "68f86fec-eb87-49f0-9be0-8d99b00a4a9c"
+
+	tests := []struct {
+		name      string
+		id        string
+		setup     func(*mocks.Repository)
+		wantErrIs error
+	}{
+		{
+			name:      "empty id returns ErrInvalidID without hitting the repo",
+			id:        "",
+			setup:     func(repo *mocks.Repository) {},
+			wantErrIs: serviceuser.ErrInvalidID,
+		},
+		{
+			name:      "non-uuid id returns ErrInvalidID without hitting the repo",
+			id:        "not-a-uuid",
+			setup:     func(repo *mocks.Repository) {},
+			wantErrIs: serviceuser.ErrInvalidID,
+		},
+		{
+			name: "valid uuid delegates to the repo",
+			id:   validID,
+			setup: func(repo *mocks.Repository) {
+				repo.On("GetByID", ctx, validID).Return(serviceuser.ServiceUser{ID: validID}, nil)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc, repo, _, _, _ := newTestService(t)
+			tt.setup(repo)
+
+			_, err := svc.Get(ctx, tt.id)
+			if tt.wantErrIs != nil {
+				if !errors.Is(err, tt.wantErrIs) {
+					t.Errorf("Get() error = %v, want errors.Is(%v)", err, tt.wantErrIs)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("Get() unexpected error = %v", err)
+			}
+		})
+	}
+}

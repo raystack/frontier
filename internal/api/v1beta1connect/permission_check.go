@@ -28,24 +28,36 @@ func logAuditForCheck(ctx context.Context, result bool, objectID string, objectN
 }
 
 func (h *ConnectHandler) getPermissionName(ctx context.Context, ns, name string) (string, error) {
+	resolved, ok, err := h.resolvePermissionName(ctx, ns, name)
+	if err != nil {
+		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+	}
+	if !ok {
+		return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
+	}
+	return resolved, nil
+}
+
+// resolvePermissionName looks up the canonical permission name for (namespace, name).
+// ok=false means the permission is not defined; err is reserved for genuine lookup
+// failures. Callers that want to treat an unknown permission as "no result"
+// should use this helper; callers that want to reject the request should use
+// getPermissionName which maps unknown permissions to CodeNotFound.
+func (h *ConnectHandler) resolvePermissionName(ctx context.Context, ns, name string) (string, bool, error) {
 	if ns == schema.PlatformNamespace && schema.IsPlatformPermission(name) {
-		return name, nil
+		return name, true, nil
 	}
 	perm, err := h.permissionService.Get(ctx, permission.AddNamespaceIfRequired(ns, name))
 	if err != nil {
-		switch {
-		case errors.Is(err, permission.ErrNotExist):
-			return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		if errors.Is(err, permission.ErrNotExist) {
+			return "", false, nil
 		}
+		return "", false, err
 	}
-	// if the permission is on the same namespace as the object, use the name
 	if perm.NamespaceID == ns {
-		return perm.Name, nil
+		return perm.Name, true, nil
 	}
-	// else use fully qualified name(slug)
-	return perm.Slug, nil
+	return perm.Slug, true, nil
 }
 
 func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, req *connect.Request[frontierv1beta1.CheckFederatedResourcePermissionRequest]) (*connect.Response[frontierv1beta1.CheckFederatedResourcePermissionResponse], error) {
@@ -94,19 +106,38 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 }
 
 func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace string, ids, permissions []string) ([]relation.CheckPair, error) {
-	checks := make([]resource.Check, 0, len(ids)*len(permissions))
+	// Resolve each requested permission once, dropping unknown names and
+	// duplicate inputs. Unknown names produce an empty result rather than
+	// 4xx/5xx — see the contract on resolvePermissionName.
+	resolvedPerms := make([]string, 0, len(permissions))
+	seen := make(map[string]struct{}, len(permissions))
+	for _, p := range permissions {
+		resolved, ok, err := h.resolvePermissionName(ctx, objectNamespace, p)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		}
+		if !ok {
+			continue
+		}
+		if _, dup := seen[resolved]; dup {
+			continue
+		}
+		seen[resolved] = struct{}{}
+		resolvedPerms = append(resolvedPerms, resolved)
+	}
+	if len(resolvedPerms) == 0 || len(ids) == 0 {
+		return []relation.CheckPair{}, nil
+	}
+
+	checks := make([]resource.Check, 0, len(ids)*len(resolvedPerms))
 	for _, id := range ids {
-		for _, permission := range permissions {
-			permissionName, err := h.getPermissionName(ctx, objectNamespace, permission)
-			if err != nil {
-				return nil, err
-			}
+		for _, p := range resolvedPerms {
 			checks = append(checks, resource.Check{
 				Object: relation.Object{
 					ID:        id,
 					Namespace: objectNamespace,
 				},
-				Permission: permissionName,
+				Permission: p,
 			})
 		}
 	}

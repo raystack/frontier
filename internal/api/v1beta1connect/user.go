@@ -16,7 +16,6 @@ import (
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
-	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
@@ -552,20 +551,19 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
-		for _, successCheck := range successCheckPairs {
-			resID := successCheck.Relation.Object.ID
-
-			// find all permission checks on same resource
-			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
-				return pair.Relation.Object.ID == resID
-			})
-			// fetch permissions
-			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
-				return pair.Relation.RelationName
-			})
+		permsByGroup := map[string][]string{}
+		groupOrder := make([]string, 0, len(groupsList))
+		for _, p := range successCheckPairs {
+			resID := p.Relation.Object.ID
+			if _, seen := permsByGroup[resID]; !seen {
+				groupOrder = append(groupOrder, resID)
+			}
+			permsByGroup[resID] = append(permsByGroup[resID], p.Relation.RelationName)
+		}
+		for _, resID := range groupOrder {
 			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair{
 				GroupId:     resID,
-				Permissions: permissions,
+				Permissions: permsByGroup[resID],
 			})
 		}
 	}
@@ -879,10 +877,11 @@ func (h *ConnectHandler) ListProjectsByUser(ctx context.Context, request *connec
 			"user_id", userID)
 
 		switch {
+		case errors.Is(err, project.ErrInvalidUUID),
+			errors.Is(err, project.ErrInvalidPrincipalType):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, user.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		case errors.Is(err, user.ErrInvalidUUID):
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "ListProjectsByUser", err,
 				"user_id", userID)
@@ -952,20 +951,22 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 				"org_id", request.Msg.GetOrgId())
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
-		for _, successCheck := range successCheckPairs {
-			resID := successCheck.Relation.Object.ID
-
-			// find all permission checks on same resource
-			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
-				return pair.Relation.Object.ID == resID
-			})
-			// fetch permissions
-			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
-				return pair.Relation.RelationName
-			})
+		// Group permissions by project id, emit one access pair per project in
+		// first-seen order. successCheckPairs is unique by (resID, permName) so
+		// no per-permission dedup is needed here.
+		permsByProject := map[string][]string{}
+		projectOrder := make([]string, 0, len(projList))
+		for _, p := range successCheckPairs {
+			resID := p.Relation.Object.ID
+			if _, seen := permsByProject[resID]; !seen {
+				projectOrder = append(projectOrder, resID)
+			}
+			permsByProject[resID] = append(permsByProject[resID], p.Relation.RelationName)
+		}
+		for _, resID := range projectOrder {
 			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{
 				ProjectId:   resID,
-				Permissions: permissions,
+				Permissions: permsByProject[resID],
 			})
 		}
 	}
