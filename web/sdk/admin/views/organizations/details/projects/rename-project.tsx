@@ -9,8 +9,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import React from "react";
-import { ConnectError } from "@connectrpc/connect";
 import { useMutation } from "@connectrpc/connect-query";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 const projectRenameSchema = z.object({
@@ -73,12 +73,36 @@ export function RenameProjectDialog({
         });
       }
     } catch (error) {
-      toastManager.add({
-        title: `Failed to rename ${t.project({ case: "lower" })}`,
-        description: error instanceof ConnectError ? error.rawMessage : undefined,
-        type: "error",
+      handleConnectError(error, {
+        AlreadyExists: () =>
+          toastManager.add({
+            title: `${t.project({ case: "capital" })} with this name already exists`,
+            type: "error",
+          }),
+        InvalidArgument: (err) =>
+          toastManager.add({
+            title: "Invalid input",
+            description: err.rawMessage,
+            type: "error",
+          }),
+        NotFound: (err) =>
+          toastManager.add({
+            title: "Not found",
+            description: err.rawMessage,
+            type: "error",
+          }),
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (err) =>
+          toastManager.add({
+            title: `Failed to rename ${t.project({ case: "lower" })}`,
+            description: err.rawMessage,
+            type: "error",
+          }),
       });
-      console.error(error);
     }
   };
 

@@ -6,7 +6,7 @@ import {
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
-import { ConnectError } from "@connectrpc/connect";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
@@ -42,12 +42,37 @@ export const RemoveMember = ({
       }
       toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      toastManager.add({
-        title: `Failed to remove ${t.member({ case: "lower" })}`,
-        description: error instanceof ConnectError ? error.rawMessage : undefined,
-        type: "error",
+      handleConnectError(error, {
+        NotFound: (err) =>
+          toastManager.add({
+            title: "Not found",
+            description: err.rawMessage,
+            type: "error",
+          }),
+        FailedPrecondition: (err) =>
+          toastManager.add({
+            title: `Cannot remove ${t.member({ case: "lower" })}`,
+            description: err.rawMessage,
+            type: "error",
+          }),
+        InvalidArgument: (err) =>
+          toastManager.add({
+            title: "Invalid input",
+            description: err.rawMessage,
+            type: "error",
+          }),
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (err) =>
+          toastManager.add({
+            title: `Failed to remove ${t.member({ case: "lower" })}`,
+            description: err.rawMessage,
+            type: "error",
+          }),
       });
-      console.error(error);
     }
   }
 

@@ -5,11 +5,11 @@ import {
   type SearchProjectUsersResponse_ProjectUser,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { ConnectError } from "@connectrpc/connect";
 import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
 import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
@@ -50,12 +50,25 @@ export const RemoveMember = ({
 
       toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      toastManager.add({
-        title: `Failed to remove ${t.member({ case: "lower" })}`,
-        description: error instanceof ConnectError ? error.rawMessage : undefined,
-        type: "error",
+      handleConnectError(error, {
+        NotFound: (err) =>
+          toastManager.add({
+            title: "Not found",
+            description: err.rawMessage,
+            type: "error",
+          }),
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (err) =>
+          toastManager.add({
+            title: `Failed to remove ${t.member({ case: "lower" })}`,
+            description: err.rawMessage,
+            type: "error",
+          }),
       });
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
