@@ -42,6 +42,7 @@ export const RemoveMember = ({
       }
       toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
+      console.error(error);
       handleConnectError(error, {
         NotFound: (err) =>
           toastManager.add({

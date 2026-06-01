@@ -69,6 +69,7 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
         onOpenChange();
       }
     } catch (err) {
+      console.error("Failed to create webhook:", err);
       handleConnectError(err, {
         PermissionDenied: () =>
           toastManager.add({

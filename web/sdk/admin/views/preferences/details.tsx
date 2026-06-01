@@ -186,6 +186,7 @@ export default function PreferenceDetails({
       }));
       toastManager.add({ title: "preference updated", type: "success" });
     } catch (err) {
+      console.error(err);
       handleConnectError(err, {
         InvalidArgument: (e) =>
           toastManager.add({
@@ -249,6 +250,7 @@ export default function PreferenceDetails({
               trait={trait}
               value={value}
               onChange={setValue}
+              data-test-id="frontier-admin-preference-value-input"
             />
             <Button
               onClick={onSave}

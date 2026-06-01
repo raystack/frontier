@@ -85,6 +85,7 @@ export default function UpdateWebhooks({ open = false, webhookId: webhookIdProp,
         onClose();
       }
     } catch (err) {
+      console.error("Failed to update webhook:", err);
       handleConnectError(err, {
         PermissionDenied: () =>
           toastManager.add({

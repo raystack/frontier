@@ -73,6 +73,7 @@ export function RenameProjectDialog({
         });
       }
     } catch (error) {
+      console.error(error);
       handleConnectError(error, {
         AlreadyExists: () =>
           toastManager.add({

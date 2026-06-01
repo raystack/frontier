@@ -23,6 +23,7 @@ export function DeleteWebhookDialog({
       toastManager.add({ title: "Webhook deleted", type: "success" });
       onOpenChange(false);
     } catch (err) {
+      console.error("Failed to delete webhook:", err);
       handleConnectError(err, {
         PermissionDenied: () =>
           toastManager.add({
