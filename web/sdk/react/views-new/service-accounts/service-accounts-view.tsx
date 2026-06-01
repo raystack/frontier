@@ -140,22 +140,11 @@ export function ServiceAccountsView({
 
   return (
     <ViewContainer>
-      <ViewHeader
-        title="Service accounts"
-        description={`Create and manage service accounts for secure, automated access to ${t.appName()}.`}
-      />
 
       {hasNoAccess ? (
         <EmptyState
           variant="empty2"
-          icon={
-            <Image
-              src={exclamationTriangleIcon as unknown as string}
-              alt=""
-              width={40}
-              height={40}
-            />
-          }
+          icon={<ExclamationTriangleIcon />}
           heading="Restricted Access"
           subHeading="Admin access required, please reach out to your admin incase you want to generate a key."
         />
@@ -185,66 +174,72 @@ export function ServiceAccountsView({
           }
         />
       ) : (
-        <DataTable
-          data={serviceUsers}
-          columns={columns}
-          isLoading={isLoading}
-          defaultSort={{ name: 'createdAt', order: 'desc' }}
-          mode="client"
-          onRowClick={row => onServiceAccountClick?.(row.id)}
-        >
-          <Flex direction="column" gap={7}>
-            <Flex justify="between" gap={3}>
-              <Flex gap={3} align="center">
+        <>
+          <ViewHeader
+            title="Service accounts"
+            description={`Create and manage service accounts for secure, automated access to ${t.appName()}.`}
+          />
+          <DataTable
+            data={serviceUsers}
+            columns={columns}
+            isLoading={isLoading}
+            defaultSort={{ name: 'createdAt', order: 'desc' }}
+            mode="client"
+            onRowClick={row => onServiceAccountClick?.(row.id)}
+          >
+            <Flex direction="column" gap={7}>
+              <Flex justify="between" gap={3}>
+                <Flex gap={3} align="center">
+                  {isLoading ? (
+                    <Skeleton height="34px" width="360px" />
+                  ) : (
+                    <DataTable.Search
+                      placeholder="Search by name."
+                      size="large"
+                      width={360}
+                    />
+                  )}
+                </Flex>
                 {isLoading ? (
-                  <Skeleton height="34px" width="360px" />
+                  <Skeleton height="34px" width="160px" />
                 ) : (
-                  <DataTable.Search
-                    placeholder="Search by name."
-                    size="large"
-                    width={360}
-                  />
+                  <Tooltip>
+                    <Tooltip.Trigger
+                      disabled={canUpdateWorkspace}
+                      render={<span />}
+                    >
+                      <Button
+                        variant="solid"
+                        color="accent"
+                        onClick={() => addDialogHandle.open(null)}
+                        disabled={!canUpdateWorkspace}
+                        data-test-id="frontier-sdk-add-service-account-btn"
+                      >
+                        Add service account
+                      </Button>
+                    </Tooltip.Trigger>
+                    {!canUpdateWorkspace && (
+                      <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
+                    )}
+                  </Tooltip>
                 )}
               </Flex>
-              {isLoading ? (
-                <Skeleton height="34px" width="160px" />
-              ) : (
-                <Tooltip>
-                  <Tooltip.Trigger
-                    disabled={canUpdateWorkspace}
-                    render={<span />}
-                  >
-                    <Button
-                      variant="solid"
-                      color="accent"
-                      onClick={() => addDialogHandle.open(null)}
-                      disabled={!canUpdateWorkspace}
-                      data-test-id="frontier-sdk-add-service-account-btn"
-                    >
-                      Add service account
-                    </Button>
-                  </Tooltip.Trigger>
-                  {!canUpdateWorkspace && (
-                    <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
-                  )}
-                </Tooltip>
-              )}
+              <DataTable.Content
+                emptyState={
+                  <EmptyState
+                    icon={<ExclamationTriangleIcon />}
+                    heading="No service accounts found"
+                    subHeading="Try adjusting your search"
+                  />
+                }
+                classNames={{
+                  root: styles.tableRoot,
+                  table: styles.table
+                }}
+              />
             </Flex>
-            <DataTable.Content
-              emptyState={
-                <EmptyState
-                  icon={<ExclamationTriangleIcon />}
-                  heading="No service accounts found"
-                  subHeading="Try adjusting your search"
-                />
-              }
-              classNames={{
-                root: styles.tableRoot,
-                table: styles.table
-              }}
-            />
-          </Flex>
-        </DataTable>
+          </DataTable>
+        </>
       )}
 
       <Menu handle={serviceAccountMenuHandle} modal={false}>
