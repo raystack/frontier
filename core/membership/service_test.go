@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"io"
 	"log/slog"
@@ -334,6 +335,73 @@ func TestService_AddOrganizationMember_ServiceUser(t *testing.T) {
 	})
 }
 
+func TestService_AddOrganizationMember_PAT(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	patID := uuid.New().String()
+	viewerRoleID := uuid.New().String()
+
+	enabledOrg := organization.Organization{ID: orgID, Title: "Test Org"}
+	activePAT := pat.PAT{ID: patID, OrgID: orgID, Title: "test-pat", ExpiresAt: time.Now().Add(time.Hour)}
+
+	t.Run("should add PAT without writing org member/owner relation", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{}, nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.AddOrganizationMember(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject PAT from different org", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(pat.PAT{ID: patID, OrgID: "other-org", ExpiresAt: time.Now().Add(time.Hour)}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.AddOrganizationMember(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, membership.ErrPrincipalNotInOrg)
+	})
+
+	t.Run("should reject expired PAT", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(pat.PAT{ID: patID, OrgID: orgID, ExpiresAt: time.Now().Add(-time.Hour)}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.AddOrganizationMember(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, membership.ErrPrincipalExpired)
+	})
+
+	t.Run("should reject PAT principal when userPATService is not wired", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		err := svc.AddOrganizationMember(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, membership.ErrInvalidPrincipal)
+	})
+}
+
 func TestService_SetOrganizationMemberRole(t *testing.T) {
 	ctx := context.Background()
 	orgID := uuid.New().String()
@@ -598,6 +666,53 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mocks.NewAuditRecordRepository(t))
 		err := svc.SetOrganizationMemberRole(ctx, orgID, suID, schema.ServiceUserPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, serviceuser.ErrDisabled)
+	})
+}
+
+func TestService_SetOrganizationMemberRole_PAT(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	patID := uuid.New().String()
+	viewerRoleID := uuid.New().String()
+	oldRoleID := uuid.New().String()
+
+	enabledOrg := organization.Organization{ID: orgID, Title: "Test Org"}
+	activePAT := pat.PAT{ID: patID, OrgID: orgID, Title: "test-pat", ExpiresAt: time.Now().Add(time.Hour)}
+
+	t.Run("should replace PAT role without writing org member/owner relation", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: oldRoleID}}, nil)
+		mockRoleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: uuid.New().String(), Name: schema.RoleOrganizationOwner}, nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetOrganizationMemberRole(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject expired PAT", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(pat.PAT{ID: patID, OrgID: orgID, ExpiresAt: time.Now().Add(-time.Hour)}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetOrganizationMemberRole(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.ErrorIs(t, err, membership.ErrPrincipalExpired)
 	})
 }
 
@@ -1018,6 +1133,17 @@ func TestService_RemoveProjectMember(t *testing.T) {
 			principalID:   suID,
 			principalType: schema.ServiceUserPrincipal,
 		},
+		{
+			name: "should succeed removing a PAT",
+			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, auditRepo *mocks.AuditRecordRepository) {
+				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			principalID:   userID,
+			principalType: schema.PATPrincipal,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1040,6 +1166,138 @@ func TestService_RemoveProjectMember(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestService_SetPATAllProjectsRole(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	patID := uuid.New().String()
+	projectRoleID := uuid.New().String()
+	oldRoleID := uuid.New().String()
+
+	enabledOrg := organization.Organization{ID: orgID, Title: "Test Org"}
+	activePAT := pat.PAT{ID: patID, OrgID: orgID, Title: "test-pat", ExpiresAt: time.Now().Add(time.Hour)}
+	projectRole := role.Role{ID: projectRoleID, Scopes: []string{schema.ProjectNamespace}}
+
+	t.Run("should write pat_granted policy on the org", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, projectRoleID).Return(projectRole, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{}, nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.MatchedBy(func(p policy.Policy) bool {
+			return p.RoleID == projectRoleID &&
+				p.ResourceID == orgID &&
+				p.ResourceType == schema.OrganizationNamespace &&
+				p.PrincipalID == patID &&
+				p.PrincipalType == schema.PATPrincipal &&
+				p.GrantRelation == schema.PATGrantRelationName
+		})).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetPATAllProjectsRole(ctx, orgID, patID, projectRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should be a no-op when the same pat_granted role is already set", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, projectRoleID).Return(projectRole, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{
+			{ID: "p1", RoleID: projectRoleID, GrantRelation: schema.PATGrantRelationName},
+		}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetPATAllProjectsRole(ctx, orgID, patID, projectRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should replace existing pat_granted policy with new role", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, projectRoleID).Return(projectRole, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{
+			{ID: "p1", RoleID: oldRoleID, GrantRelation: schema.PATGrantRelationName},
+		}, nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetPATAllProjectsRole(ctx, orgID, patID, projectRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should ignore an existing granted policy and only replace pat_granted", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, projectRoleID).Return(projectRole, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{
+			{ID: "granted-pol", RoleID: oldRoleID, GrantRelation: schema.RoleGrantRelationName},
+		}, nil)
+		// no Delete on the granted policy; only Create for the new pat_granted
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetPATAllProjectsRole(ctx, orgID, patID, projectRoleID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject role that is not project-scoped", func(t *testing.T) {
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, projectRoleID).Return(role.Role{ID: projectRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetPATAllProjectsRole(ctx, orgID, patID, projectRoleID)
+		assert.ErrorIs(t, err, membership.ErrInvalidProjectRole)
+	})
+
+	t.Run("should reject expired PAT", func(t *testing.T) {
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(pat.PAT{ID: patID, OrgID: orgID, ExpiresAt: time.Now().Add(-time.Hour)}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mocks.NewPolicyService(t), mocks.NewRelationService(t), mocks.NewRoleService(t), mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetPATAllProjectsRole(ctx, orgID, patID, projectRoleID)
+		assert.ErrorIs(t, err, membership.ErrPrincipalExpired)
+	})
 }
 
 func TestService_ListPrincipalsByResource(t *testing.T) {

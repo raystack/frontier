@@ -489,6 +489,7 @@ func buildAPIDependencies(
 	metaschemaService := metaschema.NewService(metaschemaRepository)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
+	membershipService.SetUserPATService(userPATService)
 	patAlertService := userpat.NewAlertService(userPATRepo, userService, organizationService, mailDialer, dbc, cfg.App.PAT.Alert, logger, auditRecordRepository)
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService, userPATService)
 
