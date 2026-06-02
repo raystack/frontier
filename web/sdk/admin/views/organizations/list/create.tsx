@@ -11,7 +11,6 @@ import {
   Drawer,
   SidePanel,
   Text,
-  Label,
 } from "@raystack/apsara-v1";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { AvatarUpload } from "../../../../react/components/avatar-upload";
@@ -19,27 +18,40 @@ import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@connectrpc/connect-query";
+import { Code } from "@connectrpc/connect";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 
 const orgCreateSchema = z
   .object({
     avatar: z.string().optional(),
-    title: z.string(),
-    name: z.string(),
-    orgOwnerEmail: z.string().email(),
-    size: z.string().transform((value) => parseInt(value)),
-    type: z.string(),
+    title: z.string().min(1, "Title is required"),
+    name: z
+      .string()
+      .min(1, "URL is required")
+      .regex(
+        /^[a-z0-9-]+$/,
+        "Use only lowercase letters, numbers, and hyphens",
+      ),
+    orgOwnerEmail: z
+      .string()
+      .min(1, "Owner email is required")
+      .email("Enter a valid email address"),
+    size: z
+      .string()
+      .min(1, "Size is required")
+      .refine(
+        (value) => Number.isInteger(Number(value)) && Number(value) > 0,
+        "Enter a valid size greater than 0",
+      )
+      .transform((value) => parseInt(value)),
+    type: z.string().min(1, "Industry is required"),
     otherType: z.string().optional(),
-    country: z.string(),
+    country: z.string().min(1, "Country is required"),
   })
-  .refine(
-    (data) =>
-      data.type !== "other" || (data.type === "other" && data.otherType),
-    {
-      message: "otherType is required when type is 'other'.",
-      path: ["otherType"],
-    },
-  );
+  .refine((data) => data.type !== "other" || Boolean(data.otherType?.trim()), {
+    message: "Please specify the industry",
+    path: ["otherType"],
+  });
 
 type OrgCreateSchema = z.infer<typeof orgCreateSchema>;
 
@@ -80,25 +92,32 @@ export function CreateOrganizationPanel({
     watch,
     register,
   } = useForm<OrgCreateSchema>({
-    defaultValues: {},
+    defaultValues: {
+      avatar: "",
+      title: "",
+      name: "",
+      orgOwnerEmail: "",
+      type: "",
+      otherType: "",
+      country: "",
+    },
     resolver: zodResolver(orgCreateSchema),
   });
 
-  const {
-    mutateAsync: createOrganization,
-    error: mutationError,
-    isPending,
-  } = useMutation(AdminServiceQueries.adminCreateOrganization);
-
-  useEffect(() => {
-    if (mutationError) {
-      if (mutationError.message?.includes("already exists")) {
-        setError("name", { message: `${t.organization({ case: "capital" })} name already exists` });
-      } else {
-        console.error("Unable to create new org:", mutationError);
-      }
-    }
-  }, [mutationError, setError, t]);
+  const { mutateAsync: createOrganization, isPending } = useMutation(
+    AdminServiceQueries.adminCreateOrganization,
+    {
+      onError: (error) => {
+        if (error?.code === Code.AlreadyExists) {
+          setError("name", {
+            message: `${t.organization({ case: "capital" })} name already exists`,
+          });
+        } else {
+          console.error("Unable to create new org:", error);
+        }
+      },
+    },
+  );
 
   async function onSubmit(data: OrgCreateSchema) {
     try {
@@ -126,7 +145,7 @@ export function CreateOrganizationPanel({
     }
   }
 
-  const showOtherTypeField = watch("type", "other") === "other";
+  const showOtherTypeField = watch("type") === "other";
 
   return (
     <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
@@ -174,37 +193,45 @@ export function CreateOrganizationPanel({
                   );
                 }}
               />
-              <Field label={`${t.organization({ case: "capital" })} title`}>
+              <Field
+                label={`${t.organization({ case: "capital" })} title`}
+                error={errors.title?.message}
+                required
+              >
                 <Input {...register("title")} />
               </Field>
               <Field
                 label={`${t.organization({ case: "capital" })} owner`}
                 error={errors.orgOwnerEmail?.message}
+                required
               >
-                <Input {...register("orgOwnerEmail")} />
+                <Input {...register("orgOwnerEmail")} type="email" />
               </Field>
               <Field
                 label={`${t.organization({ case: "capital" })} URL`}
                 description={`This will be your ${t.organization({ case: "lower" })} unique web address`}
                 error={errors.name?.message}
+                required
               >
                 <Input {...register("name")} prefix={appUrl} />
               </Field>
               <Field
                 label={`${t.organization({ case: "capital" })} size`}
                 error={errors.size?.message}
+                required
               >
-                <Input {...register("size")} type="number" min={0} />
+                <Input {...register("size")} type="number" min={1} />
               </Field>
               <Controller
                 name="type"
                 control={control}
                 render={({ field }) => {
                   return (
-                    <Flex direction="column" gap={2}>
-                      <Label htmlFor="org-type-select">
-                        {t.organization({ case: "capital" })} industry
-                      </Label>
+                    <Field
+                      label={`${t.organization({ case: "capital" })} industry`}
+                      error={errors.type?.message}
+                      required
+                    >
                       <Select
                         {...field}
                         value={field?.value?.toString()}
@@ -227,7 +254,7 @@ export function CreateOrganizationPanel({
                           <Select.Item value="other">Other</Select.Item>
                         </Select.Content>
                       </Select>
-                    </Flex>
+                    </Field>
                   );
                 }}
               />
@@ -244,8 +271,11 @@ export function CreateOrganizationPanel({
                 control={control}
                 render={({ field }) => {
                   return (
-                    <Flex direction="column" gap={2}>
-                      <Label htmlFor="country-select">Country</Label>
+                    <Field
+                      label="Country"
+                      error={errors.country?.message}
+                      required
+                    >
                       <Select
                         {...field}
                         value={field?.value?.toString()}
@@ -268,7 +298,7 @@ export function CreateOrganizationPanel({
                           ))}
                         </Select.Content>
                       </Select>
-                    </Flex>
+                    </Field>
                   );
                 }}
               />
