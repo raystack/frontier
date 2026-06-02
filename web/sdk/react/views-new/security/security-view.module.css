@@ -3,6 +3,10 @@
   border-bottom: 1px solid var(--rs-color-border-base-primary);
 }
 
+.section:last-child {
+  border-bottom: none;
+}
+
 .sectionHeader {
   flex: 1;
 }

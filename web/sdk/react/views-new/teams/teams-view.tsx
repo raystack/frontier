@@ -138,13 +138,6 @@ export function TeamsView({
   if (hasNoTeams) {
     return (
       <ViewContainer>
-        <ViewHeader
-          title={title}
-          description={
-            description ??
-            `Manage teams in this ${t.organization({ case: 'lower' })}`
-          }
-        />
         <EmptyState
           variant="empty2"
           classNames={{

@@ -56,7 +56,12 @@ export function PATCreatedDialog({ handle, onClose }: PATCreatedDialogProps) {
                   }
                   data-test-id="frontier-sdk-pat-token-input"
                 />
-                <Callout type="attention" icon={<ExclamationTriangleIcon />} width="100%">
+                <Callout
+                  type="attention"
+                  outline
+                  icon={<ExclamationTriangleIcon />}
+                  width="100%"
+                >
                   Warning: Make sure you copy the above token now. This token
                   will only be shown once. Store it securely.
                 </Callout>

@@ -154,10 +154,12 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
 
   return (
     <ViewContainer>
-      <ViewHeader
-        title="Personal access token"
-        description={`Manage personal access tokens to securely access ${t.appName()} resources and APIs.`}
-      />
+      {!hasNoPats && (
+        <ViewHeader
+          title="Personal access token"
+          description={`Manage personal access tokens to securely access ${t.appName()} resources and APIs.`}
+        />
+      )}
 
       {isInitialLoading ? (
         <Flex direction="column" gap={7}>

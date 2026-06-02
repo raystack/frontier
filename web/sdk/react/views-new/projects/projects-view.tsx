@@ -142,7 +142,6 @@ export function ProjectsView({
   if (hasNoProjects) {
     return (
       <ViewContainer>
-        <ViewHeader title={title} description={description ?? `Manage projects for this ${t.organization({ case: 'lower' })}`} />
         <EmptyState
           variant="empty2"
           classNames={{
