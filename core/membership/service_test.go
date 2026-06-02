@@ -1268,6 +1268,35 @@ func TestService_SetPATAllProjectsRole(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("should replace only the pat_granted policy when both granted and pat_granted exist", func(t *testing.T) {
+		// Granted policy's role matches the requested role — the function must
+		// not treat this as a no-op (the role-match check is for pat_granted
+		// only) and must not delete the granted policy.
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, projectRoleID).Return(projectRole, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{
+			{ID: "granted-pol", RoleID: projectRoleID, GrantRelation: schema.RoleGrantRelationName},
+			{ID: "pat-granted-pol", RoleID: oldRoleID, GrantRelation: schema.PATGrantRelationName},
+		}, nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "pat-granted-pol").Return(nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.MatchedBy(func(p policy.Policy) bool {
+			return p.GrantRelation == schema.PATGrantRelationName && p.RoleID == projectRoleID
+		})).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetPATAllProjectsRole(ctx, orgID, patID, projectRoleID)
+		assert.NoError(t, err)
+	})
+
 	t.Run("should reject role that is not project-scoped", func(t *testing.T) {
 		mockRoleSvc := mocks.NewRoleService(t)
 		mockOrgSvc := mocks.NewOrgService(t)
