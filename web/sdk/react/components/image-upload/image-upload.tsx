@@ -172,6 +172,10 @@ export function ImageUpload({
   const [showCropDialog, setShowCropDialog] = useState(false);
 
   function onUploadIconClick() {
+    // Reset so selecting the same file again still fires `change` and reopens the crop dialog.
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
     inputRef.current?.click();
   }
 
@@ -182,7 +186,6 @@ export function ImageUpload({
       const imageUrl = URL.createObjectURL(file);
       setImgSrc(imageUrl);
       setShowCropDialog(true);
-      e.target.files = null;
     }
   }
 

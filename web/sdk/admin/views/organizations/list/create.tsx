@@ -13,7 +13,7 @@ import {
   Text,
 } from "@raystack/apsara-v1";
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { AvatarUpload } from "../../../../react/components/avatar-upload";
+import { ImageUpload } from "../../../../react/components/image-upload";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -180,16 +180,10 @@ export function CreateOrganizationPanel({
                 control={control}
                 render={({ field }) => {
                   return (
-                    <>
-                      <Flex
-                        align="center"
-                        gap={5}
-                        style={{ width: "100%" }}
-                      >
-                        <AvatarUpload {...field} data-test-id="avatar-upload" />
-                        <Text>Pick a logo for your {t.organization({ case: "lower" })}</Text>
-                      </Flex>
-                    </>
+                    <Flex align="center" gap={5} style={{ width: "100%" }}>
+                      <ImageUpload {...field} data-test-id="avatar-upload" />
+                      <Text>Pick a logo for your {t.organization({ case: "lower" })}</Text>
+                    </Flex>
                   );
                 }}
               />
