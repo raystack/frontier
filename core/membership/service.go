@@ -228,7 +228,7 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
-	if len(existing) == 0 {
+	if len(existing) == 0 && principalType != schema.PATPrincipal {
 		return ErrNotMember
 	}
 
@@ -237,9 +237,13 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return nil
 	}
 
-	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing)
-	if err != nil {
-		return err
+	// only humans can be the last owner — skip for service users and PATs.
+	var ownerRoleID string
+	if principalType == schema.UserPrincipal {
+		ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing, ownerRoleID); err != nil {
@@ -365,9 +369,13 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return ErrNotMember
 	}
 
-	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
-	if err != nil {
-		return err
+	// only humans can be the last owner — skip for service users and PATs.
+	var ownerRoleID string
+	if principalType == schema.UserPrincipal {
+		ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := s.cascadeRemovePrincipal(ctx, org, principalID, principalType, ownerRoleID); err != nil {
@@ -929,6 +937,22 @@ func policyFilterForResource(resourceID, resourceType, principalID, principalTyp
 	return f
 }
 
+// excludePATAllProjects hides a PAT's all-projects grant from org member
+// listings — that policy lives on the org but grants project access, not
+// org membership.
+func excludePATAllProjects(policies []policy.Policy, resourceType string) []policy.Policy {
+	if resourceType != schema.OrganizationNamespace {
+		return policies
+	}
+	filtered := policies[:0]
+	for _, p := range policies {
+		if p.GrantRelation != schema.PATGrantRelationName {
+			filtered = append(filtered, p)
+		}
+	}
+	return filtered
+}
+
 // validateProjectRole checks that the role is valid for project scope:
 // - a platform-wide role scoped to projects, or
 // - a custom role created for the project's parent organization.
@@ -996,7 +1020,7 @@ func (s *Service) validateOrgMembership(ctx context.Context, orgID, principalID,
 		}
 	case schema.PATPrincipal:
 		if s.userPATService == nil {
-			return ErrInvalidPrincipalType
+			return ErrInvalidPrincipal
 		}
 		pat, err := s.userPATService.GetByID(ctx, principalID)
 		if err != nil {
@@ -1080,6 +1104,7 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	if err != nil {
 		return nil, fmt.Errorf("list policies: %w", err)
 	}
+	policies = excludePATAllProjects(policies, resourceType)
 
 	// deduplicate by (principalID, principalType) preserving order
 	memberIndex := make(map[string]int, len(policies))
@@ -1104,6 +1129,7 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	if err != nil {
 		return nil, fmt.Errorf("list policies for role enrichment: %w", err)
 	}
+	allPolicies = excludePATAllProjects(allPolicies, resourceType)
 
 	principalRoleIDs := make(map[string][]string, len(members))
 	roleSeen := make(map[string]map[string]struct{}, len(members))
