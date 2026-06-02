@@ -342,6 +342,29 @@ func (s *Service) SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleI
 	return nil
 }
 
+// RemoveAllPATPolicies deletes every policy held by a PAT.
+func (s *Service) RemoveAllPATPolicies(ctx context.Context, patID string) error {
+	_, err := s.removePoliciesByFilter(ctx, policy.Filter{
+		PrincipalID:   patID,
+		PrincipalType: schema.PATPrincipal,
+	})
+	return err
+}
+
+// removePoliciesByFilter lists policies matching the filter and deletes them.
+func (s *Service) removePoliciesByFilter(ctx context.Context, filter policy.Filter) (int, error) {
+	policies, err := s.policyService.List(ctx, filter)
+	if err != nil {
+		return 0, fmt.Errorf("list policies: %w", err)
+	}
+	for _, p := range policies {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+			return 0, fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+	return len(policies), nil
+}
+
 // RemoveOrganizationMember removes a principal from an organization and cascades
 // the removal through all org projects and groups, cleaning up both policies and
 // relations. Returns ErrNotMember if the principal has no policies on this org.
