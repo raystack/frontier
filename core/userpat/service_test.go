@@ -34,7 +34,7 @@ var defaultConfig = userpat.Config{
 	MaxLifetime:      "8760h",
 }
 
-func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleService, *mocks.PolicyService, *mocks.ProjectService, *mocks.AuditRecordRepository) {
+func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleService, *mocks.MembershipService, *mocks.ProjectService, *mocks.AuditRecordRepository) {
 	t.Helper()
 	orgSvc := mocks.NewOrganizationService(t)
 	orgSvc.On("GetRaw", mock.Anything, mock.Anything).
@@ -52,16 +52,22 @@ func newSuccessMocks(t *testing.T) (*mocks.OrganizationService, *mocks.RoleServi
 			Name:   "test-role",
 			Scopes: []string{schema.OrganizationNamespace},
 		}, nil).Maybe()
-	policySvc := mocks.NewPolicyService(t)
-	policySvc.On("Create", mock.Anything, mock.Anything).
-		Return(policy.Policy{}, nil).Maybe()
-	policySvc.On("List", mock.Anything, mock.Anything).
+	membershipSvc := mocks.NewMembershipService(t)
+	membershipSvc.On("SetOrganizationMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(nil).Maybe()
+	membershipSvc.On("SetPATAllProjectsRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(nil).Maybe()
+	membershipSvc.On("SetProjectMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(nil).Maybe()
+	membershipSvc.On("RemoveAllPATPolicies", mock.Anything, mock.Anything).
+		Return(nil).Maybe()
+	membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).
 		Return([]policy.Policy{}, nil).Maybe()
 	projSvc := mocks.NewProjectService(t)
 	auditRepo := mocks.NewAuditRecordRepository(t)
 	auditRepo.On("Create", mock.Anything, mock.Anything).
 		Return(auditmodels.AuditRecord{}, nil).Maybe()
-	return orgSvc, roleSvc, policySvc, projSvc, auditRepo
+	return orgSvc, roleSvc, membershipSvc, projSvc, auditRepo
 }
 
 func TestService_Create(t *testing.T) {
@@ -253,8 +259,8 @@ func TestService_Create(t *testing.T) {
 						ExpiresAt: futureExpiry,
 						CreatedAt: time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC),
 					}, nil)
-				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
@@ -285,8 +291,8 @@ func TestService_Create(t *testing.T) {
 					Return(int64(0), nil)
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
-				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
@@ -322,8 +328,8 @@ func TestService_Create(t *testing.T) {
 					Return(int64(0), nil)
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
-				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
@@ -358,13 +364,13 @@ func TestService_Create(t *testing.T) {
 					Return(int64(0), nil)
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
-				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
+				orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
 					Enabled:          true,
 					Prefix:           "custom",
 					MaxPerUserPerOrg: 50,
 					MaxLifetime:      "8760h",
-				}, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				}, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 			validateFunc: func(t *testing.T, got models.PAT, tokenValue string) {
 				t.Helper()
@@ -389,8 +395,8 @@ func TestService_Create(t *testing.T) {
 					Return(int64(49), nil)
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
-				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 		},
 		{
@@ -409,8 +415,8 @@ func TestService_Create(t *testing.T) {
 					Return(int64(0), nil)
 				repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 					Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
-				orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 		},
 	}
@@ -444,8 +450,8 @@ func TestService_Create_UniquePATs(t *testing.T) {
 	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 		Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil).Times(2)
 
-	orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 
 	req := userpat.CreateRequest{
 		UserID:    "user-1",
@@ -479,8 +485,8 @@ func TestService_Create_HashVerification(t *testing.T) {
 		}).
 		Return(models.PAT{ID: "pat-1", OrgID: "org-1"}, nil)
 
-	orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 
 	_, tokenValue, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
@@ -532,18 +538,11 @@ func TestService_CreatePolicies_OrgScopedRole(t *testing.T) {
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"org-role-1"}}).Return([]role.Role{orgRole}, nil)
 	roleSvc.On("Get", mock.Anything, "org-role-1").Return(orgRole, nil).Maybe()
 
-	policySvc := mocks.NewPolicyService(t)
-	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "org-role-1",
-		ResourceID:    "org-1",
-		ResourceType:  schema.OrganizationNamespace,
-		PrincipalID:   "pat-1",
-		PrincipalType: schema.PATPrincipal,
-		GrantRelation: schema.RoleGrantRelationName,
-	}).Return(policy.Policy{ID: "pol-1"}, nil)
-	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
+	membershipSvc := mocks.NewMembershipService(t)
+	membershipSvc.EXPECT().SetOrganizationMemberRole(mock.Anything, "org-1", "pat-1", schema.PATPrincipal, "org-role-1").Return(nil)
+	membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -579,18 +578,11 @@ func TestService_CreatePolicies_ProjectScopedAllProjects(t *testing.T) {
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{projRole}, nil)
 	roleSvc.On("Get", mock.Anything, "proj-role-1").Return(projRole, nil).Maybe()
 
-	policySvc := mocks.NewPolicyService(t)
-	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "proj-role-1",
-		ResourceID:    "org-1",
-		ResourceType:  schema.OrganizationNamespace,
-		PrincipalID:   "pat-1",
-		PrincipalType: schema.PATPrincipal,
-		GrantRelation: schema.PATGrantRelationName,
-	}).Return(policy.Policy{ID: "pol-1"}, nil)
-	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
+	membershipSvc := mocks.NewMembershipService(t)
+	membershipSvc.EXPECT().SetPATAllProjectsRole(mock.Anything, "org-1", "pat-1", "proj-role-1").Return(nil)
+	membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -626,24 +618,10 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-role-1"}}).Return([]role.Role{projRole}, nil)
 	roleSvc.On("Get", mock.Anything, "proj-role-1").Return(projRole, nil).Maybe()
 
-	policySvc := mocks.NewPolicyService(t)
-	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "proj-role-1",
-		ResourceID:    "proj-a",
-		ResourceType:  schema.ProjectNamespace,
-		PrincipalID:   "pat-1",
-		PrincipalType: schema.PATPrincipal,
-		GrantRelation: schema.RoleGrantRelationName,
-	}).Return(policy.Policy{ID: "pol-1"}, nil)
-	policySvc.EXPECT().Create(mock.Anything, policy.Policy{
-		RoleID:        "proj-role-1",
-		ResourceID:    "proj-b",
-		ResourceType:  schema.ProjectNamespace,
-		PrincipalID:   "pat-1",
-		PrincipalType: schema.PATPrincipal,
-		GrantRelation: schema.RoleGrantRelationName,
-	}).Return(policy.Policy{ID: "pol-2"}, nil)
-	policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
+	membershipSvc := mocks.NewMembershipService(t)
+	membershipSvc.EXPECT().SetProjectMemberRole(mock.Anything, "proj-a", "pat-1", schema.PATPrincipal, "proj-role-1").Return(nil)
+	membershipSvc.EXPECT().SetProjectMemberRole(mock.Anything, "proj-b", "pat-1", schema.PATPrincipal, "proj-role-1").Return(nil)
+	membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 	projSvc := mocks.NewProjectService(t)
 	projSvc.On("List", mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
@@ -652,7 +630,7 @@ func TestService_CreatePolicies_ProjectScopedSpecificProjects(t *testing.T) {
 		{ID: "proj-a"}, {ID: "proj-b"},
 	}, nil).Maybe()
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, projSvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -681,12 +659,12 @@ func TestService_CreatePolicies_DeniedPermission(t *testing.T) {
 		Scopes:      []string{schema.OrganizationNamespace},
 	}}, nil)
 
-	policySvc := mocks.NewPolicyService(t)
+	membershipSvc := mocks.NewMembershipService(t)
 
 	cfg := defaultConfig
 	cfg.DeniedPermissions = []string{"app_organization_administer"}
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -714,9 +692,9 @@ func TestService_CreatePolicies_RoleFetchError(t *testing.T) {
 	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"bad-role"}}).
 		Return(nil, errors.New("role not found"))
 
-	policySvc := mocks.NewPolicyService(t)
+	membershipSvc := mocks.NewMembershipService(t)
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -748,9 +726,9 @@ func TestService_CreatePolicies_UnsupportedScope(t *testing.T) {
 		Scopes:      []string{schema.GroupNamespace},
 	}}, nil)
 
-	policySvc := mocks.NewPolicyService(t)
+	membershipSvc := mocks.NewMembershipService(t)
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
 		OrgID:     "org-1",
@@ -782,9 +760,9 @@ func TestService_CreatePolicies_MissingRoleID(t *testing.T) {
 		Scopes: []string{schema.OrganizationNamespace},
 	}}, nil)
 
-	policySvc := mocks.NewPolicyService(t)
+	membershipSvc := mocks.NewMembershipService(t)
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID: "user-1",
 		OrgID:  "org-1",
@@ -812,8 +790,8 @@ func TestService_CreatePolicies_NoRoles(t *testing.T) {
 	repo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.PAT")).
 		Return(models.PAT{ID: "pat-1", OrgID: "org-1", CreatedAt: time.Now()}, nil)
 
-	orgSvc, roleSvc, policySvc, _, auditRepo := newSuccessMocks(t)
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	orgSvc, roleSvc, membershipSvc, _, auditRepo := newSuccessMocks(t)
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID:    "user-1",
@@ -920,10 +898,10 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 			},
 		},
 
-		// ── Multiple roles of same scope ─────────────────────────────────
+		// ── Duplicate scopes rejected (1 role per resource type) ─────────
 
 		{
-			name: "multiple org roles create separate org policies",
+			name: "two org-scoped roles rejected",
 			scopes: []models.PATScope{
 				{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
 				{RoleID: "org-billing-id", ResourceType: schema.OrganizationNamespace},
@@ -932,13 +910,12 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}},
 				{ID: "org-billing-id", Name: "app_organization_billing_viewer", Permissions: []string{"app_organization_billingview"}, Scopes: []string{schema.OrganizationNamespace}},
 			},
-			want: []wantPolicy{
-				{RoleID: "org-viewer-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "granted"},
-				{RoleID: "org-billing-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "granted"},
-			},
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDuplicateScope,
 		},
 		{
-			name: "multiple project roles, all projects → separate pat_granted policies",
+			name: "two project-scoped roles (all projects) rejected",
 			scopes: []models.PATScope{
 				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace},
 				{RoleID: "proj-editor-id", ResourceType: schema.ProjectNamespace},
@@ -947,13 +924,12 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				{ID: "proj-editor-id", Name: "app_project_editor", Permissions: []string{"app_project_get", "app_project_update"}, Scopes: []string{schema.ProjectNamespace}},
 			},
-			want: []wantPolicy{
-				{RoleID: "proj-viewer-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "pat_granted"},
-				{RoleID: "proj-editor-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "pat_granted"},
-			},
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDuplicateScope,
 		},
 		{
-			name: "multiple project roles, specific projects → policy per role per project",
+			name: "two project-scoped roles (specific projects) rejected",
 			scopes: []models.PATScope{
 				{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1", "proj-2"}},
 				{RoleID: "proj-editor-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1", "proj-2"}},
@@ -962,12 +938,9 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}},
 				{ID: "proj-editor-id", Name: "app_project_editor", Permissions: []string{"app_project_get", "app_project_update"}, Scopes: []string{schema.ProjectNamespace}},
 			},
-			want: []wantPolicy{
-				{RoleID: "proj-viewer-id", ResourceID: "proj-1", ResourceType: schema.ProjectNamespace, Grant: "granted"},
-				{RoleID: "proj-viewer-id", ResourceID: "proj-2", ResourceType: schema.ProjectNamespace, Grant: "granted"},
-				{RoleID: "proj-editor-id", ResourceID: "proj-1", ResourceType: schema.ProjectNamespace, Grant: "granted"},
-				{RoleID: "proj-editor-id", ResourceID: "proj-2", ResourceType: schema.ProjectNamespace, Grant: "granted"},
-			},
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: paterrors.ErrDuplicateScope,
 		},
 
 		// ── Scope isolation ──────────────────────────────────────────────
@@ -1161,15 +1134,45 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				}
 			}
 
-			// --- policyService: capture all Create calls
+			// --- membershipService: capture every write the service makes, translate
+			// each membership call into the equivalent policy.Policy shape so the
+			// existing wantPolicy assertions keep working.
 			var captured []policy.Policy
-			policySvc := mocks.NewPolicyService(t)
-			policySvc.On("Create", mock.Anything, mock.AnythingOfType("policy.Policy")).
+			membershipSvc := mocks.NewMembershipService(t)
+			membershipSvc.On("SetOrganizationMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 				Run(func(args mock.Arguments) {
-					captured = append(captured, args.Get(1).(policy.Policy))
-				}).
-				Return(policy.Policy{ID: "pol-gen"}, nil).Maybe()
-			policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
+					captured = append(captured, policy.Policy{
+						RoleID:        args.String(4),
+						ResourceID:    args.String(1),
+						ResourceType:  schema.OrganizationNamespace,
+						PrincipalID:   args.String(2),
+						PrincipalType: args.String(3),
+						GrantRelation: schema.RoleGrantRelationName,
+					})
+				}).Return(nil).Maybe()
+			membershipSvc.On("SetPATAllProjectsRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				Run(func(args mock.Arguments) {
+					captured = append(captured, policy.Policy{
+						RoleID:        args.String(3),
+						ResourceID:    args.String(1),
+						ResourceType:  schema.OrganizationNamespace,
+						PrincipalID:   args.String(2),
+						PrincipalType: schema.PATPrincipal,
+						GrantRelation: schema.PATGrantRelationName,
+					})
+				}).Return(nil).Maybe()
+			membershipSvc.On("SetProjectMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				Run(func(args mock.Arguments) {
+					captured = append(captured, policy.Policy{
+						RoleID:        args.String(4),
+						ResourceID:    args.String(1),
+						ResourceType:  schema.ProjectNamespace,
+						PrincipalID:   args.String(2),
+						PrincipalType: args.String(3),
+						GrantRelation: schema.RoleGrantRelationName,
+					})
+				}).Return(nil).Maybe()
+			membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 
 			projSvc := mocks.NewProjectService(t)
 			projSvc.On("List", mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
@@ -1178,7 +1181,7 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{ID: "proj-1"}, {ID: "proj-2"}, {ID: "proj-3"}, {ID: "proj-a"}, {ID: "proj-b"},
 			}, nil).Maybe()
 
-			svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
+			svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, cfg, orgSvc, roleSvc, membershipSvc, projSvc, auditRepo)
 			_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 				UserID:    "user-1",
 				OrgID:     "org-1",
@@ -1267,32 +1270,29 @@ func TestService_CreatePolicies_PolicyCreateFailure(t *testing.T) {
 	orgSvc := mocks.NewOrganizationService(t)
 	auditRepo := mocks.NewAuditRecordRepository(t)
 
-	orgViewerRole := role.Role{ID: "org-viewer-id", Name: "app_organization_viewer", Permissions: []string{"app_organization_get"}, Scopes: []string{schema.OrganizationNamespace}}
-	orgBillingRole := role.Role{ID: "org-billing-id", Name: "app_organization_billing", Permissions: []string{"app_organization_billingview"}, Scopes: []string{schema.OrganizationNamespace}}
+	projViewerRole := role.Role{ID: "proj-viewer-id", Name: "app_project_viewer", Permissions: []string{"app_project_get"}, Scopes: []string{schema.ProjectNamespace}}
 
 	roleSvc := mocks.NewRoleService(t)
-	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"org-viewer-id", "org-billing-id"}}).
-		Return([]role.Role{orgViewerRole, orgBillingRole}, nil)
-	roleSvc.On("Get", mock.Anything, "org-viewer-id").Return(orgViewerRole, nil).Maybe()
-	roleSvc.On("Get", mock.Anything, "org-billing-id").Return(orgBillingRole, nil).Maybe()
+	roleSvc.EXPECT().List(mock.Anything, role.Filter{IDs: []string{"proj-viewer-id"}}).
+		Return([]role.Role{projViewerRole}, nil)
+	roleSvc.On("Get", mock.Anything, "proj-viewer-id").Return(projViewerRole, nil).Maybe()
 
-	// first policy Create succeeds, second fails
-	policySvc := mocks.NewPolicyService(t)
-	policySvc.On("Create", mock.Anything, mock.MatchedBy(func(p policy.Policy) bool {
-		return p.RoleID == "org-viewer-id"
-	})).Return(policy.Policy{ID: "pol-1"}, nil)
-	policySvc.On("Create", mock.Anything, mock.MatchedBy(func(p policy.Policy) bool {
-		return p.RoleID == "org-billing-id"
-	})).Return(policy.Policy{}, errors.New("spicedb unavailable"))
+	// one scope with two project IDs invokes SetProjectMemberRole twice; first succeeds, second fails
+	membershipSvc := mocks.NewMembershipService(t)
+	membershipSvc.EXPECT().SetProjectMemberRole(mock.Anything, "proj-1", "pat-1", schema.PATPrincipal, "proj-viewer-id").Return(nil)
+	membershipSvc.EXPECT().SetProjectMemberRole(mock.Anything, "proj-2", "pat-1", schema.PATPrincipal, "proj-viewer-id").Return(errors.New("spicedb unavailable"))
 
-	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+	projSvc := mocks.NewProjectService(t)
+	projSvc.On("List", mock.Anything, mock.Anything).
+		Return([]project.Project{{ID: "proj-1"}, {ID: "proj-2"}}, nil).Maybe()
+
+	svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, projSvc, auditRepo)
 	_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 		UserID: "user-1",
 		OrgID:  "org-1",
 		Title:  "fail-token",
 		Scopes: []models.PATScope{
-			{RoleID: "org-viewer-id", ResourceType: schema.OrganizationNamespace},
-			{RoleID: "org-billing-id", ResourceType: schema.OrganizationNamespace},
+			{RoleID: "proj-viewer-id", ResourceType: schema.ProjectNamespace, ResourceIDs: []string{"proj-1", "proj-2"}},
 		},
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	})
@@ -1636,10 +1636,10 @@ func TestService_Get(t *testing.T) {
 			patID:  "pat-1",
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
-				orgSvc, _, policySvc, _, auditRepo := newSuccessMocks(t)
+				orgSvc, _, membershipSvc, _, auditRepo := newSuccessMocks(t)
 				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
 					Enabled: false,
-				}, orgSvc, nil, policySvc, nil, auditRepo)
+				}, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrDisabled,
@@ -1652,8 +1652,8 @@ func TestService_Get(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(models.PAT{}, paterrors.ErrNotFound)
-				orgSvc, _, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				orgSvc, _, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -1666,8 +1666,8 @@ func TestService_Get(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(testPAT, nil)
-				orgSvc, _, policySvc, _, auditRepo := newSuccessMocks(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				orgSvc, _, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrNotFound,
@@ -1680,12 +1680,12 @@ func TestService_Get(t *testing.T) {
 				repo := mocks.NewRepository(t)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(testPAT, nil)
-				orgSvc, _, policySvc, _, auditRepo := newSuccessMocks(t)
-				policySvc.On("List", mock.Anything, mock.Anything).
+				orgSvc, _, membershipSvc, _, auditRepo := newSuccessMocks(t)
+				membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).
 					Return([]policy.Policy{
 						{RoleID: "role-1", ResourceType: "app/organization", ResourceID: "org-1"},
 					}, nil).Maybe()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -1698,11 +1698,11 @@ func TestService_Get(t *testing.T) {
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(testPAT, nil)
 				orgSvc := mocks.NewOrganizationService(t)
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.On("List", mock.Anything, mock.Anything).
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).
 					Return(nil, errors.New("spicedb down"))
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: true,
 		},
@@ -1822,41 +1822,16 @@ func TestService_Delete(t *testing.T) {
 				repo.EXPECT().Delete(mock.Anything, "pat-1").
 					Return(nil)
 				orgSvc := mocks.NewOrganizationService(t)
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return(nil, errors.New("spicedb down"))
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-1").
+					Return(errors.New("spicedb down"))
 				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: true,
 		},
 		{
-			name:   "should return error when policy delete fails after soft-delete",
-			userID: "user-1",
-			patID:  "pat-1",
-			setup: func() *userpat.Service {
-				repo := mocks.NewRepository(t)
-				repo.EXPECT().GetByID(mock.Anything, "pat-1").
-					Return(testPAT, nil)
-				repo.EXPECT().Delete(mock.Anything, "pat-1").
-					Return(nil)
-				orgSvc := mocks.NewOrganizationService(t)
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{{ID: "pol-1"}}, nil)
-				policySvc.EXPECT().Delete(mock.Anything, "pol-1").
-					Return(errors.New("spicedb unavailable"))
-				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
-			},
-			wantErr: true,
-		},
-		{
-			name:   "should delete successfully with policies",
+			name:   "should delete successfully",
 			userID: "user-1",
 			patID:  "pat-1",
 			setup: func() *userpat.Service {
@@ -1868,45 +1843,12 @@ func TestService_Delete(t *testing.T) {
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{
-					{ID: "pol-1"},
-					{ID: "pol-2"},
-				}, nil)
-				policySvc.EXPECT().Delete(mock.Anything, "pol-1").Return(nil)
-				policySvc.EXPECT().Delete(mock.Anything, "pol-2").Return(nil)
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-1").Return(nil)
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
-			},
-			wantErr: false,
-		},
-		{
-			name:   "should delete successfully with no policies",
-			userID: "user-1",
-			patID:  "pat-1",
-			setup: func() *userpat.Service {
-				repo := mocks.NewRepository(t)
-				repo.EXPECT().GetByID(mock.Anything, "pat-1").
-					Return(testPAT, nil)
-				repo.EXPECT().Delete(mock.Anything, "pat-1").
-					Return(nil)
-				orgSvc := mocks.NewOrganizationService(t)
-				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
-					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				auditRepo := mocks.NewAuditRecordRepository(t)
-				auditRepo.On("Create", mock.Anything, mock.Anything).
-					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -1923,15 +1865,12 @@ func TestService_Delete(t *testing.T) {
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil)
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-1").Return(nil)
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2040,6 +1979,20 @@ func TestService_Update(t *testing.T) {
 			wantErrIs: paterrors.ErrNotFound,
 		},
 		{
+			name:  "should return ErrExpired when PAT has already expired",
+			input: defaultInput,
+			setup: func() *userpat.Service {
+				expiredPAT := testPAT
+				expiredPAT.ExpiresAt = time.Now().Add(-time.Hour)
+				repo := mocks.NewRepository(t)
+				repo.EXPECT().GetByID(mock.Anything, "pat-1").
+					Return(expiredPAT, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, nil, nil, nil)
+			},
+			wantErr:   true,
+			wantErrIs: paterrors.ErrExpired,
+		},
+		{
 			name:  "should return error when role validation fails",
 			input: defaultInput,
 			setup: func() *userpat.Service {
@@ -2064,14 +2017,11 @@ func TestService_Update(t *testing.T) {
 				roleSvc := mocks.NewRoleService(t)
 				roleSvc.EXPECT().List(mock.Anything, mock.Anything).
 					Return([]role.Role{validRole}, nil)
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil)
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().ListPoliciesByPrincipal(mock.Anything, "pat-1", schema.PATPrincipal).Return([]policy.Policy{}, nil)
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(models.PAT{}, errors.New("db error"))
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, membershipSvc, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2085,14 +2035,11 @@ func TestService_Update(t *testing.T) {
 				roleSvc := mocks.NewRoleService(t)
 				roleSvc.EXPECT().List(mock.Anything, mock.Anything).
 					Return([]role.Role{validRole}, nil)
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil)
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().ListPoliciesByPrincipal(mock.Anything, "pat-1", schema.PATPrincipal).Return([]policy.Policy{}, nil)
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(models.PAT{}, paterrors.ErrConflict)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, membershipSvc, nil, nil)
 			},
 			wantErr:   true,
 			wantErrIs: paterrors.ErrConflict,
@@ -2107,20 +2054,12 @@ func TestService_Update(t *testing.T) {
 				roleSvc := mocks.NewRoleService(t)
 				roleSvc.EXPECT().List(mock.Anything, mock.Anything).
 					Return([]role.Role{validRole}, nil)
-				policySvc := mocks.NewPolicyService(t)
-				// captureOldScope call
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil).Once()
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().ListPoliciesByPrincipal(mock.Anything, "pat-1", schema.PATPrincipal).Return([]policy.Policy{}, nil)
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(updatedPAT, nil)
-				// deletePolicies call
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return(nil, errors.New("spicedb down")).Once()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-1").Return(errors.New("spicedb down"))
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, membershipSvc, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2129,23 +2068,20 @@ func TestService_Update(t *testing.T) {
 			input: defaultInput,
 			setup: func() *userpat.Service {
 				repo := mocks.NewRepository(t)
-				// getOwnedPAT
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(testPAT, nil).Once()
 				roleSvc := mocks.NewRoleService(t)
 				roleSvc.EXPECT().List(mock.Anything, mock.Anything).
 					Return([]role.Role{validRole}, nil)
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.EXPECT().List(mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil)
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.EXPECT().ListPoliciesByPrincipal(mock.Anything, "pat-1", schema.PATPrincipal).Return([]policy.Policy{}, nil)
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(updatedPAT, nil)
+				membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-1").Return(nil)
 				// TOCTOU re-check returns not found (concurrent delete)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
 					Return(models.PAT{}, paterrors.ErrNotFound).Once()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, policySvc, nil, nil)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, roleSvc, membershipSvc, nil, nil)
 			},
 			wantErr: true,
 		},
@@ -2164,14 +2100,13 @@ func TestService_Update(t *testing.T) {
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
+				membershipSvc := mocks.NewMembershipService(t)
 				// captureOldScope + enrichWithScope (after update)
-				policySvc.On("List", mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				policySvc.On("Create", mock.Anything, mock.Anything).
-					Return(policy.Policy{}, nil)
+				membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, "pat-1", schema.PATPrincipal).Return([]policy.Policy{}, nil)
+				membershipSvc.On("RemoveAllPATPolicies", mock.Anything, "pat-1").Return(nil)
+				membershipSvc.On("SetOrganizationMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+				membershipSvc.On("SetPATAllProjectsRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+				membershipSvc.On("SetProjectMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(updatedPAT, nil)
 				// TOCTOU re-check
@@ -2180,7 +2115,7 @@ func TestService_Update(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2198,13 +2133,12 @@ func TestService_Update(t *testing.T) {
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.On("List", mock.Anything, policy.Filter{
-					PrincipalID:   "pat-1",
-					PrincipalType: schema.PATPrincipal,
-				}).Return([]policy.Policy{}, nil)
-				policySvc.On("Create", mock.Anything, mock.Anything).
-					Return(policy.Policy{}, nil)
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, "pat-1", schema.PATPrincipal).Return([]policy.Policy{}, nil)
+				membershipSvc.On("RemoveAllPATPolicies", mock.Anything, "pat-1").Return(nil)
+				membershipSvc.On("SetOrganizationMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+				membershipSvc.On("SetPATAllProjectsRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+				membershipSvc.On("SetProjectMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 				repo.EXPECT().Update(mock.Anything, mock.Anything).
 					Return(updatedPAT, nil)
 				repo.EXPECT().GetByID(mock.Anything, "pat-1").
@@ -2212,7 +2146,7 @@ func TestService_Update(t *testing.T) {
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2369,13 +2303,13 @@ func TestService_Regenerate(t *testing.T) {
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.On("List", mock.Anything, mock.Anything).
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).
 					Return([]policy.Policy{}, nil).Maybe()
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2410,13 +2344,13 @@ func TestService_Regenerate(t *testing.T) {
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.On("List", mock.Anything, mock.Anything).
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).
 					Return([]policy.Policy{}, nil).Maybe()
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, nil).Maybe()
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2434,13 +2368,13 @@ func TestService_Regenerate(t *testing.T) {
 				orgSvc := mocks.NewOrganizationService(t)
 				orgSvc.On("GetRaw", mock.Anything, mock.Anything).
 					Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
-				policySvc := mocks.NewPolicyService(t)
-				policySvc.On("List", mock.Anything, mock.Anything).
+				membershipSvc := mocks.NewMembershipService(t)
+				membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).
 					Return([]policy.Policy{}, nil).Maybe()
 				auditRepo := mocks.NewAuditRecordRepository(t)
 				auditRepo.On("Create", mock.Anything, mock.Anything).
 					Return(auditmodels.AuditRecord{}, errors.New("audit db down"))
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, policySvc, nil, auditRepo)
+				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, nil, membershipSvc, nil, auditRepo)
 			},
 			wantErr: false,
 		},
@@ -2599,9 +2533,11 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 		roleSvc.EXPECT().List(mock.Anything, mock.Anything).Return([]role.Role{
 			{ID: "role-1", Name: "proj_viewer", Scopes: []string{schema.ProjectNamespace}, Permissions: []string{"app_project_get"}},
 		}, nil)
-		policySvc := mocks.NewPolicyService(t)
-		policySvc.On("Create", mock.Anything, mock.Anything).Return(policy.Policy{}, nil).Maybe()
-		policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
+		membershipSvc := mocks.NewMembershipService(t)
+		membershipSvc.On("SetOrganizationMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+		membershipSvc.On("SetProjectMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+		membershipSvc.On("SetPATAllProjectsRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+		membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 		projSvc := mocks.NewProjectService(t)
 		projSvc.On("List", mock.Anything, mock.MatchedBy(func(f project.Filter) bool {
 			return f.OrgID == "org-1" && f.Principal != nil && f.Principal.ID == "user-1" && f.Principal.Type == schema.UserPrincipal
@@ -2611,7 +2547,7 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 		auditRepo := mocks.NewAuditRecordRepository(t)
 		auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
-		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, projSvc, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, projSvc, auditRepo)
 		_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 			UserID: "user-1",
 			OrgID:  "org-1",
@@ -2638,14 +2574,16 @@ func TestService_ValidateProjectAccess(t *testing.T) {
 		roleSvc.EXPECT().List(mock.Anything, mock.Anything).Return([]role.Role{
 			{ID: "role-1", Name: "proj_viewer", Scopes: []string{schema.ProjectNamespace}, Permissions: []string{"app_project_get"}},
 		}, nil)
-		policySvc := mocks.NewPolicyService(t)
-		policySvc.On("Create", mock.Anything, mock.Anything).Return(policy.Policy{}, nil).Maybe()
-		policySvc.On("List", mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
+		membershipSvc := mocks.NewMembershipService(t)
+		membershipSvc.On("SetOrganizationMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+		membershipSvc.On("SetProjectMemberRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+		membershipSvc.On("SetPATAllProjectsRole", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+		membershipSvc.On("ListPoliciesByPrincipal", mock.Anything, mock.Anything, mock.Anything).Return([]policy.Policy{}, nil).Maybe()
 		auditRepo := mocks.NewAuditRecordRepository(t)
 		auditRepo.On("Create", mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Maybe()
 
 		// No projectService mock needed — all-projects scope has empty ResourceIDs, skips validation
-		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, orgSvc, roleSvc, membershipSvc, nil, auditRepo)
 		_, _, err := svc.Create(context.Background(), userpat.CreateRequest{
 			UserID: "user-1",
 			OrgID:  "org-1",
@@ -2692,13 +2630,10 @@ func TestService_List(t *testing.T) {
 			Return(models.PATList{
 				PATs: []models.PAT{{ID: "pat-1", UserID: "user-1", OrgID: "org-1"}},
 			}, nil)
-		policySvc := mocks.NewPolicyService(t)
-		policySvc.EXPECT().List(mock.Anything, policy.Filter{
-			PrincipalID:   "pat-1",
-			PrincipalType: schema.PATPrincipal,
-		}).Return(nil, errors.New("policy service down"))
+		membershipSvc := mocks.NewMembershipService(t)
+		membershipSvc.EXPECT().ListPoliciesByPrincipal(mock.Anything, "pat-1", schema.PATPrincipal).Return(nil, errors.New("policy service down"))
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, membershipSvc, nil, auditRepo)
 
 		_, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err == nil || !strings.Contains(err.Error(), "enriching PAT scope") {
@@ -2715,21 +2650,15 @@ func TestService_List(t *testing.T) {
 					{ID: "pat-2", UserID: "user-1", OrgID: "org-1", Title: "token-2"},
 				},
 			}, nil)
-		policySvc := mocks.NewPolicyService(t)
+		membershipSvc := mocks.NewMembershipService(t)
 		// enrichWithScope for pat-1
-		policySvc.EXPECT().List(mock.Anything, policy.Filter{
-			PrincipalID:   "pat-1",
-			PrincipalType: schema.PATPrincipal,
-		}).Return([]policy.Policy{
+		membershipSvc.EXPECT().ListPoliciesByPrincipal(mock.Anything, "pat-1", schema.PATPrincipal).Return([]policy.Policy{
 			{ID: "pol-1", RoleID: "role-1", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, GrantRelation: "granted"},
 		}, nil)
 		// enrichWithScope for pat-2
-		policySvc.EXPECT().List(mock.Anything, policy.Filter{
-			PrincipalID:   "pat-2",
-			PrincipalType: schema.PATPrincipal,
-		}).Return([]policy.Policy{}, nil)
+		membershipSvc.EXPECT().ListPoliciesByPrincipal(mock.Anything, "pat-2", schema.PATPrincipal).Return([]policy.Policy{}, nil)
 		auditRepo := mocks.NewAuditRecordRepository(t)
-		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, policySvc, nil, auditRepo)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig, nil, nil, membershipSvc, nil, auditRepo)
 
 		result, err := svc.List(context.Background(), "user-1", "org-1", nil)
 		if err != nil {
