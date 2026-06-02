@@ -6,14 +6,17 @@ import {
   Text,
   Menu,
   IconButton,
+  AlertDialog,
 } from "@raystack/apsara-v1";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
   Role,
 } from "@raystack/proton/frontier";
+import type { UpdateRolePayload } from "./update-role";
 import styles from "./members.module.css";
 import dayjs from "dayjs";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { DeleteIcon } from "~/admin/assets/icons/DeleteIcon";
 import {
   isNullTimestamp,
   TimeStamp,
@@ -28,9 +31,9 @@ const MemberStates = {
 interface getColumnsOptions {
   roles: Role[];
   memberCount: number;
-  handleAssignRoleAction: (
-    user: SearchOrganizationUsersResponse_OrganizationUser,
-  ) => void;
+  updateRoleHandle: ReturnType<
+    typeof AlertDialog.createHandle<UpdateRolePayload>
+  >;
   handleRemoveMemberAction: (
     user: SearchOrganizationUsersResponse_OrganizationUser,
   ) => void;
@@ -39,7 +42,7 @@ interface getColumnsOptions {
 export const getColumns = ({
   roles = [],
   memberCount,
-  handleAssignRoleAction,
+  updateRoleHandle,
   handleRemoveMemberAction,
 }: getColumnsOptions): DataTableColumnDef<
   SearchOrganizationUsersResponse_OrganizationUser,
@@ -141,6 +144,11 @@ export const getColumns = ({
       cell: ({ row }) => {
         // The last remaining member of an organization cannot be removed.
         const canRemoveMember = memberCount > 1;
+        const userRoleIds = row.original.roleIds || [];
+        // Only offer roles the member doesn't already have.
+        const excludedRoles = roles.filter(
+          (role) => role.id && !userRoleIds.includes(role.id),
+        );
         return (
           <Menu>
             <Menu.Trigger
@@ -151,18 +159,35 @@ export const getColumns = ({
               }
             />
             <Menu.Content className={styles["table-action-dropdown"]}>
-              <Menu.Item
-                onClick={() => handleAssignRoleAction(row.original)}
-                data-test-id="admin-assign-role-action"
-              >
-                Assign role...
-              </Menu.Item>
+              {excludedRoles.map((role) => (
+                <Menu.Item
+                  key={role.id}
+                  leadingIcon={<UpdateIcon />}
+                  onClick={() =>
+                    updateRoleHandle.openWithPayload({
+                      user: row.original,
+                      role,
+                    })
+                  }
+                  data-test-id={`admin-assign-role-${role.name}-action`}
+                >
+                  Make {role.title}
+                </Menu.Item>
+              ))}
               {canRemoveMember && (
                 <Menu.Item
+                  leadingIcon={
+                    <DeleteIcon
+                      style={{
+                        color: "var(--rs-color-foreground-danger-primary)",
+                      }}
+                    />
+                  }
                   onClick={() => handleRemoveMemberAction(row.original)}
                   data-test-id="admin-remove-member-action"
+                  style={{ color: "var(--rs-color-foreground-danger-primary)" }}
                 >
-                  Remove...
+                  Remove
                 </Menu.Item>
               )}
             </Menu.Content>
