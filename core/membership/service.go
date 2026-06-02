@@ -342,6 +342,14 @@ func (s *Service) SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleI
 	return nil
 }
 
+// ListPoliciesByPrincipal returns every policy held by the principal.
+func (s *Service) ListPoliciesByPrincipal(ctx context.Context, principalID, principalType string) ([]policy.Policy, error) {
+	return s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+}
+
 // RemoveAllPATPolicies deletes every policy held by a PAT.
 func (s *Service) RemoveAllPATPolicies(ctx context.Context, patID string) error {
 	_, err := s.removePoliciesByFilter(ctx, policy.Filter{

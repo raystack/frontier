@@ -1326,6 +1326,32 @@ func TestService_SetPATAllProjectsRole(t *testing.T) {
 	})
 }
 
+func TestService_ListPoliciesByPrincipal(t *testing.T) {
+	ctx := context.Background()
+	principalID := uuid.New().String()
+
+	t.Run("returns every policy held by the principal", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: principalID, PrincipalType: schema.PATPrincipal}).
+			Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		got, err := svc.ListPoliciesByPrincipal(ctx, principalID, schema.PATPrincipal)
+		assert.NoError(t, err)
+		assert.Len(t, got, 2)
+	})
+
+	t.Run("surfaces policy list errors", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: principalID, PrincipalType: schema.PATPrincipal}).
+			Return(nil, errors.New("db down"))
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		_, err := svc.ListPoliciesByPrincipal(ctx, principalID, schema.PATPrincipal)
+		assert.Error(t, err)
+	})
+}
+
 func TestService_RemoveAllPATPolicies(t *testing.T) {
 	ctx := context.Background()
 	patID := uuid.New().String()
