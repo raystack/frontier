@@ -6,7 +6,7 @@ import { exportCsvFromStream } from "~/utils/helper";
 
 const adminClient = clients.admin({ useBinary: true });
 
-export function UsersPage() {
+export default function UsersPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();

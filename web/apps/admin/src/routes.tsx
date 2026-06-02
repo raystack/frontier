@@ -1,43 +1,75 @@
 import * as R from "ramda";
-import { memo, useContext } from "react";
+import { lazy, memo, useContext } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import LoadingState from "./components/states/Loading";
 import UnauthorizedState from "./components/states/Unauthorized";
 
+// Eager: the app shell and the unauthenticated flow. Keeping these in the
+// initial bundle means the login screen paints instantly.
 import App from "./App";
-import { PlansPage } from "./pages/plans/PlansPage";
 import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
-
-import { PreferencesPage } from "./pages/preferences/PreferencesPage";
-import { ProductsPage } from "./pages/products/ProductsPage";
-import { ProductPricesPage } from "./pages/products/ProductPricesPage";
-
-import { RolesPage } from "./pages/roles/RolesPage";
-
-import { AppContext } from "./contexts/App";
-import { AdminsPage } from "./pages/admins/AdminsPage";
-import { WebhooksPage } from "./pages/webhooks/WebhooksPage";
 import AuthLayout from "./layout/auth";
 
-import { OrganizationListPage } from "./pages/organizations/list";
-import { OrganizationDetailsPage } from "./pages/organizations/details";
-import {
-  OrganizationSecurity,
-  OrganizationMembersView,
-  OrganizationProjectsView,
-  OrganizationInvoicesView,
-  OrganizationTokensView,
-  OrganizationApisView,
-  OrganizationPatView,
-  useAdminPaths,
-} from "@raystack/frontier/admin";
+import { AppContext } from "./contexts/App";
+// useAdminPaths is a hook called during render, so it must stay a static import.
+import { useAdminPaths } from "@raystack/frontier/admin";
 
-import { UsersPage } from "./pages/users/UsersPage";
+// Lazily-loaded route pages — each becomes its own async chunk, so the heavy
+// admin code stays out of the initial/unauthenticated bundle. The pages are
+// default exports, so React.lazy imports them directly (per the React docs).
+const PlansPage = lazy(() => import("./pages/plans/PlansPage"));
+const PreferencesPage = lazy(() => import("./pages/preferences/PreferencesPage"));
+const ProductsPage = lazy(() => import("./pages/products/ProductsPage"));
+const ProductPricesPage = lazy(() => import("./pages/products/ProductPricesPage"));
+const RolesPage = lazy(() => import("./pages/roles/RolesPage"));
+const AdminsPage = lazy(() => import("./pages/admins/AdminsPage"));
+const WebhooksPage = lazy(() => import("./pages/webhooks/WebhooksPage"));
+const OrganizationListPage = lazy(() => import("./pages/organizations/list"));
+const OrganizationDetailsPage = lazy(() => import("./pages/organizations/details"));
+const UsersPage = lazy(() => import("./pages/users/UsersPage"));
+const InvoicesPage = lazy(() => import("./pages/invoices/InvoicesPage"));
+const AuditLogsPage = lazy(() => import("./pages/audit-logs/AuditLogsPage"));
 
-import { InvoicesPage } from "./pages/invoices/InvoicesPage";
-import { AuditLogsPage } from "./pages/audit-logs/AuditLogsPage";
+// Organization detail child views come from the SDK barrel. Each lazy() shares
+// the same `@raystack/frontier/admin` chunk (the module promise is cached), so
+// the admin SDK loads once on the first org route and stays cached after.
+const OrganizationSecurity = lazy(() =>
+  import("@raystack/frontier/admin").then((m) => ({
+    default: m.OrganizationSecurity,
+  })),
+);
+const OrganizationMembersView = lazy(() =>
+  import("@raystack/frontier/admin").then((m) => ({
+    default: m.OrganizationMembersView,
+  })),
+);
+const OrganizationProjectsView = lazy(() =>
+  import("@raystack/frontier/admin").then((m) => ({
+    default: m.OrganizationProjectsView,
+  })),
+);
+const OrganizationInvoicesView = lazy(() =>
+  import("@raystack/frontier/admin").then((m) => ({
+    default: m.OrganizationInvoicesView,
+  })),
+);
+const OrganizationTokensView = lazy(() =>
+  import("@raystack/frontier/admin").then((m) => ({
+    default: m.OrganizationTokensView,
+  })),
+);
+const OrganizationApisView = lazy(() =>
+  import("@raystack/frontier/admin").then((m) => ({
+    default: m.OrganizationApisView,
+  })),
+);
+const OrganizationPatView = lazy(() =>
+  import("@raystack/frontier/admin").then((m) => ({
+    default: m.OrganizationPatView,
+  })),
+);
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
