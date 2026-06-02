@@ -156,7 +156,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
-	// PATs don't get org#member / org#owner — schema disallows app/pat there.
+	// PATs don't get relations.
 	if principalType == schema.PATPrincipal {
 		s.auditOrgMemberAdded(ctx, org, principal, roleID)
 		return nil
@@ -246,7 +246,7 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return err
 	}
 
-	// PATs don't get org#member / org#owner — schema disallows app/pat there.
+	// PATs don't get relations.
 	if principalType == schema.PATPrincipal {
 		s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
 		return nil
