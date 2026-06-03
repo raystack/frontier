@@ -17,4 +17,5 @@ var (
 	ErrScopeMismatch    = errors.New("role does not support the specified scope")
 	ErrRoleNotFound     = errors.New("one or more requested roles do not exist")
 	ErrProjectForbidden = errors.New("user does not have access to one or more specified projects")
+	ErrDuplicateScope   = errors.New("only one role per resource type is allowed")
 )
