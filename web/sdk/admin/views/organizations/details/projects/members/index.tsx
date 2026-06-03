@@ -1,4 +1,4 @@
-import { DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara-v1";
+import { AlertDialog, DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara-v1";
 import type { DataTableQuery } from "@raystack/apsara-v1";
 import { useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -16,7 +16,7 @@ import { useDebouncedState } from "@raystack/apsara-v1/hooks";
 import styles from "./members.module.css";
 import { UsersIcon } from "../../../../../assets/icons/UsersIcon";
 import { getColumns } from "./columns";
-import { AssignRole } from "./assign-role";
+import { UpdateRole, type UpdateRolePayload } from "./update-role";
 import { PROJECT_NAMESPACE } from "../../types";
 import { RemoveMember } from "./remove-member";
 import { AddMembersDropdown } from "./add-members-dropdown";
@@ -42,6 +42,8 @@ const INITIAL_QUERY: DataTableQuery = {
   limit: DEFAULT_PAGE_SIZE,
 };
 
+const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
+
 export const ProjectMembersDialog = ({
   projectId,
   onClose,
@@ -59,11 +61,6 @@ export const ProjectMembersDialog = ({
     },
     200,
   );
-
-  const [assignRoleConfig, setAssignRoleConfig] = useState<{
-    isOpen: boolean;
-    user: SearchProjectUsersResponse_ProjectUser | null;
-  }>({ isOpen: false, user: null });
 
   const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
@@ -153,17 +150,6 @@ export const ProjectMembersDialog = ({
     await refetch();
   }
 
-  const openAssignRoleDialog = useCallback(
-    (user: SearchProjectUsersResponse_ProjectUser) => {
-      setAssignRoleConfig({ isOpen: true, user });
-    },
-    [],
-  );
-
-  const closeAssignRoleDialog = useCallback(() => {
-    setAssignRoleConfig({ isOpen: false, user: null });
-  }, []);
-
   const openRemoveMemberDialog = useCallback(
     (user: SearchProjectUsersResponse_ProjectUser) => {
       setRemoveMemberConfig({ isOpen: true, user });
@@ -179,10 +165,10 @@ export const ProjectMembersDialog = ({
     () =>
       getColumns({
         roles: projectRoles,
-        handleAssignRoleAction: openAssignRoleDialog,
+        updateRoleHandle: updateRoleDialogHandle,
         handleRemoveAction: openRemoveMemberDialog,
       }),
-    [projectRoles, openAssignRoleDialog, openRemoveMemberDialog],
+    [projectRoles, openRemoveMemberDialog],
   );
 
   async function removeMember(user: SearchProjectUsersResponse_ProjectUser) {
@@ -190,9 +176,8 @@ export const ProjectMembersDialog = ({
     setRemoveMemberConfig({ isOpen: false, user: null });
   }
 
-  async function updateMember(user: SearchProjectUsersResponse_ProjectUser) {
+  async function updateMember() {
     await refetch();
-    setAssignRoleConfig({ isOpen: false, user: null });
   }
 
   const loading = isMembersLoading || isFetchingNextPage;
@@ -200,15 +185,11 @@ export const ProjectMembersDialog = ({
 
   return (
     <>
-      {assignRoleConfig.isOpen && assignRoleConfig.user ? (
-        <AssignRole
-          roles={projectRoles}
-          user={assignRoleConfig.user}
-          projectId={projectId}
-          onRoleUpdate={updateMember}
-          onClose={closeAssignRoleDialog}
-        />
-      ) : null}
+      <UpdateRole
+        handle={updateRoleDialogHandle}
+        projectId={projectId}
+        onRoleUpdate={updateMember}
+      />
       {removeMemberConfig.isOpen && removeMemberConfig.user ? (
         <RemoveMember
           projectId={projectId}
