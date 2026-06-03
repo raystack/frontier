@@ -135,6 +135,9 @@ func (h *ConnectHandler) GetOrgIDFromSubscriptionID(ctx context.Context, subscri
 		if errors.Is(err, subscription.ErrNotFound) {
 			return "", connect.NewError(connect.CodeNotFound, err)
 		}
+		if errors.Is(err, subscription.ErrInvalidUUID) || errors.Is(err, subscription.ErrInvalidID) {
+			return "", connect.NewError(connect.CodeInvalidArgument, err)
+		}
 		slog.ErrorContext(ctx, "failed to get subscription for org lookup",
 			"subscription_id", subscriptionID, "error", err)
 		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
@@ -157,6 +160,9 @@ func (h *ConnectHandler) GetOrgIDFromCheckoutID(ctx context.Context, checkoutID 
 	if err != nil {
 		if errors.Is(err, checkout.ErrNotFound) {
 			return "", connect.NewError(connect.CodeNotFound, err)
+		}
+		if errors.Is(err, checkout.ErrInvalidUUID) || errors.Is(err, checkout.ErrInvalidID) {
+			return "", connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		slog.ErrorContext(ctx, "failed to get checkout for org lookup",
 			"checkout_id", checkoutID, "error", err)
