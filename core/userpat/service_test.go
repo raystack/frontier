@@ -897,6 +897,26 @@ func TestService_CreatePolicies_ScopeMatrix(t *testing.T) {
 				{RoleID: "org-viewer-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "granted"},
 			},
 		},
+		{
+			// Both the all-projects pat_granted policy and the org granted policy
+			// land on (org-1, PAT) — SetOrganizationMemberRole must skip the
+			// pat_granted row when replacing existing org policies, otherwise the
+			// project-all-projects access is silently dropped when scopes arrive
+			// in this order.
+			name: "ex5: project all-projects first, then org — order does not drop pat_granted",
+			scopes: []models.PATScope{
+				{RoleID: "proj-owner-id", ResourceType: schema.ProjectNamespace},
+				{RoleID: "org-mgr-id", ResourceType: schema.OrganizationNamespace},
+			},
+			roles: []role.Role{
+				{ID: "proj-owner-id", Name: "app_project_owner", Permissions: []string{"app_project_get", "app_project_update", "app_project_delete"}, Scopes: []string{schema.ProjectNamespace}},
+				{ID: "org-mgr-id", Name: "app_organization_manager", Permissions: []string{"app_organization_get", "app_organization_update"}, Scopes: []string{schema.OrganizationNamespace}},
+			},
+			want: []wantPolicy{
+				{RoleID: "org-mgr-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "granted"},
+				{RoleID: "proj-owner-id", ResourceID: "org-1", ResourceType: schema.OrganizationNamespace, Grant: "pat_granted"},
+			},
+		},
 
 		// ── Duplicate scopes rejected (1 role per resource type) ─────────
 
