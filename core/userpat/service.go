@@ -139,10 +139,9 @@ func (s *Service) Get(ctx context.Context, userID, id string) (patmodels.PAT, er
 	return pat, nil
 }
 
-// Delete soft-deletes the PAT first, then removes its SpiceDB policies
-// (TOCTOU mitigation: stops concurrent Update from re-creating policies).
-// Not gated on config.Enabled — revocation must work after the feature is
-// toggled off and during cascade user-delete.
+// Delete soft-deletes the PAT first, then removes its SpiceDB policies.
+// Soft-delete before policy cleanup prevents concurrent Update from re-creating
+// policies for a deleted PAT (TOCTOU mitigation).
 func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	pat, err := s.repo.GetByID(ctx, id)
 	if err != nil {
