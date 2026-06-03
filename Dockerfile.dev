@@ -23,10 +23,12 @@ COPY --from=admin-builder /app/web/apps/admin/dist /app/web/apps/admin/dist
 RUN make build
 
 # Build the final image
-FROM alpine:3.18
+FROM alpine:3.21
+RUN adduser -D -h /home/frontier frontier
 COPY --from=builder /app/frontier /usr/bin/
 RUN apk update && \
     apk add --no-cache ca-certificates libc6-compat && \
     rm -rf /var/cache/apk/*
 
+USER frontier
 ENTRYPOINT ["frontier"]
