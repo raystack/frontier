@@ -111,6 +111,10 @@ frontier reference
 
 Frontier provides a fully-featured GRPC and HTTP API to interact with Frontier server. Both APIs adheres to a set of standards that are rigidly followed. Please refer to [proton](https://github.com/raystack/proton/tree/main/raystack/frontier/v1beta1) for GRPC API definitions.
 
+#### Web
+
+The web frontend — the admin dashboard, the `@raystack/frontier` JS SDK, and a client demo app — lives in [`web/`](web/README.md). See its [README](web/README.md) for setup and local development.
+
 ## Contribute
 
 Development of Frontier happens on GitHub, and we are grateful to the community for contributing bugfixes and
