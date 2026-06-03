@@ -388,9 +388,6 @@ func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs [
 
 // DeleteUser visits every org the user has a policy on (disabled orgs too),
 // otherwise userService.Delete would leave orphan policy rows behind.
-// PATs are cleaned before the user row is removed: user_pats.user_id is
-// ON DELETE CASCADE, so the user delete would drop the PAT rows but leave
-// their policies and SpiceDB rolebinding tuples behind.
 func (d Service) DeleteUser(ctx context.Context, userID string) error {
 	orgIDs, err := d.membershipService.ListResourcesByPrincipal(ctx, authenticate.Principal{
 		ID:   userID,

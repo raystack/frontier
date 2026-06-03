@@ -408,8 +408,7 @@ func (r UserPATRepository) ListExpiredNoticePending(ctx context.Context) ([]mode
 	return pats, nil
 }
 
-// ListByUser returns all active (non-soft-deleted) PATs for a user across every org.
-// Used by the cascade user delete path to enumerate PATs before cleanup.
+// ListByUser returns all active PATs for a user across every org.
 func (r UserPATRepository) ListByUser(ctx context.Context, userID string) ([]models.PAT, error) {
 	query, params, err := dialect.From(TABLE_USER_PATS).Where(
 		goqu.Ex{"user_id": userID},

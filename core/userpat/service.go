@@ -7,11 +7,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log/slog"
 	"maps"
 	"slices"
 	"time"
-
-	"log/slog"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
@@ -140,13 +139,11 @@ func (s *Service) Get(ctx context.Context, userID, id string) (patmodels.PAT, er
 	return pat, nil
 }
 
-// Delete soft-deletes the PAT first, then removes its SpiceDB policies.
-// Soft-delete before policy cleanup prevents concurrent Update from re-creating
-// policies for a deleted PAT (TOCTOU mitigation).
+// Delete soft-deletes the PAT first, then removes its SpiceDB policies
+// (TOCTOU mitigation: stops concurrent Update from re-creating policies).
+// Not gated on config.Enabled — revocation must work after the feature is
+// toggled off and during cascade user-delete.
 func (s *Service) Delete(ctx context.Context, userID, id string) error {
-	if !s.config.Enabled {
-		return paterrors.ErrDisabled
-	}
 	pat, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
@@ -170,15 +167,8 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	return nil
 }
 
-// DeleteAllByUser removes every PAT owned by the user, reusing the per-PAT
-// Delete cascade so each token's policies and SpiceDB rolebinding tuples are
-// cleaned. Used by the cascade user-delete path; must run before the user row
-// is removed because user_pats.user_id is ON DELETE CASCADE — losing the row
-// would leave the principal_id in policies pointing at nothing.
+// DeleteAllByUser deletes every PAT owned by the user via the per-PAT cascade.
 func (s *Service) DeleteAllByUser(ctx context.Context, userID string) error {
-	if !s.config.Enabled {
-		return nil
-	}
 	pats, err := s.repo.ListByUser(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("listing PATs for user: %w", err)

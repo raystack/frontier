@@ -1772,21 +1772,6 @@ func TestService_Delete(t *testing.T) {
 		wantErrIs error
 	}{
 		{
-			name:   "should return ErrDisabled when PAT feature is disabled",
-			userID: "user-1",
-			patID:  "pat-1",
-			setup: func() *userpat.Service {
-				repo := mocks.NewRepository(t)
-				orgSvc := mocks.NewOrganizationService(t)
-				auditRepo := mocks.NewAuditRecordRepository(t)
-				return userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
-					Enabled: false,
-				}, orgSvc, nil, nil, nil, auditRepo)
-			},
-			wantErr:   true,
-			wantErrIs: paterrors.ErrDisabled,
-		},
-		{
 			name:   "should return ErrNotFound when PAT does not exist",
 			userID: "user-1",
 			patID:  "pat-1",
@@ -1918,15 +1903,6 @@ func TestService_Delete(t *testing.T) {
 }
 
 func TestService_DeleteAllByUser(t *testing.T) {
-	t.Run("no-op when PAT feature is disabled", func(t *testing.T) {
-		repo := mocks.NewRepository(t)
-		// No repo calls expected — strict mock fails on any.
-		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
-			Enabled: false,
-		}, mocks.NewOrganizationService(t), nil, nil, nil, mocks.NewAuditRecordRepository(t))
-		assert.NoError(t, svc.DeleteAllByUser(context.Background(), "user-1"))
-	})
-
 	t.Run("no-op when user has no PATs", func(t *testing.T) {
 		repo := mocks.NewRepository(t)
 		repo.EXPECT().ListByUser(mock.Anything, "user-1").Return(nil, nil)
