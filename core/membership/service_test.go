@@ -711,6 +711,38 @@ func TestService_SetOrganizationMemberRole_PAT(t *testing.T) {
 		err := svc.SetOrganizationMemberRole(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, membership.ErrPrincipalExpired)
 	})
+
+	t.Run("should leave the pat_granted policy untouched when only the granted role changes", func(t *testing.T) {
+		// A PAT can hold both a granted org policy and a pat_granted all-projects
+		// policy on the same org. SetOrganizationMemberRole should only replace
+		// the granted one — the pat_granted policy is project-cascade scope and
+		// must not be wiped as collateral.
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{
+			{ID: "granted-pol", RoleID: oldRoleID, GrantRelation: schema.RoleGrantRelationName},
+			{ID: "pat-granted-pol", RoleID: uuid.New().String(), GrantRelation: schema.PATGrantRelationName},
+		}, nil)
+		// Only the granted policy is deleted; pat-granted-pol stays.
+		mockPolicySvc.EXPECT().Delete(ctx, "granted-pol").Return(nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.MatchedBy(func(p policy.Policy) bool {
+			return p.RoleID == viewerRoleID && p.PrincipalID == patID
+		})).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.SetOrganizationMemberRole(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.NoError(t, err)
+	})
 }
 
 func TestService_RemoveOrganizationMember(t *testing.T) {

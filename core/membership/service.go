@@ -228,6 +228,8 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
+	// drop the PAT's all-projects policy — only the org role should be replaced here.
+	existing = excludePATAllProjects(existing, schema.OrganizationNamespace)
 	if len(existing) == 0 && principalType != schema.PATPrincipal {
 		return ErrNotMember
 	}
@@ -237,7 +239,7 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return nil
 	}
 
-	// only humans can be the last owner — skip for service users and PATs.
+	// only human users can be the last owner — skip for service users and PATs.
 	var ownerRoleID string
 	if principalType == schema.UserPrincipal {
 		ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing)
