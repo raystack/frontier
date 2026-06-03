@@ -1,10 +1,14 @@
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
-import type { RQLRequest, RQLFilter, RQLSort } from "@raystack/proton/frontier";
-import { RQLRequestSchema, RQLFilterSchema, RQLSortSchema } from "@raystack/proton/frontier";
-import { create } from "@bufbuild/protobuf";
+import type { DataTableQuery, DataTableSort } from '@raystack/apsara';
+import type { RQLRequest, RQLFilter, RQLSort } from '@raystack/proton/frontier';
+import {
+  RQLRequestSchema,
+  RQLFilterSchema,
+  RQLSortSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 
 // Extract DataTableFilter type from DataTableQuery since it's not exported
-type DataTableFilter = NonNullable<DataTableQuery["filters"]>[number];
+type DataTableFilter = NonNullable<DataTableQuery['filters']>[number];
 
 export interface TransformOptions {
   /**
@@ -19,16 +23,16 @@ export interface TransformOptions {
 /**
  * Converts a filter value to the appropriate RQLFilter value format
  */
-function convertFilterValue(value: unknown): RQLFilter["value"] {
+function convertFilterValue(value: unknown): RQLFilter['value'] {
   switch (typeof value) {
-    case "boolean":
-      return { case: "boolValue", value };
-    case "number":
-      return { case: "numberValue", value };
-    case "string":
-      return { case: "stringValue", value };
+    case 'boolean':
+      return { case: 'boolValue', value };
+    case 'number':
+      return { case: 'numberValue', value };
+    case 'string':
+      return { case: 'stringValue', value };
     default:
-      return { case: "stringValue", value: value == null ? "" : String(value) };
+      return { case: 'stringValue', value: value == null ? '' : String(value) };
   }
 }
 
@@ -37,17 +41,17 @@ function convertFilterValue(value: unknown): RQLFilter["value"] {
  */
 function transformFilter(
   filter: DataTableFilter,
-  fieldNameMapping?: Record<string, string>,
+  fieldNameMapping?: Record<string, string>
 ): RQLFilter {
   // Priority: typed values > generic value field
-  let value: RQLFilter["value"];
+  let value: RQLFilter['value'];
 
   if (filter.boolValue !== undefined) {
-    value = { case: "boolValue", value: filter.boolValue };
+    value = { case: 'boolValue', value: filter.boolValue };
   } else if (filter.numberValue !== undefined) {
-    value = { case: "numberValue", value: filter.numberValue };
+    value = { case: 'numberValue', value: Number(filter.numberValue) };
   } else if (filter.stringValue !== undefined) {
-    value = { case: "stringValue", value: filter.stringValue };
+    value = { case: 'stringValue', value: filter.stringValue };
   } else {
     value = convertFilterValue(filter.value);
   }
@@ -57,7 +61,7 @@ function transformFilter(
   return create(RQLFilterSchema, {
     name: fieldName,
     operator: filter.operator,
-    value,
+    value
   });
 }
 
@@ -66,27 +70,29 @@ function transformFilter(
  */
 function transformSort(
   sort: DataTableSort[],
-  fieldNameMapping?: Record<string, string>,
+  fieldNameMapping?: Record<string, string>
 ): RQLSort[] | undefined {
   if (!sort || sort.length === 0) {
     return undefined;
   }
 
-  return sort.map((s) => create(RQLSortSchema, {
-    ...s,
-    name: fieldNameMapping?.[s.name] ?? s.name,
-  }));
+  return sort.map(s =>
+    create(RQLSortSchema, {
+      ...s,
+      name: fieldNameMapping?.[s.name] ?? s.name
+    })
+  );
 }
 
 export function transformDataTableQueryToRQLRequest(
   query: DataTableQuery,
-  options: TransformOptions = {},
+  options: TransformOptions = {}
 ): RQLRequest {
   const { defaultLimit = 50, fieldNameMapping } = options;
 
   // Transform DataTable filters
   const filters: RQLFilter[] = query.filters?.length
-    ? query.filters.map((filter) => transformFilter(filter, fieldNameMapping))
+    ? query.filters.map(filter => transformFilter(filter, fieldNameMapping))
     : [];
 
   // Build the RQLRequest with snake_case properties
@@ -96,7 +102,7 @@ export function transformDataTableQueryToRQLRequest(
     offset: query.offset || 0,
     limit: query.limit || defaultLimit,
     sort: transformSort(query.sort || [], fieldNameMapping) || [],
-    search: query.search || "",
+    search: query.search || ''
   });
 
   return rqlRequest;

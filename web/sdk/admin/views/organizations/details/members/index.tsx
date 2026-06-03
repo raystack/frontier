@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
+import { AlertDialog, DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
 import { PageTitle } from "../../../../components/PageTitle";
 import styles from "./members.module.css";
@@ -15,7 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { UsersIcon } from '../../../../assets/icons/UsersIcon';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { OrganizationContext } from '../contexts/organization-context';
-import { AssignRole } from '../../../../components/AssignRole';
+import { UpdateRole, type UpdateRolePayload } from './update-role';
 import { RemoveMember } from './remove-member';
 import {
   getConnectNextPageParam,
@@ -23,6 +23,8 @@ import {
 } from '~/utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebounceValue } from 'usehooks-ts';
+
+const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
 const DEFAULT_SORT: DataTableSort = { name: 'orgJoinedAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -78,10 +80,6 @@ export function OrganizationMembersView() {
 
   const organizationId = organization?.id || "";
 
-  const [assignRoleConfig, setAssignRoleConfig] = useState<{
-    isOpen: boolean;
-    user: SearchOrganizationUsersResponse_OrganizationUser | null;
-  }>({ isOpen: false, user: null });
   const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
     user: SearchOrganizationUsersResponse_OrganizationUser | null;
@@ -124,6 +122,9 @@ export function OrganizationMembersView() {
   );
 
   const data = infiniteData?.pages?.flatMap(page => page.orgUsers) || [];
+  // The backend doesn't send total_count, so rely on the loaded rows. This is
+  // only used to prevent removing the last remaining member.
+  const memberCount = data.length;
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
@@ -144,16 +145,6 @@ export function OrganizationMembersView() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  function openAssignRoleDialog(
-    user: SearchOrganizationUsersResponse_OrganizationUser,
-  ) {
-    setAssignRoleConfig({ isOpen: true, user });
-  }
-
-  function closeAssignRoleDialog() {
-    setAssignRoleConfig({ isOpen: false, user: null });
-  }
-
   function openRemoveMemberDialog(
     user: SearchOrganizationUsersResponse_OrganizationUser,
   ) {
@@ -166,7 +157,8 @@ export function OrganizationMembersView() {
 
   const columns = getColumns({
     roles,
-    handleAssignRoleAction: openAssignRoleDialog,
+    memberCount,
+    updateRoleHandle: updateRoleDialogHandle,
     handleRemoveMemberAction: openRemoveMemberDialog,
   });
 
@@ -182,7 +174,6 @@ export function OrganizationMembersView() {
   }
 
   async function updateMember() {
-    setAssignRoleConfig({ isOpen: false, user: null });
     // Invalidate and refetch the query
     await invalidateMembersQuery();
   }
@@ -197,15 +188,11 @@ export function OrganizationMembersView() {
 
   return (
     <>
-      {assignRoleConfig.isOpen && assignRoleConfig.user ? (
-        <AssignRole
-          roles={roles}
-          user={assignRoleConfig.user}
-          organizationId={organizationId}
-          onRoleUpdate={updateMember}
-          onClose={closeAssignRoleDialog}
-        />
-      ) : null}
+      <UpdateRole
+        handle={updateRoleDialogHandle}
+        organizationId={organizationId}
+        onRoleUpdate={updateMember}
+      />
 
       {removeMemberConfig.isOpen && removeMemberConfig.user ? (
         <RemoveMember

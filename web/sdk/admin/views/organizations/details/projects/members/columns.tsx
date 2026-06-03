@@ -9,18 +9,23 @@ import {
   Flex,
   getAvatarColor,
   Text,
+  AlertDialog,
 } from "@raystack/apsara-v1";
 import type { DataTableColumnDef } from "@raystack/apsara-v1";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { DeleteIcon } from "~/admin/assets/icons/DeleteIcon";
+import type { UpdateRolePayload } from "./update-role";
 
 interface getColumnsOptions {
   roles: Role[];
-  handleAssignRoleAction: (user: SearchProjectUsersResponse_ProjectUser) => void;
+  updateRoleHandle: ReturnType<
+    typeof AlertDialog.createHandle<UpdateRolePayload>
+  >;
   handleRemoveAction: (user: SearchProjectUsersResponse_ProjectUser) => void;
 }
 
 export const getColumns = ({
-  handleAssignRoleAction,
+  updateRoleHandle,
   handleRemoveAction,
   roles = [],
 }: getColumnsOptions): DataTableColumnDef<
@@ -86,6 +91,11 @@ export const getColumns = ({
         cell: styles["table-action-column"],
       },
       cell: ({ row }) => {
+        const userRoleIds = row.original.roleIds || [];
+        // Only offer roles the member doesn't already have.
+        const excludedRoles = roles.filter(
+          (role) => role.id && !userRoleIds.includes(role.id),
+        );
         return (
           <Menu>
             <Menu.Trigger render={<DotsHorizontalIcon />} />
@@ -96,17 +106,34 @@ export const getColumns = ({
               //  @ts-ignore
               portal={false}
             >
+              {excludedRoles.map((role) => (
+                <Menu.Item
+                  key={role.id}
+                  leadingIcon={<UpdateIcon />}
+                  onClick={() =>
+                    updateRoleHandle.openWithPayload({
+                      user: row.original,
+                      role,
+                    })
+                  }
+                  data-test-id={`admin-assign-role-${role.name}-action`}
+                >
+                  Make {role.title}
+                </Menu.Item>
+              ))}
               <Menu.Item
-                onClick={() => handleAssignRoleAction(row.original)}
-                data-test-id="admin-assign-role-action"
-              >
-                Assign role...
-              </Menu.Item>
-              <Menu.Item
+                leadingIcon={
+                  <DeleteIcon
+                    style={{
+                      color: "var(--rs-color-foreground-danger-primary)",
+                    }}
+                  />
+                }
                 onClick={() => handleRemoveAction(row.original)}
                 data-test-id="admin-remove-user-action"
+                style={{ color: "var(--rs-color-foreground-danger-primary)" }}
               >
-                Remove user...
+                Remove user
               </Menu.Item>
             </Menu.Content>
           </Menu>

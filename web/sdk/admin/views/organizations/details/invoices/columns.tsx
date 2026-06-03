@@ -1,4 +1,3 @@
-import { NULL_DATE } from "../../../../utils/constants";
 import styles from "./invoices.module.css";
 import dayjs from "dayjs";
 import { DataTableColumnDef, Link, Amount } from "@raystack/apsara-v1";
@@ -32,65 +31,65 @@ export const getColumns = ({
   SearchOrganizationInvoicesResponse_OrganizationInvoice,
   unknown
 >[] => [
-  {
-    accessorKey: "createdAt",
-    header: "Billed on",
-    classNames: {
-      cell: styles["first-column"],
-      header: styles["first-column"],
+    {
+      accessorKey: "createdAt",
+      header: "Billed on",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
+      cell: ({ getValue }) => {
+        const value = getValue() as TimeStamp;
+        const date = isNullTimestamp(value)
+          ? "-"
+          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+        return date;
+      },
+      enableSorting: true,
+      enableColumnFilter: true,
+      filterType: "date",
     },
-    cell: ({ getValue }) => {
-      const value = getValue() as TimeStamp;
-      const date = isNullTimestamp(value)
-        ? "-"
-        : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
-      return date;
+    {
+      accessorKey: "state",
+      header: "Status",
+      cell: ({ getValue }) => {
+        const value = getValue() as InvoiceStatusKey;
+        return InvoiceStatusesMap[value];
+      },
+      enableColumnFilter: true,
+      filterType: "select",
+      filterOptions: Object.entries(InvoiceStatusesMap).map(([key, value]) => ({
+        label: value,
+        value: key,
+      })),
+      enableGrouping: true,
+      groupLabelsMap: InvoiceStatusesMap,
+      showGroupCount: true,
+      groupCountMap: groupCountMap["state"] || {},
+      enableHiding: true,
     },
-    enableSorting: true,
-    enableColumnFilter: true,
-    filterType: "date",
-  },
-  {
-    accessorKey: "state",
-    header: "Status",
-    cell: ({ getValue }) => {
-      const value = getValue() as InvoiceStatusKey;
-      return InvoiceStatusesMap[value];
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ getValue, row }) => {
+        const value = Number(getValue());
+        return <Amount value={value} currency={row.original.currency} />;
+      },
+      enableSorting: true,
+      enableHiding: true,
+      enableColumnFilter: true,
+      filterType: "number",
     },
-    enableColumnFilter: true,
-    filterType: "select",
-    filterOptions: Object.entries(InvoiceStatusesMap).map(([key, value]) => ({
-      label: value,
-      value: key,
-    })),
-    enableGrouping: true,
-    groupLabelsMap: InvoiceStatusesMap,
-    showGroupCount: true,
-    groupCountMap: groupCountMap["state"] || {},
-    enableHiding: true,
-  },
-  {
-    accessorKey: "amount",
-    header: "Amount",
-    cell: ({ getValue, row }) => {
-      const value = Number(getValue());
-      return <Amount value={value} currency={row.original.currency} />;
+    {
+      accessorKey: "invoiceLink",
+      header: "",
+      cell: ({ getValue }) => {
+        const value = getValue() as string;
+        return (
+          <Link href={value} target="_blank" data-test-id="invoice-link">
+            View Invoice
+          </Link>
+        );
+      },
     },
-    enableSorting: true,
-    enableHiding: true,
-    enableColumnFilter: true,
-    filterType: "number",
-  },
-  {
-    accessorKey: "invoiceLink",
-    header: "",
-    cell: ({ getValue }) => {
-      const value = getValue() as string;
-      return (
-        <Link href={value} target="_blank" data-test-id="invoice-link">
-          View Invoice
-        </Link>
-      );
-    },
-  },
-];
+  ];
