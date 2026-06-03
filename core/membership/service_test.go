@@ -400,6 +400,31 @@ func TestService_AddOrganizationMember_PAT(t *testing.T) {
 		err := svc.AddOrganizationMember(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
 		assert.ErrorIs(t, err, membership.ErrInvalidPrincipal)
 	})
+
+	t.Run("should allow adding an org role to a PAT that has only a pat_granted policy", func(t *testing.T) {
+		// PAT holds only an all-projects (pat_granted) policy. AddOrganizationMember
+		// should not treat that as existing org membership.
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockOrgSvc := mocks.NewOrgService(t)
+		mockPATSvc := mocks.NewUserPATService(t)
+		mockAuditRepo := mocks.NewAuditRecordRepository(t)
+
+		mockOrgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+		mockPATSvc.EXPECT().GetByID(ctx, patID).Return(activePAT, nil)
+		mockRoleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: patID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{
+			{ID: "pat-granted-pol", RoleID: uuid.New().String(), GrantRelation: schema.PATGrantRelationName},
+		}, nil)
+		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mockAuditRepo)
+		svc.SetUserPATService(mockPATSvc)
+		err := svc.AddOrganizationMember(ctx, orgID, patID, schema.PATPrincipal, viewerRoleID)
+		assert.NoError(t, err)
+	})
 }
 
 func TestService_SetOrganizationMemberRole(t *testing.T) {

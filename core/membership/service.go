@@ -147,6 +147,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
+	existing = excludePATAllProjects(existing, schema.OrganizationNamespace)
 	if len(existing) > 0 {
 		return ErrAlreadyMember
 	}
