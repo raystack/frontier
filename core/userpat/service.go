@@ -43,10 +43,12 @@ type RoleService interface {
 	List(ctx context.Context, f role.Filter) ([]role.Role, error)
 }
 
-type PolicyService interface {
-	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
-	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
-	Delete(ctx context.Context, id string) error
+type MembershipService interface {
+	SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error
+	SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleID string) error
+	SetProjectMemberRole(ctx context.Context, projectID, principalID, principalType, roleID string) error
+	RemoveAllPATPolicies(ctx context.Context, patID string) error
+	ListPoliciesByPrincipal(ctx context.Context, principalID, principalType string) ([]policy.Policy, error)
 }
 
 type ProjectService interface {
@@ -63,21 +65,22 @@ type Service struct {
 	logger                *slog.Logger
 	orgService            OrganizationService
 	roleService           RoleService
-	policyService         PolicyService
+	membershipService     MembershipService
 	projectService        ProjectService
 	auditRecordRepository AuditRecordRepository
 	deniedPerms           map[string]struct{}
 }
 
 func NewService(logger *slog.Logger, repo Repository, config Config, orgService OrganizationService,
-	roleService RoleService, policyService PolicyService, projectService ProjectService, auditRecordRepository AuditRecordRepository) *Service {
+	roleService RoleService, membershipService MembershipService,
+	projectService ProjectService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repo:                  repo,
 		config:                config,
 		logger:                logger,
 		orgService:            orgService,
 		roleService:           roleService,
-		policyService:         policyService,
+		membershipService:     membershipService,
 		projectService:        projectService,
 		auditRecordRepository: auditRecordRepository,
 		deniedPerms:           config.DeniedPermissionsSet(),
@@ -156,7 +159,7 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 		return fmt.Errorf("soft deleting PAT: %w", err)
 	}
 
-	if err := s.deletePolicies(ctx, id); err != nil {
+	if err := s.membershipService.RemoveAllPATPolicies(ctx, id); err != nil {
 		return fmt.Errorf("deleting policies: %w", err)
 	}
 
@@ -232,6 +235,9 @@ func (s *Service) Update(ctx context.Context, toUpdate patmodels.PAT) (patmodels
 	if err != nil {
 		return patmodels.PAT{}, err
 	}
+	if !existing.ExpiresAt.After(time.Now()) {
+		return patmodels.PAT{}, paterrors.ErrExpired
+	}
 
 	if err := s.validateScopes(ctx, toUpdate.Scopes); err != nil {
 		return patmodels.PAT{}, err
@@ -291,7 +297,7 @@ func (s *Service) captureOldScope(ctx context.Context, pat *patmodels.PAT) (stri
 // replacePolicies deletes existing policies and creates new ones from scopes.
 // Re-checks PAT existence after delete to guard against concurrent soft-delete.
 func (s *Service) replacePolicies(ctx context.Context, patID, orgID string, scopes []patmodels.PATScope) error {
-	if err := s.deletePolicies(ctx, patID); err != nil {
+	if err := s.membershipService.RemoveAllPATPolicies(ctx, patID); err != nil {
 		return fmt.Errorf("deleting old policies: %w", err)
 	}
 
@@ -315,24 +321,6 @@ func (s *Service) auditUpdate(ctx context.Context, updated patmodels.PAT, toUpda
 	}); err != nil {
 		s.logger.ErrorContext(ctx, "failed to create audit record for PAT update", "pat_id", toUpdate.ID, "error", err)
 	}
-}
-
-// deletePolicies removes all SpiceDB policies associated with a PAT.
-// Each policy.Delete call removes SpiceDB relations first, then hard-deletes the Postgres policy row.
-func (s *Service) deletePolicies(ctx context.Context, patID string) error {
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		PrincipalID:   patID,
-		PrincipalType: schema.PATPrincipal,
-	})
-	if err != nil {
-		return fmt.Errorf("listing policies for PAT %s: %w", patID, err)
-	}
-	for _, pol := range policies {
-		if err := s.policyService.Delete(ctx, pol.ID); err != nil {
-			return fmt.Errorf("deleting policy %s: %w", pol.ID, err)
-		}
-	}
-	return nil
 }
 
 // Create generates a new PAT and returns it with the plaintext value.
@@ -475,6 +463,7 @@ func (s *Service) validateScopes(ctx context.Context, scopes []patmodels.PATScop
 		roleMap[r.ID] = r
 	}
 
+	seen := make(map[string]bool, len(scopes))
 	for _, sc := range scopes {
 		if !slices.Contains(supportedPATResourceTypes, sc.ResourceType) {
 			return fmt.Errorf("resource type %s: %w", sc.ResourceType, paterrors.ErrUnsupportedScope)
@@ -483,6 +472,10 @@ func (s *Service) validateScopes(ctx context.Context, scopes []patmodels.PATScop
 		if !slices.Contains(r.Scopes, sc.ResourceType) {
 			return fmt.Errorf("role %s does not support resource type %s: %w", sc.RoleID, sc.ResourceType, paterrors.ErrScopeMismatch)
 		}
+		if seen[sc.ResourceType] {
+			return fmt.Errorf("resource type %s: %w", sc.ResourceType, paterrors.ErrDuplicateScope)
+		}
+		seen[sc.ResourceType] = true
 	}
 	return nil
 }
@@ -526,17 +519,25 @@ func (s *Service) validateProjectAccess(ctx context.Context, userID, orgID strin
 	return nil
 }
 
-// createPolicies creates SpiceDB policies from pre-validated scopes.
+// createPolicies writes the PAT's scopes via the membership package.
 func (s *Service) createPolicies(ctx context.Context, patID, orgID string, scopes []patmodels.PATScope) error {
 	for _, sc := range scopes {
 		switch sc.ResourceType {
 		case schema.OrganizationNamespace:
-			if err := s.createOrgScopedPolicy(ctx, patID, orgID, sc.RoleID); err != nil {
-				return err
+			if err := s.membershipService.SetOrganizationMemberRole(ctx, orgID, patID, schema.PATPrincipal, sc.RoleID); err != nil {
+				return fmt.Errorf("set org role: %w", err)
 			}
 		case schema.ProjectNamespace:
-			if err := s.createProjectScopedPolicies(ctx, patID, orgID, sc.RoleID, sc.ResourceIDs); err != nil {
-				return err
+			if len(sc.ResourceIDs) == 0 {
+				if err := s.membershipService.SetPATAllProjectsRole(ctx, orgID, patID, sc.RoleID); err != nil {
+					return fmt.Errorf("set all-projects role: %w", err)
+				}
+				continue
+			}
+			for _, pid := range sc.ResourceIDs {
+				if err := s.membershipService.SetProjectMemberRole(ctx, pid, patID, schema.PATPrincipal, sc.RoleID); err != nil {
+					return fmt.Errorf("set project role on %s: %w", pid, err)
+				}
 			}
 		default:
 			return fmt.Errorf("unsupported resource type %s: %w", sc.ResourceType, paterrors.ErrUnsupportedScope)
@@ -606,51 +607,10 @@ func (s *Service) validateRolePermissions(roles []role.Role) error {
 	return nil
 }
 
-// createPATPolicy creates a single SpiceDB policy for a PAT.
-func (s *Service) createPATPolicy(ctx context.Context, patID, roleID, resourceID, resourceType, grantRelation string) error {
-	if _, err := s.policyService.Create(ctx, policy.Policy{
-		RoleID:        roleID,
-		ResourceID:    resourceID,
-		ResourceType:  resourceType,
-		PrincipalID:   patID,
-		PrincipalType: schema.PATPrincipal,
-		GrantRelation: grantRelation,
-	}); err != nil {
-		s.logger.Error("failed to create PAT policy",
-			"pat_id", patID, "role_id", roleID, "resource_id", resourceID,
-			"resource_type", resourceType, "grant_relation", grantRelation, "error", err)
-		return err
-	}
-	return nil
-}
-
-// createOrgScopedPolicy creates a policy on the org with the default "granted" relation.
-func (s *Service) createOrgScopedPolicy(ctx context.Context, patID, orgID, roleID string) error {
-	return s.createPATPolicy(ctx, patID, roleID, orgID, schema.OrganizationNamespace, schema.RoleGrantRelationName)
-}
-
-// createProjectScopedPolicies creates policies for a project-scoped role.
-// If resourceIDs is empty, it creates a single policy on the org with "pat_granted" relation
-// (cascades to all projects). Otherwise, it creates one policy per project with default "granted".
-func (s *Service) createProjectScopedPolicies(ctx context.Context, patID, orgID, roleID string, resourceIDs []string) error {
-	if len(resourceIDs) == 0 {
-		return s.createPATPolicy(ctx, patID, roleID, orgID, schema.OrganizationNamespace, schema.PATGrantRelationName)
-	}
-	for _, resourceID := range resourceIDs {
-		if err := s.createPATPolicy(ctx, patID, roleID, resourceID, schema.ProjectNamespace, schema.RoleGrantRelationName); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // enrichWithScope derives scopes from the PAT's policies.
 // Groups policies by role ID + resource type to reconstruct PATScope entries.
 func (s *Service) enrichWithScope(ctx context.Context, pat *patmodels.PAT) error {
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		PrincipalID:   pat.ID,
-		PrincipalType: schema.PATPrincipal,
-	})
+	policies, err := s.membershipService.ListPoliciesByPrincipal(ctx, pat.ID, schema.PATPrincipal)
 	if err != nil {
 		return fmt.Errorf("listing policies for PAT %s: %w", pat.ID, err)
 	}

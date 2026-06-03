@@ -35,7 +35,8 @@ func (h *ConnectHandler) getLoggedInPrincipalWithUser(ctx context.Context) (*aut
 // mapPATError maps PAT service errors to Connect RPC error codes.
 func mapPATError(err error) *connect.Error {
 	switch {
-	case errors.Is(err, paterrors.ErrDisabled):
+	case errors.Is(err, paterrors.ErrDisabled),
+		errors.Is(err, paterrors.ErrExpired):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
 	case errors.Is(err, paterrors.ErrNotFound):
 		return connect.NewError(connect.CodeNotFound, err)
@@ -47,6 +48,7 @@ func mapPATError(err error) *connect.Error {
 		errors.Is(err, paterrors.ErrDeniedRole),
 		errors.Is(err, paterrors.ErrUnsupportedScope),
 		errors.Is(err, paterrors.ErrScopeMismatch),
+		errors.Is(err, paterrors.ErrDuplicateScope),
 		errors.Is(err, paterrors.ErrProjectForbidden),
 		errors.Is(err, paterrors.ErrExpiryInPast),
 		errors.Is(err, paterrors.ErrExpiryExceeded):
