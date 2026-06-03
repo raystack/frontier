@@ -313,6 +313,51 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_MultipleTokens() {
 	s.Equal(int64(3), count)
 }
 
+func (s *UserPATRepositoryTestSuite) TestListByUser_ReturnsActivePATsAcrossOrgs() {
+	s.truncateTokens()
+
+	created := make(map[string]bool)
+	for _, spec := range []struct {
+		user, org, title, hash string
+	}{
+		{s.users[0].ID, s.orgs[0].ID, "u0-o0-a", "hashU0O0A"},
+		{s.users[0].ID, s.orgs[1].ID, "u0-o1-a", "hashU0O1A"},
+		{s.users[1].ID, s.orgs[0].ID, "u1-o0-a", "hashU1O0A"},
+	} {
+		pat, err := s.repository.Create(s.ctx, models.PAT{
+			UserID:     spec.user,
+			OrgID:      spec.org,
+			Title:      spec.title,
+			SecretHash: spec.hash,
+			ExpiresAt:  time.Now().Add(24 * time.Hour),
+		})
+		s.Require().NoError(err)
+		if spec.user == s.users[0].ID {
+			created[pat.ID] = true
+		}
+	}
+
+	// Soft-delete one of user[0]'s tokens — ListByUser must skip it.
+	for id := range created {
+		s.Require().NoError(s.repository.Delete(s.ctx, id))
+		delete(created, id)
+		break
+	}
+
+	got, err := s.repository.ListByUser(s.ctx, s.users[0].ID)
+	s.Require().NoError(err)
+	s.Require().Len(got, 1)
+	s.Equal(s.users[0].ID, got[0].UserID)
+}
+
+func (s *UserPATRepositoryTestSuite) TestListByUser_EmptyWhenNoTokens() {
+	s.truncateTokens()
+
+	got, err := s.repository.ListByUser(s.ctx, s.users[0].ID)
+	s.Require().NoError(err)
+	s.Empty(got)
+}
+
 func TestUserPATRepository(t *testing.T) {
 	suite.Run(t, new(UserPATRepositoryTestSuite))
 }

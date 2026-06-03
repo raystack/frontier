@@ -23,6 +23,7 @@ import (
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/sha3"
 )
@@ -1914,6 +1915,79 @@ func TestService_Delete(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestService_DeleteAllByUser(t *testing.T) {
+	t.Run("no-op when PAT feature is disabled", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		// No repo calls expected — strict mock fails on any.
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, userpat.Config{
+			Enabled: false,
+		}, mocks.NewOrganizationService(t), nil, nil, nil, mocks.NewAuditRecordRepository(t))
+		assert.NoError(t, svc.DeleteAllByUser(context.Background(), "user-1"))
+	})
+
+	t.Run("no-op when user has no PATs", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().ListByUser(mock.Anything, "user-1").Return(nil, nil)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig,
+			mocks.NewOrganizationService(t), nil, nil, nil, mocks.NewAuditRecordRepository(t))
+		assert.NoError(t, svc.DeleteAllByUser(context.Background(), "user-1"))
+	})
+
+	t.Run("returns error when repo list fails", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().ListByUser(mock.Anything, "user-1").Return(nil, errors.New("db down"))
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig,
+			mocks.NewOrganizationService(t), nil, nil, nil, mocks.NewAuditRecordRepository(t))
+		err := svc.DeleteAllByUser(context.Background(), "user-1")
+		assert.ErrorContains(t, err, "listing PATs for user")
+		assert.ErrorContains(t, err, "db down")
+	})
+
+	t.Run("deletes every PAT, cleaning policies and recording audit per PAT", func(t *testing.T) {
+		pats := []models.PAT{
+			{ID: "pat-1", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
+			{ID: "pat-2", UserID: "user-1", OrgID: "org-2", Title: "t2", ExpiresAt: time.Now().Add(time.Hour)},
+		}
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().ListByUser(mock.Anything, "user-1").Return(pats, nil)
+		repo.EXPECT().GetByID(mock.Anything, "pat-1").Return(pats[0], nil)
+		repo.EXPECT().GetByID(mock.Anything, "pat-2").Return(pats[1], nil)
+		repo.EXPECT().Delete(mock.Anything, "pat-1").Return(nil)
+		repo.EXPECT().Delete(mock.Anything, "pat-2").Return(nil)
+
+		membershipSvc := mocks.NewMembershipService(t)
+		membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-1").Return(nil)
+		membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-2").Return(nil)
+
+		orgSvc := mocks.NewOrganizationService(t)
+		orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+			Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+		auditRepo := mocks.NewAuditRecordRepository(t)
+		auditRepo.On("Create", mock.Anything, mock.Anything).
+			Return(auditmodels.AuditRecord{}, nil).Maybe()
+
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig,
+			orgSvc, nil, membershipSvc, nil, auditRepo)
+		assert.NoError(t, svc.DeleteAllByUser(context.Background(), "user-1"))
+	})
+
+	t.Run("aborts the cascade when a per-PAT delete fails", func(t *testing.T) {
+		pats := []models.PAT{
+			{ID: "pat-bad", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
+		}
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().ListByUser(mock.Anything, "user-1").Return(pats, nil)
+		repo.EXPECT().GetByID(mock.Anything, "pat-bad").Return(pats[0], nil)
+		repo.EXPECT().Delete(mock.Anything, "pat-bad").Return(errors.New("delete boom"))
+
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig,
+			mocks.NewOrganizationService(t), nil, mocks.NewMembershipService(t), nil, mocks.NewAuditRecordRepository(t))
+		err := svc.DeleteAllByUser(context.Background(), "user-1")
+		assert.ErrorContains(t, err, "deleting PAT[pat-bad]")
+		assert.ErrorContains(t, err, "delete boom")
+	})
 }
 
 func TestService_Update(t *testing.T) {

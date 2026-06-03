@@ -170,6 +170,27 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	return nil
 }
 
+// DeleteAllByUser removes every PAT owned by the user, reusing the per-PAT
+// Delete cascade so each token's policies and SpiceDB rolebinding tuples are
+// cleaned. Used by the cascade user-delete path; must run before the user row
+// is removed because user_pats.user_id is ON DELETE CASCADE — losing the row
+// would leave the principal_id in policies pointing at nothing.
+func (s *Service) DeleteAllByUser(ctx context.Context, userID string) error {
+	if !s.config.Enabled {
+		return nil
+	}
+	pats, err := s.repo.ListByUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("listing PATs for user: %w", err)
+	}
+	for _, pat := range pats {
+		if err := s.Delete(ctx, userID, pat.ID); err != nil {
+			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
+		}
+	}
+	return nil
+}
+
 // Regenerate creates a new secret and updates the expiry for an existing PAT.
 // Scope (roles + projects) and policies are preserved. Expired PATs can be
 // regenerated; if reviving one, checks the active count limit.

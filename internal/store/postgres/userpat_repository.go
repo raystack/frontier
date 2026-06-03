@@ -408,6 +408,33 @@ func (r UserPATRepository) ListExpiredNoticePending(ctx context.Context) ([]mode
 	return pats, nil
 }
 
+// ListByUser returns all active (non-soft-deleted) PATs for a user across every org.
+// Used by the cascade user delete path to enumerate PATs before cleanup.
+func (r UserPATRepository) ListByUser(ctx context.Context, userID string) ([]models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).Where(
+		goqu.Ex{"user_id": userID},
+		goqu.Ex{"deleted_at": nil},
+	).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	var rows []UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListByUser", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
+	}
+	pats := make([]models.PAT, 0, len(rows))
+	for _, m := range rows {
+		pat, err := m.transform()
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, pat)
+	}
+	return pats, nil
+}
+
 func (r UserPATRepository) SetAlertSentMetadata(ctx context.Context, id string, key string) error {
 	now := time.Now().UTC().Format(time.RFC3339)
 	query, params, err := dialect.Update(TABLE_USER_PATS).
