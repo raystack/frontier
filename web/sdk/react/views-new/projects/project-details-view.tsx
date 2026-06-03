@@ -421,7 +421,7 @@ export function ProjectDetailsView({
                 data-test-id="frontier-sdk-remove-member-btn"
                 style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
               >
-                Remove from project
+                Remove
               </Menu.Item>
             </Menu.Content>
           );

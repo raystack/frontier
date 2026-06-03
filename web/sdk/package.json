@@ -107,7 +107,7 @@
     "@connectrpc/connect-query": "2.1.1",
     "@connectrpc/connect-web": "2.1.1",
     "@hookform/resolvers": "^3.10.0",
-    "@raystack/apsara-v1": "npm:@raystack/apsara@1.0.0-rc.9",
+    "@raystack/apsara-v1": "npm:@raystack/apsara@1.0.0-rc.12",
     "@raystack/proton": "0.1.0-859ba765e6cfd44736ddcf42664b742fe7fd916e",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-router": "^1.168.3",
