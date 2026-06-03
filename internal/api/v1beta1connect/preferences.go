@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/preference"
@@ -20,7 +21,7 @@ func (h *ConnectHandler) ListPreferences(ctx context.Context, req *connect.Reque
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListPreferences", err)
-		return nil, handlePreferenceError(err)
+		return nil, handlePreferenceError(ctx, err)
 	}
 
 	var pbPrefs []*frontierv1beta1.Preference
@@ -47,7 +48,7 @@ func (h *ConnectHandler) CreatePreferences(ctx context.Context, req *connect.Req
 			errorLogger.LogServiceError(ctx, req, "CreatePreferences", err,
 				"preference_name", prefBody.GetName(),
 				"preference_value", prefBody.GetValue())
-			return nil, handlePreferenceError(err)
+			return nil, handlePreferenceError(ctx, err)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -78,7 +79,7 @@ func (h *ConnectHandler) CreateOrganizationPreferences(ctx context.Context, req 
 				"organization_id", req.Msg.GetId(),
 				"preference_name", prefBody.GetName(),
 				"preference_value", prefBody.GetValue())
-			return nil, handlePreferenceError(err)
+			return nil, handlePreferenceError(ctx, err)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -102,7 +103,7 @@ func (h *ConnectHandler) ListOrganizationPreferences(ctx context.Context, req *c
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListOrganizationPreferences", err,
 			"organization_id", req.Msg.GetId())
-		return nil, handlePreferenceError(err)
+		return nil, handlePreferenceError(ctx, err)
 	}
 
 	var pbPrefs []*frontierv1beta1.Preference
@@ -133,7 +134,7 @@ func (h *ConnectHandler) CreateUserPreferences(ctx context.Context, req *connect
 				"user_id", req.Msg.GetId(),
 				"preference_name", prefBody.GetName(),
 				"preference_value", prefBody.GetValue())
-			return nil, handlePreferenceError(err)
+			return nil, handlePreferenceError(ctx, err)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -163,7 +164,7 @@ func (h *ConnectHandler) ListUserPreferences(ctx context.Context, req *connect.R
 	if err != nil {
 		errorLogger.LogServiceError(ctx, req, "ListUserPreferences", err,
 			"user_id", req.Msg.GetId())
-		return nil, handlePreferenceError(err)
+		return nil, handlePreferenceError(ctx, err)
 	}
 
 	var pbPrefs []*frontierv1beta1.Preference
@@ -201,7 +202,7 @@ func (h *ConnectHandler) CreateCurrentUserPreferences(ctx context.Context, req *
 				"principal_type", principal.Type,
 				"preference_name", prefBody.GetName(),
 				"preference_value", prefBody.GetValue())
-			return nil, handlePreferenceError(err)
+			return nil, handlePreferenceError(ctx, err)
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
@@ -238,7 +239,7 @@ func (h *ConnectHandler) ListCurrentUserPreferences(ctx context.Context, req *co
 		errorLogger.LogServiceError(ctx, req, "ListCurrentUserPreferences", err,
 			"principal_id", principal.ID,
 			"principal_type", principal.Type)
-		return nil, handlePreferenceError(err)
+		return nil, handlePreferenceError(ctx, err)
 	}
 
 	var pbPrefs []*frontierv1beta1.Preference
@@ -322,7 +323,7 @@ func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.Prefer
 	return pbTrait
 }
 
-func handlePreferenceError(err error) *connect.Error {
+func handlePreferenceError(ctx context.Context, err error) *connect.Error {
 	switch {
 	case errors.Is(err, preference.ErrInvalidFilter):
 		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidPreferenceFilter)
@@ -333,6 +334,7 @@ func handlePreferenceError(err error) *connect.Error {
 	case errors.Is(err, preference.ErrInvalidScope):
 		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidPreferenceScope)
 	default:
+		slog.ErrorContext(ctx, "unhandled preference error", "error", err)
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 }

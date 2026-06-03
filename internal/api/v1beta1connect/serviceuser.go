@@ -504,12 +504,9 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 		resourceIds := utils.Map(projList, func(res project.Project) string {
 			return res.ID
 		})
-		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions())
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions(),
+			errorLogger, request, "ListServiceUserProjects")
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "ListServiceUserProjects.FetchAccessPairs", err,
-				"service_user_id", serviceUserID,
-				"org_id", orgID,
-				"with_permissions", request.Msg.GetWithPermissions())
 			return nil, err
 		}
 		permsByProject := map[string][]string{}

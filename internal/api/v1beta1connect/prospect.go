@@ -227,6 +227,8 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 	subsStatus := frontierv1beta1.Prospect_Status_name[int32(reqStatus)] // convert using proto methods
 	metaDataMap, err := buildAndValidateMetadata(request.Msg.GetMetadata().AsMap(), h)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateProspect.buildAndValidateMetadata", err,
+			"prospect_id", prospectId)
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	updatedProspect, err := h.prospectService.Update(ctx, prospect.Prospect{

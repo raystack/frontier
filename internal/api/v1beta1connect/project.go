@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -69,7 +70,7 @@ func (h *ConnectHandler) CreateProject(ctx context.Context, request *connect.Req
 		errorLogger.LogServiceError(ctx, request, "CreateProject", err,
 			"project_name", request.Msg.GetBody().GetName(),
 			"org_id", request.Msg.GetBody().GetOrgId())
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 
 	projectPB, err := transformProjectToPB(newProject)
@@ -89,7 +90,7 @@ func (h *ConnectHandler) GetProject(ctx context.Context, request *connect.Reques
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "GetProject", err,
 			"project_id", projectID)
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 
 	projectPB, err := transformProjectToPB(fetchedProject)
@@ -120,7 +121,7 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 		errorLogger.LogServiceError(ctx, request, "UpdateProject", err,
 			"project_id", request.Msg.GetId(),
 			"project_name", request.Msg.GetBody().GetName())
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 
 	projectPB, err := transformProjectToPB(updatedProject)
@@ -141,7 +142,7 @@ func (h *ConnectHandler) ListProjectAdmins(ctx context.Context, request *connect
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.Get", err,
 			"project_id", projectID)
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 
 	ownerRole, err := h.roleService.Get(ctx, project.OwnerRole)
@@ -192,7 +193,7 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectUsers.Get", err,
 			"project_id", projectID)
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
@@ -255,7 +256,7 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.Get", err,
 			"project_id", projectID)
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
@@ -321,7 +322,7 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "ListProjectGroups.Get", err,
 			"project_id", projectID)
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
@@ -387,7 +388,7 @@ func (h *ConnectHandler) EnableProject(ctx context.Context, request *connect.Req
 	if err := h.projectService.Enable(ctx, projectID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "EnableProject", err,
 			"project_id", projectID)
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 	return connect.NewResponse(&frontierv1beta1.EnableProjectResponse{}), nil
 }
@@ -399,7 +400,7 @@ func (h *ConnectHandler) DisableProject(ctx context.Context, request *connect.Re
 	if err := h.projectService.Disable(ctx, projectID); err != nil {
 		errorLogger.LogServiceError(ctx, request, "DisableProject", err,
 			"project_id", projectID)
-		return nil, translateProjectServiceError(err)
+		return nil, translateProjectServiceError(ctx, err)
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableProjectResponse{}), nil
 }
@@ -503,7 +504,7 @@ func transformProjectToPB(prj project.Project) (*frontierv1beta1.Project, error)
 	}, nil
 }
 
-func translateProjectServiceError(err error) error {
+func translateProjectServiceError(ctx context.Context, err error) error {
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail):
 		return connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
@@ -514,6 +515,7 @@ func translateProjectServiceError(err error) error {
 	case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
 		return connect.NewError(connect.CodeNotFound, ErrNotFound)
 	default:
+		slog.ErrorContext(ctx, "unhandled project service error", "error", err)
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 }

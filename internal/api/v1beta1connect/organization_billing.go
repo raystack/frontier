@@ -69,7 +69,7 @@ func (h *ConnectHandler) ExportOrganizations(ctx context.Context, request *conne
 		errorLogger.LogServiceError(ctx, request, "ExportOrganizations.Export", err)
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return streamBytesInChunks(orgBillingDataBytes, contentType, stream)
+	return streamBytesInChunks(ctx, orgBillingDataBytes, contentType, stream)
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {

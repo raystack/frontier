@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
@@ -96,10 +97,10 @@ func (h *ConnectHandler) ExportOrganizationUsers(ctx context.Context, request *c
 			"org_id", request.Msg.GetId())
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return streamBytesInChunks(orgUsersDataBytes, contentType, stream)
+	return streamBytesInChunks(ctx, orgUsersDataBytes, contentType, stream)
 }
 
-func streamBytesInChunks(data []byte, contentType string, stream *connect.ServerStream[httpbody.HttpBody]) error {
+func streamBytesInChunks(ctx context.Context, data []byte, contentType string, stream *connect.ServerStream[httpbody.HttpBody]) error {
 	chunkSize := 1024 * 200 // 200KB
 	for i := 0; i < len(data); i += chunkSize {
 		end := min(i+chunkSize, len(data))
@@ -111,6 +112,7 @@ func streamBytesInChunks(data []byte, contentType string, stream *connect.Server
 		}
 
 		if err := stream.Send(msg); err != nil {
+			slog.ErrorContext(ctx, "failed to send chunk in stream", "error", err)
 			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 	}

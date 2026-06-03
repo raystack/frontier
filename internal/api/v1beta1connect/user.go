@@ -544,12 +544,10 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 		resourceIds := utils.Map(groupsList, func(res group.Group) string {
 			return res.ID
 		})
-		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.GroupNamespace, resourceIds, request.Msg.GetWithPermissions())
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.GroupNamespace, resourceIds, request.Msg.GetWithPermissions(),
+			errorLogger, request, "ListCurrentUserGroups")
 		if err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "ListCurrentUserGroups", err,
-				"principal_id", principal.ID,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, err
 		}
 		permsByGroup := map[string][]string{}
 		groupOrder := make([]string, 0, len(groupsList))
@@ -665,7 +663,7 @@ func (h *ConnectHandler) ExportUsers(ctx context.Context, request *connect.Reque
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	return streamBytesInChunks(userDataBytes, contentType, stream)
+	return streamBytesInChunks(ctx, userDataBytes, contentType, stream)
 }
 
 func (h *ConnectHandler) SearchUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchUsersRequest]) (*connect.Response[frontierv1beta1.SearchUsersResponse], error) {
@@ -943,13 +941,10 @@ func (h *ConnectHandler) ListProjectsByCurrentUser(ctx context.Context, request 
 		resourceIds := utils.Map(projList, func(res project.Project) string {
 			return res.ID
 		})
-		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions())
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.Msg.GetWithPermissions(),
+			errorLogger, request, "ListProjectsByCurrentUser")
 		if err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "ListProjectsByCurrentUser", err,
-				"principal_id", principal.ID,
-				"principal_type", principal.Type,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, err
 		}
 		// Group permissions by project id, emit one access pair per project in
 		// first-seen order. successCheckPairs is unique by (resID, permName) so

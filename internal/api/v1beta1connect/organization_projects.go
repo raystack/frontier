@@ -92,5 +92,5 @@ func (h *ConnectHandler) ExportOrganizationProjects(ctx context.Context, request
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	return streamBytesInChunks(orgProjectsDataBytes, contentType, stream)
+	return streamBytesInChunks(ctx, orgProjectsDataBytes, contentType, stream)
 }

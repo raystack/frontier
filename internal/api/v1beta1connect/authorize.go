@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/checkout"
@@ -49,7 +50,7 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 			"permission", permission,
 			"subject_namespace", currentUser.Type,
 			"subject_id", currentUser.ID)
-		return handleAuthErr(err)
+		return handleAuthErr(ctx, err)
 	}
 	if result {
 		return nil
@@ -74,7 +75,7 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 				"subject_namespace", currentUser.Type,
 				"subject_id", str.GenerateUserSlug(currentUser.User.Email),
 				"user_email", currentUser.User.Email)
-			return handleAuthErr(checkErr)
+			return handleAuthErr(ctx, checkErr)
 		}
 		if result2 {
 			return nil
@@ -84,7 +85,7 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 	return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 }
 
-func handleAuthErr(err error) error {
+func handleAuthErr(ctx context.Context, err error) error {
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
 		return connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
@@ -93,6 +94,7 @@ func handleAuthErr(err error) error {
 		errors.Is(err, resource.ErrNotExist):
 		return connect.NewError(connect.CodeNotFound, ErrNotFound)
 	default:
+		slog.ErrorContext(ctx, "unhandled auth error", "error", err)
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 }

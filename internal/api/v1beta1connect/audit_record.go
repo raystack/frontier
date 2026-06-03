@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"slices"
 
 	"connectrpc.com/connect"
@@ -196,7 +197,7 @@ func (h *ConnectHandler) ExportAuditRecords(ctx context.Context, request *connec
 		}
 	}
 	// Stream the data using io.Reader
-	return streamReaderInChunks(reader, contentType, stream)
+	return streamReaderInChunks(ctx, reader, contentType, stream)
 }
 
 func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.CreateAuditRecordResponse, error) {
@@ -264,7 +265,7 @@ func TransformAuditRecordToPB(record auditrecord.AuditRecord) (*frontierv1beta1.
 }
 
 // streamReaderInChunks reads from io.Reader and streams data in HTTP-friendly chunks
-func streamReaderInChunks(reader io.Reader, contentType string, stream *connect.ServerStream[httpbody.HttpBody]) error {
+func streamReaderInChunks(ctx context.Context, reader io.Reader, contentType string, stream *connect.ServerStream[httpbody.HttpBody]) error {
 	buffer := make([]byte, HttpChunkSize)
 
 	for {
@@ -273,6 +274,7 @@ func streamReaderInChunks(reader io.Reader, contentType string, stream *connect.
 			break
 		}
 		if err != nil {
+			slog.ErrorContext(ctx, "failed to read chunk for streaming", "error", err)
 			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		if n > 0 {
@@ -281,6 +283,7 @@ func streamReaderInChunks(reader io.Reader, contentType string, stream *connect.
 				Data:        buffer[:n],
 			}
 			if sendErr := stream.Send(msg); sendErr != nil {
+				slog.ErrorContext(ctx, "failed to send chunk in stream", "error", sendErr)
 				return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 			}
 		}

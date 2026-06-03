@@ -2,9 +2,15 @@ package v1beta1connect
 
 import (
 	"context"
+	"log/slog"
 
+	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/api"
+	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 )
 
@@ -126,35 +132,61 @@ func (h *ConnectHandler) GetBillingAccountFromOrgID(ctx context.Context, orgID s
 func (h *ConnectHandler) GetOrgIDFromSubscriptionID(ctx context.Context, subscriptionID string) (string, error) {
 	sub, err := h.subscriptionService.GetByID(ctx, subscriptionID)
 	if err != nil {
-		return "", err
+		if errors.Is(err, subscription.ErrNotFound) {
+			return "", connect.NewError(connect.CodeNotFound, err)
+		}
+		slog.ErrorContext(ctx, "failed to get subscription for org lookup",
+			"subscription_id", subscriptionID, "error", err)
+		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	// Get the billing account (customer) to find the org
-	customer, err := h.customerService.GetByID(ctx, sub.CustomerID)
+	cust, err := h.customerService.GetByID(ctx, sub.CustomerID)
 	if err != nil {
-		return "", err
+		if errors.Is(err, customer.ErrNotFound) {
+			return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
+		}
+		slog.ErrorContext(ctx, "failed to get billing account for org lookup",
+			"customer_id", sub.CustomerID, "subscription_id", subscriptionID, "error", err)
+		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return customer.OrgID, nil
+	return cust.OrgID, nil
 }
 
 // GetOrgIDFromCheckoutID returns the organization ID for a given checkout
 func (h *ConnectHandler) GetOrgIDFromCheckoutID(ctx context.Context, checkoutID string) (string, error) {
-	checkout, err := h.checkoutService.GetByID(ctx, checkoutID)
+	co, err := h.checkoutService.GetByID(ctx, checkoutID)
 	if err != nil {
-		return "", err
+		if errors.Is(err, checkout.ErrNotFound) {
+			return "", connect.NewError(connect.CodeNotFound, err)
+		}
+		slog.ErrorContext(ctx, "failed to get checkout for org lookup",
+			"checkout_id", checkoutID, "error", err)
+		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	// Get the billing account (customer) to find the org
-	customer, err := h.customerService.GetByID(ctx, checkout.CustomerID)
+	cust, err := h.customerService.GetByID(ctx, co.CustomerID)
 	if err != nil {
-		return "", err
+		if errors.Is(err, customer.ErrNotFound) {
+			return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
+		}
+		slog.ErrorContext(ctx, "failed to get billing account for org lookup",
+			"customer_id", co.CustomerID, "checkout_id", checkoutID, "error", err)
+		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return customer.OrgID, nil
+	return cust.OrgID, nil
 }
 
 // GetOrgIDFromBillingAccountID returns the organization ID for a given billing account
 func (h *ConnectHandler) GetOrgIDFromBillingAccountID(ctx context.Context, billingAccountID string) (string, error) {
-	customer, err := h.customerService.GetByID(ctx, billingAccountID)
+	cust, err := h.customerService.GetByID(ctx, billingAccountID)
 	if err != nil {
-		return "", err
+		if errors.Is(err, customer.ErrNotFound) {
+			return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
+		}
+		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
+			return "", connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		slog.ErrorContext(ctx, "failed to get billing account for org lookup",
+			"billing_account_id", billingAccountID, "error", err)
+		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
-	return customer.OrgID, nil
+	return cust.OrgID, nil
 }

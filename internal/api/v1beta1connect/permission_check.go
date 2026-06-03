@@ -27,9 +27,13 @@ func logAuditForCheck(ctx context.Context, result bool, objectID string, objectN
 	})
 }
 
-func (h *ConnectHandler) getPermissionName(ctx context.Context, ns, name string) (string, error) {
+func (h *ConnectHandler) getPermissionName(ctx context.Context, ns, name string,
+	errorLogger *ErrorLogger, request connect.AnyRequest, operation string,
+) (string, error) {
 	resolved, ok, err := h.resolvePermissionName(ctx, ns, name)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, operation+".getPermissionName", err,
+			"namespace", ns, "permission_name", name)
 		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	if !ok {
@@ -73,7 +77,8 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission())
+	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission(),
+		errorLogger, req, "CheckFederatedResourcePermission")
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +100,7 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 			"subject_id", principalID,
 			"subject_namespace", principalNamespace,
 			"permission", permissionName)
-		return nil, handleAuthErr(err)
+		return nil, handleAuthErr(ctx, err)
 	}
 
 	logAuditForCheck(ctx, result, objectID, objectNamespace)
@@ -105,7 +110,9 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 	return connect.NewResponse(&frontierv1beta1.CheckFederatedResourcePermissionResponse{Status: true}), nil
 }
 
-func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace string, ids, permissions []string) ([]relation.CheckPair, error) {
+func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace string, ids, permissions []string,
+	errorLogger *ErrorLogger, request connect.AnyRequest, operation string,
+) ([]relation.CheckPair, error) {
 	// Resolve each requested permission once, dropping unknown names and
 	// duplicate inputs. Unknown names produce an empty result rather than
 	// 4xx/5xx — see the contract on resolvePermissionName.
@@ -114,6 +121,8 @@ func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectN
 	for _, p := range permissions {
 		resolved, ok, err := h.resolvePermissionName(ctx, objectNamespace, p)
 		if err != nil {
+			errorLogger.LogServiceError(ctx, request, operation+".resolvePermissionName", err,
+				"namespace", objectNamespace, "permission", p)
 			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 		}
 		if !ok {
@@ -143,6 +152,9 @@ func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectN
 	}
 	checkPairs, err := h.resourceService.BatchCheck(ctx, checks)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, operation+".BatchCheck", err,
+			"namespace", objectNamespace, "id_count", len(ids),
+			"permission_count", len(resolvedPerms))
 		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 	// remove all the failed checks
@@ -163,7 +175,8 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission())
+	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission(),
+		errorLogger, req, "CheckResourcePermission")
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +192,7 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 			"object_id", objectID,
 			"object_namespace", objectNamespace,
 			"permission", permissionName)
-		return nil, handleAuthErr(err)
+		return nil, handleAuthErr(ctx, err)
 	}
 
 	logAuditForCheck(ctx, result, objectID, objectNamespace)
@@ -199,7 +212,8 @@ func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
 
-		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.GetPermission())
+		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.GetPermission(),
+			errorLogger, req, "BatchCheckPermission")
 		if err != nil {
 			return nil, err
 		}

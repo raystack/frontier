@@ -80,5 +80,5 @@ func (h *ConnectHandler) ExportOrganizationTokens(ctx context.Context, request *
 		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
 	}
 
-	return streamBytesInChunks(orgTokensDataBytes, contentType, stream)
+	return streamBytesInChunks(ctx, orgTokensDataBytes, contentType, stream)
 }
