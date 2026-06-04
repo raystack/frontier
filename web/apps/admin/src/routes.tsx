@@ -13,8 +13,22 @@ import MagicLink from "./containers/magiclink";
 import AuthLayout from "./layout/auth";
 
 import { AppContext } from "./contexts/App";
-// useAdminPaths is a hook called during render, so it must stay a static import.
-import { useAdminPaths } from "@raystack/frontier/admin";
+// Static imports from the SDK barrel. `useAdminPaths` is a hook used during
+// render. The organization-detail child views are imported eagerly too: they
+// come from the `@raystack/frontier/admin` barrel, which is already pinned into
+// the initial chunk (the app shell imports from it), so wrapping them in
+// React.lazy produced no separate chunk — only Suspense churn. Lazy loading is
+// kept on the app-owned page files below, which DO split into their own chunks.
+import {
+  useAdminPaths,
+  OrganizationSecurity,
+  OrganizationMembersView,
+  OrganizationProjectsView,
+  OrganizationInvoicesView,
+  OrganizationTokensView,
+  OrganizationApisView,
+  OrganizationPatView,
+} from "@raystack/frontier/admin";
 
 // Lazily-loaded route pages — each becomes its own async chunk, so the heavy
 // admin code stays out of the initial/unauthenticated bundle. The pages are
@@ -31,45 +45,6 @@ const OrganizationDetailsPage = lazy(() => import("./pages/organizations/details
 const UsersPage = lazy(() => import("./pages/users/UsersPage"));
 const InvoicesPage = lazy(() => import("./pages/invoices/InvoicesPage"));
 const AuditLogsPage = lazy(() => import("./pages/audit-logs/AuditLogsPage"));
-
-// Organization detail child views come from the SDK barrel. Each lazy() shares
-// the same `@raystack/frontier/admin` chunk (the module promise is cached), so
-// the admin SDK loads once on the first org route and stays cached after.
-const OrganizationSecurity = lazy(() =>
-  import("@raystack/frontier/admin").then((m) => ({
-    default: m.OrganizationSecurity,
-  })),
-);
-const OrganizationMembersView = lazy(() =>
-  import("@raystack/frontier/admin").then((m) => ({
-    default: m.OrganizationMembersView,
-  })),
-);
-const OrganizationProjectsView = lazy(() =>
-  import("@raystack/frontier/admin").then((m) => ({
-    default: m.OrganizationProjectsView,
-  })),
-);
-const OrganizationInvoicesView = lazy(() =>
-  import("@raystack/frontier/admin").then((m) => ({
-    default: m.OrganizationInvoicesView,
-  })),
-);
-const OrganizationTokensView = lazy(() =>
-  import("@raystack/frontier/admin").then((m) => ({
-    default: m.OrganizationTokensView,
-  })),
-);
-const OrganizationApisView = lazy(() =>
-  import("@raystack/frontier/admin").then((m) => ({
-    default: m.OrganizationApisView,
-  })),
-);
-const OrganizationPatView = lazy(() =>
-  import("@raystack/frontier/admin").then((m) => ({
-    default: m.OrganizationPatView,
-  })),
-);
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
