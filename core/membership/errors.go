@@ -15,4 +15,5 @@ var (
 	ErrInvalidResourceType  = errors.New("unsupported resource type")
 	ErrInvalidGroupRole     = errors.New("role is not valid for group scope")
 	ErrLastGroupOwnerRole   = errors.New("cannot change role: this is the last owner of the group")
+	ErrPrincipalExpired     = errors.New("principal has expired")
 )

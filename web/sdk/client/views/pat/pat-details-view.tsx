@@ -52,6 +52,9 @@ import styles from './pat-details-view.module.css';
 
 dayjs.extend(relativeTime);
 
+const EXPIRED_TOOLTIP_MESSAGE =
+  'This token has expired. Please regenerate it before proceeding.';
+
 const updatePATDialogHandle = Dialog.createHandle();
 const regenerateDialogHandle = Dialog.createHandle<RegeneratePayload>();
 const patCreatedDialogHandle = Dialog.createHandle<PATCreatedPayload>();
@@ -203,14 +206,18 @@ export function PATDetailsView({
     return d ? d.format(dateFormat) : '';
   }, [pat, dateFormat]);
 
+  const isExpired = useMemo(() => {
+    const expires = timestampToDayjs(pat?.expiresAt);
+    return expires ? expires.isBefore(dayjs()) : false;
+  }, [pat]);
+
   const { expiryInfo, currentExpiryValue } = useMemo(() => {
     const reference = getExpiryReferenceDayjs(pat);
     const expires = timestampToDayjs(pat?.expiresAt);
     if (!reference || !expires)
       return { expiryInfo: '', currentExpiryValue: '' };
-    const days = expires.diff(reference, 'day');
     return {
-      expiryInfo: `${expires.format(dateFormat)} (${days} Days)`,
+      expiryInfo: `${expires.format(dateFormat)} (${expires.fromNow()})`,
       currentExpiryValue: getExpiryOptionValue(reference, expires)
     };
   }, [pat, dateFormat]);
@@ -263,13 +270,27 @@ export function PATDetailsView({
             <DotsHorizontalIcon />
           </Menu.Trigger>
           <Menu.Content align="start" className={styles.menuContent}>
-            <Menu.Item
-              leadingIcon={<Pencil1Icon />}
-              onClick={() => updatePATDialogHandle.open(null)}
-              data-test-id="frontier-sdk-pat-update-menu-btn"
-            >
-              Update
-            </Menu.Item>
+            <Tooltip>
+              <Tooltip.Trigger disabled={!isExpired} render={<span />}>
+                <Menu.Item
+                  leadingIcon={<Pencil1Icon />}
+                  onClick={() => updatePATDialogHandle.open(null)}
+                  disabled={isExpired}
+                  data-test-id="frontier-sdk-pat-update-menu-btn"
+                >
+                  Update
+                </Menu.Item>
+              </Tooltip.Trigger>
+              {isExpired && (
+                <Tooltip.Content
+                  side="right"
+                  align="center"
+                  className={styles.expiredTooltip}
+                >
+                  {EXPIRED_TOOLTIP_MESSAGE}
+                </Tooltip.Content>
+              )}
+            </Tooltip>
             <Menu.Item
               leadingIcon={<UpdateIcon />}
               onClick={() =>
@@ -313,15 +334,29 @@ export function PATDetailsView({
               <Text size="regular" weight="medium">
                 General
               </Text>
-              <Button
-                variant="outline"
-                color="neutral"
-                size="small"
-                onClick={() => updatePATDialogHandle.open(null)}
-                data-test-id="frontier-sdk-pat-update-btn"
-              >
-                Update
-              </Button>
+              <Tooltip>
+                <Tooltip.Trigger disabled={!isExpired} render={<span />}>
+                  <Button
+                    variant="outline"
+                    color="neutral"
+                    size="small"
+                    onClick={() => updatePATDialogHandle.open(null)}
+                    disabled={isExpired}
+                    data-test-id="frontier-sdk-pat-update-btn"
+                  >
+                    Update
+                  </Button>
+                </Tooltip.Trigger>
+                {isExpired && (
+                  <Tooltip.Content
+                    side="top"
+                    align="end"
+                    className={styles.expiredTooltip}
+                  >
+                    {EXPIRED_TOOLTIP_MESSAGE}
+                  </Tooltip.Content>
+                )}
+              </Tooltip>
             </Flex>
             <Flex direction="column" gap={5}>
               {createdOn && <DetailRow label="Created on:">{createdOn}</DetailRow>}
