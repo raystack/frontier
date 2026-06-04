@@ -8,14 +8,14 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist/**/*",
-    "react/dist/**/*",
+    "client/dist/**/*",
     "hooks/dist/**/*",
     "admin/dist/**/*",
     "README.md"
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup react/index.ts --watch --ignore-watch react/dist",
+    "dev": "tsup client/index.ts --watch --ignore-watch client/dist",
     "size": "size-limit",
     "lint": "eslint \"./**/*.ts*\" --ignore-pattern \"*.d.ts\" --ignore-pattern \"*.test.ts\"",
     "bump-version": "node scripts/bump-version.js",
@@ -46,10 +46,10 @@
       "require": "./dist/index.js"
     },
     "./client": {
-      "types": "./react/dist/index.d.ts",
-      "import": "./react/dist/index.mjs",
-      "module": "./react/dist/index.mjs",
-      "require": "./react/dist/index.js"
+      "types": "./client/dist/index.d.ts",
+      "import": "./client/dist/index.mjs",
+      "module": "./client/dist/index.mjs",
+      "require": "./client/dist/index.js"
     },
     "./hooks": {
       "types": "./hooks/dist/index.d.ts",

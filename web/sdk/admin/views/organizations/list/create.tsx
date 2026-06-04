@@ -13,7 +13,7 @@ import {
   Text,
 } from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { ImageUpload } from "../../../../react/components/image-upload";
+import { ImageUpload } from "~/client/components/image-upload";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

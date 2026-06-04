@@ -14,10 +14,10 @@ export default defineConfig(() => [
     format: ['cjs', 'esm'],
     dts: true
   },
-  // React APIs
+  // Client APIs
   {
-    entry: ['react/index.ts'],
-    outDir: 'react/dist',
+    entry: ['client/index.ts'],
+    outDir: 'client/dist',
     banner: {
       js: "'use client'"
     },
