@@ -5,7 +5,7 @@ import {
   Separator,
   IconButton,
   Spinner,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import styles from "./list.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import UserIcon from "../../../assets/icons/UsersIcon";

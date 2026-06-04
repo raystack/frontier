@@ -15,7 +15,7 @@ import {
   Button,
   Text,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { SCOPES } from "~/admin/utils/constants";
 
 export type UpdateRolePayload = {

@@ -1,4 +1,4 @@
-import { Dialog, IconButton, CodeBlock } from "@raystack/apsara-v1";
+import { Dialog, IconButton, CodeBlock } from "@raystack/apsara";
 import styles from "./audit-logs.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
 import { auditLogToJson } from "./util";

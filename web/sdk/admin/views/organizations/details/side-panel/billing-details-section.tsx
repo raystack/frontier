@@ -1,4 +1,4 @@
-import { Amount, CopyButton, Flex, Link, List, Text } from "@raystack/apsara-v1";
+import { Amount, CopyButton, Flex, Link, List, Text } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { convertBillingAddressToString } from "../../../../utils/helper";
 import Skeleton from "react-loading-skeleton";

@@ -6,6 +6,10 @@
   padding: var(--rs-space-10);
 }
 
+.zero-state {
+  padding-top: var(--rs-space-17);
+}
+
 .empty-state-subheading {
   max-width: 360px;
   text-wrap: auto;

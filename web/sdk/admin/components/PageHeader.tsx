@@ -1,5 +1,5 @@
 import type { CSSProperties, PropsWithChildren, ReactNode } from "react";
-import { Flex, Text } from "@raystack/apsara-v1";
+import { Flex, Text } from "@raystack/apsara";
 import styles from "./page-header.module.css";
 
 export type PageHeaderTypes = {

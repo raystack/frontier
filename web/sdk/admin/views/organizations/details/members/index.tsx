@@ -1,5 +1,5 @@
-import { AlertDialog, DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
+import { AlertDialog, DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { PageTitle } from "../../../../components/PageTitle";
 import styles from "./members.module.css";
 import { useContext, useEffect, useMemo, useState } from "react";

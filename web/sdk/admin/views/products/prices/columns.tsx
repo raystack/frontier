@@ -1,6 +1,6 @@
 import type { Price as PriceType } from "@raystack/proton/frontier";
-import { Amount } from "@raystack/apsara-v1";
-import type { DataTableColumnDef } from "@raystack/apsara-v1";
+import { Amount } from "@raystack/apsara";
+import type { DataTableColumnDef } from "@raystack/apsara";
 import { timestampToDate, TimeStamp } from "../../../utils/connect-timestamp";
 import styles from "./prices.module.css";
 

@@ -6,8 +6,8 @@ import {
   Separator,
   IconButton,
   Spinner,
-} from "@raystack/apsara-v1";
-import { OrganizationIcon } from "@raystack/apsara-v1/icons";
+} from "@raystack/apsara";
+import { OrganizationIcon } from "@raystack/apsara/icons";
 import styles from "./list.module.css";
 import {
   DownloadIcon,

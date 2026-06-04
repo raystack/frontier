@@ -5,7 +5,7 @@ import {
   Skeleton,
   Tabs,
   Text,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { useQuery } from "@connectrpc/connect-query";
 import {
   FrontierServiceQueries,

@@ -1,4 +1,4 @@
-import { Flex, Text, Grid } from "@raystack/apsara-v1";
+import { Flex, Text, Grid } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
 import { timestampToDate } from "../../utils/connect-timestamp";
 

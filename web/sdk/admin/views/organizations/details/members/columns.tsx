@@ -7,7 +7,7 @@ import {
   Menu,
   IconButton,
   AlertDialog,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
   Role,

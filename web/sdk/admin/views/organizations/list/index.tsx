@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara-v1";
-import { OrganizationIcon } from "@raystack/apsara-v1/icons";
+import { DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
+import { OrganizationIcon } from "@raystack/apsara/icons";
 import { useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
@@ -23,7 +23,7 @@ import {
 } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useDebouncedState } from "@raystack/apsara-v1/hooks";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 import { useTerminology } from "../../../hooks/useTerminology";
 
 const NoOrganizations = () => {

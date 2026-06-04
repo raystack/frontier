@@ -8,7 +8,7 @@ import {
   getAvatarColor,
   Text,
   Tooltip,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import type {
   SearchOrganizationTokensResponse_OrganizationToken,
 } from "@raystack/proton/frontier";

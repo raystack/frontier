@@ -1,4 +1,4 @@
-import { Badge, DataTableColumnDef, Flex, Text } from "@raystack/apsara-v1";
+import { Badge, DataTableColumnDef, Flex, Text } from "@raystack/apsara";
 import dayjs from "dayjs";
 import styles from "./audit-logs.module.css";
 import {

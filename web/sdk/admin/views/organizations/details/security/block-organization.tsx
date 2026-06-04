@@ -1,4 +1,4 @@
-import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara";
 import { useContext, useState } from "react";
 import { OrganizationStatus } from "../types";
 import { OrganizationContext } from "../contexts/organization-context";
