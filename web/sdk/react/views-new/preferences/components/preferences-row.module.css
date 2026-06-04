@@ -1,6 +1,10 @@
 .row {
   padding: var(--rs-space-7) 0;
-  border-bottom: 1px dashed var(--rs-color-border-base-primary);
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+}
+
+.row:last-child {
+  border-bottom: none;
 }
 .content {
   flex: 1;

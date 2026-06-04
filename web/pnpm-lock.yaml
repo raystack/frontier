@@ -55,8 +55,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.2(react@19.2.4)
       '@raystack/apsara':
-        specifier: 1.0.0-rc.9
-        version: 1.0.0-rc.9(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@raystack/frontier':
         specifier: workspace:^
         version: link:../../sdk
@@ -161,8 +161,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.2(react@19.2.4)
       '@raystack/apsara':
-        specifier: 1.0.0-rc.9
-        version: 1.0.0-rc.9(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@raystack/frontier':
         specifier: workspace:^
         version: link:../../sdk
@@ -222,8 +222,8 @@ importers:
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.71.2(react@19.2.4))
       '@raystack/apsara-v1':
-        specifier: npm:@raystack/apsara@1.0.0-rc.9
-        version: '@raystack/apsara@1.0.0-rc.9(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)'
+        specifier: npm:@raystack/apsara@1.0.0-rc.12
+        version: '@raystack/apsara@1.0.0-rc.12(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)'
       '@raystack/proton':
         specifier: 0.1.0-859ba765e6cfd44736ddcf42664b742fe7fd916e
         version: 0.1.0-859ba765e6cfd44736ddcf42664b742fe7fd916e(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2230,8 +2230,8 @@ packages:
       '@types/react':
         optional: true
 
-  '@raystack/apsara@1.0.0-rc.9':
-    resolution: {integrity: sha512-RucfY0H0eoVmP594gYWltvmqUicqNPpiH2VPL4EWWhXIsj69NuZXu3i2lvUK7pvgGpRJmkzIg6AdiEhwdxj0pQ==}
+  '@raystack/apsara@1.0.0-rc.12':
+    resolution: {integrity: sha512-WzL7HD8YMyyhs7zM80V3wm/bxxHTmhNYsi563nPddMtASi51KyyeT0G2CLLTl0mw89XppHp9fjeEM5WsHSOE/g==}
     engines: {node: '>=22'}
     peerDependencies:
       '@types/react': ^19
@@ -9535,7 +9535,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react-dom'
 
-  '@raystack/apsara@1.0.0-rc.9(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@raystack/apsara@1.0.0-rc.12(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@base-ui/react': 1.4.1(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@base-ui/utils': 0.2.8(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)

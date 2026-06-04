@@ -21,3 +21,7 @@
 .callout {
   width: 100%;
 }
+
+.expiredTooltip {
+  max-width: 220px;
+}
